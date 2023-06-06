@@ -44,12 +44,23 @@ public:
 	}
 };
 
+class message_desc_text : public scrollable_text {
+public:
+	void on_create(sys::state& state) noexcept override {
+		scrollable_text::on_create(state);
+		base_data.size.x = 500 - (base_data.position.x * 2);
+		base_data.size.y = 18 * 5;
+		delegate->base_data.size = base_data.size;
+		text_scrollbar->scale_to_parent();
+	}
+};
+
 class message_window : public window_element_base {
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 
 	multiline_text_element_base* title_text = nullptr;
-	multiline_text_element_base* desc_text = nullptr;
+	message_desc_text* desc_text = nullptr;
 
 public:
 	std::vector<notification::message> messages;
@@ -82,12 +93,17 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "header") {
-			auto ptr = make_element_by_type<multiline_text_element_base>(state, id);
-			title_text = ptr.get();
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "line1") {
 			auto ptr = make_element_by_type<multiline_text_element_base>(state, id);
-			ptr->base_data.size.y *= 6;
+			ptr->base_data.size.x = base_data.size.x - (ptr->base_data.position.x * 2);
+			ptr->base_data.size.y = 22;
+			title_text = ptr.get();
+			return ptr;
+		} else if(name == "line3") {
+			auto ptr = make_element_by_type<message_desc_text>(state, id);
 			desc_text = ptr.get();
 			return ptr;
 		} else if(name.substr(0, 4) == "line") {
@@ -126,18 +142,18 @@ public:
 			else if(index < 0)
 				index = int32_t(messages.size()) - 1;
 
-			count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
+			count_text->set_text(state, std::to_string(int32_t(index) + 1) + "/" + std::to_string(int32_t(messages.size())));
 
 			auto const& m = messages[index];
 
 			auto title_container = text::create_endless_layout(
 				title_text->internal_layout,
-				text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y, title_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white
+				text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y, title_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black
 			});
 			m.title(state, title_container);
 			auto desc_container = text::create_endless_layout(
-				desc_text->internal_layout,
-				text::layout_parameters{0, 0, desc_text->base_data.size.x, desc_text->base_data.size.y, desc_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white
+				desc_text->delegate->internal_layout,
+				text::layout_parameters{0, 0, desc_text->delegate->base_data.size.x, desc_text->delegate->base_data.size.y, desc_text->delegate->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white
 			});
 			m.body(state, desc_container);
 		}

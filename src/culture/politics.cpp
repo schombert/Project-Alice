@@ -555,12 +555,12 @@ void start_election(sys::state& state, dcon::nation_id n) {
 		notification::message m;
 		m.type = sys::message_setting_type::electionstart;
 		m.primary = n;
-		m.title = [&](sys::state& state, text::layout_base& layout) {
+		m.title = [=](sys::state& state, text::layout_base& layout) {
 			auto box = text::open_layout_box(layout);
 			text::localised_single_sub_box(state, layout, box, std::string_view("electionstart_header"), text::variable_type::country, n);
 			text::close_layout_box(layout, box);
 		};
-		m.body = [&](sys::state& state, text::layout_base& layout) {
+		m.body = [=](sys::state& state, text::layout_base& layout) {
 			auto box = text::open_layout_box(layout);
 			text::substitution_map sub{};
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
