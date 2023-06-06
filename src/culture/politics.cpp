@@ -581,7 +581,7 @@ void start_election(sys::state& state, dcon::nation_id n) {
 			text::localised_format_box(state, contents, box, std::string_view("electionstart_6"), sub);
 			text::close_layout_box(contents, box);
 		};
-		notification::post(state, m);
+		notification::post(state, notification::message{ m });
 	}
 }
 

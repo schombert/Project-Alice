@@ -216,6 +216,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.provincial_event_window->set_visible(*this, true);
 		if(!static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.empty())
 			ui_state.request_window->set_visible(*this, true);
+		if(!static_cast<ui::message_window*>(ui_state.msg_window)->messages.empty())
+			ui_state.msg_window->set_visible(*this, true);
 
 		ui_state.root->impl_on_update(*this);
 		map_mode::update_map_mode(*this);
