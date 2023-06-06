@@ -819,8 +819,27 @@ void update_cbs(sys::state& state) {
 			*/
 			auto target = n.get_constructing_cb_target();
 			if(military::are_at_war(state, n, target) || state.world.nation_get_owned_province_count(target) == 0 || !cb_conditions_satisfied(state, n, target, n.get_constructing_cb_type())) {
+				if(n == state.local_player_nation) {
+					dcon::nation_id target = n.get_constructing_cb_target();
+					dcon::cb_type_id cbt = n.get_constructing_cb_type();
 
-				// TODO: notify player
+					notification::message m;
+					m.type = sys::message_setting_type::cb_justify_no_longer_valid;
+					m.primary = n;
+					m.title = [=](sys::state& state, text::layout_base& layout) {
+						text::substitution_map sub{};
+						text::add_to_substitution_map(sub, text::variable_type::target, target);
+						text::add_to_substitution_map(sub, text::variable_type::casus, text::produce_simple_string(state, state.world.cb_type_get_name(cbt)));
+						TEXT_NOTIF_MSG_TITLE(cb_justify_no_longer_valid);
+					};
+					m.body = [=](sys::state& state, text::layout_base& layout) {
+						text::substitution_map sub{};
+						text::add_to_substitution_map(sub, text::variable_type::target, target);
+						text::add_to_substitution_map(sub, text::variable_type::casus, text::produce_simple_string(state, state.world.cb_type_get_name(cbt)));
+						TEXT_NOTIF_MSG_BODY(cb_justify_no_longer_valid);
+					};
+					notification::post(state, notification::message{ m });
+				}
 
 				n.set_constructing_cb_is_discovered(false);
 				n.set_constructing_cb_progress(0.0f);
@@ -1405,10 +1424,27 @@ dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_ge
 }
 
 void kill_leader(sys::state& state, dcon::leader_id l) {
-	// TODO: notify?
 	/*
 	the player only gets leader death messages if the leader is currently assigned to an army or navy (assuming the message setting for it is turned on).
 	*/
+	if(state.world.leader_get_nation_from_leader_loyalty(l) == state.local_player_nation) {
+		if(state.world.leader_get_army_from_army_leadership(l) || state.world.leader_get_navy_from_navy_leadership(l)) {
+			notification::message m;
+			m.type = sys::message_setting_type::leaderdied;
+			m.primary = state.world.leader_get_nation_from_leader_loyalty(l);
+			m.title = [=](sys::state& state, text::layout_base& layout) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::name, std::string(state.to_string_view(state.world.leader_get_name(l))));
+				TEXT_NOTIF_MSG_TITLE(leaderdied);
+			};
+			m.body = [=](sys::state& state, text::layout_base& layout) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::name, std::string(state.to_string_view(state.world.leader_get_name(l))));
+				TEXT_NOTIF_MSG_BODY(leaderdied);
+			};
+			notification::post(state, notification::message{ m });
+		}
+	}
 
 	state.world.delete_leader(l);
 }

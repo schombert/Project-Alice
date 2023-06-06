@@ -766,7 +766,25 @@ void update_reasearch(sys::state& state, uint32_t current_year) {
 				if(n.get_research_points() >= cost) {
 					n.get_research_points() -= cost;
 					apply_technology(state, n, n.get_current_research());
-					// TODO: notify player
+
+					if(n == state.local_player_nation) {
+						dcon::technology_id t = n.get_current_research();
+						notification::message m;
+						m.type = sys::message_setting_type::tech;
+						m.primary = n;
+						m.title = [=](sys::state& state, text::layout_base& layout) {
+							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::type, text::produce_simple_string(state, state.world.technology_get_name(t)));
+							TEXT_NOTIF_MSG_TITLE(tech_once);
+						};
+						m.body = [=](sys::state& state, text::layout_base& layout) {
+							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::type, text::produce_simple_string(state, state.world.technology_get_name(t)));
+							TEXT_NOTIF_MSG_BODY(tech_once);
+						};
+						notification::post(state, notification::message{ m });
+					}
+
 					n.set_current_research(dcon::technology_id{});
 				}
 			}
@@ -793,7 +811,23 @@ void discover_inventions(sys::state& state) {
 							auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
 							if(int32_t(random % 100) < int32_t(chance)) {
 								apply_invention(state, n, inv);
-								// TODO: notify player
+
+								if(n == state.local_player_nation) {
+									notification::message m;
+									m.type = sys::message_setting_type::invention;
+									m.primary = n;
+									m.title = [=](sys::state& state, text::layout_base& layout) {
+										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::invention, text::produce_simple_string(state, state.world.invention_get_name(inv)));
+										TEXT_NOTIF_MSG_TITLE(invention);
+									};
+									m.body = [=](sys::state& state, text::layout_base& layout) {
+										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::invention, text::produce_simple_string(state, state.world.invention_get_name(inv)));
+										TEXT_NOTIF_MSG_BODY(invention);
+									};
+									notification::post(state, notification::message{ m });
+								}
 							}
 						}
 					},
@@ -811,7 +845,23 @@ void discover_inventions(sys::state& state) {
 							auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
 							if(int32_t(random % 100) < int32_t(chance)) {
 								apply_invention(state, n, inv);
-								// TODO: notify player
+
+								if(n == state.local_player_nation) {
+									notification::message m;
+									m.type = sys::message_setting_type::invention;
+									m.primary = n;
+									m.title = [=](sys::state& state, text::layout_base& layout) {
+										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::invention, text::produce_simple_string(state, state.world.invention_get_name(inv)));
+										TEXT_NOTIF_MSG_TITLE(invention);
+									};
+									m.body = [=](sys::state& state, text::layout_base& layout) {
+										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::invention, text::produce_simple_string(state, state.world.invention_get_name(inv)));
+										TEXT_NOTIF_MSG_BODY(invention);
+									};
+									notification::post(state, notification::message{ m });
+								}
 							}
 						}
 					},

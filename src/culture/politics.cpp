@@ -503,7 +503,20 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		}
 	}
 
-	// TODO: notify player
+	if(n == state.local_player_nation) {
+		notification::message m;
+		m.type = sys::message_setting_type::upperhouse;
+		m.primary = n;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			TEXT_NOTIF_MSG_TITLE(upperhouse);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			TEXT_NOTIF_MSG_BODY(upperhouse);
+		};
+		notification::post(state, notification::message{ m });
+	}
 }
 
 void daily_party_loyalty_update(sys::state& state) {
@@ -556,22 +569,15 @@ void start_election(sys::state& state, dcon::nation_id n) {
 		m.type = sys::message_setting_type::electionstart;
 		m.primary = n;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
-			auto box = text::open_layout_box(layout);
-			text::localised_single_sub_box(state, layout, box, std::string_view("electionstart_header"), text::variable_type::country, n);
-			text::close_layout_box(layout, box);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			TEXT_NOTIF_MSG_TITLE(electionstart);
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
-			auto box = text::open_layout_box(layout);
 			text::substitution_map sub{};
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::details, state.world.nation_get_election_ends(n));
-			text::localised_format_box(state, layout, box, std::string_view("electionstart_1"), sub);
-			text::localised_format_box(state, layout, box, std::string_view("electionstart_2"), sub);
-			text::localised_format_box(state, layout, box, std::string_view("electionstart_3"), sub);
-			text::localised_format_box(state, layout, box, std::string_view("electionstart_4"), sub);
-			text::localised_format_box(state, layout, box, std::string_view("electionstart_5"), sub);
-			text::localised_format_box(state, layout, box, std::string_view("electionstart_6"), sub);
-			text::close_layout_box(layout, box);
+			TEXT_NOTIF_MSG_BODY(electionstart);
 		};
 		notification::post(state, notification::message{ m });
 	}
