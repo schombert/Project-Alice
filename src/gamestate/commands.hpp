@@ -65,6 +65,9 @@ enum class command_type : uint8_t {
 	declare_war = 55,
 	add_war_goal = 56,
 	switch_nation = 57,
+	start_peace_offer = 58,
+	add_peace_offer_term = 59,
+	send_peace_offer = 60,
 };
 
 struct national_focus_data {
@@ -251,6 +254,15 @@ struct new_war_goal_data {
 	dcon::cb_type_id cb_type;
 };
 
+struct new_offer_data {
+	dcon::nation_id target;
+	dcon::war_id war;
+	bool is_concession;
+};
+struct offer_wargoal_data {
+	dcon::wargoal_id wg;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -284,6 +296,8 @@ struct payload {
 		call_to_arms_data call_to_arms;
 		new_war_data new_war;
 		new_war_goal_data new_war_goal;
+		new_offer_data new_offer;
+		offer_wargoal_data offer_wargoal;
 
 		dtype() { }
 	} data;
@@ -471,6 +485,24 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+
+/*
+PEACE OFFER COMMANDS:
+
+IMPORTANT:
+Even though these are separate commands, they should be sent as a single sequence with no intermediate other commands:
+send start_peace_offer, then repeat add_to_peace_offer to populate it, and then send_peace_offer to finish the process
+DO NOT attempt to issue these commands as the player constructs the offer in the ui
+*/
+
+void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession);
+bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession);
+
+void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal);
+bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal);
+
+void send_peace_offer(sys::state& state, dcon::nation_id source);
+bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
 
 void execute_pending_commands(sys::state& state);
 

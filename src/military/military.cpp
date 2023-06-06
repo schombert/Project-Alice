@@ -51,6 +51,76 @@ bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id
 	return false;
 }
 
+bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb) {
+	auto can_use = state.world.cb_type_get_can_use(cb);
+	if(can_use &&
+	   !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
+		return false;
+	}
+
+	auto allowed_countries = state.world.cb_type_get_allowed_countries(cb);
+	auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+
+	if(!allowed_countries && allowed_states) {
+		bool any_allowed = false;
+		for(auto si : state.world.nation_get_state_ownership(target)) {
+			if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
+			                     trigger::to_generic(actor))) {
+				any_allowed = true;
+				break;
+			}
+		}
+		if(!any_allowed)
+			return false;
+	}
+
+	auto allowed_substates = state.world.cb_type_get_allowed_substate_regions(cb);
+	if(allowed_substates) {
+		bool any_allowed = [&]() {
+			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+				if(v.get_subject().get_is_substate()) {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_substates, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
+						                     trigger::to_generic(actor))) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}();
+		if(!any_allowed)
+			return false;
+	}
+
+	if(allowed_countries) {
+		bool any_allowed = [&]() {
+			for(auto n : state.world.in_nation) {
+				if(n != target && n != actor) {
+					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
+					                     trigger::to_generic(n.id))) {
+						if(allowed_states) { // check whether any state within the target is valid for free / liberate
+							for(auto si : state.world.nation_get_state_ownership(target)) {
+								if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id),
+								                     trigger::to_generic(actor), trigger::to_generic(n.id))) {
+									return true;
+								}
+							}
+						} else { // no allowed states trigger -> nation is automatically a valid target
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}();
+		if(!any_allowed)
+			return false;
+	}
+
+	return true;
+}
+
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary) {
 
 	auto can_use = state.world.cb_type_get_can_use(cb);
@@ -109,26 +179,38 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 	}
 
 	if(allowed_countries) {
-		bool any_allowed = [&]() {
-			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
-					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
-						if(allowed_states) { // check whether any state within the target is valid for free / liberate
-							for(auto si : state.world.nation_get_state_ownership(target)) {
-								if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(n.id))) {
-									return true;
-								}
-							}
-						} else { // no allowed states trigger -> nation is automatically a valid target
-							return true;
+		auto secondary_nation = secondary ? secondary : state.world.national_identity_get_nation_from_identity_holder(tag);
+
+		if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
+		                     trigger::to_generic(secondary_nation))) {
+			bool validity = false;
+			if(allowed_states) { // check whether any state within the target is valid for free / liberate
+				if((state.world.cb_type_get_type_bits(cb) & cb_flag::all_allowed_states) == 0) {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
+						                     trigger::to_generic(secondary_nation))) {
+							validity = true;
+							break;
 						}
 					}
-				}
+				} else {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(si.get_state().get_definition() == st &&
+						   trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
+						                     trigger::to_generic(secondary_nation))) {
+							validity = true;
+							break;
+						}
+					}
+				}		
+			} else { // no allowed states trigger -> nation is automatically a valid target
+				validity = true;
 			}
+			if(!validity)
+				return false;
+		} else {
 			return false;
-		}();
-		if(!any_allowed)
-			return false;
+		}	
 	}
 
 	if(cb_requires_selection_of_a_vassal(state, cb)) {
@@ -738,73 +820,13 @@ float mobilization_impact(sys::state const& state, dcon::nation_id n) {
 	    0.0f, 1.0f);
 }
 
-bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb) {
-	auto can_use = state.world.cb_type_get_can_use(cb);
-	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
-		return false;
-	}
-
-	auto allowed_countries = state.world.cb_type_get_allowed_countries(cb);
-	auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-
-	if(!allowed_countries && allowed_states) {
-		bool any_allowed = false;
-		for(auto si : state.world.nation_get_state_ownership(target)) {
-			if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-				any_allowed = true;
-				break;
-			}
-		}
-		if(!any_allowed)
-			return false;
-	}
-
-	auto allowed_substates = state.world.cb_type_get_allowed_substate_regions(cb);
-	if(allowed_substates) {
-		bool any_allowed = [&]() {
-			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
-				if(v.get_subject().get_is_substate()) {
-					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_substates, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-							return true;
-						}
-					}
-				}
-			}
-			return false;
-		}();
-		if(!any_allowed)
-			return false;
-	}
-
-	if(allowed_countries) {
-		bool any_allowed = [&]() {
-			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
-					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
-						if(allowed_states) { // check whether any state within the target is valid for free / liberate
-							for(auto si : state.world.nation_get_state_ownership(target)) {
-								if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(n.id))) {
-									return true;
-								}
-							}
-						} else { // no allowed states trigger -> nation is automatically a valid target
-							return true;
-						}
-					}
-				}
-			}
-			return false;
-		}();
-		if(!any_allowed)
-			return false;
-	}
-
-	return true;
-}
-
 void update_cbs(sys::state& state) {
 	for(auto n : state.world.in_nation) {
+		if(state.current_date == n.get_reparations_until()) {
+			for(auto urel : n.get_unilateral_relationship_as_source()) {
+				urel.set_reparations(false);
+			}
+		}
 		auto current_cbs = n.get_available_cbs();
 		for(uint32_t i = current_cbs.size(); i-- > 0;) {
 			if(current_cbs[i].expiration && current_cbs[i].expiration <= state.current_date) {
@@ -1252,6 +1274,18 @@ int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal
 	return std::min(int32_t(total * state.world.cb_type_get_peace_cost_factor(wargoal)), 100);
 }
 
+int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
+	auto war = state.world.peace_offer_get_war_from_war_settlement(offer);
+	int32_t total = 0;
+	for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+		total += peace_cost(state, war, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(),
+		                    wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(),
+		                    wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
+
+	}
+	return total;
+}
+
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id t, dcon::nation_id actor) {
 	float total = 0.0f;
 	auto bits = state.world.cb_type_get_type_bits(t);
@@ -1339,11 +1373,11 @@ bool cb_requires_selection_of_a_vassal(sys::state const& state, dcon::cb_type_id
 }
 bool cb_requires_selection_of_a_sphere_member(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
-	return (bits & (cb_flag::po_take_from_sphere | cb_flag::po_add_to_sphere)) != 0;
+	return (bits & (cb_flag::po_add_to_sphere)) != 0;
 }
 bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
-	return (bits & (cb_flag::po_liberate | cb_flag::po_transfer_provinces)) != 0;
+	return (bits & (cb_flag::po_transfer_provinces)) != 0;
 }
 bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
@@ -1555,13 +1589,18 @@ void remove_military_access(sys::state& state, dcon::nation_id accessing_nation,
 }
 
 void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
-	// TODO
+	dcon::war_id w = find_war_between(state, a, b);
+	do {
+		cleanup_war(state, w, war_result::draw);
+		w = find_war_between(state, a, b);
+	} while(w);
 }
 
 void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker) {
 	auto participant = state.world.force_create_war_participant(w, n);
 	state.world.war_participant_set_is_attacker(participant, as_attacker);
 	state.world.nation_set_is_at_war(n, true);
+	state.world.nation_set_disarmed_until(n, sys::date{});
 
 	for(auto dep : state.world.nation_get_overlord_as_ruler(n)) {
 		add_to_war(state, w, dep.get_subject(), as_attacker);
@@ -1574,6 +1613,14 @@ bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n) {
 			return p.get_is_attacker();
 	}
 	return false;
+}
+
+war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n) {
+	for(auto p : state.world.war_get_war_participant(w)) {
+		if(p.get_nation() == n)
+			return p.get_is_attacker() ? war_role::attacker : war_role::defender;
+	}
+	return war_role::none;
 }
 
 dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag, dcon::nation_id primary_wargoal_secondary) {
@@ -1748,7 +1795,511 @@ void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_atta
 	}
 }
 
+void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_loss) {
+	dcon::war_participant_id par;
+	for(auto p : state.world.nation_get_war_participant(n)) {
+		if(p.get_war() == w) {
+			par = p.id;
+			break;
+		}
+	}
+
+	if(!par)
+		return;
+
+	for(auto vas : state.world.nation_get_overlord_as_ruler(n)) {
+		remove_from_war(state, w, vas.get_subject(), as_loss);
+	}
+
+	/*
+	When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose).
+	*/
+
+	if(as_loss) {
+		auto rp_ideology = state.world.nation_get_ruling_party(n).get_ideology();
+		if(rp_ideology) {
+			for(auto prv : state.world.nation_get_province_ownership(n)) {
+				prv.get_province().get_party_loyalty(rp_ideology) *= (1.0f - state.defines.party_loyalty_hit_on_war_loss);
+			}
+		}
+	}
+
+	/*
+	When a war goal is failed (the nation it targets leaves the war without that war goal being enacted): the nation that added it loses WAR_FAILED_GOAL_PRESTIGE_BASE^(WAR_FAILED_GOAL_PRESTIGE x current-prestige) x CB-penalty-factor prestige. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY militancy.
+	*/
+
+	float pop_militancy = 0.0f;
+
+	std::vector<dcon::wargoal_id> rem_wargoals;
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if(wg.get_wargoal().get_added_by() == n) {
+			rem_wargoals.push_back(wg.get_wargoal().id);
+
+			float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base, state.defines.war_failed_goal_prestige * nations::prestige_score(state, n)) * wg.get_wargoal().get_type().get_penalty_factor();
+			nations::adjust_prestige(state, n, prestige_loss);
+
+			pop_militancy += state.defines.war_failed_goal_militancy * wg.get_wargoal().get_type().get_penalty_factor();
+		}
+	}
+
+	for(auto g : rem_wargoals) {
+		state.world.delete_wargoal(g);
+	}
+
+	if(pop_militancy > 0) {
+		for(auto prv : state.world.nation_get_province_ownership(n)) {
+			for(auto pop : prv.get_province().get_pop_location()) {
+				auto& mil = pop.get_pop().get_militancy();
+				mil = std::min(mil + pop_militancy, 10.0f);
+			}
+		}
+	}
+
+	state.world.delete_war_participant(par);
+	auto rem_wars = state.world.nation_get_war_participant(n);
+	if(rem_wars.begin() == rem_wars.end()) {
+		state.world.nation_set_is_at_war(n, false);
+	}
+}
+
+void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
+	auto par = state.world.war_get_war_participant(w);
+	while(par.begin() != par.end()) {
+		if((*par.begin()).get_is_attacker()) {
+			remove_from_war(state, w, (*par.begin()).get_nation(), result == war_result::defender_won);
+		} else {
+			remove_from_war(state, w, (*par.begin()).get_nation(), result == war_result::attacker_won);
+		}
+	}
+
+	auto po = state.world.war_get_war_settlement(w);
+	while(po.begin() != po.end()) {
+		state.world.delete_peace_offer((*po.begin()).get_peace_offer());
+	}
+
+	auto wg = state.world.war_get_wargoals_attached(w);
+	while(wg.begin() != wg.end()) {
+		state.world.delete_wargoal((*wg.begin()).get_wargoal());
+	}
+
+	state.world.delete_war(w);
+}
+
+void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id new_gp) {
+	auto existing_sphere_leader = state.world.nation_get_in_sphere_of(member);
+	if(existing_sphere_leader) {
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(member, existing_sphere_leader);
+		assert(rel);
+		state.world.gp_relationship_get_status(rel) &= ~nations::influence::level_mask;
+		state.world.gp_relationship_get_status(rel) |= nations::influence::level_hostile;
+		state.world.nation_set_in_sphere_of(member, dcon::nation_id{});
+	}
+
+	if(!nations::is_great_power(state, new_gp))
+		return;
+
+	auto nrel = state.world.get_gp_relationship_by_gp_influence_pair(member, new_gp);
+	if(!nrel) {
+		nrel = state.world.force_create_gp_relationship(member, new_gp);
+	}
+
+	state.world.gp_relationship_get_status(nrel) &= ~nations::influence::level_mask;
+	state.world.gp_relationship_get_status(nrel) |= nations::influence::level_in_sphere;
+	state.world.gp_relationship_set_influence(nrel, state.defines.max_influence);
+	state.world.nation_set_in_sphere_of(member, new_gp);
+}
+
+void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
+                        dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t) {
+	assert(from);
+	assert(target);
+	assert(wargoal);
+	assert(war);
+
+	auto bits = state.world.cb_type_get_type_bits(wargoal);
+	bool for_attacker = is_attacker(state, war, from);
+	
+	// po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that added the war goal's sphere with max influence.
+	if((bits & cb_flag::po_add_to_sphere) != 0) {
+		if(secondary_nation)
+			take_from_sphere(state, secondary_nation, from);
+		else
+			take_from_sphere(state, target, from);
+	}
+
+	// po_clear_union_sphere: every nation of the actors culture group in the target nation's sphere leaves (and has relation set to friendly) and is added to the actor nation's sphere with max influence. All vassals of the target nation affected by this are freed.
+	if((bits & cb_flag::po_clear_union_sphere) != 0) {
+		auto from_cg = state.world.nation_get_primary_culture(from).get_group_from_culture_group_membership();
+		for(auto gprl : state.world.nation_get_gp_relationship_as_great_power(target)) {
+			if(gprl.get_influence_target().get_in_sphere_of() == target &&
+			   gprl.get_influence_target().get_primary_culture().get_group_from_culture_group_membership() == from_cg) {
+
+				take_from_sphere(state, gprl.get_influence_target(), from);
+			}
+		}
+	}
+
+	// po_release_puppet: nation stops being a vassal
+	if((bits & cb_flag::po_release_puppet) != 0) {
+		assert(secondary_nation);
+		auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
+		if(ol) {
+			nations::release_vassal(state, ol);
+		}
+	}
+
+	// po_make_puppet: the target nation releases all of its vassals and then becomes a vassal of the acting nation.
+	if((bits & cb_flag::po_make_puppet) != 0) {
+		for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+			nations::release_vassal(state, sub);
+		}
+		state.world.force_create_overlord(target, from);
+		take_from_sphere(state, target, from);
+	}
+
+	// po_destory_forts: reduces fort levels to zero in any targeted states
+	if((bits & cb_flag::po_destroy_forts) != 0) {
+		if((bits & cb_flag::all_allowed_states) == 0) {
+			for(auto prov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
+				if(prov.get_province().get_nation_from_province_ownership() == target) {
+					prov.get_province().set_fort_level(0);
+				}
+			}
+		} else if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states) {
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
+				                     trigger::to_generic(from))) {
+					province::for_each_province_in_state_instance(
+					    state, si.get_state(), [&](dcon::province_id prov) { state.world.province_set_fort_level(prov, 0); });
+				}
+			}
+		}
+	}
+
+	// po_destory_naval_bases: as above
+	if((bits & cb_flag::po_destroy_naval_bases) != 0) {
+		if((bits & cb_flag::all_allowed_states) == 0) {
+			for(auto prov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
+				if(prov.get_province().get_nation_from_province_ownership() == target) {
+					prov.get_province().set_naval_base_level(0);
+				}
+			}
+		} else if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states) {
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
+				                     trigger::to_generic(from))) {
+					province::for_each_province_in_state_instance(
+					    state, si.get_state(),
+						[&](dcon::province_id prov) {
+							state.world.province_set_naval_base_level(prov, 0);
+					});
+				}
+			}
+			
+		}
+	}
+
+	// po_disarmament: a random define:DISARMAMENT_ARMY_HIT fraction of the nations units are destroyed. All current unit constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at war again.
+	if((bits & cb_flag::po_disarmament) != 0) {
+		// TODO: destroy units
+		state.world.nation_set_disarmed_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
+	}
+
+	// po_reparations: the nation is set to pay reparations for define:REPARATIONS_YEARS
+	if((bits & cb_flag::po_reparations) != 0) {
+		state.world.nation_set_reparations_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
+		auto urel = state.world.get_unilateral_relationship_by_unilateral_pair(target, from);
+		if(!urel) {
+			urel = state.world.force_create_unilateral_relationship(target, from);
+		}
+		state.world.unilateral_relationship_set_reparations(urel, true);
+	}
+
+	// po_remove_prestige: the target loses (current-prestige x define:PRESTIGE_REDUCTION) + define:PRESTIGE_REDUCTION_BASE prestige
+	if((bits & cb_flag::po_remove_prestige) != 0) {
+		nations::adjust_prestige(state, target,
+		                         -(state.defines.prestige_reduction * nations::prestige_score(state, target) + state.defines.prestige_reduction_base));
+	}
+
+	// po_install_communist_gov: The target switches its government type and ruling ideology (if possible) to that of the nation that added the war goal. Relations with the nation that added the war goal are set to 0. The nation leaves its current sphere and enters the actor's sphere if it is a GP. If the war continues, the war leader on the opposite side gains the appropriate `counter_wargoal_on_install_communist_gov` CB, if any and allowed by the conditions of that CB.
+	if((bits & cb_flag::po_install_communist_gov_type) != 0) {
+		politics::change_government_type(state, target, state.world.nation_get_government_type(from));
+		politics::force_ruling_party_ideology(state, target, state.world.political_party_get_ideology(state.world.nation_get_ruling_party(from)));
+		take_from_sphere(state, target, from);
+	}
+
+	// po_uninstall_communist_gov_type: The target switches its government type to that of the nation that added the war goal. The nation leaves its current sphere and enters the actor's sphere if it is a GP.
+	if((bits & cb_flag::po_uninstall_communist_gov_type) != 0) {
+		politics::change_government_type(state, target, state.world.nation_get_government_type(from));
+		take_from_sphere(state, target, from);
+	}
+	
+	// po_colony: colonization finishes, with the adder of the war goal getting the colony and all other colonizers being kicked out
+	if((bits & cb_flag::po_colony) != 0) {
+		std::vector<dcon::colonization_id> to_del;
+		for(auto c : state.world.state_definition_get_colonization(wargoal_state)) {
+			if(c.get_colonizer() != from)
+				to_del.push_back(c.id);
+		}
+		for(auto c : to_del) {
+			state.world.delete_colonization(c);
+		}
+	}
+
+	bool target_existed = state.world.nation_get_owned_province_count(target);
+
+	// po_remove_cores: also cores are removed from any territory taken / target territory if it is already owned by sender
+	// po_transfer_provinces: all the valid states are transferred to the nation specified in the war goal. Relations between that country
+	// and the nation that added the war goal increase by define:LIBERATE_STATE_RELATION_INCREASE. If the nation is newly created by this,
+	// the nation it was created from gets a truce of define:BASE_TRUCE_MONTHS months with it (and it is placed in the liberator's sphere
+	// if that nation is a GP).
+
+	if((bits & cb_flag::po_transfer_provinces) != 0) {
+		auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
+
+		auto holder = state.world.national_identity_get_nation_from_identity_holder(wargoal_t);
+		if(!holder) {
+			holder = state.world.create_nation();
+			state.world.nation_set_identity_from_identity_holder(holder, wargoal_t);
+		}
+		auto lprovs = state.world.nation_get_province_ownership(holder);
+		if(lprovs.begin() == lprovs.end()) {
+			nations::create_nation_based_on_template(state, holder, from);
+		}
+
+		if((bits & cb_flag::all_allowed_states) == 0) {
+			for(auto prov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
+				if(prov.get_province().get_nation_from_province_ownership() == target) {
+					province::conquer_province(state, prov.get_province(), holder);
+					if((bits & cb_flag::po_remove_cores) != 0) {
+						auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
+						if(find_core) {
+							state.world.delete_core(find_core);
+						}
+					}
+				}
+			}
+		} else if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states) {
+			std::vector<dcon::state_instance_id> prior_states;
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
+				                     trigger::to_generic(holder))) {
+					prior_states.push_back(si.get_state());
+				}
+			}
+			for(auto si : prior_states) {
+				for(auto prov :
+				    state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(si))) {
+
+					if(prov.get_province().get_nation_from_province_ownership() == target) {
+						province::conquer_province(state, prov.get_province(), holder);
+						if((bits & cb_flag::po_remove_cores) != 0) {
+							auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
+							if(find_core) {
+								state.world.delete_core(find_core);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	// po_demand_state: state is taken (this can turn into annex if it is the last state)
+	if((bits & cb_flag::po_demand_state) != 0) {
+		auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
+
+		if((bits & cb_flag::all_allowed_states) == 0) {
+			for(auto prov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
+				if(prov.get_province().get_nation_from_province_ownership() == target) {
+					province::conquer_province(state, prov.get_province(), from);
+					if((bits & cb_flag::po_remove_cores) != 0) {
+						auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
+						if(find_core) {
+							state.world.delete_core(find_core);
+						}
+					}
+				}
+			}
+		} else if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states) {
+			std::vector<dcon::state_instance_id> prior_states;
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
+				                     trigger::to_generic(from))) {
+					prior_states.push_back(si.get_state());
+				}
+			}
+			for(auto si : prior_states) {
+				for(auto prov :
+				    state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(si))) {
+
+					if(prov.get_province().get_nation_from_province_ownership() == target) {
+						province::conquer_province(state, prov.get_province(), from);
+						if((bits & cb_flag::po_remove_cores) != 0) {
+							auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
+							if(find_core) {
+								state.world.delete_core(find_core);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if(target_existed && state.world.nation_get_owned_province_count(target) == 0) {
+			if(state.military_definitions.liberate) {
+				auto counter_wg = fatten(state.world, state.world.create_wargoal());
+				counter_wg.set_added_by(for_attacker ? state.world.war_get_primary_defender(war)
+				                                     : state.world.war_get_primary_attacker(war));
+				counter_wg.set_target_nation(from);
+				counter_wg.set_associated_tag(state.world.nation_get_identity_from_identity_holder(target));
+				counter_wg.set_type(state.military_definitions.liberate);
+				state.world.force_create_wargoals_attached(war, counter_wg);
+			}
+		}
+	}
+
+	// po_annex: nation is annexed, vassals and substates are freed, diplomatic relations are dissolved.
+	if((bits & cb_flag::po_annex) != 0) {
+		auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
+		auto target_owns = state.world.nation_get_province_ownership(target);
+
+		while(target_owns.begin() != target_owns.end()) {
+			auto prov = (*target_owns.begin()).get_province();
+			province::conquer_province(state, prov, from);
+			if((bits & cb_flag::po_remove_cores) != 0) {
+				auto find_core = state.world.get_core_by_prov_tag_key(prov, target_tag);
+				if(find_core) {
+					state.world.delete_core(find_core);
+				}
+			}
+		}
+
+		if(target_existed) {
+			if(state.military_definitions.liberate) {
+				auto counter_wg = fatten(state.world, state.world.create_wargoal());
+				counter_wg.set_added_by(for_attacker ? state.world.war_get_primary_defender(war)
+				                                     : state.world.war_get_primary_attacker(war));
+				counter_wg.set_target_nation(from);
+				counter_wg.set_associated_tag(state.world.nation_get_identity_from_identity_holder(target));
+				counter_wg.set_type(state.military_definitions.liberate);
+				state.world.force_create_wargoals_attached(war, counter_wg);
+			}
+		}
+	}
+
+	// other/in general: the `on_po_accepted` member of the CB is run. Primary slot: target of the war goal. This slot: nation that added the war goal.
+	auto accepted_effect = state.world.cb_type_get_on_po_accepted(wargoal);
+	if(accepted_effect) {
+		effect::execute(state, accepted_effect, trigger::to_generic(target), trigger::to_generic(from), trigger::to_generic(from), uint32_t((state.current_date.value << 8) ^ target.index()), uint32_t(from.index() ^ (wargoal.index() << 3)));
+	}
+
+	// The nation that added the war goal gains prestige. This is done, by calculating the sum ,over all the po tags, of base-prestige-for-that-tag v (nations-current-prestige x prestige-for-that-tag) and then multiplying the result by the CB's prestige factor. The nation that was targeted by the war goal also loses that much prestige.
+	float prestige_gain = successful_cb_prestige(state, wargoal, from);
+	nations::adjust_prestige(state, from, prestige_gain);
+	nations::adjust_prestige(state, target, -prestige_gain);
+
+	/*
+	A war goal added in this way will result in a status quo war goal on that side being removed.
+	*/
+
+}
+void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
+	// TODO notify
+
+	auto wg_range = state.world.peace_offer_get_peace_offer_item(offer);
+	while(wg_range.begin() != wg_range.end()) {
+		auto wg_offered = *(wg_range.begin());
+		implement_war_goal(state, state.world.peace_offer_get_war_from_war_settlement(offer), wg_offered.get_wargoal().get_type(), wg_offered.get_wargoal().get_added_by(), wg_offered.get_wargoal().get_target_nation(), wg_offered.get_wargoal().get_secondary_nation(), wg_offered.get_wargoal().get_associated_state(), wg_offered.get_wargoal().get_associated_tag());
+		state.world.delete_wargoal(wg_offered.get_wargoal());
+	}
+
+	auto from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
+	auto target = state.world.peace_offer_get_target(offer);
+	auto war = state.world.peace_offer_get_war_from_war_settlement(offer);
+
+	if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
+		if(state.world.war_get_is_great(war)) {
+			if(state.world.peace_offer_get_is_concession(offer) == false) {
+				for(auto par : state.world.war_get_war_participant(war)) {
+					if(par.get_is_attacker() == false) {
+						implement_war_goal(state, war, state.military_definitions.standard_great_war, from, par.get_nation(), dcon::nation_id{},
+						                   dcon::state_definition_id{}, dcon::national_identity_id{});
+					}
+				}
+			} else {
+				for(auto par : state.world.war_get_war_participant(war)) {
+					if(par.get_is_attacker() == true) {
+						implement_war_goal(state, war, state.military_definitions.standard_great_war, target, par.get_nation(),
+						                   dcon::nation_id{},
+						                   dcon::state_definition_id{}, dcon::national_identity_id{});
+					}
+				}
+			}
+		}
+
+		cleanup_war(state, war, state.world.peace_offer_get_is_concession(offer) ? war_result::defender_won : war_result::attacker_won);
+
+	} else if(state.world.war_get_primary_attacker(war) == target && state.world.war_get_primary_defender(war) == from) {
+		if(state.world.war_get_is_great(war)) {
+			if(state.world.peace_offer_get_is_concession(offer) == false) {
+				for(auto par : state.world.war_get_war_participant(war)) {
+					if(par.get_is_attacker() == true) {
+						implement_war_goal(state, war, state.military_definitions.standard_great_war, from, par.get_nation(),
+						                   dcon::nation_id{}, dcon::state_definition_id{}, dcon::national_identity_id{});
+					}
+				}
+			} else {
+				for(auto par : state.world.war_get_war_participant(war)) {
+					if(par.get_is_attacker() == false) {
+						implement_war_goal(state, war, state.military_definitions.standard_great_war, target, par.get_nation(),
+						                   dcon::nation_id{}, dcon::state_definition_id{}, dcon::national_identity_id{});
+					}
+				}
+			}
+		}
+
+		cleanup_war(state, war, state.world.peace_offer_get_is_concession(offer) ? war_result::attacker_won : war_result::defender_won);
+
+	} else if(state.world.war_get_primary_attacker(war) == from || state.world.war_get_primary_defender(war) == from) {
+
+		if(state.world.war_get_is_great(war) && state.world.peace_offer_get_is_concession(offer) == false) {
+			implement_war_goal(state, war, state.military_definitions.standard_great_war, from, target, dcon::nation_id{},
+			                   dcon::state_definition_id{}, dcon::national_identity_id{});
+		}
+		remove_from_war(state, war, target, state.world.peace_offer_get_is_concession(offer) == false);
+
+	} else if(state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == target) {
+
+		if(state.world.war_get_is_great(war) && state.world.peace_offer_get_is_concession(offer) == true) {
+			implement_war_goal(state, war, state.military_definitions.standard_great_war, target, from, dcon::nation_id{},
+			                   dcon::state_definition_id{}, dcon::national_identity_id{});
+		}
+		remove_from_war(state, war, from, state.world.peace_offer_get_is_concession(offer) == false);
+
+	} else {
+		assert(false);
+	}
+}
+
+void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
+	// TODO notify
+
+	// TODO: detect
+	/*
+	If a "good" peace offer is refused, the refusing nation gains define:GOOD_PEACE_REFUSAL_WAREXH war exhaustion and all of its pops gain define:GOOD_PEACE_REFUSAL_MILITANCY. What counts as a good offer, well if the peace offer is considered "better" than expected. This seems to be a complicated thing to calculate involving: the direction the war is going in (sign of the latest war score change), the overall quantity of forces on each side (with navies counting for less), time since the war began, war exhaustion, war score, the peace cost of the offer, and whether the recipient will be annexed as a result.
+	*/
+
+	state.world.delete_peace_offer(offer);
+}
+
 float primary_warscore(sys::state const& state, dcon::war_id w) {
+	// TODO
+	return 0.0f;
+}
+
+float directed_warscore(sys::state const& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary) {
 	// TODO
 	return 0.0f;
 }

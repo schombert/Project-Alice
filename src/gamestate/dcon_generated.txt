@@ -1759,6 +1759,54 @@ object {
 	}
 }
 object {
+	name{ peace_offer }
+	storage_type{ erasable }
+	size{ 100 }
+	tag{ save }
+
+	property{
+		name{ target }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ is_concession }
+		type{ bitfield }
+		tag{ save }
+	}
+}
+relationship{
+	name{ pending_peace_offer }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{nation}
+		type{unique}
+	}
+	link{
+		object{peace_offer}
+		name{peace_offer}
+		type{unique}
+	}
+}
+relationship{
+	name{ war_settlement }
+	tag{ save }
+
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{peace_offer}
+		name{peace_offer}
+		type{unique}
+	}
+}
+object {
 	name{ wargoal }
 	storage_type{ erasable }
 	size{ 1000 }
@@ -1826,6 +1874,22 @@ relationship{
 	link{
 		object{war}
 		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{wargoal}
+		name{wargoal}
+		type{unique}
+	}
+}
+relationship{
+	name{ peace_offer_item }
+	tag{ save }
+
+	link{
+		object{peace_offer}
+		name{peace_offer}
 		type{many}
 		index_storage{array}
 	}
@@ -1914,7 +1978,7 @@ object {
 }
 relationship{
 	name{ colonization }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
 
@@ -2489,6 +2553,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ reparations_until }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
 		name{ education_spending }
 		type{ int8_t }
 		tag{ save }
@@ -2922,6 +2991,11 @@ relationship{
 	}
 	property{
 		name{ war_subsidies }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ reparations }
 		type{ bitfield }
 		tag{ save }
 	}

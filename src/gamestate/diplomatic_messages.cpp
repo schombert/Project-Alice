@@ -47,6 +47,9 @@ void decline(sys::state& state, message const& m) {
 	case type::be_crisis_primary_defender:
 		nations::reject_crisis_participation(state);
 		break;
+	case type::peace_offer:
+		military::reject_peace_offer(state, m.data.peace);
+		break;
 	}
 }
 void accept(sys::state& state, message const& m) {
@@ -94,6 +97,9 @@ void accept(sys::state& state, message const& m) {
 	case type::be_crisis_primary_defender:
 		nations::add_as_primary_crisis_defender(state, m.to);
 		break;
+	case type::peace_offer:
+		military::implement_peace_offer(state, m.data.peace);
+		break;
 	}
 }
 
@@ -119,6 +125,9 @@ void post(sys::state& state, message const& m) {
 			return;
 		case type::be_crisis_primary_attacker:
 			nations::add_as_primary_crisis_attacker(state, m.to);
+			return;
+		case type::peace_offer:
+			accept(state, m);
 			return;
 		}
 	}

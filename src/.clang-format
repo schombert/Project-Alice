@@ -4,7 +4,7 @@ IndentWidth: 4
 NamespaceIndentation: None
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-ColumnLimit: 0
+ColumnLimit: 138
 SortIncludes: Never
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false

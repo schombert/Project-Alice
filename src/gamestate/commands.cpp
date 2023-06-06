@@ -2163,7 +2163,7 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	}
 
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
-	if(ol && state.world.overlord_get_ruler(ol) != target)
+	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
 		return false;
 
 	if(military::are_at_war(state, asker, target))
@@ -2547,6 +2547,168 @@ void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::nati
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 }
 
+
+void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::start_peace_offer;
+	p.source = source;
+	p.data.new_offer.target = target;
+	p.data.new_offer.war = war;
+	p.data.new_offer.is_concession = is_concession;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
+
+	{
+		auto ol = state.world.nation_get_overlord_as_subject(source);
+		if(state.world.overlord_get_ruler(ol))
+			return false;
+	}
+	{
+		auto ol = state.world.nation_get_overlord_as_subject(target);
+		if(state.world.overlord_get_ruler(ol))
+			return false;
+	}
+
+	if(state.world.war_get_primary_attacker(war) == source) {
+		if(military::get_role(state, war, target) != military::war_role::defender)
+			return false;
+	} else if(state.world.war_get_primary_defender(war) == source) {
+		if(military::get_role(state, war, target) != military::war_role::attacker)
+			return false;
+	} else if(state.world.war_get_primary_attacker(war) == target) {
+		if(military::get_role(state, war, source) != military::war_role::defender)
+			return false;
+	} else if(state.world.war_get_primary_defender(war) == target) {
+		if(military::get_role(state, war, source) != military::war_role::attacker)
+			return false;
+	}
+
+	if(state.world.war_get_is_crisis_war(war)) {
+		if((state.world.war_get_primary_attacker(war) != source || state.world.war_get_primary_defender(war) != target) &&
+		   (state.world.war_get_primary_attacker(war) != target || state.world.war_get_primary_defender(war) != source)) {
+
+			return false; // no separate peace
+		}
+	}
+
+	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	return !pending;
+}
+void execute_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
+	if(!can_start_peace_offer(state, source, target, war, is_concession))
+		return;
+
+	auto offer = fatten(state.world, state.world.create_peace_offer());
+	offer.set_target(target);
+	offer.set_war_from_war_settlement(war);
+	offer.set_is_concession(is_concession);
+	offer.set_nation_from_pending_peace_offer(source);
+}
+
+void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::add_peace_offer_term;
+	p.source = source;
+	p.data.offer_wargoal.wg = goal;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
+	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	if(!pending)
+		return false;
+
+	auto war = state.world.peace_offer_get_war_from_war_settlement(pending);
+	auto wg = fatten(state.world, goal);
+	auto target = state.world.peace_offer_get_target(pending);
+
+	if(wg.get_war_from_wargoals_attached() != war)
+		return false;
+
+	int32_t total = military::cost_of_peace_offer(state, pending);
+	int32_t new_wg_cost = military::peace_cost(state, war, wg.get_type(), wg.get_added_by(),
+		                    wg.get_target_nation(), wg.get_secondary_nation(),
+		                    wg.get_associated_state(), wg.get_associated_tag());
+	
+	if(total + new_wg_cost > 100)
+		return false;
+
+	if(state.world.war_get_primary_attacker(war) == source && state.world.war_get_primary_defender(war) == target) {
+		return true;
+	}
+	if(state.world.war_get_primary_attacker(war) == target && state.world.war_get_primary_defender(war) == source) {
+		return true;
+	}
+
+	if(state.world.peace_offer_get_is_concession(pending)) {
+		if(state.world.war_get_primary_attacker(war) == source || state.world.war_get_primary_defender(war) == source) {
+			if(wg.get_added_by() == target)
+				return true;
+			return false;
+		} else {
+			if(wg.get_target_nation() == source)
+				return true;
+			if(wg.get_target_nation().get_overlord_as_subject().get_ruler() == source)
+				return true;
+			return false;
+		}
+	} else {
+		if(state.world.war_get_primary_attacker(war) == source || state.world.war_get_primary_defender(war) == source) {
+			if(wg.get_target_nation() == target)
+				return true;
+			if(wg.get_target_nation().get_overlord_as_subject().get_ruler() == target)
+				return true;
+			return false;
+		} else {
+			if(wg.get_added_by() == target)
+				return true;
+			return false;
+		}
+	}
+}
+void execute_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
+	if(!can_add_to_peace_offer(state, source, goal)) {
+		return;
+	}
+	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	state.world.force_create_peace_offer_item(pending, goal);
+}
+
+void send_peace_offer(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::send_peace_offer;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_send_peace_offer(sys::state& state, dcon::nation_id source) {
+	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	if(!pending)
+		return false;
+	return true;
+}
+void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
+	auto pending_offer = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	auto in_war = state.world.peace_offer_get_war_from_war_settlement(pending_offer);
+	auto target = state.world.peace_offer_get_target(pending_offer);
+
+	// A peace offer must be accepted when war score reaches 100.
+	if(military::directed_warscore(state, in_war, source, target) >= 100.0f) {
+		military::implement_peace_offer(state, pending_offer);
+	} else {
+		diplomatic_message::message m;
+		memset(&m, 0, sizeof(diplomatic_message::message));
+		m.to = target;
+		m.from = source;
+		m.data.peace = pending_offer;
+		m.type = diplomatic_message::type::peace_offer;
+
+		diplomatic_message::post(state, m);
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2727,6 +2889,15 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::switch_nation:
 			execute_switch_nation(state, c->source, c->data.tag_target.ident);
+			break;
+		case command_type::start_peace_offer:
+			execute_start_peace_offer(state, c->source, c->data.new_offer.target, c->data.new_offer.war, c->data.new_offer.is_concession);
+			break;
+		case command_type::add_peace_offer_term:
+			execute_add_to_peace_offer(state, c->source, c->data.offer_wargoal.wg);
+			break;
+		case command_type::send_peace_offer:
+			execute_send_peace_offer(state, c->source);
 			break;
 		}
 

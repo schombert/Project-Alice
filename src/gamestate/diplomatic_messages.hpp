@@ -13,7 +13,8 @@ enum class type_t : uint8_t {
 	alliance_request = 2,
 	call_ally_request = 3,
 	be_crisis_primary_defender = 4,
-	be_crisis_primary_attacker = 5
+	be_crisis_primary_attacker = 5,
+	peace_offer = 6,
 };
 
 struct message {
@@ -22,6 +23,7 @@ struct message {
 	sys::date when;
 	union dtype {
 		dcon::war_id war;
+		dcon::peace_offer_id peace;
 
 		dtype() { }
 	} data;

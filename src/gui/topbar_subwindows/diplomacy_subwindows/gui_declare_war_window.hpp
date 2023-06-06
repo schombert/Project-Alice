@@ -578,7 +578,7 @@ public:
 				wargoal_setup_win->set_visible(state, false);
 				wargoal_state_win->set_visible(state, true);
 				wargoal_country_win->set_visible(state, false);
-			} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
+			} else if((bits & (military::cb_flag::po_transfer_provinces | military::cb_flag::po_add_to_sphere | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
 				wargoal_setup_win->set_visible(state, false);
 				wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, true);

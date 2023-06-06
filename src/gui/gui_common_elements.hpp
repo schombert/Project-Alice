@@ -2761,7 +2761,7 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 					text::add_to_substitution_map(sub, text::variable_type::second, name);
 				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
 					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
-				} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere)) != 0) {
+				} else if((bits & (military::cb_flag::po_transfer_provinces)) != 0) {
 					auto niid = wg.get_wargoal().get_associated_tag();
 					auto adj = state.world.national_identity_get_adjective(niid);
 					text::add_to_substitution_map(sub, text::variable_type::second, adj);
@@ -2773,31 +2773,8 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 				// TODO: ordinal numbering, 1st, 2nd, 3rd, 4th, etc...
 				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
 
-				// First, start by using the base name of the wargoal
-				std::string full_key = "normal_" + text::produce_simple_string(state, state.world.cb_type_get_war_name(wg.get_wargoal().get_type()));
-				if(auto k1 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k1 != state.key_to_text_sequence.end()) {
-					// Check if an specialization exists, for example:
-					// normal_take_name_eng_tur would apply if ENG is vs. TUR
-					auto att_tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(primary_attacker)));
-					std::transform(att_tag.begin(), att_tag.end(), att_tag.begin(), [](auto c) {
-						return char(tolower(char(c)));
-					});
-					full_key += "_" + att_tag;
-					if(auto k2 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k2 != state.key_to_text_sequence.end()) {
-						auto def_tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(primary_defender)));
-						std::transform(def_tag.begin(), def_tag.end(), def_tag.begin(), [](auto c) {
-							return char(tolower(char(c)));
-						});
-						full_key += "_" + def_tag;
-						if(auto k3 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k3 != state.key_to_text_sequence.end()) {
-							text::add_to_layout_box(contents, state, box, k3->second, sub);
-						} else {
-							text::add_to_layout_box(contents, state, box, k2->second, sub);
-						}
-					} else {
-						text::add_to_layout_box(contents, state, box, k1->second, sub);
-					}
-				}
+				text::add_to_layout_box(contents, state, box, state.world.war_get_name(war), sub);
+				
 				text::close_layout_box(contents, box);
 				break;
 			}

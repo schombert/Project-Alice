@@ -1650,10 +1650,12 @@ void daily_update(sys::state& state) {
 			for(auto f : state.world.province_get_factory_location(p.get_province())) {
 				// factory
 
-				update_single_factory_consumption(state, f.get_factory(), n, p.get_province(), p.get_province().get_state_membership(),
-				                                  effective_prices, mobilization_impact, factory_min_wage,
-				                                  p.get_province().get_nation_from_province_control() != n,                                                     // is occupied
-				                                  p.get_province().get_connected_region_id() != cap_region && p.get_province().get_continent() != cap_continent // is overseas
+				update_single_factory_consumption(state, f.get_factory(), n,
+					p.get_province(), p.get_province().get_state_membership(),
+				    effective_prices, mobilization_impact,
+					factory_min_wage,
+				    p.get_province().get_nation_from_province_control() != n,   // is occupied
+				    p.get_province().get_connected_region_id() != cap_region && p.get_province().get_continent() != cap_continent // is overseas
 				);
 			}
 
