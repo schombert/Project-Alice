@@ -5,7 +5,7 @@
 #include "gui_ledger_window.hpp"
 #include "gui_search_window.hpp"
 #include "gui_main_menu.hpp"
-#include "gui_msg_filters_window.hpp"
+#include "gui_message_filters_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
@@ -159,7 +159,7 @@ class minimap_msg_settings_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(!state.ui_state.msg_filters_window) {
-			auto window = make_element_by_type<msg_filters_window>(state, "message_filters");
+			auto window = make_element_by_type<message_filters_window>(state, "message_filters");
 			state.ui_state.msg_filters_window = window.get();
 			state.ui_state.root->add_child_to_front(std::move(window));
 		} else if(state.ui_state.msg_filters_window->is_visible()) {
@@ -307,13 +307,11 @@ public:
 
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
-	element_base* message_log_window = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
-			auto ptr = make_element_by_type<msg_log_window>(state, id);
-			state.ui_state.message_log_window = message_log_window = ptr.get();
+			auto ptr = make_element_by_type<message_log_window>(state, id);
+			state.ui_state.msg_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "openbutton") {
@@ -365,7 +363,7 @@ public:
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<open_msg_log_data>()) {
-			message_log_window->set_visible(state, !message_log_window->is_visible());
+			state.ui_state.msg_log_window->set_visible(state, !state.ui_state.msg_log_window->is_visible());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -373,7 +371,7 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<open_msg_log_data>()) {
-			payload.emplace<bool>(message_log_window->is_visible());
+			payload.emplace<bool>(state.ui_state.msg_log_window->is_visible());
 			return message_result::consumed;
 		}
 		return message_result::unseen;

@@ -5,7 +5,7 @@
 
 namespace ui {
 
-class msg_filters_country_button : public button_element_base {
+class message_filters_country_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -34,11 +34,11 @@ public:
 	}
 };
 
-class msg_filters_country_item : public listbox_row_element_base<dcon::nation_id> {
+class message_filters_country_item : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_bg") {
-			return make_element_by_type<msg_filters_country_button>(state, id);
+			return make_element_by_type<message_filters_country_button>(state, id);
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else {
@@ -55,7 +55,7 @@ public:
 	}
 };
 
-class msg_filters_country_listbox : public listbox_element_base<msg_filters_country_item, dcon::nation_id> {
+class message_filters_country_listbox : public listbox_element_base<message_filters_country_item, dcon::nation_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "message_filters_entry";
@@ -77,8 +77,8 @@ public:
 	}
 };
 
-class msg_filters_window : public window_element_base {
-	msg_filters_country_listbox* country_listbox = nullptr;
+class message_filters_window : public window_element_base {
+	message_filters_country_listbox* country_listbox = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -87,7 +87,7 @@ public:
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "countries_listbox") {
-			auto ptr = make_element_by_type<msg_filters_country_listbox>(state, id);
+			auto ptr = make_element_by_type<message_filters_country_listbox>(state, id);
 			country_listbox = ptr.get();
 			return ptr;
 		} else if(name == "filter_deselect") {

@@ -6,10 +6,10 @@
 
 namespace ui {
 
-static std::string get_setting_text_key(sys::msg_setting_type type) {
+static std::string get_setting_text_key(sys::message_setting_type type) {
 	switch(type) {
 #define MSG_SETTING_ITEM(name, locale_name) \
-case sys::msg_setting_type::name:       \
+case sys::message_setting_type::name:       \
 	return locale_name "_setup";
 		MSG_SETTING_LIST
 #undef MSG_SETTING_ITEM
@@ -18,7 +18,7 @@ case sys::msg_setting_type::name:       \
 	}
 }
 
-class msg_settings_item : public listbox_row_element_base<sys::msg_setting_type> {
+class message_settings_item : public listbox_row_element_base<sys::message_setting_type> {
 	simple_text_element_base* text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -36,7 +36,7 @@ public:
 	}
 };
 
-class msg_settings_listbox : public listbox_element_base<msg_settings_item, sys::msg_setting_type> {
+class message_settings_listbox : public listbox_element_base<message_settings_item, sys::message_setting_type> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "message_entry";
@@ -45,14 +45,14 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto i = 0; i != uint8_t(sys::msg_setting_type::count); ++i) {
-			row_contents.push_back(sys::msg_setting_type(i));
+		for(auto i = 0; i != uint8_t(sys::message_setting_type::count); ++i) {
+			row_contents.push_back(sys::message_setting_type(i));
 		}
 		update(state);
 	}
 };
 
-enum class msg_settings_category : uint8_t {
+enum class message_settings_category : uint8_t {
 	all,
 	combat,
 	diplomacy,
@@ -63,10 +63,10 @@ enum class msg_settings_category : uint8_t {
 	count
 };
 
-class msg_settings_window : public generic_tabbed_window<msg_settings_category> {
+class message_settings_window : public generic_tabbed_window<message_settings_category> {
 public:
 	void on_create(sys::state& state) noexcept override {
-		generic_tabbed_window<msg_settings_category>::on_create(state);
+		generic_tabbed_window<message_settings_category>::on_create(state);
 		base_data.position.y -= 21; // Nudge
 		set_visible(state, false);
 	}
@@ -77,37 +77,37 @@ public:
 		} else if(name == "settings") {
 			// Nudge required for listbox before it is created...
 			state.ui_defs.gui[id].size.x -= 21; // Nudge
-			auto ptr = make_element_by_type<msg_settings_listbox>(state, id);
+			auto ptr = make_element_by_type<message_settings_listbox>(state, id);
 			ptr->base_data.position.x += 21; // Nudge
 			ptr->base_data.position.y += 21; // Nudge
 			return ptr;
 		} else if(name == "messagecat_all") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::all;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::all;
 			return ptr;
 		} else if(name == "messagecat_combat") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::combat;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::combat;
 			return ptr;
 		} else if(name == "messagecat_diplomacy") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::diplomacy;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::diplomacy;
 			return ptr;
 		} else if(name == "messagecat_units") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::units;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::units;
 			return ptr;
 		} else if(name == "messagecat_provinces") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::provinces;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::provinces;
 			return ptr;
 		} else if(name == "messagecat_events") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::events;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::events;
 			return ptr;
 		} else if(name == "messagecat_others") {
-			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
-			ptr->target = msg_settings_category::others;
+			auto ptr = make_element_by_type<generic_tab_button<message_settings_category>>(state, id);
+			ptr->target = message_settings_category::others;
 			return ptr;
 		} else {
 			return nullptr;
@@ -115,46 +115,46 @@ public:
 	}
 };
 
-class msg_log_text : public multiline_text_element_base {
+class message_log_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
 };
 
-class msg_log_entry : public listbox_row_element_base<int32_t> {
+class message_log_entry : public listbox_row_element_base<int32_t> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelogbutton") {
-			return make_element_by_type<msg_log_text>(state, id);
+			return make_element_by_type<message_log_text>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 };
 
-class msg_log_listbox : public listbox_element_base<msg_log_entry, int32_t> {
+class message_log_listbox : public listbox_element_base<message_log_entry, int32_t> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "logtext";
 	}
 };
 
-template<msg_settings_category Filter>
-class msg_log_filter_checkbox : public checkbox_button {
-	static std::string_view get_filter_text_key(msg_settings_category f) noexcept {
+template<message_settings_category Filter>
+class message_log_filter_checkbox : public checkbox_button {
+	static std::string_view get_filter_text_key(message_settings_category f) noexcept {
 		switch(f) {
-		case msg_settings_category::all:
+		case message_settings_category::all:
 			return "messagesettings_all";
-		case msg_settings_category::combat:
+		case message_settings_category::combat:
 			return "messagesettings_combat";
-		case msg_settings_category::diplomacy:
+		case message_settings_category::diplomacy:
 			return "messagesettings_diplomacy";
-		case msg_settings_category::units:
+		case message_settings_category::units:
 			return "messagesettings_units";
-		case msg_settings_category::provinces:
+		case message_settings_category::provinces:
 			return "messagesettings_provinces";
-		case msg_settings_category::events:
+		case message_settings_category::events:
 			return "messagesettings_events";
-		case msg_settings_category::others:
+		case message_settings_category::others:
 			return "messagesettings_other";
 		default:
 			return "???";
@@ -173,7 +173,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<msg_settings_category>{ Filter };
+			Cyto::Any payload = element_selection_wrapper<message_settings_category>{ Filter };
 			parent->impl_get(state, payload);
 		}
 	}
@@ -190,9 +190,9 @@ public:
 	}
 };
 
-class msg_log_window : public window_element_base {
+class message_log_window : public window_element_base {
 	std::vector<bool> cat_filters;
-	msg_log_listbox* log_list = nullptr;
+	message_log_listbox* log_list = nullptr;
 public:
 	std::vector<notification::message> messages;
 

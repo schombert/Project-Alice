@@ -665,4 +665,34 @@ std::string get_influence_level_name(sys::state const & state, uint8_t v);
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const & sub = substitution_map{});
 void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
+
+#define TEXT_NOTIF_MSG_TITLE(str) \
+	{ \
+		auto box = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box, std::string_view(#str "_header"), sub); \
+		text::close_layout_box(layout, box); \
+	}
+
+#define TEXT_NOTIF_MSG_BODY(str) \
+	{ \
+		auto box1 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box1, std::string_view(#str "_1"), sub); \
+		text::close_layout_box(layout, box1); \
+		auto box2 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box2, std::string_view(#str "_2"), sub); \
+		text::close_layout_box(layout, box2); \
+		auto box3 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box3, std::string_view(#str "_3"), sub); \
+		text::close_layout_box(layout, box3); \
+		auto box4 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box4, std::string_view(#str "_4"), sub); \
+		text::close_layout_box(layout, box4); \
+		auto box5 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box5, std::string_view(#str "_5"), sub); \
+		text::close_layout_box(layout, box5); \
+		auto box6 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box6, std::string_view(#str "_6"), sub); \
+		text::close_layout_box(layout, box6); \
+	}
+
 } // namespace text
