@@ -6,21 +6,20 @@
 
 namespace ui {
 
+static std::string get_setting_text_key(sys::msg_setting_type type) {
+	switch(type) {
+#define MSG_SETTING_ITEM(name, locale_name) \
+case sys::msg_setting_type::name:       \
+	return locale_name "_setup";
+		MSG_SETTING_LIST
+#undef MSG_SETTING_ITEM
+	default:
+		return "???";
+	}
+}
+
 class msg_settings_item : public listbox_row_element_base<sys::msg_setting_type> {
 	simple_text_element_base* text = nullptr;
-
-	static std::string get_setting_text_key(sys::msg_setting_type type) {
-		switch(type) {
-#define MSG_SETTING_ITEM(name, locale_name) \
-	case sys::msg_setting_type::name:       \
-		return locale_name "_setup";
-			MSG_SETTING_LIST
-#undef MSG_SETTING_ITEM
-		default:
-			return "???";
-		}
-	}
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "text") {
@@ -116,19 +115,26 @@ public:
 	}
 };
 
-struct msg_log_data {
-	// TODO: Display message itself
-	msg_settings_category category = msg_settings_category::all;
-};
-
-class msg_log_entry : public listbox_row_element_base<msg_log_data> {
+class msg_log_text : public multiline_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override;
 };
 
-class msg_log_listbox : public listbox_element_base<msg_log_entry, msg_log_data> {
+class msg_log_entry : public listbox_row_element_base<int32_t> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "messagelogbutton") {
+			return make_element_by_type<msg_log_text>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class msg_log_listbox : public listbox_element_base<msg_log_entry, int32_t> {
 protected:
 	std::string_view get_row_element_name() override {
-		return "message_entry";
+		return "logtext";
 	}
 };
 
@@ -167,8 +173,8 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = Filter;
-			parent->impl_set(state, payload);
+			Cyto::Any payload = element_selection_wrapper<msg_settings_category>{ Filter };
+			parent->impl_get(state, payload);
 		}
 	}
 
@@ -186,52 +192,14 @@ public:
 
 class msg_log_window : public window_element_base {
 	std::vector<bool> cat_filters;
-
+	msg_log_listbox* log_list = nullptr;
 public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		cat_filters.resize(size_t(msg_settings_category::count));
-	}
+	std::vector<notification::message> messages;
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close") {
-			return make_element_by_type<generic_close_button>(state, id);
-		} else if(name == "messagelog") {
-			return make_element_by_type<msg_log_listbox>(state, id);
-		} else if(name == "messagecat_combat") {
-			return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::combat>>(state, id);
-		} else if(name == "messagecat_diplomacy") {
-			return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::diplomacy>>(state, id);
-		} else if(name == "messagecat_units") {
-			return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::units>>(state, id);
-		} else if(name == "messagecat_provinces") {
-			return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::provinces>>(state, id);
-		} else if(name == "messagecat_events") {
-			return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::events>>(state, id);
-		} else if(name == "messagecat_others") {
-			return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::others>>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<msg_settings_category>()) {
-			auto cat = any_cast<msg_settings_category>(payload);
-			payload.emplace<bool>(cat_filters[uint8_t(cat)]);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<msg_settings_category>()) {
-			auto cat = any_cast<msg_settings_category>(payload);
-			cat_filters[uint8_t(cat)] = !cat_filters[uint8_t(cat)];
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
+	void on_create(sys::state& state) noexcept override;
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
 #undef MSG_SETTING_LIST

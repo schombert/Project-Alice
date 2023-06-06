@@ -252,9 +252,9 @@ public:
 			return make_element_by_type<military_units_listbox<T>>(state, id);
 		} else if(name == "current_count") {
 			if constexpr(std::is_same_v<T, dcon::army_id>)
-				return make_element_by_type<nation_brigade_allocation_text>(state, id);
+				return make_element_by_type<nation_armies_text>(state, id);
 			else
-				return make_element_by_type<nation_navy_allocation_text>(state, id);
+				return make_element_by_type<nation_navies_text>(state, id);
 		} else if(name == "build_new") {
 			auto ptr = make_element_by_type<build_unit_button<T>>(state, id);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {

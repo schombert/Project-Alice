@@ -313,7 +313,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
 			auto ptr = make_element_by_type<msg_log_window>(state, id);
-			message_log_window = ptr.get();
+			state.ui_state.message_log_window = message_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "openbutton") {
