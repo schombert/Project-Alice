@@ -64,10 +64,19 @@ enum class command_type : uint8_t {
 	cancel_given_military_access = 54,
 	declare_war = 55,
 	add_war_goal = 56,
-	switch_nation = 57,
 	start_peace_offer = 58,
 	add_peace_offer_term = 59,
 	send_peace_offer = 60,
+
+	// console cheats
+	switch_nation = 128,
+	c_change_diplo_points = 129,
+	c_change_money = 130,
+	c_westernize = 131,
+	c_unwesternize = 132,
+	c_change_research_points = 133,
+	c_change_cb_progress = 134,
+	c_change_infamy = 135,
 };
 
 struct national_focus_data {
@@ -263,6 +272,10 @@ struct offer_wargoal_data {
 	dcon::wargoal_id wg;
 };
 
+struct cheat_data {
+	float value;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -298,6 +311,7 @@ struct payload {
 		new_war_goal_data new_war_goal;
 		new_offer_data new_offer;
 		offer_wargoal_data offer_wargoal;
+		cheat_data cheat;
 
 		dtype() { }
 	} data;
@@ -501,6 +515,14 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 
 void send_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
+
+void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
+void c_change_money(sys::state& state, dcon::nation_id source, float value);
+void c_westernize(sys::state& state, dcon::nation_id source);
+void c_unwesternize(sys::state& state, dcon::nation_id source);
+void c_change_research_points(sys::state& state, dcon::nation_id source, float value);
+void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value);
+void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 
 void execute_pending_commands(sys::state& state);
 

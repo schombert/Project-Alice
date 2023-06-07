@@ -5,9 +5,7 @@
 namespace command {
 
 bool console_command(sys::state& state, command_type t) {
-	if(t == command_type::switch_nation)
-		return true;
-	return false;
+	return (uint8_t(t) & 0x80) != 0;
 }
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus) {
@@ -2739,6 +2737,82 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_diplo_points;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_diplo_points(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_diplomatic_points(source) += value;
+}
+void c_change_money(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_money;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_money(sys::state& state, dcon::nation_id source, float value) {
+	//state.world.nation_get_diplomatic_points(source) += value;
+}
+void c_westernize(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_westernize;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_westernize(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_civilized(source, true);
+}
+void c_unwesternize(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_unwesternize;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_unwesternize(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_civilized(source, false);
+}
+void c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_research_points;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_research_points(source) += value;
+}
+void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_cb_progress;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_cb_progress(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_constructing_cb_progress(source) += value;
+}
+void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_infamy;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_infamy(source) += value;
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2917,9 +2991,6 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::add_war_goal:
 			execute_add_war_goal(state, c->source, c->data.new_war_goal.war, c->data.new_war_goal.target, c->data.new_war_goal.cb_type, c->data.new_war_goal.cb_state, c->data.new_war_goal.cb_tag, c->data.new_war_goal.cb_secondary_nation);
 			break;
-		case command_type::switch_nation:
-			execute_switch_nation(state, c->source, c->data.tag_target.ident);
-			break;
 		case command_type::start_peace_offer:
 			execute_start_peace_offer(state, c->source, c->data.new_offer.target, c->data.new_offer.war, c->data.new_offer.is_concession);
 			break;
@@ -2928,6 +2999,31 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::send_peace_offer:
 			execute_send_peace_offer(state, c->source);
+			break;
+		// console commands
+		case command_type::switch_nation:
+			execute_switch_nation(state, c->source, c->data.tag_target.ident);
+			break;
+		case command_type::c_change_diplo_points:
+			execute_c_change_diplo_points(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_change_money:
+			execute_c_change_money(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_westernize:
+			execute_c_westernize(state, c->source);
+			break;
+		case command_type::c_unwesternize:
+			execute_c_unwesternize(state, c->source);
+			break;
+		case command_type::c_change_research_points:
+			execute_c_change_research_points(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_change_cb_progress:
+			execute_c_change_cb_progress(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_change_infamy:
+			execute_c_change_infamy(state, c->source, c->data.cheat.value);
 			break;
 		}
 
