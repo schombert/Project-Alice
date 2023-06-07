@@ -6,91 +6,58 @@
 
 namespace sound {
 
-class audio_instance {
-public:
-	native_string filename;
+sound_impl::sound_impl() {
+	if(ma_engine_init(NULL, &engine) != MA_SUCCESS) {
+		std::abort();
+	}
+}
 
-	audio_instance() = default;
+sound_impl::~sound_impl() {
+	ma_engine_uninit(&engine);
+}
 
-	audio_instance& operator=(audio_instance const & o) {
-		filename = o.filename;
-		return *this;
+void sound_impl::set_volume(std::optional<ma_sound>& sound, float volume) {
+	if(sound.has_value()) {
+		ma_sound_set_volume(&*sound, volume);
+	}
+}
+
+void sound_impl::override_sound(std::optional<ma_sound>& sound, audio_instance& s, float volume) {
+	if(sound.has_value()) {
+		ma_sound_uninit(&*sound);
 	}
 
-	audio_instance(simple_fs::unopened_file const & file) {
-		filename = simple_fs::get_full_name(file);
+	sound.reset();
+	sound.emplace();
+	ma_result result = ma_sound_init_from_file(&engine, s.filename.c_str(), 0, NULL, NULL, &*sound);
+	if(result == MA_SUCCESS) {
+		set_volume(sound, volume);
+		ma_sound_start(&*sound);
 	}
+}
 
-	~audio_instance() {
+void sound_impl::play_music(int32_t track, float volume) {
+	current_music = track;
+
+	audio_instance audio{};
+	audio.filename = music_list[track].filename.c_str();
+	override_sound(music, audio, volume);
+}
+
+void sound_impl::play_new_track(sys::state& s, float v) {
+	if(music_list.size() > 0) {
+		int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
+		while(result == last_music)
+			result = int32_t(rand() % music_list.size());
+		play_music(result, v);
 	}
-};
+}
 
-class sound_impl {
-public:
-	std::optional<ma_sound> effect_sound;
-	std::optional<ma_sound> interface_sound;
-	std::optional<ma_sound> music;
-
-	ma_engine engine;
-	audio_instance click_sound;
-	std::vector<audio_instance> music_list;
-	int32_t last_music = -1;
-	int32_t first_music = -1;
-	int32_t current_music = -1;
-
-	sound_impl() {
-		if(ma_engine_init(NULL, &engine) != MA_SUCCESS) {
-			std::abort();
-		}
-	}
-
-	~sound_impl() {
-		ma_engine_uninit(&engine);
-	}
-
-	void set_volume(std::optional<ma_sound>& sound, float volume) {
-		if(sound.has_value()) {
-			ma_sound_set_volume(&*sound, volume);
-		}
-	}
-
-	void override_sound(std::optional<ma_sound>& sound, audio_instance& s, float volume) {
-		if(sound.has_value()) {
-			ma_sound_uninit(&*sound);
-		}
-
-		sound.reset();
-		sound.emplace();
-		ma_result result = ma_sound_init_from_file(&engine, s.filename.c_str(), 0, NULL, NULL, &*sound);
-		if(result == MA_SUCCESS) {
-			set_volume(sound, volume);
-			ma_sound_start(&*sound);
-		}
-	}
-
-	void play_music(int32_t track, float volume) {
-		current_music = track;
-
-		audio_instance audio{};
-		audio.filename = music_list[track].filename.c_str();
-		override_sound(music, audio, volume);
-	}
-
-	void play_new_track(sys::state& s, float v) {
-		if(music_list.size() > 0) {
-			int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
-			while(result == last_music)
-				result = int32_t(rand() % music_list.size());
-			play_music(result, v);
-		}
-	}
-
-	bool music_finished() {
-		if(music.has_value())
-			return music->atEnd;
-		return true;
-	}
-};
+bool sound_impl::music_finished() {
+	if(music.has_value())
+		return music->atEnd;
+	return true;
+}
 
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();

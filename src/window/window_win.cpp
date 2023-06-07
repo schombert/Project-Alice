@@ -16,17 +16,6 @@
 #define WM_GRAPHNOTIFY (WM_APP + 1)
 
 namespace window {
-class window_data_impl {
-public:
-	HWND hwnd = nullptr;
-	HDC opengl_window_dc = nullptr;
-
-	int32_t creation_x_size = 600;
-	int32_t creation_y_size = 400;
-
-	bool in_fullscreen = false;
-	bool left_mouse_down = false;
-};
 
 bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) { return GetKeyState(int32_t(key)) & 0x8000; }
 
@@ -116,12 +105,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		create_state->win_ptr->hwnd = hwnd;
 		create_state->win_ptr->opengl_window_dc = GetDC(hwnd);
 
-		// setup opengl here
-		ogl::initialize_opengl(*create_state);
+			// setup opengl here
+			ogl::initialize_opengl(*create_state);
 
-		RECT crect{};
-		GetClientRect(hwnd, &crect);
-		SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
+			RECT crect{};
+			GetClientRect(hwnd, &crect);
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
 
 		return 0;
 	}
@@ -214,18 +203,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 0;
 	}
 	case WM_SIZE: {
-		sys::window_state t = sys::window_state::normal;
+		window::window_state t = window::window_state::normal;
 
-		if(wParam == SIZE_MAXIMIZED) {
-			t = sys::window_state::maximized;
-		} else if(wParam == SIZE_MINIMIZED) {
-			t = sys::window_state::minimized;
-		} else if(wParam == SIZE_RESTORED) {
-			t = sys::window_state::normal;
-		} else {
-			// other
-			break;
-		}
+				if(wParam == SIZE_MAXIMIZED) {
+					t = window_state::maximized;
+				} else if(wParam == SIZE_MINIMIZED) {
+					t = window_state::minimized;
+				} else if(wParam == SIZE_RESTORED) {
+					t = window_state::normal;
+				} else {
+					//other
+					break;
+				}
 
 		state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
 		state->x_size = LOWORD(lParam);
@@ -335,13 +324,13 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_FRAMECHANGED);
 		SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 
-		if(params.initial_state == sys::window_state::maximized)
-			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
-		else if(params.initial_state == sys::window_state::minimized)
-			ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
-		else
-			ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
-	} else {
+			if(params.initial_state == window_state::maximized)
+				ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
+			else if(params.initial_state == window_state::minimized)
+				ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
+			else
+				ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
+		} else {
 
 		auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 		MONITORINFO mi;

@@ -19,6 +19,7 @@
 #include "nations.hpp"
 #include "opengl_wrapper.hpp"
 #include "text.hpp"
+#include "sound.hpp"
 
 namespace ui {
 
@@ -620,6 +621,8 @@ state::state() {
 	tooltip = std::make_unique<tool_tip>();
 	tooltip->flags |= element_base::is_invisible_mask;
 }
+
+state::~state() = default;
 
 void window_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::window) {

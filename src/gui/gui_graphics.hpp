@@ -316,8 +316,9 @@ struct state {
 
 	uint16_t tooltip_font = 0;
 
-	state();
-};
+		state();
+		~state();
+	};
 
 struct mouse_probe {
 	element_base* under_mouse;

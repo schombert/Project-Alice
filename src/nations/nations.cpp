@@ -479,7 +479,8 @@ void update_great_powers(sys::state& state) {
 		if(state.world.nation_get_rank(state.great_nations[i].nation) <= uint16_t(state.defines.great_nations_count)) {
 			// is still a gp
 			state.great_nations[i].last_greatness = state.current_date;
-		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date) {
+		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date ||
+		          state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
 
 			auto n = state.great_nations[i].nation;
 			state.great_nations[i] = state.great_nations.back();

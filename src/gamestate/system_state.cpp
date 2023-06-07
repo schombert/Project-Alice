@@ -93,8 +93,8 @@ void state::on_drag_finished(int32_t x, int32_t y,
 		ui_state.drag_target = nullptr;
 	}
 }
-void state::on_resize(int32_t x, int32_t y, window_state win_state) {
-	if(win_state != window_state::minimized) {
+void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
+	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
 	}
@@ -1958,7 +1958,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 12, [&](int32_t index) {
+				concurrency::parallel_for(0, 13, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -1995,6 +1995,9 @@ void state::game_loop() {
 						break;
 					case 11:
 						nations::daily_update_flashpoint_tension(*this);
+						break;
+					case 12:
+						military::update_ticking_war_score(*this);
 						break;
 					}
 				});

@@ -4,7 +4,7 @@
 
 cmake_minimum_required (VERSION 3.15)
 
-project (ProjectAlice LANGUAGES CXX)
+project (ProjectAlice LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -27,7 +27,10 @@ endforeach()
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
-add_executable(Alice WIN32 "src/main.cpp" ${ASSET_FILES})
+add_executable(Alice WIN32 "src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map.cpp"
+	${ASSET_FILES})
 
 # Used for storing the local path to the Victoria 2 directory
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
@@ -118,7 +121,14 @@ target_precompile_headers(Alice
 	PRIVATE [["parsers_declarations.hpp"]]
 	PRIVATE [["cyto_any.hpp"]]
 	PRIVATE [["date_interface.hpp"]]
+	PRIVATE [["stb_image.h"]]
 )
+
+if(WIN32)
+else()
+target_precompile_headers(Alice
+	PRIVATE [["miniaudio.h"]])
+endif()
 
 
 target_link_libraries(Alice PRIVATE dependency_DataContainer)

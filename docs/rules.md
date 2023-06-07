@@ -598,7 +598,18 @@ Each war goal has a value that determines how much it is worth in a peace offer 
 #### Battle score
 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
+- only if the war goal has tws_battle_factor > 0
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
+- subtract from tws_battle_factor and then divide by define:TWS_BATTLE_MAX_ASPECT (limited to -1 to +1). This then works is the occupied percentage described below.
+
+#### Occupation score
+
+Increases by occupation-percentage x define:TWS_FULFILLED_SPEED (up to define:TWS_CB_LIMIT_DEFAULT) when the percentage occupied is >= define:TWS_FULFILLED_IDLE_SPACE or when the occupation percentage is > 0 and the current occupation score is negative.
+If there is no occupation, the score decreases by define:TWS_NOT_FULFILLED_SPEED. This can only take the score into negative after define:TWS_GRACE_PERIOD_DAYS, at which point it can go to -define:TWS_CB_LIMIT_DEFAULT.
+
+#### War score outside war goals
+
+Outside of war score from specific war goals, winning or losing battles can contribute up to define:MAX_WARSCORE_FROM_BATTLES. Other occupation counts proportionally to province score of the occupied provinces compared to the target's total province score.
 
 #### Directed war score
 
