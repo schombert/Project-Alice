@@ -215,6 +215,7 @@ void make_government(std::string_view name, token_generator& gen, error_handler&
 	auto name_id = text::find_or_add_key(context.state, name);
 
 	context.state.culture_definitions.governments[new_id].name = name_id;
+	context.state.culture_definitions.governments[new_id].ruler_name = text::find_or_add_key(context.state, std::string(name) + "_ruler");
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{context, new_id};
