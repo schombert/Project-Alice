@@ -9,10 +9,7 @@
 
 namespace map {
 
-enum class map_view {
-	globe,
-	flat
-};
+enum class map_view { globe, flat };
 class map_state {
 public:
 	map_state(){};
@@ -23,7 +20,7 @@ public:
 	void load_map(sys::state& state);
 
 	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
-	void set_province_color(std::vector<uint32_t> const & prov_color, map_mode::mode map_mode);
+	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
 	void update_borders(sys::state& state);
 
@@ -81,8 +78,6 @@ private:
 	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
 
 public:
-	float get_zoom() {
-		return zoom;
-	}
+	float get_zoom() { return zoom; }
 };
 } // namespace map

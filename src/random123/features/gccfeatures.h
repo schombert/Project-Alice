@@ -34,7 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define R123_GNUC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
-#if !defined(__x86_64__) && !defined(__i386__) && !defined(__powerpc__) && !defined(__arm__) && !defined(__aarch64__) && !defined(__s390x__)
+#if !defined(__x86_64__) && !defined(__i386__) && !defined(__powerpc__) && !defined(__arm__) && !defined(__aarch64__) &&                 \
+    !defined(__s390x__)
 #error "This code has only been tested on x86, powerpc and a few arm platforms."
 #include <including_a_nonexistent_file_will_stop_some_compilers_from_continuing_with_a_hopeless_task>
 {   /* maybe an unbalanced brace will terminate the compilation */
@@ -241,7 +242,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    reluctant to make this change without a compelling reason, but this
    seems preferable to just turning off USE_MULHILO64_ASM.
 
-#define R123_USE_MULHILO64_ASM (R123_USE_ASM_GNU && (!R123_USE_GNU_UINT128) && (!R123_USE_MULHILO64_CUDA_INTRIN) && (!R123_USE_MULHILO64_MULHI_INTRIN) && (!R123_USE_MULHILO64_OPENCL_INTRIN) && (!R123_USE_MULHILO64_MSVC_INTRIN))
+#define R123_USE_MULHILO64_ASM (R123_USE_ASM_GNU && (!R123_USE_GNU_UINT128) && (!R123_USE_MULHILO64_CUDA_INTRIN) &&
+(!R123_USE_MULHILO64_MULHI_INTRIN) && (!R123_USE_MULHILO64_OPENCL_INTRIN) && (!R123_USE_MULHILO64_MSVC_INTRIN))
 */
 #define R123_USE_MULHILO64_ASM 0
 #endif

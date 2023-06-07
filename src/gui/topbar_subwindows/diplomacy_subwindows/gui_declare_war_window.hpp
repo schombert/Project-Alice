@@ -74,9 +74,7 @@ public:
 
 class wargoal_type_listbox : public listbox_element_base<wargoal_type_item, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "wargoal_item";
-	}
+	std::string_view get_row_element_name() override { return "wargoal_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -90,9 +88,11 @@ public:
 					bool is_valid = false;
 					dcon::war_id w = military::find_war_between(state, state.local_player_nation, content);
 					state.world.nation_for_each_state_ownership_as_nation(content, [&](dcon::state_ownership_id soi) {
-						dcon::state_definition_id sdef = state.world.state_instance_get_definition(state.world.state_ownership_get_state(soi));
+						dcon::state_definition_id sdef =
+						    state.world.state_instance_get_definition(state.world.state_ownership_get_state(soi));
 						state.world.for_each_national_identity([&](dcon::national_identity_id nid) {
-							if(command::can_add_war_goal(state, state.local_player_nation, w, content, cbt, sdef, nid, state.world.national_identity_get_nation_from_identity_holder(nid)))
+							if(command::can_add_war_goal(state, state.local_player_nation, w, content, cbt, sdef, nid,
+							                             state.world.national_identity_get_nation_from_identity_holder(nid)))
 								is_valid = true;
 						});
 					});
@@ -160,9 +160,7 @@ public:
 
 class wargoal_state_listbox : public listbox_element_base<wargoal_state_item, dcon::state_definition_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "wargoal_state_item";
-	}
+	std::string_view get_row_element_name() override { return "wargoal_state_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -228,9 +226,7 @@ public:
 
 class wargoal_country_listbox : public listbox_element_base<wargoal_country_item, dcon::national_identity_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "wargoal_country_item";
-	}
+	std::string_view get_row_element_name() override { return "wargoal_country_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -244,7 +240,8 @@ public:
 			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 			dcon::trigger_key allowed_countries = state.world.cb_type_get_allowed_countries(c);
 			state.world.for_each_nation([&](dcon::nation_id n) {
-				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(content), trigger::to_generic(state.local_player_nation), trigger::to_generic(n)))
+				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(content),
+				                     trigger::to_generic(state.local_player_nation), trigger::to_generic(n)))
 					row_contents.push_back(state.world.identity_holder_get_identity(state.world.nation_get_identity_holder_as_nation(n)));
 			});
 		}
@@ -338,9 +335,7 @@ public:
 
 class diplomacy_declare_war_title : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, "wartitle"));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, text::produce_simple_string(state, "wartitle")); }
 };
 
 class diplomacy_declare_war_agree_button : public button_element_base {
@@ -362,9 +357,11 @@ public:
 
 			if(military::are_at_war(state, state.local_player_nation, n)) {
 				dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
-				disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+				disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
+				                                      state.world.national_identity_get_nation_from_identity_holder(ni));
 			} else {
-				disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+				disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
+				                                     state.world.national_identity_get_nation_from_identity_holder(ni));
 			}
 		}
 	}
@@ -386,17 +383,17 @@ public:
 
 			if(military::are_at_war(state, state.local_player_nation, n)) {
 				dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
-				command::add_war_goal(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+				command::add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
+				                      state.world.national_identity_get_nation_from_identity_holder(ni));
 			} else {
-				command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+				command::declare_war(state, state.local_player_nation, n, c, s, ni,
+				                     state.world.national_identity_get_nation_from_identity_holder(ni));
 			}
 			parent->set_visible(state, false);
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -414,7 +411,8 @@ public:
 			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni))) {
+			if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
+			                            state.world.national_identity_get_nation_from_identity_holder(ni))) {
 				text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
 			} else {
 				if(military::are_allied_in_war(state, state.local_player_nation, n)) {
@@ -474,8 +472,10 @@ public:
 
 		if(fat_cb.is_valid()) {
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::recipient, dcon::fatten(state.world, content).get_name()); // Target Nation
-			text::add_to_substitution_map(sub, text::variable_type::third, dcon::fatten(state.world, nacion).get_name());      // Third Party Country
+			text::add_to_substitution_map(sub, text::variable_type::recipient,
+			                              dcon::fatten(state.world, content).get_name()); // Target Nation
+			text::add_to_substitution_map(sub, text::variable_type::third,
+			                              dcon::fatten(state.world, nacion).get_name()); // Third Party Country
 			text::add_to_substitution_map(sub, text::variable_type::actor, dcon::fatten(state.world, nacion).get_name());
 			text::add_to_substitution_map(sub, text::variable_type::state, dcon::fatten(state.world, staat).get_name());
 			text::add_to_substitution_map(sub, text::variable_type::region, dcon::fatten(state.world, staat).get_name());
@@ -625,12 +625,11 @@ public:
 
 //====================================================================================================================================
 
-template<bool B>
-class diplomacy_peace_tab_button : public button_element_base {
+template<bool B> class diplomacy_peace_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{ B };
+			Cyto::Any payload = element_selection_wrapper<bool>{B};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -655,8 +654,7 @@ public:
 	}
 };
 
-template<bool B>
-class diplomacy_peace_nation_flag : public flag_button {
+template<bool B> class diplomacy_peace_nation_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {
@@ -700,14 +698,15 @@ struct diplomacy_peace_wargoal {
 };
 class diplomacy_peace_select_button : public button_element_base {
 	uint32_t color = 0;
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::wargoals_attached_id{};
 			parent->impl_get(state, payload);
 			dcon::wargoals_attached_id wa = Cyto::any_cast<dcon::wargoals_attached_id>(payload);
-			
-			Cyto::Any q_payload = diplomacy_peace_wargoal{ wa };
+
+			Cyto::Any q_payload = diplomacy_peace_wargoal{wa};
 			parent->impl_get(state, q_payload);
 			frame = Cyto::any_cast<bool>(q_payload) ? 1 : 0;
 		}
@@ -718,8 +717,8 @@ public:
 			Cyto::Any payload = dcon::wargoals_attached_id{};
 			parent->impl_get(state, payload);
 			dcon::wargoals_attached_id wa = Cyto::any_cast<dcon::wargoals_attached_id>(payload);
-			
-			Cyto::Any s_payload = element_selection_wrapper<diplomacy_peace_wargoal>{ diplomacy_peace_wargoal{ wa } };
+
+			Cyto::Any s_payload = element_selection_wrapper<diplomacy_peace_wargoal>{diplomacy_peace_wargoal{wa}};
 			parent->impl_get(state, s_payload);
 		}
 	}
@@ -748,9 +747,8 @@ public:
 
 class diplomacy_peace_goal_listbox : public listbox_element_base<diplomacy_peace_goal_row, dcon::wargoals_attached_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "peace_goal_item";
-	}
+	std::string_view get_row_element_name() override { return "peace_goal_item"; }
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -760,10 +758,10 @@ public:
 			const dcon::war_id w = any_cast<dcon::war_id>(payload);
 			Cyto::Any b_payload = bool{};
 			parent->impl_get(state, b_payload);
-			const bool side = any_cast<bool>(b_payload);
+			bool const side = any_cast<bool>(b_payload);
 			const military::war_role prole = military::get_role(state, w, state.local_player_nation);
-			for(const auto wa : state.world.war_get_wargoals_attached_as_war(w)) {
-				const bool same_side = military::get_role(state, w, wa.get_wargoal().get_added_by()) == prole;
+			for(auto const wa : state.world.war_get_wargoals_attached_as_war(w)) {
+				bool const same_side = military::get_role(state, w, wa.get_wargoal().get_added_by()) == prole;
 				if(same_side == side)
 					row_contents.push_back(wa);
 			}
@@ -815,11 +813,11 @@ public:
 			const dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 			Cyto::Any b_payload = bool{};
 			parent->impl_get(state, b_payload);
-			const bool b = any_cast<bool>(b_payload);
+			bool const b = any_cast<bool>(b_payload);
 
 			command::start_peace_offer(state, state.local_player_nation, n, w, b);
-			for(const auto wa : state.world.war_get_wargoals_attached_as_war(w)) {
-				Cyto::Any q_payload = diplomacy_peace_wargoal{ wa };
+			for(auto const wa : state.world.war_get_wargoals_attached_as_war(w)) {
+				Cyto::Any q_payload = diplomacy_peace_wargoal{wa};
 				parent->impl_get(state, q_payload);
 				if(Cyto::any_cast<bool>(q_payload))
 					command::add_to_peace_offer(state, state.local_player_nation, wa.get_wargoal());
@@ -833,6 +831,7 @@ public:
 class diplomacy_setup_peace_dialog : public window_element_base { // eu3dialogtype
 	bool side = true;
 	std::map<int32_t, bool> wargoals;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
@@ -945,9 +944,7 @@ public:
 
 class diplomacy_make_cb_listbox : public listbox_element_base<diplomacy_make_cb_type, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "cb_type_item";
-	}
+	std::string_view get_row_element_name() override { return "cb_type_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1018,9 +1015,7 @@ public:
 
 class make_cb_title : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, "make_cbtitle"));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, text::produce_simple_string(state, "make_cbtitle")); }
 };
 
 class diplomacy_make_cb_window : public window_element_base { // eu3dialogtype

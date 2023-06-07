@@ -12,12 +12,12 @@
 
 #include "error_private.h"
 
-char const * ERR_getErrorString(ERR_enum code) {
+char const* ERR_getErrorString(ERR_enum code) {
 #ifdef ZSTD_STRIP_ERROR_STRINGS
 	(void)code;
 	return "Error strings stripped";
 #else
-	static char const * const notErrorCode = "Unspecified error code";
+	static char const* const notErrorCode = "Unspecified error code";
 	switch(code) {
 	case PREFIX(no_error):
 		return "No error detected";

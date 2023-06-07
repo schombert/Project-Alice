@@ -47,13 +47,12 @@ public:
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
-			auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+			auto ptr =
+			    make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 		auto cell_width = (972 - cell_offset.x) / 6;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
@@ -62,37 +61,43 @@ public:
 		};
 		// Country name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Country status
 		{
-			auto ptr = make_element_by_type<nation_status_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_status_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Military score
 		{
-			auto ptr = make_element_by_type<nation_military_score_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_military_score_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Industrial score
 		{
-			auto ptr = make_element_by_type<nation_industry_score_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_industry_score_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Prestige
 		{
-			auto ptr = make_element_by_type<nation_prestige_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_prestige_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Total score
 		{
-			auto ptr = make_element_by_type<nation_total_score_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_total_score_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -114,9 +119,7 @@ public:
 };
 class ledger_nation_ranking_listbox : public listbox_element_base<ledger_nation_ranking_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -140,13 +143,12 @@ public:
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
-			auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+			auto ptr =
+			    make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 		auto cell_width = (972 - cell_offset.x) / 8;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
@@ -155,49 +157,57 @@ public:
 		};
 		// Country name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Total population
 		{
-			auto ptr = make_element_by_type<nation_population_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_population_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Provinces count
 		{
-			auto ptr = make_element_by_type<nation_provinces_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_provinces_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Factories count
 		{
-			auto ptr = make_element_by_type<nation_industries_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_industries_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Literacy
 		{
-			auto ptr = make_element_by_type<nation_literacy_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_literacy_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Leadership
 		{
-			auto ptr = make_element_by_type<nation_leadership_points_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_leadership_points_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Brigades
 		{
-			auto ptr = make_element_by_type<nation_brigade_allocation_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_brigade_allocation_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Ships
 		{
-			auto ptr = make_element_by_type<nation_navy_allocation_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_navy_allocation_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -213,9 +223,7 @@ public:
 };
 class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nation_comparison_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -239,13 +247,12 @@ public:
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
-			auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+			auto ptr =
+			    make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 		auto cell_width = (972 - cell_offset.x) / 5;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
@@ -254,31 +261,36 @@ public:
 		};
 		// Country name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Government
 		{
-			auto ptr = make_element_by_type<nation_government_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_government_type_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// National value
 		{
-			auto ptr = make_element_by_type<nation_national_value_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_national_value_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Ruling party
 		{
-			auto ptr = make_element_by_type<nation_ruling_party_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_ruling_party_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Party ideology
 		{
-			auto ptr = make_element_by_type<nation_ruling_party_ideology_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_ruling_party_ideology_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -294,9 +306,7 @@ public:
 };
 class ledger_nation_political_systems_listbox : public listbox_element_base<ledger_nation_political_systems_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -331,8 +341,7 @@ public:
 		return standard_nation_text::set(state, payload);
 	}
 };
-template<bool IsPolitical>
-class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
+template<bool IsPolitical> class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
 public:
@@ -340,13 +349,12 @@ public:
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
-			auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+			auto ptr =
+			    make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 
 		auto num_issues = 0;
 		state.world.for_each_issue([&](dcon::issue_id id) {
@@ -364,7 +372,8 @@ public:
 		};
 		// Country name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -373,7 +382,8 @@ public:
 			if((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
 				return;
 
-			auto ptr = make_element_by_type<nation_selected_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_selected_issue_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			Cyto::Any payload = id;
 			ptr->impl_set(state, payload);
 			apply_offset(ptr);
@@ -391,9 +401,7 @@ public:
 };
 class ledger_nation_political_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<true>, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -407,9 +415,7 @@ public:
 };
 class ledger_nation_social_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<false>, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -451,18 +457,15 @@ public:
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
-			auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+			auto ptr =
+			    make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 
 		auto num_pop_types = 0;
-		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			++num_pop_types;
-		});
+		state.world.for_each_pop_type([&](dcon::pop_type_id id) { ++num_pop_types; });
 
 		// 1 for the country name
 		auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
@@ -473,13 +476,15 @@ public:
 		};
 		// Country name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// For each pop type generate
 		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			auto ptr = make_element_by_type<nation_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_population_per_pop_type_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			Cyto::Any payload = id;
 			ptr->impl_set(state, payload);
 			apply_offset(ptr);
@@ -497,9 +502,7 @@ public:
 };
 class ledger_nation_population_listbox : public listbox_element_base<ledger_nation_population_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -530,55 +533,64 @@ public:
 		};
 		// Province name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Total population
 		{
-			auto ptr = make_element_by_type<province_population_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_population_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Average militancy
 		{
-			auto ptr = make_element_by_type<province_militancy_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_militancy_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Average consciousness
 		{
-			auto ptr = make_element_by_type<province_consciousness_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_consciousness_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Average literacy
 		{
-			auto ptr = make_element_by_type<province_literacy_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_literacy_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Religion
 		{
-			auto ptr = make_element_by_type<province_dominant_religion_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_dominant_religion_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Culture
 		{
-			auto ptr = make_element_by_type<province_dominant_culture_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_dominant_culture_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Issues
 		{
-			auto ptr = make_element_by_type<province_dominant_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_dominant_issue_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Ideology
 		{
-			auto ptr = make_element_by_type<province_dominant_ideology_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_dominant_ideology_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -599,17 +611,13 @@ public:
 };
 class ledger_province_listbox : public listbox_element_base<ledger_province_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				row_contents.push_back(p);
-			});
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { row_contents.push_back(p); });
 		update(state);
 	}
 };
@@ -643,9 +651,7 @@ public:
 		xy_pair cell_offset{0, 0};
 
 		auto num_pop_types = 0;
-		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			++num_pop_types;
-		});
+		state.world.for_each_pop_type([&](dcon::pop_type_id id) { ++num_pop_types; });
 
 		auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
 		auto apply_offset = [&](auto& ptr) {
@@ -655,13 +661,15 @@ public:
 		};
 		// Province name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// For each pop type generate
 		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			auto ptr = make_element_by_type<province_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_population_per_pop_type_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			Cyto::Any payload = id;
 			ptr->impl_set(state, payload);
 			apply_offset(ptr);
@@ -679,17 +687,13 @@ public:
 };
 class ledger_province_population_listbox : public listbox_element_base<ledger_province_population_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				row_contents.push_back(p);
-			});
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { row_contents.push_back(p); });
 		update(state);
 	}
 };
@@ -712,43 +716,50 @@ public:
 		};
 		// Province name
 		{
-			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// State name
 		{
-			auto ptr = make_element_by_type<province_state_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_state_name_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Goods
 		{
-			auto ptr = make_element_by_type<province_rgo_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_rgo_name_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Output
 		{
-			auto ptr = make_element_by_type<province_goods_produced_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_goods_produced_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Income
 		{
-			auto ptr = make_element_by_type<province_income_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_income_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Employed
 		{
-			auto ptr = make_element_by_type<province_rgo_workers_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_rgo_workers_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Level
 		{
-			auto ptr = make_element_by_type<province_player_rgo_size_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<province_player_rgo_size_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -769,17 +780,13 @@ public:
 };
 class ledger_provinces_production_listbox : public listbox_element_base<ledger_provinces_production_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				row_contents.push_back(p);
-			});
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { row_contents.push_back(p); });
 		update(state);
 	}
 };
@@ -802,37 +809,43 @@ public:
 		};
 		// State name
 		{
-			auto ptr = make_element_by_type<factory_state_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<factory_state_name_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Goods
 		{
-			auto ptr = make_element_by_type<factory_output_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<factory_output_name_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Output
 		{
-			auto ptr = make_element_by_type<factory_produced_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<factory_produced_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Income
 		{
-			auto ptr = make_element_by_type<factory_income_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<factory_income_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Employed
 		{
-			auto ptr = make_element_by_type<factory_workers_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<factory_workers_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Level
 		{
-			auto ptr = make_element_by_type<factory_level_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<factory_level_text>(
+			    state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -840,9 +853,7 @@ public:
 };
 class ledger_factories_production_listbox : public listbox_element_base<ledger_factories_production_entry, dcon::factory_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -850,9 +861,8 @@ public:
 		for(auto const fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, fat_smemb_id.get_state(), [&](dcon::province_id pid) {
 				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					row_contents.push_back(state.world.factory_location_get_factory(flid));
-				});
+				fat_id.for_each_factory_location_as_province(
+				    [&](dcon::factory_location_id flid) { row_contents.push_back(state.world.factory_location_get_factory(flid)); });
 			});
 		update(state);
 	}
@@ -888,16 +898,12 @@ public:
 };
 class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "ledger_legend_entry";
-	}
+	std::string_view get_row_element_name() override { return "ledger_legend_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			row_contents.push_back(id);
-		});
+		state.world.for_each_commodity([&](dcon::commodity_id id) { row_contents.push_back(id); });
 		update(state);
 	}
 };

@@ -7,17 +7,17 @@
 #include "system_state.hpp"
 
 void parsing::defines::assign_define(sys::state& state, int32_t line, std::string_view text, float v, parsers::error_handler& err) {
-#define LUA_DEFINES_LIST_ELEMENT(key, const_value)                                 \
-	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), #key)) \
+#define LUA_DEFINES_LIST_ELEMENT(key, const_value)                                                                                       \
+	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), #key))                                                       \
 		key = v;
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 }
 
 void parsing::defines::parse_line(sys::state& state, int32_t line, std::string_view data, parsers::error_handler& err) {
-	char const * start = data.data();
-	char const * end = data.data() + data.length();
-	char const * position = start;
+	char const* start = data.data();
+	char const* end = data.data() + data.length();
+	char const* position = start;
 
 	for(; position < end && isspace(*position); ++position)
 		;
@@ -64,10 +64,10 @@ void parsing::defines::parse_line(sys::state& state, int32_t line, std::string_v
 			;
 		auto day_end = position;
 
-		state.start_date = sys::absolute_time_point(sys::year_month_day{
-		    parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
-		    uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
-		    uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))});
+		state.start_date = sys::absolute_time_point(
+		    sys::year_month_day{parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
+		                        uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
+		                        uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))});
 	} else if(parsers::is_fixed_token_ci(first_non_ws, identifier_end, "end_date")) {
 		position = value_start;
 
@@ -92,10 +92,10 @@ void parsing::defines::parse_line(sys::state& state, int32_t line, std::string_v
 			;
 		auto day_end = position;
 
-		state.end_date = sys::absolute_time_point(sys::year_month_day{
-		    parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
-		    uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
-		    uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))});
+		state.end_date = sys::absolute_time_point(
+		    sys::year_month_day{parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
+		                        uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
+		                        uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))});
 	} else {
 		auto const value = parsers::parse_float(std::string_view(value_start, value_end - value_start), line, err);
 		assign_define(state, line, std::string_view(first_non_ws, identifier_end - first_non_ws), value, err);

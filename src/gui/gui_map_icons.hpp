@@ -33,9 +33,7 @@ class unit_icon_color : public image_element_base {
 	}
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		frame = get_frame(state);
-	}
+	void on_update(sys::state& state) noexcept override { frame = get_frame(state); }
 };
 
 class unit_strength_text : public simple_text_element_base {
@@ -112,19 +110,16 @@ public:
 		bool has_attrition = false; // TODO: Attrition
 		attr_icon->set_visible(state, has_attrition);
 		bool has_any = false;
-		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) {
-			has_any = true;
-		});
-		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) {
-			has_any = true;
-		});
+		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { has_any = true; });
+		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { has_any = true; });
 		set_visible(state, has_any);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size =
+		    glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;

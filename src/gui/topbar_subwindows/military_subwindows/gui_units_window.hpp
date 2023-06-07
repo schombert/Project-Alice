@@ -5,11 +5,9 @@
 namespace ui {
 
 template<typename T>
-struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> {
-};
+struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> { };
 
-template<typename T>
-class military_unit_name_text : public simple_text_element_base {
+template<typename T> class military_unit_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -24,8 +22,7 @@ public:
 	}
 };
 
-template<typename T>
-class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
+template<typename T> class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
 	simple_text_element_base* unit_name = nullptr;
 	image_element_base* unit_icon = nullptr;
 	image_element_base* leader_icon = nullptr;
@@ -105,7 +102,7 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		auto const & content = listbox_row_element_base<military_unit_info<T>>::content;
+		auto const& content = listbox_row_element_base<military_unit_info<T>>::content;
 
 		bool is_building = !std::holds_alternative<T>(content);
 		bool is_moving = false;
@@ -115,11 +112,13 @@ public:
 		if(is_building) {
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 				auto c = std::get<dcon::province_land_construction_id>(content);
-				unit_icon->frame = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
+				unit_icon->frame =
+				    state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
 				unit_progress->progress = economy::unit_construction_progress(state, c);
 			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 				auto c = std::get<dcon::province_naval_construction_id>(content);
-				unit_icon->frame = state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
+				unit_icon->frame =
+				    state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
 				unit_progress->progress = economy::unit_construction_progress(state, c);
 			}
 		} else {
@@ -167,12 +166,13 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		auto const & content = listbox_row_element_base<military_unit_info<T>>::content;
+		auto const& content = listbox_row_element_base<military_unit_info<T>>::content;
 		if(payload.holds_type<dcon::province_id>()) {
 			dcon::province_id p{};
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 				auto c = std::get<dcon::province_land_construction_id>(content);
-				p = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
+				p = state.world.pop_location_get_province(
+				    state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
 			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 				auto c = std::get<dcon::province_naval_construction_id>(content);
 				p = state.world.province_naval_construction_get_province(c);
@@ -184,12 +184,9 @@ public:
 	}
 };
 
-template<typename T>
-class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
+template<typename T> class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "unit_entry";
-	}
+	std::string_view get_row_element_name() override { return "unit_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -205,9 +202,8 @@ public:
 					auto aid = state.world.army_control_get_army(acid);
 					row_contents.push_back(military_unit_info<T>{aid});
 				});
-				state.world.nation_for_each_province_land_construction_as_nation(n, [&](dcon::province_land_construction_id p) {
-					row_contents.push_back(military_unit_info<T>{p});
-				});
+				state.world.nation_for_each_province_land_construction_as_nation(
+				    n, [&](dcon::province_land_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
 			}
 			// Navies
 			if constexpr(std::is_same_v<T, dcon::navy_id>) {
@@ -215,17 +211,15 @@ public:
 					auto nid = state.world.navy_control_get_navy(ncid);
 					row_contents.push_back(military_unit_info<T>{nid});
 				});
-				state.world.nation_for_each_province_naval_construction_as_nation(n, [&](dcon::province_naval_construction_id p) {
-					row_contents.push_back(military_unit_info<T>{p});
-				});
+				state.world.nation_for_each_province_naval_construction_as_nation(
+				    n, [&](dcon::province_naval_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
 			}
 		}
 		listbox_element_base<military_unit_entry<T>, military_unit_info<T>>::update(state);
 	}
 };
 
-template<class T>
-class build_unit_button : public button_element_base {
+template<class T> class build_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, false);
@@ -244,8 +238,7 @@ public:
 	}
 };
 
-template<class T>
-class military_units_window : public window_element_base {
+template<class T> class military_units_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_listbox") {

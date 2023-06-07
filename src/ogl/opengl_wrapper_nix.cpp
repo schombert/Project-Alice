@@ -21,6 +21,5 @@ void create_opengl_context(sys::state& state) {
 #endif
 }
 
-void shutdown_opengl(sys::state& state) {
-}
+void shutdown_opengl(sys::state& state) { }
 } // namespace ogl

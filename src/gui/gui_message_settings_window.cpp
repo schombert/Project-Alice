@@ -1,7 +1,7 @@
 #include "gui_message_settings_window.hpp"
 
 namespace ui {
-void message_log_text::on_update(sys::state& state) noexcept  {
+void message_log_text::on_update(sys::state& state) noexcept {
 	if(parent) {
 		Cyto::Any payload = int32_t{};
 		parent->impl_get(state, payload);
@@ -11,9 +11,8 @@ void message_log_text::on_update(sys::state& state) noexcept  {
 		if(index < int32_t(messages.size())) {
 			auto m = messages[index];
 			auto container = text::create_endless_layout(
-			    internal_layout,
-			    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white
-			});
+			    internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0,
+			                                             text::alignment::left, text::text_color::white});
 			m.title(state, container);
 		}
 	}
@@ -51,7 +50,7 @@ std::unique_ptr<element_base> message_log_window::make_child(sys::state& state, 
 void message_log_window::on_update(sys::state& state) noexcept {
 	while(messages.size() >= 100)
 		messages.pop_back();
-	
+
 	log_list->row_contents.clear();
 	for(int32_t i = 0; i < int32_t(messages.size()); ++i)
 		log_list->row_contents.push_back(i);
@@ -71,4 +70,4 @@ message_result message_log_window::get(sys::state& state, Cyto::Any& payload) no
 	}
 	return message_result::unseen;
 }
-}
+} // namespace ui

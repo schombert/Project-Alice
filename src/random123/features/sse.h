@@ -66,9 +66,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* bit25 of CX tells us whether AES is enabled. */
 R123_STATIC_INLINE int haveAESNI() {
 	unsigned int eax, ebx, ecx, edx;
-	__asm__ __volatile__("cpuid"
-	                     : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
-	                     : "a"(1));
+	__asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(1));
 	return (ecx >> 25) & 1;
 }
 #elif R123_USE_CPUID_MSVC
@@ -79,9 +77,7 @@ R123_STATIC_INLINE int haveAESNI() {
 }
 #else /* R123_USE_CPUID_??? */
 #warning "No R123_USE_CPUID_XXX method chosen.  haveAESNI will always return false"
-R123_STATIC_INLINE int haveAESNI() {
-	return 0;
-}
+R123_STATIC_INLINE int haveAESNI() { return 0; }
 #endif /* R123_USE_ASM_GNU || R123_USE_CPUID_MSVC */
 
 // There is a lot of annoying and inexplicable variation in the
@@ -126,22 +122,16 @@ R123_STATIC_INLINE uint64_t _mm_extract_lo64(__m128i si) {
 	return u.u64[0];
 }
 #elif defined(__llvm__) || defined(__ICC)
-R123_STATIC_INLINE uint64_t _mm_extract_lo64(__m128i si) {
-	return (uint64_t)_mm_cvtsi128_si64(si);
-}
+R123_STATIC_INLINE uint64_t _mm_extract_lo64(__m128i si) { return (uint64_t)_mm_cvtsi128_si64(si); }
 #else /* GNUC, others */
 /* FWIW, gcc's emmintrin.h has had the 'x' spelling
    since at least gcc-3.4.4.  The no-'x' spelling showed up
    around 4.2. */
-R123_STATIC_INLINE uint64_t _mm_extract_lo64(__m128i si) {
-	return (uint64_t)_mm_cvtsi128_si64x(si);
-}
+R123_STATIC_INLINE uint64_t _mm_extract_lo64(__m128i si) { return (uint64_t)_mm_cvtsi128_si64x(si); }
 #endif
 #if defined(__GNUC__) && __GNUC__ < 4
 /* the cast builtins showed up in gcc4. */
-R123_STATIC_INLINE __m128 _mm_castsi128_ps(__m128i si) {
-	return (__m128)si;
-}
+R123_STATIC_INLINE __m128 _mm_castsi128_ps(__m128i si) { return (__m128)si; }
 #endif
 
 #ifdef __cplusplus
@@ -157,7 +147,7 @@ struct r123m128i {
 	r123m128i() = default;
 	r123m128i(__m128i _m) : m(_m) { }
 #endif
-	r123m128i& operator=(__m128i const & rhs) {
+	r123m128i& operator=(__m128i const& rhs) {
 		m = rhs;
 		return *this;
 	}
@@ -173,7 +163,7 @@ struct r123m128i {
 #else
 	// Pre-C++11, we have to do something else.  Google for the "safe bool"
 	// idiom for other ideas...
-	operator void const *() const { return _bool() ? this : 0; }
+	operator void const*() const { return _bool() ? this : 0; }
 #endif
 	operator __m128i() const { return m; }
 
@@ -222,41 +212,27 @@ R123_STATIC_INLINE r123m128i& operator+=(r123m128i& lhs, R123_ULONG_LONG n) {
 }
 
 // We need this one because it's present, but never used in r123array1xm128i::incr
-R123_STATIC_INLINE bool operator<=(R123_ULONG_LONG, r123m128i const &) {
-	std::abort();
-}
+R123_STATIC_INLINE bool operator<=(R123_ULONG_LONG, r123m128i const&) { std::abort(); }
 
 // The comparisons aren't implemented, but if we leave them out, and
 // somebody writes, e.g., M1 < M2, the compiler will do an implicit
 // conversion through void*.  Sigh...
-R123_STATIC_INLINE bool operator<(r123m128i const &, r123m128i const &) {
-	std::abort();
-}
-R123_STATIC_INLINE bool operator<=(r123m128i const &, r123m128i const &) {
-	std::abort();
-}
-R123_STATIC_INLINE bool operator>(r123m128i const &, r123m128i const &) {
-	std::abort();
-}
-R123_STATIC_INLINE bool operator>=(r123m128i const &, r123m128i const &) {
-	std::abort();
-}
+R123_STATIC_INLINE bool operator<(r123m128i const&, r123m128i const&) { std::abort(); }
+R123_STATIC_INLINE bool operator<=(r123m128i const&, r123m128i const&) { std::abort(); }
+R123_STATIC_INLINE bool operator>(r123m128i const&, r123m128i const&) { std::abort(); }
+R123_STATIC_INLINE bool operator>=(r123m128i const&, r123m128i const&) { std::abort(); }
 
-R123_STATIC_INLINE bool operator==(r123m128i const & lhs, r123m128i const & rhs) {
+R123_STATIC_INLINE bool operator==(r123m128i const& lhs, r123m128i const& rhs) {
 	return 0xf == _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs)));
 }
-R123_STATIC_INLINE bool operator!=(r123m128i const & lhs, r123m128i const & rhs) {
-	return !(lhs == rhs);
-}
-R123_STATIC_INLINE bool operator==(R123_ULONG_LONG lhs, r123m128i const & rhs) {
+R123_STATIC_INLINE bool operator!=(r123m128i const& lhs, r123m128i const& rhs) { return !(lhs == rhs); }
+R123_STATIC_INLINE bool operator==(R123_ULONG_LONG lhs, r123m128i const& rhs) {
 	r123m128i LHS;
 	LHS.m = _mm_set_epi64x(0, lhs);
 	return LHS == rhs;
 }
-R123_STATIC_INLINE bool operator!=(R123_ULONG_LONG lhs, r123m128i const & rhs) {
-	return !(lhs == rhs);
-}
-R123_STATIC_INLINE std::ostream& operator<<(std::ostream& os, r123m128i const & m) {
+R123_STATIC_INLINE bool operator!=(R123_ULONG_LONG lhs, r123m128i const& rhs) { return !(lhs == rhs); }
+R123_STATIC_INLINE std::ostream& operator<<(std::ostream& os, r123m128i const& m) {
 	union {
 		uint64_t u64[2];
 		__m128i m;
@@ -272,11 +248,9 @@ R123_STATIC_INLINE std::istream& operator>>(std::istream& is, r123m128i& m) {
 	return is;
 }
 
-template<typename T>
-inline T assemble_from_u32(uint32_t* p32); // forward declaration
+template<typename T> inline T assemble_from_u32(uint32_t* p32); // forward declaration
 
-template<>
-inline r123m128i assemble_from_u32<r123m128i>(uint32_t* p32) {
+template<> inline r123m128i assemble_from_u32<r123m128i>(uint32_t* p32) {
 	r123m128i ret;
 	ret.m = _mm_set_epi32(p32[3], p32[2], p32[1], p32[0]);
 	return ret;
@@ -291,9 +265,7 @@ typedef struct {
 #endif /* __cplusplus */
 
 #else  /* !R123_USE_SSE */
-R123_STATIC_INLINE int haveAESNI() {
-	return 0;
-}
+R123_STATIC_INLINE int haveAESNI() { return 0; }
 #endif /* R123_USE_SSE */
 
 #endif /* _Random123_sse_dot_h__ */

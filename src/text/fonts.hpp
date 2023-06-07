@@ -26,9 +26,9 @@ class font_manager;
 
 class font {
 private:
-	font(font const &) = delete;
+	font(font const&) = delete;
 	font(font&&) = default;
-	font& operator=(font const &) = delete;
+	font& operator=(font const&) = delete;
 	font& operator=(font&&) noexcept = default;
 	font() = default;
 
@@ -56,7 +56,7 @@ public:
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
 	float kerning(char codepoint_first, char codepoint_second) const;
-	float text_extent(char const * codepoints, uint32_t count, int32_t size) const;
+	float text_extent(char const* codepoints, uint32_t count, int32_t size) const;
 
 	friend class font_manager;
 };
@@ -71,11 +71,11 @@ public:
 	ankerl::unordered_dense::map<uint16_t, BMFont> bitmap_fonts;
 	FT_Library ft_library;
 
-	void load_font(font& fnt, char const * file_data, uint32_t file_size);
+	void load_font(font& fnt, char const* file_data, uint32_t file_size);
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
-	float text_extent(sys::state& state, char const * codepoints, uint32_t count, uint16_t font_id) const;
+	float text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) const;
 };
 
 void load_standard_fonts(sys::state& state);

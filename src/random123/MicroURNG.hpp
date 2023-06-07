@@ -75,8 +75,7 @@ namespace r123 {
 \endcode
 */
 
-template<typename CBRNG>
-class MicroURNG {
+template<typename CBRNG> class MicroURNG {
 	// According to C++11, a URNG requires only a result_type,
 	// operator()(), min() and max() methods.  Everything else
 	// (ctr_type, key_type, reset() method, etc.) is "value added"
@@ -104,12 +103,8 @@ public:
 		}
 		return rdata[--last_elem];
 	}
-	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) {
-		chkhighbits();
-	}
-	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) {
-		chkhighbits();
-	}
+	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) { chkhighbits(); }
+	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) { chkhighbits(); }
 
 	// _Min and _Max work around a bug in the library shipped with MacOS Xcode 4.5.2.
 	// See the commment in conventional/Engine.hpp.
@@ -119,7 +114,7 @@ public:
 	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() { return _Min; }
 	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
 	// extra methods:
-	ctr_type const & counter() const { return c0; }
+	ctr_type const& counter() const { return c0; }
 	void reset(ctr_type _c0, ukey_type _uk) {
 		c0 = _c0;
 		chkhighbits();

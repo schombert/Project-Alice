@@ -64,8 +64,7 @@ static unsigned __stdcall worker(void* arg) {
 	return 0;
 }
 
-int ZSTD_pthread_create(ZSTD_pthread_t* thread, void const * unused,
-                        void* (*start_routine)(void*), void* arg) {
+int ZSTD_pthread_create(ZSTD_pthread_t* thread, void const* unused, void* (*start_routine)(void*), void* arg) {
 	ZSTD_thread_params_t thread_param;
 	(void)unused;
 
@@ -131,7 +130,7 @@ int ZSTD_pthread_join(ZSTD_pthread_t thread) {
 #define ZSTD_DEPS_NEED_MALLOC
 #include "zstd_deps.h"
 
-int ZSTD_pthread_mutex_init(ZSTD_pthread_mutex_t* mutex, pthread_mutexattr_t const * attr) {
+int ZSTD_pthread_mutex_init(ZSTD_pthread_mutex_t* mutex, pthread_mutexattr_t const* attr) {
 	*mutex = (pthread_mutex_t*)ZSTD_malloc(sizeof(pthread_mutex_t));
 	if(!*mutex)
 		return 1;
@@ -148,7 +147,7 @@ int ZSTD_pthread_mutex_destroy(ZSTD_pthread_mutex_t* mutex) {
 	}
 }
 
-int ZSTD_pthread_cond_init(ZSTD_pthread_cond_t* cond, pthread_condattr_t const * attr) {
+int ZSTD_pthread_cond_init(ZSTD_pthread_cond_t* cond, pthread_condattr_t const* attr) {
 	*cond = (pthread_cond_t*)ZSTD_malloc(sizeof(pthread_cond_t));
 	if(!*cond)
 		return 1;

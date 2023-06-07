@@ -179,17 +179,13 @@ R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_32_double(ui
 	return (((double)(i & 1)) + i) * R123_0x1p_32; /* 0x1.p-32; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_32_double(uint32_t i) {
-	return i * R123_0x1p_32; /* 0x1.p-32; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_32_double(uint32_t i) { return i * R123_0x1p_32; /* 0x1.p-32; */ }
 
 R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_32_double(uint32_t i) {
 	return (1. + i) * R123_0x1p_32; /* 0x1.p-32; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_32_double(uint32_t i) {
-	return (0.5 + i) * R123_0x1p_32; /* 0x1.p-32; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_32_double(uint32_t i) { return (0.5 + i) * R123_0x1p_32; /* 0x1.p-32; */ }
 #endif /* R123_USE_U01_DOUBLE */
 
 #ifdef __cplusplus
