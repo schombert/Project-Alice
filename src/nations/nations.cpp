@@ -1899,6 +1899,53 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 	inf = std::clamp(inf + delta, 0.0f, state.defines.max_influence);
 }
 
+void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
+	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
+	if(!rel) {
+		rel = state.world.force_create_gp_relationship(target, great_power);
+	}
+	auto& inf = state.world.gp_relationship_get_influence(rel);
+	inf += delta;
+
+	while(inf < 0) {
+		if(state.world.nation_get_in_sphere_of(target) == great_power) {
+			inf += state.defines.addtosphere_influence_cost;
+			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::decrease_level(l);
+		} else {
+			inf += state.defines.increaseopinion_influence_cost;
+
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::decrease_level(l);
+		}
+	}
+
+	while(inf > state.defines.max_influence) {
+		if(state.world.nation_get_in_sphere_of(target) != great_power) {
+			inf -= state.defines.removefromsphere_influence_cost;
+			auto affected_gp = state.world.nation_get_in_sphere_of(target);
+			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			{
+				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
+				auto& l = state.world.gp_relationship_get_status(orel);
+				l = nations::influence::decrease_level(l);
+			}
+		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
+			state.world.nation_set_in_sphere_of(target, great_power);
+			inf -= state.defines.addtosphere_influence_cost;
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::increase_level(l);
+		} else {
+			inf -= state.defines.increaseopinion_influence_cost;
+
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::increase_level(l);
+		}
+	}
+}
+
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, great_power);
 	if(!rel) {

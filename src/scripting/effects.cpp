@@ -2480,25 +2480,30 @@ uint32_t ef_trigger_revolt_province(EFFECT_PARAMTERS) {
 }
 uint32_t ef_diplomatic_influence(EFFECT_PARAMTERS) {
 	if(auto holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id); holder)
-		nations::adjust_influence(ws, trigger::to_nation(primary_slot), holder, float(trigger::payload(tval[2]).signed_value));
+		nations::adjust_influence_with_overflow(ws, trigger::to_nation(primary_slot), holder,
+		                                        float(trigger::payload(tval[2]).signed_value));
 	return 0;
 }
 uint32_t ef_diplomatic_influence_this_nation(EFFECT_PARAMTERS) {
-	nations::adjust_influence(ws, trigger::to_nation(primary_slot), trigger::to_nation(this_slot), float(trigger::payload(tval[1]).signed_value));
+	nations::adjust_influence_with_overflow(ws, trigger::to_nation(primary_slot), trigger::to_nation(this_slot),
+	                                        float(trigger::payload(tval[1]).signed_value));
 	return 0;
 }
 uint32_t ef_diplomatic_influence_this_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)); owner)
-		nations::adjust_influence(ws, trigger::to_nation(primary_slot), owner, float(trigger::payload(tval[1]).signed_value));
+		nations::adjust_influence_with_overflow(ws, trigger::to_nation(primary_slot), owner,
+		                                        float(trigger::payload(tval[1]).signed_value));
 	return 0;
 }
 uint32_t ef_diplomatic_influence_from_nation(EFFECT_PARAMTERS) {
-	nations::adjust_influence(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot), float(trigger::payload(tval[1]).signed_value));
+	nations::adjust_influence_with_overflow(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot),
+	                                        float(trigger::payload(tval[1]).signed_value));
 	return 0;
 }
 uint32_t ef_diplomatic_influence_from_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)); owner)
-		nations::adjust_influence(ws, trigger::to_nation(primary_slot), owner, float(trigger::payload(tval[1]).signed_value));
+		nations::adjust_influence_with_overflow(ws, trigger::to_nation(primary_slot), owner,
+		                                        float(trigger::payload(tval[1]).signed_value));
 	return 0;
 }
 uint32_t ef_relation(EFFECT_PARAMTERS) {

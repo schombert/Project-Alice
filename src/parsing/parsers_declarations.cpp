@@ -2486,7 +2486,13 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
-		new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
+		//new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
+
+		auto it = context.outer_context.state.key_to_text_sequence.find(
+		    std::string_view{"agression_war_name"}); // misspelling is intentional; DO NOT CORRECT
+		if(it != context.outer_context.state.key_to_text_sequence.end()) {
+			new_war.set_name(it->second);
+		}
 
 		for(auto n : context.attackers) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
@@ -2499,6 +2505,9 @@ void war_history_file::finish(war_history_context& context) {
 		for(auto& wg : context.wargoals) {
 			auto new_wg = fatten(context.outer_context.state.world, context.outer_context.state.world.create_wargoal());
 			new_wg.set_added_by(wg.actor_);
+			if(wg.actor_ == context.attackers[0]) {
+				new_war.set_name(context.outer_context.state.world.cb_type_get_war_name(wg.casus_belli_));
+			}
 			new_wg.set_target_nation(wg.receiver_);
 			new_wg.set_type(wg.casus_belli_);
 			context.outer_context.state.world.force_create_wargoals_attached(new_war, new_wg);
