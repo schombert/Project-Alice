@@ -5,18 +5,6 @@
 #include <unordered_map>
 
 namespace window {
-class window_data_impl {
-public:
-	// HWND hwnd = nullptr;
-	// HDC opengl_window_dc = nullptr;
-	GLFWwindow* window = nullptr;
-
-	int32_t creation_x_size = 600;
-	int32_t creation_y_size = 400;
-
-	bool in_fullscreen = false;
-	bool left_mouse_down = false;
-};
 
 static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key = {{GLFW_KEY_UNKNOWN, sys::virtual_key::NONE}, {GLFW_KEY_SPACE, sys::virtual_key::SPACE}, {GLFW_KEY_APOSTROPHE, sys::virtual_key::QUOTE}, {GLFW_KEY_COMMA, sys::virtual_key::COMMA},
 	{GLFW_KEY_EQUAL, sys::virtual_key::PLUS}, {GLFW_KEY_MINUS, sys::virtual_key::MINUS}, {GLFW_KEY_PERIOD, sys::virtual_key::PERIOD}, {GLFW_KEY_SLASH, sys::virtual_key::FORWARD_SLASH}, {GLFW_KEY_0, sys::virtual_key::NUM_0}, {GLFW_KEY_1, sys::virtual_key::NUM_1},
@@ -167,11 +155,11 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
 void on_window_change(GLFWwindow* window) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
-	sys::window_state t = sys::window_state::normal;
+	window_state t = window_state::normal;
 	if(glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_MAXIMIZED)
-		t = sys::window_state::maximized;
+		t = window_state::maximized;
 	else if(glfwGetWindowAttrib(window, GLFW_ICONIFIED) == GLFW_ICONIFIED)
-		t = sys::window_state::minimized;
+		t = window_state::minimized;
 
 	// redo OpenGL viewport
 	int width, height;

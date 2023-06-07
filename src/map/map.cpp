@@ -9,6 +9,12 @@
 #include <unordered_map>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "stb_image.h"
+#include "system_state.hpp"
+#include "parsers_declarations.hpp"
+
+
+
 namespace map {
 
 image load_stb_image(simple_fs::file& file) {

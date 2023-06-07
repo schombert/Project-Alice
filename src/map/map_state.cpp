@@ -2,6 +2,11 @@
 
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/polar_coordinates.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtx/transform.hpp>
+
+#include "system_state.hpp"
+#include "parsers_declarations.hpp"
 
 namespace map {
 

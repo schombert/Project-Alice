@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 
+#include "window.hpp"
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
@@ -32,13 +33,8 @@
 // that represent the overall state of the program
 // it will also include the game state itself eventually as a member
 
-namespace window {
-class window_data_impl;
-}
-
 namespace sys {
 
-enum class window_state : uint8_t { normal, maximized, minimized };
 
 enum class gui_modes : uint8_t { faithful, inaccurate };
 #define DEF_guimode_size 2
@@ -240,7 +236,7 @@ struct alignas(64) state {
 	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
 	void on_drag_finished(int32_t x, int32_t y,
 		key_modifiers mod); // called when the left button is released after one or more drag events
-	void on_resize(int32_t x, int32_t y, window_state win_state);
+	void on_resize(int32_t x, int32_t y, window::window_state win_state);
 	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);

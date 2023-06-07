@@ -12,65 +12,29 @@ constexpr int32_t volume_function(float v) {
 	return std::clamp(int32_t((v + -1.0f) * 4'500.0f), -10'000, 0);
 }
 
-class audio_instance {
-private:
-	std::wstring filename;
-	IGraphBuilder* graph_interface = nullptr;
-	IMediaControl* control_interface = nullptr;
-	IBasicAudio* audio_interface = nullptr;
-	IMediaSeeking* seek_interface = nullptr;
-	IMediaEventEx* event_interface = nullptr;
-
-public:
-	float volume_multiplier = 1.0f;
-
-	audio_instance() { }
-	audio_instance(std::wstring const & file) : filename(file) { }
-	audio_instance(audio_instance const &) = delete;
-	audio_instance(audio_instance&& o) noexcept : filename(std::move(o.filename)), graph_interface(o.graph_interface),
-	                                              control_interface(o.control_interface), audio_interface(o.audio_interface), seek_interface(o.seek_interface),
-	                                              event_interface(o.event_interface), volume_multiplier(o.volume_multiplier) {
-
-		o.graph_interface = nullptr;
-		o.control_interface = nullptr;
-		o.audio_interface = nullptr;
-		o.seek_interface = nullptr;
-		o.event_interface = nullptr;
+audio_instance::~audio_instance() {
+	if(audio_interface) {
+		((IBasicAudio*)audio_interface)->Release();
+		audio_interface = nullptr;
 	}
-	~audio_instance() {
-		if(audio_interface) {
-			((IBasicAudio*)audio_interface)->Release();
-			audio_interface = nullptr;
-		}
-		if(control_interface) {
-			((IMediaControl*)control_interface)->Release();
-			control_interface = nullptr;
-		}
-		if(seek_interface) {
-			((IMediaSeeking*)seek_interface)->Release();
-			seek_interface = nullptr;
-		}
-		if(event_interface) {
-			((IMediaEventEx*)event_interface)->SetNotifyWindow(NULL, 0, NULL);
-			((IMediaEventEx*)event_interface)->Release();
-			event_interface = nullptr;
-		}
-		if(graph_interface) {
-			((IGraphBuilder*)graph_interface)->Release();
-			graph_interface = nullptr;
-		}
+	if(control_interface) {
+		((IMediaControl*)control_interface)->Release();
+		control_interface = nullptr;
 	}
-
-	void set_file(std::wstring const & file) {
-		filename = file;
+	if(seek_interface) {
+		((IMediaSeeking*)seek_interface)->Release();
+		seek_interface = nullptr;
 	}
-	void play(float volume, bool as_music, void* window_handle);
-	void stop() const;
-	bool is_playing() const;
-	void change_volume(float new_volume) const;
-
-	friend class sound_impl;
-};
+	if(event_interface) {
+		((IMediaEventEx*)event_interface)->SetNotifyWindow(NULL, 0, NULL);
+		((IMediaEventEx*)event_interface)->Release();
+		event_interface = nullptr;
+	}
+	if(graph_interface) {
+		((IGraphBuilder*)graph_interface)->Release();
+		graph_interface = nullptr;
+	}
+}
 
 void audio_instance::play(float volume, bool as_music, void* window_handle) {
 	if(volume * volume_multiplier <= 0.0f || filename.size() == 0)
@@ -207,39 +171,14 @@ void audio_instance::change_volume(float new_volume) const {
 	}
 }
 
-class sound_impl {
-private:
-	audio_instance* current_effect = nullptr;
-	audio_instance* current_interface_sound = nullptr;
-
-public:
-	HWND window_handle = nullptr;
-	int32_t last_music = -1;
-	int32_t first_music = -1;
-
-	audio_instance click_sound;
-
-	std::vector<audio_instance> music_list;
-
-	void play_effect(audio_instance& s, float volume);
-	void play_interface_sound(audio_instance& s, float volume);
-	void play_music(int32_t track, float volume);
-
-	void change_effect_volume(float v) const;
-	void change_interface_volume(float v) const;
-	void change_music_volume(float v) const;
-
-	bool music_finished() const;
-
-	void play_new_track(sys::state& ws) {
-		if(music_list.size() > 0) {
-			int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
-			while(result == last_music)
-				result = int32_t(rand() % music_list.size());
-			play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
-		}
+void sound_impl::play_new_track(sys::state& ws) {
+	if(music_list.size() > 0) {
+		int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
+		while(result == last_music)
+			result = int32_t(rand() % music_list.size());
+		play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
 	}
-};
+}
 
 bool sound_impl::music_finished() const {
 	const auto lm = last_music;
