@@ -669,12 +669,15 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 #define TEXT_NOTIF_MSG_TITLE(str) \
 	{ \
 		auto box = text::open_layout_box(layout); \
-		text::localised_format_box(state, layout, box, std::string_view(#str "_header"), sub); \
+		text::localised_format_box(state, layout, box, std::string_view(#str "_log"), sub); \
 		text::close_layout_box(layout, box); \
 	}
 
 #define TEXT_NOTIF_MSG_BODY(str) \
 	{ \
+		auto box0 = text::open_layout_box(layout); \
+		text::localised_format_box(state, layout, box0, std::string_view(#str "_header"), sub); \
+		text::close_layout_box(layout, box0); \
 		auto box1 = text::open_layout_box(layout); \
 		text::localised_format_box(state, layout, box1, std::string_view(#str "_1"), sub); \
 		text::close_layout_box(layout, box1); \

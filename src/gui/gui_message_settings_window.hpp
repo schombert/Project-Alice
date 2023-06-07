@@ -160,7 +160,6 @@ class message_log_filter_checkbox : public checkbox_button {
 			return "???";
 		}
 	}
-
 public:
 	bool is_active(sys::state& state) noexcept override {
 		if(parent) {
