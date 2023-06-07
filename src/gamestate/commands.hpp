@@ -379,8 +379,8 @@ inline budget_settings_data make_empty_budget_settings() { return budget_setting
 // player has stopped dragging the slider, in the case of drag, or maybe even only when the window closes / a day passes while the window
 // is open, if you think we can get away with it. In any case, we want to try to minimize how many times the command is sent per
 // average interaction with the budget.
-void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values);
-inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) { return true; }
+void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const & values);
+inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values);
 
 void start_election(sys::state& state, dcon::nation_id source);
 bool can_start_election(sys::state& state, dcon::nation_id source);
@@ -451,7 +451,8 @@ void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_a
 bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
 
 void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles);
-bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) { return true; }
+bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount,
+                                   bool draw_on_stockpiles);
 
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
@@ -465,7 +466,7 @@ void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id tar
 bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
-bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) { return true; }
+bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 
 void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
 bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
