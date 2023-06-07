@@ -13,8 +13,7 @@ constexpr int days_from_civil(int y, unsigned m, unsigned d) noexcept {
 	return era * 146097 + static_cast<int>(doe) - 719468;
 }
 
-constexpr year_month_day
-civil_from_days(int64_t z) noexcept {
+constexpr year_month_day civil_from_days(int64_t z) noexcept {
 	z += 719468;
 	const int32_t era = int32_t((z >= 0 ? z : z - 146096) / 146097);
 	unsigned const doe = static_cast<unsigned>(z - era * 146097);               // [0, 146096]
@@ -27,7 +26,7 @@ civil_from_days(int64_t z) noexcept {
 	return year_month_day{int32_t(y + (m <= 2)), uint16_t(m), uint16_t(d)};
 }
 
-date::date(year_month_day const & v, absolute_time_point base) noexcept {
+date::date(year_month_day const& v, absolute_time_point base) noexcept {
 	auto difference = days_from_civil(v.year, v.month, v.day) - base.to_days();
 	difference = std::clamp(difference, int64_t(0), int64_t(std::numeric_limits<uint16_t>::max()) - 1);
 	value = date::value_base_t(1 + difference);
@@ -38,9 +37,7 @@ year_month_day date::to_ymd(absolute_time_point base) const noexcept {
 	return civil_from_days(count);
 }
 
-absolute_time_point::absolute_time_point(year_month_day const & d) {
-	days = days_from_civil(d.year, d.month, d.day);
-}
+absolute_time_point::absolute_time_point(year_month_day const& d) { days = days_from_civil(d.year, d.month, d.day); }
 
 bool is_playable_date(date d, absolute_time_point start, absolute_time_point end) {
 	return bool(d) && start.to_days() + (d.to_raw_value() - 1) < end.to_days();

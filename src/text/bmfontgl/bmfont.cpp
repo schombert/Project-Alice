@@ -202,7 +202,7 @@ int BMFont::GetKerningPair(char first, char second) const {
 		return 0;
 }
 
-float BMFont::GetStringWidth(char const * string, uint32_t count) const {
+float BMFont::GetStringWidth(char const* string, uint32_t count) const {
 	float total = 0;
 
 	for(uint32_t i = 0; i < count; ++i) {
@@ -222,7 +222,7 @@ BMFont::~BMFont() {
 		glDeleteTextures(1, &ftexid);
 }
 
-BMFont const & get_bm_font(sys::state& state, uint16_t font_handle) {
+BMFont const& get_bm_font(sys::state& state, uint16_t font_handle) {
 	if(auto it = state.font_collection.bitmap_fonts.find(font_handle); it != state.font_collection.bitmap_fonts.end()) {
 		return it->second;
 	} else {

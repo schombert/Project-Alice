@@ -52,8 +52,7 @@ public:
 	short XAdvance;
 	short Page;
 
-	CharDescriptor() : x(0), y(0), Width(0), Height(0), XOffset(0), YOffset(0),
-	                   XAdvance(0), Page(0) { }
+	CharDescriptor() : x(0), y(0), Width(0), Height(0), XOffset(0), YOffset(0), XAdvance(0), Page(0) { }
 };
 
 class BMFont {
@@ -61,10 +60,8 @@ class BMFont {
 public:
 	GLuint ftexid = 0;
 
-	float GetHeight() const {
-		return LineHeight;
-	}
-	float GetStringWidth(char const *, uint32_t) const;
+	float GetHeight() const { return LineHeight; }
+	float GetStringWidth(char const*, uint32_t) const;
 
 	BMFont(simple_fs::file& font_metrics, simple_fs::file& font_image) {
 		auto font_result = ogl::make_font_texture(font_image);
@@ -109,6 +106,6 @@ public:
 	int GetKerningPair(char, char) const;
 };
 
-BMFont const & get_bm_font(sys::state& state, uint16_t font_handle);
+BMFont const& get_bm_font(sys::state& state, uint16_t font_handle);
 
 } // namespace text

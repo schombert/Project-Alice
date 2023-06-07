@@ -31,42 +31,33 @@ std::vector<uint32_t> rank_map_from(sys::state& state) {
 		if(status == nations::status::great_power)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
 		else if(status == nations::status::secondary_power)
-			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) / (state.defines.colonial_rank - state.defines.great_nations_count);
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) /
+			                      (state.defines.colonial_rank - state.defines.great_nations_count);
 		else if(status == nations::status::civilized)
-			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.colonial_rank) / std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.colonial_rank) /
+			                      std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
 		else
-			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - unciv_rank) / std::max(1.0f, (float(num_nations) - float(unciv_rank)));
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - unciv_rank) /
+			                      std::max(1.0f, (float(num_nations) - float(unciv_rank)));
 
 		uint32_t color;
 		if(bool(nation_id)) {
 			switch(status) {
 			case nations::status::great_power:
-				color = sys::pack_color(
-				    int32_t(48 * darkness),
-				    int32_t(242 * darkness),
-				    int32_t(51 * darkness));
+				color = sys::pack_color(int32_t(48 * darkness), int32_t(242 * darkness), int32_t(51 * darkness));
 				break;
 
 			case nations::status::secondary_power:
-				color = sys::pack_color(
-				    int32_t(36 * darkness),
-				    int32_t(47 * darkness),
-				    int32_t(255 * darkness));
+				color = sys::pack_color(int32_t(36 * darkness), int32_t(47 * darkness), int32_t(255 * darkness));
 				break;
 
 			case nations::status::civilized:
-				color = sys::pack_color(
-				    int32_t(238 * darkness),
-				    int32_t(252 * darkness),
-				    int32_t(38 * darkness));
+				color = sys::pack_color(int32_t(238 * darkness), int32_t(252 * darkness), int32_t(38 * darkness));
 				break;
 
 				// primitive, uncivilized and westernized
 			default:
-				color = sys::pack_color(
-				    int32_t(250 * darkness),
-				    int32_t(5 * darkness),
-				    int32_t(5 * darkness));
+				color = sys::pack_color(int32_t(250 * darkness), int32_t(5 * darkness), int32_t(5 * darkness));
 				break;
 			}
 		} else { // If no owner use default color

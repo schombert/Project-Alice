@@ -163,35 +163,11 @@ enum class key_modifiers : uint8_t {
 	modifiers_alt_shift = 0x5,
 	modifiers_all = 0x7
 };
-constexpr inline float ui_scales[] = {
-    0.75f,
-    1.0f,
-    1.25f,
-    1.5f,
-    1.75f,
-    2.0f,
-    2.5f,
-    3.0f};
+constexpr inline float ui_scales[] = {0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
 constexpr inline uint32_t ui_scales_count = 8;
 
-enum class leader_type : uint8_t {
-	european = 0,
-	southamerican,
-	russian,
-	arab,
-	asian,
-	indian,
-	nativeamerican,
-	african,
-	polar_bear
-};
-enum class commodity_group : uint8_t {
-	military_goods = 0,
-	raw_material_goods,
-	industrial_goods,
-	consumer_goods,
-	count
-};
+enum class leader_type : uint8_t { european = 0, southamerican, russian, arab, asian, indian, nativeamerican, african, polar_bear };
+enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, count };
 
 #define MSG_SETTING_LIST                                                                                                                 \
 	MSG_SETTING_ITEM(gaincb, "wegaincb")                                                                                                 \
@@ -287,8 +263,7 @@ enum class commodity_group : uint8_t {
 
 enum class message_setting_type : uint8_t {
 #define MSG_SETTING_ITEM(name, locale_name) name,
-	MSG_SETTING_LIST
-	    count
+	MSG_SETTING_LIST count
 #undef MSG_SETTING_ITEM
 };
 

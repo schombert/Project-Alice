@@ -6,8 +6,7 @@
 
 namespace ui {
 
-template<bool Left>
-class diplomacy_request_lr_button : public button_element_base {
+template<bool Left> class diplomacy_request_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -25,8 +24,7 @@ public:
 struct diplomacy_reply_taken_notification {
 	int dummy = 0;
 };
-template<bool B>
-class diplomacy_request_reply_button : public button_element_base {
+template<bool B> class diplomacy_request_reply_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -64,7 +62,8 @@ public:
 
 class diplomacy_request_desc_text : public generic_multiline_text<diplomatic_message::message> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message diplomacy_request) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents,
+	                     diplomatic_message::message diplomacy_request) noexcept override {
 		auto box = text::open_layout_box(contents);
 
 		text::substitution_map sub{};
@@ -112,21 +111,24 @@ public:
 		window_element_base::on_create(state);
 		xy_pair cur_pos{0, 0};
 		{
-			auto ptr = make_element_by_type<diplomacy_request_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_request_lr_button<false>>(
+			    state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_request_count_text>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_request_count_text>(
+			    state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_request_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_request_lr_button<true>>(
+			    state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
@@ -157,9 +159,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
-			return m.when + diplomatic_message::expiration_in_days <= state.current_date;
-		});
+		auto it = std::remove_if(messages.begin(), messages.end(),
+		                         [&](auto& m) { return m.when + diplomatic_message::expiration_in_days <= state.current_date; });
 		auto r = std::distance(it, messages.end());
 		messages.erase(it, messages.end());
 

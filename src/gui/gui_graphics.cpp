@@ -66,7 +66,10 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 
 		for(auto& file : all_gui_files) {
 			auto file_name = get_full_name(file);
-			if(!parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("confirmbuild.gui")) && !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("convoys.gui")) && !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("brigadeview.gui"))) {
+			if(!parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(),
+			                                        NATIVE("confirmbuild.gui")) &&
+			   !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("convoys.gui")) &&
+			   !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("brigadeview.gui"))) {
 				auto ofile = open_file(file);
 				if(ofile) {
 					auto content = view_contents(*ofile);
@@ -79,7 +82,7 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 	}
 }
 
-xy_pair child_relative_location(element_base const & parent, element_base const & child) {
+xy_pair child_relative_location(element_base const& parent, element_base const& child) {
 	switch(child.base_data.get_orientation()) {
 	case orientation::upper_left:
 		return xy_pair{int16_t(child.base_data.position.x), int16_t(child.base_data.position.y)};
@@ -88,13 +91,16 @@ xy_pair child_relative_location(element_base const & parent, element_base const 
 	case orientation::lower_left:
 		return xy_pair{int16_t(child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y)};
 	case orientation::lower_right:
-		return xy_pair{int16_t(parent.base_data.size.x + child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y)};
+		return xy_pair{int16_t(parent.base_data.size.x + child.base_data.position.x),
+		               int16_t(parent.base_data.size.y + child.base_data.position.y)};
 	case orientation::upper_center:
 		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(child.base_data.position.y)};
 	case orientation::lower_center:
-		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y)};
+		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x),
+		               int16_t(parent.base_data.size.y + child.base_data.position.y)};
 	case orientation::center:
-		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(parent.base_data.size.y / 2 + child.base_data.position.y)};
+		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x),
+		               int16_t(parent.base_data.size.y / 2 + child.base_data.position.y)};
 	default:
 		return xy_pair{int16_t(child.base_data.position.x), int16_t(child.base_data.position.y)};
 	}
@@ -125,7 +131,8 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 			}
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];
 			auto mask_handle = gfx_def.type_dependent;
-			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle && get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle)) {
+			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle &&
+			   get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle)) {
 				probe_result.under_mouse = this;
 			} else if(gfx_def.get_object_type() == ui::object_type::flag_mask && mask_handle && gfx_def.primary_texture_handle) {
 				ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
@@ -156,12 +163,8 @@ message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_
 message_result element_base::impl_on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return on_mouse_move(state, x, y, mods);
 }
-void element_base::impl_on_update(sys::state& state) noexcept {
-	on_update(state);
-}
-void element_base::impl_on_reset_text(sys::state& state) noexcept {
-	on_reset_text(state);
-}
+void element_base::impl_on_update(sys::state& state) noexcept { on_update(state); }
+void element_base::impl_on_reset_text(sys::state& state) noexcept { on_reset_text(state); }
 message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(auto res = get(state, payload); res != message_result::consumed) {
 		if(parent)
@@ -170,9 +173,7 @@ message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noe
 	}
 	return message_result::consumed;
 }
-message_result element_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
-	return set(state, payload);
-}
+message_result element_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept { return set(state, payload); }
 
 message_result element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept {
 	return message_result::unseen;
@@ -184,8 +185,7 @@ message_result element_base::on_rbutton_down(sys::state& state, int32_t x, int32
 	return message_result::unseen;
 }
 
-void element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-}
+void element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept { }
 message_result element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
@@ -195,20 +195,13 @@ message_result element_base::on_scroll(sys::state& state, int32_t x, int32_t y, 
 message_result element_base::on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
-void element_base::on_update(sys::state& state) noexcept {
-}
-message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept {
-	return message_result::unseen;
-}
-message_result element_base::set(sys::state& state, Cyto::Any& payload) noexcept {
-	return message_result::unseen;
-}
+void element_base::on_update(sys::state& state) noexcept { }
+message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept { return message_result::unseen; }
+message_result element_base::set(sys::state& state, Cyto::Any& payload) noexcept { return message_result::unseen; }
 
-void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
-	render(state, x, y);
-}
+void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept { render(state, x, y); }
 
-xy_pair get_absolute_location(element_base const & node) {
+xy_pair get_absolute_location(element_base const& node) {
 	if(node.parent) {
 		auto parent_loc = get_absolute_location(*node.parent);
 		auto rel_loc = child_relative_location(*node.parent, node);
@@ -218,12 +211,8 @@ xy_pair get_absolute_location(element_base const & node) {
 	}
 }
 
-int32_t ui_width(sys::state const & state) {
-	return int32_t(state.x_size / state.user_settings.ui_scale);
-}
-int32_t ui_height(sys::state const & state) {
-	return int32_t(state.y_size / state.user_settings.ui_scale);
-}
+int32_t ui_width(sys::state const& state) { return int32_t(state.x_size / state.user_settings.ui_scale); }
+int32_t ui_height(sys::state const& state) { return int32_t(state.y_size / state.user_settings.ui_scale); }
 
 void populate_definitions_map(sys::state& state) {
 	for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {

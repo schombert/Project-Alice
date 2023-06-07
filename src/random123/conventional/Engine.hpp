@@ -64,8 +64,7 @@ namespace r123 {
   and keys.
 */
 
-template<typename CBRNG>
-struct Engine {
+template<typename CBRNG> struct Engine {
 	typedef CBRNG cbrng_type;
 	typedef typename CBRNG::ctr_type ctr_type;
 	typedef typename CBRNG::key_type key_type;
@@ -113,12 +112,12 @@ public:
 		v.back() = e.v.back();
 		fix_invariant();
 	}
-	Engine(Engine const & e) : b(e.b), key(e.key), c(e.c) {
+	Engine(Engine const& e) : b(e.b), key(e.key), c(e.c) {
 		v.back() = e.v.back();
 		fix_invariant();
 	}
 #if __cplusplus >= 201103L
-	Engine& operator=(Engine const &) = default;
+	Engine& operator=(Engine const&) = default;
 	Engine& operator=(Engine&&) = default;
 #endif
 
@@ -134,9 +133,7 @@ public:
 		key = ukey;
 		v.back() = 0;
 	}
-	void seed(result_type r) {
-		*this = Engine(r);
-	}
+	void seed(result_type r) { *this = Engine(r); }
 	template<typename SeedSeq>
 	void seed(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
@@ -146,19 +143,15 @@ public:
 	) {
 		*this = Engine(s);
 	}
-	void seed() {
-		*this = Engine();
-	}
-	friend bool operator==(Engine const & lhs, Engine const & rhs) {
+	void seed() { *this = Engine(); }
+	friend bool operator==(Engine const& lhs, Engine const& rhs) {
 		return lhs.c == rhs.c && lhs.v.back() == rhs.v.back() && lhs.key == rhs.key;
 	}
-	friend bool operator!=(Engine const & lhs, Engine const & rhs) {
+	friend bool operator!=(Engine const& lhs, Engine const& rhs) {
 		return lhs.c != rhs.c || lhs.v.back() != rhs.v.back() || lhs.key != rhs.key;
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, Engine const & be) {
-		return os << be.c << " " << be.key << " " << be.v.back();
-	}
+	friend std::ostream& operator<<(std::ostream& os, Engine const& be) { return os << be.c << " " << be.key << " " << be.v.back(); }
 
 	friend std::istream& operator>>(std::istream& is, Engine& be) {
 		is >> be.c >> be.key >> be.v.back();
@@ -217,42 +210,34 @@ public:
 
 	// Constructors and seed() method for ukey_type seem useful
 	// We need const and non-const to supersede the SeedSeq template.
-	explicit Engine(ukey_type const & uk) : key(uk), c() { v.back() = 0; }
+	explicit Engine(ukey_type const& uk) : key(uk), c() { v.back() = 0; }
 	explicit Engine(ukey_type& uk) : key(uk), c() { v.back() = 0; }
-	void seed(ukey_type const & uk) {
-		*this = Engine(uk);
-	}
-	void seed(ukey_type& uk) {
-		*this = Engine(uk);
-	}
+	void seed(ukey_type const& uk) { *this = Engine(uk); }
+	void seed(ukey_type& uk) { *this = Engine(uk); }
 
 #if R123_USE_CXX11_TYPE_TRAITS
 	template<typename DUMMY = void>
-	explicit Engine(key_type const & k,
-	                typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
-	    : key(k), c() { v.back() = 0; }
+	explicit Engine(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
+	    : key(k), c() {
+		v.back() = 0;
+	}
 
 	template<typename DUMMY = void>
-	void seed(key_type const & k,
-	          typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) {
+	void seed(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) {
 		*this = Engine(k);
 	}
 #endif
 
 	// Forward the e(counter) to the CBRNG we are templated
 	// on, using the current value of the key.
-	ctr_type operator()(ctr_type const & c) const {
-		return b(c, key);
-	}
+	ctr_type operator()(ctr_type const& c) const { return b(c, key); }
 
-	key_type getkey() const {
-		return key;
-	}
+	key_type getkey() const { return key; }
 
 	// N.B.  setkey(k) is different from seed(k) because seed(k) zeros
 	// the counter (per the C++11 requirements for an Engine), whereas
 	// setkey does not.
-	void setkey(key_type const & k) {
+	void setkey(key_type const& k) {
 		key = k;
 		fix_invariant();
 	}
@@ -260,12 +245,10 @@ public:
 	// Maybe the caller want's to know the details of
 	// the internal state, e.g., so it can call a different
 	// bijection with the same counter.
-	std::pair<ctr_type, result_type> getcounter() const {
-		return std::make_pair(c, v.back());
-	}
+	std::pair<ctr_type, result_type> getcounter() const { return std::make_pair(c, v.back()); }
 
 	// And the inverse.
-	void setcounter(ctr_type const & _c, result_type _elem) {
+	void setcounter(ctr_type const& _c, result_type _elem) {
 		static const size_t nelem = c.size();
 		if(_elem >= nelem)
 			throw std::range_error("Engine::setcounter called  with elem out of range");
@@ -274,9 +257,7 @@ public:
 		fix_invariant();
 	}
 
-	void setcounter(std::pair<ctr_type, result_type> const & ce) {
-		setcounter(ce.first, ce.second);
-	}
+	void setcounter(std::pair<ctr_type, result_type> const& ce) { setcounter(ce.first, ce.second); }
 };
 } // namespace r123
 

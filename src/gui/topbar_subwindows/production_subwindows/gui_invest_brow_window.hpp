@@ -78,9 +78,7 @@ public:
 
 class production_country_listbox : public listbox_element_base<production_investment_country_info, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "investment_country_entry";
-	}
+	std::string_view get_row_element_name() override { return "investment_country_entry"; }
 };
 
 class production_sort_nation_gp_flag : public nation_gp_flag {
@@ -90,7 +88,7 @@ public:
 			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
-	void button_action(sys::state& state) noexcept override {}
+	void button_action(sys::state& state) noexcept override { }
 };
 
 class invest_brow_window : public window_element_base {
@@ -105,13 +103,14 @@ class invest_brow_window : public window_element_base {
 				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id))
 					country_listbox->row_contents.push_back(id);
 			});
-			std::sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-				dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
-				auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
-				dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
-				auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
-				return a_name < b_name;
-			});
+			std::sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(),
+			          [&](dcon::nation_id a, dcon::nation_id b) {
+				          dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
+				          auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
+				          dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
+				          auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
+				          return a_name < b_name;
+			          });
 			country_listbox->update(state);
 		}
 	}
@@ -223,27 +222,23 @@ public:
 			auto filter = any_cast<country_list_filter>(payload);
 			switch(filter) {
 			case country_list_filter::all:
-				filter_countries(state, [&](dcon::nation_id) {
-					return true;
-				});
+				filter_countries(state, [&](dcon::nation_id) { return true; });
 				break;
 			case country_list_filter::allies:
 				filter_countries(state, [&](dcon::nation_id id) {
 					if(id == state.local_player_nation)
 						return false;
 					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
-					return state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id);
+					return state.world.diplomatic_relation_get_are_allied(rel) ||
+					       military::are_allied_in_war(state, state.local_player_nation, id);
 				});
 				break;
 			case country_list_filter::enemies:
-				filter_countries(state, [&](dcon::nation_id id) {
-					return military::are_at_war(state, state.local_player_nation, id);
-				});
+				filter_countries(state, [&](dcon::nation_id id) { return military::are_at_war(state, state.local_player_nation, id); });
 				break;
 			case country_list_filter::sphere:
-				filter_countries(state, [&](dcon::nation_id id) {
-					return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
-				});
+				filter_countries(
+				    state, [&](dcon::nation_id id) { return state.world.nation_get_in_sphere_of(id) == state.local_player_nation; });
 				break;
 			case country_list_filter::neighbors:
 				filter_countries(state, [&](dcon::nation_id id) {

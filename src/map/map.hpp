@@ -55,10 +55,11 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter);
+	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
+	            glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
-	void set_province_color(std::vector<uint32_t> const & prov_color);
+	void set_province_color(std::vector<uint32_t> const& prov_color);
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -108,6 +109,6 @@ private:
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
-	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const & prov_color, uint8_t layers = 1);
+	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 } // namespace map

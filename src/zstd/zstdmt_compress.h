@@ -47,16 +47,14 @@ extern "C" {
 /* ===   Memory management   === */
 typedef struct ZSTDMT_CCtx_s ZSTDMT_CCtx;
 /* Requires ZSTD_MULTITHREAD to be defined during compilation, otherwise it will return NULL. */
-ZSTDMT_CCtx* ZSTDMT_createCCtx_advanced(unsigned nbWorkers,
-                                        ZSTD_customMem cMem,
-                                        ZSTD_threadPool* pool);
+ZSTDMT_CCtx* ZSTDMT_createCCtx_advanced(unsigned nbWorkers, ZSTD_customMem cMem, ZSTD_threadPool* pool);
 size_t ZSTDMT_freeCCtx(ZSTDMT_CCtx* mtctx);
 
 size_t ZSTDMT_sizeof_CCtx(ZSTDMT_CCtx* mtctx);
 
 /* ===   Streaming functions   === */
 
-size_t ZSTDMT_nextInputSizeHint(ZSTDMT_CCtx const * mtctx);
+size_t ZSTDMT_nextInputSizeHint(ZSTDMT_CCtx const* mtctx);
 
 /*! ZSTDMT_initCStream_internal() :
  *  Private use only. Init streaming operation.
@@ -66,10 +64,8 @@ size_t ZSTDMT_nextInputSizeHint(ZSTDMT_CCtx const * mtctx);
  *  If mtctx is reused, memory allocations from the prior compression may not be freed,
  *  even if they are not needed for the current compression.
  *  @return : 0, or an error code */
-size_t ZSTDMT_initCStream_internal(ZSTDMT_CCtx* mtctx,
-                                   void const * dict, size_t dictSize, ZSTD_dictContentType_e dictContentType,
-                                   ZSTD_CDict const * cdict,
-                                   ZSTD_CCtx_params params, unsigned long long pledgedSrcSize);
+size_t ZSTDMT_initCStream_internal(ZSTDMT_CCtx* mtctx, void const* dict, size_t dictSize, ZSTD_dictContentType_e dictContentType,
+                                   ZSTD_CDict const* cdict, ZSTD_CCtx_params params, unsigned long long pledgedSrcSize);
 
 /*! ZSTDMT_compressStream_generic() :
  *  Combines ZSTDMT_compressStream() with optional ZSTDMT_flushStream() or ZSTDMT_endStream()
@@ -78,10 +74,7 @@ size_t ZSTDMT_initCStream_internal(ZSTDMT_CCtx* mtctx,
  *           0 if fully flushed
  *           or an error code
  *  note : needs to be init using any ZSTD_initCStream*() variant */
-size_t ZSTDMT_compressStream_generic(ZSTDMT_CCtx* mtctx,
-                                     ZSTD_outBuffer* output,
-                                     ZSTD_inBuffer* input,
-                                     ZSTD_EndDirective endOp);
+size_t ZSTDMT_compressStream_generic(ZSTDMT_CCtx* mtctx, ZSTD_outBuffer* output, ZSTD_inBuffer* input, ZSTD_EndDirective endOp);
 
 /*! ZSTDMT_toFlushNow()
  *  Tell how many bytes are ready to be flushed immediately.
@@ -94,7 +87,7 @@ size_t ZSTDMT_toFlushNow(ZSTDMT_CCtx* mtctx);
 /*! ZSTDMT_updateCParams_whileCompressing() :
  *  Updates only a selected set of compression parameters, to remain compatible with current frame.
  *  New parameters will be applied to next compression job. */
-void ZSTDMT_updateCParams_whileCompressing(ZSTDMT_CCtx* mtctx, ZSTD_CCtx_params const * cctxParams);
+void ZSTDMT_updateCParams_whileCompressing(ZSTDMT_CCtx* mtctx, ZSTD_CCtx_params const* cctxParams);
 
 /*! ZSTDMT_getFrameProgression():
  *  tells how much data has been consumed (input) and produced (output) for current frame.

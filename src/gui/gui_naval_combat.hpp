@@ -170,9 +170,7 @@ public:
 
 class naval_slots_listbox : public listbox_element_base<naval_combat_ship_unit, bool> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "ship_unit";
-	}
+	std::string_view get_row_element_name() override { return "ship_unit"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {

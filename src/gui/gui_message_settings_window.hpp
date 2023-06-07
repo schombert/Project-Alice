@@ -8,9 +8,9 @@ namespace ui {
 
 static std::string get_setting_text_key(sys::message_setting_type type) {
 	switch(type) {
-#define MSG_SETTING_ITEM(name, locale_name) \
-case sys::message_setting_type::name:       \
-	return locale_name "_setup";
+#define MSG_SETTING_ITEM(name, locale_name)                                                                                              \
+	case sys::message_setting_type::name:                                                                                                \
+		return locale_name "_setup";
 		MSG_SETTING_LIST
 #undef MSG_SETTING_ITEM
 	default:
@@ -20,6 +20,7 @@ case sys::message_setting_type::name:       \
 
 class message_settings_item : public listbox_row_element_base<sys::message_setting_type> {
 	simple_text_element_base* text = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "text") {
@@ -38,9 +39,7 @@ public:
 
 class message_settings_listbox : public listbox_element_base<message_settings_item, sys::message_setting_type> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "message_entry";
-	}
+	std::string_view get_row_element_name() override { return "message_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -52,16 +51,7 @@ public:
 	}
 };
 
-enum class message_settings_category : uint8_t {
-	all,
-	combat,
-	diplomacy,
-	units,
-	provinces,
-	events,
-	others,
-	count
-};
+enum class message_settings_category : uint8_t { all, combat, diplomacy, units, provinces, events, others, count };
 
 class message_settings_window : public generic_tabbed_window<message_settings_category> {
 public:
@@ -133,13 +123,10 @@ public:
 
 class message_log_listbox : public listbox_element_base<message_log_entry, int32_t> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "logtext";
-	}
+	std::string_view get_row_element_name() override { return "logtext"; }
 };
 
-template<message_settings_category Filter>
-class message_log_filter_checkbox : public checkbox_button {
+template<message_settings_category Filter> class message_log_filter_checkbox : public checkbox_button {
 	static std::string_view get_filter_text_key(message_settings_category f) noexcept {
 		switch(f) {
 		case message_settings_category::all:
@@ -160,6 +147,7 @@ class message_log_filter_checkbox : public checkbox_button {
 			return "???";
 		}
 	}
+
 public:
 	bool is_active(sys::state& state) noexcept override {
 		if(parent) {
@@ -172,14 +160,12 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<message_settings_category>{ Filter };
+			Cyto::Any payload = element_selection_wrapper<message_settings_category>{Filter};
 			parent->impl_get(state, payload);
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -191,6 +177,7 @@ public:
 class message_log_window : public window_element_base {
 	std::vector<bool> cat_filters;
 	message_log_listbox* log_list = nullptr;
+
 public:
 	std::vector<notification::message> messages;
 

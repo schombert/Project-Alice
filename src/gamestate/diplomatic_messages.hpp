@@ -34,10 +34,10 @@ struct message {
 
 using type = type_t;
 
-void decline(sys::state& state, message const & m);
-void accept(sys::state& state, message const & m);
+void decline(sys::state& state, message const& m);
+void accept(sys::state& state, message const& m);
 
-void post(sys::state& state, message const & m);
+void post(sys::state& state, message const& m);
 void update_pending(sys::state& state);
 
 } // namespace diplomatic_message

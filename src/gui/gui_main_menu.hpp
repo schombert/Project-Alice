@@ -203,18 +203,11 @@ class audio_menu_window : public window_element_base {
 	}
 };
 
-enum class main_menu_sub_window {
-	controls,
-	audio,
-	graphics,
-	message_settings
-};
+enum class main_menu_sub_window { controls, audio, graphics, message_settings };
 
 class close_application_button : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept override {
-		window::close_window(state);
-	}
+	void button_action(sys::state& state) noexcept override { window::close_window(state); }
 };
 
 class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {

@@ -4,35 +4,21 @@
 #include <algorithm>
 
 namespace parsers {
-bool ignorable_char(char c) {
-	return (c == ' ') || (c == '\r') || (c == '\f') || (c == '\n') || (c == '\t') || (c == ',') || (c == ';');
-}
+bool ignorable_char(char c) { return (c == ' ') || (c == '\r') || (c == '\f') || (c == '\n') || (c == '\t') || (c == ',') || (c == ';'); }
 
-bool special_identifier_char(char c) {
-	return (c == '!') || (c == '=') || (c == '<') || (c == '>');
-}
+bool special_identifier_char(char c) { return (c == '!') || (c == '=') || (c == '<') || (c == '>'); }
 
-bool breaking_char(char c) {
-	return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '#');
-}
+bool breaking_char(char c) { return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '#'); }
 
-bool not_special_identifier_char(char c) {
-	return !special_identifier_char(c);
-}
+bool not_special_identifier_char(char c) { return !special_identifier_char(c); }
 
-bool line_termination(char c) {
-	return (c == '\r') || (c == '\n');
-}
+bool line_termination(char c) { return (c == '\r') || (c == '\n'); }
 
-bool double_quote_termination(char c) {
-	return (c == '\r') || (c == '\n') || (c == '\"');
-}
+bool double_quote_termination(char c) { return (c == '\r') || (c == '\n') || (c == '\"'); }
 
-bool single_quote_termination(char c) {
-	return (c == '\r') || (c == '\n') || (c == '\'');
-}
+bool single_quote_termination(char c) { return (c == '\r') || (c == '\n') || (c == '\''); }
 
-bool is_positive_integer(char const * start, char const * end) {
+bool is_positive_integer(char const* start, char const* end) {
 	if(start == end)
 		return false;
 	while(start < end) {
@@ -43,7 +29,7 @@ bool is_positive_integer(char const * start, char const * end) {
 	return true;
 }
 
-bool is_integer(char const * start, char const * end) {
+bool is_integer(char const* start, char const* end) {
 	if(start == end)
 		return false;
 	if(*start == '-')
@@ -52,7 +38,7 @@ bool is_integer(char const * start, char const * end) {
 		return is_positive_integer(start, end);
 }
 
-bool is_positive_fp(char const * start, char const * end) {
+bool is_positive_fp(char const* start, char const* end) {
 	auto const decimal = std::find(start, end, '.');
 	if(decimal == end) {
 		return is_positive_integer(start, end);
@@ -63,7 +49,7 @@ bool is_positive_fp(char const * start, char const * end) {
 	}
 }
 
-bool is_fp(char const * start, char const * end) {
+bool is_fp(char const* start, char const* end) {
 	if(start == end)
 		return false;
 	if(*start == '-')
@@ -72,8 +58,7 @@ bool is_fp(char const * start, char const * end) {
 		return is_positive_fp(start, end);
 }
 
-template<typename T>
-char const * scan_for_match(char const * start, char const * end, int32_t& current_line, T&& condition) {
+template<typename T> char const* scan_for_match(char const* start, char const* end, int32_t& current_line, T&& condition) {
 	while(start < end) {
 		if(condition(*start))
 			return start;
@@ -83,8 +68,7 @@ char const * scan_for_match(char const * start, char const * end, int32_t& curre
 	}
 	return start;
 }
-template<typename T>
-char const * scan_for_not_match(char const * start, char const * end, int32_t& current_line, T&& condition) {
+template<typename T> char const* scan_for_not_match(char const* start, char const* end, int32_t& current_line, T&& condition) {
 	while(start < end) {
 		if(!condition(*start))
 			return start;
@@ -95,16 +79,16 @@ char const * scan_for_not_match(char const * start, char const * end, int32_t& c
 	return start;
 }
 
-char const * advance_position_to_next_line(char const * start, char const * end, int32_t& current_line) {
+char const* advance_position_to_next_line(char const* start, char const* end, int32_t& current_line) {
 	auto const start_lterm = scan_for_match(start, end, current_line, line_termination);
 	return scan_for_not_match(start_lterm, end, current_line, line_termination);
 }
 
-char const * advance_position_to_non_whitespace(char const * start, char const * end, int32_t& current_line) {
+char const* advance_position_to_non_whitespace(char const* start, char const* end, int32_t& current_line) {
 	return scan_for_not_match(start, end, current_line, ignorable_char);
 }
 
-char const * advance_position_to_non_comment(char const * start, char const * end, int32_t& current_line) {
+char const* advance_position_to_non_comment(char const* start, char const* end, int32_t& current_line) {
 	auto position = advance_position_to_non_whitespace(start, end, current_line);
 	while(position < end && *position == '#') {
 		auto start_of_new_line = advance_position_to_next_line(position, end, current_line);
@@ -113,7 +97,7 @@ char const * advance_position_to_non_comment(char const * start, char const * en
 	return position;
 }
 
-char const * advance_position_to_breaking_char(char const * start, char const * end, int32_t& current_line) {
+char const* advance_position_to_breaking_char(char const* start, char const* end, int32_t& current_line) {
 	return scan_for_match(start, end, current_line, breaking_char);
 }
 
@@ -137,7 +121,9 @@ token_and_type token_generator::internal_next() {
 			auto const close = scan_for_match(non_ws + 1, file_end, current_line, single_quote_termination);
 			position = close + 1;
 			return token_and_type{std::string_view(non_ws + 1, close - (non_ws + 1)), current_line, token_type::quoted_string};
-		} else if(has_fixed_prefix(non_ws, file_end, "==") || has_fixed_prefix(non_ws, file_end, "<=") || has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>") || has_fixed_prefix(non_ws, file_end, "!=")) {
+		} else if(has_fixed_prefix(non_ws, file_end, "==") || has_fixed_prefix(non_ws, file_end, "<=") ||
+		          has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>") ||
+		          has_fixed_prefix(non_ws, file_end, "!=")) {
 
 			position = non_ws + 2;
 			return token_and_type{std::string_view(non_ws, 2), current_line, token_type::special_identifier};
@@ -272,15 +258,12 @@ sys::year_month_day parse_date(std::string_view content, int32_t line, error_han
 		;
 	auto day_end = position;
 
-	return sys::year_month_day{
-	    parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
-	    uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
-	    uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))};
+	return sys::year_month_day{parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
+	                           uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
+	                           uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))};
 }
 
-bool starts_with(std::string_view content, char v) {
-	return content.length() != 0 && content[0] == v;
-}
+bool starts_with(std::string_view content, char v) { return content.length() != 0 && content[0] == v; }
 
 association_type parse_association_type(std::string_view content, int32_t line, error_handler& err) {
 	if(content.length() == 1) {
@@ -319,7 +302,7 @@ date_tag parse_date(std::string_view content, int32_t line, error_handler& err) 
 }
 */
 
-separator_scan_result csv_find_separator_token(char const * start, char const * end, char seperator) {
+separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator) {
 	while(start != end) {
 		if(line_termination(*start))
 			return separator_scan_result{start, false};
@@ -331,7 +314,7 @@ separator_scan_result csv_find_separator_token(char const * start, char const * 
 	return separator_scan_result{start, false};
 }
 
-char const * csv_advance(char const * start, char const * end, char seperator) {
+char const* csv_advance(char const* start, char const* end, char seperator) {
 	while(start != end) {
 		if(line_termination(*start))
 			return start;
@@ -343,7 +326,7 @@ char const * csv_advance(char const * start, char const * end, char seperator) {
 	return start;
 }
 
-char const * csv_advance_n(uint32_t n, char const * start, char const * end, char seperator) {
+char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator) {
 
 	if(n == 0)
 		return start;
@@ -363,7 +346,7 @@ char const * csv_advance_n(uint32_t n, char const * start, char const * end, cha
 	return start;
 }
 
-char const * csv_advance_to_next_line(char const * start, char const * end) {
+char const* csv_advance_to_next_line(char const* start, char const* end) {
 
 	while(start != end && !line_termination(*start)) {
 		++start;
@@ -377,8 +360,8 @@ char const * csv_advance_to_next_line(char const * start, char const * end) {
 }
 
 std::string_view remove_surrounding_whitespace(std::string_view txt) {
-	char const * start = txt.data();
-	char const * end = txt.data() + txt.length();
+	char const* start = txt.data();
+	char const* end = txt.data() + txt.length();
 	for(; start < end; ++start) {
 		if(*start != ' ' && *start != '\t' && *start != '\r' && *start != '\n')
 			break;

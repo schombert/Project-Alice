@@ -10,17 +10,19 @@ namespace xac {
 
 struct xac_header {
 	char magic[4] = {'X', 'A', 'C', ' '}; // Offset 0x0h  --- Magic Value
-	uint32_t version;                     // Offset 0x4h  --- changes depending on if the file was created by Maya 8.5 x64 or not, if it is then its 01 00 00 01 otherwise its 01 00 00 00
-};                                        // Size: 8 bytes
+	uint32_t version; // Offset 0x4h  --- changes depending on if the file was created by Maya 8.5 x64 or not, if it is then its 01 00 00
+	                  // 01 otherwise its 01 00 00 00
+};                    // Size: 8 bytes
 
 struct metadata_section {
-	uint32_t section_id;         // Offset 0x8h  --- Based off leafs aggregation, this requires further research though to make sure its valid, it is always 07 00 00 00
-	uint32_t offset_unk;         // Offset 0xCh  --- Unknown Variable
-	uint32_t unknown1;           // Offset 0x10h --- Unknown Variable
-	uint32_t unknown2;           // Offset 0x14h --- Unknown Variable, Appears to be another type of version identifier perhaps?
-	uint32_t unknown3;           // Offset 0x18h --- FF FF FF FF appears to be something unknown
-	uint32_t unknown4;           // Offset 0x1Ch --- Unknown Variable
-	uint32_t unknown5;           // Offset 0x20h --- Unknown Variable, Appears to always be 00 00 00 00 ?
+	uint32_t section_id; // Offset 0x8h  --- Based off leafs aggregation, this requires further research though to make sure its valid, it
+	                     // is always 07 00 00 00
+	uint32_t offset_unk; // Offset 0xCh  --- Unknown Variable
+	uint32_t unknown1;   // Offset 0x10h --- Unknown Variable
+	uint32_t unknown2;   // Offset 0x14h --- Unknown Variable, Appears to be another type of version identifier perhaps?
+	uint32_t unknown3;   // Offset 0x18h --- FF FF FF FF appears to be something unknown
+	uint32_t unknown4;   // Offset 0x1Ch --- Unknown Variable
+	uint32_t unknown5;   // Offset 0x20h --- Unknown Variable, Appears to always be 00 00 00 00 ?
 	uint32_t toolversize;        // Offset 0x24h --- Size of the Tool String
 	char toolinfo[toolversize];  // Offset 0x28h --- Contains the information regarding what tool was used for creating the file
 	uint32_t workfilesize;       //              --- Appears to contain how long the workfile entry is
@@ -79,9 +81,9 @@ struct texture_section_header {
 struct {
     // The Data of a entry appears to come before the Type Name
     void* unknown_data[0x9C];   // Total, including what we know, is 0xA0
-    // element is followed by a UID, however the first instance of a element does not need one, with the next instance of the element starting out with UID 1
-    uint16_t elementname_size;  // Precedes the element name, its size includes the element name and the UID
-    char element[elementname_size] = "polySurface"                         // 0xA0 Bytes large
+    // element is followed by a UID, however the first instance of a element does not need one, with the next instance of the element
+starting out with UID 1 uint16_t elementname_size;  // Precedes the element name, its size includes the element name and the UID char
+element[elementname_size] = "polySurface"                         // 0xA0 Bytes large
                                     || "pCube"                              // 0xA0 Bytes large
                                     || "pCylinder"                          // 0xA0 Bytes large
                                     || "ViewCompass"                        // 0xA0 Bytes large
@@ -110,7 +112,8 @@ struct {
                                     || "Right_Hand"                         // 0xA0 Bytes large
                                     || "joint"                              // 0xA0 Bytes large
                                     || "Tank"                               // 0xA0 Bytes large
-                                    || "Wheel_"                             // 0xA0 Bytes large, however numbers often appear at the end of the next elements data causing it to appear larger
+                                    || "Wheel_"                             // 0xA0 Bytes large, however numbers often appear at the end
+of the next elements data causing it to appear larger
                                     || "Turret"                             // 0xA0 Bytes large
                                     || "Helmet"                             // 0xA0 Bytes large
                                     || "flagmesh"                           // 0xA0 Bytes large
@@ -118,8 +121,8 @@ struct {
                                     || "J"                                  // 0xA0 Bytes large
 
 
-    // the element is then ended with what appears to be a UID of the type, presumably unique within the same xac file aswell as its accompying xsm files if any.
-} entry;
+    // the element is then ended with what appears to be a UID of the type, presumably unique within the same xac file aswell as its
+accompying xsm files if any. } entry;
 
 
                         || "TexAnim"                            // 0xF3 Bytes large ???

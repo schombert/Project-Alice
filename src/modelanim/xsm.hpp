@@ -5,7 +5,8 @@ namespace xsm {
 struct xsm_header {
 	char magic[4] = {'X', 'S', 'M', ' '}; // Offset 0x0h	--- Magic Value
 	uint16_t fp_num;                      // Offset 0x2h	--- First MagicNum, appears to always be 01 00
-	uint16_t sp_num;                      // Offset 0x4h	--- Second MagicNUm, appears to be 00 01 or 00 00, changing depending on if Maya X64 was used or not, might be false though
+	uint16_t sp_num; // Offset 0x4h	--- Second MagicNUm, appears to be 00 01 or 00 00, changing depending on if Maya X64 was used or not,
+	                 // might be false though
 };
 
 struct xsm_metadata_section {

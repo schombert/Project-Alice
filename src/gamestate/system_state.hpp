@@ -38,11 +38,7 @@ class window_data_impl;
 
 namespace sys {
 
-enum class window_state : uint8_t {
-	normal,
-	maximized,
-	minimized
-};
+enum class window_state : uint8_t { normal, maximized, minimized };
 
 struct user_settings_s {
 	float ui_scale = 1.0f;
@@ -66,19 +62,8 @@ struct crisis_member_def {
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };
-enum class crisis_type : uint32_t {
-	none = 0,
-	claim = 1,
-	liberation = 2,
-	colonial = 3,
-	influence = 4
-};
-enum class crisis_mode : uint32_t {
-	inactive = 0,
-	finding_attacker = 1,
-	finding_defender = 2,
-	heating_up = 3
-};
+enum class crisis_type : uint32_t { none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4 };
+enum class crisis_mode : uint32_t { inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3 };
 
 struct great_nation {
 	sys::date last_greatness = sys::date(0);
@@ -133,7 +118,8 @@ struct alignas(64) state {
 	std::vector<char> text_data; // stores string data in the win1250 codepage
 	std::vector<text::text_component> text_components;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
+	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
+	    key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
@@ -178,9 +164,9 @@ struct alignas(64) state {
 
 	std::vector<int32_t> unit_names_indices; // indices for the names
 	std::vector<char> unit_names;            // a second text buffer, this time for just the unit names
-	                                         // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
-	                                         // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this
-	                                         // We also may push this into the save game if we handle unit renaming using this
+	                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
+	                              // ordinary game text, partly because I envision the possibility that we may stick dynamic names into
+	                              // this We also may push this into the save game if we handle unit renaming using this
 
 	ui::definitions ui_defs; // definitions for graphics and ui
 
@@ -248,14 +234,15 @@ struct alignas(64) state {
 	void on_mbutton_up(int32_t x, int32_t y, key_modifiers mod);
 	void on_lbutton_up(int32_t x, int32_t y, key_modifiers mod);
 	void on_mouse_move(int32_t x, int32_t y, key_modifiers mod);
-	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod);    // called when the left button is held down
-	void on_drag_finished(int32_t x, int32_t y, key_modifiers mod); // called when the left button is released after one or more drag events
+	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
+	void on_drag_finished(int32_t x, int32_t y,
+	                      key_modifiers mod); // called when the left button is released after one or more drag events
 	void on_resize(int32_t x, int32_t y, window_state win_state);
 	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char c); // c is win1250 codepage value
-	void render();        // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 
@@ -281,7 +268,9 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
+	state()
+	    : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024),
+	      new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
 
 	~state();
 
