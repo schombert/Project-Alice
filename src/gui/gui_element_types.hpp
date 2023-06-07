@@ -615,6 +615,18 @@ public:
 	}
 };
 
+class multiline_button_element_base : public button_element_base {
+public:
+	float line_height = 0.f;
+	int32_t current_line = 0;
+	int32_t visible_lines = 0;
+	bool black_text = true;
+	text::layout internal_layout;
+
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 struct multiline_text_scroll_event {
 	int32_t new_value;
 };

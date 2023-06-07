@@ -109,6 +109,18 @@ This class derives from `opaque_element_base` and implements the functionality r
 This class also provides the following member function:
 - `void set_button_text(sys::state& state, std::string const& new_text)` : Using this function changes the text that will be displayed on the face of the button.
 
+#### `multiline_text_element_base`
+
+Use this in place of `simple_text_element_base` when you require "complex" text composition (see in the next section). This element has an `internal_layout` that can be manipulated and used for creating an endless/columnar layout (usually the preffered type is an endless layout). Unlike it's simpler variant, it can be coloured and can host substitution maps because it is able to support layouts.
+
+#### `multiline_button_element_base`
+
+Variant of `multiline_text_element_base` tailored for buttons.
+
+#### `scrollable_text`
+
+This implements text that can be scrolled through, it uses a delegate `multiline_text_element_base` to accomplish this, it is important to remember that the `delegate` is a separate element (and the scrollbar too). In order to populate the layout inside said `delegate` element, add an extra indirection of `this->delegate` for each what-would-be calls performed on a normal `multiline_text_element_base`.
+
 #### `draggable_target`
 
 This is a bit of an odd one because of the way windows are defined in the `.gui` files. Windows do not intrinsically have a background, instead they have some image element member that fills their visible space. Thus, to redirect mouse commands from that background element to the window itself, we have `draggable_target`. If an element is a `draggable_target` any drag mouse actions will be prorogated up from it to the window at the lowest level that is defined to be movable.

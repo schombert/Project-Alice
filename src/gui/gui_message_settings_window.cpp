@@ -9,10 +9,10 @@ void message_log_text::on_update(sys::state& state) noexcept  {
 
 		auto const& messages = static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages;
 		if(index < int32_t(messages.size())) {
-			auto const& m = messages[index];
+			auto m = messages[index];
 			auto container = text::create_endless_layout(
 			    internal_layout,
-			    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white
+			    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white
 			});
 			m.title(state, container);
 		}
