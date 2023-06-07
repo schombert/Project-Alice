@@ -25,7 +25,8 @@ public:
 			dcon::province_id prov_id = Cyto::any_cast<dcon::province_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"), text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
+			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"),
+				text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
 			text::close_layout_box(contents, box);
@@ -199,7 +200,8 @@ public:
 			text::add_divider_to_layout_box(state, contents, box);
 
 			text::substitution_map sub1{};
-			text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
+			text::add_to_substitution_map(sub1, text::variable_type::num,
+				text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
 			float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
 			float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
 			text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
@@ -207,7 +209,8 @@ public:
 
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::substitution_map sub2{};
-			text::add_to_substitution_map(sub2, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
+			text::add_to_substitution_map(sub2, text::variable_type::value,
+				int32_t(province::colony_integration_cost(state, state_instance_id)));
 			text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
 
 			text::close_layout_box(contents, box);
@@ -235,7 +238,9 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
 
-			return bool(state.world.state_instance_get_owner_focus(content).id) ? state.world.state_instance_get_owner_focus(content).get_icon() - 1 : 0;
+			return bool(state.world.state_instance_get_owner_focus(content).id)
+					   ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+					   : 0;
 		}
 		return 0;
 	}
@@ -246,7 +251,9 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
 			disabled = true;
-			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) { disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled; });
+			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
+			});
 			frame = get_icon_frame(state);
 		}
 	}
@@ -521,7 +528,8 @@ public:
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
-			command::begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
+			command::begin_province_building_construction(state, state.local_player_nation, content,
+				economy::province_building_type::railroad);
 		}
 	}
 
@@ -530,7 +538,8 @@ public:
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
-			disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
+			disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content,
+				economy::province_building_type::railroad);
 		}
 	}
 };
@@ -738,12 +747,14 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::naval_base>>(state, "building");
+			auto ptr =
+				make_element_by_type<province_building_window<economy::province_building_type::naval_base>>(state, "building");
 			ptr->base_data.position.y = 36;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::railroad>>(state, "building");
+			auto ptr =
+				make_element_by_type<province_building_window<economy::province_building_type::railroad>>(state, "building");
 			ptr->base_data.position.y = 71;
 			add_child_to_front(std::move(ptr));
 		}
@@ -940,9 +951,11 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::national_identity_id>()) {
 			if(!bool(content.col_id)) {
-				payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content.player_id).get_identity_from_identity_holder().id);
+				payload.emplace<dcon::national_identity_id>(
+					dcon::fatten(state.world, content.player_id).get_identity_from_identity_holder().id);
 			} else if(bool(content.col_id)) {
-				payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content.col_id).get_colonizer().get_identity_from_identity_holder().id);
+				payload.emplace<dcon::national_identity_id>(
+					dcon::fatten(state.world, content.col_id).get_colonizer().get_identity_from_identity_holder().id);
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::colonization_id>()) {

@@ -33,7 +33,8 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int left = (mi.rcWork.right - mi.rcWork.left) / 2 - game_state.win_ptr->creation_x_size / 2;
 			int top = (mi.rcWork.bottom - mi.rcWork.top) / 2 - game_state.win_ptr->creation_y_size / 2;
 
-			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU |
+							   WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 			RECT rectangle = {left, top, left + game_state.win_ptr->creation_x_size, top + game_state.win_ptr->creation_y_size};
 			AdjustWindowRectExForDpi(&rectangle, win32Style, false, 0, GetDpiForWindow(game_state.win_ptr->hwnd));
@@ -41,7 +42,8 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int32_t final_height = rectangle.bottom - rectangle.top;
 
 			SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
-			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_NOREDRAW);
+			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height,
+				SWP_NOREDRAW);
 			SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
 
@@ -62,7 +64,8 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int32_t win_height = (rectangle.bottom - rectangle.top);
 
 			SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
-			SetWindowPos(game_state.win_ptr->hwnd, HWND_TOPMOST, rectangle.left, rectangle.top, win_width, win_height, SWP_NOREDRAW);
+			SetWindowPos(game_state.win_ptr->hwnd, HWND_TOPMOST, rectangle.left, rectangle.top, win_width, win_height,
+				SWP_NOREDRAW);
 
 			game_state.win_ptr->in_fullscreen = true;
 		}
@@ -88,8 +91,10 @@ char process_utf16_to_win1250(wchar_t c) {
 }
 
 sys::key_modifiers get_current_modifiers() {
-	uint32_t val = uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) | uint32_t((GetKeyState(VK_MENU) & 0x8000) ? sys::key_modifiers::modifiers_alt : sys::key_modifiers::modifiers_none) |
-				   uint32_t((GetKeyState(VK_SHIFT) & 0x8000) ? sys::key_modifiers::modifiers_shift : sys::key_modifiers::modifiers_none);
+	uint32_t val =
+		uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) |
+		uint32_t((GetKeyState(VK_MENU) & 0x8000) ? sys::key_modifiers::modifiers_alt : sys::key_modifiers::modifiers_none) |
+		uint32_t((GetKeyState(VK_SHIFT) & 0x8000) ? sys::key_modifiers::modifiers_shift : sys::key_modifiers::modifiers_none);
 	return sys::key_modifiers(val);
 }
 
@@ -105,12 +110,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		create_state->win_ptr->hwnd = hwnd;
 		create_state->win_ptr->opengl_window_dc = GetDC(hwnd);
 
-			// setup opengl here
-			ogl::initialize_opengl(*create_state);
+		// setup opengl here
+		ogl::initialize_opengl(*create_state);
 
-			RECT crect{};
-			GetClientRect(hwnd, &crect);
-			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
+		RECT crect{};
+		GetClientRect(hwnd, &crect);
+		SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
 
 		return 0;
 	}
@@ -205,24 +210,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_SIZE: {
 		window::window_state t = window::window_state::normal;
 
-				if(wParam == SIZE_MAXIMIZED) {
-					t = window_state::maximized;
-				} else if(wParam == SIZE_MINIMIZED) {
-					t = window_state::minimized;
-				} else if(wParam == SIZE_RESTORED) {
-					t = window_state::normal;
-				} else {
-					//other
-					break;
-				}
+		if(wParam == SIZE_MAXIMIZED) {
+			t = window_state::maximized;
+		} else if(wParam == SIZE_MINIMIZED) {
+			t = window_state::minimized;
+		} else if(wParam == SIZE_RESTORED) {
+			t = window_state::normal;
+		} else {
+			// other
+			break;
+		}
 
 		state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
 		state->x_size = LOWORD(lParam);
 		state->y_size = HIWORD(lParam);
 
 		// TODO MAP CAMERA HERE CODE HERE
-		// state->map_camera = map::flat_camera(glm::vec2{ state->x_size, state->y_size }, glm::vec2{ state->map_provinces_texture.size_x,
-		// state->map_provinces_texture.size_y });
+		// state->map_camera = map::flat_camera(glm::vec2{ state->x_size, state->y_size }, glm::vec2{
+		// state->map_provinces_texture.size_x, state->map_provinces_texture.size_y });
 
 		return 0;
 	};
@@ -296,9 +301,12 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		std::abort();
 	}
 
-	DWORD win32Style = !params.borderless_fullscreen ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS) : WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+	DWORD win32Style = !params.borderless_fullscreen ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME |
+														   WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS)
+													 : WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-	game_state.win_ptr->hwnd = CreateWindowExW(0, L"project_alice_class", L"Project Alice", win32Style, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, GetModuleHandleW(nullptr), &game_state);
+	game_state.win_ptr->hwnd = CreateWindowExW(0, L"project_alice_class", L"Project Alice", win32Style, CW_USEDEFAULT,
+		CW_USEDEFAULT, 0, 0, NULL, NULL, GetModuleHandleW(nullptr), &game_state);
 
 	if(!game_state.win_ptr->hwnd)
 		return;
@@ -321,16 +329,17 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		int32_t final_height = rectangle.bottom - rectangle.top;
 
 		SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
-		SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_FRAMECHANGED);
+		SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height,
+			SWP_FRAMECHANGED);
 		SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 
-			if(params.initial_state == window_state::maximized)
-				ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
-			else if(params.initial_state == window_state::minimized)
-				ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
-			else
-				ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
-		} else {
+		if(params.initial_state == window_state::maximized)
+			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
+		else if(params.initial_state == window_state::minimized)
+			ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
+		else
+			ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
+	} else {
 
 		auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 		MONITORINFO mi;
@@ -343,7 +352,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		int32_t win_height = (rectangle.bottom - rectangle.top);
 
 		SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
-		SetWindowPos(game_state.win_ptr->hwnd, HWND_TOPMOST, rectangle.left, rectangle.top, win_width, win_height, SWP_FRAMECHANGED);
+		SetWindowPos(game_state.win_ptr->hwnd, HWND_TOPMOST, rectangle.left, rectangle.top, win_width, win_height,
+			SWP_FRAMECHANGED);
 		ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
 	}
 
@@ -374,7 +384,9 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 }
 
 void emit_error_message(std::string const& content, bool fatal) {
-	MessageBoxA(nullptr, content.c_str(), fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:", MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
+	MessageBoxA(nullptr, content.c_str(),
+		fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:",
+		MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
 	if(fatal) {
 		std::terminate();
 	}

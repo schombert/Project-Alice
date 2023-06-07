@@ -63,7 +63,8 @@ public:
 class politics_release_nation_window_title : public simple_text_element_base {
 public:
 	std::string get_text(sys::state& state) noexcept {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal")); k != state.key_to_text_sequence.end()) {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal"));
+			k != state.key_to_text_sequence.end()) {
 			return text::produce_simple_string(state, k->second);
 		}
 		return "";
@@ -79,7 +80,8 @@ public:
 		std::string provinces = "";
 		state.world.national_identity_for_each_core(id, [&](dcon::core_id core) {
 			auto province = state.world.core_get_province(core);
-			if(state.world.province_get_nation_from_province_ownership(province) == state.local_player_nation && province_count++ < 5) {
+			if(state.world.province_get_nation_from_province_ownership(province) == state.local_player_nation &&
+				province_count++ < 5) {
 				if(!provinces.empty()) {
 					provinces += ", ";
 				}
@@ -181,7 +183,8 @@ protected:
 		std::string provinces = "";
 		state.world.national_identity_for_each_core(id, [&](dcon::core_id core) {
 			auto province = state.world.core_get_province(core);
-			if(state.world.province_get_nation_from_province_ownership(province) == state.local_player_nation && province_count++ < 5) {
+			if(state.world.province_get_nation_from_province_ownership(province) == state.local_player_nation &&
+				province_count++ < 5) {
 				if(!provinces.empty()) {
 					provinces += ", ";
 				}

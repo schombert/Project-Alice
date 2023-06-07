@@ -109,11 +109,19 @@ using std::make_unsigned;
 // It's not clear which will cause less headache...
 template<typename T> struct make_signed { };
 template<typename T> struct make_unsigned { };
-#define R123_MK_SIGNED_UNSIGNED(ST, UT)                                                                                                                                                                                                                                                                    \
-	template<> struct make_signed<ST> { typedef ST type; };                                                                                                                                                                                                                                                \
-	template<> struct make_signed<UT> { typedef ST type; };                                                                                                                                                                                                                                                \
-	template<> struct make_unsigned<ST> { typedef UT type; };                                                                                                                                                                                                                                              \
-	template<> struct make_unsigned<UT> { typedef UT type; }
+#define R123_MK_SIGNED_UNSIGNED(ST, UT)                                                                                          \
+	template<> struct make_signed<ST> {                                                                                          \
+		typedef ST type;                                                                                                         \
+	};                                                                                                                           \
+	template<> struct make_signed<UT> {                                                                                          \
+		typedef ST type;                                                                                                         \
+	};                                                                                                                           \
+	template<> struct make_unsigned<ST> {                                                                                        \
+		typedef UT type;                                                                                                         \
+	};                                                                                                                           \
+	template<> struct make_unsigned<UT> {                                                                                        \
+		typedef UT type;                                                                                                         \
+	}
 
 R123_MK_SIGNED_UNSIGNED(int8_t, uint8_t);
 R123_MK_SIGNED_UNSIGNED(int16_t, uint16_t);

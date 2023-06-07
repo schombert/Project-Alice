@@ -155,7 +155,8 @@ public:
 			Cyto::Any payload = dcon::regiment_id{};
 			parent->impl_get(state, payload);
 			dcon::regiment_id content = any_cast<dcon::regiment_id>(payload);
-			set_text(state, text::prettify(int32_t(state.world.regiment_get_strength(content) * state.defines.pop_size_per_regiment)));
+			set_text(state,
+				text::prettify(int32_t(state.world.regiment_get_strength(content) * state.defines.pop_size_per_regiment)));
 		}
 	}
 };
@@ -362,49 +363,59 @@ public:
 		window_element_base::on_create(state);
 		base_data.position.y = 250;
 
-		xy_pair base_position = {20, 0}; // state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_start")->second.definition].position;
-		xy_pair base_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_offset")->second.definition].position;
+		xy_pair base_position = {20,
+			0}; // state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_start")->second.definition].position;
+		xy_pair base_offset =
+			state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_offset")->second.definition].position;
 
 		{
-			auto win = make_element_by_type<unit_details_type_item<T, 0>>(state, state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+			auto win = make_element_by_type<unit_details_type_item<T, 0>>(state,
+				state.ui_state.defs_by_name.find("unittype_item")->second.definition);
 			win->base_data.position.x = base_position.x + (0 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (0 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<unit_details_type_item<T, 1>>(state, state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+			auto win = make_element_by_type<unit_details_type_item<T, 1>>(state,
+				state.ui_state.defs_by_name.find("unittype_item")->second.definition);
 			win->base_data.position.x = base_position.x + (1 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (1 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<unit_details_type_item<T, 2>>(state, state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+			auto win = make_element_by_type<unit_details_type_item<T, 2>>(state,
+				state.ui_state.defs_by_name.find("unittype_item")->second.definition);
 			win->base_data.position.x = base_position.x + (2 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (2 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 
-		const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item")->second.definition].position;
+		const xy_pair item_offset =
+			state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item")->second.definition].position;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			auto ptr = make_element_by_type<unit_details_army_listbox>(state, state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
+			auto ptr = make_element_by_type<unit_details_army_listbox>(state,
+				state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
 			add_child_to_front(std::move(ptr));
 		} else {
-			auto ptr = make_element_by_type<unit_details_navy_listbox>(state, state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
+			auto ptr = make_element_by_type<unit_details_navy_listbox>(state,
+				state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
 			add_child_to_front(std::move(ptr));
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_details_buttons<T>>(state, state.ui_state.defs_by_name.find("sup_buttons_window")->second.definition);
+			auto ptr = make_element_by_type<unit_details_buttons<T>>(state,
+				state.ui_state.defs_by_name.find("sup_buttons_window")->second.definition);
 			ptr->base_data.position.y = base_data.size.y; // Nudge
 			add_child_to_front(std::move(ptr));
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_selection_panel<bool>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+			auto ptr = make_element_by_type<unit_selection_panel<bool>>(state,
+				state.ui_state.defs_by_name.find("unitpanel")->second.definition);
 			ptr->base_data.position.y -= 81;
 			add_child_to_front(std::move(ptr));
 		}

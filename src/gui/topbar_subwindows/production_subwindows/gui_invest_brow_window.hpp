@@ -7,7 +7,9 @@ namespace ui {
 
 class production_investment_country_select : public button_element_base {
 public:
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent->impl_on_scroll(state, x, y, amount, mods);
+	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -101,13 +103,14 @@ class invest_brow_window : public window_element_base {
 				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id))
 					country_listbox->row_contents.push_back(id);
 			});
-			std::sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-				dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
-				auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
-				dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
-				auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
-				return a_name < b_name;
-			});
+			std::sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(),
+				[&](dcon::nation_id a, dcon::nation_id b) {
+					dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
+					auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
+					dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
+					auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
+					return a_name < b_name;
+				});
 			country_listbox->update(state);
 		}
 	}
@@ -226,17 +229,22 @@ public:
 					if(id == state.local_player_nation)
 						return false;
 					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
-					return state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id);
+					return state.world.diplomatic_relation_get_are_allied(rel) ||
+						   military::are_allied_in_war(state, state.local_player_nation, id);
 				});
 				break;
 			case country_list_filter::enemies:
-				filter_countries(state, [&](dcon::nation_id id) { return military::are_at_war(state, state.local_player_nation, id); });
+				filter_countries(state,
+					[&](dcon::nation_id id) { return military::are_at_war(state, state.local_player_nation, id); });
 				break;
 			case country_list_filter::sphere:
-				filter_countries(state, [&](dcon::nation_id id) { return state.world.nation_get_in_sphere_of(id) == state.local_player_nation; });
+				filter_countries(state,
+					[&](dcon::nation_id id) { return state.world.nation_get_in_sphere_of(id) == state.local_player_nation; });
 				break;
 			case country_list_filter::neighbors:
-				filter_countries(state, [&](dcon::nation_id id) { return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id)); });
+				filter_countries(state, [&](dcon::nation_id id) {
+					return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
+				});
 				break;
 			default:
 				break;

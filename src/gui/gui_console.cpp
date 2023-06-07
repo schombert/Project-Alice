@@ -9,7 +9,25 @@ struct command_info {
 	static constexpr uint32_t max_arg_slots = 4;
 
 	std::string_view name;
-	enum class type : uint8_t { none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide, cheat, diplomacy_points, research_points, infamy, money, westernize, unwesternize, cb_progress } mode = type::none;
+	enum class type : uint8_t {
+		none = 0,
+		reload,
+		abort,
+		clear_log,
+		fps,
+		set_tag,
+		help,
+		show_stats,
+		colour_guide,
+		cheat,
+		diplomacy_points,
+		research_points,
+		infamy,
+		money,
+		westernize,
+		unwesternize,
+		cb_progress
+	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
 		std::string_view name;
@@ -18,23 +36,59 @@ struct command_info {
 	} args[max_arg_slots] = {};
 };
 
-static const std::vector<command_info> possible_commands = {command_info{"none", command_info::type::none, "Dummy command", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"reload", command_info::type::reload, "Reloads Alice", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"abort", command_info::type::abort, "Abnormaly terminates execution", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"clr_log", command_info::type::clear_log, "Clears console logs", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"fps", command_info::type::fps, "Toggles FPS counter", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"tag", command_info::type::set_tag, "Set the current player's country", {command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"help", command_info::type::help, "Display help", {command_info::argument_info{"cmd", command_info::argument_info::type::text, true}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"stats", command_info::type::show_stats, "Shows statistics of the current resources used", {command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"cheat", command_info::type::cheat, "Finishes all cassus bellis, adds 99 diplo points, instant research and westernizes (if not already)", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"dp", command_info::type::diplomacy_points, "Adds the specified number of diplo points", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"rp", command_info::type::research_points, "Adds the specified number of research points", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"inf", command_info::type::infamy, "Adds the specified number of infamy", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabritcation", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"mony", command_info::type::money, "Adds the specified amount of money to the national treasury", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"west", command_info::type::westernize, "Westernizes", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"unwest", command_info::type::unwesternize, "Unwesternizes", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-	command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}}};
+static const std::vector<command_info> possible_commands = {
+	command_info{"none", command_info::type::none, "Dummy command",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"reload", command_info::type::reload, "Reloads Alice",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"abort", command_info::type::abort, "Abnormaly terminates execution",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"clr_log", command_info::type::clear_log, "Clears console logs",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"fps", command_info::type::fps, "Toggles FPS counter",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"tag", command_info::type::set_tag, "Set the current player's country",
+		{command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"help", command_info::type::help, "Display help",
+		{command_info::argument_info{"cmd", command_info::argument_info::type::text, true}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"stats", command_info::type::show_stats, "Shows statistics of the current resources used",
+		{command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"cheat", command_info::type::cheat,
+		"Finishes all cassus bellis, adds 99 diplo points, instant research and westernizes (if not already)",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"dp", command_info::type::diplomacy_points, "Adds the specified number of diplo points",
+		{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"rp", command_info::type::research_points, "Adds the specified number of research points",
+		{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"inf", command_info::type::infamy, "Adds the specified number of infamy",
+		{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabritcation",
+		{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"mony", command_info::type::money, "Adds the specified amount of money to the national treasury",
+		{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+			command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"west", command_info::type::westernize, "Westernizes",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"unwest", command_info::type::unwesternize, "Unwesternizes",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}},
+	command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text",
+		{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+			command_info::argument_info{}}}};
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 	// NOTE: Change parameters as you wish - but these work fine for the majority of mods
@@ -163,14 +217,18 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	ui::edit_box_element_base::render(state, x, y);
 
 	// Render the suggestions given (after the inputted text obv)
-	float x_offs = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
+	float x_offs = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
+		base_data.data.text.font_handle);
 	if(lhs_suggestion.length() > 0) {
 		char const* start_text = lhs_suggestion.data();
 		char const* end_text = lhs_suggestion.data() + lhs_suggestion.length();
 		std::string text(std::string_view(start_text, end_text));
 		if(!text.empty()) {
-			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
-			x_offs += state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
+			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
+				float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+				get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
+			x_offs +=
+				state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 		}
 	}
 
@@ -182,8 +240,11 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			// Place text right before it ends (centered right)
 			x_offs = float(base_data.size.x);
 			x_offs -= 24;
-			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
-			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
+			x_offs -=
+				state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
+			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
+				float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+				get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
 		}
 	}
 }
@@ -197,7 +258,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
 		// Still typing command - so suggest commands
-		std::pair<uint32_t, command_info const*> closest_match = std::make_pair<uint32_t, command_info const*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
+		std::pair<uint32_t, command_info const*> closest_match =
+			std::make_pair<uint32_t, command_info const*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
 		for(auto const& cmd : possible_commands) {
 			std::string_view name = cmd.name;
 			if(name.starts_with(s)) {
@@ -236,7 +298,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				}
 			});
 			// Now type in a suggestion...
-			dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
+			dcon::nation_id nid =
+				state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 			std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 			if(tag.size() >= name.size()) {
 				lhs_suggestion = std::string{};
@@ -374,11 +437,15 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			if(tag.size() == 3) {
 				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 				log_to_console(state, parent,
-					"Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
+					"Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
+						text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
+						std::to_string(closest_tag_match.second.value));
 			} else {
 				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
 				log_to_console(state, parent,
-					"Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
+					"Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
+						text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
+						std::to_string(closest_name_match.second.value));
 			}
 
 			if(tag.size() != 3)
@@ -427,7 +494,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					}
 				}
 				log_to_console(state, parent,
-					"Did you mean \xA7Y" + std::string(closest_match.second.name) + "\xA7W (" + std::string(closest_match.second.desc) +
+					"Did you mean \xA7Y" + std::string(closest_match.second.name) + "\xA7W (" +
+						std::string(closest_match.second.desc) +
 						")"
 						"?");
 			}
@@ -444,7 +512,18 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			log_to_console(state, parent, "Ex: \"stats pol\"");
 			break;
 		}
-		enum class flags : uint8_t { none = 0x00, demographics = 0x01, diplomacy = 0x02, economy = 0x04, events = 0x08, military = 0x10, technology = 0x20, politics = 0x40, all = 0x7F, count };
+		enum class flags : uint8_t {
+			none = 0x00,
+			demographics = 0x01,
+			diplomacy = 0x02,
+			economy = 0x04,
+			events = 0x08,
+			military = 0x10,
+			technology = 0x20,
+			politics = 0x40,
+			all = 0x7F,
+			count
+		};
 		uint8_t v = 0;
 		auto const k = std::get<std::string>(pstate.arg_slots[0]);
 		if(k[0] == 'd' && k[1] == 'e') { // de(mo)
@@ -888,8 +967,11 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			std::string_view text(start_text, end_text);
 			if(!text.empty()) {
 				std::string tmp_text{text};
-				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text_color), base_data.data.button.font_handle);
-				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()), base_data.data.text.font_handle);
+				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none,
+					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text_color),
+					base_data.data.button.font_handle);
+				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()),
+					base_data.data.text.font_handle);
 			}
 			if(uint8_t(*end_text) == 0xA7) {
 				text_color = text::char_to_color(*++end_text); // Skip escape, then read colour

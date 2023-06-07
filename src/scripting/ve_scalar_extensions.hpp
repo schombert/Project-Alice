@@ -21,10 +21,18 @@ inline int32_t to_int(float a) { return int32_t(a); }
 
 inline bool compress_mask(bool v) { return v; }
 
-template<typename tag_type> mask_vector operator==(contiguous_tags_base<tag_type> a, tag_type b) { return a == tagged_vector<tag_type>(b); }
-template<typename tag_type> mask_vector operator!=(contiguous_tags_base<tag_type> a, tag_type b) { return a != tagged_vector<tag_type>(b); }
+template<typename tag_type> mask_vector operator==(contiguous_tags_base<tag_type> a, tag_type b) {
+	return a == tagged_vector<tag_type>(b);
+}
+template<typename tag_type> mask_vector operator!=(contiguous_tags_base<tag_type> a, tag_type b) {
+	return a != tagged_vector<tag_type>(b);
+}
 
-template<typename tag_type> mask_vector operator==(tag_type b, contiguous_tags_base<tag_type> a) { return a == tagged_vector<tag_type>(b); }
-template<typename tag_type> mask_vector operator!=(tag_type b, contiguous_tags_base<tag_type> a) { return a != tagged_vector<tag_type>(b); }
+template<typename tag_type> mask_vector operator==(tag_type b, contiguous_tags_base<tag_type> a) {
+	return a == tagged_vector<tag_type>(b);
+}
+template<typename tag_type> mask_vector operator!=(tag_type b, contiguous_tags_base<tag_type> a) {
+	return a != tagged_vector<tag_type>(b);
+}
 
 } // namespace ve

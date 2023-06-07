@@ -53,7 +53,9 @@ class politics_hold_election : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override { command::start_election(state, state.local_player_nation); }
 
-	void on_update(sys::state& state) noexcept override { disabled = !command::can_start_election(state, state.local_player_nation); }
+	void on_update(sys::state& state) noexcept override {
+		disabled = !command::can_start_election(state, state.local_player_nation);
+	}
 };
 
 class politics_upper_house_listbox : public listbox_element_base<politics_upper_house_entry, dcon::ideology_id> {
@@ -113,7 +115,9 @@ public:
 		}
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent->impl_on_scroll(state, x, y, amount, mods);
+	}
 };
 
 class politics_choose_party_button : public button_element_base {
@@ -139,7 +143,9 @@ public:
 		}
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent->impl_on_scroll(state, x, y, amount, mods);
+	}
 };
 
 class politics_all_party_entry : public listbox_row_element_base<dcon::political_party_id> {
@@ -164,7 +170,9 @@ public:
 		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent->impl_on_scroll(state, x, y, amount, mods);
+	}
 };
 
 class politics_all_party_listbox : public listbox_element_base<politics_all_party_entry, dcon::political_party_id> {
@@ -289,7 +297,8 @@ public:
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
 				text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::black);
 				text::add_space_to_layout_box(contents, state, box);
-				text::add_to_layout_box(contents, state, box, text::date_to_string(state, election_start_date), text::text_color::black);
+				text::add_to_layout_box(contents, state, box, text::date_to_string(state, election_start_date),
+					text::text_color::black);
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -312,12 +321,16 @@ public:
 
 class issue_option_popular_support : public standard_nation_issue_option_text {
 public:
-	std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept override { return text::format_percentage(politics::get_popular_support(state, state.local_player_nation, issue_option_id), 1); }
+	std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept override {
+		return text::format_percentage(politics::get_popular_support(state, state.local_player_nation, issue_option_id), 1);
+	}
 };
 
 class issue_option_voter_support : public standard_nation_issue_option_text {
 public:
-	std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept override { return text::format_percentage(politics::get_voter_support(state, state.local_player_nation, issue_option_id), 1); }
+	std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept override {
+		return text::format_percentage(politics::get_voter_support(state, state.local_player_nation, issue_option_id), 1);
+	}
 };
 
 class politics_issue_support_item : public listbox_row_element_base<dcon::issue_option_id> {
@@ -348,7 +361,9 @@ public:
 };
 
 class politics_hold_election_button : public button_element_base {
-	void on_update(sys::state& state) noexcept override { disabled = !command::can_start_election(state, state.local_player_nation); }
+	void on_update(sys::state& state) noexcept override {
+		disabled = !command::can_start_election(state, state.local_player_nation);
+	}
 
 	void button_action(sys::state& state) noexcept override { command::start_election(state, state.local_player_nation); }
 };
@@ -543,27 +558,30 @@ public:
 			auto enum_val = any_cast<politics_issue_sort_order>(payload);
 			switch(enum_val) {
 			case politics_issue_sort_order::name:
-				std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
-					auto a_name = text::get_name_as_string(state, dcon::fatten(state.world, a));
-					auto b_name = text::get_name_as_string(state, dcon::fatten(state.world, b));
-					return a_name < b_name;
-				});
+				std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(),
+					[&](dcon::issue_option_id a, dcon::issue_option_id b) {
+						auto a_name = text::get_name_as_string(state, dcon::fatten(state.world, a));
+						auto b_name = text::get_name_as_string(state, dcon::fatten(state.world, b));
+						return a_name < b_name;
+					});
 				issues_listbox->update(state);
 				break;
 			case politics_issue_sort_order::popular_support:
-				std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
-					auto a_support = politics::get_popular_support(state, state.local_player_nation, a);
-					auto b_support = politics::get_popular_support(state, state.local_player_nation, b);
-					return a_support > b_support;
-				});
+				std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(),
+					[&](dcon::issue_option_id a, dcon::issue_option_id b) {
+						auto a_support = politics::get_popular_support(state, state.local_player_nation, a);
+						auto b_support = politics::get_popular_support(state, state.local_player_nation, b);
+						return a_support > b_support;
+					});
 				issues_listbox->update(state);
 				break;
 			case politics_issue_sort_order::voter_support:
-				std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
-					auto a_support = politics::get_voter_support(state, state.local_player_nation, a);
-					auto b_support = politics::get_voter_support(state, state.local_player_nation, b);
-					return a_support > b_support;
-				});
+				std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(),
+					[&](dcon::issue_option_id a, dcon::issue_option_id b) {
+						auto a_support = politics::get_voter_support(state, state.local_player_nation, a);
+						auto b_support = politics::get_voter_support(state, state.local_player_nation, b);
+						return a_support > b_support;
+					});
 				issues_listbox->update(state);
 				break;
 			}

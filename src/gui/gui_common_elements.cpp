@@ -14,16 +14,24 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 		};
 		break;
 	case country_list_sort::economic_rank:
-		fn = [&](dcon::nation_id a, dcon::nation_id b) { return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b); };
+		fn = [&](dcon::nation_id a, dcon::nation_id b) {
+			return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b);
+		};
 		break;
 	case country_list_sort::military_rank:
-		fn = [&](dcon::nation_id a, dcon::nation_id b) { return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b); };
+		fn = [&](dcon::nation_id a, dcon::nation_id b) {
+			return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b);
+		};
 		break;
 	case country_list_sort::prestige_rank:
-		fn = [&](dcon::nation_id a, dcon::nation_id b) { return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b); };
+		fn = [&](dcon::nation_id a, dcon::nation_id b) {
+			return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
+		};
 		break;
 	case country_list_sort::total_rank:
-		fn = [&](dcon::nation_id a, dcon::nation_id b) { return state.world.nation_get_rank(a) < state.world.nation_get_rank(b); };
+		fn = [&](dcon::nation_id a, dcon::nation_id b) {
+			return state.world.nation_get_rank(a) < state.world.nation_get_rank(b);
+		};
 		break;
 	case country_list_sort::relation:
 		fn = [&](dcon::nation_id a, dcon::nation_id b) {
@@ -53,7 +61,9 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 		};
 		break;
 	case country_list_sort::boss:
-		fn = [&](dcon::nation_id a, dcon::nation_id b) { return state.world.nation_get_in_sphere_of(a).id.index() < state.world.nation_get_in_sphere_of(b).id.index(); };
+		fn = [&](dcon::nation_id a, dcon::nation_id b) {
+			return state.world.nation_get_in_sphere_of(a).id.index() < state.world.nation_get_in_sphere_of(b).id.index();
+		};
 		break;
 	default:
 		if((uint8_t(sort) & uint8_t(country_list_sort::gp_influence)) != 0) {
@@ -72,7 +82,8 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 
 				auto urel_a = state.world.get_unilateral_relationship_by_unilateral_pair(a, gp);
 				auto urel_b = state.world.get_unilateral_relationship_by_unilateral_pair(b, gp);
-				return state.world.unilateral_relationship_get_foreign_investment(urel_a) < state.world.unilateral_relationship_get_foreign_investment(urel_b);
+				return state.world.unilateral_relationship_get_foreign_investment(urel_a) <
+					   state.world.unilateral_relationship_get_foreign_investment(urel_b);
 			};
 		} else {
 			assert(0);

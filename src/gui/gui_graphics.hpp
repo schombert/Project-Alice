@@ -14,7 +14,18 @@ struct building_gfx_context;
 }
 
 namespace ui {
-enum class object_type : uint8_t { generic_sprite = 0x00, bordered_rect = 0x01, horizontal_progress_bar = 0x02, vertical_progress_bar = 0x03, flag_mask = 0x04, tile_sprite = 0x05, text_sprite = 0x06, barchart = 0x07, piechart = 0x08, linegraph = 0x09 };
+enum class object_type : uint8_t {
+	generic_sprite = 0x00,
+	bordered_rect = 0x01,
+	horizontal_progress_bar = 0x02,
+	vertical_progress_bar = 0x03,
+	flag_mask = 0x04,
+	tile_sprite = 0x05,
+	text_sprite = 0x06,
+	barchart = 0x07,
+	piechart = 0x08,
+	linegraph = 0x09
+};
 
 struct xy_pair {
 	int16_t x = 0;
@@ -316,9 +327,9 @@ struct state {
 
 	uint16_t tooltip_font = 0;
 
-		state();
-		~state();
-	};
+	state();
+	~state();
+};
 
 struct mouse_probe {
 	element_base* under_mouse;

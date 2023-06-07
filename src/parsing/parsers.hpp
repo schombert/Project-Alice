@@ -47,7 +47,9 @@ private:
 public:
 	token_generator() { }
 	token_generator(char const* file_start, char const* fe) : position(file_start), file_end(fe) { }
-	bool at_end() const { return peek_2.type == token_type::unknown && peek_1.type == token_type::unknown && position >= file_end; }
+	bool at_end() const {
+		return peek_2.type == token_type::unknown && peek_1.type == token_type::unknown && position >= file_end;
+	}
 	token_and_type get();
 	token_and_type next();
 	token_and_type next_next();
@@ -63,17 +65,50 @@ public:
 
 	error_handler(std::string file_name) : file_name(std::move(file_name)) { }
 
-	void unhandled_group_key(token_and_type const& t) { accumulated_errors += "unexpected group key " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n"; }
-	void unhandled_association_key(token_and_type const& t) { accumulated_errors += "unexpected value key " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n"; }
-	void unhandled_free_value(token_and_type const& t) { accumulated_errors += "unexpected free value " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n"; }
-	void unhandled_free_group(token_and_type const& t) { accumulated_errors += "unhandled free set beggining with  " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n"; }
-	void bad_date(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as a date on line " + std::to_string(l) + " of file " + file_name + "\n"; }
-	void bad_float(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as a float on line " + std::to_string(l) + " of file " + file_name + "\n"; }
-	void bad_double(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as a double on line " + std::to_string(l) + " of file " + file_name + "\n"; }
-	void bad_bool(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as a boolean on line " + std::to_string(l) + " of file " + file_name + "\n"; }
-	void bad_int(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as an integer on line " + std::to_string(l) + " of file " + file_name + "\n"; }
-	void bad_unsigned_int(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as an unsigned integer on line " + std::to_string(l) + " of file " + file_name + "\n"; }
-	void bad_association_token(std::string_view s, int32_t l) { accumulated_errors += "tried to parse  " + std::string(s) + " as equality or comparison on line " + std::to_string(l) + " of file " + file_name + "\n"; }
+	void unhandled_group_key(token_and_type const& t) {
+		accumulated_errors += "unexpected group key " + std::string(t.content) + " found on line " + std::to_string(t.line) +
+							  " of file " + file_name + "\n";
+	}
+	void unhandled_association_key(token_and_type const& t) {
+		accumulated_errors += "unexpected value key " + std::string(t.content) + " found on line " + std::to_string(t.line) +
+							  " of file " + file_name + "\n";
+	}
+	void unhandled_free_value(token_and_type const& t) {
+		accumulated_errors += "unexpected free value " + std::string(t.content) + " found on line " + std::to_string(t.line) +
+							  " of file " + file_name + "\n";
+	}
+	void unhandled_free_group(token_and_type const& t) {
+		accumulated_errors += "unhandled free set beggining with  " + std::string(t.content) + " found on line " +
+							  std::to_string(t.line) + " of file " + file_name + "\n";
+	}
+	void bad_date(std::string_view s, int32_t l) {
+		accumulated_errors +=
+			"tried to parse  " + std::string(s) + " as a date on line " + std::to_string(l) + " of file " + file_name + "\n";
+	}
+	void bad_float(std::string_view s, int32_t l) {
+		accumulated_errors +=
+			"tried to parse  " + std::string(s) + " as a float on line " + std::to_string(l) + " of file " + file_name + "\n";
+	}
+	void bad_double(std::string_view s, int32_t l) {
+		accumulated_errors +=
+			"tried to parse  " + std::string(s) + " as a double on line " + std::to_string(l) + " of file " + file_name + "\n";
+	}
+	void bad_bool(std::string_view s, int32_t l) {
+		accumulated_errors +=
+			"tried to parse  " + std::string(s) + " as a boolean on line " + std::to_string(l) + " of file " + file_name + "\n";
+	}
+	void bad_int(std::string_view s, int32_t l) {
+		accumulated_errors +=
+			"tried to parse  " + std::string(s) + " as an integer on line " + std::to_string(l) + " of file " + file_name + "\n";
+	}
+	void bad_unsigned_int(std::string_view s, int32_t l) {
+		accumulated_errors += "tried to parse  " + std::string(s) + " as an unsigned integer on line " + std::to_string(l) +
+							  " of file " + file_name + "\n";
+	}
+	void bad_association_token(std::string_view s, int32_t l) {
+		accumulated_errors += "tried to parse  " + std::string(s) + " as equality or comparison on line " + std::to_string(l) +
+							  " of file " + file_name + "\n";
+	}
 };
 
 bool float_from_chars(char const* start, char const* end, float& float_out); // returns true on success
@@ -107,7 +142,8 @@ char const* csv_advance_n(uint32_t n, char const* start, char const* end, char s
 char const* csv_advance_to_next_line(char const* start, char const* end);
 separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator);
 
-template<size_t count_values, typename T> char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator, T&& function) {
+template<size_t count_values, typename T>
+char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator, T&& function) {
 	std::string_view values[count_values];
 	for(uint32_t i = 0; i < count_values; ++i) {
 		auto r = csv_find_separator_token(start, end, separator);
@@ -119,7 +155,8 @@ template<size_t count_values, typename T> char const* parse_fixed_amount_csv_val
 	return csv_advance_to_next_line(start, end);
 }
 
-template<typename T> char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char separator, T&& function) {
+template<typename T>
+char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char separator, T&& function) {
 	auto first_separator = csv_find_separator_token(start, end, separator);
 
 	std::string_view first_value = std::string_view(start, first_separator.new_position - start);

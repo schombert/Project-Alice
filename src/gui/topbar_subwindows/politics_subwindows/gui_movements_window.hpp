@@ -175,7 +175,8 @@ public:
 
 class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_faction_id> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::rebel_faction_id rebel_faction_id) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents,
+		dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
@@ -289,39 +290,42 @@ public:
 			auto enum_val = any_cast<movements_sort_order>(payload);
 			switch(enum_val) {
 			case movements_sort_order::size:
-				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(), [&](dcon::movement_id a, dcon::movement_id b) {
-					auto a_size = state.world.movement_get_pop_support(a);
-					auto b_size = state.world.movement_get_pop_support(b);
-					return a_size > b_size;
-				});
+				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(),
+					[&](dcon::movement_id a, dcon::movement_id b) {
+						auto a_size = state.world.movement_get_pop_support(a);
+						auto b_size = state.world.movement_get_pop_support(b);
+						return a_size > b_size;
+					});
 				movements_listbox->update(state);
 				break;
 			case movements_sort_order::radicalism:
-				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(), [&](dcon::movement_id a, dcon::movement_id b) {
-					auto a_rad = state.world.movement_get_radicalism(a);
-					auto b_rad = state.world.movement_get_radicalism(b);
-					return a_rad > b_rad;
-				});
+				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(),
+					[&](dcon::movement_id a, dcon::movement_id b) {
+						auto a_rad = state.world.movement_get_radicalism(a);
+						auto b_rad = state.world.movement_get_radicalism(b);
+						return a_rad > b_rad;
+					});
 				movements_listbox->update(state);
 				break;
 			case movements_sort_order::name:
-				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(), [&](dcon::movement_id a, dcon::movement_id b) {
-					auto fat_a = dcon::fatten(state.world, a);
-					std::string a_name;
-					if(fat_a.get_associated_independence()) {
-						a_name = text::get_name_as_string(state, fat_a.get_associated_independence());
-					} else {
-						a_name = text::produce_simple_string(state, fat_a.get_associated_issue_option().get_movement_name());
-					}
-					auto fat_b = dcon::fatten(state.world, b);
-					std::string b_name;
-					if(fat_b.get_associated_independence()) {
-						b_name = text::get_name_as_string(state, fat_b.get_associated_independence());
-					} else {
-						b_name = text::produce_simple_string(state, fat_b.get_associated_issue_option().get_movement_name());
-					}
-					return a_name < b_name;
-				});
+				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(),
+					[&](dcon::movement_id a, dcon::movement_id b) {
+						auto fat_a = dcon::fatten(state.world, a);
+						std::string a_name;
+						if(fat_a.get_associated_independence()) {
+							a_name = text::get_name_as_string(state, fat_a.get_associated_independence());
+						} else {
+							a_name = text::produce_simple_string(state, fat_a.get_associated_issue_option().get_movement_name());
+						}
+						auto fat_b = dcon::fatten(state.world, b);
+						std::string b_name;
+						if(fat_b.get_associated_independence()) {
+							b_name = text::get_name_as_string(state, fat_b.get_associated_independence());
+						} else {
+							b_name = text::produce_simple_string(state, fat_b.get_associated_issue_option().get_movement_name());
+						}
+						return a_name < b_name;
+					});
 				movements_listbox->update(state);
 				break;
 			}

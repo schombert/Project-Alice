@@ -6,9 +6,28 @@
 
 namespace ui {
 
-enum class outliner_filter : uint8_t { rebel_occupations, sieges, hostile_sieges, combat, naval_combat, armies, navies, factories, buildings, army_construction, navy_construction, gp_influence, national_focus, rally_points, count };
+enum class outliner_filter : uint8_t {
+	rebel_occupations,
+	sieges,
+	hostile_sieges,
+	combat,
+	naval_combat,
+	armies,
+	navies,
+	factories,
+	buildings,
+	army_construction,
+	navy_construction,
+	gp_influence,
+	national_focus,
+	rally_points,
+	count
+};
 
-typedef std::variant< outliner_filter, dcon::army_id, dcon::navy_id, dcon::gp_relationship_id, dcon::state_building_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id, dcon::province_naval_construction_id> outliner_data;
+typedef std::variant< outliner_filter, dcon::army_id, dcon::navy_id, dcon::gp_relationship_id,
+	dcon::state_building_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id,
+	dcon::province_naval_construction_id>
+	outliner_data;
 
 class outliner_element_button : public generic_settable_element<button_element_base, outliner_data> {
 public:
@@ -20,8 +39,10 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::army_name, state.to_string_view(state.world.army_get_name(aid)));
-			text::add_to_substitution_map(sub, text::variable_type::location, state.world.army_location_get_location(state.world.army_get_army_location(aid)));
+			text::add_to_substitution_map(sub, text::variable_type::army_name,
+				state.to_string_view(state.world.army_get_name(aid)));
+			text::add_to_substitution_map(sub, text::variable_type::location,
+				state.world.army_location_get_location(state.world.army_get_army_location(aid)));
 			text::localised_format_box(state, contents, box, std::string_view("ol_armies_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
@@ -29,8 +50,10 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::navy_name, state.to_string_view(state.world.navy_get_name(nid)));
-			text::add_to_substitution_map(sub, text::variable_type::location, state.world.navy_location_get_location(state.world.navy_get_navy_location(nid)));
+			text::add_to_substitution_map(sub, text::variable_type::navy_name,
+				state.to_string_view(state.world.navy_get_name(nid)));
+			text::add_to_substitution_map(sub, text::variable_type::location,
+				state.world.navy_location_get_location(state.world.navy_get_navy_location(nid)));
 			text::localised_format_box(state, contents, box, std::string_view("ol_navies_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
@@ -306,28 +329,32 @@ public:
 		if(get_filter(state, outliner_filter::factories)) {
 			row_contents.push_back(outliner_filter::factories);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_state_building_construction(state.local_player_nation, [&](dcon::state_building_construction_id sbcid) { row_contents.push_back(sbcid); });
+			state.world.nation_for_each_state_building_construction(state.local_player_nation,
+				[&](dcon::state_building_construction_id sbcid) { row_contents.push_back(sbcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
 		if(get_filter(state, outliner_filter::buildings)) {
 			row_contents.push_back(outliner_filter::buildings);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_province_building_construction(state.local_player_nation, [&](dcon::province_building_construction_id pbcid) { row_contents.push_back(pbcid); });
+			state.world.nation_for_each_province_building_construction(state.local_player_nation,
+				[&](dcon::province_building_construction_id pbcid) { row_contents.push_back(pbcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
 		if(get_filter(state, outliner_filter::army_construction)) {
 			row_contents.push_back(outliner_filter::army_construction);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_province_land_construction(state.local_player_nation, [&](dcon::province_land_construction_id plcid) { row_contents.push_back(plcid); });
+			state.world.nation_for_each_province_land_construction(state.local_player_nation,
+				[&](dcon::province_land_construction_id plcid) { row_contents.push_back(plcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
 		if(get_filter(state, outliner_filter::navy_construction)) {
 			row_contents.push_back(outliner_filter::navy_construction);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_province_naval_construction(state.local_player_nation, [&](dcon::province_naval_construction_id pncid) { row_contents.push_back(pncid); });
+			state.world.nation_for_each_province_naval_construction(state.local_player_nation,
+				[&](dcon::province_naval_construction_id pncid) { row_contents.push_back(pncid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -335,7 +362,8 @@ public:
 		if(get_filter(state, outliner_filter::gp_influence)) {
 			row_contents.push_back(outliner_filter::gp_influence);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation, [&](dcon::gp_relationship_id grid) { row_contents.push_back(grid); });
+			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation,
+				[&](dcon::gp_relationship_id grid) { row_contents.push_back(grid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -461,7 +489,8 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto ptr = make_element_by_type<image_element_base>(state, state.ui_state.defs_by_name.find("outliner_bottom")->second.definition);
+		auto ptr = make_element_by_type<image_element_base>(state,
+			state.ui_state.defs_by_name.find("outliner_bottom")->second.definition);
 		ptr->set_visible(state, true);
 		bottom_image = ptr.get();
 		add_child_to_front(std::move(ptr));

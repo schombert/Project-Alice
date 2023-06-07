@@ -194,7 +194,7 @@ class graphics_menu_window : public window_element_base {
 		} else if(name == "guimode_right") {
 			return make_element_by_type<gui_mode_right>(state, id);
 
-		// window_mode_left
+			// window_mode_left
 		} else {
 			return nullptr;
 		}

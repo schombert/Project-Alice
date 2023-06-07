@@ -73,8 +73,10 @@ void window_mode_right::button_action(sys::state& state) noexcept {
 }
 void window_mode_right::on_update(sys::state& state) noexcept { disabled = (state.user_settings.prefer_fullscreen == false); }
 void window_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.key_to_text_sequence.find(state.user_settings.prefer_fullscreen ? std::string_view("alice_mode_fullscreen") : std::string_view("alice_mode_window"));
-	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	auto it = state.key_to_text_sequence.find(state.user_settings.prefer_fullscreen ? std::string_view("alice_mode_fullscreen")
+																					: std::string_view("alice_mode_window"));
+	auto temp_string =
+		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
@@ -93,7 +95,8 @@ void projection_mode_right::button_action(sys::state& state) noexcept {
 }
 void projection_mode_right::on_update(sys::state& state) noexcept { }
 void projection_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
+	auto it =
+		state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
 	set_text(state, text::produce_simple_string(state, it));
 }
 
@@ -136,8 +139,10 @@ void fonts_mode_right::button_action(sys::state& state) noexcept {
 }
 void fonts_mode_right::on_update(sys::state& state) noexcept { }
 void fonts_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.key_to_text_sequence.find(state.user_settings.use_classic_fonts ? std::string_view("use_classic_fonts") : std::string_view("use_standard_fonts"));
-	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	auto it = state.key_to_text_sequence.find(
+		state.user_settings.use_classic_fonts ? std::string_view("use_classic_fonts") : std::string_view("use_standard_fonts"));
+	auto temp_string =
+		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
@@ -156,14 +161,17 @@ void linegraph_mode_right::button_action(sys::state& state) noexcept {
 }
 void linegraph_mode_right::on_update(sys::state& state) noexcept { }
 void linegraph_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.key_to_text_sequence.find(state.user_settings.fake_graphs ? std::string_view("linegraph_mode_aesthetic") : std::string_view("linegraph_mode_accurate"));
-	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	auto it = state.key_to_text_sequence.find(state.user_settings.fake_graphs ? std::string_view("linegraph_mode_aesthetic")
+																			  : std::string_view("linegraph_mode_accurate"));
+	auto temp_string =
+		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
 void gui_mode_left::button_action(sys::state& state) noexcept {
 	uint8_t value = uint8_t(state.user_settings.guimode);
-	(state.user_settings.guimode == sys::gui_modes{0}) ? state.user_settings.guimode = sys::gui_modes::faithful : state.user_settings.guimode = sys::gui_modes{value--};
+	(state.user_settings.guimode == sys::gui_modes{0}) ? state.user_settings.guimode = sys::gui_modes::faithful
+													   : state.user_settings.guimode = sys::gui_modes{value--};
 	Cyto::Any payload = notify_setting_update{};
 	if(parent)
 		parent->impl_get(state, payload);
@@ -171,7 +179,9 @@ void gui_mode_left::button_action(sys::state& state) noexcept {
 void gui_mode_left::on_update(sys::state& state) noexcept { }
 void gui_mode_right::button_action(sys::state& state) noexcept {
 	uint8_t value = uint8_t(state.user_settings.guimode);
-	(state.user_settings.guimode == sys::gui_modes{DEF_guimode_size}) ? state.user_settings.guimode = sys::gui_modes{DEF_guimode_size}: state.user_settings.guimode = sys::gui_modes{value++};
+	(state.user_settings.guimode == sys::gui_modes{DEF_guimode_size})
+		? state.user_settings.guimode = sys::gui_modes{DEF_guimode_size}
+		: state.user_settings.guimode = sys::gui_modes{value++};
 	Cyto::Any payload = notify_setting_update{};
 	if(parent)
 		parent->impl_get(state, payload);
@@ -180,18 +190,19 @@ void gui_mode_right::on_update(sys::state& state) noexcept { }
 void gui_mode_display::on_update(sys::state& state) noexcept {
 	std::string var;
 	switch(state.user_settings.guimode) {
-		case sys::gui_modes::faithful:
-			var = "gui_mode_faithful";
-			break;
-		case sys::gui_modes::inaccurate:
-			var = "gui_mode_inaccurate";
-			break;
-		default:
-			var = "gui_mode_faithful";
-			break;
+	case sys::gui_modes::faithful:
+		var = "gui_mode_faithful";
+		break;
+	case sys::gui_modes::inaccurate:
+		var = "gui_mode_inaccurate";
+		break;
+	default:
+		var = "gui_mode_faithful";
+		break;
 	};
 	auto it = state.key_to_text_sequence.find(var);
-	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	auto temp_string =
+		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
@@ -252,9 +263,17 @@ void interface_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 		parent->impl_get(state, payload);
 }
 
-void master_volume::on_update(sys::state& state) noexcept { update_raw_value(state, int32_t(state.user_settings.master_volume * 128.0f)); }
-void music_volume::on_update(sys::state& state) noexcept { update_raw_value(state, int32_t(state.user_settings.music_volume * 128.0f)); }
-void effects_volume::on_update(sys::state& state) noexcept { update_raw_value(state, int32_t(state.user_settings.effects_volume * 128.0f)); }
-void interface_volume::on_update(sys::state& state) noexcept { update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f)); }
+void master_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.master_volume * 128.0f));
+}
+void music_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.music_volume * 128.0f));
+}
+void effects_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.effects_volume * 128.0f));
+}
+void interface_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f));
+}
 
 } // namespace ui

@@ -50,7 +50,9 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 	// Get all allies
 	selected_nation.for_each_diplomatic_relation([&](dcon::diplomatic_relation_fat_id relation_id) {
 		if(relation_id.get_are_allied()) {
-			dcon::nation_id ally_id = relation_id.get_related_nations(0).id != selected_nation.id ? relation_id.get_related_nations(0).id : relation_id.get_related_nations(1).id;
+			dcon::nation_id ally_id = relation_id.get_related_nations(0).id != selected_nation.id
+										  ? relation_id.get_related_nations(0).id
+										  : relation_id.get_related_nations(1).id;
 			allies.push_back(ally_id);
 		}
 	});
@@ -74,7 +76,8 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 				stripe_color = non_cores_color;
 			} else {
 				// Cultural Union
-				auto cultural_union_identity = selected_primary_culture.get_culture_group_membership().get_group().get_identity_from_cultural_union_of();
+				auto cultural_union_identity =
+					selected_primary_culture.get_culture_group_membership().get_group().get_identity_from_cultural_union_of();
 				fat_id.for_each_core([&](dcon::core_fat_id core_id) {
 					if(core_id.get_identity().id == cultural_union_identity.id) {
 						stripe_color = cultural_union_color;
@@ -83,7 +86,8 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 
 				// Sphere
 				auto master_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(fat_owner, selected_nation);
-				if(bool(master_rel_id) && state.world.gp_relationship_get_status(master_rel_id) == nations::influence::level_in_sphere) {
+				if(bool(master_rel_id) &&
+					state.world.gp_relationship_get_status(master_rel_id) == nations::influence::level_in_sphere) {
 					color = sphere_color;
 				}
 

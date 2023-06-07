@@ -35,7 +35,6 @@
 
 namespace sys {
 
-
 enum class gui_modes : uint8_t { faithful, inaccurate };
 #define DEF_guimode_size 2
 
@@ -49,7 +48,7 @@ struct user_settings_s {
 	bool map_is_globe = false;
 	bool fake_graphs = false;
 	gui_modes guimode = gui_modes::faithful;
-	//uint8_t guimode_size = 2;
+	// uint8_t guimode_size = 2;
 	bool use_classic_fonts = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };
@@ -118,7 +117,8 @@ struct alignas(64) state {
 	std::vector<char> text_data; // stores string data in the win1250 codepage
 	std::vector<text::text_component> text_components;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
+	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
+		key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
@@ -162,10 +162,11 @@ struct alignas(64) state {
 	std::vector<event::pending_human_f_p_event> pending_f_p_event;
 
 	std::vector<int32_t> unit_names_indices; // indices for the names
-	std::vector<char> unit_names;			 // a second text buffer, this time for just the unit names
-											 // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
-											 // ordinary game text, partly because I envision the possibility that we may stick dynamic names into
-											 // this We also may push this into the save game if we handle unit renaming using this
+	std::vector<char>
+		unit_names; // a second text buffer, this time for just the unit names
+					// why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
+					// ordinary game text, partly because I envision the possibility that we may stick dynamic names into
+					// this We also may push this into the save game if we handle unit renaming using this
 
 	ui::definitions ui_defs; // definitions for graphics and ui
 
@@ -241,7 +242,8 @@ struct alignas(64) state {
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char c); // c is win1250 codepage value
-	void render();		  // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
+				   // for vsync
 
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 
@@ -253,7 +255,8 @@ struct alignas(64) state {
 
 	dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
 	dcon::text_key add_to_pool(std::string_view text);
-	dcon::text_key add_to_pool_lowercase(std::string const& text); // these functions are as above, but force the text into lower case
+	dcon::text_key add_to_pool_lowercase(
+		std::string const& text); // these functions are as above, but force the text into lower case
 	dcon::text_key add_to_pool_lowercase(std::string_view text);
 
 	// searches the string pool for any existing string, appends if it is new
@@ -267,7 +270,10 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
+	state()
+		: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)),
+		  incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024),
+		  new_requests(256), new_messages(1024) { }
 
 	~state();
 

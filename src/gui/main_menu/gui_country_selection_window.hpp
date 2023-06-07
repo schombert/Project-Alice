@@ -46,7 +46,8 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "version_label") {
-			return make_element_by_type<simple_text_element_base>(state, id); // TODO - we want to display the current version of PA here
+			return make_element_by_type<simple_text_element_base>(state,
+				id); // TODO - we want to display the current version of PA here
 
 		} else if(name == "multiplayer_menu") {
 			return make_element_by_type<multiplayer_menu_window>(state, id);

@@ -762,10 +762,15 @@ inline constexpr int32_t data_sizes[] = {
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) { return effect::data_sizes[data[0] & effect::code_mask]; }
 inline int32_t get_effect_scope_payload_size(uint16_t const* data) { return data[1]; }
-inline int32_t get_generic_effect_payload_size(uint16_t const* data) { return (data[0] & effect::code_mask) >= first_scope_code ? get_effect_scope_payload_size(data) : get_effect_non_scope_payload_size(data); }
+inline int32_t get_generic_effect_payload_size(uint16_t const* data) {
+	return (data[0] & effect::code_mask) >= first_scope_code ? get_effect_scope_payload_size(data)
+															 : get_effect_non_scope_payload_size(data);
+}
 inline int32_t effect_scope_data_payload(uint16_t code) {
 	auto const masked_code = code & effect::code_mask;
-	if((masked_code == effect::tag_scope) || (masked_code == effect::integer_scope) || (masked_code == effect::pop_type_scope_nation) || (masked_code == effect::pop_type_scope_state) || (masked_code == effect::pop_type_scope_province) || (masked_code == effect::region_scope) ||
+	if((masked_code == effect::tag_scope) || (masked_code == effect::integer_scope) ||
+		(masked_code == effect::pop_type_scope_nation) || (masked_code == effect::pop_type_scope_state) ||
+		(masked_code == effect::pop_type_scope_province) || (masked_code == effect::region_scope) ||
 		(masked_code == effect::random_scope))
 		return 1 + ((code & effect::scope_has_limit) != 0);
 	return 0 + ((code & effect::scope_has_limit) != 0);
@@ -2326,7 +2331,9 @@ union payload {
 
 static_assert(sizeof(payload) == 2);
 
-inline int32_t get_trigger_non_scope_payload_size(uint16_t const* data) { return trigger::data_sizes[data[0] & trigger::code_mask]; }
+inline int32_t get_trigger_non_scope_payload_size(uint16_t const* data) {
+	return trigger::data_sizes[data[0] & trigger::code_mask];
+}
 inline int32_t get_trigger_scope_payload_size(uint16_t const* data) { return data[1]; }
 inline int32_t get_trigger_payload_size(uint16_t const* data) {
 	if((data[0] & trigger::code_mask) >= trigger::first_scope_code)
@@ -2336,14 +2343,16 @@ inline int32_t get_trigger_payload_size(uint16_t const* data) {
 }
 inline int32_t trigger_scope_data_payload(uint16_t code) {
 	auto const masked_code = code & trigger::code_mask;
-	if((masked_code == trigger::x_provinces_in_variable_region) || (masked_code == trigger::tag_scope) || (masked_code == trigger::integer_scope))
+	if((masked_code == trigger::x_provinces_in_variable_region) || (masked_code == trigger::tag_scope) ||
+		(masked_code == trigger::integer_scope))
 		return 1;
 	return 0;
 }
 
-template<typename T> uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
+template<typename T> uint16_t* recurse_over_triggers(uint16_t* source, T const& f) {
 	f(source);
-	assert((source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);
+	assert(
+		(source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);
 
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
 		auto const source_size = 1 + get_trigger_scope_payload_size(source);

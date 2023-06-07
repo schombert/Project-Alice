@@ -1,4 +1,4 @@
-UseTab: ForIndentation
+UseTab: Always
 TabWidth: 4
 IndentWidth: 4
 NamespaceIndentation: None
@@ -33,6 +33,3 @@ BinPackArguments: true
 BinPackParameters: true
 AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
-  # these make it so much harder to read simpler code, dont fucking use them
-  #AllowShortBlocksOnASingleLine: true
-  #AllowShortFunctionsOnASingleLine: true

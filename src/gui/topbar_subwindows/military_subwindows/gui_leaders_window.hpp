@@ -67,7 +67,9 @@ public:
 			auto army_content = state.to_string_view(state.world.army_get_name(army_id));
 			army->set_text(state, std::string(army_content));
 
-			auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
+			auto location_content = text::produce_simple_string(state,
+				state.world.province_get_name(
+					state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
 			location->set_text(state, std::string(location_content));
 		}
 
@@ -91,7 +93,9 @@ public:
 
 template<bool B> class military_make_leader_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override { disabled = !command::can_make_leader(state, state.local_player_nation, B); }
+	void on_update(sys::state& state) noexcept override {
+		disabled = !command::can_make_leader(state, state.local_player_nation, B);
+	}
 
 	void button_action(sys::state& state) noexcept override { command::make_leader(state, state.local_player_nation, B); }
 };

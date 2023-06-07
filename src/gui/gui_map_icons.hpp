@@ -25,7 +25,8 @@ class unit_icon_color : public image_element_base {
 				auto iid = state.world.nation_get_identity_from_identity_holder(content);
 				for(auto wa : state.world.nation_get_war_participant(state.local_player_nation))
 					for(auto o : wa.get_war().get_war_participant())
-						if(o.get_is_attacker() != wa.get_is_attacker() && o.get_nation().get_identity_from_identity_holder().id == iid)
+						if(o.get_is_attacker() != wa.get_is_attacker() &&
+							o.get_nation().get_identity_from_identity_holder().id == iid)
 							return 1; // red, enemy
 			}
 		}
@@ -118,7 +119,8 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size =
+			glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;
@@ -172,7 +174,8 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size =
+			glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;

@@ -10,7 +10,8 @@ std::vector<uint32_t> migration_map_from(sys::state& state) {
 		// The province should have an owner
 		if(state.world.province_get_nation_from_province_ownership(prov_id)) {
 
-			auto immigrant_attraction = state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::immigrant_attract);
+			auto immigrant_attraction =
+				state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::immigrant_attract);
 			float interpolation = (immigrant_attraction + 1) / 2;
 
 			uint32_t color = ogl::color_gradient(interpolation, sys::pack_color(46, 247, 15), // red

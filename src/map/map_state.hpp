@@ -6,10 +6,10 @@
 #include "map.hpp"
 
 namespace sys {
-	struct state;
+struct state;
 };
 namespace parsers {
-	struct scenario_building_context;
+struct scenario_building_context;
 };
 
 namespace map {
@@ -42,7 +42,8 @@ public:
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
-	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
+		sys::key_modifiers mod);
 
 	dcon::province_id get_selected_province();
 	void set_selected_province(dcon::province_id prov_id);

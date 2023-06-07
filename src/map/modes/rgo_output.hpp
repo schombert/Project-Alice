@@ -24,9 +24,10 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 			auto prov_rgo = state.world.province_get_rgo(prov_id);
 
 			if(searched_rgo == prov_rgo) {
-				uint32_t color = ogl::color_gradient(province::rgo_size(state, prov_id) / max_rgo_size, sys::pack_color(46, 247, 15), // red
-					sys::pack_color(247, 15, 15)																					  // green
-				);
+				uint32_t color =
+					ogl::color_gradient(province::rgo_size(state, prov_id) / max_rgo_size, sys::pack_color(46, 247, 15), // red
+						sys::pack_color(247, 15, 15)																	 // green
+					);
 
 				auto i = province::to_map_id(prov_id);
 				prov_color[i] = color;

@@ -13,17 +13,21 @@ std::vector<uint32_t> infrastructure_map_from(sys::state& state) {
 		int32_t current_rails_lvl = state.world.province_get_railroad_level(prov_id);
 		int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(state.local_player_nation);
 		bool party_allows_building_railroads =
-			(nation == state.local_player_nation && (state.world.nation_get_combined_issue_rules(nation) & issue_rule::build_railway) != 0) || (nation != state.local_player_nation && (state.world.nation_get_combined_issue_rules(nation) & issue_rule::allow_foreign_investment) != 0);
+			(nation == state.local_player_nation &&
+				(state.world.nation_get_combined_issue_rules(nation) & issue_rule::build_railway) != 0) ||
+			(nation != state.local_player_nation &&
+				(state.world.nation_get_combined_issue_rules(nation) & issue_rule::allow_foreign_investment) != 0);
 		uint32_t color;
 
 		if(party_allows_building_railroads) {
 
 			if(province::can_build_railroads(state, prov_id, state.local_player_nation)) {
 
-				color = ogl::color_gradient(float(current_rails_lvl) / float(max_rails_lvl), sys::pack_color(14, 240, 44), // green
-					sys::pack_color(41, 5, 245)																			   // blue
+				color =
+					ogl::color_gradient(float(current_rails_lvl) / float(max_rails_lvl), sys::pack_color(14, 240, 44), // green
+						sys::pack_color(41, 5, 245)																	   // blue
 
-				);
+					);
 
 			} else if(current_rails_lvl == max_local_rails_lvl) {
 				color = sys::pack_color(232, 228, 111); // yellow

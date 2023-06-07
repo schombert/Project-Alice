@@ -132,14 +132,16 @@ struct new_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F> void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
+template<typename F>
+void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
 	F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F> void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
+template<typename F>
+void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
 	F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);

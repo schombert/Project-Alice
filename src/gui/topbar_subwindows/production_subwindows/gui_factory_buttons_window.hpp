@@ -28,7 +28,8 @@ class factory_prod_unsubsidise_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::unsubsidise_all}};
+			Cyto::Any payload =
+				element_selection_wrapper<production_action>{production_action{production_action::unsubsidise_all}};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -82,7 +83,8 @@ class factory_select_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::filter_select_all}};
+			Cyto::Any payload =
+				element_selection_wrapper<production_action>{production_action{production_action::filter_select_all}};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -100,7 +102,8 @@ class factory_deselect_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::filter_deselect_all}};
+			Cyto::Any payload =
+				element_selection_wrapper<production_action>{production_action{production_action::filter_deselect_all}};
 			parent->impl_get(state, payload);
 		}
 	}

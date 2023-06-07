@@ -68,7 +68,8 @@ void create_opengl_context(sys::state& state) {
 		} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
 			wglSwapIntervalEXT(1);
 		} else {
-			MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
+			MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error",
+				MB_OK);
 		}
 	}
 }

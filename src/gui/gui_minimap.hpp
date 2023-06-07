@@ -164,7 +164,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_settings"), text::substitution_map{});
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_settings"),
+			text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -175,7 +176,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_combat"), text::substitution_map{});
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_combat"),
+			text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -186,7 +188,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_diplo"), text::substitution_map{});
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_diplo"),
+			text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -208,7 +211,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_province"), text::substitution_map{});
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_province"),
+			text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -219,7 +223,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_other"), text::substitution_map{});
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_other"),
+			text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -230,7 +235,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_event"), text::substitution_map{});
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_event"),
+			text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -366,7 +372,9 @@ public:
 		return message_result::consumed;
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return message_result::unseen; }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return message_result::unseen;
+	}
 };
 
 } // namespace ui

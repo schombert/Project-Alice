@@ -39,7 +39,9 @@ public:
 		return text_sequence_id{0};
 	}
 };
-pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept { return pop_satisfaction_wrapper_fat{id.value}; }
+pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {
+	return pop_satisfaction_wrapper_fat{id.value};
+}
 } // namespace dcon
 namespace ogl {
 template<> uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
@@ -62,7 +64,8 @@ template<> uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapp
 namespace ui {
 template<culture::pop_strata Strata> class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
-	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
+	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
+		sys::state& state) noexcept override {
 		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
 
@@ -88,7 +91,11 @@ protected:
 					// OR All life needs
 					// OR Some life needs
 					// OR No needs fulfilled...
-					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.f) ? 4 : (pop_id.get_everyday_needs_satisfaction() > 0.f) ? 3 : (pop_id.get_life_needs_satisfaction() >= 1.f) ? 2 : (pop_id.get_life_needs_satisfaction() > 0.f) ? 1 : 0] += pop_size;
+					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.f)		? 4
+							 : (pop_id.get_everyday_needs_satisfaction() > 0.f) ? 3
+							 : (pop_id.get_life_needs_satisfaction() >= 1.f)	? 2
+							 : (pop_id.get_life_needs_satisfaction() > 0.f)		? 1
+																				: 0] += pop_size;
 					total += pop_size;
 				}
 			});
@@ -106,16 +113,22 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		// Fill-in static information...
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
+			.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1})
+			.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2})
+			.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3})
+			.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4})
+			.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
 
 		piechart::on_create(state);
 	}
 
-	void populate_tooltip(sys::state& state, dcon::pop_satisfaction_wrapper_id psw, float percentage, text::columnar_layout& contents) noexcept override {
+	void populate_tooltip(sys::state& state, dcon::pop_satisfaction_wrapper_id psw, float percentage,
+		text::columnar_layout& contents) noexcept override {
 		static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
 		auto fat_psw = dcon::fatten(state.world, psw);
 		auto box = text::open_layout_box(contents, 0);
@@ -128,7 +141,21 @@ public:
 	}
 };
 
-enum class budget_slider_target : uint8_t { poor_tax, middle_tax, rich_tax, army_stock, navy_stock, construction_stock, education, admin, social, military, tariffs, raw, target_count };
+enum class budget_slider_target : uint8_t {
+	poor_tax,
+	middle_tax,
+	rich_tax,
+	army_stock,
+	navy_stock,
+	construction_stock,
+	education,
+	admin,
+	social,
+	military,
+	tariffs,
+	raw,
+	target_count
+};
 
 struct budget_slider_signal {
 	budget_slider_target target;
@@ -217,47 +244,69 @@ private:
 };
 
 class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_tax> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_poor_tax(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_poor_tax(state.local_player_nation));
+	}
 };
 
 class budget_middle_tax_slider : public budget_slider<budget_slider_target::middle_tax> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_middle_tax(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_middle_tax(state.local_player_nation));
+	}
 };
 
 class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_tax> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_rich_tax(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_rich_tax(state.local_player_nation));
+	}
 };
 
 class budget_army_stockpile_slider : public budget_slider<budget_slider_target::army_stock> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_land_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_land_spending(state.local_player_nation));
+	}
 };
 
 class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::navy_stock> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_naval_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_naval_spending(state.local_player_nation));
+	}
 };
 
 class budget_construction_stockpile_slider : public budget_slider<budget_slider_target::construction_stock> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_construction_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_construction_spending(state.local_player_nation));
+	}
 };
 
 class budget_education_slider : public budget_slider<budget_slider_target::education> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_education_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_education_spending(state.local_player_nation));
+	}
 };
 
 class budget_administration_slider : public budget_slider<budget_slider_target::admin> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_administrative_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_administrative_spending(state.local_player_nation));
+	}
 };
 
 class budget_social_spending_slider : public budget_slider<budget_slider_target::social> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_social_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_social_spending(state.local_player_nation));
+	}
 };
 
 class budget_military_spending_slider : public budget_slider<budget_slider_target::military> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_military_spending(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_military_spending(state.local_player_nation));
+	}
 };
 
 class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs> {
-	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_tariffs(state.local_player_nation)); }
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_tariffs(state.local_player_nation));
+	}
 };
 
 class budget_scaled_monetary_value_text : public standard_nation_text {
@@ -304,7 +353,8 @@ public:
 class budget_estimated_stockpile_spending_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::construction_stock)] = economy::estimate_construction_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::construction_stock)] =
+			economy::estimate_construction_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 	}
@@ -312,39 +362,56 @@ public:
 
 class budget_army_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation); }
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
+	}
 };
 
 class budget_naval_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation); }
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
+	}
 };
 
 class budget_tariff_income_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation); }
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
+	}
 };
 
-template<culture::pop_strata Strata, budget_slider_target BudgetTarget> class budget_stratified_tax_income_text : public budget_scaled_monetary_value_text {
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(BudgetTarget)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, Strata); }
+template<culture::pop_strata Strata, budget_slider_target BudgetTarget>
+class budget_stratified_tax_income_text : public budget_scaled_monetary_value_text {
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(BudgetTarget)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, Strata);
+	}
 };
 
-template<culture::income_type IncomeType, budget_slider_target BudgetTarget> class budget_expenditure_text : public budget_scaled_monetary_value_text {
+template<culture::income_type IncomeType, budget_slider_target BudgetTarget>
+class budget_expenditure_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(BudgetTarget)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, IncomeType); }
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(BudgetTarget)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, IncomeType);
+	}
 };
 
 class budget_social_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation); }
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation);
+	}
 };
 
 class budget_income_projection_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::poor_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
-		vals[uint8_t(budget_slider_target::middle_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
-		vals[uint8_t(budget_slider_target::rich_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
+		vals[uint8_t(budget_slider_target::poor_tax)] =
+			economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
+		vals[uint8_t(budget_slider_target::middle_tax)] =
+			economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
+		vals[uint8_t(budget_slider_target::rich_tax)] =
+			economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
 	}
 };
@@ -352,13 +419,17 @@ public:
 class budget_expenditure_projection_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::construction_stock)] = economy::estimate_construction_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::construction_stock)] =
+			economy::estimate_construction_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::education)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
-		vals[uint8_t(budget_slider_target::admin)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
-		vals[uint8_t(budget_slider_target::military)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::education)] =
+			economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+		vals[uint8_t(budget_slider_target::admin)] =
+			economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+		vals[uint8_t(budget_slider_target::military)] =
+			economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 	}
@@ -368,19 +439,26 @@ class budget_balance_projection_text : public budget_scaled_monetary_value_text 
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		// income
-		vals[uint8_t(budget_slider_target::poor_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
-		vals[uint8_t(budget_slider_target::middle_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
-		vals[uint8_t(budget_slider_target::rich_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
+		vals[uint8_t(budget_slider_target::poor_tax)] =
+			economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
+		vals[uint8_t(budget_slider_target::middle_tax)] =
+			economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
+		vals[uint8_t(budget_slider_target::rich_tax)] =
+			economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
 
 		// spend
-		vals[uint8_t(budget_slider_target::construction_stock)] = -economy::estimate_construction_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::construction_stock)] =
+			-economy::estimate_construction_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::army_stock)] = -economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = -economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = -economy::estimate_social_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::education)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
-		vals[uint8_t(budget_slider_target::admin)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
-		vals[uint8_t(budget_slider_target::military)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::education)] =
+			-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+		vals[uint8_t(budget_slider_target::admin)] =
+			-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+		vals[uint8_t(budget_slider_target::military)] =
+			-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
 
@@ -400,8 +478,8 @@ public:
 	}
 };
 
-// NOTE for simplicity sake we use a payload with bool{true} for taking loan window and a payload with bool{false} for repaying loan
-// window
+// NOTE for simplicity sake we use a payload with bool{true} for taking loan window and a payload with bool{false} for repaying
+// loan window
 
 class budget_repay_loan_button : public button_element_base {
 public:
@@ -482,7 +560,8 @@ public:
 	}
 };
 
-template<culture::pop_strata Strata> class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
+template<culture::pop_strata Strata>
+class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
 protected:
 	std::string_view get_row_element_name() override { return "pop_listitem"; }
 
@@ -498,7 +577,8 @@ public:
 	}
 };
 
-template<culture::income_type Income> class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
+template<culture::income_type Income>
+class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
 protected:
 	std::string_view get_row_element_name() override { return "pop_listitem"; }
 
@@ -506,7 +586,9 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
 		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income) || state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income) || state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
+			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income) ||
+				state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income) ||
+				state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
 				row_contents.push_back(pt);
 			}
 		});
@@ -528,13 +610,15 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
+		auto win1337 = make_element_by_type<budget_take_loan_window>(state,
+			state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
 		budget_take_loan_win = win1337.get();
 		win1337->base_data.position.y -= 66; // Nudge >w<
 		win1337->set_visible(state, false);
 		add_child_to_front(std::move(win1337));
 
-		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
+		auto win101 = make_element_by_type<budget_repay_loan_window>(state,
+			state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
 		budget_repay_loan_win = win101.get();
 		win101->base_data.position.y -= 66; // Nudge >w<
 		win101->set_visible(state, false);
@@ -573,19 +657,25 @@ public:
 		} else if(name == "gold_inc") {
 			return make_element_by_type<nation_gold_income_text>(state, id);
 		} else if(name == "tax_0_inc") {
-			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>(state, id);
+			return make_element_by_type<
+				budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>(state, id);
 		} else if(name == "tax_1_inc") {
-			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
+			return make_element_by_type<
+				budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
 		} else if(name == "tax_2_inc") {
-			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>(state, id);
+			return make_element_by_type<
+				budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>(state, id);
 		} else if(name == "exp_val_0") {
-			return make_element_by_type<budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(state, id);
+			return make_element_by_type<
+				budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(state, id);
 		} else if(name == "exp_val_1") {
-			return make_element_by_type<budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(state, id);
+			return make_element_by_type<
+				budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(state, id);
 		} else if(name == "exp_val_2") {
 			return make_element_by_type<budget_social_spending_text>(state, id);
 		} else if(name == "exp_val_3") {
-			return make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state, id);
+			return make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(
+				state, id);
 		} else if(name == "admin_efficiency") {
 			return make_element_by_type<nation_administrative_efficiency_text>(state, id);
 		} else if(name == "interest_val") {

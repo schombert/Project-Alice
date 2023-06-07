@@ -44,7 +44,8 @@ class directory {
 	file_system const* parent_system = nullptr;
 
 public:
-	directory(file_system const* parent_system, native_string_view relative_path) : relative_path(relative_path), parent_system(parent_system) { }
+	directory(file_system const* parent_system, native_string_view relative_path)
+		: relative_path(relative_path), parent_system(parent_system) { }
 
 	friend directory get_root(file_system const& fs);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
@@ -62,7 +63,8 @@ class unopened_file {
 	native_string absolute_path;
 
 public:
-	unopened_file(native_string_view absolute_path, native_string_view file_name) : file_name(file_name), absolute_path(absolute_path) { }
+	unopened_file(native_string_view absolute_path, native_string_view file_name)
+		: file_name(file_name), absolute_path(absolute_path) { }
 
 	friend std::optional<file> open_file(unopened_file const& f);
 	friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
