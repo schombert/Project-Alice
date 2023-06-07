@@ -1061,7 +1061,6 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 		default:
 			return "";
 		}
-		return "";
 	}
 
 public:
@@ -1121,7 +1120,6 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 		default:
 			return "";
 		}
-		return "";
 	}
 
 public:
