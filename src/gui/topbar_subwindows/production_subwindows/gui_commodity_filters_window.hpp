@@ -22,9 +22,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -84,9 +82,7 @@ public:
 		int16_t index = 0;
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
 			bool can_be_produced = false;
-			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				can_be_produced = can_be_produced || state.world.factory_type_get_output(ftid) == cid;
-			});
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) { can_be_produced = can_be_produced || state.world.factory_type_get_output(ftid) == cid; });
 			if(!can_be_produced)
 				return;
 

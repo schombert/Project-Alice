@@ -72,10 +72,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_ASSERT
-#define R123_ASSERT(x) \
-	if((x))            \
-		;              \
-	else               \
+#define R123_ASSERT(x)                                                                                                                                                                                                                                                                                     \
+	if((x))                                                                                                                                                                                                                                                                                                \
+		;                                                                                                                                                                                                                                                                                                  \
+	else                                                                                                                                                                                                                                                                                                   \
 		asm("trap;")
 #endif
 

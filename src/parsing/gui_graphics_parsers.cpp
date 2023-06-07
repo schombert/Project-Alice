@@ -8,7 +8,7 @@ struct obj_and_horizontal {
 	ui::gfx_object* obj = nullptr;
 	bool horizontal = false;
 };
-obj_and_horizontal common_create_object(gfx_object const & obj_in, building_gfx_context& context) {
+obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_context& context) {
 	auto gfxindex = context.ui_defs.gfx.size();
 	context.ui_defs.gfx.emplace_back();
 	ui::gfx_object& new_obj = context.ui_defs.gfx.back();
@@ -68,61 +68,55 @@ obj_and_horizontal common_create_object(gfx_object const & obj_in, building_gfx_
 	return obj_and_horizontal{&new_obj, obj_in.horizontal};
 }
 
-void gfx_object_outer::spritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::spritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::generic_sprite);
 }
-void gfx_object_outer::corneredtilespritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::corneredtilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::bordered_rect);
 }
-void gfx_object_outer::maskedshieldtype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::maskedshieldtype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::flag_mask);
 }
-void gfx_object_outer::textspritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::textspritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::text_sprite);
 }
-void gfx_object_outer::tilespritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::tilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::tile_sprite);
 }
-void gfx_object_outer::progressbartype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::progressbartype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	if(res.horizontal)
 		res.obj->flags |= uint8_t(ui::object_type::horizontal_progress_bar);
 	else
 		res.obj->flags |= uint8_t(ui::object_type::vertical_progress_bar);
 }
-void gfx_object_outer::barcharttype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::barcharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::barchart);
 }
-void gfx_object_outer::piecharttype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::piecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::piechart);
 }
-void gfx_object_outer::linecharttype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
+void gfx_object_outer::linecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::linegraph);
 }
 
-void gfx_add_obj(parsers::token_generator& gen, parsers::error_handler& err, building_gfx_context& context) {
-	parsers::parse_gfx_object_outer(gen, err, context);
-}
+void gfx_add_obj(parsers::token_generator& gen, parsers::error_handler& err, building_gfx_context& context) { parsers::parse_gfx_object_outer(gen, err, context); }
 
-void assign(ui::xy_pair& a, parsers::gfx_xy_pair const & b) {
+void assign(ui::xy_pair& a, parsers::gfx_xy_pair const& b) {
 	a.x = int16_t(b.x);
 	a.y = int16_t(b.y);
 }
 
-void gui_element_common::size(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context) {
-	assign(target.size, pr);
-}
-void gui_element_common::position(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context) {
-	assign(target.position, pr);
-}
+void gui_element_common::size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) { assign(target.size, pr); }
+void gui_element_common::position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) { assign(target.position, pr); }
 
 void gui_element_common::orientation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "center") || is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "centre")) {
@@ -143,9 +137,7 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as an orientation on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
-void gui_element_common::name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.name = context.full_state.add_to_pool_lowercase(txt);
-}
+void gui_element_common::name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { target.name = context.full_state.add_to_pool_lowercase(txt); }
 void gui_element_common::rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")) {
 		target.flags |= uint8_t(ui::rotation::r90_right);
@@ -157,12 +149,8 @@ void gui_element_common::rotation(association_type, std::string_view txt, error_
 		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as a rotation on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
-void gui_element_common::maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.size.x = int16_t(v);
-}
-void gui_element_common::maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.size.y = int16_t(v);
-}
+void gui_element_common::maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) { target.size.x = int16_t(v); }
+void gui_element_common::maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) { target.size.y = int16_t(v); }
 
 button::button() {
 	target.data.button = ui::button_data{};
@@ -390,9 +378,7 @@ void button::buttontext(association_type, std::string_view txt, error_handler& e
 	}
 }
 
-void button::buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.button.font_handle = text::name_into_font_id(context.full_state, txt);
-}
+void button::buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { target.data.button.font_handle = text::name_into_font_id(context.full_state, txt); }
 
 void button::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(t.data(), t.data() + t.length(), "centre") || is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
@@ -441,26 +427,20 @@ void image::spritetype(association_type, std::string_view txt, error_handler& er
 		err.accumulated_errors += "referenced unknown gfx object  " + std::string(txt) + " on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
-void image::scale(association_type, float v, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.image.scale = v;
-}
+void image::scale(association_type, float v, error_handler& err, int32_t line, building_gfx_context& context) { target.data.image.scale = v; }
 
 textbox::textbox() {
 	target.data.text = ui::text_data{};
 	target.flags = uint8_t(ui::element_type::text);
 }
 
-void textbox::bordersize(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context) {
-	assign(target.data.text.border_size, pr);
-}
+void textbox::bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) { assign(target.data.text.border_size, pr); }
 void textbox::fixedsize(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(v) {
 		target.data.text.flags |= ui::text_data::is_fixed_size_mask;
 	}
 }
-void textbox::font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.text.font_handle = text::name_into_font_id(context.full_state, txt);
-}
+void textbox::font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { target.data.text.font_handle = text::name_into_font_id(context.full_state, txt); }
 void textbox::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(t.data(), t.data() + t.length(), "centre") || is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
 		target.data.text.flags |= uint8_t(ui::alignment::centered);
@@ -518,15 +498,9 @@ void listbox::background(association_type, std::string_view txt, error_handler& 
 		err.accumulated_errors += "referenced unknown gfx object  " + std::string(txt) + " on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
-void listbox::bordersize(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context) {
-	assign(target.data.list_box.border_size, pr);
-}
-void listbox::offset(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context) {
-	assign(target.data.list_box.offset, pr);
-}
-void listbox::spacing(association_type, uint32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.list_box.spacing = uint8_t(v);
-}
+void listbox::bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) { assign(target.data.list_box.border_size, pr); }
+void listbox::offset(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) { assign(target.data.list_box.offset, pr); }
+void listbox::spacing(association_type, uint32_t v, error_handler& err, int32_t line, building_gfx_context& context) { target.data.list_box.spacing = uint8_t(v); }
 
 overlapping::overlapping() {
 	target.data.overlapping = ui::overlapping_data{};
@@ -545,9 +519,7 @@ void overlapping::format(association_type, std::string_view t, error_handler& er
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as an alignment on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
-void overlapping::spacing(association_type, float v, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.overlapping.spacing = v;
-}
+void overlapping::spacing(association_type, float v, error_handler& err, int32_t line, building_gfx_context& context) { target.data.overlapping.spacing = v; }
 
 scrollbar::scrollbar() {
 	target.data.scrollbar = ui::scrollbar_data{};
@@ -557,24 +529,12 @@ void scrollbar::horizontal(association_type, bool v, error_handler& err, int32_t
 	if(v)
 		target.data.scrollbar.flags |= ui::scrollbar_data::is_horizontal_mask;
 }
-void scrollbar::leftbutton(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	leftbutton_ = txt;
-}
-void scrollbar::rightbutton(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	rightbutton_ = txt;
-}
-void scrollbar::rangelimitmaxicon(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	rangelimitmaxicon_ = txt;
-}
-void scrollbar::rangelimitminicon(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	rangelimitminicon_ = txt;
-}
-void scrollbar::slider(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	slider_ = txt;
-}
-void scrollbar::track(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	track_ = txt;
-}
+void scrollbar::leftbutton(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { leftbutton_ = txt; }
+void scrollbar::rightbutton(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { rightbutton_ = txt; }
+void scrollbar::rangelimitmaxicon(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { rangelimitmaxicon_ = txt; }
+void scrollbar::rangelimitminicon(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { rangelimitminicon_ = txt; }
+void scrollbar::slider(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { slider_ = txt; }
+void scrollbar::track(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) { track_ = txt; }
 void scrollbar::lockable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(v)
 		target.data.scrollbar.flags |= ui::scrollbar_data::is_lockable_mask;
@@ -583,9 +543,7 @@ void scrollbar::userangelimit(association_type, bool v, error_handler& err, int3
 	if(v)
 		target.data.scrollbar.flags |= ui::scrollbar_data::is_range_limited_mask;
 }
-void scrollbar::maxvalue(association_type, uint32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.scrollbar.max_value = uint16_t(v);
-}
+void scrollbar::maxvalue(association_type, uint32_t v, error_handler& err, int32_t line, building_gfx_context& context) { target.data.scrollbar.max_value = uint16_t(v); }
 void scrollbar::stepsize(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(t.data(), t.data() + t.length(), "1")) {
 		target.data.scrollbar.flags |= uint8_t(ui::step_size::one);
@@ -601,16 +559,10 @@ void scrollbar::stepsize(association_type, std::string_view t, error_handler& er
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as a step size on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
-void scrollbar::bordersize(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context) {
-	assign(target.data.scrollbar.border_size, pr);
-}
-void scrollbar::guibuttontype(button const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void scrollbar::icontype(image const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-auto find_in_children(std::string_view name, std::vector<ui::element_data> const & v, sys::state const & state) {
+void scrollbar::bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) { assign(target.data.scrollbar.border_size, pr); }
+void scrollbar::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void scrollbar::icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+auto find_in_children(std::string_view name, std::vector<ui::element_data> const& v, sys::state const& state) {
 	auto lname = lowercase_str(name);
 	for(size_t i = v.size(); i-- > 0;) {
 		if(state.to_string_view(v[i].name) == lname) {
@@ -671,50 +623,34 @@ void window::moveable(association_type, bool v, error_handler& err, int32_t line
 		target.data.window.flags |= ui::window_data::is_moveable_mask;
 }
 
-void window::guibuttontype(button const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::icontype(image const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::eu3dialogtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void window::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 	children.back().data.window.flags |= ui::window_data::is_dialog_mask;
 }
-void window::instanttextboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void window::instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 	children.back().data.text.flags |= ui::text_data::is_instant_mask;
 }
-void window::listboxtype(listbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::positiontype(gui_element_common const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::scrollbartype(scrollbar const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::windowtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::checkboxtype(button const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void window::listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 	children.back().data.button.flags |= ui::button_data::is_checkbox_mask;
 }
-void window::shieldtype(image const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void window::shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 	children.back().data.image.flags |= ui::image_data::is_mask_mask;
 }
-void window::overlappingelementsboxtype(overlapping const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
-void window::editboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void window::overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
+void window::editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 	children.back().data.text.flags |= ui::text_data::is_edit_mask;
 }
-void window::textboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
-	children.push_back(v.target);
-}
+void window::textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) { children.push_back(v.target); }
 void window::finish(building_gfx_context& context) {
 	auto first_child = context.full_state.ui_defs.gui.size();
 	for(auto& ch : children) {
@@ -724,60 +660,60 @@ void window::finish(building_gfx_context& context) {
 	target.data.window.first_child = dcon::gui_def_id(dcon::gui_def_id::value_base_t(first_child));
 }
 
-void guitypes::guibuttontype(button const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::icontype(image const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::eu3dialogtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.window.flags |= ui::window_data::is_dialog_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::instanttextboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.text.flags |= ui::text_data::is_instant_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::listboxtype(listbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::positiontype(gui_element_common const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::scrollbartype(scrollbar const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::windowtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::checkboxtype(button const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.button.flags |= ui::button_data::is_checkbox_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::shieldtype(image const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.image.flags |= ui::image_data::is_mask_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::overlappingelementsboxtype(overlapping const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::editboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.text.flags |= ui::text_data::is_edit_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }
-void guitypes::textboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context) {
+void guitypes::textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 }

@@ -44,7 +44,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_attacker);
 			return fat_id.get_identity_from_identity_holder();
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::national_identity_id{0};                         // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+			return dcon::national_identity_id{0};						  // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
@@ -139,7 +139,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
 			return fat_id.get_identity_from_identity_holder();
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::national_identity_id{0};                         // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+			return dcon::national_identity_id{0};						  // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
@@ -243,9 +243,7 @@ public:
 
 class diplomacy_crisis_temperature_bar : public progress_bar {
 public:
-	void on_update(sys::state& state) noexcept override {
-		progress = state.crisis_temperature;
-	}
+	void on_update(sys::state& state) noexcept override { progress = state.crisis_temperature; }
 };
 
 class diplomacy_crisis_status_text : public simple_text_element_base {

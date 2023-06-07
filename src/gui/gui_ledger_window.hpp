@@ -51,9 +51,7 @@ public:
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 		auto cell_width = (972 - cell_offset.x) / 6;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
@@ -114,9 +112,7 @@ public:
 };
 class ledger_nation_ranking_listbox : public listbox_element_base<ledger_nation_ranking_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -144,9 +140,7 @@ public:
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 		auto cell_width = (972 - cell_offset.x) / 8;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
@@ -213,9 +207,7 @@ public:
 };
 class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nation_comparison_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -243,9 +235,7 @@ public:
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 		auto cell_width = (972 - cell_offset.x) / 5;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
@@ -294,9 +284,7 @@ public:
 };
 class ledger_nation_political_systems_listbox : public listbox_element_base<ledger_nation_political_systems_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -331,8 +319,7 @@ public:
 		return standard_nation_text::set(state, payload);
 	}
 };
-template<bool IsPolitical>
-class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
+template<bool IsPolitical> class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
 public:
@@ -344,9 +331,7 @@ public:
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 
 		auto num_issues = 0;
 		state.world.for_each_issue([&](dcon::issue_id id) {
@@ -391,9 +376,7 @@ public:
 };
 class ledger_nation_political_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<true>, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -407,9 +390,7 @@ public:
 };
 class ledger_nation_social_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<false>, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -455,14 +436,10 @@ public:
 			country_flag = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cell_offset{
-		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
-		    0};
+		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
 
 		auto num_pop_types = 0;
-		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			++num_pop_types;
-		});
+		state.world.for_each_pop_type([&](dcon::pop_type_id id) { ++num_pop_types; });
 
 		// 1 for the country name
 		auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
@@ -497,9 +474,7 @@ public:
 };
 class ledger_nation_population_listbox : public listbox_element_base<ledger_nation_population_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -599,17 +574,13 @@ public:
 };
 class ledger_province_listbox : public listbox_element_base<ledger_province_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				row_contents.push_back(p);
-			});
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { row_contents.push_back(p); });
 		update(state);
 	}
 };
@@ -643,9 +614,7 @@ public:
 		xy_pair cell_offset{0, 0};
 
 		auto num_pop_types = 0;
-		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			++num_pop_types;
-		});
+		state.world.for_each_pop_type([&](dcon::pop_type_id id) { ++num_pop_types; });
 
 		auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
 		auto apply_offset = [&](auto& ptr) {
@@ -679,17 +648,13 @@ public:
 };
 class ledger_province_population_listbox : public listbox_element_base<ledger_province_population_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				row_contents.push_back(p);
-			});
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { row_contents.push_back(p); });
 		update(state);
 	}
 };
@@ -769,17 +734,13 @@ public:
 };
 class ledger_provinces_production_listbox : public listbox_element_base<ledger_provinces_production_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				row_contents.push_back(p);
-			});
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { row_contents.push_back(p); });
 		update(state);
 	}
 };
@@ -840,9 +801,7 @@ public:
 };
 class ledger_factories_production_listbox : public listbox_element_base<ledger_factories_production_entry, dcon::factory_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "default_listbox_entry";
-	}
+	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -850,9 +809,7 @@ public:
 		for(auto const fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, fat_smemb_id.get_state(), [&](dcon::province_id pid) {
 				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					row_contents.push_back(state.world.factory_location_get_factory(flid));
-				});
+				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) { row_contents.push_back(state.world.factory_location_get_factory(flid)); });
 			});
 		update(state);
 	}
@@ -888,16 +845,12 @@ public:
 };
 class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "ledger_legend_entry";
-	}
+	std::string_view get_row_element_name() override { return "ledger_legend_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			row_contents.push_back(id);
-		});
+		state.world.for_each_commodity([&](dcon::commodity_id id) { row_contents.push_back(id); });
 		update(state);
 	}
 };

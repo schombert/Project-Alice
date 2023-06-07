@@ -17,36 +17,20 @@ class absolute_time_point {
 
 public:
 	absolute_time_point() noexcept = default;
-	absolute_time_point(year_month_day const & date);
-	absolute_time_point(absolute_time_point const &) noexcept = default;
+	absolute_time_point(year_month_day const& date);
+	absolute_time_point(absolute_time_point const&) noexcept = default;
 	absolute_time_point(absolute_time_point&&) noexcept = default;
-	absolute_time_point& operator=(absolute_time_point const &) noexcept = default;
+	absolute_time_point& operator=(absolute_time_point const&) noexcept = default;
 	absolute_time_point& operator=(absolute_time_point&&) noexcept = default;
-	constexpr int64_t to_days() const noexcept {
-		return days;
-	}
+	constexpr int64_t to_days() const noexcept { return days; }
 
-	constexpr bool operator==(absolute_time_point v) const noexcept {
-		return days == v.days;
-	}
-	constexpr bool operator!=(absolute_time_point v) const noexcept {
-		return days != v.days;
-	}
-	constexpr bool operator<(absolute_time_point v) const noexcept {
-		return days < v.days;
-	}
-	constexpr bool operator<=(absolute_time_point v) const noexcept {
-		return days <= v.days;
-	}
-	constexpr bool operator>(absolute_time_point v) const noexcept {
-		return days > v.days;
-	}
-	constexpr bool operator>=(absolute_time_point v) const noexcept {
-		return days >= v.days;
-	}
-	absolute_time_point operator+(int32_t v) const noexcept {
-		return absolute_time_point(days + v);
-	}
+	constexpr bool operator==(absolute_time_point v) const noexcept { return days == v.days; }
+	constexpr bool operator!=(absolute_time_point v) const noexcept { return days != v.days; }
+	constexpr bool operator<(absolute_time_point v) const noexcept { return days < v.days; }
+	constexpr bool operator<=(absolute_time_point v) const noexcept { return days <= v.days; }
+	constexpr bool operator>(absolute_time_point v) const noexcept { return days > v.days; }
+	constexpr bool operator>=(absolute_time_point v) const noexcept { return days >= v.days; }
+	absolute_time_point operator+(int32_t v) const noexcept { return absolute_time_point(days + v); }
 	absolute_time_point& operator+=(int32_t v) noexcept {
 		days += v;
 		return *this;
@@ -62,45 +46,27 @@ public:
 
 	constexpr date() noexcept = default;
 	explicit constexpr date(uint16_t v) noexcept : value(v + 1) { }
-	constexpr date(date const & v) noexcept = default;
+	constexpr date(date const& v) noexcept = default;
 	constexpr date(date&& v) noexcept = default;
-	date(year_month_day const & v, absolute_time_point base) noexcept;
+	date(year_month_day const& v, absolute_time_point base) noexcept;
 
-	date& operator=(date const & v) noexcept = default;
+	date& operator=(date const& v) noexcept = default;
 	date& operator=(date&& v) noexcept = default;
-	constexpr bool operator==(date v) const noexcept {
-		return value == v.value;
-	}
-	constexpr bool operator!=(date v) const noexcept {
-		return value != v.value;
-	}
-	constexpr bool operator<(date v) const noexcept {
-		return value < v.value;
-	}
-	constexpr bool operator<=(date v) const noexcept {
-		return value <= v.value;
-	}
-	constexpr bool operator>(date v) const noexcept {
-		return value > v.value;
-	}
-	constexpr bool operator>=(date v) const noexcept {
-		return value >= v.value;
-	}
-	explicit constexpr operator bool() const noexcept {
-		return value != uint16_t(0);
-	}
+	constexpr bool operator==(date v) const noexcept { return value == v.value; }
+	constexpr bool operator!=(date v) const noexcept { return value != v.value; }
+	constexpr bool operator<(date v) const noexcept { return value < v.value; }
+	constexpr bool operator<=(date v) const noexcept { return value <= v.value; }
+	constexpr bool operator>(date v) const noexcept { return value > v.value; }
+	constexpr bool operator>=(date v) const noexcept { return value >= v.value; }
+	explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
 
-	date operator+(int32_t v) const noexcept {
-		return date{uint16_t(value + v - 1)};
-	}
+	date operator+(int32_t v) const noexcept { return date{uint16_t(value + v - 1)}; }
 	date& operator+=(int32_t v) noexcept {
 		value = uint16_t(value + v);
 		return *this;
 	}
 
-	constexpr int32_t to_raw_value() const noexcept {
-		return int32_t(value);
-	}
+	constexpr int32_t to_raw_value() const noexcept { return int32_t(value); }
 	year_month_day to_ymd(absolute_time_point base) const noexcept;
 };
 

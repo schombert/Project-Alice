@@ -35,9 +35,7 @@ public:
 
 class province_search_list : public listbox_element_base<province_search_list_item, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "goto_location_button";
-	}
+	std::string_view get_row_element_name() override { return "goto_location_button"; }
 };
 
 class province_search_window : public window_element_base {
@@ -95,13 +93,9 @@ public:
 		}
 	}
 
-	void on_visible(sys::state& state) noexcept override {
-		state.ui_state.edit_target = edit_box;
-	}
+	void on_visible(sys::state& state) noexcept override { state.ui_state.edit_target = edit_box; }
 
-	void on_hide(sys::state& state) noexcept override {
-		state.ui_state.edit_target = nullptr;
-	}
+	void on_hide(sys::state& state) noexcept override { state.ui_state.edit_target = nullptr; }
 };
 
 } // namespace ui

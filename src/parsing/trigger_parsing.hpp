@@ -147,9 +147,7 @@ inline uint16_t association_to_bool_code(association_type a) {
 	}
 }
 
-inline uint16_t invert_association(uint16_t a) {
-	return static_cast<uint16_t>(0x7000) - a;
-}
+inline uint16_t invert_association(uint16_t a) { return static_cast<uint16_t>(0x7000) - a; }
 
 inline uint16_t association_to_bool_code(association_type a, bool v) {
 	if(v) {
@@ -165,9 +163,7 @@ inline uint16_t association_to_bool_code(association_type a, bool v) {
 	}
 }
 
-constexpr bool scope_has_any_all(uint16_t code) {
-	return (code >= trigger::x_neighbor_province_scope) && (code <= trigger::x_provinces_in_variable_region);
-}
+constexpr bool scope_has_any_all(uint16_t code) { return (code >= trigger::x_neighbor_province_scope) && (code <= trigger::x_provinces_in_variable_region); }
 
 struct tr_diplomatic_influence {
 	std::string_view who;
@@ -277,22 +273,14 @@ struct tr_work_available {
 	void finish(trigger_building_context&) { }
 };
 
-inline bool is_from(std::string_view value) {
-	return is_fixed_token_ci(value.data(), value.data() + value.length(), "from");
-}
-inline bool is_this(std::string_view value) {
-	return is_fixed_token_ci(value.data(), value.data() + value.length(), "this");
-}
-inline bool is_reb(std::string_view value) {
-	return is_fixed_token_ci(value.data(), value.data() + value.length(), "reb");
-}
+inline bool is_from(std::string_view value) { return is_fixed_token_ci(value.data(), value.data() + value.length(), "from"); }
+inline bool is_this(std::string_view value) { return is_fixed_token_ci(value.data(), value.data() + value.length(), "this"); }
+inline bool is_reb(std::string_view value) { return is_fixed_token_ci(value.data(), value.data() + value.length(), "reb"); }
 
 struct trigger_body {
 	void finish(trigger_building_context&) { }
 
-	void factor(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.factor = value;
-	}
+	void factor(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) { context.factor = value; }
 
 	void ai(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -312,21 +300,11 @@ struct trigger_body {
 		context.compiled_trigger.push_back(uint16_t(trigger::month | association_to_trigger_code(a)));
 		context.compiled_trigger.push_back(trigger::payload(uint16_t(value)).value);
 	}
-	void great_wars_enabled(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::great_wars_enabled | trigger::no_payload | association_to_bool_code(a, value)));
-	}
-	void world_wars_enabled(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::world_wars_enabled | trigger::no_payload | association_to_bool_code(a, value)));
-	}
-	void crisis_exist(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::crisis_exist | trigger::no_payload | association_to_bool_code(a, value)));
-	}
-	void is_liberation_crisis(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::is_liberation_crisis | trigger::no_payload | association_to_bool_code(a, value)));
-	}
-	void is_claim_crisis(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::is_claim_crisis | trigger::no_payload | association_to_bool_code(a, value)));
-	}
+	void great_wars_enabled(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) { context.compiled_trigger.push_back(uint16_t(trigger::great_wars_enabled | trigger::no_payload | association_to_bool_code(a, value))); }
+	void world_wars_enabled(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) { context.compiled_trigger.push_back(uint16_t(trigger::world_wars_enabled | trigger::no_payload | association_to_bool_code(a, value))); }
+	void crisis_exist(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) { context.compiled_trigger.push_back(uint16_t(trigger::crisis_exist | trigger::no_payload | association_to_bool_code(a, value))); }
+	void is_liberation_crisis(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) { context.compiled_trigger.push_back(uint16_t(trigger::is_liberation_crisis | trigger::no_payload | association_to_bool_code(a, value))); }
+	void is_claim_crisis(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) { context.compiled_trigger.push_back(uint16_t(trigger::is_claim_crisis | trigger::no_payload | association_to_bool_code(a, value))); }
 
 	void port(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
@@ -457,9 +435,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void always(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::always | trigger::no_payload | association_to_bool_code(a, value)));
-	}
+	void always(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) { context.compiled_trigger.push_back(uint16_t(trigger::always | trigger::no_payload | association_to_bool_code(a, value))); }
 	void is_releasable_vassal(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(is_from(value)) {
 			if(context.from_slot == trigger::slot_contents::nation)
@@ -3581,7 +3557,7 @@ struct trigger_body {
 		}
 	}
 
-	void diplomatic_influence(tr_diplomatic_influence const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void diplomatic_influence(tr_diplomatic_influence const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "diplomatic_influence trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3618,7 +3594,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void pop_unemployment(tr_pop_unemployment const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void pop_unemployment(tr_pop_unemployment const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(is_from(value.type)) {
 			if(context.this_slot != trigger::slot_contents::pop) {
 				err.accumulated_errors += "pop_unemployment = this trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3655,7 +3631,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void relation(tr_relation const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void relation(tr_relation const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "relation trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3692,12 +3668,12 @@ struct trigger_body {
 			return;
 		}
 	}
-	void check_variable(tr_check_variable const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void check_variable(tr_check_variable const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		context.compiled_trigger.push_back(uint16_t(trigger::check_variable | association_to_trigger_code(value.a)));
 		context.add_float_to_payload(value.value_);
 		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
 	}
-	void upper_house(tr_upper_house const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void upper_house(tr_upper_house const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value.ideology)); it != context.outer_context.map_of_ideologies.end()) {
 			if(context.main_slot != trigger::slot_contents::nation) {
 				err.accumulated_errors += "upper_house trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3711,7 +3687,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void unemployment_by_type(tr_unemployment_by_type const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void unemployment_by_type(tr_unemployment_by_type const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_poptypes.find(std::string(value.type)); it != context.outer_context.map_of_poptypes.end()) {
 			if(context.main_slot == trigger::slot_contents::nation)
 				context.compiled_trigger.push_back(uint16_t(trigger::unemployment_by_type_nation | association_to_trigger_code(value.a)));
@@ -3733,7 +3709,7 @@ struct trigger_body {
 		}
 	}
 
-	void party_loyalty(tr_party_loyalty const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void party_loyalty(tr_party_loyalty const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value.ideology)); it != context.outer_context.map_of_ideologies.end()) {
 			if(value.province_id != 0) {
 				if(0 <= value.province_id && size_t(value.province_id) < context.outer_context.original_id_to_prov_id_map.size()) {
@@ -3777,7 +3753,7 @@ struct trigger_body {
 		}
 	}
 
-	void can_build_in_province(tr_can_build_in_province const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void can_build_in_province(tr_can_build_in_province const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::province) {
 			err.accumulated_errors += "can_build_in_province trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3821,7 +3797,7 @@ struct trigger_body {
 			}
 		}
 	}
-	void can_build_railway_in_capital(tr_can_build_railway_in_capital const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void can_build_railway_in_capital(tr_can_build_railway_in_capital const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "can_build_railway_in_capital trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3837,7 +3813,7 @@ struct trigger_body {
 				context.compiled_trigger.push_back(uint16_t(trigger::can_build_railway_in_capital_no_whole_state_no_limit | trigger::association_eq | trigger::no_payload));
 		}
 	}
-	void can_build_fort_in_capital(tr_can_build_fort_in_capital const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void can_build_fort_in_capital(tr_can_build_fort_in_capital const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "can_build_fort_in_capital trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3854,7 +3830,7 @@ struct trigger_body {
 		}
 	}
 
-	void work_available(tr_work_available const & value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void work_available(tr_work_available const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(value.pop_type_list.size() > 1 || value.pop_type_list.size() == 0) {
 			err.accumulated_errors += "work_available trigger used with an unsupported number of worker types (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -4029,13 +4005,9 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 
 struct value_modifier_definition {
 	float factor = 0.0f;
-	void months(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) {
-		factor = value * 30.0f;
-	}
-	void years(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) {
-		factor = value * 365.0f;
-	}
-	void group(value_modifier_definition const & value, error_handler& err, int32_t line, trigger_building_context& context) { }
+	void months(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) { factor = value * 30.0f; }
+	void years(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) { factor = value * 365.0f; }
+	void group(value_modifier_definition const& value, error_handler& err, int32_t line, trigger_building_context& context) { }
 	void finish(trigger_building_context&) { }
 };
 

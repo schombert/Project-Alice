@@ -542,10 +542,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		m.primary = n;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			TEXT_NOTIF_MSG_TITLE(upperhouse);
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			TEXT_NOTIF_MSG_BODY(upperhouse);
 		};
 		notification::post(state, std::move(m));
@@ -603,11 +605,13 @@ void start_election(sys::state& state, dcon::nation_id n) {
 		m.primary = n;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			TEXT_NOTIF_MSG_TITLE(electionstart);
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::details, state.world.nation_get_election_ends(n));
 			TEXT_NOTIF_MSG_BODY(electionstart);

@@ -46,9 +46,7 @@ void make_trait(std::string_view name, token_generator& gen, error_handler& err,
 	trait_context new_context{context, new_id};
 	parse_trait(gen, err, new_context);
 }
-void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	parse_traits_set(gen, err, context);
-}
+void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context) { parse_traits_set(gen, err, context); }
 void background_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	context.state.military_definitions.first_background_trait = dcon::leader_trait_id(dcon::leader_trait_id::value_base_t(context.state.world.leader_trait_size()));
 	parse_traits_set(gen, err, context);

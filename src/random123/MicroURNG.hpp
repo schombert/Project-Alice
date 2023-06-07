@@ -37,46 +37,45 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace r123 {
 /**
-    Given a CBRNG whose ctr_type has an unsigned integral value_type,
-    MicroURNG<CBRNG>(c, k) is a type that satisfies the
-    requirements of a C++11 Uniform Random Number Generator.
+	Given a CBRNG whose ctr_type has an unsigned integral value_type,
+	MicroURNG<CBRNG>(c, k) is a type that satisfies the
+	requirements of a C++11 Uniform Random Number Generator.
 
-    The intended purpose is for a MicroURNG to be passed
-    as an argument to a C++11 Distribution, e.g.,
-    std::normal_distribution.  See examples/MicroURNG.cpp.
+	The intended purpose is for a MicroURNG to be passed
+	as an argument to a C++11 Distribution, e.g.,
+	std::normal_distribution.  See examples/MicroURNG.cpp.
 
-    The MicroURNG functor has a period of "only"
+	The MicroURNG functor has a period of "only"
 
-       ctr_type.size()*2^32,
+	   ctr_type.size()*2^32,
 
-    after which it will silently repeat.
+	after which it will silently repeat.
 
-    The high 32 bits of the highest word in the counter c, passed to
-    the constructor must be zero.  MicroURNG uses these bits to
-    "count".
+	The high 32 bits of the highest word in the counter c, passed to
+	the constructor must be zero.  MicroURNG uses these bits to
+	"count".
 
-    Older versions of the library permitted a second template
-    parameter by which the caller could control the number of
-    bits devoted to the URNG's internal counter.  This flexibility
-    has been disabled because URNGs created with different
-    numbers of counter bits could, conceivably "collide".
+	Older versions of the library permitted a second template
+	parameter by which the caller could control the number of
+	bits devoted to the URNG's internal counter.  This flexibility
+	has been disabled because URNGs created with different
+	numbers of counter bits could, conceivably "collide".
 
 \code
-       typedef ?someCBRNG? RNG;
-       RNG::ctr_type c = ...; // under application control
-       RNG::key_type k = ...; //
-       std::normal_distribution<float> nd;
-       MicroURNG<RNG> urng(c, k);
-       for(???){
-         ...
-         nd(urng);  // may be called several hundred times with BITS=10
-         ...
-       }
+	   typedef ?someCBRNG? RNG;
+	   RNG::ctr_type c = ...; // under application control
+	   RNG::key_type k = ...; //
+	   std::normal_distribution<float> nd;
+	   MicroURNG<RNG> urng(c, k);
+	   for(???){
+		 ...
+		 nd(urng);  // may be called several hundred times with BITS=10
+		 ...
+	   }
 \endcode
 */
 
-template<typename CBRNG>
-class MicroURNG {
+template<typename CBRNG> class MicroURNG {
 	// According to C++11, a URNG requires only a result_type,
 	// operator()(), min() and max() methods.  Everything else
 	// (ctr_type, key_type, reset() method, etc.) is "value added"
@@ -104,12 +103,8 @@ public:
 		}
 		return rdata[--last_elem];
 	}
-	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) {
-		chkhighbits();
-	}
-	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) {
-		chkhighbits();
-	}
+	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) { chkhighbits(); }
+	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) { chkhighbits(); }
 
 	// _Min and _Max work around a bug in the library shipped with MacOS Xcode 4.5.2.
 	// See the commment in conventional/Engine.hpp.
@@ -119,7 +114,7 @@ public:
 	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() { return _Min; }
 	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
 	// extra methods:
-	ctr_type const & counter() const { return c0; }
+	ctr_type const& counter() const { return c0; }
 	void reset(ctr_type _c0, ukey_type _uk) {
 		c0 = _c0;
 		chkhighbits();

@@ -3,7 +3,7 @@
 
 namespace ui {
 
-static void populate_event_submap(sys::state& state, text::substitution_map& sub, std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> const & phe) noexcept {
+static void populate_event_submap(sys::state& state, text::substitution_map& sub, std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> const& phe) noexcept {
 	dcon::nation_id target_nation{};
 	dcon::nation_id from_nation{};
 	dcon::province_id target_province{};
@@ -19,7 +19,7 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	int32_t primary_slot = -1;
 
 	if(std::holds_alternative<event::pending_human_n_event>(phe)) {
-		auto const & e = std::get<event::pending_human_n_event>(phe);
+		auto const& e = std::get<event::pending_human_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
 
@@ -28,11 +28,11 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 		primary_slot = e.primary_slot;
 		pt = e.pt;
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(phe)) {
-		auto const & e = std::get<event::pending_human_f_n_event>(phe);
+		auto const& e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
 	} else if(std::holds_alternative<event::pending_human_p_event>(phe)) {
-		auto const & e = std::get<event::pending_human_p_event>(phe);
+		auto const& e = std::get<event::pending_human_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);
@@ -41,7 +41,7 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 		from_slot = e.from_slot;
 		ft = e.ft;
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(phe)) {
-		auto const & e = std::get<event::pending_human_f_p_event>(phe);
+		auto const& e = std::get<event::pending_human_f_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);
@@ -118,22 +118,33 @@ void event_option_button::on_update(sys::state& state) noexcept {
 		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
-		dcon::text_sequence_id name{};
 
-		if(std::holds_alternative<event::pending_human_n_event>(content))
-			name = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index].name;
-		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
-			name = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index].name;
-		else if(std::holds_alternative<event::pending_human_p_event>(content))
-			name = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index].name;
-		else if(std::holds_alternative<event::pending_human_f_p_event>(content))
-			name = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index].name;
-
-		if(bool(name)) {
-			set_button_text(state, text::produce_simple_string(state, name));
-		} else {
-			set_visible(state, false);
+		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub{};
+		sys::event_option opt{};
+		if(std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto phe = std::get<event::pending_human_n_event>(content);
+			opt = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
+			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto phe = std::get<event::pending_human_f_n_event>(content);
+			opt = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
+			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			opt = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
+			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
+			populate_event_submap(state, sub, phe);
 		}
+		text::add_to_layout_box(contents, state, box, opt.name, sub);
+		text::close_layout_box(contents, box);
+
+		if(!bool(opt.name) && !bool(opt.effect))
+			set_visible(state, false);
 	}
 }
 
@@ -194,8 +205,9 @@ void event_image::on_update(sys::state& state) noexcept {
 }
 
 void event_desc_text::on_create(sys::state& state) noexcept {
-	multiline_text_element_base::on_create(state);
-	base_data.data.text.font_handle = text::name_into_font_id(state, "ToolTip_Font");
+	base_data.size.y = 200;
+	scrollable_text::on_create(state);
+	delegate->base_data.data.text.font_handle = text::name_into_font_id(state, "ToolTip_Font");
 }
 
 void event_desc_text::on_update(sys::state& state) noexcept {
@@ -204,14 +216,11 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
-		auto contents = text::create_endless_layout(
-		    internal_layout,
-		    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
-
-		dcon::text_sequence_id description{};
+		auto contents = text::create_endless_layout(delegate->internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
+		dcon::text_sequence_id description{};
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto phe = std::get<event::pending_human_n_event>(content);
 			description = state.world.national_event_get_description(phe.e);
@@ -240,9 +249,7 @@ void event_name_text::on_update(sys::state& state) noexcept {
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
-		auto contents = text::create_endless_layout(
-		    internal_layout,
-		    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
+		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
 
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
@@ -321,8 +328,7 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 	}
 }
 
-template<bool IsMajor>
-void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
+template<bool IsMajor> void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	auto s1 = IsMajor ? "event_major_option_start" : "event_country_option_start";
 	auto s2 = IsMajor ? "event_major_option_offset" : "event_country_option_offset";
@@ -342,8 +348,7 @@ void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
 	set_visible(state, false);
 }
 
-template<bool IsMajor>
-std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+template<bool IsMajor> std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "background") {
 		auto bg_ptr = make_element_by_type<draggable_target>(state, id);
 		xy_pair cur_pos{0, 0};
@@ -414,8 +419,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 	}
 }
 
-template<bool IsMajor>
-void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
+template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
 	for(auto e : option_buttons)
 		e->set_visible(state, true);
 
@@ -436,8 +440,7 @@ void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 }
 
-template<bool IsMajor>
-message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
+template<bool IsMajor> message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(index >= int32_t(events.size()))
 		index = 0;
 	else if(index < 0)

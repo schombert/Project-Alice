@@ -1063,8 +1063,7 @@ int32_t simplify_effect(uint16_t* source) {
 	}
 }
 
-template<typename T>
-void recurse_over_effects(uint16_t* source, const T& f) {
+template<typename T> void recurse_over_effects(uint16_t* source, const T& f) {
 	f(source);
 
 	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
@@ -1237,7 +1236,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 	}
 }
 
-void effect_body::define_general(ef_define_general const & value, error_handler& err, int32_t line, effect_building_context& context) {
+void effect_body::define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(context.main_slot != trigger::slot_contents::nation) {
 		err.accumulated_errors += "define_general effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
@@ -1248,7 +1247,7 @@ void effect_body::define_general(ef_define_general const & value, error_handler&
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
 
-void effect_body::define_admiral(ef_define_admiral const & value, error_handler& err, int32_t line, effect_building_context& context) {
+void effect_body::define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(context.main_slot != trigger::slot_contents::nation) {
 		err.accumulated_errors += "define_admiral effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;

@@ -13,8 +13,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_selection_panel : public window_element_base {
+template<class T> class unit_selection_panel : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unitpanel_bg") {
@@ -67,8 +66,7 @@ public:
 	}
 };
 
-template<class T, std::size_t N>
-class unit_details_type_item : public window_element_base {
+template<class T, std::size_t N> class unit_details_type_item : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_icon") {
@@ -85,8 +83,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_name : public simple_text_element_base {
+template<class T> class subunit_details_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -99,8 +96,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_type_text : public simple_text_element_base {
+template<class T> class subunit_details_type_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -113,8 +109,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_type_icon : public image_element_base {
+template<class T> class subunit_details_type_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -127,8 +122,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_organisation_progress_bar : public vertical_progress_bar {
+template<class T> class subunit_organisation_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -141,8 +135,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_strength_progress_bar : public vertical_progress_bar {
+template<class T> class subunit_strength_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -178,8 +171,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_entry : public listbox_row_element_base<T> {
+template<class T> class subunit_details_entry : public listbox_row_element_base<T> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select") {
@@ -227,14 +219,11 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
-	}
+	void update(sys::state& state) noexcept override { }
 };
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry<dcon::regiment_id>, dcon::regiment_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "subunit_entry";
-	}
+	std::string_view get_row_element_name() override { return "subunit_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -253,9 +242,7 @@ public:
 };
 class unit_details_navy_listbox : public listbox_element_base<subunit_details_entry<dcon::ship_id>, dcon::ship_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "subunit_entry";
-	}
+	std::string_view get_row_element_name() override { return "subunit_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -323,8 +310,7 @@ public:
 		}
 	}
 };
-template<class T>
-class unit_details_attach_button : public button_element_base {
+template<class T> class unit_details_attach_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -334,8 +320,7 @@ public:
 		}
 	}
 };
-template<class T>
-class unit_details_detach_button : public button_element_base {
+template<class T> class unit_details_detach_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -346,8 +331,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_details_buttons : public window_element_base {
+template<class T> class unit_details_buttons : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "load_button" && std::is_same_v<T, dcon::army_id>) {
@@ -370,8 +354,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_details_window : public window_element_base {
+template<class T> class unit_details_window : public window_element_base {
 	T unit_id{};
 
 public:

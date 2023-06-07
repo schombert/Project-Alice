@@ -41,32 +41,20 @@ std::vector<uint32_t> rank_map_from(sys::state& state) {
 		if(bool(nation_id)) {
 			switch(status) {
 			case nations::status::great_power:
-				color = sys::pack_color(
-				    int32_t(48 * darkness),
-				    int32_t(242 * darkness),
-				    int32_t(51 * darkness));
+				color = sys::pack_color(int32_t(48 * darkness), int32_t(242 * darkness), int32_t(51 * darkness));
 				break;
 
 			case nations::status::secondary_power:
-				color = sys::pack_color(
-				    int32_t(36 * darkness),
-				    int32_t(47 * darkness),
-				    int32_t(255 * darkness));
+				color = sys::pack_color(int32_t(36 * darkness), int32_t(47 * darkness), int32_t(255 * darkness));
 				break;
 
 			case nations::status::civilized:
-				color = sys::pack_color(
-				    int32_t(238 * darkness),
-				    int32_t(252 * darkness),
-				    int32_t(38 * darkness));
+				color = sys::pack_color(int32_t(238 * darkness), int32_t(252 * darkness), int32_t(38 * darkness));
 				break;
 
 				// primitive, uncivilized and westernized
 			default:
-				color = sys::pack_color(
-				    int32_t(250 * darkness),
-				    int32_t(5 * darkness),
-				    int32_t(5 * darkness));
+				color = sys::pack_color(int32_t(250 * darkness), int32_t(5 * darkness), int32_t(5 * darkness));
 				break;
 			}
 		} else { // If no owner use default color

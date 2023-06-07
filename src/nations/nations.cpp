@@ -479,7 +479,8 @@ void update_great_powers(sys::state& state) {
 		if(state.world.nation_get_rank(state.great_nations[i].nation) <= uint16_t(state.defines.great_nations_count)) {
 			// is still a gp
 			state.great_nations[i].last_greatness = state.current_date;
-		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date) {
+		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date ||
+		          state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
 
 			auto n = state.great_nations[i].nation;
 			state.great_nations[i] = state.great_nations.back();
@@ -1677,8 +1678,20 @@ void update_crisis(sys::state& state) {
 					state.primary_crisis_defender = owner;
 				}
 
-				// TODO: notify
-
+				notification::message m;
+				m.type = sys::message_setting_type::crisis_started;
+				m.primary = state.primary_crisis_attacker ? state.primary_crisis_attacker : state.primary_crisis_defender;
+				m.title = [=](sys::state& state, text::layout_base& layout) {
+					text::substitution_map sub{};
+					text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_state);
+					TEXT_NOTIF_MSG_TITLE(crisis_started);
+				};
+				m.body = [=](sys::state& state, text::layout_base& layout) {
+					text::substitution_map sub{};
+					text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_state);
+					TEXT_NOTIF_MSG_BODY(crisis_started);
+				};
+				notification::post(state, std::move(m));
 				break;
 			}
 		}
@@ -1706,8 +1719,20 @@ void update_crisis(sys::state& state) {
 								state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
 						}
 
-						// TODO: notify
-
+						notification::message m;
+						m.type = sys::message_setting_type::crisis_started;
+						m.primary = state.primary_crisis_attacker ? state.primary_crisis_attacker : state.primary_crisis_defender;
+						m.title = [=](sys::state& state, text::layout_base& layout) {
+							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::crisistarget,  state.crisis_colony);
+							TEXT_NOTIF_MSG_TITLE(crisis_started);
+						};
+						m.body = [=](sys::state& state, text::layout_base& layout) {
+							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_colony);
+							TEXT_NOTIF_MSG_BODY(crisis_started);
+						};
+						notification::post(state, std::move(m));
 						break;
 					}
 				}
@@ -1897,6 +1922,53 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 	}
 	auto& inf = state.world.gp_relationship_get_influence(rel);
 	inf = std::clamp(inf + delta, 0.0f, state.defines.max_influence);
+}
+
+void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
+	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
+	if(!rel) {
+		rel = state.world.force_create_gp_relationship(target, great_power);
+	}
+	auto& inf = state.world.gp_relationship_get_influence(rel);
+	inf += delta;
+
+	while(inf < 0) {
+		if(state.world.nation_get_in_sphere_of(target) == great_power) {
+			inf += state.defines.addtosphere_influence_cost;
+			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::decrease_level(l);
+		} else {
+			inf += state.defines.increaseopinion_influence_cost;
+
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::decrease_level(l);
+		}
+	}
+
+	while(inf > state.defines.max_influence) {
+		if(state.world.nation_get_in_sphere_of(target) != great_power) {
+			inf -= state.defines.removefromsphere_influence_cost;
+			auto affected_gp = state.world.nation_get_in_sphere_of(target);
+			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			{
+				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
+				auto& l = state.world.gp_relationship_get_status(orel);
+				l = nations::influence::decrease_level(l);
+			}
+		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
+			state.world.nation_set_in_sphere_of(target, great_power);
+			inf -= state.defines.addtosphere_influence_cost;
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::increase_level(l);
+		} else {
+			inf -= state.defines.increaseopinion_influence_cost;
+
+			auto& l = state.world.gp_relationship_get_status(rel);
+			l = nations::influence::increase_level(l);
+		}
+	}
 }
 
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {

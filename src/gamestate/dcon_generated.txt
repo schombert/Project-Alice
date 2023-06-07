@@ -1757,6 +1757,21 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property {
+		name{ number_of_battles }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property {
+		name{ attacker_battle_score }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ defender_battle_score }
+		type{ float }
+		tag{ save }
+	}
 }
 object {
 	name{ peace_offer }
@@ -1840,6 +1855,11 @@ object {
 	property{
 		name{ associated_state }
 		type{ state_definition_id }
+		tag{ save }
+	}
+	property{
+		name{ ticking_war_score }
+		type{ float }
 		tag{ save }
 	}
 }

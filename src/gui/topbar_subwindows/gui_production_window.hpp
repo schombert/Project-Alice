@@ -13,12 +13,7 @@
 
 namespace ui {
 
-enum class production_window_tab : uint8_t {
-	factories = 0x0,
-	investments = 0x1,
-	projects = 0x2,
-	goods = 0x3
-};
+enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
 
 struct production_selection_wrapper {
 	dcon::state_instance_id data{};
@@ -37,9 +32,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
@@ -67,8 +60,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
 			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-			auto fat = dcon::fatten(state.world, fid);
+			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 			frame = economy::factory_priority(state, fid);
 		}
 	}
@@ -77,7 +69,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
 			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
+			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 			auto fat = dcon::fatten(state.world, fid);
 
 			Cyto::Any n_payload = dcon::nation_id{};
@@ -101,15 +93,12 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
-		auto fid = any_cast<dcon::factory_id>(payload);
-		auto fat = dcon::fatten(state.world, fid);
+		const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 
 		auto box = text::open_layout_box(contents, 0);
 		// TODO - check if we can change the priority,
@@ -179,9 +168,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -216,16 +203,14 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		/*if(parent) {	TODO - We want to open/close the factory if we press this button, depending on if its closed/opened respectively
-		    Cyto::Any payload = dcon::factory_id{};
-		    parent->impl_get(state, payload);
-		    auto fid = any_cast<dcon::factory_id>(payload);
-		    auto fat = dcon::fatten(state.world, fid);
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fat = dcon::fatten(state.world, fid);
 		}*/
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
@@ -257,7 +242,8 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip function details this afaik
+			if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip function
+									   // details this afaik
 				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
 					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false);
 					frame = 0;
@@ -271,9 +257,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -326,9 +310,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -478,26 +460,26 @@ public:
 				economy::new_factory nf = std::get<economy::new_factory>(content.data);
 				fat_btid = dcon::fatten(state.world, nf.type);
 
-				for(auto const & e : factory_elements)
+				for(auto const& e : factory_elements)
 					e->set_visible(state, false);
-				for(auto const & e : upgrade_elements)
+				for(auto const& e : upgrade_elements)
 					e->set_visible(state, false);
-				for(auto const & e : build_elements)
+				for(auto const& e : build_elements)
 					e->set_visible(state, true);
-				for(auto const & e : closed_elements)
+				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
 			} else if(std::holds_alternative<economy::upgraded_factory>(content.data)) {
 				// Upgrade
 				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.data);
 				fat_btid = dcon::fatten(state.world, uf.type);
 
-				for(auto const & e : factory_elements)
+				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
-				for(auto const & e : upgrade_elements)
+				for(auto const& e : upgrade_elements)
 					e->set_visible(state, true);
-				for(auto const & e : build_elements)
+				for(auto const& e : build_elements)
 					e->set_visible(state, false);
-				for(auto const & e : closed_elements)
+				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
 			} else if(std::holds_alternative<dcon::factory_id>(content.data)) {
 				// "Normal" factory, not being upgraded or built
@@ -505,13 +487,13 @@ public:
 				fat_btid = state.world.factory_get_building_type(fid);
 
 				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05;
-				for(auto const & e : factory_elements)
+				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
-				for(auto const & e : upgrade_elements)
+				for(auto const& e : upgrade_elements)
 					e->set_visible(state, false);
-				for(auto const & e : build_elements)
+				for(auto const& e : build_elements)
 					e->set_visible(state, false);
-				for(auto const & e : closed_elements)
+				for(auto const& e : closed_elements)
 					e->set_visible(state, is_closed);
 			}
 
@@ -590,7 +572,7 @@ public:
 		std::vector<bool> visited_types(state.world.factory_type_size(), false);
 		size_t index = 0;
 		// First, the new factories are taken into account
-		economy::for_each_new_factory(state, state_id, [&](economy::new_factory const & nf) {
+		economy::for_each_new_factory(state, state_id, [&](economy::new_factory const& nf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(nf.type).id;
 			if(!visited_types[nf.type.index()] && get_filter(state, cid)) {
 				factories[index] = nf;
@@ -600,7 +582,7 @@ public:
 			}
 		});
 		// Then, the factories being upgraded
-		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const & uf) {
+		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const& uf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(uf.type).id;
 			if(!visited_types[uf.type.index()] && get_filter(state, cid)) {
 				factories[index] = uf;
@@ -649,9 +631,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			bool can_build = false;
-			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				can_build = can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
-			});
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) { can_build = can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false); });
 			disabled = !can_build;
 		}
 	}
@@ -666,9 +646,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -701,9 +679,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			disabled = true;
-			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, n, content, nfid) ? false : disabled;
-			});
+			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) { disabled = command::can_set_national_focus(state, n, content, nfid) ? false : disabled; });
 			frame = get_icon_frame(state);
 		}
 	}
@@ -717,9 +693,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -758,9 +732,7 @@ public:
 
 class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "state_info";
-	}
+	std::string_view get_row_element_name() override { return "state_info"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -843,9 +815,7 @@ class commodity_output_total_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1)); }
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
@@ -956,9 +926,7 @@ public:
 		// All filters enabled by default
 		commodity_filters.resize(state.world.commodity_size(), true);
 
-		for(curr_commodity_group = sys::commodity_group::military_goods;
-		    curr_commodity_group != sys::commodity_group::count;
-		    curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
+		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count; curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
 			commodity_offset.x = base_commodity_offset.x;
 
 			// Place legend for this category...

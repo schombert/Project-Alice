@@ -774,11 +774,13 @@ void update_reasearch(sys::state& state, uint32_t current_year) {
 						m.primary = n;
 						m.title = [=](sys::state& state, text::layout_base& layout) {
 							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 							text::add_to_substitution_map(sub, text::variable_type::type, state.world.technology_get_name(t));
 							TEXT_NOTIF_MSG_TITLE(tech_once);
 						};
 						m.body = [=](sys::state& state, text::layout_base& layout) {
 							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 							text::add_to_substitution_map(sub, text::variable_type::type, state.world.technology_get_name(t));
 							TEXT_NOTIF_MSG_BODY(tech_once);
 						};
@@ -818,11 +820,13 @@ void discover_inventions(sys::state& state) {
 									m.primary = n;
 									m.title = [=](sys::state& state, text::layout_base& layout) {
 										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 										text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
 										TEXT_NOTIF_MSG_TITLE(invention);
 									};
 									m.body = [=](sys::state& state, text::layout_base& layout) {
 										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 										text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
 										TEXT_NOTIF_MSG_BODY(invention);
 									};
@@ -852,11 +856,13 @@ void discover_inventions(sys::state& state) {
 									m.primary = n;
 									m.title = [=](sys::state& state, text::layout_base& layout) {
 										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 										text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
 										TEXT_NOTIF_MSG_TITLE(invention);
 									};
 									m.body = [=](sys::state& state, text::layout_base& layout) {
 										text::substitution_map sub{};
+										text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 										text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
 										TEXT_NOTIF_MSG_BODY(invention);
 									};

@@ -85,7 +85,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 		activate_factory_description(id);
 	}
 
-	auto commodity_mod_description = [&](auto const & list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+	auto commodity_mod_description = [&](auto const& list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
 		for(const auto mod : list) {
 			auto box = text::open_layout_box(contents, 0);
 			auto name = state.world.commodity_get_name(mod.type);
@@ -123,9 +123,7 @@ public:
 	bool is_active(sys::state& state) noexcept final;
 	void button_action(sys::state& state) noexcept final;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		state.world.for_each_technology([&](dcon::technology_id id) {
@@ -175,9 +173,7 @@ class technology_num_discovered_text : public simple_text_element_base {
 
 public:
 	culture::tech_category category{};
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
 };
 
 class technology_folder_tab_button : public window_element_base {
@@ -253,7 +249,7 @@ class technology_research_progress_category_text : public simple_text_element_ba
 		auto tech_id = nations::current_research(state, state.local_player_nation);
 		if(tech_id) {
 			auto tech = dcon::fatten(state.world, tech_id);
-			auto const & folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
+			auto const& folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
 
 			std::string str{};
 			str += text::produce_simple_string(state, folder.name);
@@ -284,9 +280,7 @@ class technology_research_progress_category_text : public simple_text_element_ba
 	}
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
 };
 
 struct technology_select_tech {
@@ -306,9 +300,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -348,7 +340,6 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto tech_fat_id = dcon::fatten(state.world, tech_id);
 		if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
 			// Fully researched.
 			tech_button->frame = 1;
@@ -386,9 +377,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -435,9 +424,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -471,9 +458,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -516,9 +501,7 @@ public:
 };
 class technology_possible_invention_listbox : public listbox_element_base<technology_possible_invention, dcon::invention_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "invention_window";
-	}
+	std::string_view get_row_element_name() override { return "invention_window"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -567,9 +550,7 @@ public:
 };
 class technology_selected_inventions_listbox : public listbox_element_base<technology_selected_invention, dcon::invention_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "invention_icon_window";
-	}
+	std::string_view get_row_element_name() override { return "invention_icon_window"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -647,16 +628,12 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::technology_id>(payload);
 
-			auto layout = text::create_endless_layout(
-			    internal_layout,
-			    text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+			auto layout = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 			technology_description(*this, state, layout, content);
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override { return message_result::consumed; }
 };
 
 class technology_start_research : public button_element_base {
@@ -741,9 +718,7 @@ public:
 
 class technology_sort_by_type_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -754,9 +729,7 @@ public:
 
 class technology_sort_by_name_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -767,9 +740,7 @@ public:
 
 class technology_sort_by_percent_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -787,9 +758,7 @@ public:
 		generic_tabbed_window::on_create(state);
 
 		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("folder_offset")->second.definition].position;
-		for(auto curr_folder = culture::tech_category::army;
-		    curr_folder != culture::tech_category::count;
-		    curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
+		for(auto curr_folder = culture::tech_category::army; curr_folder != culture::tech_category::count; curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
 			auto ptr = make_element_by_type<technology_folder_tab_button>(state, state.ui_state.defs_by_name.find("folder_window")->second.definition);
 			ptr->set_category(state, curr_folder);
 			ptr->base_data.position = folder_offset;
@@ -804,13 +773,13 @@ public:
 		// ******** Order of appearance of technologies that have said folder?
 		std::vector<std::vector<size_t>> folders_by_category(static_cast<size_t>(culture::tech_category::count));
 		for(size_t i = 0; i < state.culture_definitions.tech_folders.size(); i++) {
-			auto const & folder = state.culture_definitions.tech_folders[i];
+			auto const& folder = state.culture_definitions.tech_folders[i];
 			folders_by_category[static_cast<size_t>(folder.category)].push_back(i);
 		}
 		// Now obtain the x-offsets of each folder (remember only one category of folders
 		// is ever shown at a time)
 		std::vector<size_t> folder_x_offset(state.culture_definitions.tech_folders.size(), 0);
-		for(auto const & folder_category : folders_by_category) {
+		for(auto const& folder_category : folders_by_category) {
 			size_t y_offset = 0;
 			for(auto const folder_index : folder_category)
 				folder_x_offset[folder_index] = y_offset++;
@@ -821,12 +790,10 @@ public:
 		xy_pair base_group_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
 		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
 
-		for(auto cat = culture::tech_category::army;
-		    cat != culture::tech_category::count;
-		    cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
+		for(auto cat = culture::tech_category::army; cat != culture::tech_category::count; cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
 			// Add tech group names
 			int16_t group_count = 0;
-			for(auto const & folder : state.culture_definitions.tech_folders) {
+			for(auto const& folder : state.culture_definitions.tech_folders) {
 				if(folder.category != cat)
 					continue;
 

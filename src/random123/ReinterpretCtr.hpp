@@ -41,7 +41,7 @@ namespace r123 {
   between a CBRNG's ctr_type and the specified ToType.  For example,
   after:
 
-    typedef ReinterpretCtr<r123array4x32, Philox2x64> G;
+	typedef ReinterpretCtr<r123array4x32, Philox2x64> G;
 
   G is a bona fide CBRNG with ctr_type r123array4x32.
 
@@ -50,14 +50,13 @@ namespace r123 {
   will depend on the endianness of the machine on which it runs.
  */
 
-template<typename ToType, typename CBRNG>
-struct ReinterpretCtr {
+template<typename ToType, typename CBRNG> struct ReinterpretCtr {
 	typedef ToType ctr_type;
 	typedef typename CBRNG::key_type key_type;
 	typedef typename CBRNG::ctr_type bctype;
 	typedef typename CBRNG::ukey_type ukey_type;
-	R123_STATIC_ASSERT(sizeof(ToType) == sizeof(bctype) && sizeof(typename bctype::value_type) != 16,
-	                   "ReinterpretCtr:  sizeof(ToType) is not the same as sizeof(CBRNG::ctr_type) or CBRNG::ctr_type::value_type looks like it might be __m128i");
+	R123_STATIC_ASSERT(sizeof(ToType) == sizeof(bctype) && sizeof(typename bctype::value_type) != 16, "ReinterpretCtr:  sizeof(ToType) is not the same as sizeof(CBRNG::ctr_type) or CBRNG::ctr_type::value_type looks "
+																									  "like it might be __m128i");
 	// It's amazingly difficult to safely do conversions with __m128i.
 	// If we use the operator() implementation below with a CBRNG
 	// whose ctr_type is r123array1xm128i, gcc4.6 optimizes away the

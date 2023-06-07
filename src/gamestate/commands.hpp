@@ -64,10 +64,19 @@ enum class command_type : uint8_t {
 	cancel_given_military_access = 54,
 	declare_war = 55,
 	add_war_goal = 56,
-	switch_nation = 57,
 	start_peace_offer = 58,
 	add_peace_offer_term = 59,
 	send_peace_offer = 60,
+
+	// console cheats
+	switch_nation = 128,
+	c_change_diplo_points = 129,
+	c_change_money = 130,
+	c_westernize = 131,
+	c_unwesternize = 132,
+	c_change_research_points = 133,
+	c_change_cb_progress = 134,
+	c_change_infamy = 135,
 };
 
 struct national_focus_data {
@@ -263,6 +272,10 @@ struct offer_wargoal_data {
 	dcon::wargoal_id wg;
 };
 
+struct cheat_data {
+	float value;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -298,6 +311,7 @@ struct payload {
 		new_war_goal_data new_war_goal;
 		new_offer_data new_offer;
 		offer_wargoal_data offer_wargoal;
+		cheat_data cheat;
 
 		dtype() { }
 	} data;
@@ -358,9 +372,7 @@ bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::n
 void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-inline budget_settings_data make_empty_budget_settings() {
-	return budget_settings_data{int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127)};
-}
+inline budget_settings_data make_empty_budget_settings() { return budget_settings_data{int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127)}; }
 // when sending new budget settings, leaving any value as int8_t(-127) will cause it to be ignored, leaving the setting the same
 // You can use the function above to easily make an instance of the settings struct that will change no values
 // Also, in consideration for future networking performance, do not send this command as the slider moves; only send it when the
@@ -376,25 +388,30 @@ bool can_start_election(sys::state& state, dcon::nation_id source);
 void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
 bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
 
-void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
+	dcon::nation_id affected_gp); // Implemented in GUI :3
 bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
+	dcon::nation_id affected_gp); // Implemented in GUI :3
 bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
+	dcon::nation_id affected_gp); // Implemented in GUI :3
 bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
 void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target); // Implemented in GUI :3
 bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
+	dcon::nation_id affected_gp); // Implemented in GUI :3
 bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
 void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target); // Implemented in GUI :3
 bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
+	dcon::nation_id affected_gp); // Implemented in GUI :3
 bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
 void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si); // Implemented in GUI
@@ -440,10 +457,10 @@ bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dc
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 
-void make_event_choice(sys::state& state, event::pending_human_n_event const & e, uint8_t option_id);
-void make_event_choice(sys::state& state, event::pending_human_f_n_event const & e, uint8_t option_id);
-void make_event_choice(sys::state& state, event::pending_human_p_event const & e, uint8_t option_id);
-void make_event_choice(sys::state& state, event::pending_human_f_p_event const & e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id);
 
 void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
 bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
@@ -468,7 +485,8 @@ bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon:
 void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target); // Added in GUI
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you
+void cancel_given_military_access(sys::state& state, dcon::nation_id source,
+	dcon::nation_id target); // this is for cancelling the access someone has with you
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
@@ -498,6 +516,14 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 
 void send_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
+
+void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
+void c_change_money(sys::state& state, dcon::nation_id source, float value);
+void c_westernize(sys::state& state, dcon::nation_id source);
+void c_unwesternize(sys::state& state, dcon::nation_id source);
+void c_change_research_points(sys::state& state, dcon::nation_id source, float value);
+void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value);
+void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 
 void execute_pending_commands(sys::state& state);
 

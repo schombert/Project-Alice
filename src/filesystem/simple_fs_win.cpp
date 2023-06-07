@@ -43,13 +43,13 @@ void file::operator=(file&& other) noexcept {
 	absolute_path = std::move(other.absolute_path);
 }
 
-file::file(native_string const & full_path) {
+file::file(native_string const& full_path) {
 	file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	if(file_handle != INVALID_HANDLE_VALUE) {
 		absolute_path = full_path;
 		mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 		if(mapping_handle) {
-			content.data = (char const *)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
+			content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
 			if(content.data) {
 				_LARGE_INTEGER pvalue;
 				GetFileSizeEx(file_handle, &pvalue);
@@ -58,11 +58,11 @@ file::file(native_string const & full_path) {
 		}
 	}
 }
-file::file(HANDLE file_handle, native_string const & full_path) : file_handle(file_handle) {
+file::file(HANDLE file_handle, native_string const& full_path) : file_handle(file_handle) {
 	absolute_path = full_path;
 	mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 	if(mapping_handle) {
-		content.data = (char const *)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
+		content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
 		if(content.data) {
 			_LARGE_INTEGER pvalue;
 			GetFileSizeEx(file_handle, &pvalue);
@@ -71,7 +71,7 @@ file::file(HANDLE file_handle, native_string const & full_path) : file_handle(fi
 	}
 }
 
-std::optional<file> open_file(unopened_file const & f) {
+std::optional<file> open_file(unopened_file const& f) {
 	std::optional<file> result(file{f.absolute_path});
 	if(!result->content.data) {
 		result = std::optional<file>{};
@@ -84,9 +84,7 @@ void reset(file_system& fs) {
 	fs.ignored_paths.clear();
 }
 
-void add_root(file_system& fs, native_string_view root_path) {
-	fs.ordered_roots.emplace_back(root_path);
-}
+void add_root(file_system& fs, native_string_view root_path) { fs.ordered_roots.emplace_back(root_path); }
 
 void add_relative_root(file_system& fs, native_string_view root_path) {
 	WCHAR module_name[MAX_PATH] = {};
@@ -99,17 +97,15 @@ void add_relative_root(file_system& fs, native_string_view root_path) {
 	fs.ordered_roots.push_back(native_string(module_name) + native_string(root_path));
 }
 
-directory get_root(file_system const & fs) {
-	return directory(&fs, NATIVE(""));
-}
+directory get_root(file_system const& fs) { return directory(&fs, NATIVE("")); }
 
-native_string extract_state(file_system const & fs) {
+native_string extract_state(file_system const& fs) {
 	native_string result;
-	for(auto const & str : fs.ordered_roots) {
+	for(auto const& str : fs.ordered_roots) {
 		result += NATIVE(";") + str;
 	}
 	result += NATIVE("?");
-	for(auto const & replace_path : fs.ignored_paths) {
+	for(auto const& replace_path : fs.ignored_paths) {
 		result += replace_path + NATIVE(";");
 	}
 	return result;
@@ -141,7 +137,7 @@ void restore_state(file_system& fs, native_string_view data) {
 }
 
 namespace impl {
-bool contains_non_ascii(native_char const * str) {
+bool contains_non_ascii(native_char const* str) {
 	for(auto c = str; *c != 0; ++c) {
 		if(int32_t(*c) > 127 || int32_t(*c) < 0)
 			return true;
@@ -150,7 +146,7 @@ bool contains_non_ascii(native_char const * str) {
 }
 } // namespace impl
 
-std::vector<unopened_file> list_files(directory const & dir, native_char const * extension) {
+std::vector<unopened_file> list_files(directory const& dir, native_char const* extension) {
 	std::vector<unopened_file> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -166,10 +162,7 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
 					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
-						if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = find_result.cFileName](auto const & f) {
-							   return f.file_name.compare(n) == 0;
-						   });
-						   search_result == accumulated_results.end()) {
+						if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = find_result.cFileName](auto const& f) { return f.file_name.compare(n) == 0; }); search_result == accumulated_results.end()) {
 
 							accumulated_results.emplace_back(dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\") + find_result.cFileName, find_result.cFileName);
 						}
@@ -191,17 +184,11 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 			FindClose(find_handle);
 		}
 	}
-	std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const & a, unopened_file const & b) {
-		return std::lexicographical_compare(
-		    std::begin(a.file_name), std::end(a.file_name),
-		    std::begin(b.file_name), std::end(b.file_name),
-		    [](native_char const & char1, native_char const & char2) {
-			    return tolower(char1) < tolower(char2);
-		    });
-	});
+	std::sort(accumulated_results.begin(), accumulated_results.end(),
+		[](unopened_file const& a, unopened_file const& b) { return std::lexicographical_compare(std::begin(a.file_name), std::end(a.file_name), std::begin(b.file_name), std::end(b.file_name), [](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); }); });
 	return accumulated_results;
 }
-std::vector<directory> list_subdirectories(directory const & dir) {
+std::vector<directory> list_subdirectories(directory const& dir) {
 	std::vector<directory> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -216,10 +203,7 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 				do {
 					if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 						native_string const rel_name = dir.relative_path + NATIVE("\\") + find_result.cFileName;
-						if(find_result.cFileName[0] != NATIVE('.') && std::find_if(accumulated_results.begin(), accumulated_results.end(),
-						                                                           [&rel_name](auto const & s) {
-							                                                           return s.relative_path.compare(rel_name) == 0;
-						                                                           }) == accumulated_results.end()) {
+						if(find_result.cFileName[0] != NATIVE('.') && std::find_if(accumulated_results.begin(), accumulated_results.end(), [&rel_name](auto const& s) { return s.relative_path.compare(rel_name) == 0; }) == accumulated_results.end()) {
 							accumulated_results.emplace_back(dir.parent_system, rel_name);
 						}
 					}
@@ -243,26 +227,17 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 			FindClose(find_handle);
 		}
 	}
-	std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const & a, directory const & b) {
-		return std::lexicographical_compare(
-		    std::begin(a.relative_path), std::end(a.relative_path),
-		    std::begin(b.relative_path), std::end(b.relative_path),
-		    [](native_char const & char1, native_char const & char2) {
-			    return tolower(char1) < tolower(char2);
-		    });
+	std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const& a, directory const& b) {
+		return std::lexicographical_compare(std::begin(a.relative_path), std::end(a.relative_path), std::begin(b.relative_path), std::end(b.relative_path), [](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 	return accumulated_results;
 }
 
-directory open_directory(directory const & dir, native_string_view directory_name) {
-	return directory(dir.parent_system, dir.relative_path + NATIVE('\\') + native_string(directory_name));
-}
+directory open_directory(directory const& dir, native_string_view directory_name) { return directory(dir.parent_system, dir.relative_path + NATIVE('\\') + native_string(directory_name)); }
 
-native_string get_full_name(directory const & dir) {
-	return dir.relative_path;
-}
+native_string get_full_name(directory const& dir) { return dir.relative_path; }
 
-std::optional<file> open_file(directory const & dir, native_string_view file_name) {
+std::optional<file> open_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
 			native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
@@ -285,7 +260,7 @@ std::optional<file> open_file(directory const & dir, native_string_view file_nam
 	return std::optional<file>{};
 }
 
-std::optional<unopened_file> peek_file(directory const & dir, native_string_view file_name) {
+std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
 			native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
@@ -308,36 +283,26 @@ std::optional<unopened_file> peek_file(directory const & dir, native_string_view
 	return std::optional<unopened_file>{};
 }
 
-void add_ignore_path(file_system& fs, native_string_view replaced_path) {
-	fs.ignored_paths.emplace_back(replaced_path);
-}
+void add_ignore_path(file_system& fs, native_string_view replaced_path) { fs.ignored_paths.emplace_back(replaced_path); }
 
-std::vector<native_string> list_roots(file_system const & fs) {
-	return fs.ordered_roots;
-}
+std::vector<native_string> list_roots(file_system const& fs) { return fs.ordered_roots; }
 
-bool is_ignored_path(file_system const & fs, native_string_view path) {
+bool is_ignored_path(file_system const& fs, native_string_view path) {
 
-	for(auto const & replace_path : fs.ignored_paths) {
+	for(auto const& replace_path : fs.ignored_paths) {
 		if(path.starts_with(replace_path))
 			return true;
 	}
 	return false;
 }
 
-native_string get_full_name(unopened_file const & f) {
-	return f.absolute_path;
-}
+native_string get_full_name(unopened_file const& f) { return f.absolute_path; }
 
-native_string get_file_name(unopened_file const & f) {
-	return f.file_name;
-}
+native_string get_file_name(unopened_file const& f) { return f.file_name; }
 
-native_string get_full_name(file const & f) {
-	return f.absolute_path;
-}
+native_string get_full_name(file const& f) { return f.absolute_path; }
 
-void write_file(directory const & dir, native_string_view file_name, char const * file_data, uint32_t file_size) {
+void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size) {
 	if(dir.parent_system)
 		std::abort();
 
@@ -351,9 +316,7 @@ void write_file(directory const & dir, native_string_view file_name, char const 
 	}
 }
 
-file_contents view_contents(file const & f) {
-	return f.content;
-}
+file_contents view_contents(file const& f) { return f.content; }
 
 directory get_or_create_settings_directory() {
 	wchar_t* local_path_out = nullptr;
@@ -409,13 +372,7 @@ native_string win1250_to_native(std::string_view data_in) {
 native_string utf8_to_native(std::string_view str) {
 	WCHAR* buffer = new WCHAR[str.length() * 2];
 
-	auto chars_written = MultiByteToWideChar(
-	    CP_UTF8,
-	    MB_PRECOMPOSED,
-	    str.data(),
-	    int32_t(str.length()),
-	    buffer,
-	    int32_t(str.length() * 2));
+	auto chars_written = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 2));
 
 	std::wstring result(buffer, size_t(chars_written));
 
@@ -426,15 +383,7 @@ native_string utf8_to_native(std::string_view str) {
 std::string native_to_utf8(native_string_view str) {
 	char* buffer = new char[str.length() * 4];
 
-	auto chars_written = WideCharToMultiByte(
-	    CP_UTF8,
-	    0,
-	    str.data(),
-	    int32_t(str.length()),
-	    buffer,
-	    int32_t(str.length() * 4),
-	    nullptr,
-	    nullptr);
+	auto chars_written = WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 4), nullptr, nullptr);
 
 	std::string result(buffer, size_t(chars_written));
 
@@ -457,7 +406,7 @@ std::string remove_double_backslashes(std::string_view data_in) {
 	return res;
 }
 
-native_string correct_slashes(native_string const & path) {
+native_string correct_slashes(native_string const& path) {
 	std::wstring res;
 	res.reserve(path.size());
 	for(size_t i = 0; i < path.size(); i++) {

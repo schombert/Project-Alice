@@ -50,9 +50,9 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	 **/
 
 	// Todo: Get better colors?
-	uint32_t gp_color = 0x00FF00;        // Green
-	uint32_t inf_color = 0xFF0000;       // Blue
-	uint32_t sphere_color = 0x00FFFF;    // Yellow
+	uint32_t gp_color = 0x00FF00;		 // Green
+	uint32_t inf_color = 0xFF0000;		 // Blue
+	uint32_t sphere_color = 0x00FFFF;	 // Yellow
 	uint32_t other_inf_color = 0x0000FF; // Red
 
 	// Province color vector init

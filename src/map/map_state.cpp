@@ -10,19 +10,13 @@
 
 namespace map {
 
-dcon::province_id map_state::get_selected_province() {
-	return selected_province;
-}
+dcon::province_id map_state::get_selected_province() { return selected_province; }
 
 // Called to load the terrain and province map data
-void map_state::load_map_data(parsers::scenario_building_context& context) {
-	map_data.load_map_data(context);
-}
+void map_state::load_map_data(parsers::scenario_building_context& context) { map_data.load_map_data(context); }
 
 // Called to load the map. Will load the texture and shaders from disk
-void map_state::load_map(sys::state& state) {
-	map_data.load_map(state);
-}
+void map_state::load_map(sys::state& state) { map_data.load_map(state); }
 
 void map_state::set_selected_province(dcon::province_id prov_id) {
 	unhandled_province_selection = selected_province != prov_id;
@@ -88,14 +82,12 @@ void map_state::update(sys::state& state) {
 	map_data.update_borders(state);
 }
 
-void map_state::set_province_color(std::vector<uint32_t> const & prov_color, map_mode::mode new_map_mode) {
+void map_state::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
 	active_map_mode = new_map_mode;
 	map_data.set_province_color(prov_color);
 }
 
-void map_state::set_terrain_map_mode() {
-	active_map_mode = map_mode::mode::terrain;
-}
+void map_state::set_terrain_map_mode() { active_map_mode = map_mode::mode::terrain; }
 
 void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::LEFT) {
@@ -236,9 +228,7 @@ void map_state::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int
 	pos_velocity = glm::vec2(0);
 }
 
-void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
-	is_dragging = false;
-}
+void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) { is_dragging = false; }
 
 void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
 	auto mouse_pos = glm::vec2(x, y);

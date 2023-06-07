@@ -575,23 +575,18 @@ inline void invert_trigger_internal(uint16_t* source) {
 	}
 }
 
-void invert_trigger(uint16_t* source) {
-	trigger::recurse_over_triggers(source, invert_trigger_internal);
-}
+void invert_trigger(uint16_t* source) { trigger::recurse_over_triggers(source, invert_trigger_internal); }
 
-bool scope_is_empty(uint16_t const * source) {
-	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);
-}
+bool scope_is_empty(uint16_t const* source) { return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]); }
 // precondition: scope known to not be empty
-bool scope_has_single_member(uint16_t const * source) {
+bool scope_has_single_member(uint16_t const* source) {
 	auto const data_offset = 2 + trigger::trigger_scope_data_payload(source[0]);
 	return trigger::get_trigger_scope_payload_size(source) == data_offset + trigger::get_trigger_payload_size(source + data_offset);
 }
 
 // yields new source size
 int32_t simplify_trigger(uint16_t* source) {
-	assert(
-	    (0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
+	assert((0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
 		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing

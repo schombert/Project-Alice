@@ -233,17 +233,13 @@ struct ef_sub_unit {
 struct ef_set_variable {
 	float value = 0.0f;
 	dcon::national_variable_id which_;
-	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		which_ = context.outer_context.get_national_variable(std::string(v));
-	}
+	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) { which_ = context.outer_context.get_national_variable(std::string(v)); }
 	void finish(effect_building_context&) { }
 };
 struct ef_change_variable {
 	float value = 0.0f;
 	dcon::national_variable_id which_;
-	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		which_ = context.outer_context.get_national_variable(std::string(v));
-	}
+	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) { which_ = context.outer_context.get_national_variable(std::string(v)); }
 	void finish(effect_building_context&) { }
 };
 struct ef_ideology {
@@ -428,9 +424,7 @@ struct ef_build_fort_in_capital {
 
 struct ef_random_list {
 	int32_t chances_sum = 0;
-	void any_group(std::string_view label, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
-		chances_sum += value;
-	}
+	void any_group(std::string_view label, int32_t value, error_handler& err, int32_t line, effect_building_context& context) { chances_sum += value; }
 	void finish(effect_building_context&) { }
 };
 
@@ -1869,7 +1863,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void trigger_revolt(ef_trigger_revolt const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void trigger_revolt(ef_trigger_revolt const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(!value.type_) {
 			err.accumulated_errors += "trigger_revolt must have a valid rebel type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -1889,7 +1883,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.religion_).value);
 		context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
 	}
-	void diplomatic_influence(ef_diplomatic_influence const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void diplomatic_influence(ef_diplomatic_influence const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "diplomatic_influence effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -1928,7 +1922,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void relation(ef_relation const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void relation(ef_relation const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(is_from(value.who)) {
 				if(context.from_slot == trigger::slot_contents::nation)
@@ -2018,7 +2012,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void add_province_modifier(ef_add_province_modifier const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void add_province_modifier(ef_add_province_modifier const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::province) {
 			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2032,7 +2026,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value.duration)).value);
 		}
 	}
-	void add_country_modifier(ef_add_country_modifier const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void add_country_modifier(ef_add_country_modifier const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
 			if(value.duration <= 0) {
 				context.compiled_effect.push_back(effect::add_country_modifier_province_no_duration);
@@ -2056,7 +2050,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void casus_belli(ef_casus_belli const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void casus_belli(ef_casus_belli const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2113,7 +2107,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void add_casus_belli(ef_add_casus_belli const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void add_casus_belli(ef_add_casus_belli const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "add_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2170,7 +2164,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void remove_casus_belli(ef_remove_casus_belli const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void remove_casus_belli(ef_remove_casus_belli const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2223,7 +2217,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void this_remove_casus_belli(ef_this_remove_casus_belli const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void this_remove_casus_belli(ef_this_remove_casus_belli const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2276,7 +2270,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void war(ef_war const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void war(ef_war const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "war effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2322,7 +2316,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.attacker_goal.state_province_id_).value);
 		context.compiled_effect.push_back(trigger::payload(value.attacker_goal.country_).value);
 	}
-	void country_event(ef_country_event const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void country_event(ef_country_event const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(value.days <= 0) {
 				if(context.this_slot == trigger::slot_contents::nation)
@@ -2390,7 +2384,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void province_event(ef_province_event const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void province_event(ef_province_event const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
 			if(value.days <= 0) {
 				if(context.this_slot == trigger::slot_contents::nation)
@@ -2428,7 +2422,7 @@ struct effect_body {
 		}
 	}
 
-	void sub_unit(ef_sub_unit const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void sub_unit(ef_sub_unit const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(is_this(value.value)) {
 			if(context.main_slot != trigger::slot_contents::nation || context.this_slot != trigger::slot_contents::province) {
 				err.accumulated_errors += "sub_unit effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2463,7 +2457,7 @@ struct effect_body {
 			}
 		}
 	}
-	void set_variable(ef_set_variable const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void set_variable(ef_set_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "set_variable effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2472,7 +2466,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
 	}
-	void change_variable(ef_change_variable const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void change_variable(ef_change_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "change_variable effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2481,7 +2475,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
 	}
-	void ideology(ef_ideology const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
 			err.accumulated_errors += "ideology effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2490,7 +2484,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.value_).value);
 		context.add_float_to_payload(value.factor);
 	}
-	void dominant_issue(ef_dominant_issue const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void dominant_issue(ef_dominant_issue const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(effect::dominant_issue);
 			context.compiled_effect.push_back(trigger::payload(value.value_).value);
@@ -2504,7 +2498,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void upper_house(ef_upper_house const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void upper_house(ef_upper_house const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "upper_house effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2513,7 +2507,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
 		context.add_float_to_payload(value.value);
 	}
-	void scaled_militancy(ef_scaled_militancy const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void scaled_militancy(ef_scaled_militancy const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			if(bool(value.ideology_)) {
 				context.compiled_effect.push_back(effect::scaled_militancy_ideology);
@@ -2571,7 +2565,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void scaled_consciousness(ef_scaled_consciousness const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void scaled_consciousness(ef_scaled_consciousness const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			if(bool(value.ideology_)) {
 				context.compiled_effect.push_back(effect::scaled_consciousness_ideology);
@@ -2629,9 +2623,9 @@ struct effect_body {
 			return;
 		}
 	}
-	void define_general(ef_define_general const & value, error_handler& err, int32_t line, effect_building_context& context);
-	void define_admiral(ef_define_admiral const & value, error_handler& err, int32_t line, effect_building_context& context);
-	void add_war_goal(ef_add_war_goal const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context);
+	void define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context);
+	void add_war_goal(ef_add_war_goal const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation || context.from_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "add_war_goal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2639,7 +2633,7 @@ struct effect_body {
 		context.compiled_effect.push_back(effect::add_war_goal);
 		context.compiled_effect.push_back(trigger::payload(value.casus_belli_).value);
 	}
-	void move_issue_percentage(ef_move_issue_percentage const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void move_issue_percentage(ef_move_issue_percentage const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation)
 			context.compiled_effect.push_back(effect::move_issue_percentage_nation);
 		else if(context.main_slot == trigger::slot_contents::state)
@@ -2656,7 +2650,7 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.to_).value);
 		context.add_float_to_payload(value.value);
 	}
-	void party_loyalty(ef_party_loyalty const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void party_loyalty(ef_party_loyalty const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(bool(value.province_id_)) {
 			context.compiled_effect.push_back(effect::party_loyalty);
 			context.compiled_effect.push_back(trigger::payload(value.province_id_).value);
@@ -2671,7 +2665,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void build_railway_in_capital(ef_build_railway_in_capital const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void build_railway_in_capital(ef_build_railway_in_capital const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "build_railway_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2685,7 +2679,7 @@ struct effect_body {
 		else
 			context.compiled_effect.push_back(uint16_t(effect::build_railway_in_capital_no_whole_state_no_limit | effect::no_payload));
 	}
-	void build_fort_in_capital(ef_build_fort_in_capital const & value, error_handler& err, int32_t line, effect_building_context& context) {
+	void build_fort_in_capital(ef_build_fort_in_capital const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "build_fort_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -2743,18 +2737,14 @@ struct effect_body {
 			return;
 		}
 	}
-	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) {
-		context.compiled_effect[context.limit_position] = trigger::payload(lim).value;
-	}
+	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) { context.compiled_effect[context.limit_position] = trigger::payload(lim).value; }
 };
 
 struct event_option : public effect_body {
 	dcon::value_modifier_key ai_chance;
 	dcon::text_sequence_id name_;
 
-	void name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		name_ = text::find_or_add_key(context.outer_context.state, value);
-	}
+	void name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) { name_ = text::find_or_add_key(context.outer_context.state, value); }
 };
 
 dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handler& err, effect_building_context& context);

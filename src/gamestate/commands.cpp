@@ -5,9 +5,7 @@
 namespace command {
 
 bool console_command(sys::state& state, command_type t) {
-	if(t == command_type::switch_nation)
-		return true;
-	return false;
+	return (uint8_t(t) & 0x80) != 0;
 }
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus) {
@@ -47,10 +45,9 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 				return false;
 
 			bool state_contains_core = false;
-			province::for_each_province_in_state_instance(state, target_state, [&](dcon::province_id p) {
-				state_contains_core = state_contains_core || bool(state.world.get_core_by_prov_tag_key(p, ident));
-			});
-			return state_contains_core && state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank) && focus == state.national_definitions.flashpoint_focus && (num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) && bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
+			province::for_each_province_in_state_instance(state, target_state, [&](dcon::province_id p) { state_contains_core = state_contains_core || bool(state.world.get_core_by_prov_tag_key(p, ident)); });
+			return state_contains_core && state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank) && focus == state.national_definitions.flashpoint_focus && (num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
+				   bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
 		}
 	}
 }
@@ -112,9 +109,7 @@ void make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	p.data.make_leader.is_general = general;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) {
-	return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost;
-}
+bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) { return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost; }
 void execute_make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	if(!can_make_leader(state, source, general))
 		return;
@@ -132,14 +127,15 @@ void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/* Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
+	/* Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is
+	 * defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && state.world.unilateral_relationship_get_war_subsidies(rel))
-		return false;                                                                                    // Can't already be giving war subsidies
+		return false;																					 // Can't already be giving war subsidies
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.warsubsidy_diplomatic_cost; // Enough diplomatic points
 }
 void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -161,14 +157,15 @@ void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::natio
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/* Can only perform if, the nations are not at war, the nation is already being given war subsidies, and there is defines:CANCELWARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
+	/* Can only perform if, the nations are not at war, the nation is already being given war subsidies, and there is
+	 * defines:CANCELWARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && !state.world.unilateral_relationship_get_war_subsidies(rel))
-		return false;                                                                                          // Must already be giving war subsidies
+		return false;																						   // Must already be giving war subsidies
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.cancelwarsubsidy_diplomatic_cost; // Enough diplomatic points
 }
 void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -190,14 +187,15 @@ void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender. */
+	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has
+	 * defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender. */
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
 	if(rel && state.world.diplomatic_relation_get_value(rel) >= 200.f)
-		return false;                                                                                          // Maxxed out
+		return false;																						   // Maxxed out
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.increaserelation_diplomatic_cost; // Enough diplomatic points
 }
 void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -217,14 +215,15 @@ void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And not done to self. */
+	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has
+	 * defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And not done to self. */
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
 	if(rel && state.world.diplomatic_relation_get_value(rel) <= -200.f)
-		return false;                                                                                          // Maxxed out
+		return false;																						   // Maxxed out
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.decreaserelation_diplomatic_cost; // Enough diplomatic points
 }
 void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -313,9 +312,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	if(!is_upgrade) {
 		// Check factories being built
 		bool has_dup = false;
-		economy::for_each_new_factory(state, location, [&](economy::new_factory const & nf) {
-			has_dup = has_dup || nf.type == type;
-		});
+		economy::for_each_new_factory(state, location, [&](economy::new_factory const& nf) { has_dup = has_dup || nf.type == type; });
 		if(has_dup)
 			return false;
 
@@ -330,7 +327,9 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 	if(owner != source) {
 		/*
-		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great power
+		while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation
+		being invested in must be civilized.
 		*/
 		if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
 			return false;
@@ -544,9 +543,7 @@ void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, d
 	auto b = state.incoming_commands.try_push(p);
 }
 
-bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
-	return state.world.province_get_nation_from_province_ownership(location) == source;
-}
+bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) { return state.world.province_get_nation_from_province_ownership(location) == source; }
 
 void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	if(!can_cancel_naval_unit_construction(state, source, location, type))
@@ -571,9 +568,7 @@ void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dc
 	p.data.land_unit_construction.pop_culture = soldier_culture;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
-	return state.world.province_get_nation_from_province_ownership(location) == source;
-}
+bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) { return state.world.province_get_nation_from_province_ownership(location) == source; }
 void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 
 	if(!can_cancel_land_unit_construction(state, source, location, soldier_culture, type))
@@ -690,9 +685,7 @@ void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_ident
 	p.data.tag_target.ident = t;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	return nations::can_release_as_vassal(state, source, t);
-}
+bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) { return nations::can_release_as_vassal(state, source, t); }
 void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	if(!can_make_vassal(state, source, t))
 		return;
@@ -719,9 +712,7 @@ void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::nation
 	p.data.tag_target.ident = t;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	return nations::can_release_as_vassal(state, source, t);
-}
+bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) { return nations::can_release_as_vassal(state, source, t); }
 void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	if(!can_release_and_play_as(state, source, t))
 		return;
@@ -753,7 +744,7 @@ void change_budget_settings(sys::state& state, dcon::nation_id source, budget_se
 	p.data.budget_data = values;
 	auto b = state.incoming_commands.try_push(p);
 }
-void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const & values) {
+void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
 	if(!can_change_budget_settings(state, source, values))
 		return;
 
@@ -860,7 +851,10 @@ void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_
 }
 bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	The source must be a great power. The source must have define:DISCREDIT_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To discredit a nation, you must have an opinion of at least "opposed" with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are discrediting does.
+	The source must be a great power. The source must have define:DISCREDIT_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. To discredit a nation, you must have an opinion of at least "opposed" with the influenced nation and
+	you must have a an equal or better opinion level with the influenced nation than the nation you are discrediting does.
 	*/
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) || state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -896,7 +890,9 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 		return;
 
 	/*
-	A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just resets the timer from the current day. Discrediting a nation "increases" your relationship with them by define:DISCREDIT_RELATION_ON_ACCEPT. Discrediting costs define:DISCREDIT_INFLUENCE_COST influence points.
+	A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just resets the
+	timer from the current day. Discrediting a nation "increases" your relationship with them by define:DISCREDIT_RELATION_ON_ACCEPT.
+	Discrediting costs define:DISCREDIT_INFLUENCE_COST influence points.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
@@ -920,7 +916,10 @@ void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id i
 }
 bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	The source must be a great power. The source must have define:EXPELADVISORS_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To expel advisors you must have at least neutral opinion with the influenced nation and an equal or better opinion level than that of the nation you are expelling.
+	The source must be a great power. The source must have define:EXPELADVISORS_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. To expel advisors you must have at least neutral opinion with the influenced nation and an equal or
+	better opinion level than that of the nation you are expelling.
 	*/
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) || state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -952,7 +951,9 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 		return;
 
 	/*
-	Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action costs define:EXPELADVISORS_INFLUENCE_COST influence points. Being expelled cancels any ongoing discredit effect. Being expelled reduces your influence to zero.
+	Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action costs
+	define:EXPELADVISORS_INFLUENCE_COST influence points. Being expelled cancels any ongoing discredit effect. Being expelled reduces your
+	influence to zero.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
@@ -977,7 +978,10 @@ void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id infl
 }
 bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	The source must be a great power. The source must have define:BANEMBASSY_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To ban a nation you must be at least friendly with the influenced nation and have an equal or better opinion level than that of the nation you are expelling.
+	The source must be a great power. The source must have define:BANEMBASSY_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. To ban a nation you must be at least friendly with the influenced nation and have an equal or better
+	opinion level than that of the nation you are expelling.
 	*/
 
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) || state.world.nation_get_is_great_power(influence_target))
@@ -1010,7 +1014,9 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 		return;
 
 	/*
-	Banning a nation's embassy "increases" your relationship with them by define:BANEMBASSY_RELATION_ON_ACCEPT. This action costs define:BANEMBASSY_INFLUENCE_COST influence points. The ban embassy effect lasts for define:BANEMBASSY_DAYS. If you are already banned, being banned again simply restarts the timer. Being banned cancels out any ongoing discredit effect.
+	Banning a nation's embassy "increases" your relationship with them by define:BANEMBASSY_RELATION_ON_ACCEPT. This action costs
+	define:BANEMBASSY_INFLUENCE_COST influence points. The ban embassy effect lasts for define:BANEMBASSY_DAYS. If you are already banned,
+	being banned again simply restarts the timer. Being banned cancels out any ongoing discredit effect.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
@@ -1033,7 +1039,9 @@ void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id
 }
 bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
 	/*
-	The source must be a great power. The source must have define:INCREASEOPINION_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. Your current opinion must be less than friendly
+	The source must be a great power. The source must have define:INCREASEOPINION_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. Your current opinion must be less than friendly
 	*/
 	if(!state.world.nation_get_is_great_power(source) || state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1062,7 +1070,8 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 		return;
 
 	/*
-	Increasing the opinion of a nation costs define:INCREASEOPINION_INFLUENCE_COST influence points. Opinion can be increased to a maximum of friendly.
+	Increasing the opinion of a nation costs define:INCREASEOPINION_INFLUENCE_COST influence points. Opinion can be increased to a maximum
+	of friendly.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
@@ -1082,7 +1091,12 @@ void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id
 }
 bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	The source must be a great power. The source must have define:DECREASEOPINION_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. Decreasing the opinion of another nation requires that you have an opinion of at least "opposed" with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are lowering their opinion of does. The secondary target must neither have the influenced nation in sphere nor may it already be at hostile opinion with them.
+	The source must be a great power. The source must have define:DECREASEOPINION_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. Decreasing the opinion of another nation requires that you have an opinion of at least "opposed"
+	with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are
+	lowering their opinion of does. The secondary target must neither have the influenced nation in sphere nor may it already be at
+	hostile opinion with them.
 	*/
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) || state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1117,7 +1131,9 @@ bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 }
 void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	Decreasing the opinion of a nation "increases" your relationship with them by define:DECREASEOPINION_RELATION_ON_ACCEPT. This actions costs define:DECREASEOPINION_INFLUENCE_COST influence points. Opinion of the influenced nation of the secondary target decreases by one step.
+	Decreasing the opinion of a nation "increases" your relationship with them by define:DECREASEOPINION_RELATION_ON_ACCEPT. This actions
+	costs define:DECREASEOPINION_INFLUENCE_COST influence points. Opinion of the influenced nation of the secondary target decreases by
+	one step.
 	*/
 	if(!can_decrease_opinion(state, source, influence_target, affected_gp))
 		return;
@@ -1144,7 +1160,9 @@ void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id in
 }
 bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
 	/*
-	The source must be a great power. The source must have define:ADDTOSPHERE_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. The nation must have a friendly opinion of you and my not be in the sphere of another nation.
+	The source must be a great power. The source must have define:ADDTOSPHERE_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. The nation must have a friendly opinion of you and my not be in the sphere of another nation.
 	*/
 	if(!state.world.nation_get_is_great_power(source) || state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1195,7 +1213,10 @@ void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_
 }
 bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	The source must be a great power. The source must have define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To preform this action you must have an opinion level of friendly with the nation you are removing from a sphere.
+	The source must be a great power. The source must have define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. The source may not be
+	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
+	secondary target for this action. To preform this action you must have an opinion level of friendly with the nation you are removing
+	from a sphere.
 	*/
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) || state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1224,7 +1245,10 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 }
 void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
-	Removing a nation from a sphere costs define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. If you remove a nation from your own sphere you lose define:REMOVEFROMSPHERE_PRESTIGE_COST prestige and gain define:REMOVEFROMSPHERE_INFAMY_COST infamy. Removing a nation from the sphere of another nation "increases" your relationship with the former sphere leader by define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. The removed nation then becomes friendly with its former sphere leader.
+	Removing a nation from a sphere costs define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. If you remove a nation from your own
+	sphere you lose define:REMOVEFROMSPHERE_PRESTIGE_COST prestige and gain define:REMOVEFROMSPHERE_INFAMY_COST infamy. Removing a nation
+	from the sphere of another nation "increases" your relationship with the former sphere leader by
+	define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. The removed nation then becomes friendly with its former sphere leader.
 	*/
 	if(!can_remove_from_sphere(state, source, influence_target, affected_gp))
 		return;
@@ -1255,9 +1279,7 @@ void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::st
 	p.data.generic_location.prov = state.world.state_instance_get_capital(si);
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
-	return state.world.state_instance_get_nation_from_state_ownership(si) == source && province::can_integrate_colony(state, si);
-}
+bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) { return state.world.state_instance_get_nation_from_state_ownership(si) == source && province::can_integrate_colony(state, si); }
 void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
 	if(!can_upgrade_colony_to_state(state, source, si))
 		return;
@@ -1341,7 +1363,9 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 				rel.set_last_investment(state.current_date);
 
 				/*
-				If you get define:COLONIZATION_INTEREST_LEAD points it moves into phase 2, kicking out all but the second-most colonizer (in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
+				If you get define:COLONIZATION_INTEREST_LEAD points it moves into phase 2, kicking out all but the second-most colonizer
+				(in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the
+				other colonizer is kicked out and the phase moves to 3.
 				*/
 				if(state.world.state_definition_get_colonization_stage(state_def) == 1) {
 					if(rel.get_level() >= int32_t(state.defines.colonization_interest_lead)) {
@@ -1473,7 +1497,8 @@ void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w,
 }
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
 	/*
-	Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE since the war started.
+	Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE since the
+	war started.
 	*/
 	if(!nations::is_great_power(state, source))
 		return false;
@@ -1483,7 +1508,9 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		return false;
 
 	/*
-	Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a war against your sphere leader or overlord (doesn't apply here obviously). Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
+	Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a war against your
+	sphere leader or overlord (doesn't apply here obviously). Can't join a crisis war prior to great wars being invented (i.e. you have to
+	be in the crisis). Can't join as an attacker against someone you have a truce with.
 	*/
 	if(!military::joining_war_does_not_violate_constraints(state, source, w, for_attacker))
 		return false;
@@ -1495,7 +1522,8 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 	if(!state.world.war_get_is_great(w)) {
 		/*
 		If it is not a great war:
-		Must be at least friendly with the primary defender. May only join on the defender's side. Defenders must either have no wargoals or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less.
+		Must be at least friendly with the primary defender. May only join on the defender's side. Defenders must either have no wargoals
+		or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less.
 		*/
 
 		if(for_attacker)
@@ -1508,10 +1536,9 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		/*
 		If the war is a great war:
 		It is then possible to join the attacking side as well.
-		Must have define:GW_INTERVENE_MIN_RELATIONS with the primary defender/attacker to intervene, must have at most define:GW_INTERVENE_MAX_EXHAUSTION war exhaustion.
-		Can't join if any nation in your sphere is on the other side
-		Can't join if you are allied to any allied to any nation on the other side
-		Can't join if you have units within a nation on the other side
+		Must have define:GW_INTERVENE_MIN_RELATIONS with the primary defender/attacker to intervene, must have at most
+		define:GW_INTERVENE_MAX_EXHAUSTION war exhaustion. Can't join if any nation in your sphere is on the other side Can't join if you
+		are allied to any allied to any nation on the other side Can't join if you have units within a nation on the other side
 		*/
 		if(state.world.nation_get_war_exhaustion(source) >= state.defines.gw_intervene_max_exhaustion)
 			return false;
@@ -1606,9 +1633,7 @@ void civilize_nation(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_civilize_nation(sys::state& state, dcon::nation_id source) {
-	return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f;
-}
+bool can_civilize_nation(sys::state& state, dcon::nation_id source) { return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f; }
 void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
 	if(!can_civilize_nation(state, source))
 		return;
@@ -1625,7 +1650,9 @@ void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::polit
 }
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p) {
 	/*
-	The ideology of the ruling party must be permitted by the government form. There can't be an ongoing election. It can't be the current ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed at most once per year.
+	The ideology of the ruling party must be permitted by the government form. There can't be an ongoing election. It can't be the current
+	ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed at most once per
+	year.
 	*/
 	if(state.world.nation_get_ruling_party(source) == p)
 		return false;
@@ -1746,7 +1773,9 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 
 	/*
 	For political and social based reforms:
-	- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a movement; all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /  support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
+	- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a movement;
+	all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /
+	support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
 	*/
 	auto winner = rebel::get_movement_by_position(state, source, i);
 	float winner_support = winner ? state.world.movement_get_pop_support(winner) : 1.0f;
@@ -1758,7 +1787,8 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 	}
 
 	/*
-	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal) militancy
+	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing the
+	opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal) militancy
 	*/
 	auto issue = state.world.issue_option_get_parent_issue(i);
 	auto current = state.world.nation_get_issues(source, issue.id).id;
@@ -1767,9 +1797,7 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 	for(auto id : state.world.in_ideology) {
 
 		auto condition =
-		    is_social
-		        ? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
-		        : (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
+			is_social ? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id)) : (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
 		if(condition) {
 			auto factor = trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
 			auto const idsupport_key = pop_demographics::to_key(state, id);
@@ -1787,7 +1815,8 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 	/*
 	- Each pop in the nation gains defines:CON_REFORM_IMPACT x pop support of the issue consciousness
 
-	- If the pop is part of a movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
+	- If the pop is part of a movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT
+	militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
 	*/
 
 	auto const isupport_key = pop_demographics::to_key(state, i);
@@ -1880,7 +1909,8 @@ void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_a
 }
 bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
 	/*
-	Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The crisis must have already gotten its initial backers.
+	Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The crisis
+	must have already gotten its initial backers.
 	*/
 
 	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
@@ -1958,7 +1988,7 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index() << 4 ^ d.index()));
 }
 
-void make_event_choice(sys::state& state, event::pending_human_n_event const & e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_n_event_choice;
@@ -1974,7 +2004,7 @@ void make_event_choice(sys::state& state, event::pending_human_n_event const & e
 	p.data.pending_human_n_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void make_event_choice(sys::state& state, event::pending_human_f_n_event const & e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_f_n_event_choice;
@@ -1986,7 +2016,7 @@ void make_event_choice(sys::state& state, event::pending_human_f_n_event const &
 	p.data.pending_human_f_n_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void make_event_choice(sys::state& state, event::pending_human_p_event const & e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_p_event_choice;
@@ -2001,7 +2031,7 @@ void make_event_choice(sys::state& state, event::pending_human_p_event const & e
 	p.data.pending_human_p_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void make_event_choice(sys::state& state, event::pending_human_f_p_event const & e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_f_p_event_choice;
@@ -2014,19 +2044,15 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const &
 	p.data.pending_human_f_p_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const & e) {
-	event::take_option(state, event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft, e.e, source, e.date}, e.opt_choice);
-}
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const & e) {
-	event::take_option(state, event::pending_human_f_n_event{e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
-}
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const & e) {
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) { event::take_option(state, event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft, e.e, source, e.date}, e.opt_choice); }
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) { event::take_option(state, event::pending_human_f_n_event{e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice); }
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
 	event::take_option(state, event::pending_human_p_event{e.r_lo, e.r_hi, e.from_slot, e.ft, e.e, e.p, e.date}, e.opt_choice);
 }
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const & e) {
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
@@ -2050,7 +2076,8 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 		return false;
 
 	/*
-	Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members
+	Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires
+	defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members
 	*/
 
 	auto ol = state.world.nation_get_overlord_as_subject(source);
@@ -2116,11 +2143,12 @@ void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nat
 }
 bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
 	/*
-	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have military access.
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have
+	military access.
 	*/
 	if(asker == target)
 		return false;
-	
+
 	if(state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
@@ -2158,7 +2186,8 @@ void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 }
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
 	/*
-	Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points. Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with their overlords.
+	Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points. Great
+	powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with their overlords.
 	*/
 	if(asker == target)
 		return false;
@@ -2278,7 +2307,7 @@ void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nat
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target)
 		return false;
-	
+
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelaskmilaccess_diplomatic_cost)
 		return false;
@@ -2340,7 +2369,7 @@ void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id 
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target)
 		return false;
-	
+
 	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelalliance_diplomatic_cost)
 		return false;
 
@@ -2384,7 +2413,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
 	if(state.world.overlord_get_ruler(target_ol_rel))
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
-	
+
 	if(source == target || source == real_target)
 		return false;
 
@@ -2398,7 +2427,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
 	if(state.world.overlord_get_ruler(source_ol_rel) && state.world.overlord_get_ruler(source_ol_rel) != real_target)
 		return false;
-	
+
 	if(state.world.nation_get_in_sphere_of(real_target) == source)
 		return false;
 
@@ -2471,7 +2500,10 @@ void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dco
 }
 bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
 	/*
-	The nation adding the war goal must have positive war score against the target of the war goal (see below). And the nation must be already able to use the CB in question (e.g. it as fabricated previously) or it must be a constructible CB and the nation adding the war goal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
+	The nation adding the war goal must have positive war score against the target of the war goal (see below). And the nation must be
+	already able to use the CB in question (e.g. it as fabricated previously) or it must be a constructible CB and the nation adding the
+	war goal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great
+	war).
 	*/
 	if(source == target)
 		return false;
@@ -2551,14 +2583,13 @@ bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	if(!can_switch_nation(state, source, t))
 		return;
-	
+
 	state.world.nation_set_is_player_controlled(state.local_player_nation, false);
 	if(source == state.local_player_nation) {
 		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(t);
 	}
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 }
-
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
 	payload p;
@@ -2598,8 +2629,7 @@ bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nati
 	}
 
 	if(state.world.war_get_is_crisis_war(war)) {
-		if((state.world.war_get_primary_attacker(war) != source || state.world.war_get_primary_defender(war) != target) &&
-		   (state.world.war_get_primary_attacker(war) != target || state.world.war_get_primary_defender(war) != source)) {
+		if((state.world.war_get_primary_attacker(war) != source || state.world.war_get_primary_defender(war) != target) && (state.world.war_get_primary_attacker(war) != target || state.world.war_get_primary_defender(war) != source)) {
 
 			return false; // no separate peace
 		}
@@ -2640,10 +2670,8 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 		return false;
 
 	int32_t total = military::cost_of_peace_offer(state, pending);
-	int32_t new_wg_cost = military::peace_cost(state, war, wg.get_type(), wg.get_added_by(),
-		                    wg.get_target_nation(), wg.get_secondary_nation(),
-		                    wg.get_associated_state(), wg.get_associated_tag());
-	
+	int32_t new_wg_cost = military::peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+
 	if(total + new_wg_cost > 100)
 		return false;
 
@@ -2719,6 +2747,82 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 
 		diplomatic_message::post(state, m);
 	}
+}
+
+void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_diplo_points;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_diplo_points(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_diplomatic_points(source) += value;
+}
+void c_change_money(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_money;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_money(sys::state& state, dcon::nation_id source, float value) {
+	//state.world.nation_get_diplomatic_points(source) += value;
+}
+void c_westernize(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_westernize;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_westernize(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_civilized(source, true);
+}
+void c_unwesternize(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_unwesternize;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_unwesternize(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_civilized(source, false);
+}
+void c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_research_points;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_research_points(source) += value;
+}
+void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_cb_progress;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_cb_progress(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_constructing_cb_progress(source) += value;
+}
+void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_infamy;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_infamy(source) += value;
 }
 
 void execute_pending_commands(sys::state& state) {
@@ -2899,9 +3003,6 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::add_war_goal:
 			execute_add_war_goal(state, c->source, c->data.new_war_goal.war, c->data.new_war_goal.target, c->data.new_war_goal.cb_type, c->data.new_war_goal.cb_state, c->data.new_war_goal.cb_tag, c->data.new_war_goal.cb_secondary_nation);
 			break;
-		case command_type::switch_nation:
-			execute_switch_nation(state, c->source, c->data.tag_target.ident);
-			break;
 		case command_type::start_peace_offer:
 			execute_start_peace_offer(state, c->source, c->data.new_offer.target, c->data.new_offer.war, c->data.new_offer.is_concession);
 			break;
@@ -2910,6 +3011,31 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::send_peace_offer:
 			execute_send_peace_offer(state, c->source);
+			break;
+		// console commands
+		case command_type::switch_nation:
+			execute_switch_nation(state, c->source, c->data.tag_target.ident);
+			break;
+		case command_type::c_change_diplo_points:
+			execute_c_change_diplo_points(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_change_money:
+			execute_c_change_money(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_westernize:
+			execute_c_westernize(state, c->source);
+			break;
+		case command_type::c_unwesternize:
+			execute_c_unwesternize(state, c->source);
+			break;
+		case command_type::c_change_research_points:
+			execute_c_change_research_points(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_change_cb_progress:
+			execute_c_change_cb_progress(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_change_infamy:
+			execute_c_change_infamy(state, c->source, c->data.cheat.value);
 			break;
 		}
 

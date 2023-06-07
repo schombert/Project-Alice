@@ -42,8 +42,7 @@ struct map_vertex {
 };
 struct border_vertex {
 	border_vertex(){};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id)
-	    : position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id){};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id) : position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id){};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
@@ -68,7 +67,7 @@ public:
 	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
-	void set_province_color(std::vector<uint32_t> const & prov_color);
+	void set_province_color(std::vector<uint32_t> const& prov_color);
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -118,6 +117,6 @@ private:
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
-	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const & prov_color, uint8_t layers = 1);
+	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 } // namespace map

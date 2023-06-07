@@ -6,8 +6,7 @@
 
 namespace ui {
 
-template<bool Left>
-class diplomacy_request_lr_button : public button_element_base {
+template<bool Left> class diplomacy_request_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -25,8 +24,7 @@ public:
 struct diplomacy_reply_taken_notification {
 	int dummy = 0;
 };
-template<bool B>
-class diplomacy_request_reply_button : public button_element_base {
+template<bool B> class diplomacy_request_reply_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -157,9 +155,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
-			return m.when + diplomatic_message::expiration_in_days <= state.current_date;
-		});
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) { return m.when + diplomatic_message::expiration_in_days <= state.current_date; });
 		auto r = std::distance(it, messages.end());
 		messages.erase(it, messages.end());
 

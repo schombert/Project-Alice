@@ -22,8 +22,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			disabled = !command::can_release_and_play_as(state, state.local_player_nation, niid);
 		}
 	}
@@ -32,8 +31,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			command::release_and_play_as(state, state.local_player_nation, niid);
 			parent->set_visible(state, false);
 		}
@@ -46,8 +44,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			disabled = !command::can_make_vassal(state, state.local_player_nation, niid);
 		}
 	}
@@ -56,8 +53,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			command::make_vassal(state, state.local_player_nation, niid);
 			parent->set_visible(state, false); // Close parent window automatically
 		}
@@ -73,9 +69,7 @@ public:
 		return "";
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
 };
 
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
@@ -113,16 +107,13 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
-			Cyto::Any e_payload = release_emplace_wrapper{nid};
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
+			Cyto::Any e_payload = release_emplace_wrapper{state.world.national_identity_get_nation_from_identity_holder(niid)};
 			parent->impl_get(state, e_payload);
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -152,9 +143,7 @@ public:
 
 class release_nation_listbox : public listbox_element_base<release_nation_option, dcon::national_identity_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "vassal_nation";
-	}
+	std::string_view get_row_element_name() override { return "vassal_nation"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {

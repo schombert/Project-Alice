@@ -16,13 +16,10 @@
 #define WM_GRAPHNOTIFY (WM_APP + 1)
 
 namespace window {
-	bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) {
-		return GetKeyState(int32_t(key)) & 0x8000;
-	}
 
-bool is_in_fullscreen(sys::state const & game_state) {
-	return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen;
-}
+bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) { return GetKeyState(int32_t(key)) & 0x8000; }
+
+bool is_in_fullscreen(sys::state const& game_state) { return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen; }
 
 void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 	if(game_state.win_ptr && game_state.win_ptr->hwnd && game_state.win_ptr->in_fullscreen != fullscreen) {
@@ -77,12 +74,8 @@ void close_window(sys::state& game_state) {
 		PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 }
 
-bool is_low_surrogate(uint16_t char_code) noexcept {
-	return char_code >= 0xDC00 && char_code <= 0xDFFF;
-}
-bool is_high_surrogate(uint16_t char_code) noexcept {
-	return char_code >= 0xD800 && char_code <= 0xDBFF;
-}
+bool is_low_surrogate(uint16_t char_code) noexcept { return char_code >= 0xDC00 && char_code <= 0xDFFF; }
+bool is_high_surrogate(uint16_t char_code) noexcept { return char_code >= 0xD800 && char_code <= 0xDBFF; }
 
 char process_utf16_to_win1250(wchar_t c) {
 	if(c <= 127)
@@ -95,10 +88,8 @@ char process_utf16_to_win1250(wchar_t c) {
 }
 
 sys::key_modifiers get_current_modifiers() {
-	uint32_t val =
-	    uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) |
-	    uint32_t((GetKeyState(VK_MENU) & 0x8000) ? sys::key_modifiers::modifiers_alt : sys::key_modifiers::modifiers_none) |
-	    uint32_t((GetKeyState(VK_SHIFT) & 0x8000) ? sys::key_modifiers::modifiers_shift : sys::key_modifiers::modifiers_none);
+	uint32_t val = uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) | uint32_t((GetKeyState(VK_MENU) & 0x8000) ? sys::key_modifiers::modifiers_alt : sys::key_modifiers::modifiers_none) |
+				   uint32_t((GetKeyState(VK_SHIFT) & 0x8000) ? sys::key_modifiers::modifiers_shift : sys::key_modifiers::modifiers_none);
 	return sys::key_modifiers(val);
 }
 
@@ -230,7 +221,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->y_size = HIWORD(lParam);
 
 		// TODO MAP CAMERA HERE CODE HERE
-		// state->map_camera = map::flat_camera(glm::vec2{ state->x_size, state->y_size }, glm::vec2{ state->map_provinces_texture.size_x, state->map_provinces_texture.size_y });
+		// state->map_camera = map::flat_camera(glm::vec2{ state->x_size, state->y_size }, glm::vec2{ state->map_provinces_texture.size_x,
+		// state->map_provinces_texture.size_y });
 
 		return 0;
 	};
@@ -280,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
-void create_window(sys::state& game_state, creation_parameters const & params) {
+void create_window(sys::state& game_state, creation_parameters const& params) {
 	game_state.win_ptr = std::make_unique<window_data_impl>();
 	game_state.win_ptr->creation_x_size = params.size_x;
 	game_state.win_ptr->creation_y_size = params.size_y;
@@ -304,24 +296,9 @@ void create_window(sys::state& game_state, creation_parameters const & params) {
 		std::abort();
 	}
 
-	DWORD win32Style =
-	    !params.borderless_fullscreen
-	        ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS)
-	        : WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+	DWORD win32Style = !params.borderless_fullscreen ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS) : WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-	game_state.win_ptr->hwnd = CreateWindowExW(
-	    0,
-	    L"project_alice_class",
-	    L"Project Alice",
-	    win32Style,
-	    CW_USEDEFAULT,
-	    CW_USEDEFAULT,
-	    0,
-	    0,
-	    NULL,
-	    NULL,
-	    GetModuleHandleW(nullptr),
-	    &game_state);
+	game_state.win_ptr->hwnd = CreateWindowExW(0, L"project_alice_class", L"Project Alice", win32Style, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, GetModuleHandleW(nullptr), &game_state);
 
 	if(!game_state.win_ptr->hwnd)
 		return;
@@ -396,7 +373,7 @@ void create_window(sys::state& game_state, creation_parameters const & params) {
 	}
 }
 
-void emit_error_message(std::string const & content, bool fatal) {
+void emit_error_message(std::string const& content, bool fatal) {
 	MessageBoxA(nullptr, content.c_str(), fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:", MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
 	if(fatal) {
 		std::terminate();

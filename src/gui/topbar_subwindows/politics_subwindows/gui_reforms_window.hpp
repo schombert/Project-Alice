@@ -28,9 +28,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -79,9 +77,7 @@ public:
 
 class reforms_listbox : public listbox_element_base<reforms_option, dcon::issue_option_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "reform_option_window";
-	}
+	std::string_view get_row_element_name() override { return "reform_option_window"; }
 
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

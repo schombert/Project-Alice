@@ -77,9 +77,7 @@ public:
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
 
-	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base::on_create(state);
-	}
+	void on_create(sys::state& state) noexcept override { listbox_row_element_base::on_create(state); }
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "build_button") {
@@ -120,17 +118,17 @@ public:
 				unit_name->set_text(state, culture_content + " " + unit_type_name);
 
 				/* if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].primary_culture) {
-				    if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
-				        int cult_it = 0;
-				        for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
-				            if(culture_id.id == element) {
-				                cult_it++;
-				            }
-				        }
-				        if(cult_it == 0) {
-				            set_visible(state, false);
-				        }
-				    }
+					if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+						int cult_it = 0;
+						for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+							if(culture_id.id == element) {
+								cult_it++;
+							}
+						}
+						if(cult_it == 0) {
+							set_visible(state, false);
+						}
+					}
 				}*/
 			} else {
 				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
@@ -152,9 +150,7 @@ public:
 
 class units_build_listbox : public listbox_element_base<units_build_item, buildable_unit_entry_info> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "build_unit_entry_wide";
-	}
+	std::string_view get_row_element_name() override { return "build_unit_entry_wide"; }
 
 public:
 	// false == army
@@ -274,9 +270,7 @@ public:
 
 class units_queue_listbox : public listbox_element_base<units_queue_item, std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "queue_unit_entry";
-	}
+	std::string_view get_row_element_name() override { return "queue_unit_entry"; }
 
 public:
 	// false == army
@@ -290,13 +284,9 @@ public:
 			parent->impl_get(state, payload);
 			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
 			if(is_navy == false) {
-				state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation, [&](dcon::province_land_construction_id c) {
-					row_contents.push_back(c);
-				});
+				state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation, [&](dcon::province_land_construction_id c) { row_contents.push_back(c); });
 			} else {
-				state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation, [&](dcon::province_naval_construction_id c) {
-					row_contents.push_back(c);
-				});
+				state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation, [&](dcon::province_naval_construction_id c) { row_contents.push_back(c); });
 			}
 		}
 		update(state);

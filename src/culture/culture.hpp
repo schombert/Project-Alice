@@ -80,6 +80,7 @@ enum class flag_type : uint8_t {
 struct government_type {
 	uint32_t ideologies_allowed = 0;
 	dcon::text_sequence_id name;
+	dcon::text_sequence_id ruler_name;
 	bool has_elections = false;
 	bool can_appoint_ruling_party = false;
 	int8_t duration = 0;

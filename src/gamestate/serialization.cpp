@@ -37,20 +37,14 @@ uint8_t* write_save_header(uint8_t* ptr_in, save_header const& header_in) {
 	return ptr_in + sizeof_save_header(header_in);
 }
 
-size_t sizeof_scenario_header(scenario_header const& header_in) {
-	return sizeof(uint32_t) + sizeof(scenario_header);
-}
+size_t sizeof_scenario_header(scenario_header const& header_in) { return sizeof(uint32_t) + sizeof(scenario_header); }
 
-size_t sizeof_save_header(save_header const& header_in) {
-	return sizeof(uint32_t) + sizeof(save_header);
-}
+size_t sizeof_save_header(save_header const& header_in) { return sizeof(uint32_t) + sizeof(save_header); }
 
 uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
 	uint32_t decompressed_length = uncompressed_size;
 
-	uint32_t section_length = uint32_t(
-	    ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
-	                  ptr_in, uncompressed_size, 0)); // write compressed data
+	uint32_t section_length = uint32_t(ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size), ptr_in, uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
@@ -58,8 +52,7 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 	return ptr_out + sizeof(uint32_t) * 2 + section_length;
 }
 
-template<typename T>
-uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& function) {
+template<typename T> uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& function) {
 	uint32_t section_length = 0;
 	uint32_t decompressed_length = 0;
 	memcpy(&section_length, ptr_in, sizeof(uint32_t));
@@ -441,12 +434,8 @@ size_t sizeof_scenario_section(sys::state& state) {
 		// memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
 		sz += length * sizeof(native_char);
 	}
-	{
-		sz += sizeof(parsing::defines);
-	}
-	{
-		sz += sizeof(economy::global_economy_state);
-	}
+	{ sz += sizeof(parsing::defines); }
+	{ sz += sizeof(economy::global_economy_state); }
 	{ // culture definitions
 		sz += serialize_size(state.culture_definitions.party_issues);
 		sz += serialize_size(state.culture_definitions.political_issues);
@@ -782,9 +771,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 			return false;
 		}
 
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
-			read_scenario_section(ptr_in, ptr_in + length, state);
-		});
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
 
 		return true;
 	} else {
@@ -811,12 +798,8 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 			return false;
 		}
 
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
-			read_scenario_section(ptr_in, ptr_in + length, state);
-		});
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
-			read_save_section(ptr_in, ptr_in + length, state);
-		});
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
 
 		state.game_seed = uint32_t(std::random_device()());
 
@@ -871,9 +854,7 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 			return false;
 		}
 
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
-			read_save_section(ptr_in, ptr_in + length, state);
-		});
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
 
 		return true;
 	} else {

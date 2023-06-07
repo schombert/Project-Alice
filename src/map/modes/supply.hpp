@@ -12,10 +12,8 @@ std::vector<uint32_t> supply_map_from(sys::state& state) {
 		int32_t supply_limit = military::supply_limit_in_province(state, nation, prov_id);
 		float interpolation = (supply_limit < 50 ? supply_limit : 50) / 50.f;
 
-		uint32_t color = ogl::color_gradient(
-		    interpolation,
-		    sys::pack_color(46, 247, 15), // red
-		    sys::pack_color(247, 15, 15)  // green
+		uint32_t color = ogl::color_gradient(interpolation, sys::pack_color(46, 247, 15), // red
+			sys::pack_color(247, 15, 15)												  // green
 		);
 
 		auto i = province::to_map_id(prov_id);

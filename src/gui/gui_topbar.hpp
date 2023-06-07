@@ -32,11 +32,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		std::vector<float> datapoints(size_t(32));
 		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
-			datapoints[i] =
-			    state.player_data_cache.treasury_record[(state.current_date.value + 1 + i) % 32] - state.player_data_cache.treasury_record[(state.current_date.value + 0 + i) % 32];
-		datapoints[datapoints.size() - 1] =
-		    state.player_data_cache.treasury_record[(state.current_date.value + 1 + 31) % 32] - state.player_data_cache.treasury_record[(state.current_date.value + 0 + 31) % 32];
-		datapoints[0] = datapoints[1]; // stability trick -- this compesates for the fact that the day changes early in the update, and you could see the line chart "shift" before the day actually updates
+			datapoints[i] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + i) % 32] - state.player_data_cache.treasury_record[(state.current_date.value + 0 + i) % 32];
+		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + 31) % 32] - state.player_data_cache.treasury_record[(state.current_date.value + 0 + 31) % 32];
+		datapoints[0] = datapoints[1]; // stability trick -- this compesates for the fact that the day changes early in the update, and
+									   // you could see the line chart "shift" before the day actually updates
 
 		set_data_points(state, datapoints);
 	}
@@ -79,9 +78,7 @@ public:
 		}
 	}
 
-	bool is_active(sys::state& state) noexcept override {
-		return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible();
-	}
+	bool is_active(sys::state& state) noexcept override { return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible(); }
 
 	element_base* topbar_subwindow = nullptr;
 };
@@ -114,9 +111,7 @@ public:
 class topbar_date_text : public simple_text_element_base {
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::date_to_string(state, state.current_date));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, text::date_to_string(state, state.current_date)); }
 
 	void on_create(sys::state& state) noexcept override {
 		simple_text_element_base::on_create(state);
@@ -135,9 +130,7 @@ public:
 		}
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		disabled = state.internally_paused;
-	}
+	void on_update(sys::state& state) noexcept override { disabled = state.internally_paused; }
 };
 
 class topbar_speedup_button : public button_element_base {
@@ -155,9 +148,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -181,9 +172,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -211,13 +200,9 @@ public:
 
 class topbar_losing_gp_status_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count))); }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -248,13 +233,9 @@ public:
 
 class topbar_building_factories_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!economy::nation_is_constructing_factories(state, nation_id)); }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -286,13 +267,9 @@ public:
 
 class topbar_closed_factories_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!economy::nation_has_closed_factories(state, nation_id)); }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -349,9 +326,7 @@ public:
 		return int32_t(primary_unemployed + secondary_unemployed <= 1.0f);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -372,30 +347,25 @@ public:
 					auto fat_state = dcon::fatten(state.world, state_slim);
 					if(fat_state.is_valid()) {
 						auto state_instance = fat_state.get_state();
-						if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id) >= 10.0f &&
-						   state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) > 10.0f) {
+						if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id) >= 10.0f && state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) > 10.0f) {
 							text::add_line_break_to_layout_box(contents, state, box);
 							text::substitution_map sub;
 
-							auto popFat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
-							auto numUnemployed = int32_t(
-							    state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) -
-							    state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
-							auto numWorkers = int32_t(
-							    state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
-
-							auto percUnemployed = text::fp_two_places{numUnemployed / state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
+							auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
+							int32_t num_unemployed = int32_t(state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
+							auto perc_unemployed = text::fp_two_places{num_unemployed / state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
 
 							// auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
 							// auto pop_name = text::produce_simple_string(state, pop_fat.get_name());
-							// auto numUnemployed = int32_t(state_instance.get_demographics(demographics::total) - state_instance.get_demographics(demographics::employed));
-							// auto stateDef = state_instance.get_definition();
+							// auto num_unemployed = int32_t(state_instance.get_demographics(demographics::total) -
+							// state_instance.get_demographics(demographics::employed)); auto stateDef = state_instance.get_definition();
 							// auto stateName = text::produce_simple_string(state, stateDef.get_name());
-							// auto percUnemployed = text::format_percentage(numUnemployed / state_instance.get_demographics(demographics::total));
-							text::add_to_substitution_map(sub, text::variable_type::num, numUnemployed);
-							text::add_to_substitution_map(sub, text::variable_type::type, popFat.get_name());
+							// auto perc_unemployed = text::format_percentage(num_unemployed /
+							// state_instance.get_demographics(demographics::total));
+							text::add_to_substitution_map(sub, text::variable_type::num, num_unemployed);
+							text::add_to_substitution_map(sub, text::variable_type::type, pop_fat.get_name());
 							text::add_to_substitution_map(sub, text::variable_type::state, state_instance.get_definition().get_name());
-							text::add_to_substitution_map(sub, text::variable_type::perc, percUnemployed);
+							text::add_to_substitution_map(sub, text::variable_type::perc, perc_unemployed);
 							text::localised_format_box(state, contents, box, std::string_view("topbar_unemployed"), sub);
 						}
 					}
@@ -410,13 +380,9 @@ public:
 
 class topbar_available_reforms_icon : public standard_nation_button {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!nations::has_reform_available(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!nations::has_reform_available(state, nation_id)); }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -439,7 +405,6 @@ public:
 				}
 				if(state.world.nation_get_is_civilized(nation_id)) {
 					for(auto i : state.culture_definitions.political_issues) {
-						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_political_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -449,9 +414,7 @@ public:
 							}
 						}
 					}
-
 					for(auto i : state.culture_definitions.social_issues) {
-						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_social_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -461,13 +424,10 @@ public:
 							}
 						}
 					}
-
 					text::close_layout_box(contents, box);
 					return;
 				} else {
-					auto stored_rp = state.world.nation_get_research_points(nation_id);
 					for(auto i : state.culture_definitions.military_issues) {
-						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_military_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -477,9 +437,7 @@ public:
 							}
 						}
 					}
-
 					for(auto i : state.culture_definitions.economic_issues) {
-						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -498,13 +456,9 @@ public:
 
 class topbar_available_decisions_icon : public standard_nation_button {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!nations::has_decision_available(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!nations::has_decision_available(state, nation_id)); }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -539,13 +493,9 @@ public:
 
 class topbar_ongoing_election_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!politics::is_election_ongoing(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!politics::is_election_ongoing(state, nation_id)); }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -577,9 +527,7 @@ public:
 		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -627,11 +575,10 @@ public:
 			return 2;
 		}
 	}
-	// TODO - when the player clicks on the colony icon and theres colonies to expand then we want to teleport their camera to the colonies position & open the prov window
+	// TODO - when the player clicks on the colony icon and theres colonies to expand then we want to teleport their camera to the
+	// colonies position & open the prov window
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -679,9 +626,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -718,9 +663,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -735,7 +678,9 @@ public:
 				if(nations::sphereing_progress_is_possible(state, nation_id)) {
 					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"), text::substitution_map{});
 				} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-					text::add_to_layout_box(contents, state, box, std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then we might have to display text -breizh
+					text::add_to_layout_box(contents, state, box,
+						std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then we might
+																			// have to display text -breizh
 				} else {
 					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"), text::substitution_map{});
 				}
@@ -751,9 +696,7 @@ public:
 	dcon::commodity_id commodity_id{};
 	float amount = 0.f;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -995,19 +938,17 @@ public:
 		{
 			std::map<float, int32_t> v;
 			for(dcon::commodity_id cid : state.world.in_commodity) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods
-				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods
-				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods
-				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
+					sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
 					return;
 				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
 				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) * state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
-				v.insert({ produced - consumed, cid.index() });
+				v.insert({produced - consumed, cid.index()});
 			}
 
 			uint8_t slot = 0;
 			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
-				for(const auto& e : export_icons)
+				for(auto const& e : export_icons)
 					if(e->slot == slot) {
 						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
 						e->frame = state.world.commodity_get_icon(cid);
@@ -1019,7 +960,7 @@ public:
 			}
 			slot = 0;
 			for(auto it = v.begin(); it != v.end(); it++) {
-				for(const auto& e : import_icons)
+				for(auto const& e : import_icons)
 					if(e->slot == slot) {
 						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
 						e->frame = state.world.commodity_get_icon(cid);
@@ -1034,17 +975,15 @@ public:
 		{
 			std::map<float, int32_t> v;
 			for(dcon::commodity_id cid : state.world.in_commodity) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods
-				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods
-				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods
-				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
+					sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
 					return;
-				v.insert({ state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index() });
+				v.insert({state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index()});
 			}
 
 			uint8_t slot = 0;
 			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
-				for(const auto& e : produced_icons)
+				for(auto const& e : produced_icons)
 					if(e->slot == slot) {
 						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
 						e->frame = state.world.commodity_get_icon(cid);

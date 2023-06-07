@@ -55,8 +55,8 @@ typedef struct r123array1xm128i ars1xm128i_ukey_t;
 R123_STATIC_INLINE ars1xm128i_key_t ars1xm128ikeyinit(ars1xm128i_ukey_t uk) { return uk; }
 /** @ingroup AESNI */
 R123_STATIC_INLINE ars1xm128i_ctr_t ars1xm128i_R(unsigned int Nrounds, ars1xm128i_ctr_t in, ars1xm128i_key_t k) {
-	__m128i kweyl = _mm_set_epi64x(R123_64BIT(0xBB67AE8584CAA73B),  /* sqrt(3) - 1.0 */
-	                               R123_64BIT(0x9E3779B97F4A7C15)); /* golden ratio */
+	__m128i kweyl = _mm_set_epi64x(R123_64BIT(0xBB67AE8584CAA73B), /* sqrt(3) - 1.0 */
+		R123_64BIT(0x9E3779B97F4A7C15));						   /* golden ratio */
 	/* N.B.  the aesenc instructions do the xor *after*
 	// so if we want to follow the AES pattern, we
 	// have to do the initial xor explicitly */
@@ -108,7 +108,8 @@ R123_STATIC_INLINE ars1xm128i_ctr_t ars1xm128i_R(unsigned int Nrounds, ars1xm128
 
 /** @def ars1xm128i
 @ingroup AESNI
-The ars1mx128i macro provides a C API interface to the @ref AESNI "ARS" CBRNG with the default number of rounds i.e. \c ars1xm128i_rounds **/
+The ars1mx128i macro provides a C API interface to the @ref AESNI "ARS" CBRNG with the default number of rounds i.e. \c ars1xm128i_rounds
+**/
 #define ars1xm128i(c, k) ars1xm128i_R(ars1xm128i_rounds, c, k)
 
 /** @ingroup AESNI */
@@ -160,30 +161,24 @@ ROUNDS=5 or more.
 @class ARS1xm128i_R
 
 */
-template<unsigned int ROUNDS>
-struct ARS1xm128i_R {
+template<unsigned int ROUNDS> struct ARS1xm128i_R {
 	typedef ars1xm128i_ctr_t ctr_type;
 	typedef ars1xm128i_key_t key_type;
 	typedef ars1xm128i_key_t ukey_type;
 	static unsigned int const rounds = ROUNDS;
-	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) {
-		return ars1xm128i_R(ROUNDS, ctr, key);
-	}
+	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) { return ars1xm128i_R(ROUNDS, ctr, key); }
 };
 
 /** @class ARS4x32_R
-    @ingroup AESNI
+	@ingroup AESNI
 */
 
-template<unsigned int ROUNDS>
-struct ARS4x32_R {
+template<unsigned int ROUNDS> struct ARS4x32_R {
 	typedef ars4x32_ctr_t ctr_type;
 	typedef ars4x32_key_t key_type;
 	typedef ars4x32_key_t ukey_type;
 	static unsigned int const rounds = ROUNDS;
-	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) {
-		return ars4x32_R(ROUNDS, ctr, key);
-	}
+	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) { return ars4x32_R(ROUNDS, ctr, key); }
 };
 /**
 @ingroup AESNI

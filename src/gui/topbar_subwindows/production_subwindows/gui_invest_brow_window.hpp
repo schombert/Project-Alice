@@ -7,9 +7,7 @@ namespace ui {
 
 class production_investment_country_select : public button_element_base {
 public:
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -78,9 +76,7 @@ public:
 
 class production_country_listbox : public listbox_element_base<production_investment_country_info, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "investment_country_entry";
-	}
+	std::string_view get_row_element_name() override { return "investment_country_entry"; }
 };
 
 class production_sort_nation_gp_flag : public nation_gp_flag {
@@ -90,7 +86,7 @@ public:
 			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
-	void button_action(sys::state& state) noexcept override {}
+	void button_action(sys::state& state) noexcept override { }
 };
 
 class invest_brow_window : public window_element_base {
@@ -223,9 +219,7 @@ public:
 			auto filter = any_cast<country_list_filter>(payload);
 			switch(filter) {
 			case country_list_filter::all:
-				filter_countries(state, [&](dcon::nation_id) {
-					return true;
-				});
+				filter_countries(state, [&](dcon::nation_id) { return true; });
 				break;
 			case country_list_filter::allies:
 				filter_countries(state, [&](dcon::nation_id id) {
@@ -236,19 +230,13 @@ public:
 				});
 				break;
 			case country_list_filter::enemies:
-				filter_countries(state, [&](dcon::nation_id id) {
-					return military::are_at_war(state, state.local_player_nation, id);
-				});
+				filter_countries(state, [&](dcon::nation_id id) { return military::are_at_war(state, state.local_player_nation, id); });
 				break;
 			case country_list_filter::sphere:
-				filter_countries(state, [&](dcon::nation_id id) {
-					return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
-				});
+				filter_countries(state, [&](dcon::nation_id id) { return state.world.nation_get_in_sphere_of(id) == state.local_player_nation; });
 				break;
 			case country_list_filter::neighbors:
-				filter_countries(state, [&](dcon::nation_id id) {
-					return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
-				});
+				filter_countries(state, [&](dcon::nation_id id) { return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id)); });
 				break;
 			default:
 				break;

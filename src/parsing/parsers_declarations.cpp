@@ -6,17 +6,11 @@ namespace parsers {
 
 scenario_building_context::scenario_building_context(sys::state& state) : gfx_context(state, state.ui_defs), state(state) { }
 
-void religion_def::icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-	context.outer_context.state.world.religion_set_icon(context.id, uint8_t(v));
-}
+void religion_def::icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) { context.outer_context.state.world.religion_set_icon(context.id, uint8_t(v)); }
 
-void religion_def::color(color_from_3f v, error_handler& err, int32_t line, religion_context& context) {
-	context.outer_context.state.world.religion_set_color(context.id, v.value);
-}
+void religion_def::color(color_from_3f v, error_handler& err, int32_t line, religion_context& context) { context.outer_context.state.world.religion_set_color(context.id, v.value); }
 
-void religion_def::pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-	context.outer_context.state.world.religion_set_is_pagan(context.id, v);
-}
+void religion_def::pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context) { context.outer_context.state.world.religion_set_is_pagan(context.id, v); }
 
 void names_list::free_value(std::string_view text, error_handler& err, int32_t line, names_context& context) {
 	auto new_id = context.outer_context.state.add_unit_name(text);
@@ -27,13 +21,9 @@ void names_list::free_value(std::string_view text, error_handler& err, int32_t l
 	}
 }
 
-void culture::color(color_from_3i v, error_handler& err, int32_t line, culture_context& context) {
-	context.outer_context.state.world.culture_set_color(context.id, v.value);
-}
+void culture::color(color_from_3i v, error_handler& err, int32_t line, culture_context& context) { context.outer_context.state.world.culture_set_color(context.id, v.value); }
 
-void culture::radicalism(association_type, int32_t v, error_handler& err, int32_t line, culture_context& context) {
-	context.outer_context.state.world.culture_set_radicalism(context.id, int8_t(v));
-}
+void culture::radicalism(association_type, int32_t v, error_handler& err, int32_t line, culture_context& context) { context.outer_context.state.world.culture_set_radicalism(context.id, int8_t(v)); }
 
 void culture_group::leader(association_type, std::string_view name, error_handler& err, int32_t line, culture_group_context& context) {
 	if(name == "european")
@@ -59,9 +49,7 @@ void culture_group::leader(association_type, std::string_view name, error_handle
 	}
 }
 
-void culture_group::is_overseas(association_type, bool v, error_handler& err, int32_t line, culture_group_context& context) {
-	context.outer_context.state.world.culture_group_set_is_overseas(context.id, v);
-}
+void culture_group::is_overseas(association_type, bool v, error_handler& err, int32_t line, culture_group_context& context) { context.outer_context.state.world.culture_group_set_is_overseas(context.id, v); }
 
 void culture_group::union_tag(association_type, uint32_t v, error_handler& err, int32_t line, culture_group_context& context) {
 	auto nat_tag = context.outer_context.map_of_ident_names.find(v);
@@ -90,54 +78,32 @@ void good::money(association_type, bool v, error_handler& err, int32_t line, goo
 	}
 }
 
-void good::color(color_from_3i v, error_handler& err, int32_t line, good_context& context) {
-	context.outer_context.state.world.commodity_set_color(context.id, v.value);
-}
+void good::color(color_from_3i v, error_handler& err, int32_t line, good_context& context) { context.outer_context.state.world.commodity_set_color(context.id, v.value); }
 
-void good::cost(association_type, float v, error_handler& err, int32_t line, good_context& context) {
-	context.outer_context.state.world.commodity_set_cost(context.id, v);
-}
+void good::cost(association_type, float v, error_handler& err, int32_t line, good_context& context) { context.outer_context.state.world.commodity_set_cost(context.id, v); }
 
-void good::available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
-	context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
-}
+void good::available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) { context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b); }
 
-void good::overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
-	context.outer_context.state.world.commodity_set_overseas_penalty(context.id, b);
-}
+void good::overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context) { context.outer_context.state.world.commodity_set_overseas_penalty(context.id, b); }
 
 void good::finish(good_context& context) {
 	++context.outer_context.number_of_commodities_seen;
 	context.outer_context.state.world.commodity_set_icon(context.id, uint8_t(context.outer_context.number_of_commodities_seen));
 }
 
-void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
-	context.outer_context.state.world.issue_set_is_next_step_only(context.id, value);
-}
+void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) { context.outer_context.state.world.issue_set_is_next_step_only(context.id, value); }
 
-void issue::administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
-	context.outer_context.state.world.issue_set_is_administrative(context.id, value);
-}
+void issue::administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context) { context.outer_context.state.world.issue_set_is_administrative(context.id, value); }
 
-void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
-	context.outer_context.state.world.reform_set_is_next_step_only(context.id, value);
-}
+void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, reform_context& context) { context.outer_context.state.world.reform_set_is_next_step_only(context.id, value); }
 
-void issue::administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
-	err.accumulated_errors += "Error, only issues can be administrative (" + err.file_name + " line " + std::to_string(line) + ")\n";
-}
+void issue::administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context) { err.accumulated_errors += "Error, only issues can be administrative (" + err.file_name + " line " + std::to_string(line) + ")\n"; }
 
-void government_type::election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-	context.outer_context.state.culture_definitions.governments[context.id].has_elections = value;
-}
+void government_type::election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) { context.outer_context.state.culture_definitions.governments[context.id].has_elections = value; }
 
-void government_type::appoint_ruling_party(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-	context.outer_context.state.culture_definitions.governments[context.id].can_appoint_ruling_party = value;
-}
+void government_type::appoint_ruling_party(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) { context.outer_context.state.culture_definitions.governments[context.id].can_appoint_ruling_party = value; }
 
-void government_type::duration(association_type, int32_t value, error_handler& err, int32_t line, government_type_context& context) {
-	context.outer_context.state.culture_definitions.governments[context.id].duration = int8_t(value);
-}
+void government_type::duration(association_type, int32_t value, error_handler& err, int32_t line, government_type_context& context) { context.outer_context.state.culture_definitions.governments[context.id].duration = int8_t(value); }
 
 void government_type::flagtype(association_type, std::string_view value, error_handler& err, int32_t line, government_type_context& context) {
 	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist"))
@@ -222,37 +188,21 @@ void cb_list::free_value(std::string_view text, error_handler& err, int32_t line
 	context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{token_generator{}, new_id});
 }
 
-void trait::organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_organisation(context.id, value);
-}
+void trait::organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_organisation(context.id, value); }
 
-void trait::morale(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_morale(context.id, value);
-}
+void trait::morale(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_morale(context.id, value); }
 
-void trait::attack(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_attack(context.id, value);
-}
+void trait::attack(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_attack(context.id, value); }
 
-void trait::defence(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_defense(context.id, value);
-}
+void trait::defence(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_defense(context.id, value); }
 
-void trait::reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_reconnaissance(context.id, value);
-}
+void trait::reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_reconnaissance(context.id, value); }
 
-void trait::speed(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_speed(context.id, value);
-}
+void trait::speed(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_speed(context.id, value); }
 
-void trait::experience(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_experience(context.id, value);
-}
+void trait::experience(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_experience(context.id, value); }
 
-void trait::reliability(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_reliability(context.id, value);
-}
+void trait::reliability(association_type, float value, error_handler& err, int32_t line, trait_context& context) { context.outer_context.state.world.leader_trait_set_reliability(context.id, value); }
 
 void sea_list::free_value(int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(size_t(value - 1) > context.prov_id_to_original_id_map.size()) {
@@ -430,13 +380,9 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 	context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
 }
 
-void poptype_file::sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_sprite(context.id, uint8_t(value));
-}
+void poptype_file::sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.world.pop_type_set_sprite(context.id, uint8_t(value)); }
 
-void poptype_file::color(color_from_3i cvalue, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_color(context.id, cvalue.value);
-}
+void poptype_file::color(color_from_3i cvalue, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.world.pop_type_set_color(context.id, cvalue.value); }
 
 void poptype_file::is_artisan(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
@@ -455,9 +401,7 @@ void poptype_file::strata(association_type, std::string_view value, error_handle
 	}
 }
 
-void poptype_file::unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_has_unemployment(context.id, value);
-}
+void poptype_file::unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.world.pop_type_set_has_unemployment(context.id, value); }
 
 void poptype_file::is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
@@ -475,36 +419,28 @@ void poptype_file::can_be_recruited(association_type, bool value, error_handler&
 		context.outer_context.state.culture_definitions.soldiers = context.id;
 }
 
-void poptype_file::state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_state_capital_only(context.id, value);
-}
+void poptype_file::state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.world.pop_type_set_state_capital_only(context.id, value); }
 
 void poptype_file::leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.culture_definitions.officer_leadership_points = value;
 	context.outer_context.state.culture_definitions.officers = context.id;
 }
 
-void poptype_file::research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_research_optimum(context.id, value);
-}
+void poptype_file::research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.world.pop_type_set_research_optimum(context.id, value); }
 
 void poptype_file::administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
 		context.outer_context.state.culture_definitions.bureaucrat = context.id;
 }
 
-void poptype_file::tax_eff(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.culture_definitions.bureaucrat_tax_efficiency = value;
-}
+void poptype_file::tax_eff(association_type, float value, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.culture_definitions.bureaucrat_tax_efficiency = value; }
 
 void poptype_file::can_build(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
 		context.outer_context.state.culture_definitions.capitalists = context.id;
 }
 
-void poptype_file::research_points(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_research_points(context.id, value);
-}
+void poptype_file::research_points(association_type, float value, error_handler& err, int32_t line, poptype_context& context) { context.outer_context.state.world.pop_type_set_research_points(context.id, value); }
 
 void poptype_file::can_reduce_consciousness(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
@@ -568,42 +504,26 @@ void individual_ideology::can_reduce_militancy(association_type, bool value, err
 		context.outer_context.state.culture_definitions.conservative = context.id;
 }
 
-void individual_ideology::uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_is_civilized_only(context.id, !value);
-}
+void individual_ideology::uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_is_civilized_only(context.id, !value); }
 
-void individual_ideology::color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_color(context.id, cvalue.value);
-}
+void individual_ideology::color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_color(context.id, cvalue.value); }
 
 void individual_ideology::date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, individual_ideology_context& context) {
 	auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
 	context.outer_context.state.world.ideology_set_activation_date(context.id, date_tag);
 }
 
-void individual_ideology::add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_add_political_reform(context.id, value);
-}
+void individual_ideology::add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_add_political_reform(context.id, value); }
 
-void individual_ideology::remove_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_remove_political_reform(context.id, value);
-}
+void individual_ideology::remove_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_remove_political_reform(context.id, value); }
 
-void individual_ideology::add_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_add_social_reform(context.id, value);
-}
+void individual_ideology::add_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_add_social_reform(context.id, value); }
 
-void individual_ideology::remove_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_remove_social_reform(context.id, value);
-}
+void individual_ideology::remove_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_remove_social_reform(context.id, value); }
 
-void individual_ideology::add_military_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_add_military_reform(context.id, value);
-}
+void individual_ideology::add_military_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_add_military_reform(context.id, value); }
 
-void individual_ideology::add_economic_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-	context.outer_context.state.world.ideology_set_add_economic_reform(context.id, value);
-}
+void individual_ideology::add_economic_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) { context.outer_context.state.world.ideology_set_add_economic_reform(context.id, value); }
 
 void cb_body::is_civil_war(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
 	if(value) {
@@ -612,17 +532,11 @@ void cb_body::is_civil_war(association_type, bool value, error_handler& err, int
 	}
 }
 
-void cb_body::months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_months(context.id, uint8_t(value));
-}
+void cb_body::months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_months(context.id, uint8_t(value)); }
 
-void cb_body::truce_months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_truce_months(context.id, uint8_t(value));
-}
+void cb_body::truce_months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_truce_months(context.id, uint8_t(value)); }
 
-void cb_body::sprite_index(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_sprite_index(context.id, uint8_t(value));
-}
+void cb_body::sprite_index(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_sprite_index(context.id, uint8_t(value)); }
 
 void cb_body::always(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
 	if(value) {
@@ -769,85 +683,45 @@ void cb_body::po_destroy_naval_bases(association_type, bool value, error_handler
 	}
 }
 
-void cb_body::war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_war_name(context.id, text::find_or_add_key(context.outer_context.state, std::string("normal_") + std::string(value)));
-}
+void cb_body::war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_war_name(context.id, text::find_or_add_key(context.outer_context.state, std::string("normal_") + std::string(value))); }
 
-void cb_body::badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_badboy_factor(context.id, value);
-}
+void cb_body::badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_badboy_factor(context.id, value); }
 
-void cb_body::prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_prestige_factor(context.id, value);
-}
+void cb_body::prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_prestige_factor(context.id, value); }
 
-void cb_body::peace_cost_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_peace_cost_factor(context.id, value);
-}
+void cb_body::peace_cost_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_peace_cost_factor(context.id, value); }
 
-void cb_body::penalty_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_penalty_factor(context.id, value);
-}
+void cb_body::penalty_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_penalty_factor(context.id, value); }
 
-void cb_body::break_truce_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_break_truce_prestige_factor(context.id, value);
-}
+void cb_body::break_truce_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_break_truce_prestige_factor(context.id, value); }
 
-void cb_body::break_truce_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_break_truce_infamy_factor(context.id, value);
-}
+void cb_body::break_truce_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_break_truce_infamy_factor(context.id, value); }
 
-void cb_body::break_truce_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_break_truce_militancy_factor(context.id, value);
-}
+void cb_body::break_truce_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_break_truce_militancy_factor(context.id, value); }
 
-void cb_body::good_relation_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_good_relation_prestige_factor(context.id, value);
-}
+void cb_body::good_relation_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_good_relation_prestige_factor(context.id, value); }
 
-void cb_body::good_relation_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_good_relation_infamy_factor(context.id, value);
-}
+void cb_body::good_relation_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_good_relation_infamy_factor(context.id, value); }
 
-void cb_body::good_relation_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_good_relation_militancy_factor(context.id, value);
-}
+void cb_body::good_relation_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_good_relation_militancy_factor(context.id, value); }
 
-void cb_body::construction_speed(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_construction_speed(context.id, value);
-}
+void cb_body::construction_speed(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_construction_speed(context.id, value); }
 
-void cb_body::tws_battle_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_tws_battle_factor(context.id, value);
-}
+void cb_body::tws_battle_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_tws_battle_factor(context.id, value); }
 
-void cb_body::allowed_states(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_allowed_states(context.id, value);
-}
+void cb_body::allowed_states(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_allowed_states(context.id, value); }
 
-void cb_body::allowed_states_in_crisis(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_allowed_states_in_crisis(context.id, value);
-}
+void cb_body::allowed_states_in_crisis(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_allowed_states_in_crisis(context.id, value); }
 
-void cb_body::allowed_substate_regions(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_allowed_substate_regions(context.id, value);
-}
+void cb_body::allowed_substate_regions(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_allowed_substate_regions(context.id, value); }
 
-void cb_body::allowed_countries(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_allowed_countries(context.id, value);
-}
+void cb_body::allowed_countries(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_allowed_countries(context.id, value); }
 
-void cb_body::can_use(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_can_use(context.id, value);
-}
+void cb_body::can_use(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_can_use(context.id, value); }
 
-void cb_body::on_add(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_on_add(context.id, value);
-}
+void cb_body::on_add(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_on_add(context.id, value); }
 
-void cb_body::on_po_accepted(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_on_po_accepted(context.id, value);
-}
+void cb_body::on_po_accepted(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context) { context.outer_context.state.world.cb_type_set_on_po_accepted(context.id, value); }
 
 void option_rules::build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
 	if(value)
@@ -1159,30 +1033,20 @@ void option_rules::build_railway(association_type, bool value, error_handler& er
 		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_railway;
 }
 
-void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context) {
-	context.outer_context.state.world.issue_option_set_technology_cost(context.id, value);
-}
+void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context) { context.outer_context.state.world.issue_option_set_technology_cost(context.id, value); }
 
-void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_option_context& context) {
-	context.outer_context.state.world.issue_option_set_war_exhaustion_effect(context.id, value);
-}
+void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_option_context& context) { context.outer_context.state.world.issue_option_set_war_exhaustion_effect(context.id, value); }
 
-void issue_option_body::administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context) {
-	context.outer_context.state.world.issue_option_set_administrative_multiplier(context.id, value);
-}
+void issue_option_body::administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context) { context.outer_context.state.world.issue_option_set_administrative_multiplier(context.id, value); }
 
 void issue_option_body::is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
 	if(value)
 		context.outer_context.state.culture_definitions.jingoism = context.id;
 }
 
-void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context) {
-	context.outer_context.state.world.reform_option_set_technology_cost(context.id, value);
-}
+void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context) { context.outer_context.state.world.reform_option_set_technology_cost(context.id, value); }
 
-void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
-	context.outer_context.state.world.reform_option_set_war_exhaustion_effect(context.id, value);
-}
+void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) { context.outer_context.state.world.reform_option_set_war_exhaustion_effect(context.id, value); }
 
 void issue_option_body::administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
 	err.accumulated_errors += "Error, only issues can have an administrative multiplier (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -1198,26 +1062,18 @@ void issue_option_body::on_execute(on_execute_body const& value, error_handler& 
 	context.outer_context.state.world.reform_option_set_on_execute_effect(context.id, value.effect);
 }
 
-void national_focus::railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_railroads(context.id, value);
-}
+void national_focus::railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) { context.outer_context.state.world.national_focus_set_railroads(context.id, value); }
 
-void national_focus::icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_icon(context.id, uint8_t(value));
-}
+void national_focus::icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context) { context.outer_context.state.world.national_focus_set_icon(context.id, uint8_t(value)); }
 
-void national_focus::limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_limit(context.id, value);
-}
+void national_focus::limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context) { context.outer_context.state.world.national_focus_set_limit(context.id, value); }
 
 void national_focus::has_flashpoint(association_type, bool value, error_handler& err, int32_t line, national_focus_context& context) {
 	if(value)
 		context.outer_context.state.national_definitions.flashpoint_focus = context.id;
 }
 
-void national_focus::flashpoint_tension(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.national_definitions.flashpoint_amount = value;
-}
+void national_focus::flashpoint_tension(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) { context.outer_context.state.national_definitions.flashpoint_amount = value; }
 
 void national_focus::ideology(association_type, std::string_view value, error_handler& err, int32_t line, national_focus_context& context) {
 	if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
@@ -1227,13 +1083,9 @@ void national_focus::ideology(association_type, std::string_view value, error_ha
 	}
 }
 
-void national_focus::loyalty_value(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_loyalty_value(context.id, value);
-}
+void national_focus::loyalty_value(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) { context.outer_context.state.world.national_focus_set_loyalty_value(context.id, value); }
 
-void national_focus::immigrant_attract(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_immigrant_attract(context.id, value);
-}
+void national_focus::immigrant_attract(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) { context.outer_context.state.world.national_focus_set_immigrant_attract(context.id, value); }
 
 void national_focus::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
 	std::string str_label{label};
@@ -1247,33 +1099,19 @@ void national_focus::any_value(std::string_view label, association_type, float v
 	}
 }
 
-void main_pop_type_file::promotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.promotion_chance = value;
-}
+void main_pop_type_file::promotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.promotion_chance = value; }
 
-void main_pop_type_file::demotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.demotion_chance = value;
-}
+void main_pop_type_file::demotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.demotion_chance = value; }
 
-void main_pop_type_file::migration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.migration_chance = value;
-}
+void main_pop_type_file::migration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.migration_chance = value; }
 
-void main_pop_type_file::colonialmigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.colonialmigration_chance = value;
-}
+void main_pop_type_file::colonialmigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.colonialmigration_chance = value; }
 
-void main_pop_type_file::emigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.emigration_chance = value;
-}
+void main_pop_type_file::emigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.emigration_chance = value; }
 
-void main_pop_type_file::assimilation_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.assimilation_chance = value;
-}
+void main_pop_type_file::assimilation_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.assimilation_chance = value; }
 
-void main_pop_type_file::conversion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
-	context.state.culture_definitions.conversion_chance = value;
-}
+void main_pop_type_file::conversion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) { context.state.culture_definitions.conversion_chance = value; }
 
 void tech_rgo_goods_output::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
 	if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
@@ -1309,17 +1147,11 @@ void technology_contents::any_group(std::string_view label, unit_modifier_body c
 	}
 }
 
-void technology_contents::ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context) {
-	context.outer_context.state.world.technology_set_ai_chance(context.id, value);
-}
+void technology_contents::ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context) { context.outer_context.state.world.technology_set_ai_chance(context.id, value); }
 
-void technology_contents::year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
-	context.outer_context.state.world.technology_set_year(context.id, int16_t(value));
-}
+void technology_contents::year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) { context.outer_context.state.world.technology_set_year(context.id, int16_t(value)); }
 
-void technology_contents::cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
-	context.outer_context.state.world.technology_set_cost(context.id, value);
-}
+void technology_contents::cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) { context.outer_context.state.world.technology_set_cost(context.id, value); }
 
 void technology_contents::area(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context) {
 	if(auto it = context.outer_context.map_of_tech_folders.find(std::string(value)); it != context.outer_context.map_of_tech_folders.end()) {
@@ -1353,9 +1185,7 @@ void technology_contents::max_naval_base(association_type, int32_t value, error_
 	}
 }
 
-void technology_contents::colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
-	context.outer_context.state.world.technology_set_colonial_points(context.id, int16_t(value));
-}
+void technology_contents::colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) { context.outer_context.state.world.technology_set_colonial_points(context.id, int16_t(value)); }
 
 void technology_contents::activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context) {
 	if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
@@ -1439,9 +1269,7 @@ void inv_effect::activate_building(association_type, std::string_view value, err
 	}
 }
 
-void inv_effect::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_shared_prestige(context.id, value);
-}
+void inv_effect::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) { context.outer_context.state.world.invention_set_shared_prestige(context.id, value); }
 
 void inv_effect::enable_crime(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context) {
 	if(auto it = context.outer_context.map_of_crimes.find(std::string(value)); it != context.outer_context.map_of_crimes.end()) {
@@ -1451,25 +1279,15 @@ void inv_effect::enable_crime(association_type, std::string_view value, error_ha
 	}
 }
 
-void inv_effect::gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_enable_gas_attack(context.id, value);
-}
+void inv_effect::gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context) { context.outer_context.state.world.invention_set_enable_gas_attack(context.id, value); }
 
-void inv_effect::gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_enable_gas_defense(context.id, value);
-}
+void inv_effect::gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context) { context.outer_context.state.world.invention_set_enable_gas_defense(context.id, value); }
 
-void inv_effect::rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_get_rebel_org(context.id).push_back(sys::rebel_org_modifier{value.value, value.faction_});
-}
+void inv_effect::rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context) { context.outer_context.state.world.invention_get_rebel_org(context.id).push_back(sys::rebel_org_modifier{value.value, value.faction_}); }
 
-void invention_contents::limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_limit(context.id, value);
-}
+void invention_contents::limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context) { context.outer_context.state.world.invention_set_limit(context.id, value); }
 
-void invention_contents::chance(dcon::value_modifier_key value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_chance(context.id, value);
-}
+void invention_contents::chance(dcon::value_modifier_key value, error_handler& err, int32_t line, invention_context& context) { context.outer_context.state.world.invention_set_chance(context.id, value); }
 
 void invention_contents::effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context) {
 	for(uint32_t i = 0; i < value.next_to_add_n; ++i) {
@@ -1691,13 +1509,9 @@ void rebel_gov_list::any_value(std::string_view from_gov, association_type, std:
 	}
 }
 
-void rebel_body::icon(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_icon(context.id, uint8_t(value));
-}
+void rebel_body::icon(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_icon(context.id, uint8_t(value)); }
 
-void rebel_body::break_alliance_on_win(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_break_alliance_on_win(context.id, value);
-}
+void rebel_body::break_alliance_on_win(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_break_alliance_on_win(context.id, value); }
 
 void rebel_body::area(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context) {
 	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "none"))
@@ -1761,9 +1575,7 @@ void rebel_body::independence(association_type, std::string_view value, error_ha
 	}
 }
 
-void rebel_body::defect_delay(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_defect_delay(context.id, uint8_t(value));
-}
+void rebel_body::defect_delay(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_defect_delay(context.id, uint8_t(value)); }
 
 void rebel_body::ideology(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context) {
 	if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
@@ -1773,73 +1585,39 @@ void rebel_body::ideology(association_type, std::string_view value, error_handle
 	}
 }
 
-void rebel_body::allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_culture_restriction(context.id, !value);
-}
+void rebel_body::allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_culture_restriction(context.id, !value); }
 
-void rebel_body::allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_culture_group_restriction(context.id, !value);
-}
+void rebel_body::allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_culture_group_restriction(context.id, !value); }
 
-void rebel_body::occupation_mult(association_type, float value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_occupation_multiplier(context.id, uint8_t(value));
-}
+void rebel_body::occupation_mult(association_type, float value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_occupation_multiplier(context.id, uint8_t(value)); }
 
-void rebel_body::will_rise(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_will_rise(context.id, value);
-}
+void rebel_body::will_rise(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_will_rise(context.id, value); }
 
-void rebel_body::spawn_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_spawn_chance(context.id, value);
-}
+void rebel_body::spawn_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_spawn_chance(context.id, value); }
 
-void rebel_body::movement_evaluation(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_movement_evaluation(context.id, value);
-}
+void rebel_body::movement_evaluation(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_movement_evaluation(context.id, value); }
 
-void rebel_body::siege_won_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_siege_won_trigger(context.id, value);
-}
+void rebel_body::siege_won_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_siege_won_trigger(context.id, value); }
 
-void rebel_body::demands_enforced_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_demands_enforced_trigger(context.id, value);
-}
+void rebel_body::demands_enforced_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_demands_enforced_trigger(context.id, value); }
 
-void rebel_body::siege_won_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_siege_won_effect(context.id, value);
-}
+void rebel_body::siege_won_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_siege_won_effect(context.id, value); }
 
-void rebel_body::demands_enforced_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context) {
-	context.outer_context.state.world.rebel_type_set_demands_enforced_effect(context.id, value);
-}
+void rebel_body::demands_enforced_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context) { context.outer_context.state.world.rebel_type_set_demands_enforced_effect(context.id, value); }
 
-void decision::potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
-	context.outer_context.state.world.decision_set_potential(context.id, value);
-}
+void decision::potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) { context.outer_context.state.world.decision_set_potential(context.id, value); }
 
-void decision::allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
-	context.outer_context.state.world.decision_set_allow(context.id, value);
-}
+void decision::allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) { context.outer_context.state.world.decision_set_allow(context.id, value); }
 
-void decision::effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context) {
-	context.outer_context.state.world.decision_set_effect(context.id, value);
-}
+void decision::effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context) { context.outer_context.state.world.decision_set_effect(context.id, value); }
 
-void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context) {
-	context.outer_context.state.world.decision_set_ai_will_do(context.id, value);
-}
+void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context) { context.outer_context.state.world.decision_set_ai_will_do(context.id, value); }
 
-void oob_leader::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
-	name_ = context.outer_context.state.add_unit_name(value);
-}
+void oob_leader::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) { name_ = context.outer_context.state.add_unit_name(value); }
 
-void oob_leader::date(association_type, sys::year_month_day value, error_handler& err, int32_t line, oob_file_context& context) {
-	date_ = sys::date(value, context.outer_context.state.start_date);
-}
+void oob_leader::date(association_type, sys::year_month_day value, error_handler& err, int32_t line, oob_file_context& context) { date_ = sys::date(value, context.outer_context.state.start_date); }
 
-void oob_army::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_army_context& context) {
-	context.outer_context.state.world.army_set_name(context.id, context.outer_context.state.add_unit_name(value));
-}
+void oob_army::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_army_context& context) { context.outer_context.state.world.army_set_name(context.id, context.outer_context.state.add_unit_name(value)); }
 
 void oob_army::location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_army_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
@@ -1866,9 +1644,7 @@ void oob_army::leader(oob_leader const& value, error_handler& err, int32_t line,
 	}
 }
 
-void oob_navy::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_navy_context& context) {
-	context.outer_context.state.world.navy_set_name(context.id, context.outer_context.state.add_unit_name(value));
-}
+void oob_navy::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_navy_context& context) { context.outer_context.state.world.navy_set_name(context.id, context.outer_context.state.add_unit_name(value)); }
 
 void oob_navy::location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_navy_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
@@ -1879,9 +1655,7 @@ void oob_navy::location(association_type, int32_t value, error_handler& err, int
 	}
 }
 
-void oob_ship::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context) {
-	context.outer_context.state.world.ship_set_name(context.id, context.outer_context.state.add_unit_name(value));
-}
+void oob_ship::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context) { context.outer_context.state.world.ship_set_name(context.id, context.outer_context.state.add_unit_name(value)); }
 
 void oob_ship::type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context) {
 	if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
@@ -1891,9 +1665,7 @@ void oob_ship::type(association_type, std::string_view value, error_handler& err
 	}
 }
 
-void oob_regiment::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context) {
-	context.outer_context.state.world.regiment_set_name(context.id, context.outer_context.state.add_unit_name(value));
-}
+void oob_regiment::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context) { context.outer_context.state.world.regiment_set_name(context.id, context.outer_context.state.add_unit_name(value)); }
 
 void oob_regiment::type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context) {
 	if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
@@ -2218,9 +1990,7 @@ void country_history_file::civilized(association_type, bool value, error_handler
 	context.outer_context.state.world.nation_set_is_civilized(context.holder_id, value);
 }
 
-void country_history_file::is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context) {
-	context.outer_context.state.world.national_identity_set_is_not_releasable(context.nat_ident, !value);
-}
+void country_history_file::is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context) { context.outer_context.state.world.national_identity_set_is_not_releasable(context.nat_ident, !value); }
 
 void country_history_file::literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
@@ -2275,9 +2045,7 @@ void country_history_file::nonstate_consciousness(association_type, float value,
 	}
 }
 
-void country_history_file::govt_flag(govt_flag_block const& value, error_handler& err, int32_t line, country_history_context& context) {
-	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, uint8_t(value.flag_) + uint8_t(1));
-}
+void country_history_file::govt_flag(govt_flag_block const& value, error_handler& err, int32_t line, country_history_context& context) { context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, uint8_t(value.flag_) + uint8_t(1)); }
 
 void country_history_file::ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
@@ -2299,8 +2067,7 @@ void country_history_file::ruling_party(association_type, std::string_view value
 		if(name == value_key) {
 			context.outer_context.state.world.nation_set_ruling_party(context.holder_id, pid);
 			for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
-				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
-				                                                    context.outer_context.state.world.political_party_get_party_issues(pid, p_issue));
+				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue, context.outer_context.state.world.political_party_get_party_issues(pid, p_issue));
 			}
 			return;
 		}
@@ -2308,13 +2075,9 @@ void country_history_file::ruling_party(association_type, std::string_view value
 	err.accumulated_errors += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
-void commodity_array::finish(scenario_building_context& context) {
-	data.resize(context.state.world.commodity_size());
-}
+void commodity_array::finish(scenario_building_context& context) { data.resize(context.state.world.commodity_size()); }
 
-void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
-	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
-}
+void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) { context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value); }
 
 void country_file::any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context) {
 	if(auto it = context.outer_context.map_of_governments.find(std::string(name)); it != context.outer_context.map_of_governments.end()) {
@@ -2325,13 +2088,9 @@ void country_file::any_group(std::string_view name, color_from_3i, error_handler
 	}
 }
 
-void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
-	title_ = text::find_or_add_key(context.outer_context.state, value);
-}
+void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) { title_ = text::find_or_add_key(context.outer_context.state, value); }
 
-void generic_event::desc(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
-	desc_ = text::find_or_add_key(context.outer_context.state, value);
-}
+void generic_event::desc(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) { desc_ = text::find_or_add_key(context.outer_context.state, value); }
 
 void generic_event::option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {
 	if(last_option_added < sys::max_event_options) {
@@ -2476,9 +2235,7 @@ void enter_war_dated_block(std::string_view label, token_generator& gen, error_h
 	}
 }
 
-void war_history_file::name(association_type, std::string_view name, error_handler& err, int32_t line, war_history_context& context) {
-	context.name = std::string(name);
-}
+void war_history_file::name(association_type, std::string_view name, error_handler& err, int32_t line, war_history_context& context) { context.name = std::string(name); }
 
 void war_history_file::finish(war_history_context& context) {
 	if(context.attackers.size() > 0 && context.defenders.size() > 0 && context.wargoals.size() > 0) {
@@ -2486,7 +2243,12 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
-		new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
+		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
+
+		auto it = context.outer_context.state.key_to_text_sequence.find(std::string_view{"agression_war_name"}); // misspelling is intentional; DO NOT CORRECT
+		if(it != context.outer_context.state.key_to_text_sequence.end()) {
+			new_war.set_name(it->second);
+		}
 
 		for(auto n : context.attackers) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
@@ -2499,6 +2261,9 @@ void war_history_file::finish(war_history_context& context) {
 		for(auto& wg : context.wargoals) {
 			auto new_wg = fatten(context.outer_context.state.world, context.outer_context.state.world.create_wargoal());
 			new_wg.set_added_by(wg.actor_);
+			if(wg.actor_ == context.attackers[0]) {
+				new_war.set_name(context.outer_context.state.world.cb_type_get_war_name(wg.casus_belli_));
+			}
 			new_wg.set_target_nation(wg.receiver_);
 			new_wg.set_type(wg.casus_belli_);
 			context.outer_context.state.world.force_create_wargoals_attached(new_war, new_wg);
@@ -2506,21 +2271,13 @@ void war_history_file::finish(war_history_context& context) {
 	}
 }
 
-void mod_file::name(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.name = std::string(value);
-}
+void mod_file::name(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) { context.name = std::string(value); }
 
-void mod_file::path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.path = std::string(value);
-}
+void mod_file::path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) { context.path = std::string(value); }
 
-void mod_file::user_dir(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.user_dir = std::string(value);
-}
+void mod_file::user_dir(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) { context.user_dir = std::string(value); }
 
-void mod_file::replace_path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.replace_paths.push_back(std::string(value));
-}
+void mod_file::replace_path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) { context.replace_paths.push_back(std::string(value)); }
 
 void mod_file::finish(mod_file_context& context) {
 	// If there isn't any path then we aren't required to do anything

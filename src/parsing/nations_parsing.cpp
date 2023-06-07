@@ -38,9 +38,7 @@ void triggered_modifier::finish(triggered_modifier_context& context) {
 	context.outer_context.state.national_definitions.triggered_modifiers[context.index].linked_modifier = modifier_id;
 }
 
-void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context) {
-	context.outer_context.set_of_triggered_modifiers.push_back(pending_triggered_modifier_content{gen, context.index});
-}
+void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context) { context.outer_context.set_of_triggered_modifiers.push_back(pending_triggered_modifier_content{gen, context.index}); }
 
 void make_triggered_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto index = uint32_t(context.state.national_definitions.triggered_modifiers.size());
@@ -704,7 +702,7 @@ void make_unit_names_list(std::string_view name, token_generator& gen, error_han
 	}
 }
 
-dcon::national_variable_id scenario_building_context::get_national_variable(std::string const & name) {
+dcon::national_variable_id scenario_building_context::get_national_variable(std::string const& name) {
 	if(auto it = map_of_national_variables.find(name); it != map_of_national_variables.end()) {
 		return it->second;
 	} else {
@@ -716,7 +714,7 @@ dcon::national_variable_id scenario_building_context::get_national_variable(std:
 	}
 }
 
-dcon::national_flag_id scenario_building_context::get_national_flag(std::string const & name) {
+dcon::national_flag_id scenario_building_context::get_national_flag(std::string const& name) {
 	if(auto it = map_of_national_flags.find(name); it != map_of_national_flags.end()) {
 		return it->second;
 	} else {
@@ -728,7 +726,7 @@ dcon::national_flag_id scenario_building_context::get_national_flag(std::string 
 	}
 }
 
-dcon::global_flag_id scenario_building_context::get_global_flag(std::string const & name) {
+dcon::global_flag_id scenario_building_context::get_global_flag(std::string const& name) {
 	if(auto it = map_of_global_flags.find(name); it != map_of_global_flags.end()) {
 		return it->second;
 	} else {

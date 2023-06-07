@@ -26,13 +26,13 @@ namespace ogl {
 #define ALICE_DDPF_RGB 0x00000040
 
 /*	The dwCaps1 member of the ALICE_DDSCAPS2 structure can be
-    set to one or more of the following values.	*/
+	set to one or more of the following values.	*/
 #define ALICE_DDSCAPS_COMPLEX 0x00000008
 #define ALICE_DDSCAPS_TEXTURE 0x00001000
 #define ALICE_DDSCAPS_MIPMAP 0x00400000
 
 /*	The dwCaps2 member of the ALICE_DDSCAPS2 structure can be
-    set to one or more of the following values.		*/
+	set to one or more of the following values.		*/
 #define ALICE_DDSCAPS2_CUBEMAP 0x00000200
 #define ALICE_DDSCAPS2_CUBEMAP_POSITIVEX 0x00000400
 #define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEX 0x00000800
@@ -86,12 +86,7 @@ typedef struct {
 	unsigned int dwReserved2;
 } DDS_header;
 
-unsigned int SOIL_direct_load_DDS_from_memory(
-    unsigned char const * const buffer,
-    unsigned int buffer_length,
-    unsigned int& width,
-    unsigned int& height,
-    int flags) {
+unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, unsigned int buffer_length, unsigned int& width, unsigned int& height, int flags) {
 	/*	variables	*/
 	DDS_header header;
 	unsigned int buffer_index = 0;
@@ -111,7 +106,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		return 0;
 	}
 	/*	try reading in the header	*/
-	memcpy((void*)(&header), (void const *)buffer, sizeof(DDS_header));
+	memcpy((void*)(&header), (void const*)buffer, sizeof(DDS_header));
 	buffer_index = sizeof(DDS_header);
 
 	/*	validate the header (warning, "goto"'s ahead, shield your eyes!!)	*/
@@ -128,9 +123,9 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		goto quick_exit;
 	}
 	/*	According to the MSDN spec, the dwFlags should contain
-	    ALICE_DDSD_LINEARSIZE if it's compressed, or ALICE_DDSD_PITCH if
-	    uncompressed.  Some DDS writers do not conform to the
-	    spec, so I need to make my reader more tolerant	*/
+		ALICE_DDSD_LINEARSIZE if it's compressed, or ALICE_DDSD_PITCH if
+		uncompressed.  Some DDS writers do not conform to the
+		spec, so I need to make my reader more tolerant	*/
 	/*	I need one of these	*/
 	flag = ALICE_DDPF_FOURCC | ALICE_DDPF_RGB;
 	if((header.sPixelFormat.dwFlags & flag) == 0) {
@@ -144,10 +139,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	}
 	/*	make sure it is a type we can upload	*/
 	if((header.sPixelFormat.dwFlags & ALICE_DDPF_FOURCC) &&
-	   !(
-	       (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
-	       (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
-	       (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24))))) {
+		!((header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) || (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) || (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24))))) {
 		goto quick_exit;
 	}
 	/*	OK, validated the header, let's load the image data	*/
@@ -256,26 +248,20 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	for(cf_target = ogl_target_start; cf_target <= ogl_target_end; ++cf_target) {
 		if(buffer_index + DDS_full_size <= (unsigned int)buffer_length) {
 			unsigned int byte_offset = DDS_main_size;
-			memcpy((void*)DDS_data, (void const *)(&buffer[buffer_index]), DDS_full_size);
+			memcpy((void*)DDS_data, (void const*)(&buffer[buffer_index]), DDS_full_size);
 			buffer_index += DDS_full_size;
 			/*	upload the main chunk	*/
 			if(uncompressed) {
 				/*	and remember, DXT uncompressed uses BGR(A),
-				    so swap to RGB(A) for ALL MIPmap levels	*/
+					so swap to RGB(A) for ALL MIPmap levels	*/
 				for(i = 0; i < (int)DDS_full_size; i += block_size) {
 					unsigned char temp = DDS_data[i];
 					DDS_data[i] = DDS_data[i + 2];
 					DDS_data[i + 2] = temp;
 				}
-				glTexImage2D(
-				    cf_target, 0,
-				    S3TC_type, width, height, 0,
-				    S3TC_type, GL_UNSIGNED_BYTE, DDS_data);
+				glTexImage2D(cf_target, 0, S3TC_type, width, height, 0, S3TC_type, GL_UNSIGNED_BYTE, DDS_data);
 			} else {
-				glCompressedTexImage2D(
-				    cf_target, 0,
-				    S3TC_type, width, height, 0,
-				    DDS_main_size, DDS_data);
+				glCompressedTexImage2D(cf_target, 0, S3TC_type, width, height, 0, DDS_main_size, DDS_data);
 			}
 			/*	upload the mipmaps, if we have them	*/
 			for(i = 1; i <= mipmaps; ++i) {
@@ -291,16 +277,10 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 				/*	upload this mipmap	*/
 				if(uncompressed) {
 					mip_size = w * h * block_size;
-					glTexImage2D(
-					    cf_target, i,
-					    S3TC_type, w, h, 0,
-					    S3TC_type, GL_UNSIGNED_BYTE, &DDS_data[byte_offset]);
+					glTexImage2D(cf_target, i, S3TC_type, w, h, 0, S3TC_type, GL_UNSIGNED_BYTE, &DDS_data[byte_offset]);
 				} else {
 					mip_size = ((w + 3) / 4) * ((h + 3) / 4) * block_size;
-					glCompressedTexImage2D(
-					    cf_target, i,
-					    S3TC_type, w, h, 0,
-					    mip_size, &DDS_data[byte_offset]);
+					glCompressedTexImage2D(cf_target, i, S3TC_type, w, h, 0, mip_size, &DDS_data[byte_offset]);
 				}
 				/*	and move to the next mipmap	*/
 				byte_offset += mip_size;
@@ -321,9 +301,7 @@ quick_exit:
 	return tex_ID;
 }
 
-texture::~texture() {
-	STBI_FREE(data);
-}
+texture::~texture() { STBI_FREE(data); }
 
 texture::texture(texture&& other) noexcept {
 	channels = other.channels;
@@ -352,7 +330,7 @@ GLuint texture::get_texture_handle() const {
 	return texture_handle;
 }
 
-GLuint load_file_and_return_handle(native_string const & native_name, simple_fs::file_system const & fs, texture& asset_texture, bool keep_data) {
+GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data) {
 	auto name_length = native_name.length();
 
 	auto root = get_root(fs);
@@ -364,8 +342,7 @@ GLuint load_file_and_return_handle(native_string const & native_name, simple_fs:
 
 			uint32_t w = 0;
 			uint32_t h = 0;
-			asset_texture.texture_handle =
-			    SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const *>(content.data), content.file_size, w, h, 0);
+			asset_texture.texture_handle = SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
 
 			if(asset_texture.texture_handle) {
 				asset_texture.channels = 4;
@@ -388,8 +365,7 @@ GLuint load_file_and_return_handle(native_string const & native_name, simple_fs:
 
 		int32_t file_channels = 4;
 
-		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const *>(content.data), int32_t(content.file_size),
-		                                           &(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
+		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
 
 		asset_texture.channels = 4;
 		asset_texture.loaded = true;
@@ -570,9 +546,7 @@ data_texture::data_texture(int32_t sz, int32_t ch) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-data_texture::~data_texture() {
-	delete[] data;
-}
+data_texture::~data_texture() { delete[] data; }
 
 uint32_t data_texture::handle() {
 	if(data && data_updated) {
@@ -622,8 +596,7 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 	int32_t size_y = 0;
 	int32_t channels = 4;
 
-	data = stbi_load_from_memory(reinterpret_cast<uint8_t const *>(content.data), int32_t(content.file_size),
-	                             &(size_x), &(size_y), &file_channels, 4);
+	data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &(size_x), &(size_y), &file_channels, 4);
 
 	uint32_t ftexid = 0;
 

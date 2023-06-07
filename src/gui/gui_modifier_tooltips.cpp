@@ -19,15 +19,13 @@ struct modifier_display_info {
 };
 
 static const modifier_display_info province_modifier_names[sys::provincial_mod_offsets::count] = {
-#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
-	modifier_display_info{green_is_negative, display_type, locale_name},
-    MOD_PROV_LIST
+#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) modifier_display_info{green_is_negative, display_type, locale_name},
+	MOD_PROV_LIST
 #undef MOD_LIST_ELEMENT
 };
 static const modifier_display_info national_modifier_names[sys::national_mod_offsets::count] = {
-#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
-	modifier_display_info{green_is_negative, display_type, locale_name},
-    MOD_NAT_LIST
+#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) modifier_display_info{green_is_negative, display_type, locale_name},
+	MOD_NAT_LIST
 #undef MOD_LIST_ELEMENT
 };
 
@@ -48,7 +46,7 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation) {
 	auto fat_id = dcon::fatten(state.world, mid);
 
-	auto const & prov_def = fat_id.get_province_values();
+	auto const& prov_def = fat_id.get_province_values();
 	for(uint32_t i = 0; i < prov_def.modifier_definition_size; ++i) {
 		if(!bool(prov_def.offsets[i]))
 			break;
@@ -57,14 +55,12 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(layout, state, box);
-		auto color = data.positive_is_green
-		                 ? (prov_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
-		                 : (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
+		auto color = data.positive_is_green ? (prov_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red) : (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(layout, state, box, format_modifier_value(state, prov_def.values[i], data.type), color);
 		text::close_layout_box(layout, box);
 	}
 
-	auto const & nat_def = fat_id.get_national_values();
+	auto const& nat_def = fat_id.get_national_values();
 	for(uint32_t i = 0; i < nat_def.modifier_definition_size; ++i) {
 		if(!bool(nat_def.offsets[i]))
 			break;
@@ -73,9 +69,7 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(layout, state, box);
-		auto color = data.positive_is_green
-		                 ? (nat_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
-		                 : (nat_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
+		auto color = data.positive_is_green ? (nat_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red) : (nat_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(layout, state, box, format_modifier_value(state, nat_def.values[i], data.type), color);
 		text::close_layout_box(layout, box);
 	}
@@ -85,7 +79,7 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 	if(scaled == 0.f)
 		return;
 	auto fat_id = dcon::fatten(state.world, mid);
-	auto const & def = fat_id.get_national_values();
+	auto const& def = fat_id.get_national_values();
 	for(uint32_t i = 0; i < def.modifier_definition_size; ++i) {
 		if(!bool(def.offsets[i]))
 			break;
@@ -106,9 +100,7 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(layout, state, box);
 		auto value = def.values[i] * scaled;
-		auto color = data.positive_is_green
-		                 ? (value >= 0.f ? text::text_color::green : text::text_color::red)
-		                 : (value >= 0.f ? text::text_color::red : text::text_color::green);
+		auto color = data.positive_is_green ? (value >= 0.f ? text::text_color::green : text::text_color::red) : (value >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(layout, state, box, format_modifier_value(state, value, data.type), color);
 		text::close_layout_box(layout, box);
 	}
@@ -117,7 +109,7 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 	if(scaled == 0.f)
 		return;
 	auto fat_id = dcon::fatten(state.world, mid);
-	auto const & def = fat_id.get_province_values();
+	auto const& def = fat_id.get_province_values();
 	for(uint32_t i = 0; i < def.modifier_definition_size; ++i) {
 		if(!bool(def.offsets[i]))
 			break;
@@ -138,16 +130,13 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(layout, state, box);
 		auto value = def.values[i] * scaled;
-		auto color = data.positive_is_green
-		                 ? (value >= 0.f ? text::text_color::green : text::text_color::red)
-		                 : (value >= 0.f ? text::text_color::red : text::text_color::green);
+		auto color = data.positive_is_green ? (value >= 0.f ? text::text_color::green : text::text_color::red) : (value >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(layout, state, box, format_modifier_value(state, value, data.type), color);
 		text::close_layout_box(layout, box);
 	}
 }
 
-template<typename T>
-void acting_modifiers_description_province(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation, bool& header, T nmid) {
+template<typename T> void acting_modifiers_description_province(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation, bool& header, T nmid) {
 	if(state.national_definitions.land_province)
 		active_single_modifier_description(state, layout, state.national_definitions.land_province, identation, header, nmid);
 	for(auto mpr : state.world.province_get_current_modifiers(p))

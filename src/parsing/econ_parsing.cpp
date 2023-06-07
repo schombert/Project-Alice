@@ -48,8 +48,8 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
 		context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
 		/*for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
-		    dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
-		    context.state.world.factory_type_set_construction_costs(factory_id, cid, res.goods_cost.data[cid]);
+			dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
+			context.state.world.factory_type_set_construction_costs(factory_id, cid, res.goods_cost.data[cid]);
 		}*/
 		uint32_t added = 0;
 		auto& cc = context.state.world.factory_type_get_construction_costs(factory_id);
@@ -258,8 +258,6 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 	}
 }
 
-commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context) {
-	return parse_commodity_array(gen, err, context.outer_context);
-}
+commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context) { return parse_commodity_array(gen, err, context.outer_context); }
 
 } // namespace parsers

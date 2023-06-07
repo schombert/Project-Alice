@@ -155,7 +155,7 @@ inline uint8_t increase_level(uint8_t v) {
 	case level_friendly:
 		return uint8_t((v & ~level_mask) | level_in_sphere);
 	case level_in_sphere:
-		return uint8_t((v & ~level_mask) | level_in_sphere);
+		return v;
 	default:
 		return v;
 	}
@@ -167,7 +167,7 @@ inline uint8_t decrease_level(uint8_t v) {
 	case level_opposed:
 		return uint8_t((v & ~level_mask) | level_hostile);
 	case level_hostile:
-		return uint8_t((v & ~level_mask) | level_hostile);
+		return v;
 	case level_cordial:
 		return uint8_t((v & ~level_mask) | level_neutral);
 	case level_friendly:
@@ -313,6 +313,7 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 
 void update_great_powers(sys::state& state);

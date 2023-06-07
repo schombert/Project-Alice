@@ -29,8 +29,7 @@ struct building_gfx_context {
 	ui::definitions& ui_defs;
 	ankerl::unordered_dense::map<std::string, dcon::gfx_object_id> map_of_names;
 	ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_texture_names;
-	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) {
-	}
+	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) { }
 };
 
 struct gfx_xy_pair {
@@ -56,12 +55,9 @@ struct gfx_object {
 	bool clicksound_set = false;
 	bool transparencecheck = false;
 
-	void clicksound(parsers::association_type, std::string_view, parsers::error_handler& err, int32_t line, building_gfx_context& context) {
-		clicksound_set = true;
-	}
+	void clicksound(parsers::association_type, std::string_view, parsers::error_handler& err, int32_t line, building_gfx_context& context) { clicksound_set = true; }
 
-	void finish(building_gfx_context& context) {
-	}
+	void finish(building_gfx_context& context) { }
 };
 
 struct gfx_object_outer {
@@ -75,15 +71,13 @@ struct gfx_object_outer {
 	void piecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 	void linecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 
-	void finish(building_gfx_context const& context) {
-	}
+	void finish(building_gfx_context const& context) { }
 };
 
 void gfx_add_obj(parsers::token_generator& gen, parsers::error_handler& err, building_gfx_context& context);
 
 struct gfx_files {
-	void finish(building_gfx_context& context) {
-	}
+	void finish(building_gfx_context& context) { }
 };
 
 //
@@ -101,8 +95,7 @@ struct gui_element_common {
 	void rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
-	void finish(building_gfx_context& context) {
-	}
+	void finish(building_gfx_context& context) { }
 };
 
 struct button : public gui_element_common {
@@ -195,8 +188,7 @@ struct window : public gui_element_common {
 };
 
 struct guitypes {
-	void finish(building_gfx_context& context) {
-	}
+	void finish(building_gfx_context& context) { }
 	void guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
@@ -212,8 +204,7 @@ struct guitypes {
 	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 };
 struct gui_files {
-	void finish(building_gfx_context& context) {
-	}
+	void finish(building_gfx_context& context) { }
 };
 
 struct pending_ideology_content {
@@ -272,7 +263,8 @@ struct pending_nat_event {
 
 	pending_nat_event() = default;
 	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
-	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
+	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state)
+		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 };
 struct pending_prov_event {
 	dcon::provincial_event_id id;
@@ -285,7 +277,8 @@ struct pending_prov_event {
 
 	pending_prov_event() = default;
 	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
-	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
+	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state)
+		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 };
 struct scenario_building_context {
 	building_gfx_context gfx_context;
@@ -343,7 +336,7 @@ struct scenario_building_context {
 	dcon::text_key noimage;
 
 	dcon::modifier_id modifier_by_terrain_index[64] = {}; // these are the given mappings from the raw palette index to terrain type
-	uint32_t color_by_terrain_index[64] = {0};            // these are the (packed) colors given for the terrain type modifier at the given palette index
+	uint32_t color_by_terrain_index[64] = {0};			  // these are the (packed) colors given for the terrain type modifier at the given palette index
 	dcon::modifier_id ocean_terrain;
 
 	scenario_building_context(sys::state& state);
@@ -363,12 +356,8 @@ struct national_identity_file {
 
 struct color_from_3f {
 	uint32_t value = 0;
-	template<typename T>
-	void free_value(float v, error_handler& err, int32_t line, T& context) {
-		value = (value >> 8) | (uint32_t(v * 255.0f) << 16);
-	}
-	template<typename T>
-	void finish(T& context) { }
+	template<typename T> void free_value(float v, error_handler& err, int32_t line, T& context) { value = (value >> 8) | (uint32_t(v * 255.0f) << 16); }
+	template<typename T> void finish(T& context) { }
 };
 
 struct religion_context {
@@ -389,19 +378,14 @@ struct religion_group {
 };
 
 struct religion_file {
-	void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) {
-	}
+	void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) { }
 	void finish(scenario_building_context& context) { }
 };
 
 struct color_from_3i {
 	uint32_t value = 0;
-	template<typename T>
-	void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
-		value = (value >> 8) | (uint32_t(v & 0xFF) << 16);
-	}
-	template<typename T>
-	void finish(T& context) { }
+	template<typename T> void free_value(int32_t v, error_handler& err, int32_t line, T& context) { value = (value >> 8) | (uint32_t(v & 0xFF) << 16); }
+	template<typename T> void finish(T& context) { }
 };
 
 struct culture_group_context {
@@ -475,27 +459,25 @@ struct goods_file {
 	void finish(scenario_building_context& context) { }
 };
 
-#define MOD_PROV_FUNCTION(X)                                                                                                 \
-	template<typename T>                                                                                                     \
-	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                        \
-		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {                                 \
-			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
-		} else {                                                                                                             \
-			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::X;                                \
-			constructed_definition_p.values[next_to_add_p] = v;                                                              \
-			++next_to_add_p;                                                                                                 \
-		}                                                                                                                    \
+#define MOD_PROV_FUNCTION(X)                                                                                                                                                                                                                                                                               \
+	template<typename T> void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                                                                                                                                                                                 \
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {                                                                                                                                                                                                               \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";                                                                                                                                                                               \
+		} else {                                                                                                                                                                                                                                                                                           \
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::X;                                                                                                                                                                                                              \
+			constructed_definition_p.values[next_to_add_p] = v;                                                                                                                                                                                                                                            \
+			++next_to_add_p;                                                                                                                                                                                                                                                                               \
+		}                                                                                                                                                                                                                                                                                                  \
 	}
-#define MOD_NAT_FUNCTION(X)                                                                                                  \
-	template<typename T>                                                                                                     \
-	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                        \
-		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {                                   \
-			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
-		} else {                                                                                                             \
-			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::X;                                  \
-			constructed_definition_n.values[next_to_add_n] = v;                                                              \
-			++next_to_add_n;                                                                                                 \
-		}                                                                                                                    \
+#define MOD_NAT_FUNCTION(X)                                                                                                                                                                                                                                                                                \
+	template<typename T> void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                                                                                                                                                                                 \
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {                                                                                                                                                                                                                 \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";                                                                                                                                                                               \
+		} else {                                                                                                                                                                                                                                                                                           \
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::X;                                                                                                                                                                                                                \
+			constructed_definition_n.values[next_to_add_n] = v;                                                                                                                                                                                                                                            \
+			++next_to_add_n;                                                                                                                                                                                                                                                                               \
+		}                                                                                                                                                                                                                                                                                                  \
 	}
 
 struct modifier_base {
@@ -507,10 +489,7 @@ public:
 	uint32_t next_to_add_p = 0;
 	uint32_t next_to_add_n = 0;
 	uint8_t icon_index = 0;
-	template<typename T>
-	void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
-		icon_index = uint8_t(v);
-	}
+	template<typename T> void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) { icon_index = uint8_t(v); }
 
 	MOD_PROV_FUNCTION(supply_limit)
 	MOD_PROV_FUNCTION(attrition)
@@ -558,8 +537,7 @@ public:
 	MOD_NAT_FUNCTION(unemployment_benefit)
 	MOD_NAT_FUNCTION(pension_level)
 	MOD_PROV_FUNCTION(population_growth)
-	template<typename T>
-	void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T> void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -609,8 +587,7 @@ public:
 	MOD_PROV_FUNCTION(poor_income_modifier)
 	MOD_PROV_FUNCTION(boost_strongest_party)
 	MOD_NAT_FUNCTION(global_immigrant_attract)
-	template<typename T>
-	void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T> void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -635,8 +612,7 @@ public:
 	MOD_PROV_FUNCTION(min_build_railroad)
 	MOD_PROV_FUNCTION(min_build_fort)
 	MOD_PROV_FUNCTION(attack)
-	template<typename T>
-	void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T> void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -645,8 +621,7 @@ public:
 			++next_to_add_p;
 		}
 	}
-	template<typename T>
-	void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T> void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -655,8 +630,7 @@ public:
 			++next_to_add_p;
 		}
 	}
-	template<typename T>
-	void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T> void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -711,21 +685,15 @@ public:
 	MOD_NAT_FUNCTION(plurality)
 	MOD_NAT_FUNCTION(colonial_prestige)
 
-	template<typename T>
-	void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T> void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
 		land_unit_start_experience(type, v, err, line, context);
 		naval_unit_start_experience(type, v, err, line, context);
 	}
 
-	template<typename T>
-	void finish(T& context) { }
+	template<typename T> void finish(T& context) { }
 
-	sys::provincial_modifier_definition const& peek_province_mod() const {
-		return constructed_definition_p;
-	}
-	sys::national_modifier_definition const& peek_national_mod() const {
-		return constructed_definition_n;
-	}
+	sys::provincial_modifier_definition const& peek_province_mod() const { return constructed_definition_p; }
+	sys::national_modifier_definition const& peek_national_mod() const { return constructed_definition_n; }
 	sys::national_modifier_definition force_national_mod() const {
 		sys::national_modifier_definition temp = constructed_definition_n;
 		auto temp_next = next_to_add_n;
@@ -867,12 +835,8 @@ public:
 
 struct int_vector {
 	std::vector<int32_t> data;
-	template<typename T>
-	void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
-		data.push_back(v);
-	}
-	template<typename T>
-	void finish(T& context) { }
+	template<typename T> void free_value(int32_t v, error_handler& err, int32_t line, T& context) { data.push_back(v); }
+	template<typename T> void finish(T& context) { }
 };
 struct commodity_array {
 	tagged_vector<float, dcon::commodity_id> data;
@@ -889,12 +853,7 @@ struct commodity_array {
 	void finish(scenario_building_context& context);
 };
 
-enum class building_type {
-	factory,
-	naval_base,
-	fort,
-	railroad
-};
+enum class building_type { factory, naval_base, fort, railroad };
 struct building_definition : public modifier_base {
 	int_vector colonial_points;
 	commodity_array goods_cost;
@@ -1253,7 +1212,8 @@ struct inventions_file {
 	void finish(tech_group_context&) { }
 };
 
-void register_invention(std::string_view name, token_generator& gen, error_handler& err, tech_group_context& context); // but not at the patent office
+void register_invention(std::string_view name, token_generator& gen, error_handler& err,
+	tech_group_context& context); // but not at the patent office
 
 struct commodity_set : public economy::commodity_set {
 	int32_t num_added = 0;
@@ -1744,8 +1704,7 @@ struct tech_context {
 };
 
 struct unit_modifier_body : public sys::unit_modifier {
-	template<typename T>
-	void finish(T&) { }
+	template<typename T> void finish(T&) { }
 };
 
 struct tech_rgo_goods_output {
@@ -2183,9 +2142,7 @@ struct production_employee {
 struct production_employee_set {
 	std::vector<production_employee> employees;
 	void finish(production_context&) { }
-	void free_group(production_employee const& value, error_handler& err, int32_t line, production_context& context) {
-		employees.push_back(value);
-	}
+	void free_group(production_employee const& value, error_handler& err, int32_t line, production_context& context) { employees.push_back(value); }
 };
 
 struct production_bonus {
@@ -2195,12 +2152,7 @@ struct production_bonus {
 	void finish(production_context&) { }
 };
 
-enum class production_type_enum {
-	none = 0,
-	factory,
-	rgo,
-	artisan
-};
+enum class production_type_enum { none = 0, factory, rgo, artisan };
 struct production_type {
 	commodity_array efficiency;
 	commodity_array input_goods;
@@ -2223,9 +2175,7 @@ struct production_type {
 			err.accumulated_errors += "Invalid commodity name " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
-	void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) {
-		bonuses.push_back(v);
-	}
+	void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) { bonuses.push_back(v); }
 	void type(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
 		if(is_fixed_token_ci(v.data(), v.data() + v.length(), "factory"))
 			type_ = production_type_enum::factory;
@@ -2372,9 +2322,7 @@ struct war_block {
 	void add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
-	void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) {
-		context.wargoals.push_back(value);
-	}
+	void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) { context.wargoals.push_back(value); }
 
 	void finish(war_history_context&) { }
 };

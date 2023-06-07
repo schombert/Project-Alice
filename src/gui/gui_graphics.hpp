@@ -14,18 +14,7 @@ struct building_gfx_context;
 }
 
 namespace ui {
-enum class object_type : uint8_t {
-	generic_sprite = 0x00,
-	bordered_rect = 0x01,
-	horizontal_progress_bar = 0x02,
-	vertical_progress_bar = 0x03,
-	flag_mask = 0x04,
-	tile_sprite = 0x05,
-	text_sprite = 0x06,
-	barchart = 0x07,
-	piechart = 0x08,
-	linegraph = 0x09
-};
+enum class object_type : uint8_t { generic_sprite = 0x00, bordered_rect = 0x01, horizontal_progress_bar = 0x02, vertical_progress_bar = 0x03, flag_mask = 0x04, tile_sprite = 0x05, text_sprite = 0x06, barchart = 0x07, piechart = 0x08, linegraph = 0x09 };
 
 struct xy_pair {
 	int16_t x = 0;
@@ -43,26 +32,16 @@ struct gfx_object {
 	xy_pair size; // 4bytes
 
 	dcon::texture_id primary_texture_handle; // 6bytes
-	uint16_t type_dependent = 0;             // secondary texture handle or border size -- 8bytes
+	uint16_t type_dependent = 0;			 // secondary texture handle or border size -- 8bytes
 
-	uint8_t flags = 0;            // 9bytes
+	uint8_t flags = 0;			  // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
 
-	object_type get_object_type() const {
-		return object_type(flags & type_mask);
-	}
-	bool is_always_transparent() const {
-		return (flags & always_transparent) != 0;
-	}
-	bool is_vertically_flipped() const {
-		return (flags & flip_v) != 0;
-	}
-	bool is_clicky() const {
-		return (flags & has_click_sound) != 0;
-	}
-	bool is_partially_transparent() const {
-		return (flags & do_transparency_check) != 0;
-	}
+	object_type get_object_type() const { return object_type(flags & type_mask); }
+	bool is_always_transparent() const { return (flags & always_transparent) != 0; }
+	bool is_vertically_flipped() const { return (flags & flip_v) != 0; }
+	bool is_clicky() const { return (flags & has_click_sound) != 0; }
+	bool is_partially_transparent() const { return (flags & do_transparency_check) != 0; }
 };
 
 enum class element_type : uint8_t { // 3 bits
@@ -108,9 +87,7 @@ struct text_base_data {
 	uint16_t font_handle = 0;
 	uint8_t flags = 0;
 
-	alignment get_alignment() const {
-		return alignment(flags & alignment_mask);
-	}
+	alignment get_alignment() const { return alignment(flags & alignment_mask); }
 };
 
 inline constexpr int32_t clicksound_bit_offset = 2;
@@ -128,12 +105,8 @@ struct button_data : public text_base_data {
 	dcon::gfx_object_id button_image;
 	sys::virtual_key shortcut = sys::virtual_key::NONE;
 
-	clicksound get_clicksound() const {
-		return clicksound(text_base_data::flags & clicksound_mask);
-	}
-	bool is_checkbox() const {
-		return (text_base_data::flags & is_checkbox_mask) != 0;
-	}
+	clicksound get_clicksound() const { return clicksound(text_base_data::flags & clicksound_mask); }
+	bool is_checkbox() const { return (text_base_data::flags & is_checkbox_mask) != 0; }
 };
 
 inline constexpr int32_t text_background_bit_offset = 2;
@@ -152,18 +125,10 @@ struct text_data : public text_base_data {
 
 	xy_pair border_size;
 
-	text_background get_text_background() const {
-		return text_background(text_base_data::flags & background_mask);
-	}
-	bool is_fixed_size() const {
-		return (text_base_data::flags & is_fixed_size_mask) != 0;
-	}
-	bool is_instant() const {
-		return (text_base_data::flags & is_instant_mask) != 0;
-	}
-	bool is_edit() const {
-		return (text_base_data::flags & is_edit_mask) != 0;
-	}
+	text_background get_text_background() const { return text_background(text_base_data::flags & background_mask); }
+	bool is_fixed_size() const { return (text_base_data::flags & is_fixed_size_mask) != 0; }
+	bool is_instant() const { return (text_base_data::flags & is_instant_mask) != 0; }
+	bool is_edit() const { return (text_base_data::flags & is_edit_mask) != 0; }
 };
 
 struct image_data {
@@ -175,12 +140,8 @@ struct image_data {
 
 	uint8_t flags = 0;
 
-	bool is_mask() const {
-		return (flags & is_mask_mask) != 0;
-	}
-	uint8_t frame() const {
-		return (flags & frame_mask);
-	}
+	bool is_mask() const { return (flags & is_mask_mask) != 0; }
+	uint8_t frame() const { return (flags & frame_mask); }
 };
 
 struct overlapping_data {
@@ -216,18 +177,10 @@ struct scrollbar_data {
 
 	uint8_t flags = 0;
 
-	step_size get_step_size() const {
-		return step_size(step_size_mask & flags);
-	}
-	bool is_range_limited() const {
-		return (flags & is_range_limited_mask) != 0;
-	}
-	bool is_lockable() const {
-		return (flags & is_lockable_mask) != 0;
-	}
-	bool is_horizontal() const {
-		return (flags & is_horizontal_mask) != 0;
-	}
+	step_size get_step_size() const { return step_size(step_size_mask & flags); }
+	bool is_range_limited() const { return (flags & is_range_limited_mask) != 0; }
+	bool is_lockable() const { return (flags & is_lockable_mask) != 0; }
+	bool is_horizontal() const { return (flags & is_horizontal_mask) != 0; }
 };
 
 struct window_data {
@@ -239,19 +192,12 @@ struct window_data {
 	uint8_t num_children = 0;
 	uint8_t flags = 0;
 
-	bool is_dialog() const {
-		return (flags & is_dialog_mask) != 0;
-	}
-	bool is_fullscreen() const {
-		return (flags & is_fullscreen_mask) != 0;
-	}
-	bool is_moveable() const {
-		return (flags & is_moveable_mask) != 0;
-	}
+	bool is_dialog() const { return (flags & is_dialog_mask) != 0; }
+	bool is_fullscreen() const { return (flags & is_fullscreen_mask) != 0; }
+	bool is_moveable() const { return (flags & is_moveable_mask) != 0; }
 };
 
-struct position_data {
-};
+struct position_data { };
 
 struct element_data {
 	static constexpr uint8_t type_mask = 0x07;
@@ -260,45 +206,33 @@ struct element_data {
 
 	static constexpr uint8_t ex_is_top_level = 0x01;
 
-	xy_pair position;    // 4
-	xy_pair size;        // 8
+	xy_pair position;	 // 4
+	xy_pair size;		 // 8
 	dcon::text_key name; // 12
 
 	union alignas(4) internal_data {
-		text_base_data text_common;   // +5
-		button_data button;           // +5 + ? +3
-		text_data text;               // +5 + ? +4
-		image_data image;             // +6
+		text_base_data text_common;	  // +5
+		button_data button;			  // +5 + ? +3
+		text_data text;				  // +5 + ? +4
+		image_data image;			  // +6
 		overlapping_data overlapping; //+5
-		list_box_data list_box;       // +11
-		scrollbar_data scrollbar;     //+10
-		window_data window;           // +4
-		position_data position;       //+0
+		list_box_data list_box;		  // +11
+		scrollbar_data scrollbar;	  //+10
+		window_data window;			  // +4
+		position_data position;		  //+0
 
-		internal_data() {
-			position = position_data{};
-		}
+		internal_data() { position = position_data{}; }
 	} data; // +12 = 24
 
-	uint8_t flags = 0;    // 25
+	uint8_t flags = 0;	  // 25
 	uint8_t ex_flags = 0; // 26
 
-	element_data() {
-		memset(this, 0, sizeof(element_data));
-	}
+	element_data() { memset(this, 0, sizeof(element_data)); }
 
-	element_type get_element_type() const {
-		return element_type(flags & type_mask);
-	}
-	rotation get_rotation() const {
-		return rotation(flags & rotation_mask);
-	}
-	orientation get_orientation() const {
-		return orientation(flags & orientation_mask);
-	}
-	bool is_top_level() const {
-		return (ex_flags & ex_is_top_level) != 0;
-	}
+	element_type get_element_type() const { return element_type(flags & type_mask); }
+	rotation get_rotation() const { return rotation(flags & rotation_mask); }
+	orientation get_orientation() const { return orientation(flags & orientation_mask); }
+	bool is_top_level() const { return (ex_flags & ex_is_top_level) != 0; }
 };
 static_assert(sizeof(element_data) == 28);
 
@@ -315,26 +249,14 @@ public:
 
 void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err);
 
-enum class message_result {
-	unseen,
-	seen,
-	consumed
-};
-enum class focus_result {
-	ignored,
-	accepted
-};
-enum class tooltip_behavior {
-	tooltip,
-	variable_tooltip,
-	position_sensitive_tooltip,
-	no_tooltip
-};
+enum class message_result { unseen, seen, consumed };
+enum class focus_result { ignored, accepted };
+enum class tooltip_behavior { tooltip, variable_tooltip, position_sensitive_tooltip, no_tooltip };
 
 class element_base;
 
-xy_pair child_relative_location(element_base const & parent, element_base const & child);
-xy_pair get_absolute_location(element_base const & node);
+xy_pair child_relative_location(element_base const& parent, element_base const& child);
+xy_pair get_absolute_location(element_base const& node);
 
 using ui_hook_fn = std::unique_ptr<element_base> (*)(sys::state&, dcon::gui_def_id);
 
@@ -403,8 +325,7 @@ struct mouse_probe {
 	xy_pair relative_location;
 };
 
-template<typename T>
-constexpr ui_hook_fn hook() {
+template<typename T> constexpr ui_hook_fn hook() {
 	return +[](sys::state&, dcon::gui_def_id) { return std::make_unique<T>(); };
 }
 
@@ -414,6 +335,6 @@ std::unique_ptr<element_base> make_element(sys::state& state, std::string_view n
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
 
 void show_main_menu(sys::state& state);
-int32_t ui_width(sys::state const & state);
-int32_t ui_height(sys::state const & state);
+int32_t ui_width(sys::state const& state);
+int32_t ui_height(sys::state const& state);
 } // namespace ui

@@ -40,17 +40,12 @@ void create_opengl_context(sys::state& state) {
 		MessageBoxW(state.win_ptr->hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
 	}
 
-	int attribs[] =
-	    {
-	        WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-	        WGL_CONTEXT_MINOR_VERSION_ARB, 5,
-	        WGL_CONTEXT_FLAGS_ARB,
+	int attribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB, 4, WGL_CONTEXT_MINOR_VERSION_ARB, 5, WGL_CONTEXT_FLAGS_ARB,
 #ifndef NDEBUG
-	        WGL_CONTEXT_DEBUG_BIT_ARB |
+		WGL_CONTEXT_DEBUG_BIT_ARB |
 #endif
-	            0,
-	        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-	        0};
+			0,
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0};
 
 	if(wglewIsSupported("WGL_ARB_create_context") != 1) {
 		MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);

@@ -214,6 +214,7 @@ void make_government(std::string_view name, token_generator& gen, error_handler&
 	auto name_id = text::find_or_add_key(context.state, name);
 
 	context.state.culture_definitions.governments[new_id].name = name_id;
+	context.state.culture_definitions.governments[new_id].ruler_name = text::find_or_add_key(context.state, std::string(name) + "_ruler");
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{context, new_id};
@@ -392,9 +393,7 @@ void read_migration_target(token_generator& gen, error_handler& err, poptype_con
 	context.outer_context.state.world.pop_type_set_migration_target(context.id, result);
 }
 
-commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context) {
-	return parse_commodity_array(gen, err, context.outer_context);
-}
+commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context) { return parse_commodity_array(gen, err, context.outer_context); }
 
 dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context) {
 	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};

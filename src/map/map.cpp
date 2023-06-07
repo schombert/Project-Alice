@@ -22,8 +22,7 @@ image load_stb_image(simple_fs::file& file) {
 	int32_t size_x = 0;
 	int32_t size_y = 0;
 	auto content = simple_fs::view_contents(file);
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const *>(content.data), int32_t(content.file_size),
-	                                  &size_x, &size_y, &file_channels, 4);
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y, &file_channels, 4);
 	return image(data, size_x, size_y, 4);
 }
 
@@ -34,26 +33,14 @@ GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t
 	const GLuint formats[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
 	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
-		glTexStorage2D(
-		    GL_TEXTURE_2D,
-		    1,
-		    internalformats[channels - 1],
-		    size_x, size_y);
-		glTexSubImage2D(
-		    GL_TEXTURE_2D,
-		    0, 0, 0,
-		    size_x, size_y,
-		    formats[channels - 1],
-		    GL_UNSIGNED_BYTE,
-		    data);
+		glTexStorage2D(GL_TEXTURE_2D, 1, internalformats[channels - 1], size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, formats[channels - 1], GL_UNSIGNED_BYTE, data);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	return texture_handle;
 }
-GLuint make_gl_texture(image& image) {
-	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
-}
+GLuint make_gl_texture(image& image) { return make_gl_texture(image.data, image.size_x, image.size_y, image.channels); }
 
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
 	glBindTexture(texture_type, texture_handle);
@@ -87,14 +74,7 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 
 		for(int32_t x = 0; x < tiles_x; x++)
 			for(int32_t y = 0; y < tiles_y; y++)
-				glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
-				                0, 0,
-				                0, GLint(x * tiles_x + y),
-				                GLsizei(p_dx), GLsizei(p_dy),
-				                1,
-				                GL_RGBA,
-				                GL_UNSIGNED_BYTE,
-				                ((uint32_t const *)image.data) + (x * p_dy * image.size_x + y * p_dx));
+				glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(x * tiles_x + y), GLsizei(p_dx), GLsizei(p_dy), 1, GL_RGBA, GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
 
 		set_gltex_parameters(texture_handle, GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -359,9 +339,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		border.count = int32_t(current_border_vertices.size());
 		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 
-		border_vertices.insert(border_vertices.end(),
-		                       std::make_move_iterator(current_border_vertices.begin()),
-		                       std::make_move_iterator(current_border_vertices.end()));
+		border_vertices.insert(border_vertices.end(), std::make_move_iterator(current_border_vertices.begin()), std::make_move_iterator(current_border_vertices.end()));
 	}
 }
 
@@ -372,7 +350,7 @@ void display_data::update_borders(sys::state& state) {
 	}
 }
 
-void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void const * offset) {
+void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void const* offset) {
 	glVertexAttribFormat(index, size, type, normalized, stride);
 	glEnableVertexAttribArray(index);
 	glVertexAttribBinding(index, 0);
@@ -632,8 +610,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	if(zoom > 8) {
 		glUniform1f(4, 0.0013f);
-		uint8_t visible_borders =
-		    (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit | province::border::state_bit);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit | province::border::state_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -648,8 +625,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	if(zoom > 3.5f) {
 		glUniform1f(4, 0.0018f);
-		uint8_t visible_borders =
-		    (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -664,8 +640,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	{
 		glUniform1f(4, 0.0027f);
-		uint8_t visible_borders =
-		    (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -698,7 +673,7 @@ GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x,
 	return texture_handle;
 }
 
-void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const & prov_color, uint8_t layers) {
+void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers) {
 	if(layers == 1) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 	} else {
@@ -742,9 +717,7 @@ void display_data::set_selected_province(sys::state& state, dcon::province_id pr
 	gen_prov_color_texture(province_highlight, province_highlights);
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const & prov_color) {
-	gen_prov_color_texture(province_color, prov_color, 2);
-}
+void display_data::set_province_color(std::vector<uint32_t> const& prov_color) { gen_prov_color_texture(province_color, prov_color, 2); }
 
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
@@ -881,11 +854,11 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	load_border_data(context);
 }
 
-GLuint load_dds_texture(simple_fs::directory const & dir, native_string_view file_name) {
+GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = simple_fs::open_file(dir, file_name);
 	auto content = simple_fs::view_contents(*file);
 	uint32_t size_x, size_y;
-	uint8_t const * data = (uint8_t const *)(content.data);
+	uint8_t const* data = (uint8_t const*)(content.data);
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 

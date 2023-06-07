@@ -16,9 +16,7 @@ namespace ui {
 
 class province_liferating : public province_liferating_progress_bar {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -82,9 +80,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -146,9 +142,7 @@ public:
 		set_visible(state, bool(nation));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -192,9 +186,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -254,18 +246,14 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
 			disabled = true;
-			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
-			});
+			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) { disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled; });
 			frame = get_icon_frame(state);
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -386,8 +374,7 @@ public:
 	}
 };
 
-template<economy::province_building_type Value>
-class province_building_icon : public standard_province_icon {
+template<economy::province_building_type Value> class province_building_icon : public standard_province_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		switch(Value) {
@@ -407,8 +394,7 @@ public:
 		return 0;
 	}
 };
-template<economy::province_building_type Value>
-class province_building_expand_button : public button_element_base {
+template<economy::province_building_type Value> class province_building_expand_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -428,8 +414,7 @@ public:
 		}
 	}
 };
-template<economy::province_building_type Value>
-class province_building_progress : public progress_bar {
+template<economy::province_building_type Value> class province_building_progress : public progress_bar {
 public:
 	void on_create(sys::state& state) noexcept override {
 		progress_bar::on_create(state);
@@ -445,8 +430,7 @@ public:
 		}
 	}
 };
-template<economy::province_building_type Value>
-class province_building_window : public window_element_base {
+template<economy::province_building_type Value> class province_building_window : public window_element_base {
 	button_element_base* expand_button = nullptr;
 	image_element_base* under_construction_icon = nullptr;
 	element_base* building_progress = nullptr;
@@ -815,13 +799,11 @@ public:
 
 class province_colony_rgo_icon : public image_element_base {
 public: // goto hell;
-	    // Seriously hate this code, just no, this is awful and shouldnt be needed
-	    // but i refuse to loose my sanity to something to assining
+		// Seriously hate this code, just no, this is awful and shouldnt be needed
+		// but i refuse to loose my sanity to something to assining
 	dcon::text_sequence_id rgo_name;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -920,9 +902,7 @@ public:
 
 class colonisation_listbox : public overlapping_listbox_element_base<level_entry, uint8_t> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "level_entry";
-	}
+	std::string_view get_row_element_name() override { return "level_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -974,9 +954,7 @@ public:
 
 class colonist_listbox : public listbox_element_base<colonist_entry, colony_nation_id_pair> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "colonist_item";
-	}
+	std::string_view get_row_element_name() override { return "colonist_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
