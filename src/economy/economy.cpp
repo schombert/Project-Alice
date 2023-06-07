@@ -262,7 +262,7 @@ void absorb_sphere_member_production(sys::state& state, dcon::nation_id n) {
 void give_sphere_leader_production(sys::state& state, dcon::nation_id n) {
 	if(auto sl = state.world.nation_get_in_sphere_of(n); sl) {
 		//- Every nation in a sphere (after the above has been calculated for the entire sphere) has their effective domestic supply set
-		//to (1 - its-share-factor) x original-domestic-supply + sphere-leader's-domestic supply
+		// to (1 - its-share-factor) x original-domestic-supply + sphere-leader's-domestic supply
 
 		float share = sphere_leader_share_factor(state, sl, n);
 		state.world.for_each_commodity(
@@ -272,7 +272,7 @@ void give_sphere_leader_production(sys::state& state, dcon::nation_id n) {
 
 float effective_tariff_rate(sys::state const& state, dcon::nation_id n) {
 	//- tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to
-	//at most 1.0
+	// at most 1.0
 	auto tariff_efficiency =
 	    std::clamp(state.defines.base_tariff_efficiency + state.world.nation_get_administrative_efficiency(n) +
 	                   state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier),
