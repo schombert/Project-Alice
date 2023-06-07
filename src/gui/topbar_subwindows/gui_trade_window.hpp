@@ -100,8 +100,7 @@ public:
 	}
 };
 
-class trade_government_needs_listbox
-    : public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
+class trade_government_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override { return "goods_needs_entry"; }
 
@@ -121,8 +120,7 @@ public:
 	}
 };
 
-class trade_factory_needs_listbox
-    : public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
+class trade_factory_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override { return "goods_needs_entry"; }
 
@@ -142,8 +140,7 @@ public:
 	}
 };
 
-class trade_pop_needs_listbox
-    : public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
+class trade_pop_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override { return "goods_needs_entry"; }
 
@@ -228,11 +225,11 @@ public:
 	} type{};
 	enum class value_type : uint8_t { used_by, produced_by, may_be_used_by } value_type{};
 	union {
-		dcon::factory_id factory_id;       // factory
-		dcon::province_id province_id;     // province
+		dcon::factory_id factory_id;	   // factory
+		dcon::province_id province_id;	   // province
 		dcon::province_id pop_province_id; // pop
-		dcon::army_id army_id;             // army
-		dcon::navy_id navy_id;             // navy
+		dcon::army_id army_id;			   // army
+		dcon::navy_id navy_id;			   // navy
 	} data{};
 };
 class trade_flow_entry : public listbox_row_element_base<trade_flow_data> {
@@ -378,12 +375,12 @@ public:
 
 			row_contents.clear();
 			populate_rows(
-			    state,
-			    [&](dcon::factory_id fid) -> bool {
-				    auto ftid = state.world.factory_get_building_type(fid);
-				    return state.world.factory_type_get_output(ftid) == commodity_id;
-			    },
-			    trade_flow_data::value_type::produced_by);
+				state,
+				[&](dcon::factory_id fid) -> bool {
+					auto ftid = state.world.factory_get_building_type(fid);
+					return state.world.factory_type_get_output(ftid) == commodity_id;
+				},
+				trade_flow_data::value_type::produced_by);
 			update(state);
 		}
 	}
@@ -398,16 +395,16 @@ public:
 
 			row_contents.clear();
 			populate_rows(
-			    state,
-			    [&](dcon::factory_id fid) -> bool {
-				    auto ftid = state.world.factory_get_building_type(fid);
-				    auto& inputs = state.world.factory_type_get_inputs(ftid);
-				    for(uint32_t i = 0; i < inputs.set_size; ++i)
-					    if(inputs.commodity_type[i] == commodity_id)
-						    return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
-				    return false;
-			    },
-			    trade_flow_data::value_type::used_by);
+				state,
+				[&](dcon::factory_id fid) -> bool {
+					auto ftid = state.world.factory_get_building_type(fid);
+					auto& inputs = state.world.factory_type_get_inputs(ftid);
+					for(uint32_t i = 0; i < inputs.set_size; ++i)
+						if(inputs.commodity_type[i] == commodity_id)
+							return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
+					return false;
+				},
+				trade_flow_data::value_type::used_by);
 			update(state);
 		}
 	}
@@ -422,16 +419,16 @@ public:
 
 			row_contents.clear();
 			populate_rows(
-			    state,
-			    [&](dcon::factory_id fid) -> bool {
-				    auto ftid = state.world.factory_get_building_type(fid);
-				    auto& inputs = state.world.factory_type_get_inputs(ftid);
-				    for(uint32_t i = 0; i < inputs.set_size; ++i)
-					    if(inputs.commodity_type[i] == commodity_id)
-						    return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
-				    return false;
-			    },
-			    trade_flow_data::value_type::may_be_used_by);
+				state,
+				[&](dcon::factory_id fid) -> bool {
+					auto ftid = state.world.factory_get_building_type(fid);
+					auto& inputs = state.world.factory_type_get_inputs(ftid);
+					for(uint32_t i = 0; i < inputs.set_size; ++i)
+						if(inputs.commodity_type[i] == commodity_id)
+							return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
+					return false;
+				},
+				trade_flow_data::value_type::may_be_used_by);
 			update(state);
 		}
 	}
@@ -541,8 +538,7 @@ public:
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
 				return;
-			auto ptr =
-			    make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
+			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
 			if(offset.x + cell_size.x - 1 >= base_data.size.x) {

@@ -4,8 +4,7 @@
 
 namespace ui {
 
-template<typename T>
-struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> { };
+template<typename T> struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> { };
 
 template<typename T> class military_unit_name_text : public simple_text_element_base {
 public:
@@ -112,13 +111,11 @@ public:
 		if(is_building) {
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 				auto c = std::get<dcon::province_land_construction_id>(content);
-				unit_icon->frame =
-				    state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
+				unit_icon->frame = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
 				unit_progress->progress = economy::unit_construction_progress(state, c);
 			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 				auto c = std::get<dcon::province_naval_construction_id>(content);
-				unit_icon->frame =
-				    state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
+				unit_icon->frame = state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
 				unit_progress->progress = economy::unit_construction_progress(state, c);
 			}
 		} else {
@@ -171,8 +168,7 @@ public:
 			dcon::province_id p{};
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 				auto c = std::get<dcon::province_land_construction_id>(content);
-				p = state.world.pop_location_get_province(
-				    state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
+				p = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
 			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 				auto c = std::get<dcon::province_naval_construction_id>(content);
 				p = state.world.province_naval_construction_get_province(c);
@@ -202,8 +198,7 @@ public:
 					auto aid = state.world.army_control_get_army(acid);
 					row_contents.push_back(military_unit_info<T>{aid});
 				});
-				state.world.nation_for_each_province_land_construction_as_nation(
-				    n, [&](dcon::province_land_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
+				state.world.nation_for_each_province_land_construction_as_nation(n, [&](dcon::province_land_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
 			}
 			// Navies
 			if constexpr(std::is_same_v<T, dcon::navy_id>) {
@@ -211,8 +206,7 @@ public:
 					auto nid = state.world.navy_control_get_navy(ncid);
 					row_contents.push_back(military_unit_info<T>{nid});
 				});
-				state.world.nation_for_each_province_naval_construction_as_nation(
-				    n, [&](dcon::province_naval_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
+				state.world.nation_for_each_province_naval_construction_as_nation(n, [&](dcon::province_naval_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
 			}
 		}
 		listbox_element_base<military_unit_entry<T>, military_unit_info<T>>::update(state);

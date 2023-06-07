@@ -16,8 +16,7 @@
 
 namespace ui {
 
-template<typename T>
-std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name) { // also bypasses global creation hooks
+template<typename T> std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name) { // also bypasses global creation hooks
 	auto it = state.ui_state.defs_by_name.find(name);
 	if(it != state.ui_state.defs_by_name.end()) {
 		auto res = std::make_unique<T>();
@@ -28,8 +27,7 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::strin
 	}
 	return std::unique_ptr<element_base>{};
 }
-template<typename T>
-std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) { // also bypasses global creation hooks
+template<typename T> std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) { // also bypasses global creation hooks
 	auto res = std::make_unique<T>();
 	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
 	make_size_from_graphics(state, res->base_data);
@@ -67,9 +65,7 @@ public:
 	bool interactable = false;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void on_create(sys::state& state) noexcept override;
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen; }
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -100,15 +96,9 @@ public:
 		else
 			return message_result::unseen;
 	}
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override { return message_result::consumed; }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override { return message_result::consumed; }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen; }
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::no_tooltip; }
 };
 
@@ -142,16 +132,14 @@ public:
 	virtual void button_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-			                            state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_action(state);
 		}
 		return message_result::consumed;
 	}
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-			                            state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_action(state);
 			return message_result::consumed;
 		} else {
@@ -174,9 +162,7 @@ public:
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints) noexcept;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen; }
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -198,15 +184,9 @@ public:
 
 	std::string_view get_text(sys::state& state) const { return stored_text; }
 
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override { return message_result::consumed; }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override { return message_result::consumed; }
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen; }
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -230,9 +210,7 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override { return message_result::consumed; }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void on_text(sys::state& state, char ch) noexcept override;
@@ -253,9 +231,7 @@ public:
 
 class window_element_base : public container_base {
 public:
-	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
-		return nullptr;
-	}
+	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept { return nullptr; }
 	void on_create(sys::state& state) noexcept override;
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
@@ -375,9 +351,7 @@ protected:
 
 template<class TabT> class generic_tab_button : public checkbox_button {
 public:
-	bool is_active(sys::state& state) noexcept final {
-		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
-	}
+	bool is_active(sys::state& state) noexcept final { return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target; }
 
 	void button_action(sys::state& state) noexcept final {
 		if(parent) {
@@ -391,9 +365,7 @@ public:
 
 template<class TabT> class generic_opaque_checkbox_button : public checkbox_button {
 public:
-	bool is_active(sys::state& state) noexcept final {
-		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
-	}
+	bool is_active(sys::state& state) noexcept final { return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target; }
 
 	void button_action(sys::state& state) noexcept final {
 		if(parent) {
@@ -445,15 +417,9 @@ public:
 		auto dist = sqrt(dx * dx + dy * dy);
 		return dist <= radius ? message_result::consumed : message_result::unseen;
 	}
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen; }
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override { return message_result::consumed; }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override { return message_result::consumed; }
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	virtual void populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept;
 };
@@ -567,9 +533,7 @@ public:
 
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen; }
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -613,9 +577,7 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 	void calibrate_scrollbar(sys::state& state) noexcept;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override { return message_result::consumed; }
 };
 
 class single_multiline_text_element_base : public multiline_text_element_base {
@@ -623,9 +585,7 @@ public:
 	dcon::text_sequence_id text_id{};
 
 	void on_update(sys::state& state) noexcept override {
-		auto layout = text::create_endless_layout(
-		    internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-		                                             base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+		auto layout = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 		auto box = text::open_layout_box(layout, 0);
 		text::add_to_layout_box(layout, state, box, text_id);
 		text::close_layout_box(layout, box);
@@ -674,9 +634,7 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override { return message_result::consumed; }
 };
 
 template<typename T> struct element_selection_wrapper { T data{}; };

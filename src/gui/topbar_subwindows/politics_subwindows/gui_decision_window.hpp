@@ -27,9 +27,7 @@ public:
 
 			auto ef = fat_id.get_effect();
 			if(bool(ef))
-				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
-				                   trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-				                   uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
+				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 		}
 	}
 };
@@ -70,8 +68,7 @@ public:
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto condition = state.world.decision_get_allow(id);
 			if(condition)
-				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation),
-				                    trigger::to_generic(state.local_player_nation), -1);
+				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 };
@@ -138,10 +135,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, id);
 			description = fat_id.get_description();
 		}
-		auto container = text::create_endless_layout(
-		    delegate->internal_layout,
-		    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-		                            base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+		auto container = text::create_endless_layout(delegate->internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}

@@ -9,7 +9,7 @@ struct command_info {
 	static constexpr uint32_t max_arg_slots = 4;
 
 	std::string_view name;
-	enum class type : uint8_t { none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide } mode = type::none;
+	enum class type : uint8_t { none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide, cheat, diplomacy_points, research_points, infamy, money, westernize, unwesternize, cb_progress } mode = type::none;
 	std::string_view desc;
 	struct argument_info {
 		std::string_view name;
@@ -18,52 +18,23 @@ struct command_info {
 	} args[max_arg_slots] = {};
 };
 
-static const std::vector<command_info> possible_commands = {
-    command_info{
-        "none",
-        command_info::type::none,
-        "Dummy command",
-        {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{
-        "reload",
-        command_info::type::reload,
-        "Reloads Alice",
-        {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{
-        "abort",
-        command_info::type::abort,
-        "Abnormaly terminates execution",
-        {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{
-        "clr_log",
-        command_info::type::clear_log,
-        "Clears console logs",
-        {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{
-        "fps",
-        command_info::type::fps,
-        "Toggles FPS counter",
-        {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{"tag",
-                 command_info::type::set_tag,
-                 "Set the current player's country",
-                 {command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{},
-                  command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{"help",
-                 command_info::type::help,
-                 "Display help",
-                 {command_info::argument_info{"cmd", command_info::argument_info::type::text, true}, command_info::argument_info{},
-                  command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{"stats",
-                 command_info::type::show_stats,
-                 "Shows statistics of the current resources used",
-                 {command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
-                  command_info::argument_info{}, command_info::argument_info{}}},
-    command_info{
-        "colour",
-        command_info::type::colour_guide,
-        "An overview of available colours for complex text",
-        {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}}};
+static const std::vector<command_info> possible_commands = {command_info{"none", command_info::type::none, "Dummy command", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"reload", command_info::type::reload, "Reloads Alice", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"abort", command_info::type::abort, "Abnormaly terminates execution", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"clr_log", command_info::type::clear_log, "Clears console logs", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"fps", command_info::type::fps, "Toggles FPS counter", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"tag", command_info::type::set_tag, "Set the current player's country", {command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"help", command_info::type::help, "Display help", {command_info::argument_info{"cmd", command_info::argument_info::type::text, true}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"stats", command_info::type::show_stats, "Shows statistics of the current resources used", {command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"cheat", command_info::type::cheat, "Finishes all cassus bellis, adds 99 diplo points, instant research and westernizes (if not already)", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"dp", command_info::type::diplomacy_points, "Adds the specified number of diplo points", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"rp", command_info::type::research_points, "Adds the specified number of research points", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"inf", command_info::type::infamy, "Adds the specified number of infamy", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabritcation", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"mony", command_info::type::money, "Adds the specified amount of money to the national treasury", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"west", command_info::type::westernize, "Westernizes", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"unwest", command_info::type::unwesternize, "Unwesternizes", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}}};
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 	// NOTE: Change parameters as you wish - but these work fine for the majority of mods
@@ -124,10 +95,10 @@ static void log_to_console(sys::state& state, ui::element_base* parent, std::str
 struct parser_state {
 	command_info cmd{};
 	std::variant< std::monostate, // none
-	              std::string,    // tag/string
-	              int32_t         // numeric
-	              >
-	    arg_slots[command_info::max_arg_slots] = {};
+		std::string,			  // tag/string
+		int32_t					  // numeric
+		>
+		arg_slots[command_info::max_arg_slots] = {};
 };
 static parser_state parse_command(sys::state& state, std::string_view text) {
 	std::string s{text};
@@ -169,7 +140,11 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 			break;
 		}
 		case command_info::argument_info::type::numeric:
-			pstate.arg_slots[i] = int32_t(std::stoi(std::string(ident)));
+			if(isdigit(ident[0]) || ident[0] == '-') {
+				pstate.arg_slots[i] = int32_t(std::stoi(std::string(ident)));
+			} else {
+				pstate.arg_slots[i] = int32_t(0);
+			}
 			break;
 		default:
 			pstate.arg_slots[i] = std::monostate{};
@@ -188,16 +163,13 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	ui::edit_box_element_base::render(state, x, y);
 
 	// Render the suggestions given (after the inputted text obv)
-	float x_offs =
-	    state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
+	float x_offs = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
 	if(lhs_suggestion.length() > 0) {
 		char const* start_text = lhs_suggestion.data();
 		char const* end_text = lhs_suggestion.data() + lhs_suggestion.length();
 		std::string text(std::string_view(start_text, end_text));
 		if(!text.empty()) {
-			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs,
-			                 float(y + base_data.data.text.border_size.y), get_text_color(text::text_color::light_grey),
-			                 base_data.data.button.font_handle);
+			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
 			x_offs += state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 		}
 	}
@@ -211,9 +183,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			x_offs = float(base_data.size.x);
 			x_offs -= 24;
 			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
-			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs,
-			                 float(y + base_data.data.text.border_size.y), get_text_color(text::text_color::light_grey),
-			                 base_data.data.button.font_handle);
+			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
 		}
 	}
 }
@@ -227,8 +197,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
 		// Still typing command - so suggest commands
-		std::pair<uint32_t, command_info const*> closest_match =
-		    std::make_pair<uint32_t, command_info const*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
+		std::pair<uint32_t, command_info const*> closest_match = std::make_pair<uint32_t, command_info const*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
 		for(auto const& cmd : possible_commands) {
 			std::string_view name = cmd.name;
 			if(name.starts_with(s)) {
@@ -267,8 +236,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				}
 			});
 			// Now type in a suggestion...
-			dcon::nation_id nid =
-			    state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
+			dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 			std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 			if(tag.size() >= name.size()) {
 				lhs_suggestion = std::string{};
@@ -406,15 +374,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			if(tag.size() == 3) {
 				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 				log_to_console(state, parent,
-				               "Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
-				                   text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) +
-				                   "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
+					"Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
 			} else {
 				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
 				log_to_console(state, parent,
-				               "Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
-				                   text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) +
-				                   "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
+					"Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
 			}
 
 			if(tag.size() != 3)
@@ -429,8 +393,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::help: {
 		auto log_command_info = [&](auto cmd) {
 			std::string text = "\x95"
-			                   "\xA7Y" +
-			                   std::string(cmd.name) + "\xA7W ";
+							   "\xA7Y" +
+							   std::string(cmd.name) + "\xA7W ";
 			for(const auto& arg : cmd.args)
 				if(arg.mode != command_info::argument_info::type::none) {
 					if(arg.optional)
@@ -463,10 +427,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					}
 				}
 				log_to_console(state, parent,
-				               "Did you mean \xA7Y" + std::string(closest_match.second.name) + "\xA7W (" +
-				                   std::string(closest_match.second.desc) +
-				                   ")"
-				                   "?");
+					"Did you mean \xA7Y" + std::string(closest_match.second.name) + "\xA7W (" + std::string(closest_match.second.desc) +
+						")"
+						"?");
 			}
 		} else {
 			log_to_console(state, parent, "Here's some helpful commands ^-^");
@@ -481,18 +444,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			log_to_console(state, parent, "Ex: \"stats pol\"");
 			break;
 		}
-		enum class flags : uint8_t {
-			none = 0x00,
-			demographics = 0x01,
-			diplomacy = 0x02,
-			economy = 0x04,
-			events = 0x08,
-			military = 0x10,
-			technology = 0x20,
-			politics = 0x40,
-			all = 0x7F,
-			count
-		};
+		enum class flags : uint8_t { none = 0x00, demographics = 0x01, diplomacy = 0x02, economy = 0x04, events = 0x08, military = 0x10, technology = 0x20, politics = 0x40, all = 0x7F, count };
 		uint8_t v = 0;
 		auto const k = std::get<std::string>(pstate.arg_slots[0]);
 		if(k[0] == 'd' && k[1] == 'e') { // de(mo)
@@ -514,381 +466,405 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "National Identities\xA7W: " +
-			                   std::to_string(state.world.national_identity_size()));
+				"\x95\xA7Y"
+				"National Identities\xA7W: " +
+					std::to_string(state.world.national_identity_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Political Parties\xA7W: " +
-			                   std::to_string(state.world.political_party_size()));
+				"\x95\xA7Y"
+				"Political Parties\xA7W: " +
+					std::to_string(state.world.political_party_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Religions\xA7W: " +
-			                   std::to_string(state.world.religion_size()));
+				"\x95\xA7Y"
+				"Religions\xA7W: " +
+					std::to_string(state.world.religion_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Culture Groups\xA7W: " +
-			                   std::to_string(state.world.culture_group_size()));
+				"\x95\xA7Y"
+				"Culture Groups\xA7W: " +
+					std::to_string(state.world.culture_group_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Cultures\xA7W: " +
-			                   std::to_string(state.world.culture_size()));
+				"\x95\xA7Y"
+				"Cultures\xA7W: " +
+					std::to_string(state.world.culture_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Culture Group Memberships\xA7W: " +
-			                   std::to_string(state.world.culture_group_membership_size()));
+				"\x95\xA7Y"
+				"Culture Group Memberships\xA7W: " +
+					std::to_string(state.world.culture_group_membership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Cultural Unions (Of)\xA7W: " +
-			                   std::to_string(state.world.cultural_union_of_size()));
+				"\x95\xA7Y"
+				"Cultural Unions (Of)\xA7W: " +
+					std::to_string(state.world.cultural_union_of_size()));
 		}
 		if((v & uint8_t(flags::economy)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Commodities\xA7W: " +
-			                   std::to_string(state.world.commodity_size()));
+				"\x95\xA7Y"
+				"Commodities\xA7W: " +
+					std::to_string(state.world.commodity_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Modifiers\xA7W: " +
-			                   std::to_string(state.world.modifier_size()));
+				"\x95\xA7Y"
+				"Modifiers\xA7W: " +
+					std::to_string(state.world.modifier_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Factory Types\xA7W: " +
-			                   std::to_string(state.world.factory_type_size()));
+				"\x95\xA7Y"
+				"Factory Types\xA7W: " +
+					std::to_string(state.world.factory_type_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Ideology Groups\xA7W: " +
-			                   std::to_string(state.world.ideology_group_size()));
+				"\x95\xA7Y"
+				"Ideology Groups\xA7W: " +
+					std::to_string(state.world.ideology_group_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Ideologies\xA7W: " +
-			                   std::to_string(state.world.ideology_size()));
+				"\x95\xA7Y"
+				"Ideologies\xA7W: " +
+					std::to_string(state.world.ideology_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Ideology Group Memberships\xA7W: " +
-			                   std::to_string(state.world.ideology_group_membership_size()));
+				"\x95\xA7Y"
+				"Ideology Group Memberships\xA7W: " +
+					std::to_string(state.world.ideology_group_membership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Issues\xA7W: " +
-			                   std::to_string(state.world.issue_size()));
+				"\x95\xA7Y"
+				"Issues\xA7W: " +
+					std::to_string(state.world.issue_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Issue Options\xA7W: " +
-			                   std::to_string(state.world.issue_option_size()));
+				"\x95\xA7Y"
+				"Issue Options\xA7W: " +
+					std::to_string(state.world.issue_option_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Reforms\xA7W: " +
-			                   std::to_string(state.world.reform_size()));
+				"\x95\xA7Y"
+				"Reforms\xA7W: " +
+					std::to_string(state.world.reform_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Reform Options\xA7W: " +
-			                   std::to_string(state.world.reform_option_size()));
+				"\x95\xA7Y"
+				"Reform Options\xA7W: " +
+					std::to_string(state.world.reform_option_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "CB Types\xA7W: " +
-			                   std::to_string(state.world.cb_type_size()));
+				"\x95\xA7Y"
+				"CB Types\xA7W: " +
+					std::to_string(state.world.cb_type_size()));
 		}
 		if((v & uint8_t(flags::military)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Leader Traits\xA7W: " +
-			                   std::to_string(state.world.leader_trait_size()));
+				"\x95\xA7Y"
+				"Leader Traits\xA7W: " +
+					std::to_string(state.world.leader_trait_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Pop Types\xA7W: " +
-			                   std::to_string(state.world.pop_type_size()));
+				"\x95\xA7Y"
+				"Pop Types\xA7W: " +
+					std::to_string(state.world.pop_type_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Rebel Types\xA7W: " +
-			                   std::to_string(state.world.rebel_type_size()));
+				"\x95\xA7Y"
+				"Rebel Types\xA7W: " +
+					std::to_string(state.world.rebel_type_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Provinces\xA7W: " +
-			                   std::to_string(state.world.province_size()));
+				"\x95\xA7Y"
+				"Provinces\xA7W: " +
+					std::to_string(state.world.province_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Province Adjacenciess\xA7W: " +
-			                   std::to_string(state.world.province_adjacency_size()));
+				"\x95\xA7Y"
+				"Province Adjacenciess\xA7W: " +
+					std::to_string(state.world.province_adjacency_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Nation Adjacencies\xA7W: " +
-			                   std::to_string(state.world.nation_adjacency_size()));
+				"\x95\xA7Y"
+				"Nation Adjacencies\xA7W: " +
+					std::to_string(state.world.nation_adjacency_size()));
 		}
 		if((v & uint8_t(flags::military)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Regiments\xA7W: " +
-			                   std::to_string(state.world.regiment_size()));
+				"\x95\xA7Y"
+				"Regiments\xA7W: " +
+					std::to_string(state.world.regiment_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Ships\xA7W: " +
-			                   std::to_string(state.world.ship_size()));
+				"\x95\xA7Y"
+				"Ships\xA7W: " +
+					std::to_string(state.world.ship_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Armies\xA7W: " +
-			                   std::to_string(state.world.army_size()));
+				"\x95\xA7Y"
+				"Armies\xA7W: " +
+					std::to_string(state.world.army_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Navies\xA7W: " +
-			                   std::to_string(state.world.navy_size()));
+				"\x95\xA7Y"
+				"Navies\xA7W: " +
+					std::to_string(state.world.navy_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Army Controls\xA7W: " +
-			                   std::to_string(state.world.army_control_size()));
+				"\x95\xA7Y"
+				"Army Controls\xA7W: " +
+					std::to_string(state.world.army_control_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Army Locations\xA7W: " +
-			                   std::to_string(state.world.army_location_size()));
+				"\x95\xA7Y"
+				"Army Locations\xA7W: " +
+					std::to_string(state.world.army_location_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Army Memberships\xA7W: " +
-			                   std::to_string(state.world.army_membership_size()));
+				"\x95\xA7Y"
+				"Army Memberships\xA7W: " +
+					std::to_string(state.world.army_membership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Regiment Sources\xA7W: " +
-			                   std::to_string(state.world.regiment_source_size()));
+				"\x95\xA7Y"
+				"Regiment Sources\xA7W: " +
+					std::to_string(state.world.regiment_source_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Navy Controls\xA7W: " +
-			                   std::to_string(state.world.navy_control_size()));
+				"\x95\xA7Y"
+				"Navy Controls\xA7W: " +
+					std::to_string(state.world.navy_control_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Navy Locations\xA7W: " +
-			                   std::to_string(state.world.navy_location_size()));
+				"\x95\xA7Y"
+				"Navy Locations\xA7W: " +
+					std::to_string(state.world.navy_location_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Navy Memberships\xA7W: " +
-			                   std::to_string(state.world.navy_membership_size()));
+				"\x95\xA7Y"
+				"Navy Memberships\xA7W: " +
+					std::to_string(state.world.navy_membership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Leaders\xA7W: " +
-			                   std::to_string(state.world.leader_size()));
+				"\x95\xA7Y"
+				"Leaders\xA7W: " +
+					std::to_string(state.world.leader_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Army Leadership (leader<->army)\xA7W: " +
-			                   std::to_string(state.world.army_leadership_size()));
+				"\x95\xA7Y"
+				"Army Leadership (leader<->army)\xA7W: " +
+					std::to_string(state.world.army_leadership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Navy Leadership (leader<->navy)\xA7W: " +
-			                   std::to_string(state.world.navy_leadership_size()));
+				"\x95\xA7Y"
+				"Navy Leadership (leader<->navy)\xA7W: " +
+					std::to_string(state.world.navy_leadership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Leader Loyalties (leader<->nation membership)\xA7W: " +
-			                   std::to_string(state.world.leader_loyalty_size()));
+				"\x95\xA7Y"
+				"Leader Loyalties (leader<->nation membership)\xA7W: " +
+					std::to_string(state.world.leader_loyalty_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Wars\xA7W: " +
-			                   std::to_string(state.world.war_size()));
+				"\x95\xA7Y"
+				"Wars\xA7W: " +
+					std::to_string(state.world.war_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Wargoals\xA7W: " +
-			                   std::to_string(state.world.wargoal_size()));
+				"\x95\xA7Y"
+				"Wargoals\xA7W: " +
+					std::to_string(state.world.wargoal_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "War Participants\xA7W: " +
-			                   std::to_string(state.world.war_participant_size()));
+				"\x95\xA7Y"
+				"War Participants\xA7W: " +
+					std::to_string(state.world.war_participant_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Wargoals Attached (wargoal<->war)\xA7W: " +
-			                   std::to_string(state.world.wargoals_attached_size()));
+				"\x95\xA7Y"
+				"Wargoals Attached (wargoal<->war)\xA7W: " +
+					std::to_string(state.world.wargoals_attached_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "State Definitions\xA7W: " +
-			                   std::to_string(state.world.state_definition_size()));
+				"\x95\xA7Y"
+				"State Definitions\xA7W: " +
+					std::to_string(state.world.state_definition_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "State Instances\xA7W: " +
-			                   std::to_string(state.world.state_instance_size()));
+				"\x95\xA7Y"
+				"State Instances\xA7W: " +
+					std::to_string(state.world.state_instance_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Colonizations\xA7W: " +
-			                   std::to_string(state.world.colonization_size()));
+				"\x95\xA7Y"
+				"Colonizations\xA7W: " +
+					std::to_string(state.world.colonization_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "State Ownerships\xA7W: " +
-			                   std::to_string(state.world.state_ownership_size()));
+				"\x95\xA7Y"
+				"State Ownerships\xA7W: " +
+					std::to_string(state.world.state_ownership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Abstract State Memberships\xA7W: " +
-			                   std::to_string(state.world.abstract_state_membership_size()));
+				"\x95\xA7Y"
+				"Abstract State Memberships\xA7W: " +
+					std::to_string(state.world.abstract_state_membership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Cores\xA7W: " +
-			                   std::to_string(state.world.core_size()));
+				"\x95\xA7Y"
+				"Cores\xA7W: " +
+					std::to_string(state.world.core_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Identity Holders\xA7W: " +
-			                   std::to_string(state.world.identity_holder_size()));
+				"\x95\xA7Y"
+				"Identity Holders\xA7W: " +
+					std::to_string(state.world.identity_holder_size()));
 		}
 		if((v & uint8_t(flags::technology)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Technologies\xA7W: " +
-			                   std::to_string(state.world.technology_size()));
+				"\x95\xA7Y"
+				"Technologies\xA7W: " +
+					std::to_string(state.world.technology_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Inventions\xA7W: " +
-			                   std::to_string(state.world.invention_size()));
+				"\x95\xA7Y"
+				"Inventions\xA7W: " +
+					std::to_string(state.world.invention_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Nations\xA7W: " +
-			                   std::to_string(state.world.nation_size()));
+				"\x95\xA7Y"
+				"Nations\xA7W: " +
+					std::to_string(state.world.nation_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Diplomatic Relations\xA7W: " +
-			                   std::to_string(state.world.diplomatic_relation_size()));
+				"\x95\xA7Y"
+				"Diplomatic Relations\xA7W: " +
+					std::to_string(state.world.diplomatic_relation_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Unilateral Relationships\xA7W: " +
-			                   std::to_string(state.world.unilateral_relationship_size()));
+				"\x95\xA7Y"
+				"Unilateral Relationships\xA7W: " +
+					std::to_string(state.world.unilateral_relationship_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "GP Relationships\xA7W: " +
-			                   std::to_string(state.world.gp_relationship_size()));
+				"\x95\xA7Y"
+				"GP Relationships\xA7W: " +
+					std::to_string(state.world.gp_relationship_size()));
 		}
 		if((v & uint8_t(flags::economy)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Factories\xA7W: " +
-			                   std::to_string(state.world.factory_size()));
+				"\x95\xA7Y"
+				"Factories\xA7W: " +
+					std::to_string(state.world.factory_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Factory Locations\xA7W: " +
-			                   std::to_string(state.world.factory_location_size()));
+				"\x95\xA7Y"
+				"Factory Locations\xA7W: " +
+					std::to_string(state.world.factory_location_size()));
 		}
 		if((v & uint8_t(flags::politics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Province Ownerships\xA7W: " +
-			                   std::to_string(state.world.province_ownership_size()));
+				"\x95\xA7Y"
+				"Province Ownerships\xA7W: " +
+					std::to_string(state.world.province_ownership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Province Controls\xA7W: " +
-			                   std::to_string(state.world.province_control_size()));
+				"\x95\xA7Y"
+				"Province Controls\xA7W: " +
+					std::to_string(state.world.province_control_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Province Rebel Controls\xA7W: " +
-			                   std::to_string(state.world.province_rebel_control_size()));
+				"\x95\xA7Y"
+				"Province Rebel Controls\xA7W: " +
+					std::to_string(state.world.province_rebel_control_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Overlords\xA7W: " +
-			                   std::to_string(state.world.overlord_size()));
+				"\x95\xA7Y"
+				"Overlords\xA7W: " +
+					std::to_string(state.world.overlord_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Rebel Factions\xA7W: " +
-			                   std::to_string(state.world.rebel_faction_size()));
+				"\x95\xA7Y"
+				"Rebel Factions\xA7W: " +
+					std::to_string(state.world.rebel_faction_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Rebellions Within\xA7W: " +
-			                   std::to_string(state.world.rebellion_within_size()));
+				"\x95\xA7Y"
+				"Rebellions Within\xA7W: " +
+					std::to_string(state.world.rebellion_within_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Movements\xA7W: " +
-			                   std::to_string(state.world.movement_size()));
+				"\x95\xA7Y"
+				"Movements\xA7W: " +
+					std::to_string(state.world.movement_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Movements Within\xA7W: " +
-			                   std::to_string(state.world.movement_within_size()));
+				"\x95\xA7Y"
+				"Movements Within\xA7W: " +
+					std::to_string(state.world.movement_within_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Pop Movement Memberships\xA7W: " +
-			                   std::to_string(state.world.pop_movement_membership_size()));
+				"\x95\xA7Y"
+				"Pop Movement Memberships\xA7W: " +
+					std::to_string(state.world.pop_movement_membership_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Pop Rebellion Memberships\xA7W: " +
-			                   std::to_string(state.world.pop_rebellion_membership_size()));
+				"\x95\xA7Y"
+				"Pop Rebellion Memberships\xA7W: " +
+					std::to_string(state.world.pop_rebellion_membership_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Pops\xA7W: " +
-			                   std::to_string(state.world.pop_size()));
+				"\x95\xA7Y"
+				"Pops\xA7W: " +
+					std::to_string(state.world.pop_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Pop Locations\xA7W: " +
-			                   std::to_string(state.world.pop_location_size()));
+				"\x95\xA7Y"
+				"Pop Locations\xA7W: " +
+					std::to_string(state.world.pop_location_size()));
 		}
 		if((v & uint8_t(flags::events)) != 0) {
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "National Events\xA7W: " +
-			                   std::to_string(state.world.national_event_size()));
+				"\x95\xA7Y"
+				"National Events\xA7W: " +
+					std::to_string(state.world.national_event_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Provincial Events\xA7W: " +
-			                   std::to_string(state.world.provincial_event_size()));
+				"\x95\xA7Y"
+				"Provincial Events\xA7W: " +
+					std::to_string(state.world.provincial_event_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Free National Events\xA7W: " +
-			                   std::to_string(state.world.free_national_event_size()));
+				"\x95\xA7Y"
+				"Free National Events\xA7W: " +
+					std::to_string(state.world.free_national_event_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Free Provincial Events\xA7W: " +
-			                   std::to_string(state.world.free_provincial_event_size()));
+				"\x95\xA7Y"
+				"Free Provincial Events\xA7W: " +
+					std::to_string(state.world.free_provincial_event_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "National Focuses\xA7W: " +
-			                   std::to_string(state.world.national_focus_size()));
+				"\x95\xA7Y"
+				"National Focuses\xA7W: " +
+					std::to_string(state.world.national_focus_size()));
 			log_to_console(state, parent,
-			               "\x95\xA7Y"
-			               "Decisions\xA7W: " +
-			                   std::to_string(state.world.decision_size()));
+				"\x95\xA7Y"
+				"Decisions\xA7W: " +
+					std::to_string(state.world.decision_size()));
 		}
 	} break;
 	case command_info::type::colour_guide:
 		log_to_console(state, parent,
-		               "\xA7G"
-		               "\\xA7Y for Green.");
+			"\xA7G"
+			"\\xA7Y for Green.");
 		log_to_console(state, parent,
-		               "\xA7R"
-		               "\\xA7Y for Red.");
+			"\xA7R"
+			"\\xA7Y for Red.");
 		log_to_console(state, parent,
-		               "\xA7Y"
-		               "\\xA7Y for Yellow.");
+			"\xA7Y"
+			"\\xA7Y for Yellow.");
 		log_to_console(state, parent,
-		               "\xA7O"
-		               "\\xA7Y for Orange.");
+			"\xA7O"
+			"\\xA7Y for Orange.");
 		log_to_console(state, parent,
-		               "\xA7"
-		               "B"
-		               "\\xA7B for Blue.");
+			"\xA7"
+			"B"
+			"\\xA7B for Blue.");
 		log_to_console(state, parent,
-		               "\xA7g"
-		               "\\xA7g for Dark blue (*originally grey).");
+			"\xA7g"
+			"\\xA7g for Dark blue (*originally grey).");
 		log_to_console(state, parent,
-		               "\xA7!"
-		               "\\xA7! for reseting to default.");
+			"\xA7!"
+			"\\xA7! for reseting to default.");
 		log_to_console(state, parent,
-		               "\xA7W"
-		               "\\xA7b for Black.");
+			"\xA7W"
+			"\\xA7b for Black.");
 		log_to_console(state, parent,
-		               "\xA7W"
-		               "\\xA7W for White.");
+			"\xA7W"
+			"\\xA7W for White.");
 		log_to_console(state, parent,
-		               "\xA7L"
-		               "\\xA7L for Lilac.");
+			"\xA7L"
+			"\\xA7L for Lilac.");
 		log_to_console(state, parent,
-		               "\xA7RRed\xA7GGreen\xA7"
-		               "B"
-		               "Blue");
+			"\xA7RRed\xA7GGreen\xA7"
+			"B"
+			"Blue");
+		break;
+	case command_info::type::diplomacy_points:
+		command::c_change_diplo_points(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::research_points:
+		command::c_change_research_points(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::money:
+		command::c_change_money(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::infamy:
+		command::c_change_infamy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::cb_progress:
+		command::c_change_cb_progress(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::westernize:
+		command::c_westernize(state, state.local_player_nation);
+		break;
+	case command_info::type::unwesternize:
+		command::c_unwesternize(state, state.local_player_nation);
+		break;
+	case command_info::type::cheat:
+		log_to_console(state, parent, "You cheater >:(");
 		break;
 	// State changing events
 	case command_info::type::none:
@@ -912,15 +888,12 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			std::string_view text(start_text, end_text);
 			if(!text.empty()) {
 				std::string tmp_text{text};
-				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none,
-				                 float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-				                 get_text_color(text_color), base_data.data.button.font_handle);
-				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()),
-				                                            base_data.data.text.font_handle);
+				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none, float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text_color), base_data.data.button.font_handle);
+				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()), base_data.data.text.font_handle);
 			}
 			if(uint8_t(*end_text) == 0xA7) {
 				text_color = text::char_to_color(*++end_text); // Skip escape, then read colour
-				++end_text;                                    // Skip colour
+				++end_text;									   // Skip colour
 			}
 			start_text = end_text;
 		}

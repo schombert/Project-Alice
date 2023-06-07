@@ -34,9 +34,7 @@ template<typename T> uint8_t const* memcpy_deserialize(uint8_t const* ptr_in, T&
 	return ptr_in + sizeof(T);
 }
 
-template<typename T, typename tag_type> size_t serialize_size(tagged_vector<T, tag_type> const& vec) {
-	return sizeof(uint32_t) + sizeof(T) * vec.size();
-}
+template<typename T, typename tag_type> size_t serialize_size(tagged_vector<T, tag_type> const& vec) { return sizeof(uint32_t) + sizeof(T) * vec.size(); }
 
 template<typename T, typename tag_type> uint8_t* serialize(uint8_t* ptr_in, tagged_vector<T, tag_type> const& vec) {
 	uint32_t length = uint32_t(vec.size());
@@ -53,19 +51,10 @@ template<typename T, typename tag_type> uint8_t const* deserialize(uint8_t const
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * length;
 }
 
-inline size_t serialize_size(
-    ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> const& vec) {
-	return serialize_size(vec.values());
-}
+inline size_t serialize_size(ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> const& vec) { return serialize_size(vec.values()); }
 
-inline uint8_t* serialize(
-    uint8_t* ptr_in,
-    ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> const& vec) {
-	return serialize(ptr_in, vec.values());
-}
-uint8_t const*
-deserialize(uint8_t const* ptr_in,
-            ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>& vec) {
+inline uint8_t* serialize(uint8_t* ptr_in, ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> const& vec) { return serialize(ptr_in, vec.values()); }
+uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>& vec) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 
@@ -77,16 +66,10 @@ deserialize(uint8_t const* ptr_in,
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-inline size_t serialize_size(ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> const& vec) {
-	return serialize_size(vec.values());
-}
+inline size_t serialize_size(ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> const& vec) { return serialize_size(vec.values()); }
 
-inline uint8_t* serialize(uint8_t* ptr_in,
-                          ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> const& vec) {
-	return serialize(ptr_in, vec.values());
-}
-uint8_t const* deserialize(uint8_t const* ptr_in,
-                           ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash>& vec) {
+inline uint8_t* serialize(uint8_t* ptr_in, ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> const& vec) { return serialize(ptr_in, vec.values()); }
+uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash>& vec) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 
@@ -100,9 +83,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in,
 
 inline size_t serialize_size(ankerl::unordered_dense::map<uint16_t, dcon::text_key> const& vec) { return serialize_size(vec.values()); }
 
-inline uint8_t* serialize(uint8_t* ptr_in, ankerl::unordered_dense::map<uint16_t, dcon::text_key> const& vec) {
-	return serialize(ptr_in, vec.values());
-}
+inline uint8_t* serialize(uint8_t* ptr_in, ankerl::unordered_dense::map<uint16_t, dcon::text_key> const& vec) { return serialize(ptr_in, vec.values()); }
 uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<uint16_t, dcon::text_key>& vec) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));

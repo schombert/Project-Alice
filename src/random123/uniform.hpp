@@ -44,15 +44,15 @@ the Random123 CBRNGs.
 There are three templated functions:
 
  - u01:  output is as dense as possible in (0,1}, never 0.0.  May
-    return 1.0 if and only if the number of output mantissa bits
-    is less than the width of the input.
+	return 1.0 if and only if the number of output mantissa bits
+	is less than the width of the input.
 
  - uneg11:  output is as dense as possible in {-1,1}, never 0.0.  May
-    return 1.0 or -1.0 if and only if the number of output mantissa bits
-    is less than the width of the input.
+	return 1.0 or -1.0 if and only if the number of output mantissa bits
+	is less than the width of the input.
 
  - u01fixedpt:  output is "fixed point", equispaced, open at both ends,
-     and is never 0.0, 0.5 nor 1.0.
+	 and is never 0.0, 0.5 nor 1.0.
 
 The behavior of u01 and uneg11 depend on the pre-processor symbol:
 R123_UNIFORM_FLOAT_STORE.  When #defined to a non-zero value, u01
@@ -109,10 +109,10 @@ using std::make_unsigned;
 // It's not clear which will cause less headache...
 template<typename T> struct make_signed { };
 template<typename T> struct make_unsigned { };
-#define R123_MK_SIGNED_UNSIGNED(ST, UT)                                                                                                  \
-	template<> struct make_signed<ST> { typedef ST type; };                                                                              \
-	template<> struct make_signed<UT> { typedef ST type; };                                                                              \
-	template<> struct make_unsigned<ST> { typedef UT type; };                                                                            \
+#define R123_MK_SIGNED_UNSIGNED(ST, UT)                                                                                                                                                                                                                                                                    \
+	template<> struct make_signed<ST> { typedef ST type; };                                                                                                                                                                                                                                                \
+	template<> struct make_signed<UT> { typedef ST type; };                                                                                                                                                                                                                                                \
+	template<> struct make_unsigned<ST> { typedef UT type; };                                                                                                                                                                                                                                              \
 	template<> struct make_unsigned<UT> { typedef UT type; }
 
 R123_MK_SIGNED_UNSIGNED(int8_t, uint8_t);
@@ -145,21 +145,21 @@ template<typename T> R123_CONSTEXPR R123_STATIC_INLINE R123_CUDA_DEVICE T maxTva
 template<typename T> R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() { return std::numeric_limits<T>::max(); }
 #endif
 /** @endcond
-    @}
+	@}
  */
 
 //! Return a uniform real value in (0, 1]
 /**
-    @ingroup uniform
-     Input is a W-bit integer (signed or unsigned).  It is cast to
-     a W-bit unsigned integer, multiplied by Ftype(2^-W) and added to
-     Ftype(2^(-W-1)).  A good compiler should optimize it down to an
-     int-to-float conversion followed by a multiply and an add, which
-     might be fused, depending on the architecture.
+	@ingroup uniform
+	 Input is a W-bit integer (signed or unsigned).  It is cast to
+	 a W-bit unsigned integer, multiplied by Ftype(2^-W) and added to
+	 Ftype(2^(-W-1)).  A good compiler should optimize it down to an
+	 int-to-float conversion followed by a multiply and an add, which
+	 might be fused, depending on the architecture.
 
-    If the input is a uniformly distributed integer, and if Ftype
-    arithmetic follows IEEE754 round-to-nearest rules, then the
-    result is a uniformly distributed floating point number in (0, 1].
+	If the input is a uniformly distributed integer, and if Ftype
+	arithmetic follows IEEE754 round-to-nearest rules, then the
+	result is a uniformly distributed floating point number in (0, 1].
 
 -    The result is never exactly 0.0.
 -    The smallest value returned is 2^-(W-1).
@@ -181,7 +181,7 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 
 //! Return a signed value in [-1,1]
 /**
-    @ingroup uniform
+	@ingroup uniform
    The argument is converted to a W-bit signed integer, multiplied by Ftype(2^-(W-1)) and
    then added to Ftype(2^-W).  A good compiler should optimize
    it down to an int-to-float conversion followed by a multiply and
@@ -196,7 +196,7 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 - Let M be the number of mantissa bits in Ftype.
   - If W>M  then the largest value retured is 1.0 and the smallest is -1.0.
   - If W<=M then the largest value returned is the Ftype(1.0 - 2^-W)
-    and the smallest value returned is -Ftype(1.0 - 2^-W).
+	and the smallest value returned is -Ftype(1.0 - 2^-W).
 */
 template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in) {
 	typedef typename make_signed<Itype>::type Stype;
@@ -212,11 +212,11 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 
 //! Return a value in (0,1) chosen from a set of equally spaced fixed-point values
 /**
-    @ingroup uniform
+	@ingroup uniform
    Let:
-     - W = width of Itype, e.g., 32 or 64, regardless of signedness.
-     - M = mantissa bits of Ftype, e.g., 24, 53 or 64
-     - B = min(M, W)
+	 - W = width of Itype, e.g., 32 or 64, regardless of signedness.
+	 - M = mantissa bits of Ftype, e.g., 24, 53 or 64
+	 - B = min(M, W)
 
    Then the 2^(B-1) possible output values are: 2^-B*{1, 3, 5, ..., 2^B - 1}
 
@@ -227,9 +227,9 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
    The output is never exactly 0.0, nor 0.5, nor 1.0.
 
    The 2^(B-1) possible outputs:
-     - are equally likely,
-     - are uniformly spaced by 2^-(B-1),
-     - are balanced around 0.5
+	 - are equally likely,
+	 - are uniformly spaced by 2^-(B-1),
+	 - are balanced around 0.5
 */
 template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01fixedpt(Itype in) {
 	typedef typename make_unsigned<Itype>::type Utype;

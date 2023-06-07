@@ -8,8 +8,8 @@ namespace ui {
 
 static std::string get_setting_text_key(sys::message_setting_type type) {
 	switch(type) {
-#define MSG_SETTING_ITEM(name, locale_name)                                                                                              \
-	case sys::message_setting_type::name:                                                                                                \
+#define MSG_SETTING_ITEM(name, locale_name)                                                                                                                                                                                                                                                                \
+	case sys::message_setting_type::name:                                                                                                                                                                                                                                                                  \
 		return locale_name "_setup";
 		MSG_SETTING_LIST
 #undef MSG_SETTING_ITEM
@@ -32,9 +32,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
-		text->set_text(state, text::produce_simple_string(state, get_setting_text_key(content)));
-	}
+	void update(sys::state& state) noexcept override { text->set_text(state, text::produce_simple_string(state, get_setting_text_key(content))); }
 };
 
 class message_settings_listbox : public listbox_element_base<message_settings_item, sys::message_setting_type> {

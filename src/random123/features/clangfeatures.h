@@ -54,9 +54,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // up on an 'unknown warning group'.  So we briefly ignore -Wall...
 // It's tempting to just give up on static assertions in pre-c++11 code.
 #if !R123_USE_CXX11_STATIC_ASSERT && !defined(R123_STATIC_ASSERT)
-#define R123_STATIC_ASSERT(expr, msg)                                                                                                    \
-	_Pragma("clang diagnostic push")                                                                                                     \
-	    _Pragma("clang diagnostic ignored \"-Wall\"") typedef char static_assertion[(!!(expr)) * 2 - 1] _Pragma("clang diagnostic pop")
+#define R123_STATIC_ASSERT(expr, msg) _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wall\"") typedef char static_assertion[(!!(expr)) * 2 - 1] _Pragma("clang diagnostic pop")
 #endif
 
 #ifndef R123_USE_CXX11_CONSTEXPR

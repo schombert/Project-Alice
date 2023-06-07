@@ -44,8 +44,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_attacker);
 			return fat_id.get_identity_from_identity_holder();
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::national_identity_id{
-			    0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+			return dcon::national_identity_id{0};						  // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
@@ -123,10 +122,7 @@ public:
 			if(nations::is_great_power(state, state.primary_crisis_defender)) {
 				return state.crisis_liberation_tag;
 			} else {
-				return dcon::fatten(state.world, state.crisis_state)
-				    .get_nation_from_state_ownership()
-				    .get_identity_from_identity_holder()
-				    .id;
+				return dcon::fatten(state.world, state.crisis_state).get_nation_from_state_ownership().get_identity_from_identity_holder().id;
 			}
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			return dcon::fatten(state.world, state.primary_crisis_defender).get_identity_from_identity_holder();
@@ -143,8 +139,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
 			return fat_id.get_identity_from_identity_holder();
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::national_identity_id{
-			    0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+			return dcon::national_identity_id{0};						  // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
