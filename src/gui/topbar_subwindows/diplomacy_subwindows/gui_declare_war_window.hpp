@@ -624,7 +624,7 @@ public:
 
 class diplomacy_peace_pick_side_description : public generic_multiline_text<bool> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept {
+	void populate_layout(sys::state& state, text::endless_layout& contents, bool id) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("po_pd_neg_5"));
 		text::add_line_break_to_layout_box(contents, state, box);
