@@ -890,7 +890,25 @@ void update_cbs(sys::state& state) {
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target) {
 	auto current_cbs = state.world.nation_get_available_cbs(n);
 	current_cbs.push_back(military::available_cb{target, state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, cb});
-	// TODO: notify
+	
+	if(n == state.local_player_nation) {
+		notification::message m;
+		m.type = sys::message_setting_type::gaincb;
+		m.primary = n;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::enemy, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cb));
+			TEXT_NOTIF_MSG_TITLE(wegaincb);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::enemy, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cb));
+			TEXT_NOTIF_MSG_BODY(wegaincb);
+		};
+		notification::post(state, std::move(m));
+	}
 }
 
 float cb_infamy(sys::state const& state, dcon::cb_type_id t) {
@@ -1398,7 +1416,65 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		}
 	}
 
-	// TODO: notify
+	notification::message m;
+	m.primary = n;
+	m.secondary = target;
+	if(state.local_player_nation == n) {
+		m.type = sys::message_setting_type::cb_detected_target;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ infamy });
+			text::add_to_substitution_map(sub, text::variable_type::target, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(state.world.nation_get_constructing_cb_type(n)));
+			TEXT_NOTIF_MSG_TITLE(our_cb_detected);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ infamy });
+			text::add_to_substitution_map(sub, text::variable_type::target, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(state.world.nation_get_constructing_cb_type(n)));
+			TEXT_NOTIF_MSG_BODY(our_cb_detected);
+		};
+	} else if(state.local_player_nation == target) {
+		m.type = sys::message_setting_type::cb_towards_us_detected;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ infamy });
+			text::add_to_substitution_map(sub, text::variable_type::target, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(state.world.nation_get_constructing_cb_type(n)));
+			TEXT_NOTIF_MSG_TITLE(cb_towards_us_detected);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ infamy });
+			text::add_to_substitution_map(sub, text::variable_type::target, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(state.world.nation_get_constructing_cb_type(n)));
+			TEXT_NOTIF_MSG_BODY(cb_towards_us_detected);
+		};
+	} else {
+		m.type = sys::message_setting_type::cb_detected_cause;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ infamy });
+			text::add_to_substitution_map(sub, text::variable_type::target, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(state.world.nation_get_constructing_cb_type(n)));
+			TEXT_NOTIF_MSG_TITLE(others_cb_detected);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ infamy });
+			text::add_to_substitution_map(sub, text::variable_type::target, target);
+			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(state.world.nation_get_constructing_cb_type(n)));
+			TEXT_NOTIF_MSG_BODY(others_cb_detected);
+		};
+	}
+	notification::post(state, std::move(m));
 }
 
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l) {
@@ -2220,7 +2296,56 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 
 }
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
-	// TODO notify
+	dcon::nation_id from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
+	dcon::nation_id target = state.world.peace_offer_get_target(offer);
+
+	notification::message m;
+	m.primary = from;
+	m.secondary = target;
+	if(state.local_player_nation == from) {
+		m.type = sys::message_setting_type::peace_accept_cause;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_TITLE(peace_they_accept);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_BODY(peace_they_accept);
+		};
+	} else if(state.local_player_nation == target) {
+		m.type = sys::message_setting_type::peace_accept_target;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_TITLE(peace_we_accept);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_BODY(peace_we_accept);
+		};
+	} else {
+		m.type = sys::message_setting_type::peace_accept_other;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_TITLE(peace_other_accept);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_BODY(peace_other_accept);
+		};
+	}
+	notification::post(state, std::move(m));
 
 	auto wg_range = state.world.peace_offer_get_peace_offer_item(offer);
 	while(wg_range.begin() != wg_range.end()) {
@@ -2229,8 +2354,6 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 		state.world.delete_wargoal(wg_offered.get_wargoal());
 	}
 
-	auto from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
-	auto target = state.world.peace_offer_get_target(offer);
 	auto war = state.world.peace_offer_get_war_from_war_settlement(offer);
 
 	if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
@@ -2298,7 +2421,55 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 }
 
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
-	// TODO notify
+	dcon::nation_id from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
+	dcon::nation_id target = state.world.peace_offer_get_target(offer);
+	notification::message m;
+	m.primary = from;
+	m.secondary = target;
+	if(state.local_player_nation == from) {
+		m.type = sys::message_setting_type::peace_decline_cause;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_TITLE(peace_they_decline);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_BODY(peace_they_decline);
+		};
+	} else if(state.local_player_nation == target) {
+		m.type = sys::message_setting_type::peace_decline_target;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_TITLE(peace_we_decline);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_BODY(peace_we_decline);
+		};
+	} else {
+		m.type = sys::message_setting_type::peace_decline_other;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_TITLE(peace_other_decline);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::actor, from);
+			text::add_to_substitution_map(sub, text::variable_type::recipient, target);
+			TEXT_NOTIF_MSG_BODY(peace_other_decline);
+		};
+	}
+	notification::post(state, std::move(m));
 
 	// TODO: detect
 	/*

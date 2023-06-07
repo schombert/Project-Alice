@@ -193,90 +193,95 @@ enum class commodity_group : uint8_t {
 	count
 };
 
-#define MSG_SETTING_LIST                                                             \
-	MSG_SETTING_ITEM(gaincb, "wegaincb")                                             \
-	MSG_SETTING_ITEM(gaincb_target, "wegaincb_target")                               \
-	MSG_SETTING_ITEM_R(cb_justify_no_longer_valid)                                   \
-	MSG_SETTING_ITEM_R(losecb_target)                                                \
-	MSG_SETTING_ITEM(revoltalliance_cause, "revoltalliance")                         \
-	MSG_SETTING_ITEM(revoltalliance_target, "revoltalliance")                        \
-	MSG_SETTING_ITEM(war_cause, "war_they_accept")                                   \
-	MSG_SETTING_ITEM(war_target, "war_we_accept")                                    \
-	MSG_SETTING_ITEM(wargoal_cause, "wargoal_they_accept")                           \
-	MSG_SETTING_ITEM(wargoal_target, "wargoal_we_accept")                            \
-	MSG_SETTING_ITEM_R(socreform)                                                    \
-	MSG_SETTING_ITEM_R(socreform_bad)                                                \
-	MSG_SETTING_ITEM_R(polreform)                                                    \
-	MSG_SETTING_ITEM_R(polreform_bad)                                                \
-	MSG_SETTING_ITEM_R(economicreform)                                               \
-	MSG_SETTING_ITEM_R(economicreform_bad)                                           \
-	MSG_SETTING_ITEM_R(militaryreform)                                               \
-	MSG_SETTING_ITEM_R(militaryreform_bad)                                           \
-	MSG_SETTING_ITEM_R(setparty)                                                     \
-	MSG_SETTING_ITEM_R(upperhouse)                                                   \
-	MSG_SETTING_ITEM_R(electionstart)                                                \
-	MSG_SETTING_ITEM_R(electiondone)                                                 \
-	MSG_SETTING_ITEM_R(breakcountry)                                                 \
-	MSG_SETTING_ITEM(rebels, "partisans")                                            \
-	MSG_SETTING_ITEM(annex_cause, "annex")                                           \
-	MSG_SETTING_ITEM(annex_target, "annex")                                          \
-	MSG_SETTING_ITEM(peace_accept_cause, "peace_they_accept")                        \
-	MSG_SETTING_ITEM(peace_accept_target, "peace_we_accept")                         \
-	MSG_SETTING_ITEM(peace_decline_cause, "peace_they_decline")                      \
-	MSG_SETTING_ITEM(peace_decline_target, "peace_we_decline")                       \
-	MSG_SETTING_ITEM(mobilize, "we_mobilize")                                        \
-	MSG_SETTING_ITEM(demobilize, "we_demobilize")                                    \
-	MSG_SETTING_ITEM_R(building_done)                                                \
-	MSG_SETTING_ITEM_R(eventhappenother)                                             \
-	MSG_SETTING_ITEM_R(eventhappenotheroption)                                       \
-	MSG_SETTING_ITEM_R(majoreventhappenother)                                        \
-	MSG_SETTING_ITEM_R(majoreventhappenotheroption)                                  \
-	MSG_SETTING_ITEM_R(invention)                                                    \
-	MSG_SETTING_ITEM(tech, "tech_once")                                              \
-	MSG_SETTING_ITEM_R(leaderdied)                                                   \
-	MSG_SETTING_ITEM_R(landbattleover)                                               \
-	MSG_SETTING_ITEM_R(navalbattleover)                                              \
-	MSG_SETTING_ITEM_R(decisionother)                                                \
-	MSG_SETTING_ITEM(no_longer_great_power, "we_no_longer_great_power")              \
-	MSG_SETTING_ITEM(became_great_power, "we_became_great_power")                    \
-	MSG_SETTING_ITEM(alliance_accept_cause, "alliance_they_accept")                  \
-	MSG_SETTING_ITEM(alliance_accept_target, "alliance_we_accept")                   \
-	MSG_SETTING_ITEM(alliance_decline_cause, "alliance_they_decline")                \
-	MSG_SETTING_ITEM(alliance_decline_target, "alliance_we_decline")                 \
-	MSG_SETTING_ITEM(cancelalliance_cause, "cancelalliance_they_accept")             \
-	MSG_SETTING_ITEM(cancelalliance_target, "cancelalliance_we_accept")              \
-	MSG_SETTING_ITEM(increaseopinion_cause, "increaseopinion_they_accept")           \
-	MSG_SETTING_ITEM(increaseopinion_target, "increaseopinion_we_accept")            \
-	MSG_SETTING_ITEM(addtosphere_cause, "addtosphere_they_accept")                   \
-	MSG_SETTING_ITEM(addtosphere_target, "addtosphere_we_accept")                    \
-	MSG_SETTING_ITEM(removefromsphere_cause, "removefromsphere_they_accept")         \
-	MSG_SETTING_ITEM(removefromsphere_target, "removefromsphere_we_accept")          \
-	MSG_SETTING_ITEM(removefromsphere_other_target, "removefromsphere_other_accept") \
-	MSG_SETTING_ITEM(increaserelation_cause, "increaserelation_they_accept")         \
-	MSG_SETTING_ITEM(increaserelation_target, "increaserelation_we_accept")          \
-	MSG_SETTING_ITEM(decreaserelation_cause, "decreaserelation_they_accept")         \
-	MSG_SETTING_ITEM(decreaserelation_target, "decreaserelation_we_accept")          \
-	MSG_SETTING_ITEM(intervention_same_side, "intervention_our_side")                \
-	MSG_SETTING_ITEM(intervention_other_side, "intervention_their_side")             \
-	MSG_SETTING_ITEM(intervention, "intervention_other_side")                        \
-	MSG_SETTING_ITEM_R(bankruptcy)                                                   \
-	MSG_SETTING_ITEM_R(new_party_avail)                                              \
-	MSG_SETTING_ITEM_R(party_unavail)                                                \
-	MSG_SETTING_ITEM(cb_detected_cause, "others_cb_detected")                        \
-	MSG_SETTING_ITEM(cb_detected_target, "our_cb_detected")                          \
-	MSG_SETTING_ITEM(join_crisis_offer_cause, "crisis_offer_they_accept")            \
-	MSG_SETTING_ITEM(join_crisis_offer_target, "crisis_offer_we_accept")             \
-	MSG_SETTING_ITEM(join_crisis_offer_declind_cause, "crisis_offer_they_decline")   \
-	MSG_SETTING_ITEM(join_crisis_offer_decline_target, "crisis_offer_we_decline")    \
-	MSG_SETTING_ITEM(join_crisis_cause, "crisis_offer_we_accept")                    \
-	MSG_SETTING_ITEM(join_crisis_target, "crisis_offer_other_accept")                \
-	MSG_SETTING_ITEM(crisis_offer_cause, "crisis_offer_they_accept")                 \
-	MSG_SETTING_ITEM(crisis_offer_target, "crisis_offer_we_accept")                  \
-	MSG_SETTING_ITEM(crisis_offer_decline_cause, "crisis_offer_they_decline")        \
-	MSG_SETTING_ITEM(crisis_offer_decline_target, "crisis_offer_we_decline")         \
-	MSG_SETTING_ITEM(crisis_resolved_cause, "crisis_back_down_they_accept")          \
-	MSG_SETTING_ITEM(crisis_resolved_target, "crisis_back_down_we_accept")           \
-	MSG_SETTING_ITEM_R(crisis_started)                                               \
+#define MSG_SETTING_LIST                                                                                                                 \
+	MSG_SETTING_ITEM(gaincb, "wegaincb")                                                                                                 \
+	MSG_SETTING_ITEM(gaincb_target, "wegaincb_target")                                                                                   \
+	MSG_SETTING_ITEM_R(cb_justify_no_longer_valid)                                                                                       \
+	MSG_SETTING_ITEM_R(losecb_target)                                                                                                    \
+	MSG_SETTING_ITEM(revoltalliance_cause, "revoltalliance")                                                                             \
+	MSG_SETTING_ITEM(revoltalliance_target, "revoltalliance")                                                                            \
+	MSG_SETTING_ITEM(war_cause, "war_they_accept")                                                                                       \
+	MSG_SETTING_ITEM(war_target, "war_we_accept")                                                                                        \
+	MSG_SETTING_ITEM(wargoal_cause, "wargoal_they_accept")                                                                               \
+	MSG_SETTING_ITEM(wargoal_target, "wargoal_we_accept")                                                                                \
+	MSG_SETTING_ITEM_R(socreform)                                                                                                        \
+	MSG_SETTING_ITEM_R(socreform_bad)                                                                                                    \
+	MSG_SETTING_ITEM_R(polreform)                                                                                                        \
+	MSG_SETTING_ITEM_R(polreform_bad)                                                                                                    \
+	MSG_SETTING_ITEM_R(economicreform)                                                                                                   \
+	MSG_SETTING_ITEM_R(economicreform_bad)                                                                                               \
+	MSG_SETTING_ITEM_R(militaryreform)                                                                                                   \
+	MSG_SETTING_ITEM_R(militaryreform_bad)                                                                                               \
+	MSG_SETTING_ITEM_R(setparty)                                                                                                         \
+	MSG_SETTING_ITEM_R(upperhouse)                                                                                                       \
+	MSG_SETTING_ITEM_R(electionstart)                                                                                                    \
+	MSG_SETTING_ITEM_R(electiondone)                                                                                                     \
+	MSG_SETTING_ITEM_R(breakcountry)                                                                                                     \
+	MSG_SETTING_ITEM(rebels, "partisans")                                                                                                \
+	MSG_SETTING_ITEM(annex_cause, "annex")                                                                                               \
+	MSG_SETTING_ITEM(annex_target, "annex")                                                                                              \
+	MSG_SETTING_ITEM(peace_accept_cause, "peace_they_accept")                                                                            \
+	MSG_SETTING_ITEM(peace_accept_target, "peace_we_accept")                                                                             \
+	MSG_SETTING_ITEM(peace_accept_other, "peace_other_accept")                                                                           \
+	MSG_SETTING_ITEM(peace_decline_cause, "peace_they_decline")                                                                          \
+	MSG_SETTING_ITEM(peace_decline_target, "peace_we_decline")                                                                           \
+	MSG_SETTING_ITEM(peace_decline_other, "peace_other_decline")                                                                         \
+	MSG_SETTING_ITEM(mobilize, "we_mobilize")                                                                                            \
+	MSG_SETTING_ITEM(demobilize, "we_demobilize")                                                                                        \
+	MSG_SETTING_ITEM_R(building_done)                                                                                                    \
+	MSG_SETTING_ITEM_R(eventhappenother)                                                                                                 \
+	MSG_SETTING_ITEM_R(eventhappenotheroption)                                                                                           \
+	MSG_SETTING_ITEM_R(majoreventhappenother)                                                                                            \
+	MSG_SETTING_ITEM_R(majoreventhappenotheroption)                                                                                      \
+	MSG_SETTING_ITEM_R(invention)                                                                                                        \
+	MSG_SETTING_ITEM(tech, "tech_once")                                                                                                  \
+	MSG_SETTING_ITEM_R(leaderdied)                                                                                                       \
+	MSG_SETTING_ITEM_R(landbattleover)                                                                                                   \
+	MSG_SETTING_ITEM_R(navalbattleover)                                                                                                  \
+	MSG_SETTING_ITEM_R(decisionother)                                                                                                    \
+	MSG_SETTING_ITEM(no_longer_great_power, "we_no_longer_great_power")                                                                  \
+	MSG_SETTING_ITEM(became_great_power, "we_became_great_power")                                                                        \
+	MSG_SETTING_ITEM(alliance_accept_cause, "alliance_they_accept")                                                                      \
+	MSG_SETTING_ITEM(alliance_accept_target, "alliance_we_accept")                                                                       \
+	MSG_SETTING_ITEM(alliance_decline_cause, "alliance_they_decline")                                                                    \
+	MSG_SETTING_ITEM(alliance_decline_target, "alliance_we_decline")                                                                     \
+	MSG_SETTING_ITEM(cancelalliance_cause, "cancelalliance_they_accept")                                                                 \
+	MSG_SETTING_ITEM(cancelalliance_target, "cancelalliance_we_accept")                                                                  \
+	MSG_SETTING_ITEM(increaseopinion_cause, "increaseopinion_they_accept")                                                               \
+	MSG_SETTING_ITEM(increaseopinion_target, "increaseopinion_we_accept")                                                                \
+	MSG_SETTING_ITEM(addtosphere_cause, "addtosphere_they_accept")                                                                       \
+	MSG_SETTING_ITEM(addtosphere_target, "addtosphere_we_accept")                                                                        \
+	MSG_SETTING_ITEM(removefromsphere_cause, "removefromsphere_they_accept")                                                             \
+	MSG_SETTING_ITEM(removefromsphere_target, "removefromsphere_we_accept")                                                              \
+	MSG_SETTING_ITEM(removefromsphere_other_target, "removefromsphere_other_accept")                                                     \
+	MSG_SETTING_ITEM(increaserelation_cause, "increaserelation_they_accept")                                                             \
+	MSG_SETTING_ITEM(increaserelation_target, "increaserelation_we_accept")                                                              \
+	MSG_SETTING_ITEM(decreaserelation_cause, "decreaserelation_they_accept")                                                             \
+	MSG_SETTING_ITEM(decreaserelation_target, "decreaserelation_we_accept")                                                              \
+	MSG_SETTING_ITEM(intervention_same_side, "intervention_our_side")                                                                    \
+	MSG_SETTING_ITEM(intervention_other_side, "intervention_their_side")                                                                 \
+	MSG_SETTING_ITEM(intervention, "intervention_other_side")                                                                            \
+	MSG_SETTING_ITEM_R(bankruptcy)                                                                                                       \
+	MSG_SETTING_ITEM_R(new_party_avail)                                                                                                  \
+	MSG_SETTING_ITEM_R(party_unavail)                                                                                                    \
+	MSG_SETTING_ITEM(cb_detected_cause, "others_cb_detected")                                                                            \
+	MSG_SETTING_ITEM(cb_towards_us_detected, "cb_towards_us_detected")                                                                   \
+	MSG_SETTING_ITEM(cb_detected_target, "our_cb_detected")                                                                              \
+	MSG_SETTING_ITEM(join_crisis_offer_cause, "crisis_offer_they_accept")                                                                \
+	MSG_SETTING_ITEM(join_crisis_offer_target, "crisis_offer_we_accept")                                                                 \
+	MSG_SETTING_ITEM(join_crisis_offer_declind_cause, "crisis_offer_they_decline")                                                       \
+	MSG_SETTING_ITEM(join_crisis_offer_decline_target, "crisis_offer_we_decline")                                                        \
+	MSG_SETTING_ITEM(join_crisis_cause, "crisis_offer_they_accept")                                                                      \
+	MSG_SETTING_ITEM(join_crisis_target, "crisis_offer_we_accept")                                                                       \
+	MSG_SETTING_ITEM(crisis_offer_accept_cause, "crisis_offer_they_accept")                                                              \
+	MSG_SETTING_ITEM(crisis_offer_accept_target, "crisis_offer_we_accept")                                                               \
+	MSG_SETTING_ITEM(crisis_offer_accept_other, "crisis_offer_other_accept")                                                             \
+	MSG_SETTING_ITEM(crisis_offer_decline_cause, "crisis_offer_they_decline")                                                            \
+	MSG_SETTING_ITEM(crisis_offer_decline_target, "crisis_offer_we_decline")                                                             \
+	MSG_SETTING_ITEM(crisis_offer_decline_other, "crisis_offer_other_decline")                                                           \
+	MSG_SETTING_ITEM(crisis_resolved_cause, "crisis_back_down_they_accept")                                                              \
+	MSG_SETTING_ITEM(crisis_resolved_target, "crisis_back_down_we_accept")                                                               \
+	MSG_SETTING_ITEM_R(crisis_started)                                                                                                   \
 	MSG_SETTING_ITEM(crisis_became_war_target, "crisis_became_war")
 #define MSG_SETTING_ITEM_R(name) MSG_SETTING_ITEM(name, #name)
 
