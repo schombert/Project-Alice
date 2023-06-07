@@ -138,9 +138,9 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			auto ptr = make_element_by_type<factory_build_item_button>(state, id);
-			ptr->base_data.size.x *= 2;  // Nudge
+			ptr->base_data.size.x *= 2;	 // Nudge
 			ptr->base_data.size.x += 42; // Nudge
-			ptr->base_data.size.y += 5;  // Nudge
+			ptr->base_data.size.y += 5;	 // Nudge
 			return ptr;
 
 		} else if(name == "output") {
@@ -249,9 +249,7 @@ public:
 
 class factory_current_funds_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state) noexcept {
-		return text::format_money(nations::get_treasury(state, state.local_player_nation));
-	}
+	std::string get_text(sys::state& state) noexcept { return text::format_money(nations::get_treasury(state, state.local_player_nation)); }
 
 	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
 };
@@ -267,10 +265,7 @@ public:
 			auto content = any_cast<dcon::factory_type_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
 
-			auto layout = text::create_endless_layout(internal_layout,
-			                                          text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
-			                                                                  base_data.data.text.font_handle, 0, text::alignment::left,
-			                                                                  text::text_color::black});
+			auto layout = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 			auto box = text::open_layout_box(layout, 0);
 			text::add_to_layout_box(layout, state, box, fat.get_description());
 			text::close_layout_box(layout, box);

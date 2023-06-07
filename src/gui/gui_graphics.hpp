@@ -14,18 +14,7 @@ struct building_gfx_context;
 }
 
 namespace ui {
-enum class object_type : uint8_t {
-	generic_sprite = 0x00,
-	bordered_rect = 0x01,
-	horizontal_progress_bar = 0x02,
-	vertical_progress_bar = 0x03,
-	flag_mask = 0x04,
-	tile_sprite = 0x05,
-	text_sprite = 0x06,
-	barchart = 0x07,
-	piechart = 0x08,
-	linegraph = 0x09
-};
+enum class object_type : uint8_t { generic_sprite = 0x00, bordered_rect = 0x01, horizontal_progress_bar = 0x02, vertical_progress_bar = 0x03, flag_mask = 0x04, tile_sprite = 0x05, text_sprite = 0x06, barchart = 0x07, piechart = 0x08, linegraph = 0x09 };
 
 struct xy_pair {
 	int16_t x = 0;
@@ -43,9 +32,9 @@ struct gfx_object {
 	xy_pair size; // 4bytes
 
 	dcon::texture_id primary_texture_handle; // 6bytes
-	uint16_t type_dependent = 0;             // secondary texture handle or border size -- 8bytes
+	uint16_t type_dependent = 0;			 // secondary texture handle or border size -- 8bytes
 
-	uint8_t flags = 0;            // 9bytes
+	uint8_t flags = 0;			  // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
 
 	object_type get_object_type() const { return object_type(flags & type_mask); }
@@ -217,25 +206,25 @@ struct element_data {
 
 	static constexpr uint8_t ex_is_top_level = 0x01;
 
-	xy_pair position;    // 4
-	xy_pair size;        // 8
+	xy_pair position;	 // 4
+	xy_pair size;		 // 8
 	dcon::text_key name; // 12
 
 	union alignas(4) internal_data {
-		text_base_data text_common;   // +5
-		button_data button;           // +5 + ? +3
-		text_data text;               // +5 + ? +4
-		image_data image;             // +6
+		text_base_data text_common;	  // +5
+		button_data button;			  // +5 + ? +3
+		text_data text;				  // +5 + ? +4
+		image_data image;			  // +6
 		overlapping_data overlapping; //+5
-		list_box_data list_box;       // +11
-		scrollbar_data scrollbar;     //+10
-		window_data window;           // +4
-		position_data position;       //+0
+		list_box_data list_box;		  // +11
+		scrollbar_data scrollbar;	  //+10
+		window_data window;			  // +4
+		position_data position;		  //+0
 
 		internal_data() { position = position_data{}; }
 	} data; // +12 = 24
 
-	uint8_t flags = 0;    // 25
+	uint8_t flags = 0;	  // 25
 	uint8_t ex_flags = 0; // 26
 
 	element_data() { memset(this, 0, sizeof(element_data)); }

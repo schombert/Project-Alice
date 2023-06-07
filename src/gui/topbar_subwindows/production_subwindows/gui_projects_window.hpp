@@ -39,9 +39,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
-		amount_text->set_text(state, text::format_float(content.satisfied, 1) + "/" + text::format_float(content.needed, 1));
-	}
+	void update(sys::state& state) noexcept override { amount_text->set_text(state, text::format_float(content.satisfied, 1) + "/" + text::format_float(content.needed, 1)); }
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
@@ -52,8 +50,7 @@ public:
 	}
 };
 
-class production_project_input_listbox
-    : public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
+class production_project_input_listbox : public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
 protected:
 	std::string_view get_row_element_name() override { return "goods_need_template"; }
 };
@@ -149,8 +146,7 @@ public:
 			building_icon->set_visible(state, true);
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
 			factory_icon->frame = uint16_t(fat_id.get_type());
-			name_text->set_text(state, text::produce_simple_string(
-			                               state, province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
+			name_text->set_text(state, text::produce_simple_string(state, province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
 			switch(economy::province_building_type(fat_id.get_type())) {
 			case economy::province_building_type::railroad:
 				needed_commodities = state.economy_definitions.railroad_definition.cost;
@@ -178,9 +174,9 @@ public:
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
 				if(bool(needed_commodities.commodity_type[i]))
 					input_listbox->row_contents.push_back(production_project_input_data{
-					    needed_commodities.commodity_type[i],       // cid
-					    satisfied_commodities.commodity_amounts[i], // satisfied
-					    needed_commodities.commodity_amounts[i]     // needed
+						needed_commodities.commodity_type[i],		// cid
+						satisfied_commodities.commodity_amounts[i], // satisfied
+						needed_commodities.commodity_amounts[i]		// needed
 					});
 			input_listbox->update(state);
 		}
@@ -206,18 +202,16 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation,
-		                                                                  [&](dcon::state_building_construction_id id) {
-			                                                                  auto fat_id = dcon::fatten(state.world, id);
-			                                                                  if(fat_id.get_is_pop_project())
-				                                                                  row_contents.push_back(production_project_data(id));
-		                                                                  });
-		state.world.nation_for_each_province_building_construction_as_nation(state.local_player_nation,
-		                                                                     [&](dcon::province_building_construction_id id) {
-			                                                                     auto fat_id = dcon::fatten(state.world, id);
-			                                                                     if(fat_id.get_is_pop_project())
-				                                                                     row_contents.push_back(production_project_data(id));
-		                                                                     });
+		state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation, [&](dcon::state_building_construction_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(fat_id.get_is_pop_project())
+				row_contents.push_back(production_project_data(id));
+		});
+		state.world.nation_for_each_province_building_construction_as_nation(state.local_player_nation, [&](dcon::province_building_construction_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(fat_id.get_is_pop_project())
+				row_contents.push_back(production_project_data(id));
+		});
 		update(state);
 	}
 };

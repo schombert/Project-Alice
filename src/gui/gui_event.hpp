@@ -24,9 +24,7 @@ struct option_taken_notification {
 	int a = 0;
 };
 
-typedef std::variant< event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event,
-                      event::pending_human_f_p_event>
-    event_data_wrapper;
+typedef std::variant< event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> event_data_wrapper;
 class event_option_button : public multiline_button_element_base {
 public:
 	uint8_t index = 0;

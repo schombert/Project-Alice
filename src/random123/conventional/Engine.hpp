@@ -124,11 +124,11 @@ public:
 	template<typename SeedSeq>
 	explicit Engine(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
-	                ,
-	                typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
+		,
+		typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
-	                )
-	    : b(), c() {
+		)
+		: b(), c() {
 		ukey_type ukey = ukey_type::seed(s);
 		key = ukey;
 		v.back() = 0;
@@ -137,19 +137,15 @@ public:
 	template<typename SeedSeq>
 	void seed(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
-	          ,
-	          typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
+		,
+		typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
 	) {
 		*this = Engine(s);
 	}
 	void seed() { *this = Engine(); }
-	friend bool operator==(Engine const& lhs, Engine const& rhs) {
-		return lhs.c == rhs.c && lhs.v.back() == rhs.v.back() && lhs.key == rhs.key;
-	}
-	friend bool operator!=(Engine const& lhs, Engine const& rhs) {
-		return lhs.c != rhs.c || lhs.v.back() != rhs.v.back() || lhs.key != rhs.key;
-	}
+	friend bool operator==(Engine const& lhs, Engine const& rhs) { return lhs.c == rhs.c && lhs.v.back() == rhs.v.back() && lhs.key == rhs.key; }
+	friend bool operator!=(Engine const& lhs, Engine const& rhs) { return lhs.c != rhs.c || lhs.v.back() != rhs.v.back() || lhs.key != rhs.key; }
 
 	friend std::ostream& operator<<(std::ostream& os, Engine const& be) { return os << be.c << " " << be.key << " " << be.v.back(); }
 
@@ -216,16 +212,9 @@ public:
 	void seed(ukey_type& uk) { *this = Engine(uk); }
 
 #if R123_USE_CXX11_TYPE_TRAITS
-	template<typename DUMMY = void>
-	explicit Engine(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
-	    : key(k), c() {
-		v.back() = 0;
-	}
+	template<typename DUMMY = void> explicit Engine(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) : key(k), c() { v.back() = 0; }
 
-	template<typename DUMMY = void>
-	void seed(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) {
-		*this = Engine(k);
-	}
+	template<typename DUMMY = void> void seed(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) { *this = Engine(k); }
 #endif
 
 	// Forward the e(counter) to the CBRNG we are templated

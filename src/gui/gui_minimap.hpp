@@ -366,9 +366,7 @@ public:
 		return message_result::consumed;
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return message_result::unseen;
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return message_result::unseen; }
 };
 
 } // namespace ui

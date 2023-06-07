@@ -36,8 +36,7 @@ class directory {
 	native_string relative_path;
 
 public:
-	directory(file_system const* parent_system, native_string_view relative_path)
-	    : parent_system(parent_system), relative_path(relative_path) { }
+	directory(file_system const* parent_system, native_string_view relative_path) : parent_system(parent_system), relative_path(relative_path) { }
 
 	friend directory get_root(file_system const& fs);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);

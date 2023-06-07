@@ -222,9 +222,7 @@ R123_STATIC_INLINE bool operator<=(r123m128i const&, r123m128i const&) { std::ab
 R123_STATIC_INLINE bool operator>(r123m128i const&, r123m128i const&) { std::abort(); }
 R123_STATIC_INLINE bool operator>=(r123m128i const&, r123m128i const&) { std::abort(); }
 
-R123_STATIC_INLINE bool operator==(r123m128i const& lhs, r123m128i const& rhs) {
-	return 0xf == _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs)));
-}
+R123_STATIC_INLINE bool operator==(r123m128i const& lhs, r123m128i const& rhs) { return 0xf == _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs))); }
 R123_STATIC_INLINE bool operator!=(r123m128i const& lhs, r123m128i const& rhs) { return !(lhs == rhs); }
 R123_STATIC_INLINE bool operator==(R123_ULONG_LONG lhs, r123m128i const& rhs) {
 	r123m128i LHS;

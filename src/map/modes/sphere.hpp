@@ -50,9 +50,9 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	 **/
 
 	// Todo: Get better colors?
-	uint32_t gp_color = 0x00FF00;        // Green
-	uint32_t inf_color = 0xFF0000;       // Blue
-	uint32_t sphere_color = 0x00FFFF;    // Yellow
+	uint32_t gp_color = 0x00FF00;		 // Green
+	uint32_t inf_color = 0xFF0000;		 // Blue
+	uint32_t sphere_color = 0x00FFFF;	 // Yellow
 	uint32_t other_inf_color = 0x0000FF; // Red
 
 	// Province color vector init
@@ -92,8 +92,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 						if(master_rel_status == nations::influence::level_in_sphere || master_rel_inf != 0) {
 							owner.for_each_gp_relationship_as_influence_target([&](dcon::gp_relationship_id rel_id) {
 								// Has more than one influencer
-								if(rel_id != master_rel_id && state.world.gp_relationship_get_influence(rel_id) != 0 &&
-								   state.world.gp_relationship_get_influence(rel_id) != 0) {
+								if(rel_id != master_rel_id && state.world.gp_relationship_get_influence(rel_id) != 0 && state.world.gp_relationship_get_influence(rel_id) != 0) {
 									stripe_color = other_inf_color;
 								}
 							});

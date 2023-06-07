@@ -33,7 +33,7 @@ public:
 	//       - are responsible for propagating messages and responses
 	//       - should be called in general when something happens
 	virtual mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y,
-	                                     mouse_probe_type type) noexcept; // tests which element is under the cursor
+		mouse_probe_type type) noexcept; // tests which element is under the cursor
 	virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
@@ -54,9 +54,8 @@ public:
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
-	virtual message_result
-	test_mouse(sys::state& state, int32_t x, int32_t y,
-	           mouse_probe_type type) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
+	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y,
+		mouse_probe_type type) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
 	virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
@@ -68,7 +67,7 @@ protected:
 	virtual void on_update(sys::state& state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
 	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y,
-	                     sys::key_modifiers mods) noexcept; // as drag events are generated
+		sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_text(sys::state& state, char ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
@@ -77,7 +76,7 @@ protected:
 	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
 		return focus_result::ignored;
 	}
-	virtual void on_lose_focus(sys::state& state) noexcept { }  // called when the focus is taken away
+	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
