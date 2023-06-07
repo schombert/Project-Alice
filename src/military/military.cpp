@@ -852,12 +852,18 @@ void update_cbs(sys::state& state) {
 					m.primary = n;
 					m.title = [=](sys::state& state, text::layout_base& layout) {
 						text::substitution_map sub{};
+						text::add_to_substitution_map(
+						    sub, text::variable_type::monarchtitle,
+						    state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 						text::add_to_substitution_map(sub, text::variable_type::target, target);
 						text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cbt));
 						TEXT_NOTIF_MSG_TITLE(cb_justify_no_longer_valid);
 					};
 					m.body = [=](sys::state& state, text::layout_base& layout) {
 						text::substitution_map sub{};
+						text::add_to_substitution_map(
+						    sub, text::variable_type::monarchtitle,
+						    state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 						text::add_to_substitution_map(sub, text::variable_type::target, target);
 						text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cbt));
 						TEXT_NOTIF_MSG_BODY(cb_justify_no_longer_valid);
@@ -924,12 +930,16 @@ void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nat
 		m.primary = n;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::enemy, target);
 			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cb));
 			TEXT_NOTIF_MSG_TITLE(wegaincb);
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::enemy, target);
 			text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cb));
 			TEXT_NOTIF_MSG_BODY(wegaincb);
@@ -1473,6 +1483,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		m.type = sys::message_setting_type::cb_detected_target;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{infamy});
 			text::add_to_substitution_map(sub, text::variable_type::target, target);
@@ -1482,6 +1494,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{infamy});
 			text::add_to_substitution_map(sub, text::variable_type::target, target);
@@ -1493,6 +1507,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		m.type = sys::message_setting_type::cb_towards_us_detected;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{infamy});
 			text::add_to_substitution_map(sub, text::variable_type::target, target);
@@ -1502,6 +1518,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{infamy});
 			text::add_to_substitution_map(sub, text::variable_type::target, target);
@@ -1513,6 +1531,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		m.type = sys::message_setting_type::cb_detected_cause;
 		m.title = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{infamy});
 			text::add_to_substitution_map(sub, text::variable_type::target, target);
@@ -1522,6 +1542,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		};
 		m.body = [=](sys::state& state, text::layout_base& layout) {
 			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
+			                              state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 			text::add_to_substitution_map(sub, text::variable_type::country, n);
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{infamy});
 			text::add_to_substitution_map(sub, text::variable_type::target, target);
@@ -1575,16 +1597,23 @@ void kill_leader(sys::state& state, dcon::leader_id l) {
 	*/
 	if(state.world.leader_get_nation_from_leader_loyalty(l) == state.local_player_nation) {
 		if(state.world.leader_get_army_from_army_leadership(l) || state.world.leader_get_navy_from_navy_leadership(l)) {
+			dcon::nation_id n = state.world.leader_get_nation_from_leader_loyalty(l);
 			notification::message m;
 			m.type = sys::message_setting_type::leaderdied;
-			m.primary = state.world.leader_get_nation_from_leader_loyalty(l);
+			m.primary = n;
 			m.title = [=](sys::state& state, text::layout_base& layout) {
 				text::substitution_map sub{};
+				text::add_to_substitution_map(
+				    sub, text::variable_type::monarchtitle,
+				    state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 				text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(state.world.leader_get_name(l)));
 				TEXT_NOTIF_MSG_TITLE(leaderdied);
 			};
 			m.body = [=](sys::state& state, text::layout_base& layout) {
 				text::substitution_map sub{};
+				text::add_to_substitution_map(
+				    sub, text::variable_type::monarchtitle,
+				    state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
 				text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(state.world.leader_get_name(l)));
 				TEXT_NOTIF_MSG_BODY(leaderdied);
 			};

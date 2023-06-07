@@ -621,9 +621,8 @@ variable_type variable_type_from_name(std::string_view v) {
 #undef CT_STRING_ENUM
 
 char16_t win1250toUTF16(char in) {
-	constexpr static char16_t
-	    converted[256] =
-	        //       0       1         2         3         4         5         6         7         8         9         A         B C D E F
+	constexpr static char16_t converted[256] =
+	    //       0       1         2         3         4         5         6         7         8         9         A         B C D E F
 	    /*0*/ {u' ',
 	           u'\u0001',
 	           u'\u0002',
@@ -1123,7 +1122,7 @@ void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, st
 	auto tmp_color = color;
 
 	if(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
-	   std::holds_alternative<dcon::state_instance_id>(source)) {
+	   std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source)) {
 		if(color != text_color::black)
 			tmp_color = text_color::light_blue;
 		else
@@ -1260,6 +1259,8 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 		return std::to_string(std::get<int_percentage>(sub).value) + "%";
 	} else if(std::holds_alternative<dcon::text_sequence_id>(sub)) {
 		return produce_simple_string(state, std::get<dcon::text_sequence_id>(sub));
+	} else if(std::holds_alternative<dcon::state_definition_id>(sub)) {
+		return produce_simple_string(state, state.world.state_definition_get_name(std::get<dcon::state_definition_id>(sub)));
 	} else {
 		return std::string("?");
 	}

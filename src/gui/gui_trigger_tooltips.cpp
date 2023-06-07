@@ -482,7 +482,7 @@ void tf_x_provinces_in_variable_region(TRIGGER_DISPLAY_PARAMS) {
 		text::add_space_to_layout_box(layout, ws, box);
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "province_in"));
 		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.state_definition_get_name(region)));
+		text::add_to_layout_box(layout, ws, box, region);
 		text::close_layout_box(layout, box);
 	}
 
@@ -2662,7 +2662,7 @@ void tf_region(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "part_of"), ws, layout, box);
 	text::add_space_to_layout_box(layout, ws, box);
-	text::add_to_layout_box(layout, ws, box, ws.world.state_definition_get_name(trigger::payload(tval[1]).state_id));
+	text::add_to_layout_box(layout, ws, box, trigger::payload(tval[1]).state_id);
 	text::close_layout_box(layout, box);
 }
 void tf_tag_tag(TRIGGER_DISPLAY_PARAMS) {

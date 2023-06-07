@@ -128,7 +128,7 @@ public:
 		} else if(name == "line1") {
 			auto ptr = make_element_by_type<multiline_text_element_base>(state, id);
 			ptr->base_data.size.x = base_data.size.x - (ptr->base_data.position.x * 2);
-			ptr->base_data.size.y = 22;
+			ptr->base_data.size.y = 22 * 2;
 			title_text = ptr.get();
 			return ptr;
 		} else if(name == "line3") {
@@ -177,7 +177,7 @@ public:
 
 			auto title_container = text::create_endless_layout(
 			    title_text->internal_layout, text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y,
-			                                                         title_text->base_data.data.text.font_handle, 0,
+			                                                         title_text->base_data.data.text.font_handle, -6,
 			                                                         text::alignment::center, text::text_color::black});
 			m.title(state, title_container);
 			auto desc_container = text::create_endless_layout(
