@@ -52,7 +52,8 @@ enum class country_list_filter : uint8_t {
 };
 class button_press_notification { };
 
-template<class T, class K> class generic_settable_element : public T {
+template<class T, class K>
+class generic_settable_element : public T {
 public:
 	K content{};
 
@@ -66,7 +67,8 @@ public:
 	}
 };
 
-template<class T> class generic_name_text : public simple_text_element_base {
+template<class T>
+class generic_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -79,7 +81,8 @@ public:
 	}
 };
 
-template<class T> class generic_multiline_name_text : public multiline_text_element_base {
+template<class T>
+class generic_multiline_name_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {

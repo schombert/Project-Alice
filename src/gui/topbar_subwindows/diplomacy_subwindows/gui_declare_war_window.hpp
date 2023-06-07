@@ -622,7 +622,20 @@ public:
 
 //====================================================================================================================================
 
-template<bool B> class diplomacy_peace_tab_button : public button_element_base {
+class diplomacy_peace_pick_side_description : public generic_multiline_text<bool> {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("po_pd_neg_5"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::localised_format_box(state, contents, box, std::string_view("po_welead"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+template<bool B>
+class diplomacy_peace_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -636,7 +649,7 @@ class diplomacy_peace_pick_side_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "war_desc") {
-			return make_element_by_type<war_name_text>(state, id);
+			return make_element_by_type<diplomacy_peace_pick_side_description>(state, id);
 		} else if(name == "offer_button") {
 			return make_element_by_type<diplomacy_peace_tab_button<false>>(state, id);
 		} else if(name == "offer_text") {
@@ -843,7 +856,7 @@ public:
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "title") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_text(state, text::produce_simple_string(state, "peacetitle"));
+			side ? ptr->set_text(state, text::produce_simple_string(state, "demand_peace")) : ptr->set_text(state, text::produce_simple_string(state, "offer_peace"));
 			return ptr;
 		} else if(name == "warscore_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -891,6 +904,8 @@ public:
 		return message_result::unseen;
 	}
 };
+
+//==========================================================================================================================================================
 
 class cb_wargoal_icon : public image_element_base {
 public:
