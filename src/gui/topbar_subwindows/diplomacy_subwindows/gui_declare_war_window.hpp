@@ -168,9 +168,17 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			for(auto so : dcon::fatten(state.world, content).get_state_ownership())
-				row_contents.push_back(dcon::fatten(state.world, so).get_state().get_definition().id);
+			dcon::nation_id n = any_cast<dcon::nation_id>(payload);
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
+			dcon::trigger_key allowed_states = state.world.cb_type_get_allowed_states(c);
+			for(auto si : dcon::fatten(state.world, n).get_state_ownership()) {
+				auto fat_id = dcon::fatten(state.world, si);
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(fat_id.get_state().id),
+				                     trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation)))
+					row_contents.push_back(fat_id.get_state().get_definition().id);
+			}
 		}
 		update(state);
 	}
@@ -577,14 +585,14 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			cb_to_use = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
-			if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
-				wargoal_setup_win->set_visible(state, false);
-				wargoal_state_win->set_visible(state, true);
-				wargoal_country_win->set_visible(state, false);
-			} else if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use)) {
+			if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
 				wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, true);
+			} else if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
+				wargoal_setup_win->set_visible(state, false);
+				wargoal_state_win->set_visible(state, true);
+				wargoal_country_win->set_visible(state, false);
 			} else {
 				wargoal_setup_win->set_visible(state, true);
 				wargoal_state_win->set_visible(state, false);
