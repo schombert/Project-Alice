@@ -897,6 +897,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
+	dcon::nation_id foreign_nation{};
 	xy_pair base_commodity_offset{33, 50};
 	xy_pair commodity_offset{33, 50};
 
@@ -1165,8 +1166,15 @@ public:
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<dcon::nation_id>>()) {
+			foreign_nation = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
 			open_foreign_invest = true;
 			foreign_invest_win->set_visible(state, true);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			if(foreign_invest_win->is_visible())
+				payload.emplace<dcon::nation_id>(foreign_nation);
+			else
+				payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
