@@ -270,6 +270,7 @@ enum class status : uint8_t {
 };
 status get_status(sys::state& state, dcon::nation_id n);
 
+sys::date get_research_end_date(sys::state& state, dcon::technology_id, dcon::nation_id);
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n);
 float suppression_points(sys::state const& state, dcon::nation_id n);
 float diplomatic_points(sys::state const& state, dcon::nation_id n);

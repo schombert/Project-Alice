@@ -40,6 +40,9 @@ namespace sys {
 
 enum class window_state : uint8_t { normal, maximized, minimized };
 
+enum class gui_modes : uint8_t { faithful, inaccurate };
+#define DEF_guimode_size 2
+
 struct user_settings_s {
 	float ui_scale = 1.0f;
 	float master_volume = 0.5f;
@@ -49,7 +52,8 @@ struct user_settings_s {
 	bool prefer_fullscreen = false;
 	bool map_is_globe = false;
 	bool fake_graphs = false;
-	bool dummy3 = false;
+	gui_modes guimode = gui_modes::faithful;
+	//uint8_t guimode_size = 2;
 	bool use_classic_fonts = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };

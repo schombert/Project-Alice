@@ -16,18 +16,6 @@ namespace ui {
 
 enum class diplomacy_window_tab : uint8_t { great_powers = 0x0, wars = 0x1, casus_belli = 0x2, crisis = 0x3 };
 
-class diplomacy_country_select : public button_element_base {
-public:
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
-
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = button_press_notification{};
-			parent->impl_get(state, payload);
-		}
-	}
-};
-
 class diplomacy_nation_ships_text : public nation_ships_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -69,6 +57,39 @@ public:
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
 			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class diplomacy_country_tech_text : public nation_technology_admin_type_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			// TODO - add Economic and Military Reform Cost modifiers here
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::army_tech_research_bonus, false);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::navy_tech_research_bonus, false);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::commerce_tech_research_bonus, false);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::culture_tech_research_bonus, false);
+		}
+	}
+};
+
+class diplomacy_country_select : public button_element_base {
+public:
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = button_press_notification{};
+			parent->impl_get(state, payload);
 		}
 	}
 };
@@ -349,7 +370,7 @@ public:
 		} else if(name == "country_gov") {
 			return make_element_by_type<nation_government_type_text>(state, id);
 		} else if(name == "country_tech") {
-			return make_element_by_type<nation_technology_admin_type_text>(state, id);
+			return make_element_by_type<diplomacy_country_tech_text>(state, id);
 		} else if(name == "our_relation_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			country_relation_icon = ptr.get();
@@ -409,15 +430,9 @@ public:
 		} else if(name == "warexhastion_text") {
 			return make_element_by_type<nation_war_exhaustion_text>(state, id);
 		} else if(name == "brigade_text") {
-<<<<<<< HEAD
-			return make_element_by_type<nation_armies_text>(state, id);
-		} else if(name == "ships_text") {
-			return make_element_by_type<nation_navies_text>(state, id);
-=======
-			return make_element_by_type<diplomacy_nation_brigades_text>(state, id);
-		} else if(name == "ships_text") {
 			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
->>>>>>> parent of 413c3a0 (Merge redundant widgets)
+		} else if(name == "ships_text") {
+			return make_element_by_type<diplomacy_nation_brigades_text>(state, id);
 		} else if(name == "add_wargoal") {
 			return make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 		} else {

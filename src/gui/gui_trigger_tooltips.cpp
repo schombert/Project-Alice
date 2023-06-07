@@ -112,16 +112,36 @@ void tf_none(TRIGGER_DISPLAY_PARAMS) { }
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 		// evaluate(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot)
-		if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
-			text::add_to_layout_box(layout, ws, box, std::string_view("\x02"), text::text_color::green);
-			text::add_space_to_layout_box(layout, ws, box);
+		if(ws.user_settings.guimode == sys::gui_modes::inaccurate) {
+			if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
+				text::add_to_layout_box(layout, ws, box, std::string_view("\x02"), text::text_color::green);
+				text::add_space_to_layout_box(layout, ws, box);
+			} else {
+				text::add_to_layout_box(layout, ws, box, std::string_view("\x01"), text::text_color::red);
+				text::add_space_to_layout_box(layout, ws, box);
+			}
 		} else {
-			text::add_to_layout_box(layout, ws, box, std::string_view("\x01"), text::text_color::red);
-			text::add_space_to_layout_box(layout, ws, box);
+			if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
+				text::add_to_layout_box(layout, ws, box, std::string_view("("), text::text_color::white);
+				text::add_to_layout_box(layout, ws, box, std::string_view("*"), text::text_color::green);
+				text::add_to_layout_box(layout, ws, box, std::string_view(")"), text::text_color::white);
+				text::add_space_to_layout_box(layout, ws, box);
+			} else {
+				text::add_to_layout_box(layout, ws, box, std::string_view("("), text::text_color::white);
+				text::add_to_layout_box(layout, ws, box, std::string_view("*"), text::text_color::red);
+				text::add_to_layout_box(layout, ws, box, std::string_view(")"), text::text_color::white);
+				text::add_space_to_layout_box(layout, ws, box);
+			}
 		}
 	} else {
-		text::add_to_layout_box(layout, ws, box, std::string_view("\x95"), text::text_color::white);
-		text::add_space_to_layout_box(layout, ws, box);
+		if(ws.user_settings.guimode == sys::gui_modes::inaccurate) {
+			text::add_to_layout_box(layout, ws, box, std::string_view("\x95"), text::text_color::white);
+			text::add_space_to_layout_box(layout, ws, box);
+		} else {
+				text::add_to_layout_box(layout, ws, box, std::string_view("("), text::text_color::white);
+				text::add_to_layout_box(layout, ws, box, std::string_view("*"), text::text_color::white);
+				text::add_to_layout_box(layout, ws, box, std::string_view(")"), text::text_color::white);
+		}
 	}
 }
 

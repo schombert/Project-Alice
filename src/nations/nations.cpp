@@ -541,6 +541,14 @@ status get_status(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+sys::date get_research_end_date(sys::state& state, dcon::technology_id tech_id, dcon::nation_id n) {
+	sys::date curr = state.current_date;
+	float daily = nations::daily_research_points(state, n);
+	auto total = (dcon::fatten(state.world, tech_id).get_cost() - state.world.nation_get_research_points(n)) / daily;
+	curr.value += total;
+	return curr;
+}
+
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_current_research(n);
 }

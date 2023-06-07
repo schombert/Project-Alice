@@ -963,7 +963,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 		/// fp_currency, pretty_integer, fp_percentage, int_percentage
 	} else if(std::holds_alternative<fp_currency>(sub)) {
 		char buffer[200] = {0};
-		snprintf(buffer, 200, "\xA4 %.2f", std::get<fp_currency>(sub).value);
+		snprintf(buffer, 200, " %.2f \xA4", std::get<fp_currency>(sub).value);
 		return std::string(buffer);
 	} else if(std::holds_alternative<pretty_integer>(sub)) {
 		return prettify(std::get<pretty_integer>(sub).value);
