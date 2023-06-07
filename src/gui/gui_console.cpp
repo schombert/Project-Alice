@@ -9,7 +9,7 @@ struct command_info {
 	static constexpr uint32_t max_arg_slots = 4;
 
 	std::string_view name;
-	enum class type : uint8_t { none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide, cheat } mode = type::none;
+	enum class type : uint8_t { none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide, cheat, diplomacy_points, research_points, infamy, money, westernize, unwesternize, cb_progress } mode = type::none;
 	std::string_view desc;
 	struct argument_info {
 		std::string_view name;
@@ -27,6 +27,13 @@ static const std::vector<command_info> possible_commands = {command_info{"none",
 	command_info{"help", command_info::type::help, "Display help", {command_info::argument_info{"cmd", command_info::argument_info::type::text, true}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
 	command_info{"stats", command_info::type::show_stats, "Shows statistics of the current resources used", {command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
 	command_info{"cheat", command_info::type::cheat, "Finishes all cassus bellis, adds 99 diplo points, instant research and westernizes (if not already)", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"dp", command_info::type::diplomacy_points, "Adds the specified number of diplo points", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"rp", command_info::type::research_points, "Adds the specified number of research points", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"inf", command_info::type::infamy, "Adds the specified number of infamy", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabritcation", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"mony", command_info::type::money, "Adds the specified amount of money to the national treasury", {command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"west", command_info::type::westernize, "Westernizes", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
+	command_info{"unwest", command_info::type::unwesternize, "Unwesternizes", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}},
 	command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text", {command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{}}}};
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -133,7 +140,11 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 			break;
 		}
 		case command_info::argument_info::type::numeric:
-			pstate.arg_slots[i] = int32_t(std::stoi(std::string(ident)));
+			if(isdigit(ident[0]) || ident[0] == '-') {
+				pstate.arg_slots[i] = int32_t(std::stoi(std::string(ident)));
+			} else {
+				pstate.arg_slots[i] = int32_t(0);
+			}
 			break;
 		default:
 			pstate.arg_slots[i] = std::monostate{};
@@ -831,9 +842,29 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			"B"
 			"Blue");
 		break;
+	case command_info::type::diplomacy_points:
+		command::c_change_diplo_points(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::research_points:
+		command::c_change_research_points(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::money:
+		command::c_change_money(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::infamy:
+		command::c_change_infamy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::cb_progress:
+		command::c_change_cb_progress(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::westernize:
+		command::c_westernize(state, state.local_player_nation);
+		break;
+	case command_info::type::unwesternize:
+		command::c_unwesternize(state, state.local_player_nation);
+		break;
 	case command_info::type::cheat:
 		log_to_console(state, parent, "You cheater >:(");
-		
 		break;
 	// State changing events
 	case command_info::type::none:
