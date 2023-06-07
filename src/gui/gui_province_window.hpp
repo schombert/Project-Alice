@@ -16,7 +16,9 @@ namespace ui {
 
 class province_liferating : public province_liferating_progress_bar {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -81,7 +83,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -143,7 +147,9 @@ public:
 		set_visible(state, bool(nation));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -187,7 +193,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -260,7 +268,9 @@ public:
 
 	void button_action(sys::state& state) noexcept override;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -814,7 +824,9 @@ public: // goto hell;
 		// but i refuse to loose my sanity to something to assining
 	dcon::text_sequence_id rgo_name;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -913,7 +925,9 @@ public:
 
 class colonisation_listbox : public overlapping_listbox_element_base<level_entry, uint8_t> {
 protected:
-	std::string_view get_row_element_name() override { return "level_entry"; }
+	std::string_view get_row_element_name() override {
+		return "level_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -967,7 +981,9 @@ public:
 
 class colonist_listbox : public listbox_element_base<colonist_entry, colony_nation_id_pair> {
 protected:
-	std::string_view get_row_element_name() override { return "colonist_item"; }
+	std::string_view get_row_element_name() override {
+		return "colonist_item";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

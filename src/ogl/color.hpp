@@ -48,7 +48,9 @@ uint32_t color_gradient(float percent, uint32_t top_color, uint32_t bot_color) {
 	return color;
 }
 
-template<class T> uint32_t get_ui_color(sys::state& state, T id) { return dcon::fatten(state.world, id).get_color(); }
+template<class T> uint32_t get_ui_color(sys::state& state, T id) {
+	return dcon::fatten(state.world, id).get_color();
+}
 template<> uint32_t get_ui_color(sys::state& state, dcon::political_party_id id) {
 	return dcon::fatten(state.world, id).get_ideology().get_color();
 }

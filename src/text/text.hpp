@@ -452,7 +452,9 @@ struct vector_backed_eq {
 
 	vector_backed_eq(std::vector<char>& text_data) : text_data(text_data) { }
 
-	bool operator()(dcon::text_key l, dcon::text_key r) const noexcept { return l == r; }
+	bool operator()(dcon::text_key l, dcon::text_key r) const noexcept {
+		return l == r;
+	}
 	bool operator()(dcon::text_key l, std::string_view r) const noexcept {
 		auto sv = [&]() {
 			if(!l)

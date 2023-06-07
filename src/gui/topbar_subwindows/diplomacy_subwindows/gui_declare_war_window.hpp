@@ -74,7 +74,9 @@ public:
 
 class wargoal_type_listbox : public listbox_element_base<wargoal_type_item, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "wargoal_item"; }
+	std::string_view get_row_element_name() override {
+		return "wargoal_item";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -160,7 +162,9 @@ public:
 
 class wargoal_state_listbox : public listbox_element_base<wargoal_state_item, dcon::state_definition_id> {
 protected:
-	std::string_view get_row_element_name() override { return "wargoal_state_item"; }
+	std::string_view get_row_element_name() override {
+		return "wargoal_state_item";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -234,7 +238,9 @@ public:
 
 class wargoal_country_listbox : public listbox_element_base<wargoal_country_item, dcon::national_identity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "wargoal_country_item"; }
+	std::string_view get_row_element_name() override {
+		return "wargoal_country_item";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -344,7 +350,9 @@ public:
 
 class diplomacy_declare_war_title : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept override { set_text(state, text::produce_simple_string(state, "wartitle")); }
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, "wartitle"));
+	}
 };
 
 class diplomacy_declare_war_agree_button : public button_element_base {
@@ -402,7 +410,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -768,7 +778,9 @@ public:
 
 class diplomacy_peace_goal_listbox : public listbox_element_base<diplomacy_peace_goal_row, dcon::wargoals_attached_id> {
 protected:
-	std::string_view get_row_element_name() override { return "peace_goal_item"; }
+	std::string_view get_row_element_name() override {
+		return "peace_goal_item";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -969,7 +981,9 @@ public:
 
 class diplomacy_make_cb_listbox : public listbox_element_base<diplomacy_make_cb_type, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "cb_type_item"; }
+	std::string_view get_row_element_name() override {
+		return "cb_type_item";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1040,7 +1054,9 @@ public:
 
 class make_cb_title : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept override { set_text(state, text::produce_simple_string(state, "make_cbtitle")); }
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, "make_cbtitle"));
+	}
 };
 
 class diplomacy_make_cb_window : public window_element_base { // eu3dialogtype

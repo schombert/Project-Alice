@@ -224,7 +224,9 @@ public:
 };
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry<dcon::regiment_id>, dcon::regiment_id> {
 protected:
-	std::string_view get_row_element_name() override { return "subunit_entry"; }
+	std::string_view get_row_element_name() override {
+		return "subunit_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -243,7 +245,9 @@ public:
 };
 class unit_details_navy_listbox : public listbox_element_base<subunit_details_entry<dcon::ship_id>, dcon::ship_id> {
 protected:
-	std::string_view get_row_element_name() override { return "subunit_entry"; }
+	std::string_view get_row_element_name() override {
+		return "subunit_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

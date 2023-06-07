@@ -34,7 +34,9 @@ class unit_icon_color : public image_element_base {
 	}
 
 public:
-	void on_update(sys::state& state) noexcept override { frame = get_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_frame(state);
+	}
 };
 
 class unit_strength_text : public simple_text_element_base {

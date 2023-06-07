@@ -604,7 +604,9 @@ inline void invert_trigger_internal(uint16_t* source) {
 	}
 }
 
-void invert_trigger(uint16_t* source) { trigger::recurse_over_triggers(source, invert_trigger_internal); }
+void invert_trigger(uint16_t* source) {
+	trigger::recurse_over_triggers(source, invert_trigger_internal);
+}
 
 bool scope_is_empty(uint16_t const* source) {
 	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);

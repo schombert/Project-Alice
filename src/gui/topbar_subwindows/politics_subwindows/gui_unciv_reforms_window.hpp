@@ -43,7 +43,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -102,7 +104,9 @@ public:
 
 class unciv_reforms_listbox : public listbox_element_base<unciv_reforms_option, dcon::reform_option_id> {
 protected:
-	std::string_view get_row_element_name() override { return "reform_option_window"; }
+	std::string_view get_row_element_name() override {
+		return "reform_option_window";
+	}
 
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

@@ -67,7 +67,9 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	}
 }
 void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) { }
-void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) { map_state.on_mbuttom_up(x, y, mod); }
+void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
+	map_state.on_mbuttom_up(x, y, mod);
+}
 void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	is_dragging = false;
 	if(ui_state.drag_target) {
@@ -136,7 +138,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		}
 	}
 }
-void state::on_key_up(virtual_key keycode, key_modifiers mod) { map_state.on_key_up(keycode, mod); }
+void state::on_key_up(virtual_key keycode, key_modifiers mod) {
+	map_state.on_key_up(keycode, mod);
+}
 void state::on_text(char c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);

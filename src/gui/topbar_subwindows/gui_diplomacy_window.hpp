@@ -18,7 +18,9 @@ enum class diplomacy_window_tab : uint8_t { great_powers = 0x0, wars = 0x1, casu
 
 class diplomacy_nation_ships_text : public nation_ships_text {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -38,7 +40,9 @@ public:
 
 class diplomacy_nation_brigades_text : public nation_brigades_text {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -61,7 +65,9 @@ public:
 
 class diplomacy_country_tech_text : public nation_technology_admin_type_text {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -166,7 +172,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -256,7 +264,9 @@ public:
 
 class diplomacy_country_listbox : public listbox_element_base<diplomacy_country_info, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "diplomacy_country_info"; }
+	std::string_view get_row_element_name() override {
+		return "diplomacy_country_info";
+	}
 };
 
 class wargoal_icon : public image_element_base {
@@ -284,7 +294,9 @@ public:
 
 class overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "wargoal"; }
+	std::string_view get_row_element_name() override {
+		return "wargoal";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -323,7 +335,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -528,7 +542,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -586,7 +602,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -625,7 +643,9 @@ public:
 		set_button_text(state, "");
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -637,7 +657,9 @@ public:
 template<bool B>
 class diplomacy_war_overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "wargoal"; }
+	std::string_view get_row_element_name() override {
+		return "wargoal";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -819,7 +841,9 @@ public:
 
 class diplomacy_casus_belli_listbox : public listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "diplomacy_cb_info_player"; }
+	std::string_view get_row_element_name() override {
+		return "diplomacy_cb_info_player";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -850,7 +874,9 @@ public:
 
 class diplomacy_war_listbox : public listbox_element_base<diplomacy_war_info, dcon::war_id> {
 protected:
-	std::string_view get_row_element_name() override { return "diplomacy_war_info"; }
+	std::string_view get_row_element_name() override {
+		return "diplomacy_war_info";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

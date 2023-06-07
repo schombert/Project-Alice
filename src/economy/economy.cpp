@@ -5,7 +5,9 @@
 
 namespace economy {
 
-int32_t most_recent_price_record_index(sys::state& state) { return (state.current_date.value >> 4) % 32; }
+int32_t most_recent_price_record_index(sys::state& state) {
+	return (state.current_date.value >> 4) % 32;
+}
 
 float full_spending_cost(sys::state& state, dcon::nation_id n,
 	ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices);

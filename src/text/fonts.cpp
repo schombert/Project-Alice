@@ -113,11 +113,19 @@ int32_t size_from_font_id(uint16_t id) {
 		return (int32_t(id & 0x3F) * 5) / 6;
 }
 
-bool is_black_from_font_id(uint16_t id) { return ((id >> 6) & 0x01) != 0; }
-uint32_t font_index_from_font_id(uint16_t id) { return uint32_t(((id >> 7) & 0x01) + 1); }
+bool is_black_from_font_id(uint16_t id) {
+	return ((id >> 6) & 0x01) != 0;
+}
+uint32_t font_index_from_font_id(uint16_t id) {
+	return uint32_t(((id >> 7) & 0x01) + 1);
+}
 
-font_manager::font_manager() { FT_Init_FreeType(&ft_library); }
-font_manager::~font_manager() { FT_Done_FreeType(ft_library); }
+font_manager::font_manager() {
+	FT_Init_FreeType(&ft_library);
+}
+font_manager::~font_manager() {
+	FT_Done_FreeType(ft_library);
+}
 
 font::~font() {
 	// if(loaded)
@@ -291,10 +299,18 @@ float font::kerning(char codepoint_first, char codepoint_second) const {
 	}
 }
 
-float font::line_height(int32_t size) const { return internal_line_height * size / 64.0f; }
-float font::ascender(int32_t size) const { return internal_ascender * size / 64.0f; }
-float font::descender(int32_t size) const { return internal_descender * size / 64.0f; }
-float font::top_adjustment(int32_t size) const { return internal_top_adj * size / 64.0f; }
+float font::line_height(int32_t size) const {
+	return internal_line_height * size / 64.0f;
+}
+float font::ascender(int32_t size) const {
+	return internal_ascender * size / 64.0f;
+}
+float font::descender(int32_t size) const {
+	return internal_descender * size / 64.0f;
+}
+float font::top_adjustment(int32_t size) const {
+	return internal_top_adj * size / 64.0f;
+}
 
 float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {

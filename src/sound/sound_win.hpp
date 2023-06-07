@@ -37,7 +37,9 @@ public:
 	}
 	~audio_instance();
 
-	void set_file(std::wstring const& file) { filename = file; }
+	void set_file(std::wstring const& file) {
+		filename = file;
+	}
 	void play(float volume, bool as_music, void* window_handle);
 	void stop() const;
 	bool is_playing() const;

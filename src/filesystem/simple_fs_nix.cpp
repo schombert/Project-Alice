@@ -82,7 +82,9 @@ void reset(file_system& fs) {
 	fs.ignored_paths.clear();
 }
 
-void add_root(file_system& fs, native_string_view root_path) { fs.ordered_roots.emplace_back(root_path); }
+void add_root(file_system& fs, native_string_view root_path) {
+	fs.ordered_roots.emplace_back(root_path);
+}
 
 void add_relative_root(file_system& fs, native_string_view root_path) {
 	char module_name[1024];
@@ -97,7 +99,9 @@ void add_relative_root(file_system& fs, native_string_view root_path) {
 	fs.ordered_roots.push_back(native_string(module_name) + native_string(root_path));
 }
 
-directory get_root(file_system const& fs) { return directory(&fs, NATIVE("")); }
+directory get_root(file_system const& fs) {
+	return directory(&fs, NATIVE(""));
+}
 
 native_string extract_state(file_system const& fs) {
 	native_string result;
@@ -338,9 +342,13 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
 	return std::optional<unopened_file>{};
 }
 
-void add_ignore_path(file_system& fs, native_string_view replaced_path) { fs.ignored_paths.emplace_back(replaced_path); }
+void add_ignore_path(file_system& fs, native_string_view replaced_path) {
+	fs.ignored_paths.emplace_back(replaced_path);
+}
 
-std::vector<native_string> list_roots(file_system const& fs) { return fs.ordered_roots; }
+std::vector<native_string> list_roots(file_system const& fs) {
+	return fs.ordered_roots;
+}
 
 bool is_ignored_path(file_system const& fs, native_string_view path) {
 	for(auto const& replace_path : fs.ignored_paths) {
@@ -350,13 +358,21 @@ bool is_ignored_path(file_system const& fs, native_string_view path) {
 	return false;
 }
 
-native_string get_full_name(unopened_file const& f) { return f.absolute_path; }
+native_string get_full_name(unopened_file const& f) {
+	return f.absolute_path;
+}
 
-native_string get_file_name(unopened_file const& f) { return f.file_name; }
+native_string get_file_name(unopened_file const& f) {
+	return f.file_name;
+}
 
-native_string get_full_name(file const& f) { return f.absolute_path; }
+native_string get_full_name(file const& f) {
+	return f.absolute_path;
+}
 
-native_string get_full_name(directory const& dir) { return dir.relative_path; }
+native_string get_full_name(directory const& dir) {
+	return dir.relative_path;
+}
 
 void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size) {
 	if(dir.parent_system)
@@ -380,7 +396,9 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 	}
 }
 
-file_contents view_contents(file const& f) { return f.content; }
+file_contents view_contents(file const& f) {
+	return f.content;
+}
 
 void make_directories(native_string const& path) {
 	char current_path[FILENAME_MAX];
@@ -431,9 +449,13 @@ native_string win1250_to_native(std::string_view data_in) {
 	return result;
 }
 
-native_string utf8_to_native(std::string_view str) { return std::string(str); }
+native_string utf8_to_native(std::string_view str) {
+	return std::string(str);
+}
 
-std::string native_to_utf8(native_string_view str) { return std::string(str); }
+std::string native_to_utf8(native_string_view str) {
+	return std::string(str);
+}
 
 std::string remove_double_backslashes(std::string_view data_in) {
 	std::string res;

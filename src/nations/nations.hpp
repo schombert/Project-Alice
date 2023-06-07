@@ -210,7 +210,9 @@ inline bool is_influence_level_greater(int32_t l, int32_t r) {
 		return false;
 	}
 }
-inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) { return l == r || is_influence_level_greater(l, r); }
+inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) {
+	return l == r || is_influence_level_greater(l, r);
+}
 int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target);
 
 } // namespace influence

@@ -123,11 +123,15 @@ template<class T> struct fallback_typeinfo {
 
 template<class T> int fallback_typeinfo<T>::id = 0;
 
-template<class T> ANY_ALWAYS_INLINE constexpr void const* fallback_typeid() { return &fallback_typeinfo<std::decay_t<T>>::id; }
+template<class T> ANY_ALWAYS_INLINE constexpr void const* fallback_typeid() {
+	return &fallback_typeinfo<std::decay_t<T>>::id;
+}
 #endif // !ANY_USE(TYPEINFO)
 
 ANY_ALWAYS_INLINE
-static constexpr void* void_get(Storage* s, void const* info) { return nullptr; }
+static constexpr void* void_get(Storage* s, void const* info) {
+	return nullptr;
+}
 
 ANY_ALWAYS_INLINE
 static constexpr void void_copy(Storage* dst, Storage const* src) { }
@@ -313,7 +317,9 @@ public:
 		AnyTraits<T>::make(&storage, vtype, V{list, std::forward<Args>(args)...});
 	}
 
-	Any(Any const& other) : actions(other.actions) { actions->copy(&storage, &other.storage); }
+	Any(Any const& other) : actions(other.actions) {
+		actions->copy(&storage, &other.storage);
+	}
 
 	Any(Any&& other) noexcept : actions(other.actions) {
 		actions->move(&storage, &other.storage);
@@ -344,7 +350,9 @@ public:
 		return *this;
 	}
 
-	~Any() { actions->drop(&storage); }
+	~Any() {
+		actions->drop(&storage);
+	}
 
 	template<class V, class... Args, class T = std::decay_t<V>,
 		std::enable_if_t<std::is_constructible_v<T, Args...> && std::is_copy_constructible_v<T>, int> = 0>
@@ -387,13 +395,19 @@ public:
 		actions = tmp.actions;
 	}
 
-	template<bool B> ANY_ALWAYS_INLINE bool has_value() const noexcept { return (actions != VoidAnyActions) == B; }
+	template<bool B> ANY_ALWAYS_INLINE bool has_value() const noexcept {
+		return (actions != VoidAnyActions) == B;
+	}
 
 	ANY_ALWAYS_INLINE
-	bool has_value() const noexcept { return has_value<true>(); }
+	bool has_value() const noexcept {
+		return has_value<true>();
+	}
 
 #if ANY_USE_TYPEINFO
-	std::type_info const& type() const noexcept { return *static_cast< std::type_info const*>(actions->type); }
+	std::type_info const& type() const noexcept {
+		return *static_cast< std::type_info const*>(actions->type);
+	}
 #endif
 
 	template<typename CHECK_TYPE> ANY_ALWAYS_INLINE bool holds_type() const noexcept {
@@ -415,7 +429,9 @@ private:
 };
 
 ANY_ALWAYS_INLINE
-void swap(Any& lhs, Any& rhs) noexcept { lhs.swap(rhs); }
+void swap(Any& lhs, Any& rhs) noexcept {
+	lhs.swap(rhs);
+}
 
 template<class T, class... Args> ANY_ALWAYS_INLINE Any make_any(Args&&... args) {
 	return Any(std::in_place_type<T>, std::forward<Args>(args)...);

@@ -17,9 +17,13 @@
 
 namespace window {
 
-bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) { return GetKeyState(int32_t(key)) & 0x8000; }
+bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) {
+	return GetKeyState(int32_t(key)) & 0x8000;
+}
 
-bool is_in_fullscreen(sys::state const& game_state) { return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen; }
+bool is_in_fullscreen(sys::state const& game_state) {
+	return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen;
+}
 
 void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 	if(game_state.win_ptr && game_state.win_ptr->hwnd && game_state.win_ptr->in_fullscreen != fullscreen) {
@@ -77,8 +81,12 @@ void close_window(sys::state& game_state) {
 		PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 }
 
-bool is_low_surrogate(uint16_t char_code) noexcept { return char_code >= 0xDC00 && char_code <= 0xDFFF; }
-bool is_high_surrogate(uint16_t char_code) noexcept { return char_code >= 0xD800 && char_code <= 0xDBFF; }
+bool is_low_surrogate(uint16_t char_code) noexcept {
+	return char_code >= 0xDC00 && char_code <= 0xDFFF;
+}
+bool is_high_surrogate(uint16_t char_code) noexcept {
+	return char_code >= 0xD800 && char_code <= 0xDBFF;
+}
 
 char process_utf16_to_win1250(wchar_t c) {
 	if(c <= 127)

@@ -15,7 +15,9 @@ public:
 	element_base* parent = nullptr;
 	uint8_t flags = 0;
 
-	bool is_visible() const { return (flags & is_invisible_mask) == 0; }
+	bool is_visible() const {
+		return (flags & is_invisible_mask) == 0;
+	}
 	void set_visible(sys::state& state, bool vis) {
 		auto old_visibility = is_visible();
 		flags = uint8_t((flags & ~is_invisible_mask) | (vis ? 0 : is_invisible_mask));
@@ -45,7 +47,9 @@ public:
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
 	virtual void impl_on_reset_text(sys::state& state) noexcept;
-	virtual void impl_on_drag_finish(sys::state& state) noexcept { on_drag_finish(state); }
+	virtual void impl_on_drag_finish(sys::state& state) noexcept {
+		on_drag_finish(state);
+	}
 
 	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
 		return tooltip_behavior::no_tooltip;
@@ -86,13 +90,23 @@ private:
 
 public:
 	// these commands are meaningful only if the element has children
-	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept { return std::unique_ptr<element_base>{}; }
+	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
+		return std::unique_ptr<element_base>{};
+	}
 	virtual void move_child_to_front(element_base* child) noexcept { }
 	virtual void move_child_to_back(element_base* child) noexcept { }
-	virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept { std::abort(); }
-	virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept { std::abort(); }
-	virtual element_base* get_child_by_name(sys::state const& state, std::string_view name) noexcept { return nullptr; }
-	virtual element_base* get_child_by_index(sys::state const& state, int32_t index) noexcept { return nullptr; }
+	virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept {
+		std::abort();
+	}
+	virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept {
+		std::abort();
+	}
+	virtual element_base* get_child_by_name(sys::state const& state, std::string_view name) noexcept {
+		return nullptr;
+	}
+	virtual element_base* get_child_by_index(sys::state const& state, int32_t index) noexcept {
+		return nullptr;
+	}
 
 	virtual ~element_base() { }
 

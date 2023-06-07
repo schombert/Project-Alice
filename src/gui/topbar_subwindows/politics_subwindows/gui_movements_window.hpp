@@ -108,7 +108,9 @@ private:
 	dcon::nation_id nation_id{};
 
 protected:
-	std::string_view get_row_element_name() override { return "movement_entry"; }
+	std::string_view get_row_element_name() override {
+		return "movement_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -235,7 +237,9 @@ public:
 
 class movements_rebel_list : public listbox_element_base<movements_rebel_option, dcon::rebel_faction_id> {
 protected:
-	std::string_view get_row_element_name() override { return "rebel_window"; }
+	std::string_view get_row_element_name() override {
+		return "rebel_window";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

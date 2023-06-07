@@ -78,7 +78,9 @@ public:
 
 class production_country_listbox : public listbox_element_base<production_investment_country_info, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "investment_country_entry"; }
+	std::string_view get_row_element_name() override {
+		return "investment_country_entry";
+	}
 };
 
 class production_sort_nation_gp_flag : public nation_gp_flag {

@@ -48,11 +48,21 @@ struct gfx_object {
 	uint8_t flags = 0;			  // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
 
-	object_type get_object_type() const { return object_type(flags & type_mask); }
-	bool is_always_transparent() const { return (flags & always_transparent) != 0; }
-	bool is_vertically_flipped() const { return (flags & flip_v) != 0; }
-	bool is_clicky() const { return (flags & has_click_sound) != 0; }
-	bool is_partially_transparent() const { return (flags & do_transparency_check) != 0; }
+	object_type get_object_type() const {
+		return object_type(flags & type_mask);
+	}
+	bool is_always_transparent() const {
+		return (flags & always_transparent) != 0;
+	}
+	bool is_vertically_flipped() const {
+		return (flags & flip_v) != 0;
+	}
+	bool is_clicky() const {
+		return (flags & has_click_sound) != 0;
+	}
+	bool is_partially_transparent() const {
+		return (flags & do_transparency_check) != 0;
+	}
 };
 
 enum class element_type : uint8_t { // 3 bits
@@ -98,7 +108,9 @@ struct text_base_data {
 	uint16_t font_handle = 0;
 	uint8_t flags = 0;
 
-	alignment get_alignment() const { return alignment(flags & alignment_mask); }
+	alignment get_alignment() const {
+		return alignment(flags & alignment_mask);
+	}
 };
 
 inline constexpr int32_t clicksound_bit_offset = 2;
@@ -116,8 +128,12 @@ struct button_data : public text_base_data {
 	dcon::gfx_object_id button_image;
 	sys::virtual_key shortcut = sys::virtual_key::NONE;
 
-	clicksound get_clicksound() const { return clicksound(text_base_data::flags & clicksound_mask); }
-	bool is_checkbox() const { return (text_base_data::flags & is_checkbox_mask) != 0; }
+	clicksound get_clicksound() const {
+		return clicksound(text_base_data::flags & clicksound_mask);
+	}
+	bool is_checkbox() const {
+		return (text_base_data::flags & is_checkbox_mask) != 0;
+	}
 };
 
 inline constexpr int32_t text_background_bit_offset = 2;
@@ -136,10 +152,18 @@ struct text_data : public text_base_data {
 
 	xy_pair border_size;
 
-	text_background get_text_background() const { return text_background(text_base_data::flags & background_mask); }
-	bool is_fixed_size() const { return (text_base_data::flags & is_fixed_size_mask) != 0; }
-	bool is_instant() const { return (text_base_data::flags & is_instant_mask) != 0; }
-	bool is_edit() const { return (text_base_data::flags & is_edit_mask) != 0; }
+	text_background get_text_background() const {
+		return text_background(text_base_data::flags & background_mask);
+	}
+	bool is_fixed_size() const {
+		return (text_base_data::flags & is_fixed_size_mask) != 0;
+	}
+	bool is_instant() const {
+		return (text_base_data::flags & is_instant_mask) != 0;
+	}
+	bool is_edit() const {
+		return (text_base_data::flags & is_edit_mask) != 0;
+	}
 };
 
 struct image_data {
@@ -151,8 +175,12 @@ struct image_data {
 
 	uint8_t flags = 0;
 
-	bool is_mask() const { return (flags & is_mask_mask) != 0; }
-	uint8_t frame() const { return (flags & frame_mask); }
+	bool is_mask() const {
+		return (flags & is_mask_mask) != 0;
+	}
+	uint8_t frame() const {
+		return (flags & frame_mask);
+	}
 };
 
 struct overlapping_data {
@@ -188,10 +216,18 @@ struct scrollbar_data {
 
 	uint8_t flags = 0;
 
-	step_size get_step_size() const { return step_size(step_size_mask & flags); }
-	bool is_range_limited() const { return (flags & is_range_limited_mask) != 0; }
-	bool is_lockable() const { return (flags & is_lockable_mask) != 0; }
-	bool is_horizontal() const { return (flags & is_horizontal_mask) != 0; }
+	step_size get_step_size() const {
+		return step_size(step_size_mask & flags);
+	}
+	bool is_range_limited() const {
+		return (flags & is_range_limited_mask) != 0;
+	}
+	bool is_lockable() const {
+		return (flags & is_lockable_mask) != 0;
+	}
+	bool is_horizontal() const {
+		return (flags & is_horizontal_mask) != 0;
+	}
 };
 
 struct window_data {
@@ -203,9 +239,15 @@ struct window_data {
 	uint8_t num_children = 0;
 	uint8_t flags = 0;
 
-	bool is_dialog() const { return (flags & is_dialog_mask) != 0; }
-	bool is_fullscreen() const { return (flags & is_fullscreen_mask) != 0; }
-	bool is_moveable() const { return (flags & is_moveable_mask) != 0; }
+	bool is_dialog() const {
+		return (flags & is_dialog_mask) != 0;
+	}
+	bool is_fullscreen() const {
+		return (flags & is_fullscreen_mask) != 0;
+	}
+	bool is_moveable() const {
+		return (flags & is_moveable_mask) != 0;
+	}
 };
 
 struct position_data { };
@@ -232,18 +274,30 @@ struct element_data {
 		window_data window;			  // +4
 		position_data position;		  //+0
 
-		internal_data() { position = position_data{}; }
+		internal_data() {
+			position = position_data{};
+		}
 	} data; // +12 = 24
 
 	uint8_t flags = 0;	  // 25
 	uint8_t ex_flags = 0; // 26
 
-	element_data() { memset(this, 0, sizeof(element_data)); }
+	element_data() {
+		memset(this, 0, sizeof(element_data));
+	}
 
-	element_type get_element_type() const { return element_type(flags & type_mask); }
-	rotation get_rotation() const { return rotation(flags & rotation_mask); }
-	orientation get_orientation() const { return orientation(flags & orientation_mask); }
-	bool is_top_level() const { return (ex_flags & ex_is_top_level) != 0; }
+	element_type get_element_type() const {
+		return element_type(flags & type_mask);
+	}
+	rotation get_rotation() const {
+		return rotation(flags & rotation_mask);
+	}
+	orientation get_orientation() const {
+		return orientation(flags & orientation_mask);
+	}
+	bool is_top_level() const {
+		return (ex_flags & ex_is_top_level) != 0;
+	}
 };
 static_assert(sizeof(element_data) == 28);
 

@@ -57,7 +57,9 @@ public:
 
 class message_filters_country_listbox : public listbox_element_base<message_filters_country_item, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "message_filters_entry"; }
+	std::string_view get_row_element_name() override {
+		return "message_filters_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {

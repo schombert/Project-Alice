@@ -7,7 +7,9 @@ namespace ui {
 
 class factory_build_cancel_button : public generic_close_button {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -171,7 +173,9 @@ public:
 
 class factory_build_list : public listbox_element_base<factory_build_item, dcon::factory_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "new_factory_option"; }
+	std::string_view get_row_element_name() override {
+		return "new_factory_option";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -253,12 +257,16 @@ public:
 		return text::format_money(nations::get_treasury(state, state.local_player_nation));
 	}
 
-	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
 };
 
 class factory_build_description : public multiline_text_element_base {
 public:
-	void on_create(sys::state& state) noexcept override { multiline_text_element_base::on_create(state); }
+	void on_create(sys::state& state) noexcept override {
+		multiline_text_element_base::on_create(state);
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {

@@ -17,7 +17,9 @@ public:
 		return *this;
 	}
 
-	audio_instance(simple_fs::unopened_file const& file) { filename = simple_fs::get_full_name(file); }
+	audio_instance(simple_fs::unopened_file const& file) {
+		filename = simple_fs::get_full_name(file);
+	}
 
 	~audio_instance() { }
 };

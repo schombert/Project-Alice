@@ -123,7 +123,9 @@ int32_t parse_int(std::string_view content, int32_t line, error_handler& err);
 uint32_t parse_uint(std::string_view content, int32_t line, error_handler& err);
 uint32_t parse_tag(std::string_view content, int32_t line, error_handler& err);
 association_type parse_association_type(std::string_view content, int32_t line, error_handler& err);
-inline std::string_view parse_text(std::string_view content, int32_t line, error_handler& err) { return content; }
+inline std::string_view parse_text(std::string_view content, int32_t line, error_handler& err) {
+	return content;
+}
 sys::year_month_day parse_date(std::string_view content, int32_t line, error_handler& err);
 
 //

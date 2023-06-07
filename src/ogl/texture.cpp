@@ -304,7 +304,9 @@ quick_exit:
 	return tex_ID;
 }
 
-texture::~texture() { STBI_FREE(data); }
+texture::~texture() {
+	STBI_FREE(data);
+}
 
 texture::texture(texture&& other) noexcept {
 	channels = other.channels;
@@ -555,7 +557,9 @@ data_texture::data_texture(int32_t sz, int32_t ch) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-data_texture::~data_texture() { delete[] data; }
+data_texture::~data_texture() {
+	delete[] data;
+}
 
 uint32_t data_texture::handle() {
 	if(data && data_updated) {

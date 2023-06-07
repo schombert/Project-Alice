@@ -20,7 +20,9 @@ inline uint32_t apply_subeffects(EFFECT_PARAMTERS) {
 	return i;
 }
 
-uint32_t es_generic_scope(EFFECT_PARAMTERS) { return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo); }
+uint32_t es_generic_scope(EFFECT_PARAMTERS) {
+	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo);
+}
 
 uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 	auto neighbor_range = ws.world.province_get_province_adjacency(trigger::to_prov(primary_slot));
@@ -935,19 +937,27 @@ uint32_t es_capital_scope(EFFECT_PARAMTERS) {
 uint32_t es_this_scope_nation(EFFECT_PARAMTERS) {
 	return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo);
 }
-uint32_t es_this_scope_state(EFFECT_PARAMTERS) { return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo); }
+uint32_t es_this_scope_state(EFFECT_PARAMTERS) {
+	return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo);
+}
 uint32_t es_this_scope_province(EFFECT_PARAMTERS) {
 	return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo);
 }
-uint32_t es_this_scope_pop(EFFECT_PARAMTERS) { return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo); }
+uint32_t es_this_scope_pop(EFFECT_PARAMTERS) {
+	return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo);
+}
 uint32_t es_from_scope_nation(EFFECT_PARAMTERS) {
 	return apply_subeffects(tval, ws, from_slot, this_slot, from_slot, r_hi, r_lo);
 }
-uint32_t es_from_scope_state(EFFECT_PARAMTERS) { return apply_subeffects(tval, ws, from_slot, this_slot, from_slot, r_hi, r_lo); }
+uint32_t es_from_scope_state(EFFECT_PARAMTERS) {
+	return apply_subeffects(tval, ws, from_slot, this_slot, from_slot, r_hi, r_lo);
+}
 uint32_t es_from_scope_province(EFFECT_PARAMTERS) {
 	return apply_subeffects(tval, ws, from_slot, this_slot, from_slot, r_hi, r_lo);
 }
-uint32_t es_from_scope_pop(EFFECT_PARAMTERS) { return apply_subeffects(tval, ws, from_slot, this_slot, from_slot, r_hi, r_lo); }
+uint32_t es_from_scope_pop(EFFECT_PARAMTERS) {
+	return apply_subeffects(tval, ws, from_slot, this_slot, from_slot, r_hi, r_lo);
+}
 uint32_t es_sea_zone_scope(EFFECT_PARAMTERS) {
 	auto pid = fatten(ws.world, trigger::to_prov(primary_slot));
 	for(auto adj : pid.get_province_adjacency()) {
@@ -1166,7 +1176,9 @@ uint32_t es_region_scope(EFFECT_PARAMTERS) {
 	}
 }
 
-uint32_t ef_none(EFFECT_PARAMTERS) { return 0; }
+uint32_t ef_none(EFFECT_PARAMTERS) {
+	return 0;
+}
 uint32_t ef_capital(EFFECT_PARAMTERS) {
 	auto new_capital = trigger::payload(tval[1]).prov_id;
 	if(ws.world.province_get_nation_from_province_ownership(new_capital) == trigger::to_nation(primary_slot))
@@ -3002,7 +3014,9 @@ uint32_t ef_war_this_pop(EFFECT_PARAMTERS) {
 		return ef_war_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_lo, r_hi);
 	return 0;
 }
-uint32_t ef_war_from_nation(EFFECT_PARAMTERS) { return ef_war_this_nation(tval, ws, primary_slot, from_slot, 0, r_lo, r_hi); }
+uint32_t ef_war_from_nation(EFFECT_PARAMTERS) {
+	return ef_war_this_nation(tval, ws, primary_slot, from_slot, 0, r_lo, r_hi);
+}
 uint32_t ef_war_from_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)); owner)
 		return ef_war_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_lo, r_hi);

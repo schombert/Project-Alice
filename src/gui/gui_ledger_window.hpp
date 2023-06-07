@@ -119,7 +119,9 @@ public:
 };
 class ledger_nation_ranking_listbox : public listbox_element_base<ledger_nation_ranking_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -223,7 +225,9 @@ public:
 };
 class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nation_comparison_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -307,7 +311,9 @@ public:
 class ledger_nation_political_systems_listbox
 	: public listbox_element_base<ledger_nation_political_systems_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -402,7 +408,9 @@ public:
 };
 class ledger_nation_political_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<true>, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -416,7 +424,9 @@ public:
 };
 class ledger_nation_social_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<false>, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -503,7 +513,9 @@ public:
 };
 class ledger_nation_population_listbox : public listbox_element_base<ledger_nation_population_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -612,7 +624,9 @@ public:
 };
 class ledger_province_listbox : public listbox_element_base<ledger_province_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -689,7 +703,9 @@ public:
 };
 class ledger_province_population_listbox : public listbox_element_base<ledger_province_population_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -783,7 +799,9 @@ public:
 };
 class ledger_provinces_production_listbox : public listbox_element_base<ledger_provinces_production_entry, dcon::province_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -857,7 +875,9 @@ public:
 };
 class ledger_factories_production_listbox : public listbox_element_base<ledger_factories_production_entry, dcon::factory_id> {
 protected:
-	std::string_view get_row_element_name() override { return "default_listbox_entry"; }
+	std::string_view get_row_element_name() override {
+		return "default_listbox_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -903,7 +923,9 @@ public:
 };
 class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "ledger_legend_entry"; }
+	std::string_view get_row_element_name() override {
+		return "ledger_legend_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

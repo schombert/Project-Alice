@@ -41,7 +41,9 @@ text_color char_to_color(char in) {
 	}
 }
 
-inline bool is_qmark_color(char in) { return char_to_color(in) != text_color::unspecified; }
+inline bool is_qmark_color(char in) {
+	return char_to_color(in) != text_color::unspecified;
+}
 
 std::string lowercase_str(std::string_view sv) {
 	std::string result;
@@ -186,23 +188,20 @@ template<size_t N> bool is_fixed_token_ci(std::string_view v, char const (&t)[N]
 
 variable_type variable_type_from_name(std::string_view v) {
 	if(v.length() == 1) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(d)
 		CT_STRING_ENUM(m)
 		CT_STRING_ENUM(n)
 		CT_STRING_ENUM(x)
 		CT_STRING_ENUM(y)
 	} else if(v.length() == 2) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(gp)
 		CT_STRING_ENUM(nf)
 		CT_STRING_ENUM(to)
 		CT_STRING_ENUM(we)
 	} else if(v.length() == 3) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(adj)
 		CT_STRING_ENUM(avg)
 		CT_STRING_ENUM(bac)
@@ -257,8 +256,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(war)
 		CT_STRING_ENUM(who)
 	} else if(v.length() == 4) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(army)
 		CT_STRING_ENUM(base)
 		CT_STRING_ENUM(brig)
@@ -308,8 +306,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(what)
 		CT_STRING_ENUM(year)
 	} else if(v.length() == 5) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(actor)
 		CT_STRING_ENUM(bonus)
 		CT_STRING_ENUM(casus)
@@ -357,8 +354,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(which)
 		CT_STRING_ENUM(years)
 	} else if(v.length() == 6) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(action)
 		CT_STRING_ENUM(active)
 		CT_STRING_ENUM(amount)
@@ -397,8 +393,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(versus)
 		CT_STRING_ENUM(winner)
 	} else if(v.length() == 7) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(against)
 		CT_STRING_ENUM(allowed)
 		CT_STRING_ENUM(attunit)
@@ -441,8 +436,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(terrain)
 		CT_STRING_ENUM(wargoal)
 	} else if(v.length() == 8) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(agressor)
 		CT_STRING_ENUM(attacker)
 		CT_STRING_ENUM(building)
@@ -480,8 +474,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(totalemi)
 		CT_STRING_ENUM(totalimm)
 	} else if(v.length() == 9) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(army_name)
 		CT_STRING_ENUM(commander)
 		CT_STRING_ENUM(countries)
@@ -505,8 +498,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(union_adj)
 		CT_STRING_ENUM(yesterday)
 	} else if(v.length() == 10) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(countryadj)
 		CT_STRING_ENUM(crisisarea)
 		CT_STRING_ENUM(government)
@@ -530,8 +522,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(unemployed)
 		CT_STRING_ENUM(value_int1)
 	} else if(v.length() == 11) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(anyprovince)
 		CT_STRING_ENUM(country_adj)
 		CT_STRING_ENUM(countryname)
@@ -546,8 +537,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_0_3_adj)
 		CT_STRING_ENUM(temperature)
 	} else if(v.length() == 12) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(construction)
 		CT_STRING_ENUM(crisistarget)
 		CT_STRING_ENUM(date_short_0)
@@ -559,8 +549,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(provincename)
 		CT_STRING_ENUM(spheremaster)
 	} else if(v.length() == 13) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(chief_of_navy)
 		CT_STRING_ENUM(continentname)
 		CT_STRING_ENUM(engineerunits)
@@ -578,8 +567,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(value_int_0_3)
 		CT_STRING_ENUM(value_int_0_4)
 	} else if(v.length() == 14) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(cb_target_name)
 		CT_STRING_ENUM(chief_of_staff)
 		CT_STRING_ENUM(countryculture)
@@ -590,26 +578,22 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(strings_list_4)
 		CT_STRING_ENUM(target_country)
 	} else if(v.length() == 15) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(base_percentage)
 		CT_STRING_ENUM(crisistaker_adj)
 		CT_STRING_ENUM(fromcountry_adj)
 		CT_STRING_ENUM(provinceculture)
 	} else if(v.length() == 16) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
 	} else if(v.length() == 18) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(cb_target_name_adj)
 		CT_STRING_ENUM(head_of_government)
 	} else if(v.length() == 19) {
-		if(false) {
-		}
+		if(false) { }
 		CT_STRING_ENUM(culture_group_union)
 		CT_STRING_ENUM(numspecialfactories)
 	} else if(is_fixed_token_ci(v, "invested_in_us_message")) {
@@ -785,7 +769,9 @@ std::string get_influence_level_name(sys::state const& state, uint8_t v) {
 	}
 }
 
-std::string format_percentage(float num, size_t digits) { return format_float(num * 100.f, digits) + '%'; }
+std::string format_percentage(float num, size_t digits) {
+	return format_float(num * 100.f, digits) + '%';
+}
 
 std::string format_float(float num, size_t digits) {
 	char buffer[200] = {0};
@@ -818,7 +804,9 @@ std::string format_money(float num) {
 	return "\xA4 " + amount;
 }
 
-std::string format_ratio(int32_t left, int32_t right) { return std::to_string(left) + '/' + std::to_string(right); }
+std::string format_ratio(int32_t left, int32_t right) {
+	return std::to_string(left) + '/' + std::to_string(right);
+}
 
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value) {
 	mp.insert_or_assign(uint32_t(key), value);
@@ -1127,10 +1115,16 @@ void close_layout_box(endless_layout& dest, layout_box& box) {
 	dest.y_cursor += box.y_size;
 }
 
-void close_layout_box(layout_base& dest, layout_box& box) { dest.internal_close_box(box); }
+void close_layout_box(layout_base& dest, layout_box& box) {
+	dest.internal_close_box(box);
+}
 
-void columnar_layout::internal_close_box(layout_box& box) { close_layout_box(*this, box); }
-void endless_layout::internal_close_box(layout_box& box) { close_layout_box(*this, box); }
+void columnar_layout::internal_close_box(layout_box& box) {
+	close_layout_box(*this, box);
+}
+void endless_layout::internal_close_box(layout_box& box) {
+	close_layout_box(*this, box);
+}
 
 columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
 	dest.contents.clear();

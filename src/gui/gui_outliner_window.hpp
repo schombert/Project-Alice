@@ -31,7 +31,9 @@ typedef std::variant< outliner_filter, dcon::army_id, dcon::navy_id, dcon::gp_re
 
 class outliner_element_button : public generic_settable_element<button_element_base, outliner_data> {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(std::holds_alternative<dcon::army_id>(content)) {
@@ -257,7 +259,9 @@ public:
 
 class outliner_listbox : public listbox_element_base<outliner_element, outliner_data> {
 protected:
-	std::string_view get_row_element_name() override { return "outliner_entry"; }
+	std::string_view get_row_element_name() override {
+		return "outliner_entry";
+	}
 
 	bool get_filter(sys::state& state, outliner_filter filter) noexcept {
 		if(parent) {
@@ -444,7 +448,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto name = get_filter_text_key(Filter);
@@ -468,7 +474,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);

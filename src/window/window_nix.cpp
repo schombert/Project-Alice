@@ -65,7 +65,9 @@ bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) {
 	return false;
 }
 
-bool is_in_fullscreen(sys::state const& game_state) { return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen; }
+bool is_in_fullscreen(sys::state const& game_state) {
+	return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen;
+}
 
 void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 	if(game_state.win_ptr && game_state.win_ptr->window) {
@@ -213,11 +215,17 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
 	// framebuffer_size_callback should be enough
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) { on_window_change(window); }
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	on_window_change(window);
+}
 
-void window_iconify_callback(GLFWwindow* window, int iconified) { on_window_change(window); }
+void window_iconify_callback(GLFWwindow* window, int iconified) {
+	on_window_change(window);
+}
 
-void window_maximize_callback(GLFWwindow* window, int maximized) { on_window_change(window); }
+void window_maximize_callback(GLFWwindow* window, int maximized) {
+	on_window_change(window);
+}
 
 void create_window(sys::state& game_state, creation_parameters const& params) {
 	game_state.win_ptr = std::make_unique<window_data_impl>();

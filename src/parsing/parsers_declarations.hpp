@@ -716,8 +716,12 @@ public:
 
 	template<typename T> void finish(T& context) { }
 
-	sys::provincial_modifier_definition const& peek_province_mod() const { return constructed_definition_p; }
-	sys::national_modifier_definition const& peek_national_mod() const { return constructed_definition_n; }
+	sys::provincial_modifier_definition const& peek_province_mod() const {
+		return constructed_definition_p;
+	}
+	sys::national_modifier_definition const& peek_national_mod() const {
+		return constructed_definition_n;
+	}
 	sys::national_modifier_definition force_national_mod() const {
 		sys::national_modifier_definition temp = constructed_definition_n;
 		auto temp_next = next_to_add_n;
@@ -859,7 +863,9 @@ public:
 
 struct int_vector {
 	std::vector<int32_t> data;
-	template<typename T> void free_value(int32_t v, error_handler& err, int32_t line, T& context) { data.push_back(v); }
+	template<typename T> void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+		data.push_back(v);
+	}
 	template<typename T> void finish(T& context) { }
 };
 struct commodity_array {
@@ -2301,7 +2307,9 @@ struct production_type {
 				"Invalid commodity name " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
-	void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) { bonuses.push_back(v); }
+	void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) {
+		bonuses.push_back(v);
+	}
 	void type(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
 		if(is_fixed_token_ci(v.data(), v.data() + v.length(), "factory"))
 			type_ = production_type_enum::factory;

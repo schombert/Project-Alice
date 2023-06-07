@@ -274,7 +274,9 @@ struct event_nation_pair {
 	dcon::nation_id n;
 	dcon::free_national_event_id e;
 
-	bool operator==(event_nation_pair const& other) const noexcept { return other.n == n && other.e == e; }
+	bool operator==(event_nation_pair const& other) const noexcept {
+		return other.n == n && other.e == e;
+	}
 	bool operator<(event_nation_pair const& other) const noexcept {
 		return other.n != n ? (n.value < other.n.value) : (e.value < other.e.value);
 	}
@@ -283,7 +285,9 @@ struct event_prov_pair {
 	dcon::province_id p;
 	dcon::free_provincial_event_id e;
 
-	bool operator==(event_prov_pair const& other) const noexcept { return other.p == p && other.e == e; }
+	bool operator==(event_prov_pair const& other) const noexcept {
+		return other.p == p && other.e == e;
+	}
 	bool operator<(event_prov_pair const& other) const noexcept {
 		return other.p != p ? (p.value < other.p.value) : (e.value < other.e.value);
 	}

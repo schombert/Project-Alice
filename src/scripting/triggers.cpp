@@ -167,8 +167,12 @@ template<> struct empty_mask<ve::vbitfield_type> {
 	static constexpr ve::vbitfield_type value = ve::vbitfield_type{ve::vbitfield_type::storage(0)};
 };
 
-bool compare(bool a, bool b) { return a == b; }
-bool compare(ve::vbitfield_type a, ve::vbitfield_type b) { return a.v == b.v; }
+bool compare(bool a, bool b) {
+	return a == b;
+}
+bool compare(ve::vbitfield_type a, ve::vbitfield_type b) {
+	return a.v == b.v;
+}
 
 TRIGGER_FUNCTION(apply_disjuctively) {
 	auto const source_size = 1 + get_trigger_scope_payload_size(tval);
@@ -213,7 +217,9 @@ TRIGGER_FUNCTION(apply_subtriggers) {
 		return apply_conjuctively<return_type, primary_type, this_type, from_type>(tval, ws, primary_slot, this_slot, from_slot);
 }
 
-TRIGGER_FUNCTION(tf_none) { return return_type(true); }
+TRIGGER_FUNCTION(tf_none) {
+	return return_type(true);
+}
 
 TRIGGER_FUNCTION(tf_generic_scope) {
 	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, primary_slot, this_slot, from_slot);
@@ -314,7 +320,9 @@ public:
 	}
 };
 
-template<typename F> auto make_true_accumulator(F&& f) -> true_accumulator<F> { return true_accumulator<F>(std::forward<F>(f)); }
+template<typename F> auto make_true_accumulator(F&& f) -> true_accumulator<F> {
+	return true_accumulator<F>(std::forward<F>(f));
+}
 
 template<typename F> auto make_false_accumulator(F&& f) -> false_accumulator<F> {
 	return false_accumulator<F>(std::forward<F>(f));
@@ -1016,9 +1024,15 @@ TRIGGER_FUNCTION(tf_cultural_union_scope_pop) {
 // non scope trigger functions
 //
 
-TRIGGER_FUNCTION(tf_year) { return compare_values(tval[0], ws.current_date.to_ymd(ws.start_date).year, int32_t(tval[1])); }
-TRIGGER_FUNCTION(tf_month) { return compare_values(tval[0], ws.current_date.to_ymd(ws.start_date).month, int32_t(tval[1])); }
-TRIGGER_FUNCTION(tf_port) { return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot))); }
+TRIGGER_FUNCTION(tf_year) {
+	return compare_values(tval[0], ws.current_date.to_ymd(ws.start_date).year, int32_t(tval[1]));
+}
+TRIGGER_FUNCTION(tf_month) {
+	return compare_values(tval[0], ws.current_date.to_ymd(ws.start_date).month, int32_t(tval[1]));
+}
+TRIGGER_FUNCTION(tf_port) {
+	return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_rank) {
 	// note: comparison reversed since rank 1 is "greater" than rank 1 + N
 	return compare_values(tval[0], int32_t(tval[1]), ws.world.nation_get_rank(to_nation(primary_slot)));
@@ -1166,7 +1180,9 @@ TRIGGER_FUNCTION(tf_is_slave_nation) {
 TRIGGER_FUNCTION(tf_is_slave_state) {
 	return compare_to_true(tval[0], ws.world.province_get_is_slave(ws.world.state_instance_get_capital(to_state(primary_slot))));
 }
-TRIGGER_FUNCTION(tf_is_slave_province) { return compare_to_true(tval[0], ws.world.province_get_is_slave(to_prov(primary_slot))); }
+TRIGGER_FUNCTION(tf_is_slave_province) {
+	return compare_to_true(tval[0], ws.world.province_get_is_slave(to_prov(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_is_slave_pop) {
 	return compare_values_eq(tval[0], ws.world.pop_get_poptype(to_pop(primary_slot)), ws.culture_definitions.slaves);
 }
@@ -1616,7 +1632,9 @@ TRIGGER_FUNCTION(tf_can_build_factory_pop) {
 	return compare_values_eq(tval[0], ws.world.nation_get_combined_issue_rules(p_owner) & issue_rule::pop_build_factory,
 		issue_rule::pop_build_factory);
 }
-TRIGGER_FUNCTION(tf_war_nation) { return compare_to_true(tval[0], ws.world.nation_get_is_at_war(to_nation(primary_slot))); }
+TRIGGER_FUNCTION(tf_war_nation) {
+	return compare_to_true(tval[0], ws.world.nation_get_is_at_war(to_nation(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_war_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
 	return compare_to_true(tval[0], ws.world.nation_get_is_at_war(owner));
@@ -2045,7 +2063,9 @@ TRIGGER_FUNCTION(tf_empty) {
 	return compare_to_true(tval[0],
 		ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)) == dcon::nation_id());
 }
-TRIGGER_FUNCTION(tf_is_blockaded) { return compare_to_true(tval[0], military::province_is_blockaded(ws, to_prov(primary_slot))); }
+TRIGGER_FUNCTION(tf_is_blockaded) {
+	return compare_to_true(tval[0], military::province_is_blockaded(ws, to_prov(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_has_country_modifier) {
 	auto const mod = trigger::payload(tval[1]).mod_id;
 	auto result = ve::apply(
@@ -2094,12 +2114,16 @@ TRIGGER_FUNCTION(tf_tag_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_identity_from_identity_holder(to_nation(primary_slot)),
 		trigger::payload(tval[1]).tag_id);
 }
-TRIGGER_FUNCTION(tf_tag_this_nation) { return compare_values_eq(tval[0], to_nation(primary_slot), to_nation(this_slot)); }
+TRIGGER_FUNCTION(tf_tag_this_nation) {
+	return compare_values_eq(tval[0], to_nation(primary_slot), to_nation(this_slot));
+}
 TRIGGER_FUNCTION(tf_tag_this_province) {
 	return compare_values_eq(tval[0], to_nation(primary_slot),
 		ws.world.province_get_nation_from_province_ownership(to_prov(this_slot)));
 }
-TRIGGER_FUNCTION(tf_tag_from_nation) { return compare_values_eq(tval[0], to_nation(primary_slot), to_nation(from_slot)); }
+TRIGGER_FUNCTION(tf_tag_from_nation) {
+	return compare_values_eq(tval[0], to_nation(primary_slot), to_nation(from_slot));
+}
 TRIGGER_FUNCTION(tf_tag_from_province) {
 	return compare_values_eq(tval[0], to_nation(primary_slot),
 		ws.world.province_get_nation_from_province_ownership(to_prov(from_slot)));
@@ -2463,7 +2487,9 @@ TRIGGER_FUNCTION(tf_is_accepted_culture_state) {
 		owner, ws.world.state_instance_get_dominant_culture(to_state(primary_slot)));
 	return compare_to_true(tval[0], is_accepted);
 }
-TRIGGER_FUNCTION(tf_is_coastal) { return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot))); }
+TRIGGER_FUNCTION(tf_is_coastal) {
+	return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_in_sphere_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(primary_slot)),
 		ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id));
@@ -2636,7 +2662,9 @@ TRIGGER_FUNCTION(tf_has_culture_core_province_this_pop) {
 TRIGGER_FUNCTION(tf_nationalism) {
 	return compare_values(tval[0], ws.world.province_get_nationalism(to_prov(primary_slot)), float(tval[1]));
 }
-TRIGGER_FUNCTION(tf_is_overseas) { return compare_to_true(tval[0], province::is_overseas(ws, to_prov(primary_slot))); }
+TRIGGER_FUNCTION(tf_is_overseas) {
+	return compare_to_true(tval[0], province::is_overseas(ws, to_prov(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_controlled_by_rebels) {
 	return compare_to_true(tval[0],
 		ws.world.province_get_rebel_faction_from_province_rebel_control(to_prov(primary_slot)) != dcon::rebel_faction_id());
@@ -2813,7 +2841,9 @@ TRIGGER_FUNCTION(tf_has_leader) {
 		to_nation(primary_slot));
 	return compare_to_true(tval[0], result);
 }
-TRIGGER_FUNCTION(tf_ai) { return compare_to_false(tval[0], ws.world.nation_get_is_player_controlled(to_nation(primary_slot))); }
+TRIGGER_FUNCTION(tf_ai) {
+	return compare_to_false(tval[0], ws.world.nation_get_is_player_controlled(to_nation(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_can_create_vassals) {
 	auto result = ve::apply(
 		[&ws](dcon::nation_id n) {
@@ -2833,7 +2863,9 @@ TRIGGER_FUNCTION(tf_is_possible_vassal) {
 		ve::apply([&ws, tag](dcon::nation_id n) { return nations::can_release_as_vassal(ws, n, tag); }, to_nation(primary_slot));
 	return compare_to_true(tval[0], result);
 }
-TRIGGER_FUNCTION(tf_province_id) { return compare_values_eq(tval[0], to_prov(primary_slot), payload(tval[1]).prov_id); }
+TRIGGER_FUNCTION(tf_province_id) {
+	return compare_values_eq(tval[0], to_prov(primary_slot), payload(tval[1]).prov_id);
+}
 TRIGGER_FUNCTION(tf_vassal_of_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
 	return compare_values_eq(tval[0],
@@ -2962,7 +2994,9 @@ TRIGGER_FUNCTION(tf_has_recently_lost_war) {
 										},
 										to_nation(primary_slot)));
 }
-TRIGGER_FUNCTION(tf_is_mobilised) { return compare_to_true(tval[0], ws.world.nation_get_is_mobilized(to_nation(primary_slot))); }
+TRIGGER_FUNCTION(tf_is_mobilised) {
+	return compare_to_true(tval[0], ws.world.nation_get_is_mobilized(to_nation(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_mobilisation_size) {
 	return compare_values(tval[0],
 		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilization_size),
@@ -3063,7 +3097,9 @@ TRIGGER_FUNCTION(tf_in_default_this_pop) {
 TRIGGER_FUNCTION(tf_total_num_of_ports) {
 	return compare_values(tval[0], ws.world.nation_get_total_ports(to_nation(primary_slot)), tval[1]);
 }
-TRIGGER_FUNCTION(tf_always) { return compare_to_true(tval[0], true); }
+TRIGGER_FUNCTION(tf_always) {
+	return compare_to_true(tval[0], true);
+}
 TRIGGER_FUNCTION(tf_election) {
 	return compare_to_true(tval[0], ve::apply(
 										[&ws](dcon::nation_id n) {
@@ -3645,8 +3681,12 @@ TRIGGER_FUNCTION(tf_is_our_vassal_this_pop) {
 	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(owner)),
 		to_nation(primary_slot));
 }
-TRIGGER_FUNCTION(tf_is_substate) { return compare_to_true(tval[0], ws.world.nation_get_is_substate(to_nation(primary_slot))); }
-TRIGGER_FUNCTION(tf_great_wars_enabled) { return compare_to_true(tval[0], ws.military_definitions.great_wars_enabled); }
+TRIGGER_FUNCTION(tf_is_substate) {
+	return compare_to_true(tval[0], ws.world.nation_get_is_substate(to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_great_wars_enabled) {
+	return compare_to_true(tval[0], ws.military_definitions.great_wars_enabled);
+}
 TRIGGER_FUNCTION(tf_can_nationalize) {
 	auto result = ve::apply(
 		[&ws](dcon::nation_id n) {
@@ -3806,7 +3846,9 @@ TRIGGER_FUNCTION(tf_political_movement_from_reb) {
 	// however, the logic from working backwards from rebel factions to movements is not clear to me
 	return compare_to_true(tval[0], false);
 }
-TRIGGER_FUNCTION(tf_social_movement_from_reb) { return compare_to_true(tval[0], false); }
+TRIGGER_FUNCTION(tf_social_movement_from_reb) {
+	return compare_to_true(tval[0], false);
+}
 
 TRIGGER_FUNCTION(tf_has_cultural_sphere) {
 	auto prim_culture = ws.world.nation_get_primary_culture(to_nation(this_slot));
@@ -3826,7 +3868,9 @@ TRIGGER_FUNCTION(tf_has_cultural_sphere) {
 
 	return compare_to_true(tval[0], result);
 }
-TRIGGER_FUNCTION(tf_world_wars_enabled) { return compare_to_true(tval[0], ws.military_definitions.world_wars_enabled); }
+TRIGGER_FUNCTION(tf_world_wars_enabled) {
+	return compare_to_true(tval[0], ws.military_definitions.world_wars_enabled);
+}
 TRIGGER_FUNCTION(tf_has_pop_culture_pop_this_pop) {
 	return compare_values_eq(tval[0], ws.world.pop_get_culture(to_pop(primary_slot)),
 		ws.world.pop_get_culture(to_pop(this_slot)));
@@ -4046,9 +4090,15 @@ TRIGGER_FUNCTION(tf_flashpoint_tension) {
 	return compare_values(tval[0], ws.world.state_instance_get_flashpoint_tension(to_state(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
-TRIGGER_FUNCTION(tf_crisis_exist) { return compare_to_true(tval[0], ws.current_crisis != sys::crisis_type::none); }
-TRIGGER_FUNCTION(tf_is_liberation_crisis) { return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::liberation); }
-TRIGGER_FUNCTION(tf_is_claim_crisis) { return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::claim); }
+TRIGGER_FUNCTION(tf_crisis_exist) {
+	return compare_to_true(tval[0], ws.current_crisis != sys::crisis_type::none);
+}
+TRIGGER_FUNCTION(tf_is_liberation_crisis) {
+	return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::liberation);
+}
+TRIGGER_FUNCTION(tf_is_claim_crisis) {
+	return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::claim);
+}
 TRIGGER_FUNCTION(tf_crisis_temperature) {
 	return compare_values(tval[0], ws.crisis_temperature, read_float_from_payload(tval + 1));
 }

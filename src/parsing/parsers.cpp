@@ -8,17 +8,29 @@ bool ignorable_char(char c) {
 	return (c == ' ') || (c == '\r') || (c == '\f') || (c == '\n') || (c == '\t') || (c == ',') || (c == ';');
 }
 
-bool special_identifier_char(char c) { return (c == '!') || (c == '=') || (c == '<') || (c == '>'); }
+bool special_identifier_char(char c) {
+	return (c == '!') || (c == '=') || (c == '<') || (c == '>');
+}
 
-bool breaking_char(char c) { return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '#'); }
+bool breaking_char(char c) {
+	return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '#');
+}
 
-bool not_special_identifier_char(char c) { return !special_identifier_char(c); }
+bool not_special_identifier_char(char c) {
+	return !special_identifier_char(c);
+}
 
-bool line_termination(char c) { return (c == '\r') || (c == '\n'); }
+bool line_termination(char c) {
+	return (c == '\r') || (c == '\n');
+}
 
-bool double_quote_termination(char c) { return (c == '\r') || (c == '\n') || (c == '\"'); }
+bool double_quote_termination(char c) {
+	return (c == '\r') || (c == '\n') || (c == '\"');
+}
 
-bool single_quote_termination(char c) { return (c == '\r') || (c == '\n') || (c == '\''); }
+bool single_quote_termination(char c) {
+	return (c == '\r') || (c == '\n') || (c == '\'');
+}
 
 bool is_positive_integer(char const* start, char const* end) {
 	if(start == end)
@@ -266,7 +278,9 @@ sys::year_month_day parse_date(std::string_view content, int32_t line, error_han
 		uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))};
 }
 
-bool starts_with(std::string_view content, char v) { return content.length() != 0 && content[0] == v; }
+bool starts_with(std::string_view content, char v) {
+	return content.length() != 0 && content[0] == v;
+}
 
 association_type parse_association_type(std::string_view content, int32_t line, error_handler& err) {
 	if(content.length() == 1) {

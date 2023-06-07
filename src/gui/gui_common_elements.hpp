@@ -130,7 +130,9 @@ public:
 
 template<typename T> class generic_simple_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, T content) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, T content) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -203,7 +205,9 @@ public:
 		return text::prettify(int32_t(total_pop));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -214,7 +218,9 @@ public:
 
 class standard_province_progress_bar : public progress_bar {
 public:
-	virtual float get_progress(sys::state& state, dcon::province_id prov_id) noexcept { return 0.f; }
+	virtual float get_progress(sys::state& state, dcon::province_id prov_id) noexcept {
+		return 0.f;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -232,7 +238,9 @@ public:
 		return state.world.province_get_life_rating(prov_id) / 100.f;
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -252,7 +260,9 @@ public:
 
 class standard_province_icon : public opaque_element_base {
 public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept { return 0; }
+	virtual int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -280,7 +290,9 @@ public:
 		return fat_id.get_rgo().get_icon();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -308,7 +320,9 @@ public:
 
 class standard_movement_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -388,7 +402,9 @@ public:
 
 class standard_rebel_faction_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -402,7 +418,9 @@ public:
 
 class standard_province_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::province_id province_id) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, dcon::province_id province_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -421,7 +439,9 @@ public:
 		return text::prettify(int32_t(total_pop));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -525,7 +545,9 @@ public:
 		return std::to_string(supply);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -553,7 +575,9 @@ public:
 		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -574,7 +598,9 @@ public:
 		return text::format_float(province::revolt_risk(state, province_id), 2);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -597,7 +623,9 @@ public:
 		return text::prettify(int32_t(province::rgo_employment(state, province_id)));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -683,7 +711,9 @@ public:
 
 class standard_nation_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1063,7 +1093,9 @@ public:
 		return text::format_float(fat_id.get_war_exhaustion(), 2);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1253,7 +1285,9 @@ public:
 		return std::to_string(int32_t(plurality)) + '%';
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1317,7 +1351,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1342,7 +1378,9 @@ public:
 
 class standard_nation_icon : public image_element_base {
 public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept { return 0; }
+	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1356,7 +1394,9 @@ public:
 
 class standard_nation_progress_bar : public progress_bar {
 public:
-	virtual float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept { return 0.f; }
+	virtual float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return 0.f;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1395,7 +1435,9 @@ public:
 
 class standard_state_instance_button : public button_element_base {
 public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::state_instance_id state_instance_id) noexcept { return 0; }
+	virtual int32_t get_icon_frame(sys::state& state, dcon::state_instance_id state_instance_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1409,7 +1451,9 @@ public:
 
 class standard_nation_button : public button_element_base {
 public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept { return 0; }
+	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1436,7 +1480,9 @@ public:
 		return nat_val.get_icon();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1544,7 +1590,9 @@ public:
 		frame = int32_t(state.world.pop_type_get_sprite(t) - 1);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto name = state.world.pop_type_get_name(type);
@@ -1569,7 +1617,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1599,7 +1649,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1815,7 +1867,9 @@ public:
 
 class standard_factory_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1924,7 +1978,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1967,7 +2023,9 @@ public:
 
 class national_focus_category_list : public overlapping_listbox_element_base<national_focus_item, dcon::national_focus_id> {
 public:
-	std::string_view get_row_element_name() override { return "focus_item"; }
+	std::string_view get_row_element_name() override {
+		return "focus_item";
+	}
 };
 
 class national_focus_category : public window_element_base {

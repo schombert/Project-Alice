@@ -167,8 +167,12 @@ message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_
 message_result element_base::impl_on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return on_mouse_move(state, x, y, mods);
 }
-void element_base::impl_on_update(sys::state& state) noexcept { on_update(state); }
-void element_base::impl_on_reset_text(sys::state& state) noexcept { on_reset_text(state); }
+void element_base::impl_on_update(sys::state& state) noexcept {
+	on_update(state);
+}
+void element_base::impl_on_reset_text(sys::state& state) noexcept {
+	on_reset_text(state);
+}
 message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(auto res = get(state, payload); res != message_result::consumed) {
 		if(parent)
@@ -177,7 +181,9 @@ message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noe
 	}
 	return message_result::consumed;
 }
-message_result element_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept { return set(state, payload); }
+message_result element_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
+	return set(state, payload);
+}
 
 message_result element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept {
 	return message_result::unseen;
@@ -201,10 +207,16 @@ message_result element_base::on_mouse_move(sys::state& state, int32_t x, int32_t
 	return message_result::unseen;
 }
 void element_base::on_update(sys::state& state) noexcept { }
-message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept { return message_result::unseen; }
-message_result element_base::set(sys::state& state, Cyto::Any& payload) noexcept { return message_result::unseen; }
+message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::set(sys::state& state, Cyto::Any& payload) noexcept {
+	return message_result::unseen;
+}
 
-void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept { render(state, x, y); }
+void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
+	render(state, x, y);
+}
 
 xy_pair get_absolute_location(element_base const& node) {
 	if(node.parent) {
@@ -216,8 +228,12 @@ xy_pair get_absolute_location(element_base const& node) {
 	}
 }
 
-int32_t ui_width(sys::state const& state) { return int32_t(state.x_size / state.user_settings.ui_scale); }
-int32_t ui_height(sys::state const& state) { return int32_t(state.y_size / state.user_settings.ui_scale); }
+int32_t ui_width(sys::state const& state) {
+	return int32_t(state.x_size / state.user_settings.ui_scale);
+}
+int32_t ui_height(sys::state const& state) {
+	return int32_t(state.y_size / state.user_settings.ui_scale);
+}
 
 void populate_definitions_map(sys::state& state) {
 	for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {

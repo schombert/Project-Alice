@@ -20,7 +20,9 @@ public:
 };
 class trade_market_activity_listbox : public listbox_element_base<trade_market_activity_entry, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "market_activity_entry"; }
+	std::string_view get_row_element_name() override {
+		return "market_activity_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -47,7 +49,9 @@ public:
 };
 class trade_stockpile_listbox : public listbox_element_base<trade_stockpile_entry, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "stockpile_entry"; }
+	std::string_view get_row_element_name() override {
+		return "stockpile_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -76,7 +80,9 @@ public:
 };
 class trade_common_market_listbox : public listbox_element_base<trade_common_market_entry, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "common_market_entry"; }
+	std::string_view get_row_element_name() override {
+		return "common_market_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -103,7 +109,9 @@ public:
 class trade_government_needs_listbox
 	: public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "goods_needs_entry"; }
+	std::string_view get_row_element_name() override {
+		return "goods_needs_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -124,7 +132,9 @@ public:
 class trade_factory_needs_listbox
 	: public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "goods_needs_entry"; }
+	std::string_view get_row_element_name() override {
+		return "goods_needs_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -145,7 +155,9 @@ public:
 class trade_pop_needs_listbox
 	: public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
 protected:
-	std::string_view get_row_element_name() override { return "goods_needs_entry"; }
+	std::string_view get_row_element_name() override {
+		return "goods_needs_entry";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -331,7 +343,9 @@ public:
 };
 class trade_flow_listbox_base : public listbox_element_base<trade_flow_entry, trade_flow_data> {
 protected:
-	std::string_view get_row_element_name() override { return "trade_flow_entry"; }
+	std::string_view get_row_element_name() override {
+		return "trade_flow_entry";
+	}
 
 	template<typename F> void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
 		if(parent) {

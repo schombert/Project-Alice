@@ -490,7 +490,9 @@ void update_ui_rankings(sys::state& state) {
 	}
 }
 
-bool is_great_power(sys::state const& state, dcon::nation_id id) { return state.world.nation_get_is_great_power(id); }
+bool is_great_power(sys::state const& state, dcon::nation_id id) {
+	return state.world.nation_get_is_great_power(id);
+}
 
 void update_great_powers(sys::state& state) {
 	for(auto i = state.great_nations.size(); i-- > 0;) {
@@ -574,9 +576,13 @@ dcon::technology_id current_research(sys::state const& state, dcon::nation_id n)
 	return state.world.nation_get_current_research(n);
 }
 
-float suppression_points(sys::state const& state, dcon::nation_id n) { return state.world.nation_get_suppression_points(n); }
+float suppression_points(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_suppression_points(n);
+}
 
-float leadership_points(sys::state const& state, dcon::nation_id n) { return state.world.nation_get_leadership_points(n); }
+float leadership_points(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_leadership_points(n);
+}
 
 int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
 	/*
@@ -605,7 +611,9 @@ int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
-float diplomatic_points(sys::state const& state, dcon::nation_id n) { return state.world.nation_get_diplomatic_points(n); }
+float diplomatic_points(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_diplomatic_points(n);
+}
 
 int32_t free_colonial_points(sys::state& state, dcon::nation_id n) {
 	float used_points = 0;
@@ -998,11 +1006,17 @@ void update_monthly_points(sys::state& state) {
 	}
 }
 
-float get_treasury(sys::state& state, dcon::nation_id n) { return state.world.nation_get_stockpiles(n, economy::money); }
+float get_treasury(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_stockpiles(n, economy::money);
+}
 
-float get_bank_funds(sys::state& state, dcon::nation_id n) { return 0.0f; }
+float get_bank_funds(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
 
-float get_debt(sys::state& state, dcon::nation_id n) { return 0.0f; }
+float get_debt(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
 
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);

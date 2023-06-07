@@ -150,7 +150,9 @@ template<typename T> R123_CONSTEXPR R123_STATIC_INLINE R123_CUDA_DEVICE T maxTva
 	return (~uT(0)) >> std::numeric_limits<T>::is_signed;
 }
 #else
-template<typename T> R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() { return std::numeric_limits<T>::max(); }
+template<typename T> R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() {
+	return std::numeric_limits<T>::max();
+}
 #endif
 /** @endcond
 	@}

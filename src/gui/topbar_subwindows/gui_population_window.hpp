@@ -34,9 +34,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -76,9 +80,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -119,9 +127,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -161,9 +173,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -207,9 +223,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -252,9 +272,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -299,9 +323,13 @@ public:
 		return 0;
 	}
 
-	void on_update(sys::state& state) noexcept override { frame = get_icon_frame(state); }
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -334,7 +362,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -373,7 +403,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -420,7 +452,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -444,7 +478,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -468,7 +504,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -503,7 +541,9 @@ enum class pop_list_sort : uint8_t {
 
 class standard_pop_progress_bar : public progress_bar {
 public:
-	virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept { return 0.f; }
+	virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept {
+		return 0.f;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -523,7 +563,9 @@ public:
 };
 class standard_pop_needs_progress_bar : public progress_bar {
 public:
-	virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept { return 0.f; }
+	virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept {
+		return 0.f;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -551,7 +593,9 @@ public:
 		return 0.0f;
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -578,7 +622,9 @@ public:
 		return fat_id.get_life_needs_satisfaction();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -606,7 +652,9 @@ public:
 		return fat_id.get_everyday_needs_satisfaction();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -634,7 +682,9 @@ public:
 		return fat_id.get_luxury_needs_satisfaction();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -793,7 +843,9 @@ public:
 
 	void button_action(sys::state& state) noexcept override;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -917,7 +969,9 @@ public:
 
 class pop_left_side_listbox : public listbox_element_base<pop_left_side_item, pop_left_side_data> {
 protected:
-	std::string_view get_row_element_name() override { return "pop_left_side_list_base_window"; }
+	std::string_view get_row_element_name() override {
+		return "pop_left_side_list_base_window";
+	}
 };
 
 template<typename T> class pop_distribution_plupp : public tinted_image_element_base {
@@ -1048,7 +1102,9 @@ public:
 };
 template<typename T> class pop_distribution_listbox : public listbox_element_base<pop_distribution_item<T>, std::pair<T, float>> {
 public:
-	std::string_view get_row_element_name() override { return "pop_legend_item"; }
+	std::string_view get_row_element_name() override {
+		return "pop_legend_item";
+	}
 };
 template<typename T, bool Multiple> class pop_distribution_window : public window_element_base {
 	pop_distribution_listbox<T>* distrib_listbox;
@@ -1149,9 +1205,13 @@ class pop_details_promotion_percent_text : public button_element_base {
 	float chance = 0.f;
 
 public:
-	void on_update(sys::state& state) noexcept override { set_button_text(state, text::format_percentage(chance, 1)); }
+	void on_update(sys::state& state) noexcept override {
+		set_button_text(state, text::format_percentage(chance, 1));
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = state.world.pop_location_get_province(pop_loc);
@@ -1198,7 +1258,9 @@ public:
 		}
 	}
 
-	void on_update(sys::state& state) noexcept override { type_icon->set_type(state, content); }
+	void on_update(sys::state& state) noexcept override {
+		type_icon->set_type(state, content);
+	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::pop_type_id>()) {
@@ -1234,7 +1296,9 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override { value_text->set_text(state, text::format_float(content.second, 1)); }
+	void update(sys::state& state) noexcept override {
+		value_text->set_text(state, text::format_float(content.second, 1));
+	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
@@ -1246,7 +1310,9 @@ public:
 };
 class pop_details_needs_listbox : public listbox_element_base<pop_details_needs_item, pop_details_needs_data> {
 public:
-	std::string_view get_row_element_name() override { return "popdetail_needs_entry"; }
+	std::string_view get_row_element_name() override {
+		return "popdetail_needs_entry";
+	}
 };
 
 typedef std::variant< std::monostate, dcon::pop_id> pop_details_data;
@@ -1476,7 +1542,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1555,13 +1623,17 @@ public:
 };
 class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
 protected:
-	std::string_view get_row_element_name() override { return "popinfomember_popview"; }
+	std::string_view get_row_element_name() override {
+		return "popinfomember_popview";
+	}
 };
 
 typedef std::variant< std::monostate, dcon::pop_type_id, bool> pop_filter_data;
 class pop_filter_button : public generic_settable_element<button_element_base, dcon::pop_type_id> {
 public:
-	void on_update(sys::state& state) noexcept override { frame = int32_t(state.world.pop_type_get_sprite(content) - 1); }
+	void on_update(sys::state& state) noexcept override {
+		frame = int32_t(state.world.pop_type_get_sprite(content) - 1);
+	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -1593,7 +1665,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -1636,7 +1710,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		// if(Sort == pop_list_sort::size || Sort == pop_list_sort::type || Sort == pop_list_sort::nationality || Sort ==

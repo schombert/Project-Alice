@@ -37,7 +37,9 @@ year_month_day date::to_ymd(absolute_time_point base) const noexcept {
 	return civil_from_days(count);
 }
 
-absolute_time_point::absolute_time_point(year_month_day const& d) { days = days_from_civil(d.year, d.month, d.day); }
+absolute_time_point::absolute_time_point(year_month_day const& d) {
+	days = days_from_civil(d.year, d.month, d.day);
+}
 
 bool is_playable_date(date d, absolute_time_point start, absolute_time_point end) {
 	return bool(d) && start.to_days() + (d.to_raw_value() - 1) < end.to_days();

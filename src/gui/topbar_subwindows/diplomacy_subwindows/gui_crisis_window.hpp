@@ -251,7 +251,9 @@ public:
 
 class diplomacy_crisis_temperature_bar : public progress_bar {
 public:
-	void on_update(sys::state& state) noexcept override { progress = state.crisis_temperature; }
+	void on_update(sys::state& state) noexcept override {
+		progress = state.crisis_temperature;
+	}
 };
 
 class diplomacy_crisis_status_text : public simple_text_element_base {

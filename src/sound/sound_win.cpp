@@ -8,7 +8,9 @@
 
 namespace sound {
 
-constexpr int32_t volume_function(float v) { return std::clamp(int32_t((v + -1.0f) * 4'500.0f), -10'000, 0); }
+constexpr int32_t volume_function(float v) {
+	return std::clamp(int32_t((v + -1.0f) * 4'500.0f), -10'000, 0);
+}
 
 audio_instance::~audio_instance() {
 	if(audio_interface) {
@@ -266,9 +268,15 @@ void initialize_sound_system(sys::state& state) {
 }
 
 // these functions are called to change the volume of the currently playing track or effect
-void change_effect_volume(sys::state& state, float v) { state.sound_ptr->change_effect_volume(v); }
-void change_interface_volume(sys::state& state, float v) { state.sound_ptr->change_interface_volume(v); }
-void change_music_volume(sys::state& state, float v) { state.sound_ptr->change_music_volume(v); }
+void change_effect_volume(sys::state& state, float v) {
+	state.sound_ptr->change_effect_volume(v);
+}
+void change_interface_volume(sys::state& state, float v) {
+	state.sound_ptr->change_interface_volume(v);
+}
+void change_music_volume(sys::state& state, float v) {
+	state.sound_ptr->change_music_volume(v);
+}
 
 // these start playing an effect or track at the specified volume
 void play_effect(sys::state& state, audio_instance& s, float volume) {
@@ -297,7 +305,9 @@ void start_music(sys::state& state, float v) {
 
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
-audio_instance& get_click_sound(sys::state& state) { return state.sound_ptr->click_sound; }
+audio_instance& get_click_sound(sys::state& state) {
+	return state.sound_ptr->click_sound;
+}
 
 void update_music_track(sys::state& state) {
 	if(state.sound_ptr->music_finished())

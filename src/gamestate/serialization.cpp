@@ -37,9 +37,13 @@ uint8_t* write_save_header(uint8_t* ptr_in, save_header const& header_in) {
 	return ptr_in + sizeof_save_header(header_in);
 }
 
-size_t sizeof_scenario_header(scenario_header const& header_in) { return sizeof(uint32_t) + sizeof(scenario_header); }
+size_t sizeof_scenario_header(scenario_header const& header_in) {
+	return sizeof(uint32_t) + sizeof(scenario_header);
+}
 
-size_t sizeof_save_header(save_header const& header_in) { return sizeof(uint32_t) + sizeof(save_header); }
+size_t sizeof_save_header(save_header const& header_in) {
+	return sizeof(uint32_t) + sizeof(save_header);
+}
 
 uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
 	uint32_t decompressed_length = uncompressed_size;

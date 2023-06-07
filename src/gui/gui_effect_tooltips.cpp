@@ -156,7 +156,9 @@ uint32_t es_generic_scope(EFFECT_DISPLAY_PARAMS) {
 	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
 }
 
-inline auto random_or_every(uint16_t tval) { return (tval & effect::is_random_scope) != 0 ? "random" : "every"; }
+inline auto random_or_every(uint16_t tval) {
+	return (tval & effect::is_random_scope) != 0 ? "random" : "every";
+}
 
 void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout, int32_t this_slot, int32_t from_slot,
 	int32_t indentation) {
@@ -1584,14 +1586,18 @@ uint32_t ef_primary_culture(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
-dcon::nation_id convert_this(sys::state& ws, dcon::nation_id n) { return n; }
+dcon::nation_id convert_this(sys::state& ws, dcon::nation_id n) {
+	return n;
+}
 dcon::nation_id convert_this(sys::state& ws, dcon::state_instance_id p) {
 	return ws.world.state_instance_get_nation_from_state_ownership(p);
 }
 dcon::nation_id convert_this(sys::state& ws, dcon::province_id p) {
 	return ws.world.province_get_nation_from_province_ownership(p);
 }
-dcon::nation_id convert_this(sys::state& ws, dcon::pop_id p) { return nations::owner_of_pop(ws, p); }
+dcon::nation_id convert_this(sys::state& ws, dcon::pop_id p) {
+	return nations::owner_of_pop(ws, p);
+}
 dcon::nation_id convert_this(sys::state& ws, dcon::rebel_faction_id p) {
 	auto fp = fatten(ws.world, p);
 	return fp.get_defection_target().get_nation_from_identity_holder();

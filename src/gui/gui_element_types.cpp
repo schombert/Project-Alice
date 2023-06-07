@@ -233,7 +233,9 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
-void tinted_image_element_base::on_update(sys::state& state) noexcept { color = get_tint_color(state); }
+void tinted_image_element_base::on_update(sys::state& state) noexcept {
+	color = get_tint_color(state);
+}
 
 void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	image_element_base::render(state, x, y);
@@ -477,7 +479,9 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 	}
 }
 
-void line_graph::on_create(sys::state& state) noexcept { element_base::on_create(state); }
+void line_graph::on_create(sys::state& state) noexcept {
+	element_base::on_create(state);
+}
 
 void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
@@ -1080,7 +1084,9 @@ template<class ItemWinT, class ItemConT> void overlapping_listbox_element_base<I
 	}
 }
 
-std::string_view overlapping_flags_box::get_row_element_name() { return "flag_list_flag"; }
+std::string_view overlapping_flags_box::get_row_element_name() {
+	return "flag_list_flag";
+}
 
 void overlapping_flags_box::update_subwindow(sys::state& state, overlapping_flags_flag_button& subwindow,
 	dcon::national_identity_id content) {
@@ -1217,7 +1223,9 @@ void flag_button::set_current_nation(sys::state& state, dcon::national_identity_
 	}
 }
 
-void flag_button::on_update(sys::state& state) noexcept { set_current_nation(state, get_current_nation(state)); }
+void flag_button::on_update(sys::state& state) noexcept {
+	set_current_nation(state, get_current_nation(state));
+}
 
 void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
@@ -1402,7 +1410,9 @@ void scrollbar::update_scaled_value(sys::state& state, float v) {
 	int32_t rv = std::clamp(int32_t(v * float(settings.scaling_factor)), settings.lower_value, settings.upper_value);
 	update_raw_value(state, rv);
 }
-float scrollbar::scaled_value() const { return float(stored_value) / float(settings.scaling_factor); }
+float scrollbar::scaled_value() const {
+	return float(stored_value) / float(settings.scaling_factor);
+}
 
 void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s) {
 	settings.lower_limit = settings_s.lower_limit * settings.scaling_factor;

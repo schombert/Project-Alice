@@ -149,7 +149,9 @@ inline uint16_t association_to_bool_code(association_type a) {
 	}
 }
 
-inline uint16_t invert_association(uint16_t a) { return static_cast<uint16_t>(0x7000) - a; }
+inline uint16_t invert_association(uint16_t a) {
+	return static_cast<uint16_t>(0x7000) - a;
+}
 
 inline uint16_t association_to_bool_code(association_type a, bool v) {
 	if(v) {
@@ -279,9 +281,15 @@ struct tr_work_available {
 	void finish(trigger_building_context&) { }
 };
 
-inline bool is_from(std::string_view value) { return is_fixed_token_ci(value.data(), value.data() + value.length(), "from"); }
-inline bool is_this(std::string_view value) { return is_fixed_token_ci(value.data(), value.data() + value.length(), "this"); }
-inline bool is_reb(std::string_view value) { return is_fixed_token_ci(value.data(), value.data() + value.length(), "reb"); }
+inline bool is_from(std::string_view value) {
+	return is_fixed_token_ci(value.data(), value.data() + value.length(), "from");
+}
+inline bool is_this(std::string_view value) {
+	return is_fixed_token_ci(value.data(), value.data() + value.length(), "this");
+}
+inline bool is_reb(std::string_view value) {
+	return is_fixed_token_ci(value.data(), value.data() + value.length(), "reb");
+}
 
 struct trigger_body {
 	void finish(trigger_building_context&) { }

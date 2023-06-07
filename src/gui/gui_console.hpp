@@ -18,8 +18,12 @@ public:
 	void edit_box_update(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_esc(sys::state& state) noexcept override { state.ui_state.console_window->set_visible(state, false); }
-	void edit_box_backtick(sys::state& state) noexcept override { state.ui_state.console_window->set_visible(state, false); }
+	void edit_box_esc(sys::state& state) noexcept override {
+		state.ui_state.console_window->set_visible(state, false);
+	}
+	void edit_box_backtick(sys::state& state) noexcept override {
+		state.ui_state.console_window->set_visible(state, false);
+	}
 	void edit_box_up(sys::state& state) noexcept override;
 	void edit_box_down(sys::state& state) noexcept override;
 	void add_to_history(sys::state& state, std::string s) noexcept {
@@ -43,8 +47,12 @@ public:
 		}
 		return "";
 	}
-	std::string down_history() noexcept { return navigate_history(-1); }
-	std::string up_history() noexcept { return navigate_history(1); }
+	std::string down_history() noexcept {
+		return navigate_history(-1);
+	}
+	std::string up_history() noexcept {
+		return navigate_history(1);
+	}
 };
 
 class console_text : public simple_text_element_base {
@@ -68,14 +76,20 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override { entry_text_box->set_text(state, content); }
+	void update(sys::state& state) noexcept override {
+		entry_text_box->set_text(state, content);
+	}
 };
 
 class console_list : public listbox_element_base<console_list_entry, std::string> {
 protected:
-	std::string_view get_row_element_name() override { return "console_entry_wnd"; }
+	std::string_view get_row_element_name() override {
+		return "console_entry_wnd";
+	}
 
-	bool is_reversed() override { return true; }
+	bool is_reversed() override {
+		return true;
+	}
 };
 
 class console_window : public window_element_base {
@@ -116,7 +130,11 @@ public:
 
 	static void show_toggle(sys::state& state);
 
-	void on_visible(sys::state& state) noexcept override { state.ui_state.edit_target = edit_box; }
-	void on_hide(sys::state& state) noexcept override { state.ui_state.edit_target = nullptr; }
+	void on_visible(sys::state& state) noexcept override {
+		state.ui_state.edit_target = edit_box;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		state.ui_state.edit_target = nullptr;
+	}
 };
 } // namespace ui

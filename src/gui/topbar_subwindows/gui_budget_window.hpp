@@ -19,14 +19,18 @@ public:
 	uint8_t value = 0;
 	pop_satisfaction_wrapper_id() { }
 	pop_satisfaction_wrapper_id(uint8_t v) : value(v) { }
-	value_base_t index() { return value; }
+	value_base_t index() {
+		return value;
+	}
 };
 class pop_satisfaction_wrapper_fat {
 	static text_sequence_id names[5];
 
 public:
 	uint8_t value = 0;
-	void set_name(text_sequence_id text) noexcept { names[value] = text; }
+	void set_name(text_sequence_id text) noexcept {
+		names[value] = text;
+	}
 	text_sequence_id get_name() noexcept {
 		switch(value) {
 		case 0: // No needs fulfilled
@@ -190,9 +194,13 @@ public:
 		}
 	}
 
-	virtual int32_t get_true_value(sys::state& state) noexcept { return 0; }
+	virtual int32_t get_true_value(sys::state& state) noexcept {
+		return 0;
+	}
 
-	void on_drag_finish(sys::state& state) noexcept override { commit_changes(state); }
+	void on_drag_finish(sys::state& state) noexcept override {
+		commit_changes(state);
+	}
 
 private:
 	void commit_changes(sys::state& state) noexcept {
@@ -563,7 +571,9 @@ public:
 template<culture::pop_strata Strata>
 class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "pop_listitem"; }
+	std::string_view get_row_element_name() override {
+		return "pop_listitem";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -580,7 +590,9 @@ public:
 template<culture::income_type Income>
 class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
 protected:
-	std::string_view get_row_element_name() override { return "pop_listitem"; }
+	std::string_view get_row_element_name() override {
+		return "pop_listitem";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -598,7 +610,9 @@ public:
 
 template<culture::income_type Income> class budget_small_pop_income_list : public budget_pop_income_list<Income> {
 protected:
-	std::string_view get_row_element_name() override { return "pop_listitem_small"; }
+	std::string_view get_row_element_name() override {
+		return "pop_listitem_small";
+	}
 };
 
 class budget_window : public window_element_base {

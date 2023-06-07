@@ -4,7 +4,9 @@
 
 namespace command {
 
-bool console_command(sys::state& state, command_type t) { return (uint8_t(t) & 0x80) != 0; }
+bool console_command(sys::state& state, command_type t) {
+	return (uint8_t(t) & 0x80) != 0;
+}
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 	dcon::national_focus_id focus) {
@@ -2228,7 +2230,9 @@ void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::natio
 	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
 }
 
-bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) { return true; }
+bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	return true;
+}
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 	payload p;
@@ -2906,7 +2910,9 @@ void c_westernize(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	auto b = state.incoming_commands.try_push(p);
 }
-void execute_c_westernize(sys::state& state, dcon::nation_id source) { state.world.nation_set_is_civilized(source, true); }
+void execute_c_westernize(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_civilized(source, true);
+}
 void c_unwesternize(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2914,7 +2920,9 @@ void c_unwesternize(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	auto b = state.incoming_commands.try_push(p);
 }
-void execute_c_unwesternize(sys::state& state, dcon::nation_id source) { state.world.nation_set_is_civilized(source, false); }
+void execute_c_unwesternize(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_civilized(source, false);
+}
 void c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
 	payload p;
 	memset(&p, 0, sizeof(payload));

@@ -189,7 +189,9 @@ public:
 
 template<typename T> class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
 protected:
-	std::string_view get_row_element_name() override { return "unit_entry"; }
+	std::string_view get_row_element_name() override {
+		return "unit_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

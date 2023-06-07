@@ -140,7 +140,9 @@ public:
 	bool is_active(sys::state& state) noexcept final;
 	void button_action(sys::state& state) noexcept final;
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		state.world.for_each_technology([&](dcon::technology_id id) {
@@ -190,7 +192,9 @@ class technology_num_discovered_text : public simple_text_element_base {
 
 public:
 	culture::tech_category category{};
-	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
 };
 
 class technology_folder_tab_button : public window_element_base {
@@ -297,7 +301,9 @@ class technology_research_progress_category_text : public simple_text_element_ba
 	}
 
 public:
-	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
 };
 
 struct technology_select_tech {
@@ -317,7 +323,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -394,7 +402,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -442,7 +452,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -478,7 +490,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -522,7 +536,9 @@ public:
 };
 class technology_possible_invention_listbox : public listbox_element_base<technology_possible_invention, dcon::invention_id> {
 protected:
-	std::string_view get_row_element_name() override { return "invention_window"; }
+	std::string_view get_row_element_name() override {
+		return "invention_window";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -572,7 +588,9 @@ public:
 };
 class technology_selected_inventions_listbox : public listbox_element_base<technology_selected_invention, dcon::invention_id> {
 protected:
-	std::string_view get_row_element_name() override { return "invention_icon_window"; }
+	std::string_view get_row_element_name() override {
+		return "invention_icon_window";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -745,7 +763,9 @@ public:
 
 class technology_sort_by_type_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -757,7 +777,9 @@ public:
 
 class technology_sort_by_name_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -769,7 +791,9 @@ public:
 
 class technology_sort_by_percent_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);

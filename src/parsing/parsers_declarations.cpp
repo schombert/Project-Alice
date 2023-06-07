@@ -2705,7 +2705,9 @@ void country_history_file::ruling_party(association_type, std::string_view value
 							  std::to_string(line) + ")\n";
 }
 
-void commodity_array::finish(scenario_building_context& context) { data.resize(context.state.world.commodity_size()); }
+void commodity_array::finish(scenario_building_context& context) {
+	data.resize(context.state.world.commodity_size());
+}
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
 	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);

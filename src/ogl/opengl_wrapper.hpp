@@ -199,7 +199,9 @@ public:
 		o.buffer = nullptr;
 		return *this;
 	}
-	~lines() { delete[] buffer; }
+	~lines() {
+		delete[] buffer;
+	}
 	void set_default_y();
 	void set_y(float* v);
 	void bind_buffer();

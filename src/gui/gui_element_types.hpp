@@ -85,7 +85,9 @@ private:
 public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void on_update(sys::state& state) noexcept override;
-	virtual uint32_t get_tint_color(sys::state& state) noexcept { return 0; }
+	virtual uint32_t get_tint_color(sys::state& state) noexcept {
+		return 0;
+	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -110,7 +112,9 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
 		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::no_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::no_tooltip;
+	}
 };
 
 class progress_bar : public opaque_element_base {
@@ -135,7 +139,9 @@ private:
 	bool black_text = true;
 
 public:
-	button_element_base() { interactable = true; }
+	button_element_base() {
+		interactable = true;
+	}
 
 	void set_button_text(sys::state& state, std::string const& new_text);
 	void on_reset_text(sys::state& state) noexcept override;
@@ -197,7 +203,9 @@ public:
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 
-	std::string_view get_text(sys::state& state) const { return stored_text; }
+	std::string_view get_text(sys::state& state) const {
+		return stored_text;
+	}
 
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
@@ -227,7 +235,9 @@ public:
 	virtual void edit_box_down(sys::state& state) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
 	virtual void edit_box_backtick(sys::state& state) noexcept { }
-	virtual void edit_index_position(sys::state& state, int32_t index) noexcept { edit_index = index; }
+	virtual void edit_index_position(sys::state& state, int32_t index) noexcept {
+		edit_index = index;
+	}
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
@@ -276,7 +286,9 @@ public:
 
 class checkbox_button : public button_element_base {
 public:
-	virtual bool is_active(sys::state& state) noexcept { return false; }
+	virtual bool is_active(sys::state& state) noexcept {
+		return false;
+	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		frame = int32_t(is_active(state));
@@ -287,8 +299,12 @@ public:
 template<class RowConT> class wrapped_listbox_row_content {
 public:
 	RowConT content;
-	wrapped_listbox_row_content() { content = RowConT{}; }
-	wrapped_listbox_row_content(RowConT con) { content = con; }
+	wrapped_listbox_row_content() {
+		content = RowConT{};
+	}
+	wrapped_listbox_row_content(RowConT con) {
+		content = con;
+	}
 };
 
 template<class ItemWinT, class ItemConT> class overlapping_listbox_element_base : public window_element_base {
@@ -298,7 +314,9 @@ private:
 protected:
 	std::vector<ItemWinT*> windows{};
 
-	virtual std::string_view get_row_element_name() { return std::string_view{}; }
+	virtual std::string_view get_row_element_name() {
+		return std::string_view{};
+	}
 
 	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) {
 		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
@@ -329,7 +347,9 @@ private:
 	dcon::national_identity_id stored_identity{};
 
 public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override { return stored_identity; }
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		return stored_identity;
+	}
 	void set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept override {
 		stored_identity = identity;
 		flag_button::set_current_nation(state, identity);
@@ -436,7 +456,9 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::position_sensitive_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::position_sensitive_tooltip;
+	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(type == mouse_probe_type::scroll)
 			return message_result::unseen;
@@ -671,8 +693,12 @@ private:
 protected:
 	std::vector<RowWinT*> row_windows{};
 
-	virtual std::string_view get_row_element_name() { return std::string_view{}; }
-	virtual bool is_reversed() { return false; }
+	virtual std::string_view get_row_element_name() {
+		return std::string_view{};
+	}
+	virtual bool is_reversed() {
+		return false;
+	}
 
 public:
 	std::vector<RowConT> row_contents{};

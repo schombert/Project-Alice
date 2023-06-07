@@ -7,7 +7,9 @@
 
 namespace sys {
 
-template<typename T> size_t serialize_size(std::vector<T> const& vec) { return sizeof(uint32_t) + sizeof(T) * vec.size(); }
+template<typename T> size_t serialize_size(std::vector<T> const& vec) {
+	return sizeof(uint32_t) + sizeof(T) * vec.size();
+}
 
 template<typename T> uint8_t* serialize(uint8_t* ptr_in, std::vector<T> const& vec) {
 	uint32_t length = uint32_t(vec.size());

@@ -78,7 +78,9 @@ public:
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
 
-	void on_create(sys::state& state) noexcept override { listbox_row_element_base::on_create(state); }
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base::on_create(state);
+	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "build_button") {
@@ -153,7 +155,9 @@ public:
 
 class units_build_listbox : public listbox_element_base<units_build_item, buildable_unit_entry_info> {
 protected:
-	std::string_view get_row_element_name() override { return "build_unit_entry_wide"; }
+	std::string_view get_row_element_name() override {
+		return "build_unit_entry_wide";
+	}
 
 public:
 	// false == army
@@ -280,7 +284,9 @@ public:
 class units_queue_listbox : public listbox_element_base<units_queue_item,
 								std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
 protected:
-	std::string_view get_row_element_name() override { return "queue_unit_entry"; }
+	std::string_view get_row_element_name() override {
+		return "queue_unit_entry";
+	}
 
 public:
 	// false == army

@@ -51,7 +51,9 @@ public:
 
 class politics_hold_election : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept override { command::start_election(state, state.local_player_nation); }
+	void button_action(sys::state& state) noexcept override {
+		command::start_election(state, state.local_player_nation);
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_start_election(state, state.local_player_nation);
@@ -60,7 +62,9 @@ public:
 
 class politics_upper_house_listbox : public listbox_element_base<politics_upper_house_entry, dcon::ideology_id> {
 protected:
-	std::string_view get_row_element_name() override { return "ideology_option_window"; }
+	std::string_view get_row_element_name() override {
+		return "ideology_option_window";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -96,7 +100,9 @@ public:
 
 class politics_party_issues_listbox : public listbox_element_base<politics_party_issue_entry, dcon::issue_option_id> {
 protected:
-	std::string_view get_row_element_name() override { return "party_issue_option_window"; }
+	std::string_view get_row_element_name() override {
+		return "party_issue_option_window";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -177,7 +183,9 @@ public:
 
 class politics_all_party_listbox : public listbox_element_base<politics_all_party_entry, dcon::political_party_id> {
 protected:
-	std::string_view get_row_element_name() override { return "party_window"; }
+	std::string_view get_row_element_name() override {
+		return "party_window";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		nations::get_active_political_parties(state, state.local_player_nation).swap(row_contents);
@@ -307,7 +315,9 @@ public:
 
 class standard_nation_issue_option_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept { return ""; }
+	virtual std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -350,7 +360,9 @@ public:
 
 class politics_issue_support_listbox : public listbox_element_base<politics_issue_support_item, dcon::issue_option_id> {
 protected:
-	std::string_view get_row_element_name() override { return "issue_option_window"; }
+	std::string_view get_row_element_name() override {
+		return "issue_option_window";
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -365,7 +377,9 @@ class politics_hold_election_button : public button_element_base {
 		disabled = !command::can_start_election(state, state.local_player_nation);
 	}
 
-	void button_action(sys::state& state) noexcept override { command::start_election(state, state.local_player_nation); }
+	void button_action(sys::state& state) noexcept override {
+		command::start_election(state, state.local_player_nation);
+	}
 };
 
 class politics_issue_sort_button : public button_element_base {

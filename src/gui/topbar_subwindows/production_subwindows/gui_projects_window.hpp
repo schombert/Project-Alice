@@ -55,7 +55,9 @@ public:
 class production_project_input_listbox
 	: public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
 protected:
-	std::string_view get_row_element_name() override { return "goods_need_template"; }
+	std::string_view get_row_element_name() override {
+		return "goods_need_template";
+	}
 };
 
 class production_project_invest_button : public button_element_base {
@@ -202,7 +204,9 @@ public:
 
 class production_project_listbox : public listbox_element_base<production_project_info, production_project_data> {
 protected:
-	std::string_view get_row_element_name() override { return "project_info"; }
+	std::string_view get_row_element_name() override {
+		return "project_info";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {

@@ -760,8 +760,12 @@ inline constexpr int32_t data_sizes[] = {
 	0, // constexpr inline uint16_t assimilate_state = 0x014D;
 };
 
-inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) { return effect::data_sizes[data[0] & effect::code_mask]; }
-inline int32_t get_effect_scope_payload_size(uint16_t const* data) { return data[1]; }
+inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
+	return effect::data_sizes[data[0] & effect::code_mask];
+}
+inline int32_t get_effect_scope_payload_size(uint16_t const* data) {
+	return data[1];
+}
 inline int32_t get_generic_effect_payload_size(uint16_t const* data) {
 	return (data[0] & effect::code_mask) >= first_scope_code ? get_effect_scope_payload_size(data)
 															 : get_effect_non_scope_payload_size(data);
@@ -2334,7 +2338,9 @@ static_assert(sizeof(payload) == 2);
 inline int32_t get_trigger_non_scope_payload_size(uint16_t const* data) {
 	return trigger::data_sizes[data[0] & trigger::code_mask];
 }
-inline int32_t get_trigger_scope_payload_size(uint16_t const* data) { return data[1]; }
+inline int32_t get_trigger_scope_payload_size(uint16_t const* data) {
+	return data[1];
+}
 inline int32_t get_trigger_payload_size(uint16_t const* data) {
 	if((data[0] & trigger::code_mask) >= trigger::first_scope_code)
 		return get_trigger_scope_payload_size(data);

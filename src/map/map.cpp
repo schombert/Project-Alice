@@ -39,7 +39,9 @@ GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t
 
 	return texture_handle;
 }
-GLuint make_gl_texture(image& image) { return make_gl_texture(image.data, image.size_x, image.size_y, image.channels); }
+GLuint make_gl_texture(image& image) {
+	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
+}
 
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
 	glBindTexture(texture_type, texture_handle);

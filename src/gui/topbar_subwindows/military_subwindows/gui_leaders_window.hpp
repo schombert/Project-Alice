@@ -80,7 +80,9 @@ public:
 
 class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::leader_id> {
 protected:
-	std::string_view get_row_element_name() override { return "milview_leader_entry"; }
+	std::string_view get_row_element_name() override {
+		return "milview_leader_entry";
+	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -97,7 +99,9 @@ public:
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
 
-	void button_action(sys::state& state) noexcept override { command::make_leader(state, state.local_player_nation, B); }
+	void button_action(sys::state& state) noexcept override {
+		command::make_leader(state, state.local_player_nation, B);
+	}
 };
 
 class leaders_window : public window_element_base {
