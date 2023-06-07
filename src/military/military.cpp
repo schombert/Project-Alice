@@ -2605,14 +2605,215 @@ void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	state.world.delete_peace_offer(offer);
 }
 
-float primary_warscore(sys::state const& state, dcon::war_id w) {
-	// TODO
-	return 0.0f;
+void update_ticking_war_score(sys::state& state) {
+	for(auto wg : state.world.in_wargoal) {
+		auto war = wg.get_war_from_wargoals_attached();
+		if(!war)
+			continue;
+
+		auto attacker_goal = military::is_attacker(state, war, wg.get_added_by());
+		auto role = attacker_goal ? war_role::attacker : war_role::defender;
+
+		/*
+		#### Occupation score
+
+		Increases by occupation-percentage x define:TWS_FULFILLED_SPEED (up to define:TWS_CB_LIMIT_DEFAULT) when the percentage occupied
+		is >= define:TWS_FULFILLED_IDLE_SPACE or when the occupation percentage is > 0 and the current occupation score is negative. If
+		there is no occupation, the score decreases by define:TWS_NOT_FULFILLED_SPEED. This can only take the score into negative after
+		define:TWS_GRACE_PERIOD_DAYS, at which point it can go to -define:TWS_CB_LIMIT_DEFAULT.
+		*/
+
+		auto bits = wg.get_type().get_type_bits();
+		if((bits & (cb_flag::po_annex | cb_flag::po_transfer_provinces | cb_flag::po_demand_state)) != 0) {
+			float total_count = 0.0f;
+			float occupied = 0.0f;
+			if(wg.get_associated_state()) {
+				for(auto prv : wg.get_associated_state().get_abstract_state_membership()) {
+					if(prv.get_province().get_nation_from_province_ownership() == wg.get_target_nation()) {
+						++total_count;
+						if(get_role(state, war, prv.get_province().get_nation_from_province_control()) == role) {
+							++occupied;
+						}
+					}
+				}
+			} else if((bits & cb_flag::po_annex) != 0) {
+				for(auto prv : wg.get_target_nation().get_province_ownership()) {
+					++total_count;
+					if(get_role(state, war, prv.get_province().get_nation_from_province_control()) == role) {
+						++occupied;
+					}
+				}
+			} else if(auto allowed_states = wg.get_type().get_allowed_states(); allowed_states) {
+				auto from_slot = wg.get_secondary_nation().id ? wg.get_secondary_nation().id
+				                                              : wg.get_associated_tag().get_nation_from_identity_holder().id;
+				for(auto st : wg.get_target_nation().get_state_ownership()) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(st.get_state().id),
+					                     trigger::to_generic(wg.get_added_by().id), trigger::to_generic(from_slot))) {
+
+						province::for_each_province_in_state_instance(state, st.get_state(), [&](dcon::province_id prv) {
+							++total_count;
+							if(get_role(state, war, state.world.province_get_nation_from_province_control(prv)) == role) {
+								++occupied;
+							}
+						});
+					}
+				}
+			}
+
+			if(total_count > 0.0f) {
+				float fraction = occupied / total_count;
+				if(fraction >= state.defines.tws_fulfilled_idle_space || (wg.get_ticking_war_score() < 0 && total_count > 0.0f)) {
+					wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed * fraction;
+				} else if(total_count == 0.0f) {
+					if(wg.get_ticking_war_score() > 0.0f ||
+					   war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
+
+						wg.get_ticking_war_score() -= state.defines.tws_not_fulfilled_speed;
+					}
+				}
+			}
+		}
+
+		if(wg.get_type().get_tws_battle_factor() > 0) {
+
+			/*
+			#### Battle score
+
+			- zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
+			- only if the war goal has tws_battle_factor > 0
+			- calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
+			- subtract from tws_battle_factor and then divide by define:TWS_BATTLE_MAX_ASPECT (limited to -1 to +1). This then works is the occupied percentage described below.
+			*/
+			if(war.get_number_of_battles() >= uint16_t(state.defines.tws_battle_min_count)) {
+
+				float ratio = 0.0f;
+				if(attacker_goal) {
+					ratio = war.get_defender_battle_score() > 0.0f ? war.get_attacker_battle_score() / war.get_defender_battle_score()
+					                                               : 10.0f;
+				} else {
+					ratio = war.get_attacker_battle_score() > 0.0f ? war.get_defender_battle_score() / war.get_attacker_battle_score()
+					                                               : 10.0f;
+				}
+				if(ratio >= wg.get_type().get_tws_battle_factor()) {
+					auto effective_percentage = std::min(ratio / state.defines.tws_battle_max_aspect, 1.0f);
+					wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed * effective_percentage;
+				} else if(ratio <= 1.0f / wg.get_type().get_tws_battle_factor() && ratio > 0.0f) {
+					auto effective_percentage = std::min(1.0f / (ratio * state.defines.tws_battle_max_aspect), 1.0f);
+					wg.get_ticking_war_score() -= state.defines.tws_fulfilled_speed * effective_percentage;
+				} else if(ratio == 0.0f) {
+					wg.get_ticking_war_score() -= state.defines.tws_fulfilled_speed;
+				}
+			}
+		}
+
+		wg.get_ticking_war_score() =
+		    std::clamp(wg.get_ticking_war_score(), -state.defines.tws_cb_limit_default, state.defines.tws_cb_limit_default);
+	}
 }
 
-float directed_warscore(sys::state const& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary) {
-	// TODO
-	return 0.0f;
+float primary_warscore(sys::state& state, dcon::war_id w) {
+	float total = 0.0f;
+
+	auto pattacker = state.world.war_get_primary_attacker(w);
+	auto pdefender = state.world.war_get_primary_defender(w);
+
+	int32_t sum_attacker_prov_values = 0;
+	int32_t sum_attacker_occupied_values = 0;
+	for(auto prv : state.world.nation_get_province_ownership(pattacker)) {
+		auto v = province_point_cost(state, prv.get_province(), pattacker);
+		sum_attacker_prov_values += v;
+		if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
+			sum_attacker_occupied_values += v;
+	}
+
+	int32_t sum_defender_prov_values = 0;
+	int32_t sum_defender_occupied_values = 0;
+	for(auto prv : state.world.nation_get_province_ownership(pdefender)) {
+		auto v = province_point_cost(state, prv.get_province(), pdefender);
+		sum_defender_prov_values += v;
+		if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::attacker)
+			sum_defender_occupied_values += v;
+	}
+
+	if(sum_defender_prov_values > 0)
+		total += (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
+	if(sum_attacker_prov_values > 0)
+		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
+
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if(is_attacker(state, w, wg.get_wargoal().get_added_by())) {
+			total += wg.get_wargoal().get_ticking_war_score();
+		} else {
+			total -= wg.get_wargoal().get_ticking_war_score();
+		}
+	}
+
+	total += std::clamp(state.world.war_get_attacker_battle_score(w) - state.world.war_get_defender_battle_score(w), -state.defines.max_warscore_from_battles, state.defines.max_warscore_from_battles);
+
+	return std::clamp(total, -100.0f, 100.0f);
+}
+
+float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary) {
+	float total = 0.0f;
+
+	auto is_pattacker = state.world.war_get_primary_attacker(w) == primary;
+	auto is_pdefender = state.world.war_get_primary_defender(w) == primary;
+
+	auto is_tpattacker = state.world.war_get_primary_attacker(w) == secondary;
+	auto is_tpdefender = state.world.war_get_primary_defender(w) == secondary;
+
+	int32_t sum_attacker_prov_values = 0;
+	int32_t sum_attacker_occupied_values = 0;
+	for(auto prv : state.world.nation_get_province_ownership(primary)) {
+		auto v = province_point_cost(state, prv.get_province(), primary);
+		sum_attacker_prov_values += v;
+
+		if(is_tpattacker) {
+			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::attacker)
+				sum_attacker_occupied_values += v;
+		} else if(is_tpdefender) {
+			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
+				sum_attacker_occupied_values += v;
+		} else {
+			if(prv.get_province().get_nation_from_province_control() == primary)
+				sum_attacker_occupied_values += v;
+		}
+	}
+
+	int32_t sum_defender_prov_values = 0;
+	int32_t sum_defender_occupied_values = 0;
+	for(auto prv : state.world.nation_get_province_ownership(secondary)) {
+		auto v = province_point_cost(state, prv.get_province(), secondary);
+		sum_defender_prov_values += v;
+
+		if(is_pattacker) {
+			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::attacker)
+				sum_defender_occupied_values += v;
+		} else if(is_pdefender) {
+			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
+				sum_defender_occupied_values += v;
+		} else {
+			if(prv.get_province().get_nation_from_province_control() == primary)
+				sum_defender_occupied_values += v;
+		}
+	}
+
+	if(sum_defender_prov_values > 0)
+		total += (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
+	if(sum_attacker_prov_values > 0)
+		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
+
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if((wg.get_wargoal().get_added_by() == primary || is_pattacker || is_pdefender) &&
+		   wg.get_wargoal().get_target_nation() == secondary) {
+			total += wg.get_wargoal().get_ticking_war_score();
+		} else if(wg.get_wargoal().get_added_by() == secondary &&
+		          (wg.get_wargoal().get_target_nation() == primary || is_tpattacker || is_tpdefender)) {
+			total -= wg.get_wargoal().get_ticking_war_score();
+		}
+	}
+
+	return std::clamp(total, 0.0f, 100.0f);
 }
 
 } // namespace military

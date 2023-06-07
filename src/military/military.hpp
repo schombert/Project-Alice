@@ -101,12 +101,14 @@ bool joining_war_does_not_violate_constraints(
 bool is_civil_war(sys::state const& state, dcon::war_id w);
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
 bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w);
-float primary_warscore(
-    sys::state const& state,
-    dcon::war_id w); // war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
-float directed_warscore(
-    sys::state const& state, dcon::war_id w, dcon::nation_id primary,
-    dcon::nation_id secondary); // war score from the perspective of the primary nation offering peace to the secondary nation; 0 to 100
+
+// war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
+float primary_warscore(sys::state& state, dcon::war_id w);
+
+// war score from the perspective of the primary nation offering peace to the secondary nation; 0 to 100
+// DO NOT use this when calculating the overall score of the war or when looking at a peace deal between primary attacker and defender
+float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary); 
+
 bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg);
 
 enum class war_role { none, attacker, defender };
@@ -198,5 +200,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
                         dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
+
+void update_ticking_war_score(sys::state& state);
 
 } // namespace military
