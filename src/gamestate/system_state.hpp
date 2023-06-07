@@ -38,9 +38,7 @@ class window_data_impl;
 
 namespace sys {
 
-enum class window_state : uint8_t { normal,
-	maximized,
-	minimized };
+enum class window_state : uint8_t { normal, maximized, minimized };
 
 struct user_settings_s {
 	float ui_scale = 1.0f;
@@ -64,15 +62,8 @@ struct crisis_member_def {
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };
-enum class crisis_type : uint32_t { none = 0,
-	claim = 1,
-	liberation = 2,
-	colonial = 3,
-	influence = 4 };
-enum class crisis_mode : uint32_t { inactive = 0,
-	finding_attacker = 1,
-	finding_defender = 2,
-	heating_up = 3 };
+enum class crisis_type : uint32_t { none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4 };
+enum class crisis_mode : uint32_t { inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3 };
 
 struct great_nation {
 	sys::date last_greatness = sys::date(0);
@@ -127,8 +118,7 @@ struct alignas(64) state {
 	std::vector<char> text_data; // stores string data in the win1250 codepage
 	std::vector<text::text_component> text_components;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
-		key_to_text_sequence;
+	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
@@ -277,9 +267,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state()
-		: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024),
-		  new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
+	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
 
 	~state();
 

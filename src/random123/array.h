@@ -71,8 +71,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** @cond HIDDEN_FROM_DOXYGEN */
 
-template<typename value_type>
-inline R123_CUDA_DEVICE value_type assemble_from_u32(uint32_t* p32) {
+template<typename value_type> inline R123_CUDA_DEVICE value_type assemble_from_u32(uint32_t* p32) {
 	value_type v = 0;
 	for(size_t i = 0; i < (3 + sizeof(value_type)) / 4; ++i)
 		v |= ((value_type)(*p32++)) << (32 * i);
@@ -87,154 +86,153 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(uint32_t* p32) {
    to reverse-iterate through an r123array */
 #define CXXMETHODS_REQUIRING_STL
 #else
-#define CXXMETHODS_REQUIRING_STL                                                                       \
-public:                                                                                                \
-	typedef std::reverse_iterator<iterator> reverse_iterator;                                          \
-	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;                              \
-	R123_CUDA_DEVICE reverse_iterator rbegin() { return reverse_iterator(end()); }                     \
-	R123_CUDA_DEVICE const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }   \
-	R123_CUDA_DEVICE reverse_iterator rend() { return reverse_iterator(begin()); }                     \
-	R123_CUDA_DEVICE const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }   \
-	R123_CUDA_DEVICE const_reverse_iterator crbegin() const { return const_reverse_iterator(cend()); } \
+#define CXXMETHODS_REQUIRING_STL                                                                                                                                                                                                                                                                           \
+public:                                                                                                                                                                                                                                                                                                    \
+	typedef std::reverse_iterator<iterator> reverse_iterator;                                                                                                                                                                                                                                              \
+	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;                                                                                                                                                                                                                                  \
+	R123_CUDA_DEVICE reverse_iterator rbegin() { return reverse_iterator(end()); }                                                                                                                                                                                                                         \
+	R123_CUDA_DEVICE const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }                                                                                                                                                                                                       \
+	R123_CUDA_DEVICE reverse_iterator rend() { return reverse_iterator(begin()); }                                                                                                                                                                                                                         \
+	R123_CUDA_DEVICE const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }                                                                                                                                                                                                       \
+	R123_CUDA_DEVICE const_reverse_iterator crbegin() const { return const_reverse_iterator(cend()); }                                                                                                                                                                                                     \
 	R123_CUDA_DEVICE const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 #endif
 
 // Work-alike methods and typedefs modeled on std::array:
-#define CXXMETHODS(_N, W, T)                                                                           \
-	typedef T value_type;                                                                              \
-	typedef T* iterator;                                                                               \
-	typedef const T* const_iterator;                                                                   \
-	typedef value_type& reference;                                                                     \
-	typedef value_type const& const_reference;                                                         \
-	typedef size_t size_type;                                                                          \
-	typedef ptrdiff_t difference_type;                                                                 \
-	typedef T* pointer;                                                                                \
-	typedef const T* const_pointer;                                                                    \
-	/* Boost.array has static_size.  C++11 specializes tuple_size */                                   \
-	enum { static_size = _N };                                                                         \
-	R123_CUDA_DEVICE reference operator[](size_type i) { return v[i]; }                                \
-	R123_CUDA_DEVICE const_reference operator[](size_type i) const { return v[i]; }                    \
-	R123_CUDA_DEVICE reference at(size_type i) {                                                       \
-		if(i >= _N)                                                                                    \
-			R123_THROW(std::out_of_range("array index out of range"));                                 \
-		return (*this)[i];                                                                             \
-	}                                                                                                  \
-	R123_CUDA_DEVICE const_reference at(size_type i) const {                                           \
-		if(i >= _N)                                                                                    \
-			R123_THROW(std::out_of_range("array index out of range"));                                 \
-		return (*this)[i];                                                                             \
-	}                                                                                                  \
-	R123_CUDA_DEVICE size_type size() const { return _N; }                                             \
-	R123_CUDA_DEVICE size_type max_size() const { return _N; }                                         \
-	R123_CUDA_DEVICE bool empty() const { return _N == 0; };                                           \
-	R123_CUDA_DEVICE iterator begin() { return &v[0]; }                                                \
-	R123_CUDA_DEVICE iterator end() { return &v[_N]; }                                                 \
-	R123_CUDA_DEVICE const_iterator begin() const { return &v[0]; }                                    \
-	R123_CUDA_DEVICE const_iterator end() const { return &v[_N]; }                                     \
-	R123_CUDA_DEVICE const_iterator cbegin() const { return &v[0]; }                                   \
-	R123_CUDA_DEVICE const_iterator cend() const { return &v[_N]; }                                    \
-	R123_CUDA_DEVICE pointer data() { return &v[0]; }                                                  \
-	R123_CUDA_DEVICE const_pointer data() const { return &v[0]; }                                      \
-	R123_CUDA_DEVICE reference front() { return v[0]; }                                                \
-	R123_CUDA_DEVICE const_reference front() const { return v[0]; }                                    \
-	R123_CUDA_DEVICE reference back() { return v[_N - 1]; }                                            \
-	R123_CUDA_DEVICE const_reference back() const { return v[_N - 1]; }                                \
-	R123_CUDA_DEVICE bool operator==(const r123array##_N##x##W& rhs) const {                           \
-		/* CUDA3 does not have std::equal */                                                           \
-		for(size_t i = 0; i < _N; ++i)                                                                 \
-			if(v[i] != rhs.v[i])                                                                       \
-				return false;                                                                          \
-		return true;                                                                                   \
-	}                                                                                                  \
-	R123_CUDA_DEVICE bool operator!=(const r123array##_N##x##W& rhs) const { return !(*this == rhs); } \
-	/* CUDA3 does not have std::fill_n */                                                              \
-	R123_CUDA_DEVICE void fill(value_type const& val) {                                                \
-		for(size_t i = 0; i < _N; ++i)                                                                 \
-			v[i] = val;                                                                                \
-	}                                                                                                  \
-	R123_CUDA_DEVICE void swap(r123array##_N##x##W& rhs) {                                             \
-		/* CUDA3 does not have std::swap_ranges */                                                     \
-		for(size_t i = 0; i < _N; ++i) {                                                               \
-			T tmp = v[i];                                                                              \
-			v[i] = rhs.v[i];                                                                           \
-			rhs.v[i] = tmp;                                                                            \
-		}                                                                                              \
-	}                                                                                                  \
-	R123_CUDA_DEVICE r123array##_N##x##W& incr(R123_ULONG_LONG n = 1) {                                \
-		/* This test is tricky because we're trying to avoid spurious                                  \
-		   complaints about illegal shifts, yet still be compile-time                                  \
-		   evaulated. */                                                                               \
-		if(sizeof(T) < sizeof(n) && n >> ((sizeof(T) < sizeof(n)) ? 8 * sizeof(T) : 0))                \
-			return incr_carefully(n);                                                                  \
-		if(n == 1) {                                                                                   \
-			++v[0];                                                                                    \
-			if(_N == 1 || R123_BUILTIN_EXPECT(!!v[0], 1))                                              \
-				return *this;                                                                          \
-		} else {                                                                                       \
-			v[0] += n;                                                                                 \
-			if(_N == 1 || R123_BUILTIN_EXPECT(n <= v[0], 1))                                           \
-				return *this;                                                                          \
-		}                                                                                              \
-		/* We expect that the N==?? tests will be                                                      \
-		   constant-folded/optimized away by the compiler, so only the                                 \
-		   overflow tests (!!v[i]) remain to be done at runtime.  For                                  \
-		   small values of N, it would be better to do this as an                                      \
-		   uncondtional sequence of adc.  An experiment/optimization                                   \
-		   for another day...                                                                          \
-		   N.B.  The weird subscripting: v[_N>3?3:0] is to silence                                     \
-		   a spurious error from icpc                                                                  \
-		   */                                                                                          \
-		++v[_N > 1 ? 1 : 0];                                                                           \
-		if(_N == 2 || R123_BUILTIN_EXPECT(!!v[_N > 1 ? 1 : 0], 1))                                     \
-			return *this;                                                                              \
-		++v[_N > 2 ? 2 : 0];                                                                           \
-		if(_N == 3 || R123_BUILTIN_EXPECT(!!v[_N > 2 ? 2 : 0], 1))                                     \
-			return *this;                                                                              \
-		++v[_N > 3 ? 3 : 0];                                                                           \
-		for(size_t i = 4; i < _N; ++i) {                                                               \
-			if(R123_BUILTIN_EXPECT(!!v[i - 1], 1))                                                     \
-				return *this;                                                                          \
-			++v[i];                                                                                    \
-		}                                                                                              \
-		return *this;                                                                                  \
-	}                                                                                                  \
-	/* seed(SeedSeq) would be a constructor if having a constructor */                                 \
-	/* didn't cause headaches with defaults */                                                         \
-	template<typename SeedSeq>                                                                         \
-	R123_CUDA_DEVICE static r123array##_N##x##W seed(SeedSeq& ss) {                                    \
-		r123array##_N##x##W ret;                                                                       \
-		const size_t Ngen = _N * ((3 + sizeof(value_type)) / 4);                                       \
-		uint32_t u32[Ngen];                                                                            \
-		uint32_t* p32 = &u32[0];                                                                       \
-		ss.generate(&u32[0], &u32[Ngen]);                                                              \
-		for(size_t i = 0; i < _N; ++i) {                                                               \
-			ret.v[i] = assemble_from_u32<value_type>(p32);                                             \
-			p32 += (3 + sizeof(value_type)) / 4;                                                       \
-		}                                                                                              \
-		return ret;                                                                                    \
-	}                                                                                                  \
-                                                                                                       \
-protected:                                                                                             \
-	R123_CUDA_DEVICE r123array##_N##x##W& incr_carefully(R123_ULONG_LONG n) {                          \
-		/* n may be greater than the maximum value of a single value_type */                           \
-		value_type vtn;                                                                                \
-		vtn = n;                                                                                       \
-		v[0] += n;                                                                                     \
-		unsigned const rshift = 8 * ((sizeof(n) > sizeof(value_type)) ? sizeof(value_type) : 0);       \
-		for(size_t i = 1; i < _N; ++i) {                                                               \
-			if(rshift) {                                                                               \
-				n >>= rshift;                                                                          \
-			} else {                                                                                   \
-				n = 0;                                                                                 \
-			}                                                                                          \
-			if(v[i - 1] < vtn)                                                                         \
-				++n;                                                                                   \
-			if(n == 0)                                                                                 \
-				break;                                                                                 \
-			vtn = n;                                                                                   \
-			v[i] += n;                                                                                 \
-		}                                                                                              \
-		return *this;                                                                                  \
+#define CXXMETHODS(_N, W, T)                                                                                                                                                                                                                                                                               \
+	typedef T value_type;                                                                                                                                                                                                                                                                                  \
+	typedef T* iterator;                                                                                                                                                                                                                                                                                   \
+	typedef const T* const_iterator;                                                                                                                                                                                                                                                                       \
+	typedef value_type& reference;                                                                                                                                                                                                                                                                         \
+	typedef value_type const& const_reference;                                                                                                                                                                                                                                                             \
+	typedef size_t size_type;                                                                                                                                                                                                                                                                              \
+	typedef ptrdiff_t difference_type;                                                                                                                                                                                                                                                                     \
+	typedef T* pointer;                                                                                                                                                                                                                                                                                    \
+	typedef const T* const_pointer;                                                                                                                                                                                                                                                                        \
+	/* Boost.array has static_size.  C++11 specializes tuple_size */                                                                                                                                                                                                                                       \
+	enum { static_size = _N };                                                                                                                                                                                                                                                                             \
+	R123_CUDA_DEVICE reference operator[](size_type i) { return v[i]; }                                                                                                                                                                                                                                    \
+	R123_CUDA_DEVICE const_reference operator[](size_type i) const { return v[i]; }                                                                                                                                                                                                                        \
+	R123_CUDA_DEVICE reference at(size_type i) {                                                                                                                                                                                                                                                           \
+		if(i >= _N)                                                                                                                                                                                                                                                                                        \
+			R123_THROW(std::out_of_range("array index out of range"));                                                                                                                                                                                                                                     \
+		return (*this)[i];                                                                                                                                                                                                                                                                                 \
+	}                                                                                                                                                                                                                                                                                                      \
+	R123_CUDA_DEVICE const_reference at(size_type i) const {                                                                                                                                                                                                                                               \
+		if(i >= _N)                                                                                                                                                                                                                                                                                        \
+			R123_THROW(std::out_of_range("array index out of range"));                                                                                                                                                                                                                                     \
+		return (*this)[i];                                                                                                                                                                                                                                                                                 \
+	}                                                                                                                                                                                                                                                                                                      \
+	R123_CUDA_DEVICE size_type size() const { return _N; }                                                                                                                                                                                                                                                 \
+	R123_CUDA_DEVICE size_type max_size() const { return _N; }                                                                                                                                                                                                                                             \
+	R123_CUDA_DEVICE bool empty() const { return _N == 0; };                                                                                                                                                                                                                                               \
+	R123_CUDA_DEVICE iterator begin() { return &v[0]; }                                                                                                                                                                                                                                                    \
+	R123_CUDA_DEVICE iterator end() { return &v[_N]; }                                                                                                                                                                                                                                                     \
+	R123_CUDA_DEVICE const_iterator begin() const { return &v[0]; }                                                                                                                                                                                                                                        \
+	R123_CUDA_DEVICE const_iterator end() const { return &v[_N]; }                                                                                                                                                                                                                                         \
+	R123_CUDA_DEVICE const_iterator cbegin() const { return &v[0]; }                                                                                                                                                                                                                                       \
+	R123_CUDA_DEVICE const_iterator cend() const { return &v[_N]; }                                                                                                                                                                                                                                        \
+	R123_CUDA_DEVICE pointer data() { return &v[0]; }                                                                                                                                                                                                                                                      \
+	R123_CUDA_DEVICE const_pointer data() const { return &v[0]; }                                                                                                                                                                                                                                          \
+	R123_CUDA_DEVICE reference front() { return v[0]; }                                                                                                                                                                                                                                                    \
+	R123_CUDA_DEVICE const_reference front() const { return v[0]; }                                                                                                                                                                                                                                        \
+	R123_CUDA_DEVICE reference back() { return v[_N - 1]; }                                                                                                                                                                                                                                                \
+	R123_CUDA_DEVICE const_reference back() const { return v[_N - 1]; }                                                                                                                                                                                                                                    \
+	R123_CUDA_DEVICE bool operator==(const r123array##_N##x##W& rhs) const {                                                                                                                                                                                                                               \
+		/* CUDA3 does not have std::equal */                                                                                                                                                                                                                                                               \
+		for(size_t i = 0; i < _N; ++i)                                                                                                                                                                                                                                                                     \
+			if(v[i] != rhs.v[i])                                                                                                                                                                                                                                                                           \
+				return false;                                                                                                                                                                                                                                                                              \
+		return true;                                                                                                                                                                                                                                                                                       \
+	}                                                                                                                                                                                                                                                                                                      \
+	R123_CUDA_DEVICE bool operator!=(const r123array##_N##x##W& rhs) const { return !(*this == rhs); }                                                                                                                                                                                                     \
+	/* CUDA3 does not have std::fill_n */                                                                                                                                                                                                                                                                  \
+	R123_CUDA_DEVICE void fill(value_type const& val) {                                                                                                                                                                                                                                                    \
+		for(size_t i = 0; i < _N; ++i)                                                                                                                                                                                                                                                                     \
+			v[i] = val;                                                                                                                                                                                                                                                                                    \
+	}                                                                                                                                                                                                                                                                                                      \
+	R123_CUDA_DEVICE void swap(r123array##_N##x##W& rhs) {                                                                                                                                                                                                                                                 \
+		/* CUDA3 does not have std::swap_ranges */                                                                                                                                                                                                                                                         \
+		for(size_t i = 0; i < _N; ++i) {                                                                                                                                                                                                                                                                   \
+			T tmp = v[i];                                                                                                                                                                                                                                                                                  \
+			v[i] = rhs.v[i];                                                                                                                                                                                                                                                                               \
+			rhs.v[i] = tmp;                                                                                                                                                                                                                                                                                \
+		}                                                                                                                                                                                                                                                                                                  \
+	}                                                                                                                                                                                                                                                                                                      \
+	R123_CUDA_DEVICE r123array##_N##x##W& incr(R123_ULONG_LONG n = 1) {                                                                                                                                                                                                                                    \
+		/* This test is tricky because we're trying to avoid spurious                                                                                                                                                                                                                                      \
+		   complaints about illegal shifts, yet still be compile-time                                                                                                                                                                                                                                      \
+		   evaulated. */                                                                                                                                                                                                                                                                                   \
+		if(sizeof(T) < sizeof(n) && n >> ((sizeof(T) < sizeof(n)) ? 8 * sizeof(T) : 0))                                                                                                                                                                                                                    \
+			return incr_carefully(n);                                                                                                                                                                                                                                                                      \
+		if(n == 1) {                                                                                                                                                                                                                                                                                       \
+			++v[0];                                                                                                                                                                                                                                                                                        \
+			if(_N == 1 || R123_BUILTIN_EXPECT(!!v[0], 1))                                                                                                                                                                                                                                                  \
+				return *this;                                                                                                                                                                                                                                                                              \
+		} else {                                                                                                                                                                                                                                                                                           \
+			v[0] += n;                                                                                                                                                                                                                                                                                     \
+			if(_N == 1 || R123_BUILTIN_EXPECT(n <= v[0], 1))                                                                                                                                                                                                                                               \
+				return *this;                                                                                                                                                                                                                                                                              \
+		}                                                                                                                                                                                                                                                                                                  \
+		/* We expect that the N==?? tests will be                                                                                                                                                                                                                                                          \
+		   constant-folded/optimized away by the compiler, so only the                                                                                                                                                                                                                                     \
+		   overflow tests (!!v[i]) remain to be done at runtime.  For                                                                                                                                                                                                                                      \
+		   small values of N, it would be better to do this as an                                                                                                                                                                                                                                          \
+		   uncondtional sequence of adc.  An experiment/optimization                                                                                                                                                                                                                                       \
+		   for another day...                                                                                                                                                                                                                                                                              \
+		   N.B.  The weird subscripting: v[_N>3?3:0] is to silence                                                                                                                                                                                                                                         \
+		   a spurious error from icpc                                                                                                                                                                                                                                                                      \
+		   */                                                                                                                                                                                                                                                                                              \
+		++v[_N > 1 ? 1 : 0];                                                                                                                                                                                                                                                                               \
+		if(_N == 2 || R123_BUILTIN_EXPECT(!!v[_N > 1 ? 1 : 0], 1))                                                                                                                                                                                                                                         \
+			return *this;                                                                                                                                                                                                                                                                                  \
+		++v[_N > 2 ? 2 : 0];                                                                                                                                                                                                                                                                               \
+		if(_N == 3 || R123_BUILTIN_EXPECT(!!v[_N > 2 ? 2 : 0], 1))                                                                                                                                                                                                                                         \
+			return *this;                                                                                                                                                                                                                                                                                  \
+		++v[_N > 3 ? 3 : 0];                                                                                                                                                                                                                                                                               \
+		for(size_t i = 4; i < _N; ++i) {                                                                                                                                                                                                                                                                   \
+			if(R123_BUILTIN_EXPECT(!!v[i - 1], 1))                                                                                                                                                                                                                                                         \
+				return *this;                                                                                                                                                                                                                                                                              \
+			++v[i];                                                                                                                                                                                                                                                                                        \
+		}                                                                                                                                                                                                                                                                                                  \
+		return *this;                                                                                                                                                                                                                                                                                      \
+	}                                                                                                                                                                                                                                                                                                      \
+	/* seed(SeedSeq) would be a constructor if having a constructor */                                                                                                                                                                                                                                     \
+	/* didn't cause headaches with defaults */                                                                                                                                                                                                                                                             \
+	template<typename SeedSeq> R123_CUDA_DEVICE static r123array##_N##x##W seed(SeedSeq& ss) {                                                                                                                                                                                                             \
+		r123array##_N##x##W ret;                                                                                                                                                                                                                                                                           \
+		const size_t Ngen = _N * ((3 + sizeof(value_type)) / 4);                                                                                                                                                                                                                                           \
+		uint32_t u32[Ngen];                                                                                                                                                                                                                                                                                \
+		uint32_t* p32 = &u32[0];                                                                                                                                                                                                                                                                           \
+		ss.generate(&u32[0], &u32[Ngen]);                                                                                                                                                                                                                                                                  \
+		for(size_t i = 0; i < _N; ++i) {                                                                                                                                                                                                                                                                   \
+			ret.v[i] = assemble_from_u32<value_type>(p32);                                                                                                                                                                                                                                                 \
+			p32 += (3 + sizeof(value_type)) / 4;                                                                                                                                                                                                                                                           \
+		}                                                                                                                                                                                                                                                                                                  \
+		return ret;                                                                                                                                                                                                                                                                                        \
+	}                                                                                                                                                                                                                                                                                                      \
+                                                                                                                                                                                                                                                                                                           \
+protected:                                                                                                                                                                                                                                                                                                 \
+	R123_CUDA_DEVICE r123array##_N##x##W& incr_carefully(R123_ULONG_LONG n) {                                                                                                                                                                                                                              \
+		/* n may be greater than the maximum value of a single value_type */                                                                                                                                                                                                                               \
+		value_type vtn;                                                                                                                                                                                                                                                                                    \
+		vtn = n;                                                                                                                                                                                                                                                                                           \
+		v[0] += n;                                                                                                                                                                                                                                                                                         \
+		unsigned const rshift = 8 * ((sizeof(n) > sizeof(value_type)) ? sizeof(value_type) : 0);                                                                                                                                                                                                           \
+		for(size_t i = 1; i < _N; ++i) {                                                                                                                                                                                                                                                                   \
+			if(rshift) {                                                                                                                                                                                                                                                                                   \
+				n >>= rshift;                                                                                                                                                                                                                                                                              \
+			} else {                                                                                                                                                                                                                                                                                       \
+				n = 0;                                                                                                                                                                                                                                                                                     \
+			}                                                                                                                                                                                                                                                                                              \
+			if(v[i - 1] < vtn)                                                                                                                                                                                                                                                                             \
+				++n;                                                                                                                                                                                                                                                                                       \
+			if(n == 0)                                                                                                                                                                                                                                                                                     \
+				break;                                                                                                                                                                                                                                                                                     \
+			vtn = n;                                                                                                                                                                                                                                                                                       \
+			v[i] += n;                                                                                                                                                                                                                                                                                     \
+		}                                                                                                                                                                                                                                                                                                  \
+		return *this;                                                                                                                                                                                                                                                                                      \
 	}
 
 /** @cond HIDDEN_FROM_DOXYGEN */
@@ -248,29 +246,25 @@ protected:                                                                      
 //   lots of ambiguity problems with automatic promotions.
 // Solution: r123arrayinsertable and r123arrayextractable
 
-template<typename T>
-struct r123arrayinsertable {
+template<typename T> struct r123arrayinsertable {
 	const T& v;
 	r123arrayinsertable(const T& t_) : v(t_) { }
 	friend std::ostream& operator<<(std::ostream& os, r123arrayinsertable<T> const& t) { return os << t.v; }
 };
 
-template<>
-struct r123arrayinsertable<uint8_t> {
+template<> struct r123arrayinsertable<uint8_t> {
 	uint8_t const& v;
 	r123arrayinsertable(uint8_t const& t_) : v(t_) { }
 	friend std::ostream& operator<<(std::ostream& os, r123arrayinsertable<uint8_t> const& t) { return os << (int)t.v; }
 };
 
-template<typename T>
-struct r123arrayextractable {
+template<typename T> struct r123arrayextractable {
 	T& v;
 	r123arrayextractable(T& t_) : v(t_) { }
 	friend std::istream& operator>>(std::istream& is, r123arrayextractable<T>& t) { return is >> t.v; }
 };
 
-template<>
-struct r123arrayextractable<uint8_t> {
+template<> struct r123arrayextractable<uint8_t> {
 	uint8_t& v;
 	r123arrayextractable(uint8_t& t_) : v(t_) { }
 	friend std::istream& operator>>(std::istream& is, r123arrayextractable<uint8_t>& t) {
@@ -282,25 +276,25 @@ struct r123arrayextractable<uint8_t> {
 };
 /** @endcond */
 
-#define CXXOVERLOADS(_N, W, T)                                                        \
-                                                                                      \
-	inline std::ostream& operator<<(std::ostream& os, const r123array##_N##x##W& a) { \
-		os << r123arrayinsertable<T>(a.v[0]);                                         \
-		for(size_t i = 1; i < _N; ++i)                                                \
-			os << " " << r123arrayinsertable<T>(a.v[i]);                              \
-		return os;                                                                    \
-	}                                                                                 \
-                                                                                      \
-	inline std::istream& operator>>(std::istream& is, r123array##_N##x##W& a) {       \
-		for(size_t i = 0; i < _N; ++i) {                                              \
-			r123arrayextractable<T> x(a.v[i]);                                        \
-			is >> x;                                                                  \
-		}                                                                             \
-		return is;                                                                    \
-	}                                                                                 \
-                                                                                      \
-	namespace r123 {                                                                  \
-	typedef r123array##_N##x##W Array##_N##x##W;                                      \
+#define CXXOVERLOADS(_N, W, T)                                                                                                                                                                                                                                                                             \
+                                                                                                                                                                                                                                                                                                           \
+	inline std::ostream& operator<<(std::ostream& os, const r123array##_N##x##W& a) {                                                                                                                                                                                                                      \
+		os << r123arrayinsertable<T>(a.v[0]);                                                                                                                                                                                                                                                              \
+		for(size_t i = 1; i < _N; ++i)                                                                                                                                                                                                                                                                     \
+			os << " " << r123arrayinsertable<T>(a.v[i]);                                                                                                                                                                                                                                                   \
+		return os;                                                                                                                                                                                                                                                                                         \
+	}                                                                                                                                                                                                                                                                                                      \
+                                                                                                                                                                                                                                                                                                           \
+	inline std::istream& operator>>(std::istream& is, r123array##_N##x##W& a) {                                                                                                                                                                                                                            \
+		for(size_t i = 0; i < _N; ++i) {                                                                                                                                                                                                                                                                   \
+			r123arrayextractable<T> x(a.v[i]);                                                                                                                                                                                                                                                             \
+			is >> x;                                                                                                                                                                                                                                                                                       \
+		}                                                                                                                                                                                                                                                                                                  \
+		return is;                                                                                                                                                                                                                                                                                         \
+	}                                                                                                                                                                                                                                                                                                      \
+                                                                                                                                                                                                                                                                                                           \
+	namespace r123 {                                                                                                                                                                                                                                                                                       \
+	typedef r123array##_N##x##W Array##_N##x##W;                                                                                                                                                                                                                                                           \
 	}
 
 #endif /* __cplusplus */
@@ -318,15 +312,15 @@ struct r123arrayextractable<uint8_t> {
    a typedef equivalent to r123arrayNxW.
 */
 
-#define _r123array_tpl(_N, W, T) \
-	/** @ingroup arrayNxW */     \
-	/** @see arrayNxW */         \
-	struct r123array##_N##x##W { \
-		T v[_N];                 \
-		CXXMETHODS(_N, W, T)     \
-		CXXMETHODS_REQUIRING_STL \
-	};                           \
-                                 \
+#define _r123array_tpl(_N, W, T)                                                                                                                                                                                                                                                                           \
+	/** @ingroup arrayNxW */                                                                                                                                                                                                                                                                               \
+	/** @see arrayNxW */                                                                                                                                                                                                                                                                                   \
+	struct r123array##_N##x##W {                                                                                                                                                                                                                                                                           \
+		T v[_N];                                                                                                                                                                                                                                                                                           \
+		CXXMETHODS(_N, W, T)                                                                                                                                                                                                                                                                               \
+		CXXMETHODS_REQUIRING_STL                                                                                                                                                                                                                                                                           \
+	};                                                                                                                                                                                                                                                                                                     \
+                                                                                                                                                                                                                                                                                                           \
 	CXXOVERLOADS(_N, W, T)
 
 #if defined(__CUDACC__)

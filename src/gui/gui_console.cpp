@@ -832,6 +832,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			"Blue");
 		break;
 	case command_info::type::cheat:
+		log_to_console(state, parent, "You cheater >:(");
+		
 		break;
 	// State changing events
 	case command_info::type::none:

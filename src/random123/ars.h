@@ -161,8 +161,7 @@ ROUNDS=5 or more.
 @class ARS1xm128i_R
 
 */
-template<unsigned int ROUNDS>
-struct ARS1xm128i_R {
+template<unsigned int ROUNDS> struct ARS1xm128i_R {
 	typedef ars1xm128i_ctr_t ctr_type;
 	typedef ars1xm128i_key_t key_type;
 	typedef ars1xm128i_key_t ukey_type;
@@ -174,8 +173,7 @@ struct ARS1xm128i_R {
 	@ingroup AESNI
 */
 
-template<unsigned int ROUNDS>
-struct ARS4x32_R {
+template<unsigned int ROUNDS> struct ARS4x32_R {
 	typedef ars4x32_ctr_t ctr_type;
 	typedef ars4x32_key_t key_type;
 	typedef ars4x32_key_t ukey_type;

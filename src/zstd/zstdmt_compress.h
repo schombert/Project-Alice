@@ -64,8 +64,7 @@ size_t ZSTDMT_nextInputSizeHint(ZSTDMT_CCtx const* mtctx);
  *  If mtctx is reused, memory allocations from the prior compression may not be freed,
  *  even if they are not needed for the current compression.
  *  @return : 0, or an error code */
-size_t ZSTDMT_initCStream_internal(ZSTDMT_CCtx* mtctx, void const* dict, size_t dictSize, ZSTD_dictContentType_e dictContentType,
-	ZSTD_CDict const* cdict, ZSTD_CCtx_params params, unsigned long long pledgedSrcSize);
+size_t ZSTDMT_initCStream_internal(ZSTDMT_CCtx* mtctx, void const* dict, size_t dictSize, ZSTD_dictContentType_e dictContentType, ZSTD_CDict const* cdict, ZSTD_CCtx_params params, unsigned long long pledgedSrcSize);
 
 /*! ZSTDMT_compressStream_generic() :
  *  Combines ZSTDMT_compressStream() with optional ZSTDMT_flushStream() or ZSTDMT_endStream()

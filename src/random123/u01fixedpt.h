@@ -138,17 +138,11 @@ R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_closed_32_float(uint
 	return ((i & 0x7fffffc0) + (i & 0x40)) * R123_0x1p_31f; /* 0x1.p-31f */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_open_32_float(uint32_t i) {
-	return (i >> 8) * R123_0x1p_24f; /* 0x1.0p-24f; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_open_32_float(uint32_t i) { return (i >> 8) * R123_0x1p_24f; /* 0x1.0p-24f; */ }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_closed_32_float(uint32_t i) {
-	return (1 + (i >> 8)) * R123_0x1p_24f; /* *0x1.0p-24f; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_closed_32_float(uint32_t i) { return (1 + (i >> 8)) * R123_0x1p_24f; /* *0x1.0p-24f; */ }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_open_32_float(uint32_t i) {
-	return (0.5f + (i >> 9)) * R123_0x1p_23f; /* 0x1.p-23f; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_open_32_float(uint32_t i) { return (0.5f + (i >> 9)) * R123_0x1p_23f; /* 0x1.p-23f; */ }
 
 #if R123_USE_U01_DOUBLE
 /* narrowing conversions:  uint64_t to double */
@@ -157,17 +151,11 @@ R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_64_double(ui
 	return ((i & R123_64BIT(0x7ffffffffffffe00)) + (i & 0x200)) * R123_0x1p_63; /* 0x1.p-63; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_64_double(uint64_t i) {
-	return (i >> 11) * R123_0x1p_53; /* 0x1.0p-53; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_64_double(uint64_t i) { return (i >> 11) * R123_0x1p_53; /* 0x1.0p-53; */ }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_64_double(uint64_t i) {
-	return (1 + (i >> 11)) * R123_0x1p_53; /* 0x1.0p-53; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_64_double(uint64_t i) { return (1 + (i >> 11)) * R123_0x1p_53; /* 0x1.0p-53; */ }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_64_double(uint64_t i) {
-	return (0.5 + (i >> 12)) * R123_0x1p_52; /* 0x1.0p-52; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_64_double(uint64_t i) { return (0.5 + (i >> 12)) * R123_0x1p_52; /* 0x1.0p-52; */ }
 
 /* widening conversions:  u32 to double */
 R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_32_double(uint32_t i) {
@@ -181,9 +169,7 @@ R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_32_double(ui
 
 R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_32_double(uint32_t i) { return i * R123_0x1p_32; /* 0x1.p-32; */ }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_32_double(uint32_t i) {
-	return (1. + i) * R123_0x1p_32; /* 0x1.p-32; */
-}
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_32_double(uint32_t i) { return (1. + i) * R123_0x1p_32; /* 0x1.p-32; */ }
 
 R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_32_double(uint32_t i) { return (0.5 + i) * R123_0x1p_32; /* 0x1.p-32; */ }
 #endif /* R123_USE_U01_DOUBLE */

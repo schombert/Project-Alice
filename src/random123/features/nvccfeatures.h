@@ -37,8 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if CUDART_VERSION < 4010
-#error \
-	"CUDA versions earlier than 4.1 produce incorrect results for some templated functions in namespaces.  Random123 isunsupported.  See comments in nvccfeatures.h"
+#error "CUDA versions earlier than 4.1 produce incorrect results for some templated functions in namespaces.  Random123 isunsupported.  See comments in nvccfeatures.h"
 // This test was added in Random123-1.08 (August, 2013) because we
 // discovered that Ftype(maxTvalue<T>()) with Ftype=double and
 // T=uint64_t in examples/uniform.hpp produces -1 for CUDA4.0 and
@@ -73,10 +72,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_ASSERT
-#define R123_ASSERT(x) \
-	if((x))            \
-		;              \
-	else               \
+#define R123_ASSERT(x)                                                                                                                                                                                                                                                                                     \
+	if((x))                                                                                                                                                                                                                                                                                                \
+		;                                                                                                                                                                                                                                                                                                  \
+	else                                                                                                                                                                                                                                                                                                   \
 		asm("trap;")
 #endif
 

@@ -66,9 +66,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* bit25 of CX tells us whether AES is enabled. */
 R123_STATIC_INLINE int haveAESNI() {
 	unsigned int eax, ebx, ecx, edx;
-	__asm__ __volatile__("cpuid"
-						 : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
-						 : "a"(1));
+	__asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(1));
 	return (ecx >> 25) & 1;
 }
 #elif R123_USE_CPUID_MSVC
@@ -224,9 +222,7 @@ R123_STATIC_INLINE bool operator<=(r123m128i const&, r123m128i const&) { std::ab
 R123_STATIC_INLINE bool operator>(r123m128i const&, r123m128i const&) { std::abort(); }
 R123_STATIC_INLINE bool operator>=(r123m128i const&, r123m128i const&) { std::abort(); }
 
-R123_STATIC_INLINE bool operator==(r123m128i const& lhs, r123m128i const& rhs) {
-	return 0xf == _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs)));
-}
+R123_STATIC_INLINE bool operator==(r123m128i const& lhs, r123m128i const& rhs) { return 0xf == _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs))); }
 R123_STATIC_INLINE bool operator!=(r123m128i const& lhs, r123m128i const& rhs) { return !(lhs == rhs); }
 R123_STATIC_INLINE bool operator==(R123_ULONG_LONG lhs, r123m128i const& rhs) {
 	r123m128i LHS;
@@ -250,11 +246,9 @@ R123_STATIC_INLINE std::istream& operator>>(std::istream& is, r123m128i& m) {
 	return is;
 }
 
-template<typename T>
-inline T assemble_from_u32(uint32_t* p32); // forward declaration
+template<typename T> inline T assemble_from_u32(uint32_t* p32); // forward declaration
 
-template<>
-inline r123m128i assemble_from_u32<r123m128i>(uint32_t* p32) {
+template<> inline r123m128i assemble_from_u32<r123m128i>(uint32_t* p32) {
 	r123m128i ret;
 	ret.m = _mm_set_epi32(p32[3], p32[2], p32[1], p32[0]);
 	return ret;
