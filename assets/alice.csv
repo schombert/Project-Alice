@@ -14,6 +14,9 @@ zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 linegraph_mode;Linegraph mode;;;Modo de grafica linear;;;;;;;;;x
 linegraph_mode_accurate;Accurate;;;Reliable;;;;;;;;;x
 linegraph_mode_aesthetic;Aesthetic;;;Aestetica;;;;;;;;;x
+gui_mode;GUI Mode;;;;;;;;;;;;x
+gui_mode_faithful;Faithful;;;;;;;;;;;;x
+gui_mode_inaccurate;Inaccurate;;;;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
 music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
