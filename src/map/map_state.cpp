@@ -22,7 +22,7 @@ void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) 
 	update(state);
 	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
 	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom, state.user_settings.map_is_globe ? map_view::globe : map_view::flat,
-	                active_map_mode, globe_rotation, time_counter);
+		active_map_mode, globe_rotation, time_counter);
 }
 
 void map_state::update(sys::state& state) {
@@ -227,7 +227,7 @@ void map_state::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int
 void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) { is_dragging = false; }
 
 void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
-                                sys::key_modifiers mod) {
+	sys::key_modifiers mod) {
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	glm::vec2 map_pos;
@@ -238,7 +238,7 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 		sound::play_interface_sound(state, sound::get_click_sound(state),
-		                            state.user_settings.interface_volume * state.user_settings.master_volume);
+			state.user_settings.interface_volume * state.user_settings.master_volume);
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			set_selected_province(province::from_map_id(map_data.province_id_map[idx]));

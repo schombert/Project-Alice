@@ -9,7 +9,8 @@
 
 namespace map {
 
-enum class map_view { globe, flat };
+enum class map_view { globe,
+	flat };
 class map_state {
 public:
 	map_state(){};

@@ -6,55 +6,55 @@
 namespace sys {
 
 // cat t.cpp | awk '{print $1 $6 ", " $5 ", " $2 " " $3 " " $4}' >t2.cpp
-#define MOD_PROV_LIST                                                                                                                    \
-	MOD_LIST_ELEMENT(0, supply_limit, true, modifier_display_type::integer, "modifier_supply_limit")                                     \
-	MOD_LIST_ELEMENT(1, attrition, false, modifier_display_type::percent, "modifier_attrition")                                          \
-	MOD_LIST_ELEMENT(2, max_attrition, false, modifier_display_type::integer, "modifier_max_attrition")                                  \
-	MOD_LIST_ELEMENT(3, local_ruling_party_support, true, modifier_display_type::percent, "modifier_local_ruling_party_support")         \
-	MOD_LIST_ELEMENT(4, poor_life_needs, false, modifier_display_type::percent, "modifier_poor_life_needs")                              \
-	MOD_LIST_ELEMENT(5, rich_life_needs, false, modifier_display_type::percent, "modifier_rich_life_needs")                              \
-	MOD_LIST_ELEMENT(6, middle_life_needs, false, modifier_display_type::percent, "modifier_middle_life_needs")                          \
-	MOD_LIST_ELEMENT(7, poor_everyday_needs, false, modifier_display_type::percent, "modifier_poor_everyday_needs")                      \
-	MOD_LIST_ELEMENT(8, rich_everyday_needs, false, modifier_display_type::percent, "modifier_rich_everyday_needs")                      \
-	MOD_LIST_ELEMENT(9, middle_everyday_needs, false, modifier_display_type::percent, "modifier_middle_everyday_needs")                  \
-	MOD_LIST_ELEMENT(10, poor_luxury_needs, false, modifier_display_type::percent, "modifier_poor_luxury_needs")                         \
-	MOD_LIST_ELEMENT(11, middle_luxury_needs, false, modifier_display_type::percent, "modifier_middle_luxury_needs")                     \
-	MOD_LIST_ELEMENT(12, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs")                         \
-	MOD_LIST_ELEMENT(13, population_growth, true, modifier_display_type::fp_three_places, "modifier_population_growth")                  \
-	MOD_LIST_ELEMENT(14, local_factory_input, false, modifier_display_type::percent, "modifier_local_factory_input")                     \
-	MOD_LIST_ELEMENT(15, local_factory_output, true, modifier_display_type::percent, "modifier_local_factory_output")                    \
-	MOD_LIST_ELEMENT(16, local_factory_throughput, true, modifier_display_type::percent, "modifier_local_factory_throughput")            \
-	MOD_LIST_ELEMENT(17, local_rgo_input, true, modifier_display_type::percent, "modifier_local_rgo_input")                              \
-	MOD_LIST_ELEMENT(18, local_rgo_output, true, modifier_display_type::percent, "modifier_local_rgo_output")                            \
-	MOD_LIST_ELEMENT(19, local_rgo_throughput, true, modifier_display_type::percent, "modifier_local_rgo_throughput")                    \
-	MOD_LIST_ELEMENT(20, local_artisan_input, false, modifier_display_type::percent, "modifier_local_artisan_input")                     \
-	MOD_LIST_ELEMENT(21, local_artisan_output, true, modifier_display_type::percent, "modifier_local_artisan_output")                    \
-	MOD_LIST_ELEMENT(22, local_artisan_throughput, true, modifier_display_type::percent, "modifier_local_artisan_throughput")            \
-	MOD_LIST_ELEMENT(23, number_of_voters, true, modifier_display_type::percent, "modifier_number_of_voters")                            \
-	MOD_LIST_ELEMENT(24, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand")                                    \
-	MOD_LIST_ELEMENT(25, assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate")                          \
-	MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::percent, "modifier_life_rating")                                      \
-	MOD_LIST_ELEMENT(27, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_efficiency")                                 \
-	MOD_LIST_ELEMENT(28, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_efficiency")                                 \
-	MOD_LIST_ELEMENT(29, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_size")                                      \
-	MOD_LIST_ELEMENT(30, mine_rgo_size, true, modifier_display_type::percent, "modifier_mine_size")                                      \
-	MOD_LIST_ELEMENT(31, pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_pop_militancy_modifier")       \
-	MOD_LIST_ELEMENT(32, pop_consciousness_modifier, false, modifier_display_type::fp_three_places,                                      \
-	                 "modifier_pop_consciousness_modifier")                                                                              \
-	MOD_LIST_ELEMENT(33, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier")                    \
-	MOD_LIST_ELEMENT(34, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier")                \
-	MOD_LIST_ELEMENT(35, poor_income_modifier, true, modifier_display_type::percent, "modifier_poor_income_modifier")                    \
-	MOD_LIST_ELEMENT(36, boost_strongest_party, true, modifier_display_type::percent, "modifier_boost_strongest_party")                  \
-	MOD_LIST_ELEMENT(37, immigrant_attract, true, modifier_display_type::percent, "modifier_immigrant_attract")                          \
-	MOD_LIST_ELEMENT(38, immigrant_push, true, modifier_display_type::percent, "modifier_immigrant_push")                                \
-	MOD_LIST_ELEMENT(39, local_repair, true, modifier_display_type::percent, "modifier_local_repair")                                    \
-	MOD_LIST_ELEMENT(40, local_ship_build, false, modifier_display_type::percent, "modifier_local_ship_build")                           \
-	MOD_LIST_ELEMENT(41, movement_cost, false, modifier_display_type::percent, "modifier_movement_cost")                                 \
-	MOD_LIST_ELEMENT(42, defense, true, modifier_display_type::integer, "defence")                                                       \
-	MOD_LIST_ELEMENT(43, attack, true, modifier_display_type::integer, "attack")                                                         \
-	MOD_LIST_ELEMENT(44, combat_width, true, modifier_display_type::integer, "modifier_combat_width")                                    \
-	MOD_LIST_ELEMENT(45, min_build_naval_base, false, modifier_display_type::integer, "naval_base_level")                                \
-	MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level")                                    \
+#define MOD_PROV_LIST                                                                                                              \
+	MOD_LIST_ELEMENT(0, supply_limit, true, modifier_display_type::integer, "modifier_supply_limit")                               \
+	MOD_LIST_ELEMENT(1, attrition, false, modifier_display_type::percent, "modifier_attrition")                                    \
+	MOD_LIST_ELEMENT(2, max_attrition, false, modifier_display_type::integer, "modifier_max_attrition")                            \
+	MOD_LIST_ELEMENT(3, local_ruling_party_support, true, modifier_display_type::percent, "modifier_local_ruling_party_support")   \
+	MOD_LIST_ELEMENT(4, poor_life_needs, false, modifier_display_type::percent, "modifier_poor_life_needs")                        \
+	MOD_LIST_ELEMENT(5, rich_life_needs, false, modifier_display_type::percent, "modifier_rich_life_needs")                        \
+	MOD_LIST_ELEMENT(6, middle_life_needs, false, modifier_display_type::percent, "modifier_middle_life_needs")                    \
+	MOD_LIST_ELEMENT(7, poor_everyday_needs, false, modifier_display_type::percent, "modifier_poor_everyday_needs")                \
+	MOD_LIST_ELEMENT(8, rich_everyday_needs, false, modifier_display_type::percent, "modifier_rich_everyday_needs")                \
+	MOD_LIST_ELEMENT(9, middle_everyday_needs, false, modifier_display_type::percent, "modifier_middle_everyday_needs")            \
+	MOD_LIST_ELEMENT(10, poor_luxury_needs, false, modifier_display_type::percent, "modifier_poor_luxury_needs")                   \
+	MOD_LIST_ELEMENT(11, middle_luxury_needs, false, modifier_display_type::percent, "modifier_middle_luxury_needs")               \
+	MOD_LIST_ELEMENT(12, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs")                   \
+	MOD_LIST_ELEMENT(13, population_growth, true, modifier_display_type::fp_three_places, "modifier_population_growth")            \
+	MOD_LIST_ELEMENT(14, local_factory_input, false, modifier_display_type::percent, "modifier_local_factory_input")               \
+	MOD_LIST_ELEMENT(15, local_factory_output, true, modifier_display_type::percent, "modifier_local_factory_output")              \
+	MOD_LIST_ELEMENT(16, local_factory_throughput, true, modifier_display_type::percent, "modifier_local_factory_throughput")      \
+	MOD_LIST_ELEMENT(17, local_rgo_input, true, modifier_display_type::percent, "modifier_local_rgo_input")                        \
+	MOD_LIST_ELEMENT(18, local_rgo_output, true, modifier_display_type::percent, "modifier_local_rgo_output")                      \
+	MOD_LIST_ELEMENT(19, local_rgo_throughput, true, modifier_display_type::percent, "modifier_local_rgo_throughput")              \
+	MOD_LIST_ELEMENT(20, local_artisan_input, false, modifier_display_type::percent, "modifier_local_artisan_input")               \
+	MOD_LIST_ELEMENT(21, local_artisan_output, true, modifier_display_type::percent, "modifier_local_artisan_output")              \
+	MOD_LIST_ELEMENT(22, local_artisan_throughput, true, modifier_display_type::percent, "modifier_local_artisan_throughput")      \
+	MOD_LIST_ELEMENT(23, number_of_voters, true, modifier_display_type::percent, "modifier_number_of_voters")                      \
+	MOD_LIST_ELEMENT(24, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand")                              \
+	MOD_LIST_ELEMENT(25, assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate")                    \
+	MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::percent, "modifier_life_rating")                                \
+	MOD_LIST_ELEMENT(27, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_efficiency")                           \
+	MOD_LIST_ELEMENT(28, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_efficiency")                           \
+	MOD_LIST_ELEMENT(29, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_size")                                \
+	MOD_LIST_ELEMENT(30, mine_rgo_size, true, modifier_display_type::percent, "modifier_mine_size")                                \
+	MOD_LIST_ELEMENT(31, pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_pop_militancy_modifier") \
+	MOD_LIST_ELEMENT(32, pop_consciousness_modifier, false, modifier_display_type::fp_three_places,                                \
+		"modifier_pop_consciousness_modifier")                                                                                     \
+	MOD_LIST_ELEMENT(33, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier")              \
+	MOD_LIST_ELEMENT(34, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier")          \
+	MOD_LIST_ELEMENT(35, poor_income_modifier, true, modifier_display_type::percent, "modifier_poor_income_modifier")              \
+	MOD_LIST_ELEMENT(36, boost_strongest_party, true, modifier_display_type::percent, "modifier_boost_strongest_party")            \
+	MOD_LIST_ELEMENT(37, immigrant_attract, true, modifier_display_type::percent, "modifier_immigrant_attract")                    \
+	MOD_LIST_ELEMENT(38, immigrant_push, true, modifier_display_type::percent, "modifier_immigrant_push")                          \
+	MOD_LIST_ELEMENT(39, local_repair, true, modifier_display_type::percent, "modifier_local_repair")                              \
+	MOD_LIST_ELEMENT(40, local_ship_build, false, modifier_display_type::percent, "modifier_local_ship_build")                     \
+	MOD_LIST_ELEMENT(41, movement_cost, false, modifier_display_type::percent, "modifier_movement_cost")                           \
+	MOD_LIST_ELEMENT(42, defense, true, modifier_display_type::integer, "defence")                                                 \
+	MOD_LIST_ELEMENT(43, attack, true, modifier_display_type::integer, "attack")                                                   \
+	MOD_LIST_ELEMENT(44, combat_width, true, modifier_display_type::integer, "modifier_combat_width")                              \
+	MOD_LIST_ELEMENT(45, min_build_naval_base, false, modifier_display_type::integer, "naval_base_level")                          \
+	MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level")                              \
 	MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level")
 #define MOD_PROV_LIST_COUNT 48
 
@@ -132,14 +132,14 @@ namespace sys {
 	MOD_LIST_ELEMENT(70, mobilization_size, true, modifier_display_type::percent, "modifier_mobilisation_size")                          \
 	MOD_LIST_ELEMENT(71, global_pop_militancy_modifier, false, modifier_display_type::percent, "modifier_global_pop_militancy_modifier") \
 	MOD_LIST_ELEMENT(72, global_pop_consciousness_modifier, false, modifier_display_type::percent,                                       \
-	                 "modifier_global_pop_consciousness_modifier")                                                                       \
+		"modifier_global_pop_consciousness_modifier")                                                                                    \
 	MOD_LIST_ELEMENT(73, core_pop_militancy_modifier, false, modifier_display_type::percent, "modifier_core_pop_militancy_modifier")     \
 	MOD_LIST_ELEMENT(74, core_pop_consciousness_modifier, false, modifier_display_type::percent,                                         \
-	                 "modifier_core_pop_consciousness_modifier")                                                                         \
+		"modifier_core_pop_consciousness_modifier")                                                                                      \
 	MOD_LIST_ELEMENT(75, non_accepted_pop_militancy_modifier, false, modifier_display_type::percent,                                     \
-	                 "modifier_non_accepted_pop_militancy_modifier")                                                                     \
+		"modifier_non_accepted_pop_militancy_modifier")                                                                                  \
 	MOD_LIST_ELEMENT(76, non_accepted_pop_consciousness_modifier, false, modifier_display_type::percent,                                 \
-	                 "modifier_non_accepted_pop_consciousness_modifier")                                                                 \
+		"modifier_non_accepted_pop_consciousness_modifier")                                                                              \
 	MOD_LIST_ELEMENT(77, cb_generation_speed_modifier, true, modifier_display_type::percent, "cb_manufacture_tech")                      \
 	MOD_LIST_ELEMENT(78, mobilization_impact, false, modifier_display_type::percent, "modifier_mobilization_impact")                     \
 	MOD_LIST_ELEMENT(79, suppression_points_modifier, true, modifier_display_type::percent, "suppression_tech")                          \
@@ -186,7 +186,7 @@ namespace sys {
 #define MOD_NAT_LIST_COUNT 120
 
 namespace provincial_mod_offsets {
-#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                        \
+#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
 	constexpr inline dcon::provincial_modifier_value name{num};
 MOD_PROV_LIST
 #undef MOD_LIST_ELEMENT
@@ -194,7 +194,7 @@ constexpr inline uint32_t count = MOD_PROV_LIST_COUNT;
 } // namespace provincial_mod_offsets
 
 namespace national_mod_offsets {
-#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                        \
+#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
 	constexpr inline dcon::national_modifier_value name{num};
 MOD_NAT_LIST
 #undef MOD_LIST_ELEMENT
@@ -276,9 +276,9 @@ void update_modifier_effects(sys::state& state);
 void update_single_nation_modifiers(sys::state& state, dcon::nation_id n);
 
 void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id,
-                            sys::date expiration); // default construct date for no expiration
+	sys::date expiration); // default construct date for no expiration
 void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id,
-                              sys::date expiration); // default construct date for no expiration
+	sys::date expiration); // default construct date for no expiration
 void remove_modifier_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
 void remove_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
 void remove_expired_modifiers_from_nation(sys::state& state, dcon::nation_id target_nation);

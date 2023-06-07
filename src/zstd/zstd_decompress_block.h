@@ -14,9 +14,9 @@
 /*-*******************************************************
  *  Dependencies
  *********************************************************/
-#include "zstd_deps.h"                /* size_t */
-#include "zstd.h"                     /* DCtx, and some public functions */
-#include "zstd_internal.h"            /* blockProperties_t, and some public functions */
+#include "zstd_deps.h"				  /* size_t */
+#include "zstd.h"					  /* DCtx, and some public functions */
+#include "zstd_internal.h"			  /* blockProperties_t, and some public functions */
 #include "zstd_decompress_internal.h" /* ZSTD_seqSymbol */
 
 /* ===   Prototypes   === */
@@ -31,7 +31,8 @@
  */
 
 /* Streaming state is used to inform allocation of the literal buffer */
-typedef enum { not_streaming = 0, is_streaming = 1 } streaming_operation;
+typedef enum { not_streaming = 0,
+	is_streaming = 1 } streaming_operation;
 
 /* ZSTD_decompressBlock_internal() :
  * decompress block, starting at `src`,
@@ -40,7 +41,7 @@ typedef enum { not_streaming = 0, is_streaming = 1 } streaming_operation;
  *           or an error code (which can be tested using ZSTD_isError())
  */
 size_t ZSTD_decompressBlock_internal(ZSTD_DCtx* dctx, void* dst, size_t dstCapacity, void const* src, size_t srcSize, int const frame,
-                                     const streaming_operation streaming);
+	const streaming_operation streaming);
 
 /* ZSTD_buildFSETable() :
  * generate FSE decoding table for one symbol (ll, ml or off)
@@ -52,6 +53,6 @@ size_t ZSTD_decompressBlock_internal(ZSTD_DCtx* dctx, void* dst, size_t dstCapac
  * Internal use only.
  */
 void ZSTD_buildFSETable(ZSTD_seqSymbol* dt, short const* normalizedCounter, unsigned maxSymbolValue, const U32* baseValue,
-                        const U8* nbAdditionalBits, unsigned tableLog, void* wksp, size_t wkspSize, int bmi2);
+	const U8* nbAdditionalBits, unsigned tableLog, void* wksp, size_t wkspSize, int bmi2);
 
 #endif /* ZSTD_DEC_BLOCK_H */

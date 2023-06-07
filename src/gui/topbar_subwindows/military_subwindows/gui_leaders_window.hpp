@@ -67,9 +67,7 @@ public:
 			auto army_content = state.to_string_view(state.world.army_get_name(army_id));
 			army->set_text(state, std::string(army_content));
 
-			auto location_content = text::produce_simple_string(
-			    state,
-			    state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
+			auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
 			location->set_text(state, std::string(location_content));
 		}
 

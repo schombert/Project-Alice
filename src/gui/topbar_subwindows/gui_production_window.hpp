@@ -203,10 +203,10 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		/*if(parent) {	TODO - We want to open/close the factory if we press this button, depending on if its closed/opened respectively
-		    Cyto::Any payload = dcon::factory_id{};
-		    parent->impl_get(state, payload);
-		    auto fid = any_cast<dcon::factory_id>(payload);
-		    auto fat = dcon::fatten(state.world, fid);
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fat = dcon::fatten(state.world, fid);
 		}*/
 	}
 
@@ -243,7 +243,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip function
-				                       // details this afaik
+									   // details this afaik
 				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
 					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false);
 					frame = 0;
@@ -553,8 +553,7 @@ public:
 		factories.resize(size_t(state.defines.factories_per_state));
 		// Create factory slots for each of the provinces
 		for(uint8_t factory_index = 0; factory_index < uint8_t(state.defines.factories_per_state); ++factory_index) {
-			auto ptr =
-			    make_element_by_type<production_factory_info>(state, state.ui_state.defs_by_name.find("factory_info")->second.definition);
+			auto ptr = make_element_by_type<production_factory_info>(state, state.ui_state.defs_by_name.find("factory_info")->second.definition);
 			ptr->index = factory_index;
 			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
 			infos.push_back(ptr.get());
@@ -632,9 +631,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			bool can_build = false;
-			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				can_build = can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
-			});
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) { can_build = can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false); });
 			disabled = !can_build;
 		}
 	}
@@ -665,9 +662,7 @@ class production_national_focus_button : public button_element_base {
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
 
-			return bool(state.world.state_instance_get_owner_focus(content).id)
-			           ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-			           : 0;
+			return bool(state.world.state_instance_get_owner_focus(content).id) ? state.world.state_instance_get_owner_focus(content).get_icon() - 1 : 0;
 		}
 		return 0;
 	}
@@ -684,9 +679,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			disabled = true;
-			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, n, content, nfid) ? false : disabled;
-			});
+			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) { disabled = command::can_set_national_focus(state, n, content, nfid) ? false : disabled; });
 			frame = get_icon_frame(state);
 		}
 	}
@@ -763,8 +756,7 @@ public:
 						auto ffact_id = dcon::fatten(state.world, pid);
 						ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
 							auto fid = state.world.factory_location_get_factory(flid);
-							Cyto::Any payload = commodity_filter_query_data{
-							    state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
+							Cyto::Any payload = commodity_filter_query_data{state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
 							parent->impl_get(state, payload);
 							auto content = any_cast<commodity_filter_query_data>(payload);
 							count += content.filter ? 1 : 0;
@@ -823,9 +815,7 @@ class commodity_output_total_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1)); }
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
@@ -936,13 +926,11 @@ public:
 		// All filters enabled by default
 		commodity_filters.resize(state.world.commodity_size(), true);
 
-		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count;
-		    curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
+		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count; curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
 			commodity_offset.x = base_commodity_offset.x;
 
 			// Place legend for this category...
-			auto ptr = make_element_by_type<production_goods_category_name>(
-			    state, state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+			auto ptr = make_element_by_type<production_goods_category_name>(state, state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
 			ptr->base_data.position = commodity_offset;
 			Cyto::Any payload = curr_commodity_group;
 			ptr->impl_set(state, payload);
@@ -957,8 +945,7 @@ public:
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id))
 					return;
 
-				auto info_ptr = make_element_by_type<production_good_info>(
-				    state, state.ui_state.defs_by_name.find("production_info")->second.definition);
+				auto info_ptr = make_element_by_type<production_good_info>(state, state.ui_state.defs_by_name.find("production_info")->second.definition);
 				info_ptr->base_data.position = commodity_offset;
 				info_ptr->set_visible(state, false);
 
@@ -989,13 +976,11 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		auto win =
-		    make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
+		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
 		build_win = win.get();
 		add_child_to_front(std::move(win));
 
-		auto win2 = make_element_by_type<project_investment_window>(
-		    state, state.ui_state.defs_by_name.find("invest_project_window")->second.definition);
+		auto win2 = make_element_by_type<project_investment_window>(state, state.ui_state.defs_by_name.find("invest_project_window")->second.definition);
 		win2->set_visible(state, false);
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));

@@ -67,7 +67,7 @@ struct ideology_buffer {
 		if(size < s) {
 			size = s;
 			state.world.for_each_ideology(
-			    [&](dcon::ideology_id i) { temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer(); });
+				[&](dcon::ideology_id i) { temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer(); });
 			totals = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 		}
 	}
@@ -88,7 +88,7 @@ struct issues_buffer {
 		if(size < s) {
 			size = s;
 			state.world.for_each_issue_option(
-			    [&](dcon::issue_option_id i) { temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer(); });
+				[&](dcon::issue_option_id i) { temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer(); });
 			totals = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 		}
 	}

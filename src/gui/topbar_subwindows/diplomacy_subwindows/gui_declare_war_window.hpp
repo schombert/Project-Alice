@@ -88,11 +88,9 @@ public:
 					bool is_valid = false;
 					dcon::war_id w = military::find_war_between(state, state.local_player_nation, content);
 					state.world.nation_for_each_state_ownership_as_nation(content, [&](dcon::state_ownership_id soi) {
-						dcon::state_definition_id sdef =
-						    state.world.state_instance_get_definition(state.world.state_ownership_get_state(soi));
+						dcon::state_definition_id sdef = state.world.state_instance_get_definition(state.world.state_ownership_get_state(soi));
 						state.world.for_each_national_identity([&](dcon::national_identity_id nid) {
-							if(command::can_add_war_goal(state, state.local_player_nation, w, content, cbt, sdef, nid,
-							                             state.world.national_identity_get_nation_from_identity_holder(nid)))
+							if(command::can_add_war_goal(state, state.local_player_nation, w, content, cbt, sdef, nid, state.world.national_identity_get_nation_from_identity_holder(nid)))
 								is_valid = true;
 						});
 					});
@@ -175,8 +173,7 @@ public:
 			dcon::trigger_key allowed_states = state.world.cb_type_get_allowed_states(c);
 			for(auto si : dcon::fatten(state.world, n).get_state_ownership()) {
 				auto fat_id = dcon::fatten(state.world, si);
-				if(trigger::evaluate(state, allowed_states, trigger::to_generic(fat_id.get_state().id),
-				                     trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation)))
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(fat_id.get_state().id), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation)))
 					row_contents.push_back(fat_id.get_state().get_definition().id);
 			}
 		}
@@ -248,8 +245,7 @@ public:
 			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 			dcon::trigger_key allowed_countries = state.world.cb_type_get_allowed_countries(c);
 			state.world.for_each_nation([&](dcon::nation_id n) {
-				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(content),
-				                     trigger::to_generic(state.local_player_nation), trigger::to_generic(n)))
+				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(content), trigger::to_generic(state.local_player_nation), trigger::to_generic(n)))
 					row_contents.push_back(state.world.identity_holder_get_identity(state.world.nation_get_identity_holder_as_nation(n)));
 			});
 		}
@@ -365,11 +361,9 @@ public:
 
 			if(military::are_at_war(state, state.local_player_nation, n)) {
 				dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
-				disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
-				                                      state.world.national_identity_get_nation_from_identity_holder(ni));
+				disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
 			} else {
-				disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
-				                                     state.world.national_identity_get_nation_from_identity_holder(ni));
+				disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
 			}
 		}
 	}
@@ -391,11 +385,9 @@ public:
 
 			if(military::are_at_war(state, state.local_player_nation, n)) {
 				dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
-				command::add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
-				                      state.world.national_identity_get_nation_from_identity_holder(ni));
+				command::add_war_goal(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
 			} else {
-				command::declare_war(state, state.local_player_nation, n, c, s, ni,
-				                     state.world.national_identity_get_nation_from_identity_holder(ni));
+				command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
 			}
 			parent->set_visible(state, false);
 		}
@@ -419,8 +411,7 @@ public:
 			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
-			                            state.world.national_identity_get_nation_from_identity_holder(ni))) {
+			if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni))) {
 				text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
 			} else {
 				if(military::are_allied_in_war(state, state.local_player_nation, n)) {
@@ -480,10 +471,8 @@ public:
 
 		if(fat_cb.is_valid()) {
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::recipient,
-			                              dcon::fatten(state.world, content).get_name()); // Target Nation
-			text::add_to_substitution_map(sub, text::variable_type::third,
-			                              dcon::fatten(state.world, nacion).get_name()); // Third Party Country
+			text::add_to_substitution_map(sub, text::variable_type::recipient, dcon::fatten(state.world, content).get_name()); // Target Nation
+			text::add_to_substitution_map(sub, text::variable_type::third, dcon::fatten(state.world, nacion).get_name());	   // Third Party Country
 			text::add_to_substitution_map(sub, text::variable_type::actor, dcon::fatten(state.world, nacion).get_name());
 			text::add_to_substitution_map(sub, text::variable_type::state, dcon::fatten(state.world, staat).get_name());
 			text::add_to_substitution_map(sub, text::variable_type::region, dcon::fatten(state.world, staat).get_name());

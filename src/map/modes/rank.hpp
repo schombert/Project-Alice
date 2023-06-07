@@ -32,13 +32,13 @@ std::vector<uint32_t> rank_map_from(sys::state& state) {
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
 		else if(status == nations::status::secondary_power)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) /
-			                      (state.defines.colonial_rank - state.defines.great_nations_count);
+								  (state.defines.colonial_rank - state.defines.great_nations_count);
 		else if(status == nations::status::civilized)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.colonial_rank) /
-			                      std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
+								  std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
 		else
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - unciv_rank) /
-			                      std::max(1.0f, (float(num_nations) - float(unciv_rank)));
+								  std::max(1.0f, (float(num_nations) - float(unciv_rank)));
 
 		uint32_t color;
 		if(bool(nation_id)) {

@@ -55,8 +55,8 @@ typedef struct r123array1xm128i ars1xm128i_ukey_t;
 R123_STATIC_INLINE ars1xm128i_key_t ars1xm128ikeyinit(ars1xm128i_ukey_t uk) { return uk; }
 /** @ingroup AESNI */
 R123_STATIC_INLINE ars1xm128i_ctr_t ars1xm128i_R(unsigned int Nrounds, ars1xm128i_ctr_t in, ars1xm128i_key_t k) {
-	__m128i kweyl = _mm_set_epi64x(R123_64BIT(0xBB67AE8584CAA73B),  /* sqrt(3) - 1.0 */
-	                               R123_64BIT(0x9E3779B97F4A7C15)); /* golden ratio */
+	__m128i kweyl = _mm_set_epi64x(R123_64BIT(0xBB67AE8584CAA73B), /* sqrt(3) - 1.0 */
+		R123_64BIT(0x9E3779B97F4A7C15));						   /* golden ratio */
 	/* N.B.  the aesenc instructions do the xor *after*
 	// so if we want to follow the AES pattern, we
 	// have to do the initial xor explicitly */
@@ -161,7 +161,8 @@ ROUNDS=5 or more.
 @class ARS1xm128i_R
 
 */
-template<unsigned int ROUNDS> struct ARS1xm128i_R {
+template<unsigned int ROUNDS>
+struct ARS1xm128i_R {
 	typedef ars1xm128i_ctr_t ctr_type;
 	typedef ars1xm128i_key_t key_type;
 	typedef ars1xm128i_key_t ukey_type;
@@ -170,10 +171,11 @@ template<unsigned int ROUNDS> struct ARS1xm128i_R {
 };
 
 /** @class ARS4x32_R
-    @ingroup AESNI
+	@ingroup AESNI
 */
 
-template<unsigned int ROUNDS> struct ARS4x32_R {
+template<unsigned int ROUNDS>
+struct ARS4x32_R {
 	typedef ars4x32_ctr_t ctr_type;
 	typedef ars4x32_key_t key_type;
 	typedef ars4x32_key_t ukey_type;

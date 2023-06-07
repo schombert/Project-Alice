@@ -288,16 +288,18 @@ struct AESNI4x32 {
 };
 
 /** @ingroup AESNI
-    @class AESNI1xm128i_R
+	@class AESNI1xm128i_R
 
 AESNI1xm128i_R is provided for completeness, but is only instantiable with ROUNDS=10, in
 which case it is identical to AESNI1xm128i */
-template<unsigned ROUNDS = 10> struct AESNI1xm128i_R : public AESNI1xm128i {
+template<unsigned ROUNDS = 10>
+struct AESNI1xm128i_R : public AESNI1xm128i {
 	R123_STATIC_ASSERT(ROUNDS == 10, "AESNI1xm128i_R<R> is only valid with R=10");
 };
 
 /** @class AESNI4x32_R **/
-template<unsigned ROUNDS = 10> struct AESNI4x32_R : public AESNI4x32 {
+template<unsigned ROUNDS = 10>
+struct AESNI4x32_R : public AESNI4x32 {
 	R123_STATIC_ASSERT(ROUNDS == 10, "AESNI4x32_R<R> is only valid with R=10");
 };
 } // namespace r123

@@ -49,7 +49,7 @@ so as not to confuse it with the version available from LANL.
 #if !defined(__x86_64__) && !defined(__i386__) && !defined(__powerpc64__)
 #error "This code has only been tested on x86 platforms."
 #include <including_a_nonexistent_file_will_stop_some_compilers_from_continuing_with_a_hopeless_task>
-{   /* maybe an unbalanced brace will terminate the compilation */
+{	/* maybe an unbalanced brace will terminate the compilation */
 	/* Feel free to try the Random123 library on other architectures by changing
 	the conditions that reach this error, but you should consider it a
 	porting exercise and expect to encounter bugs and deficiencies.

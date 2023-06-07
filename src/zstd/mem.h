@@ -18,17 +18,17 @@ extern "C" {
 /*-****************************************
  *  Dependencies
  ******************************************/
-#include <stddef.h>    /* size_t, ptrdiff_t */
+#include <stddef.h>	   /* size_t, ptrdiff_t */
 #include "compiler.h"  /* __has_builtin */
-#include "debug.h"     /* DEBUG_STATIC_ASSERT */
+#include "debug.h"	   /* DEBUG_STATIC_ASSERT */
 #include "zstd_deps.h" /* ZSTD_memcpy */
 
 /*-****************************************
  *  Compiler specifics
  ******************************************/
 #if defined(_MSC_VER) /* Visual Studio */
-#include <stdlib.h>   /* _byteswap_ulong */
-#include <intrin.h>   /* _byteswap_* */
+#include <stdlib.h>	  /* _byteswap_ulong */
+#include <intrin.h>	  /* _byteswap_* */
 #endif
 #if defined(__GNUC__)
 #define MEM_STATIC static __inline __attribute__((unused))
@@ -250,8 +250,8 @@ MEM_STATIC U32 MEM_swap32(U32 in) {
 
 MEM_STATIC U64 MEM_swap64_fallback(U64 in) {
 	return ((in << 56) & 0xff00000000000000ULL) | ((in << 40) & 0x00ff000000000000ULL) | ((in << 24) & 0x0000ff0000000000ULL) |
-	       ((in << 8) & 0x000000ff00000000ULL) | ((in >> 8) & 0x00000000ff000000ULL) | ((in >> 24) & 0x0000000000ff0000ULL) |
-	       ((in >> 40) & 0x000000000000ff00ULL) | ((in >> 56) & 0x00000000000000ffULL);
+		   ((in << 8) & 0x000000ff00000000ULL) | ((in >> 8) & 0x00000000ff000000ULL) | ((in >> 24) & 0x0000000000ff0000ULL) |
+		   ((in >> 40) & 0x000000000000ff00ULL) | ((in >> 56) & 0x00000000000000ffULL);
 }
 
 MEM_STATIC U64 MEM_swap64(U64 in) {

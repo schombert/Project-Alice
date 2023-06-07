@@ -49,7 +49,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 	if(ui_state.under_mouse != nullptr) {
 		auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
-		                                                    mod);
+			mod);
 		if(r != ui::message_result::consumed) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			if(ui_state.province_window) {
@@ -74,7 +74,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.under_mouse != nullptr) {
 		auto r =
-		    ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
+			ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 		if(r != ui::message_result::consumed) {
 			map_state.on_mouse_move(x, y, x_size, y_size, mod);
 		}
@@ -87,11 +87,11 @@ void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called w
 
 	if(ui_state.drag_target)
 		ui_state.drag_target->on_drag(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-		                              int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
-		                              int32_t(y / user_settings.ui_scale), mod);
+			int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
+			int32_t(y / user_settings.ui_scale), mod);
 }
 void state::on_drag_finished(int32_t x, int32_t y,
-                             key_modifiers mod) { // called when the left button is released after one or more drag events
+	key_modifiers mod) { // called when the left button is released after one or more drag events
 	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag_finish(*this);
 		ui_state.drag_target = nullptr;
@@ -106,7 +106,7 @@ void state::on_resize(int32_t x, int32_t y, window_state win_state) {
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 	if(ui_state.scroll_target != nullptr) {
 		auto r = ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
-		                                                amount, mod);
+			amount, mod);
 		if(r != ui::message_result::consumed) {
 			// TODO Settings for making zooming the map faster
 			map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
@@ -138,18 +138,18 @@ void state::on_text(char c) { // c is win1250 codepage value
 		ui_state.edit_target->on_text(*this, c);
 }
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for
-	                   // vsync
+					   // vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-	                                                   int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
 			mouse_probe =
-			    ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			                                          int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+				ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 		}
 	}
 
@@ -162,10 +162,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c1) {
 				if(world.national_event_get_is_major(c1->e)) {
 					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-					    ->events.push_back(ui::event_data_wrapper{*c1});
+						->events.push_back(ui::event_data_wrapper{*c1});
 				} else {
 					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-					    ->events.push_back(ui::event_data_wrapper{*c1});
+						->events.push_back(ui::event_data_wrapper{*c1});
 				}
 				new_n_event.pop();
 				c1 = new_n_event.front();
@@ -175,10 +175,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c2) {
 				if(world.free_national_event_get_is_major(c2->e)) {
 					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-					    ->events.push_back(ui::event_data_wrapper{*c2});
+						->events.push_back(ui::event_data_wrapper{*c2});
 				} else {
 					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-					    ->events.push_back(ui::event_data_wrapper{*c2});
+						->events.push_back(ui::event_data_wrapper{*c2});
 				}
 				new_f_n_event.pop();
 				c2 = new_f_n_event.front();
@@ -187,7 +187,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c3 = new_p_event.front();
 			while(c3) {
 				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-				    ->events.push_back(ui::event_data_wrapper{*c3});
+					->events.push_back(ui::event_data_wrapper{*c3});
 				new_p_event.pop();
 				c3 = new_p_event.front();
 			}
@@ -195,7 +195,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c4 = new_f_p_event.front();
 			while(c4) {
 				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-				    ->events.push_back(ui::event_data_wrapper{*c4});
+					->events.push_back(ui::event_data_wrapper{*c4});
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
 			}
@@ -245,10 +245,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				                                              text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y,
-				                                                                      ui_state.tooltip_font, 0, text::alignment::left,
-				                                                                      text::text_color::white},
-				                                              250);
+					text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y,
+						ui_state.tooltip_font, 0, text::alignment::left,
+						text::text_color::white},
+					250);
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
@@ -261,8 +261,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	auto tooltip_probe =
-	    ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-	                                    int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+		ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
@@ -271,10 +271,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(type != ui::tooltip_behavior::no_tooltip) {
 
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				                                              text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y,
-				                                                                      ui_state.tooltip_font, 0, text::alignment::left,
-				                                                                      text::text_color::white},
-				                                              250);
+					text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y,
+						ui_state.tooltip_font, 0, text::alignment::left,
+						text::text_color::white},
+					250);
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
@@ -290,10 +290,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container =
-		    text::create_columnar_layout(ui_state.tooltip->internal_layout,
-		                                 text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
-		                                                         text::alignment::left, text::text_color::white},
-		                                 250);
+			text::create_columnar_layout(ui_state.tooltip->internal_layout,
+				text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+					text::alignment::left, text::text_color::white},
+				250);
 		ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
@@ -307,34 +307,34 @@ void state::render() { // called to render the frame may (and should) delay retu
 		// reposition tooltip
 		auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
 		if(ui_state.tooltip->base_data.size.y <=
-		   ui_state.root->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+			ui_state.root->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
-			    int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-			    int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+				int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
 		} else if(ui_state.tooltip->base_data.size.x <=
-		          ui_state.root->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+				  ui_state.root->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
-			    int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-			    int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+				int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+				int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
-			    int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-			    int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+				int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+				int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
-			    int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-			    int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+				int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
 		} else {
 			ui_state.tooltip->base_data.position.x = std::clamp(
-			    int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-			    int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+				int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
 			ui_state.tooltip->base_data.position.y = std::clamp(
-			    int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-			    int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+				int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+				int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		}
 	}
 
@@ -352,8 +352,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
-			                          ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-			                          ui::rotation::upright, gfx_def.is_vertically_flipped());
+				ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+				ui::rotation::upright, gfx_def.is_vertically_flipped());
 		}
 	}
 
@@ -371,9 +371,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
 	ui_state.scroll_target = ui_state.root
-	                             ->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-	                                                int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip)
-	                             .under_mouse;
+								 ->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+									 int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip)
+								 .under_mouse;
 
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 
@@ -408,19 +408,19 @@ void state::on_create() {
 	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |=
-	    ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |=
-	    ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |=
-	    ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("declarewardialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
-	    ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
-	    ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
@@ -591,7 +591,7 @@ dcon::text_key state::add_to_pool(std::string_view new_text) {
 dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 	if(new_text.length() > 0) {
 		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
-		                                 std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
+			std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
 		if(search_result != text_data.data() + text_data.size()) {
 			return dcon::text_key(uint32_t(search_result - text_data.data()));
 		} else {
@@ -635,7 +635,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(trigger_data.data(), trigger_data.data() + trigger_data.size(),
-	                                 std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+		std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
 	if(search_result != trigger_data.data() + trigger_data.size()) {
 		auto const start = search_result - trigger_data.data();
 		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
@@ -673,7 +673,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 void state::save_user_settings() const {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const*>(&user_settings),
-	                      uint32_t(sizeof(user_settings_s)));
+		uint32_t(sizeof(user_settings_s)));
 }
 void state::load_user_settings() {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
@@ -790,21 +790,21 @@ void state::load_scenario_data() {
 	*/
 
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(240, 208, 0));
-	   it != context.map_color_to_province_id.end() &&
-	   context.map_color_to_province_id.find(sys::pack_color(240, 208, 1)) == context.map_color_to_province_id.end()) {
+		it != context.map_color_to_province_id.end() &&
+		context.map_color_to_province_id.find(sys::pack_color(240, 208, 1)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(240, 208, 1), it->second);
 	}
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(128, 65, 96));
-	   it != context.map_color_to_province_id.end() &&
-	   context.map_color_to_province_id.find(sys::pack_color(128, 65, 97)) == context.map_color_to_province_id.end()) {
+		it != context.map_color_to_province_id.end() &&
+		context.map_color_to_province_id.find(sys::pack_color(128, 65, 97)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(128, 65, 97), it->second);
 	}
 
 	// 1, 222, 200 --> 51, 221, 251 -- randomly misplaced sea
 
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(51, 221, 251));
-	   it != context.map_color_to_province_id.end() &&
-	   context.map_color_to_province_id.find(sys::pack_color(1, 222, 200)) == context.map_color_to_province_id.end()) {
+		it != context.map_color_to_province_id.end() &&
+		context.map_color_to_province_id.find(sys::pack_color(1, 222, 200)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(1, 222, 200), it->second);
 	}
 
@@ -812,13 +812,13 @@ void state::load_scenario_data() {
 	// 247, 248, 245 -- > 89, 202, 202
 
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
-	   it != context.map_color_to_province_id.end() &&
-	   context.map_color_to_province_id.find(sys::pack_color(94, 53, 41)) == context.map_color_to_province_id.end()) {
+		it != context.map_color_to_province_id.end() &&
+		context.map_color_to_province_id.find(sys::pack_color(94, 53, 41)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(94, 53, 41), it->second);
 	}
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
-	   it != context.map_color_to_province_id.end() &&
-	   context.map_color_to_province_id.find(sys::pack_color(247, 248, 245)) == context.map_color_to_province_id.end()) {
+		it != context.map_color_to_province_id.end() &&
+		context.map_color_to_province_id.find(sys::pack_color(247, 248, 245)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(247, 248, 245), it->second);
 	}
 
@@ -1298,7 +1298,7 @@ void state::load_scenario_data() {
 		auto pop_history = open_directory(history, NATIVE("pops"));
 		auto startdate = sys::date(0).to_ymd(start_date);
 		auto start_dir_name =
-		    std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
@@ -1339,7 +1339,7 @@ void state::load_scenario_data() {
 		err.file_name = "triggered_modifiers.txt";
 		for(auto& r : context.set_of_triggered_modifiers) {
 			national_definitions.triggered_modifiers[r.index].trigger_condition =
-			    parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+				parsers::read_triggered_modifier_condition(r.generator_state, err, context);
 		}
 	}
 	// cb contents
@@ -1500,7 +1500,7 @@ void state::load_scenario_data() {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
 				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2]));
-				   it != context.map_of_ident_names.end()) {
+					it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						parsers::oob_file_context new_context{context, holder};
@@ -1581,7 +1581,7 @@ void state::load_scenario_data() {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
 				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2]));
-				   it != context.map_of_ident_names.end()) {
+					it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
 					parsers::country_history_context new_context{context, it->second, holder};
@@ -1596,7 +1596,7 @@ void state::load_scenario_data() {
 
 				} else {
 					err.accumulated_errors +=
-					    "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+						"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 				}
 			}
 		}
@@ -1666,10 +1666,10 @@ void state::load_scenario_data() {
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
 		if(prov_a.id.index() < province_definitions.first_sea_province.index() &&
-		   prov_b.id.index() >= province_definitions.first_sea_province.index()) {
+			prov_b.id.index() >= province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() &&
-		          prov_b.id.index() < province_definitions.first_sea_province.index()) {
+				  prov_b.id.index() < province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
@@ -1837,11 +1837,11 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 }
 
 constexpr inline int32_t game_speed[] = {
-    0,    // speed 0
-    2000, // speed 1 -- 2 seconds
-    1000, // speed 2 -- 1 second
-    500,  // speed 3 -- 0.5 seconds
-    250,  // speed 4 -- 0.25 seconds
+	0,	  // speed 0
+	2000, // speed 1 -- 2 seconds
+	1000, // speed 2 -- 1 second
+	500,  // speed 3 -- 0.5 seconds
+	250,  // speed 4 -- 0.25 seconds
 };
 
 void state::game_loop() {
@@ -1985,11 +1985,11 @@ void state::game_loop() {
 					}
 					case 6:
 						province::ve_for_each_land_province(
-						    *this, [&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
+							*this, [&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
 						break;
 					case 7:
 						province::ve_for_each_land_province(
-						    *this, [&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+							*this, [&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
 						break;
 					}
 				});
@@ -2080,9 +2080,9 @@ void state::game_loop() {
 				culture::update_reasearch(*this, uint32_t(ymd_date.year));
 
 				nations::update_military_scores(*this); // depends on ship score, land unit average
-				nations::update_rankings(*this);        // depends on industrial score, military scores
-				nations::update_great_powers(*this);    // depends on rankings
-				nations::update_influence(*this);       // depends on rankings, great powers
+				nations::update_rankings(*this);		// depends on industrial score, military scores
+				nations::update_great_powers(*this);	// depends on rankings
+				nations::update_influence(*this);		// depends on rankings, great powers
 
 				province::update_colonization(*this);
 				military::update_cbs(*this); // may add/remove cbs to a nation

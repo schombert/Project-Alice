@@ -55,53 +55,53 @@ Most of the symbols are boolean valued.  In general, they will
 Library users can override any value by defining the pp-symbol with a compiler option,
 e.g.,
 
-    cc -DR123_USE_MULHILO64_C99
+	cc -DR123_USE_MULHILO64_C99
 
 will use a strictly c99 version of the full-width 64x64->128-bit multiplication
 function, even if it would be disabled by default.
 
 All boolean-valued pre-processor symbols in Random123/features/compilerfeatures.h start with the prefix R123_USE_
 @verbatim
-         AES_NI
-         AES_OPENSSL
-         SSE4_2
-         SSE4_1
-         SSE
+		 AES_NI
+		 AES_OPENSSL
+		 SSE4_2
+		 SSE4_1
+		 SSE
 
-         STD_RANDOM
+		 STD_RANDOM
 
-         GNU_UINT128
-         ASM_GNU
-         ASM_MSASM
+		 GNU_UINT128
+		 ASM_GNU
+		 ASM_MSASM
 
-         CPUID_MSVC
+		 CPUID_MSVC
 
-         CXX11_RANDOM
-         CXX11_TYPE_TRAITS
-         CXX11_STATIC_ASSERT
-         CXX11_CONSTEXPR
-         CXX11_UNRESTRICTED_UNIONS
-         CXX11_EXPLICIT_CONVERSIONS
-         CXX11_LONG_LONG
-         CXX11_STD_ARRAY
-         CXX11
+		 CXX11_RANDOM
+		 CXX11_TYPE_TRAITS
+		 CXX11_STATIC_ASSERT
+		 CXX11_CONSTEXPR
+		 CXX11_UNRESTRICTED_UNIONS
+		 CXX11_EXPLICIT_CONVERSIONS
+		 CXX11_LONG_LONG
+		 CXX11_STD_ARRAY
+		 CXX11
 
-         X86INTRIN_H
-         IA32INTRIN_H
-         XMMINTRIN_H
-         EMMINTRIN_H
-         SMMINTRIN_H
-         WMMINTRIN_H
-         INTRIN_H
+		 X86INTRIN_H
+		 IA32INTRIN_H
+		 XMMINTRIN_H
+		 EMMINTRIN_H
+		 SMMINTRIN_H
+		 WMMINTRIN_H
+		 INTRIN_H
 
-         MULHILO32_ASM
-         MULHILO64_ASM
-         MULHILO64_MSVC_INTRIN
-         MULHILO64_CUDA_INTRIN
-         MULHILO64_OPENCL_INTRIN
-         MULHILO64_C99
+		 MULHILO32_ASM
+		 MULHILO64_ASM
+		 MULHILO64_MSVC_INTRIN
+		 MULHILO64_CUDA_INTRIN
+		 MULHILO64_OPENCL_INTRIN
+		 MULHILO64_C99
 
-         U01_DOUBLE
+		 U01_DOUBLE
 
 @endverbatim
 Most have obvious meanings.  Some non-obvious ones:
@@ -150,7 +150,7 @@ There are also non-boolean valued symbols:
   here will be portable between versions of gcc and to other C99
   compilers.
   See: http://gcc.gnu.org/onlinedocs/gcc/Inline.html
-       http://www.greenend.org.uk/rjk/2003/03/inline.html
+	   http://www.greenend.org.uk/rjk/2003/03/inline.html
 
 <li>R123_FORCE_INLINE(decl) -
   which expands to 'decl', adorned with the compiler-specific
@@ -297,10 +297,10 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 #endif
 
 #ifndef R123_USE_PHILOX_64BIT
-#define R123_USE_PHILOX_64BIT                                                                                                            \
-	(R123_USE_64BIT &&                                                                                                                   \
-	 (R123_USE_MULHILO64_ASM || R123_USE_MULHILO64_MSVC_INTRIN || R123_USE_MULHILO64_CUDA_INTRIN || R123_USE_GNU_UINT128 ||              \
-	  R123_USE_MULHILO64_C99 || R123_USE_MULHILO64_OPENCL_INTRIN || R123_USE_MULHILO64_MULHI_INTRIN))
+#define R123_USE_PHILOX_64BIT                                                                                                  \
+	(R123_USE_64BIT &&                                                                                                         \
+		(R123_USE_MULHILO64_ASM || R123_USE_MULHILO64_MSVC_INTRIN || R123_USE_MULHILO64_CUDA_INTRIN || R123_USE_GNU_UINT128 || \
+			R123_USE_MULHILO64_C99 || R123_USE_MULHILO64_OPENCL_INTRIN || R123_USE_MULHILO64_MULHI_INTRIN))
 #endif
 
 #ifndef R123_ULONG_LONG

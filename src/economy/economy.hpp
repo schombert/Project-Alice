@@ -31,7 +31,9 @@ struct naval_base_information {
 	dcon::text_sequence_id name;
 };
 
-enum class province_building_type : uint8_t { railroad, fort, naval_base };
+enum class province_building_type : uint8_t { railroad,
+	fort,
+	naval_base };
 inline std::string_view province_building_type_get_name(economy::province_building_type v) {
 	switch(v) {
 	case economy::province_building_type::railroad:
@@ -52,9 +54,13 @@ struct global_economy_state {
 	float craftsmen_fraction = 0.8f;
 };
 
-enum class worker_effect : uint8_t { none = 0, input, output, throughput };
+enum class worker_effect : uint8_t { none = 0,
+	input,
+	output,
+	throughput };
 
-template<typename T> auto desired_needs_spending(sys::state const& state, T pop_indices) {
+template<typename T>
+auto desired_needs_spending(sys::state const& state, T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc
 	return 0.0f;
 }
@@ -134,7 +140,7 @@ struct new_factory {
 };
 template<typename F>
 void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
-                          F&& func); // calls the function repeatedly with new_factory as parameters
+	F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
@@ -142,7 +148,7 @@ struct upgraded_factory {
 };
 template<typename F>
 void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
-                               F&& func); // calls the function repeatedly with new_factory as parameters
+	F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);

@@ -64,7 +64,8 @@ namespace r123 {
   and keys.
 */
 
-template<typename CBRNG> struct Engine {
+template<typename CBRNG>
+struct Engine {
 	typedef CBRNG cbrng_type;
 	typedef typename CBRNG::ctr_type ctr_type;
 	typedef typename CBRNG::key_type key_type;
@@ -124,11 +125,11 @@ public:
 	template<typename SeedSeq>
 	explicit Engine(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
-	                ,
-	                typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
+		,
+		typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
-	                )
-	    : b(), c() {
+		)
+		: b(), c() {
 		ukey_type ukey = ukey_type::seed(s);
 		key = ukey;
 		v.back() = 0;
@@ -137,8 +138,8 @@ public:
 	template<typename SeedSeq>
 	void seed(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
-	          ,
-	          typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
+		,
+		typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
 	) {
 		*this = Engine(s);
@@ -218,7 +219,7 @@ public:
 #if R123_USE_CXX11_TYPE_TRAITS
 	template<typename DUMMY = void>
 	explicit Engine(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
-	    : key(k), c() {
+		: key(k), c() {
 		v.back() = 0;
 	}
 

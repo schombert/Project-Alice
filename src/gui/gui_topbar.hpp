@@ -32,12 +32,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		std::vector<float> datapoints(size_t(32));
 		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
-			datapoints[i] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + i) % 32] -
-			                state.player_data_cache.treasury_record[(state.current_date.value + 0 + i) % 32];
-		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + 31) % 32] -
-		                                    state.player_data_cache.treasury_record[(state.current_date.value + 0 + 31) % 32];
+			datapoints[i] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + i) % 32] - state.player_data_cache.treasury_record[(state.current_date.value + 0 + i) % 32];
+		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + 31) % 32] - state.player_data_cache.treasury_record[(state.current_date.value + 0 + 31) % 32];
 		datapoints[0] = datapoints[1]; // stability trick -- this compesates for the fact that the day changes early in the update, and
-		                               // you could see the line chart "shift" before the day actually updates
+									   // you could see the line chart "shift" before the day actually updates
 
 		set_data_points(state, datapoints);
 	}
@@ -80,9 +78,7 @@ public:
 		}
 	}
 
-	bool is_active(sys::state& state) noexcept override {
-		return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible();
-	}
+	bool is_active(sys::state& state) noexcept override { return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible(); }
 
 	element_base* topbar_subwindow = nullptr;
 };
@@ -204,10 +200,7 @@ public:
 
 class topbar_losing_gp_status_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!(nations::is_great_power(state, nation_id) &&
-		                 state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count))); }
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
@@ -221,11 +214,9 @@ public:
 			if(!nations::is_great_power(state, nation_id)) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
 			} else if(state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_loosinggpstatus"),
-				                           text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_loosinggpstatus"), text::substitution_map{});
 			} else if(state.world.nation_get_rank(nation_id) <= uint16_t(state.defines.great_nations_count)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_loosinggpstatus"),
-				                           text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_loosinggpstatus"), text::substitution_map{});
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -242,9 +233,7 @@ public:
 
 class topbar_building_factories_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!economy::nation_is_constructing_factories(state, nation_id)); }
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
@@ -278,9 +267,7 @@ public:
 
 class topbar_closed_factories_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!economy::nation_has_closed_factories(state, nation_id)); }
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
@@ -312,8 +299,7 @@ public:
 									new_staat = false;
 								}
 								text::add_to_layout_box(contents, state, box, std::string_view(" - "));
-								text::add_to_layout_box(contents, state, box, factloc.get_factory().get_building_type().get_name(),
-								                        text::text_color::yellow);
+								text::add_to_layout_box(contents, state, box, factloc.get_factory().get_building_type().get_name(), text::text_color::yellow);
 								text::add_line_break_to_layout_box(contents, state, box);
 							}
 						}
@@ -361,21 +347,13 @@ public:
 					auto fat_state = dcon::fatten(state.world, state_slim);
 					if(fat_state.is_valid()) {
 						auto state_instance = fat_state.get_state();
-						if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id) >= 10.0f &&
-						   state_instance.get_demographics(
-						       demographics::to_key(state, state.culture_definitions.primary_factory_worker)) > 10.0f) {
+						if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id) >= 10.0f && state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) > 10.0f) {
 							text::add_line_break_to_layout_box(contents, state, box);
 							text::substitution_map sub;
 
 							auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
-							int32_t num_unemployed =
-							    int32_t(state_instance.get_demographics(
-							                demographics::to_key(state, state.culture_definitions.primary_factory_worker)) -
-							            state_instance.get_demographics(
-							                demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
-							auto perc_unemployed =
-							    text::fp_two_places{num_unemployed / state_instance.get_demographics(demographics::to_key(
-							                                             state, state.culture_definitions.primary_factory_worker))};
+							int32_t num_unemployed = int32_t(state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
+							auto perc_unemployed = text::fp_two_places{num_unemployed / state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
 
 							// auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
 							// auto pop_name = text::produce_simple_string(state, pop_fat.get_name());
@@ -402,9 +380,7 @@ public:
 
 class topbar_available_reforms_icon : public standard_nation_button {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!nations::has_reform_available(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!nations::has_reform_available(state, nation_id)); }
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
@@ -416,8 +392,7 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			if(!nations::has_reform_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candoreforms"),
-				                           text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candoreforms"), text::substitution_map{});
 			} else if(nations::has_reform_available(state, nation_id)) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
 				text::add_divider_to_layout_box(state, contents, box);
@@ -481,9 +456,7 @@ public:
 
 class topbar_available_decisions_icon : public standard_nation_button {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!nations::has_decision_available(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!nations::has_decision_available(state, nation_id)); }
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
@@ -495,19 +468,16 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			if(!nations::has_decision_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"),
-				                           text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"), text::substitution_map{});
 			} else if(nations::has_decision_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"),
-				                           text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"), text::substitution_map{});
 				// Display Available Decisions
 				state.world.for_each_decision([&](dcon::decision_id di) {
 					if(nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
 						auto lim = state.world.decision_get_potential(di);
 						if(!lim || trigger::evaluate(state, lim, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
 							auto allow = state.world.decision_get_allow(di);
-							if(!allow ||
-							   trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
+							if(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
 								text::add_line_break_to_layout_box(contents, state, box);
 								auto fat_id = dcon::fatten(state.world, di);
 								text::add_to_layout_box(contents, state, box, fat_id.get_name(), text::text_color::yellow);
@@ -523,9 +493,7 @@ public:
 
 class topbar_ongoing_election_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(!politics::is_election_ongoing(state, nation_id));
-	}
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!politics::is_election_ongoing(state, nation_id)); }
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
@@ -538,12 +506,10 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			if(politics::has_elections(state, nation_id)) {
 				if(!politics::is_election_ongoing(state, nation_id)) {
-					text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"),
-					                           text::substitution_map{});
+					text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"), text::substitution_map{});
 				} else if(politics::is_election_ongoing(state, nation_id)) {
 					text::substitution_map sub;
-					text::add_to_substitution_map(sub, text::variable_type::date,
-					                              dcon::fatten(state.world, nation_id).get_election_ends());
+					text::add_to_substitution_map(sub, text::variable_type::date, dcon::fatten(state.world, nation_id).get_election_ends());
 					text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
 				}
 			} else {
@@ -572,8 +538,7 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
 			if(rebellions_iter.begin() == rebellions_iter.end()) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_haverebels"),
-				                           text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_haverebels"), text::substitution_map{});
 			} else if(rebellions_iter.begin() != rebellions_iter.end()) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_haverebels"), text::substitution_map{});
 				auto nation_fat_id = dcon::fatten(state.world, nation_id);
@@ -711,16 +676,13 @@ public:
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
 			} else {
 				if(nations::sphereing_progress_is_possible(state, nation_id)) {
-					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"),
-					                           text::substitution_map{});
+					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"), text::substitution_map{});
 				} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-					text::add_to_layout_box(
-					    contents, state, box,
-					    std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then we might
-					                                                        // have to display text -breizh
+					text::add_to_layout_box(contents, state, box,
+						std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then we might
+																			// have to display text -breizh
 				} else {
-					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"),
-					                           text::substitution_map{});
+					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"), text::substitution_map{});
 				}
 			}
 			text::close_layout_box(contents, box);
@@ -739,9 +701,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box,
-			                        text::produce_simple_string(state, state.world.commodity_get_name(commodity_id)),
-			                        text::text_color::white);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_name(commodity_id)), text::text_color::white);
 			text::add_to_layout_box(contents, state, box, std::string_view(":"), text::text_color::white);
 			text::add_space_to_layout_box(contents, state, box);
 			text::add_to_layout_box(contents, state, box, text::format_float(amount, 2), text::text_color::white);
@@ -978,14 +938,11 @@ public:
 		{
 			std::map<float, int32_t> v;
 			for(dcon::commodity_id cid : state.world.in_commodity) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
-				   sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
-				   sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods &&
-				   sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
+					sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
 					return;
 				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
-				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) *
-				                 state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
+				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) * state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
 				v.insert({produced - consumed, cid.index()});
 			}
 
@@ -1018,10 +975,8 @@ public:
 		{
 			std::map<float, int32_t> v;
 			for(dcon::commodity_id cid : state.world.in_commodity) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
-				   sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
-				   sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods &&
-				   sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
+					sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods && sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
 					return;
 				v.insert({state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index()});
 			}
