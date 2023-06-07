@@ -178,7 +178,7 @@ Represents an element that can be typed into, by default it handles all of the u
 ### Text rendering and layout
 
 #### Adding Tooltips
-For adding tooltips you need to define two functions,
+For adding tooltips you need to define two functions:
 ```cpp
 tooltip_behavior has_tooltip(sys::state& state) noexcept override {
     return tooltip_behavior::variable_tooltip;
@@ -188,9 +188,9 @@ void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layo
     // Insert your tooltip code in here
 }
 ```
-NOTE: as a beginner it may seem tempting to add tooltips to elements that already exist that dont have them, this is a pitfall you must avoid as it creates issues
+NOTE: as a beginner it may seem tempting to add tooltips to elements that already exist that dont have them, this is a pitfall you MUST avoid as it creates issues,
 instead when you find a element in the codebase that requires a tooltip, inherit from the element class and add the tooltip code to the inherited version of the class,
-this keeps the UI Code clean, consistent, and avoids tooltip cross contamination, which is where two elements get the same tooltip, when either they should have different ones or one/both of them
+this keeps the UI Code clean, consistent, and avoids tooltip cross contamination, which is when two elements get the same tooltip, when either they should have different ones or one/both of them
 shouldnt have tooltips to begin with.
 For a example of how to add tooltips properly, look at gui/gui_topbar.hpp for a example.
 
