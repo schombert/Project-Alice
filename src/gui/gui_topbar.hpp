@@ -20,6 +20,14 @@
 
 namespace ui {
 
+/*
+ * NOTE -
+ * 	None of the classes in here are "redundent" or "pointless",
+ * 	there existance is to prevent tooltip cross contaimination
+ * 	DO NOT FUCKING REMOVE THEM, its was enough of a issue having
+ * 	to readd them the last time they got removed.
+ */
+
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
   public:
 };

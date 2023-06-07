@@ -15,6 +15,18 @@
 #include <unordered_map>
 #include <vector>
 
+/*
+ * DO NOT INTRODUCE TOOLTIPS INTO THIS FILE FOR ANY NON-SPECifiC CLASSES
+ * Adding tooltips into this file means that the tooltips will be the
+ * same for any instance of the element, THIS IS NOT A FEATURE BUT A BUG
+ * if you wish for two elements to have the same tooltips, and thats how Vic2
+ * does it, then just copy the already existant tooltip code from that element
+ * instead of putting it in here.
+ * for adding tooltips to elements defined in this file, simply inherit from them
+ * and add the tooltips to the inherited version, you can see a example of this
+ * in gui/gui_topbar.hpp,	BUT NEVER UNDER ANY CIRCUMSTANCE ADD TOOLTIPS HERE.
+ */
+
 namespace ui {
 
 typedef std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id> pop_list_filter;
