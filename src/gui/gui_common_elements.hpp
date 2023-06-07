@@ -2751,8 +2751,7 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 				auto sdef = wg.get_wargoal().get_associated_state();
 				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
 				if(dcon::fatten(state.world, sdef).is_valid()) {
-					auto name = state.world.state_definition_get_name(sdef);
-					text::add_to_substitution_map(sub, text::variable_type::second, name);
+					text::add_to_substitution_map(sub, text::variable_type::second, sdef);
 				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) !=
 				          0) {
 					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);

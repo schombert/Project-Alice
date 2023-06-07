@@ -1238,7 +1238,7 @@ uint32_t es_region_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.state_definition_get_name(region)));
+		text::add_to_layout_box(layout, ws, box, region);
 		text::close_layout_box(layout, box);
 	}
 
