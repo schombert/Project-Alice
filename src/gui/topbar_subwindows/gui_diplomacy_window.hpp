@@ -533,10 +533,10 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
+			const dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
 			Cyto::Any w_payload = dcon::war_id{};
 			parent->impl_get(state, w_payload);
-			dcon::war_id war_id = any_cast<dcon::war_id>(w_payload);
+			const dcon::war_id war_id = any_cast<dcon::war_id>(w_payload);
 		}
 	}
 };
@@ -658,9 +658,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
-
 			frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
 		}
 	}
@@ -672,9 +671,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
-
 			progress = (fat.get_constructing_cb_progress() / 100.0f);
 		}
 	}
@@ -687,9 +685,8 @@ protected:
 			row_contents.clear();
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
-
 			row_contents.push_back(fat.get_identity_from_identity_holder().id);
 			update(state);
 		}
@@ -703,9 +700,8 @@ protected:
 			row_contents.clear();
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
-
 			row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
 			update(state);
 		}
@@ -718,8 +714,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
+			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			if(content != state.local_player_nation) {
 				disabled = true;
 			} else {
@@ -732,8 +727,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
+			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			command::cancel_cb_fabrication(state, content);
 		}
 	}

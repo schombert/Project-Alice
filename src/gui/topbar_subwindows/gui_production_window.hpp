@@ -67,8 +67,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
 			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-			auto fat = dcon::fatten(state.world, fid);
+			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 			frame = economy::factory_priority(state, fid);
 		}
 	}
@@ -77,7 +76,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
 			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
+			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 			auto fat = dcon::fatten(state.world, fid);
 
 			Cyto::Any n_payload = dcon::nation_id{};
@@ -108,8 +107,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
-		auto fid = any_cast<dcon::factory_id>(payload);
-		auto fat = dcon::fatten(state.world, fid);
+		const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 
 		auto box = text::open_layout_box(contents, 0);
 		// TODO - check if we can change the priority,

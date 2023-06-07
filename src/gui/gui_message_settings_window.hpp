@@ -115,7 +115,7 @@ public:
 	}
 };
 
-class message_log_text : public multiline_text_element_base {
+class message_log_text : public multiline_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
 };
@@ -160,7 +160,6 @@ class message_log_filter_checkbox : public checkbox_button {
 			return "???";
 		}
 	}
-
 public:
 	bool is_active(sys::state& state) noexcept override {
 		if(parent) {
@@ -183,9 +182,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto name = get_filter_text_key(Filter);
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view(name));
+		text::localised_format_box(state, contents, box, get_filter_text_key(Filter));
 		text::close_layout_box(contents, box);
 	}
 };

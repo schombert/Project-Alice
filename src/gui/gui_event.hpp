@@ -31,7 +31,7 @@ typedef std::variant<
     event::pending_human_p_event,
     event::pending_human_f_p_event>
     event_data_wrapper;
-class event_option_button : public button_element_base {
+class event_option_button : public multiline_button_element_base {
 public:
 	uint8_t index = 0;
 	void on_update(sys::state& state) noexcept override;
@@ -45,7 +45,7 @@ class event_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
 };
-class event_desc_text : public multiline_text_element_base {
+class event_desc_text : public scrollable_text {
 public:
 	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;

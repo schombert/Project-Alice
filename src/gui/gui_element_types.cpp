@@ -616,6 +616,33 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 	}
 }
 
+void multiline_button_element_base::on_create(sys::state& state) noexcept {
+	button_element_base::on_create(state);
+	if(base_data.get_element_type() == element_type::button) {
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		line_height = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		visible_lines = base_data.size.y / int32_t(line_height);
+	}
+	set_button_text(state, "");
+}
+
+void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	button_element_base::render(state, x, y);
+	if(base_data.get_element_type() == element_type::button) {
+		for(auto& t : internal_layout.contents) {
+			float line_offset = t.y - line_height * float(current_line);
+			if(0 <= line_offset && line_offset < base_data.size.y) {
+				ogl::render_text(
+				    state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
+				    ogl::color_modification::none,
+				    float(x) + t.x, float(y + line_offset),
+				    get_text_color(t.color),
+				    base_data.data.button.font_handle);
+			}
+		}
+	}
+}
+
 void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 	if(dat.size.x == 0 || dat.size.y == 0) {
 		dcon::gfx_object_id gfx_handle;

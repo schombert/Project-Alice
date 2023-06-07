@@ -348,7 +348,6 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto tech_fat_id = dcon::fatten(state.world, tech_id);
 		if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
 			// Fully researched.
 			tech_button->frame = 1;

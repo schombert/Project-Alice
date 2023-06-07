@@ -22,8 +22,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			disabled = !command::can_release_and_play_as(state, state.local_player_nation, niid);
 		}
 	}
@@ -32,8 +31,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			command::release_and_play_as(state, state.local_player_nation, niid);
 			parent->set_visible(state, false);
 		}
@@ -46,8 +44,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			disabled = !command::can_make_vassal(state, state.local_player_nation, niid);
 		}
 	}
@@ -56,8 +53,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
 			command::make_vassal(state, state.local_player_nation, niid);
 			parent->set_visible(state, false); // Close parent window automatically
 		}
@@ -113,9 +109,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
-			Cyto::Any e_payload = release_emplace_wrapper{nid};
+			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
+			Cyto::Any e_payload = release_emplace_wrapper{ state.world.national_identity_get_nation_from_identity_holder(niid) };
 			parent->impl_get(state, e_payload);
 		}
 	}

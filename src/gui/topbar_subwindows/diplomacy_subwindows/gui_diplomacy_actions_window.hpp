@@ -1058,8 +1058,9 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 			return "cancel_unit_commandtitle";
 		case diplomacy_action::make_peace:
 			return "make_peacetitle";
+		default:
+			return "";
 		}
-		return "";
 	}
 
 public:
@@ -1116,8 +1117,9 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 			return "cancel_unit_command_desc";
 		case diplomacy_action::make_peace:
 			return "make_peace_desc";
+		default:
+			return "";
 		}
-		return "";
 	}
 
 public:
@@ -1196,6 +1198,12 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 			case diplomacy_action::cancel_command_units:
 				return false;
 			case diplomacy_action::make_peace:
+				return false;
+			case diplomacy_action::crisis_backdown:
+				return false;
+			case diplomacy_action::crisis_support:
+				return false;
+			case diplomacy_action::add_wargoal:
 				return false;
 			}
 		}
@@ -1286,6 +1294,12 @@ public:
 			case diplomacy_action::cancel_command_units:
 				break;
 			case diplomacy_action::make_peace:
+				break;
+			case diplomacy_action::crisis_backdown:
+				break;
+			case diplomacy_action::crisis_support:
+				break;
+			case diplomacy_action::add_wargoal:
 				break;
 			}
 			parent->set_visible(state, false);
