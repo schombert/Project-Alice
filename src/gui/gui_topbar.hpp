@@ -24,7 +24,7 @@ namespace ui {
  * NOTE -
  * 	None of the classes in here are "redundent" or "pointless",
  * 	there existance is to prevent tooltip cross contaimination
- * 	DO NOT FUCKING REMOVE THEM, its was enough of a issue having
+ * 	DO NOT REMOVE THEM, its was enough of a issue having
  * 	to readd them the last time they got removed.
  */
 

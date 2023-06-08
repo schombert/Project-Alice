@@ -36,6 +36,113 @@ class province_liferating : public province_liferating_progress_bar {
 	}
 };
 
+class province_population : public province_population_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class province_supplylimit : public province_supply_limit_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		// TODO - needs to display the base supply limit + modifiers
+		text::add_to_layout_box(state, contents, box, std::string_view("UwU"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class province_crimefighting : public province_crime_fighting_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_crimefight"),
+					text::variable_type::value, text::fp_one_place{province::crime_fighting_efficiency(state, content) * 100});
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class province_rebelpercent : public province_rebel_percent_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
+			// substitute.
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value,
+					text::fp_one_place{province::revolt_risk(state, content) * 100});
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class province_rgoworkers : public province_rgo_workers_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_employment"), text::variable_type::value, std::string_view(""));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("production_factory_employeecount_tooltip"));
+		// TODO - list the workers that are used to calculate the value of the above thing here
+		text::localised_format_box(state, contents, box, std::string_view("base_rgo_size"));
+		text::add_to_layout_box(state, contents, box, std::string_view("UwU"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class province_rgo : public province_rgo_icon {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+
+			auto rgo_good = state.world.province_get_rgo(prov_id);
+			if(rgo_good) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(rgo_good), text::substitution_map{});
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+};
+
 class province_close_button : public generic_close_button {
 	public:
 	void button_action(sys::state& state) noexcept override {
@@ -594,7 +701,7 @@ class province_view_foreign_details : public window_element_base {
 		} else if(name == "country_flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "total_population") {
-			return make_element_by_type<province_population_text>(state, id);
+			return make_element_by_type<province_population>(state, id);
 		} else if(name == "sphere_label") {
 			return make_element_by_type<nation_sphere_list_label>(state, id);
 		} else if(name == "puppet_label") {
@@ -614,7 +721,7 @@ class province_view_foreign_details : public window_element_base {
 			culture_chart = ptr.get();
 			return ptr;
 		} else if(name == "goods_type") {
-			return make_element_by_type<province_rgo_icon>(state, id);
+			return make_element_by_type<province_rgo>(state, id);
 		} else if(name == "build_icon_fort") {
 			return make_element_by_type<province_building_icon<economy::province_building_type::fort>>(state, id);
 		} else if(name == "build_icon_navalbase") {
@@ -644,7 +751,7 @@ class province_view_foreign_details : public window_element_base {
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
-			return make_element_by_type<province_supply_limit_text>(state, id);
+			return make_element_by_type<province_supplylimit>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -680,11 +787,11 @@ class province_view_statistics : public window_element_base {
 	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
-			return make_element_by_type<province_rgo_icon>(state, id);
+			return make_element_by_type<province_rgo>(state, id);
 		} else if(name == "open_popscreen") {
 			return make_element_by_type<province_pop_button>(state, id);
 		} else if(name == "total_population") {
-			return make_element_by_type<province_population_text>(state, id);
+			return make_element_by_type<province_population>(state, id);
 		} else if(name == "workforce_chart") {
 			auto ptr = make_element_by_type<workforce_piechart<dcon::province_id>>(state, id);
 			workforce_chart = ptr.get();
@@ -700,7 +807,7 @@ class province_view_statistics : public window_element_base {
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
-			return make_element_by_type<province_supply_limit_text>(state, id);
+			return make_element_by_type<province_supplylimit>(state, id);
 		} else if(name == "crime_icon") {
 			return make_element_by_type<province_crime_icon>(state, id);
 		} else if(name == "crime_name") {
@@ -708,11 +815,11 @@ class province_view_statistics : public window_element_base {
 		} else if(name == "crimefight_percent") {
 			return make_element_by_type<province_crime_fighting_text>(state, id);
 		} else if(name == "rebel_percent") {
-			return make_element_by_type<province_rebel_percent_text>(state, id);
+			return make_element_by_type<province_rebelpercent>(state, id);
 		} else if(name == "employment_ratio") {
 			return make_element_by_type<province_rgo_employment_progress_icon>(state, id);
 		} else if(name == "rgo_population") {
-			return make_element_by_type<province_rgo_workers_text>(state, id);
+			return make_element_by_type<province_rgoworkers>(state, id);
 		} else if(name == "rgo_percent") {
 			return make_element_by_type<province_rgo_employment_percent_text>(state, id);
 		} else if(name == "produced") {

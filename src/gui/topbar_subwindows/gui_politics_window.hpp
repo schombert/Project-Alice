@@ -26,6 +26,24 @@ enum class politics_window_tab : uint8_t { reforms = 0x0, movements = 0x1, decis
 
 enum class politics_issue_sort_order : uint8_t { name, popular_support, voter_support };
 
+class politics_plurality : public nation_plurality_text {
+public:
+	// TODO - fill in plurality tooltip here
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::plurality, false);
+		}
+	}
+};
+
 class politics_unciv_overlay : public standard_nation_icon {
 	public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
@@ -469,7 +487,7 @@ class politics_window : public generic_tabbed_window<politics_window_tab> {
 		} else if(name == "national_value") {
 			return make_element_by_type<nation_national_value_icon>(state, id);
 		} else if(name == "plurality_value") {
-			return make_element_by_type<nation_plurality_text>(state, id);
+			return make_element_by_type<politics_plurality>(state, id);
 		} else if(name == "revanchism_value") {
 			return make_element_by_type<nation_revanchism_text>(state, id);
 		} else if(name == "can_do_social_reforms") {

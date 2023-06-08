@@ -63,6 +63,30 @@ class diplomacy_nation_brigades_text : public nation_brigades_text {
 	}
 };
 
+class diplomacy_war_exhaustion : public nation_war_exhaustion_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"),
+					text::variable_type::value, text::fp_percentage{num});
+			// TODO - check if the nation is at peace, if it is then we display stuff
+			text::close_layout_box(contents, box);
+
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::war_exhaustion, false);
+		}
+	}
+};
+
 class diplomacy_country_tech_text : public nation_technology_admin_type_text {
 	public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -449,7 +473,7 @@ class diplomacy_country_facts : public window_element_base {
 		} else if(name == "infamy_text") {
 			return make_element_by_type<nation_infamy_text>(state, id);
 		} else if(name == "warexhastion_text") {
-			return make_element_by_type<nation_war_exhaustion_text>(state, id);
+			return make_element_by_type<diplomacy_war_exhaustion>(state, id);
 		} else if(name == "brigade_text") {
 			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
 		} else if(name == "ships_text") {

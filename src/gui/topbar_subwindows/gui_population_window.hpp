@@ -12,6 +12,41 @@ namespace ui {
 std::vector<dcon::pop_id> const& get_pop_window_list(sys::state& state);
 dcon::pop_id get_pop_details_pop(sys::state& state);
 
+class popwin_state_population : public state_population_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class popwin_religion_type : public religion_type_icon {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::religion_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::religion_id>(payload);
+
+			auto name = state.world.religion_get_name(content);
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, name);
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+};
+
 class nation_growth_indicator : public opaque_element_base {
 	public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
@@ -868,7 +903,7 @@ class pop_left_side_state_window : public window_element_base {
 		} else if(name == "poplist_name") {
 			return make_element_by_type<state_name_text>(state, id);
 		} else if(name == "poplist_numpops") {
-			return make_element_by_type<state_population_text>(state, id);
+			return make_element_by_type<popwin_state_population>(state, id);
 		} else if(name == "colonial_state_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			colonial_icon = ptr.get();
@@ -1310,7 +1345,7 @@ class pop_details_needs_listbox : public listbox_element_base<pop_details_needs_
 typedef std::variant< std::monostate, dcon::pop_id> pop_details_data;
 class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
 	pop_type_icon* type_icon = nullptr;
-	religion_type_icon* religion_icon = nullptr;
+	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
 	simple_text_element_base* savings_text = nullptr;
 	std::vector<element_base*> promotion_windows;
@@ -1388,7 +1423,7 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 		} else if(name == "literacy_value") {
 			return make_element_by_type<pop_literacy_text>(state, id);
 		} else if(name == "icon_religion") {
-			return make_element_by_type<religion_type_icon>(state, id);
+			return make_element_by_type<popwin_religion_type>(state, id);
 		} else if(name == "bank_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			savings_text = ptr.get();
@@ -1569,7 +1604,7 @@ class pop_item : public listbox_row_element_base<dcon::pop_id> {
 		} else if(name == "pop_type") {
 			return make_element_by_type<pop_details_icon>(state, id);
 		} else if(name == "pop_religion") {
-			return make_element_by_type<religion_type_icon>(state, id);
+			return make_element_by_type<popwin_religion_type>(state, id);
 		} else if(name == "pop_ideology") {
 			return make_element_by_type<pop_ideology_piechart>(state, id);
 		} else if(name == "pop_issues") {

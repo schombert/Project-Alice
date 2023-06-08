@@ -797,6 +797,33 @@ class technology_sort_by_percent_button : public button_element_base {
 	}
 };
 
+class technologywin_administration_type : public nation_technology_admin_type_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, nation_id);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+			auto mod_id = fat_id.get_tech_school().id;
+			if(bool(mod_id)) {
+				modifier_description(state, contents, mod_id);
+			}
+		}
+	}
+};
+
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 	dcon::technology_id tech_id{};
@@ -898,7 +925,7 @@ class technology_window : public generic_tabbed_window<culture::tech_category> {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "administration_type") {
-			return make_element_by_type<nation_technology_admin_type_text>(state, id);
+			return make_element_by_type<technologywin_administration_type>(state, id);
 		} else if(name == "research_progress") {
 			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "research_progress_name") {
