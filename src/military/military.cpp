@@ -257,6 +257,16 @@ bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 	return false;
 }
 
+bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b)
+				return true;
+		}
+	}
+	return false;
+}
+
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
@@ -2698,6 +2708,11 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 	}
 
 	return std::clamp(total, 0.0f, 100.0f);
+}
+
+bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a) {
+	// TODO
+	return false;
 }
 
 } // namespace military

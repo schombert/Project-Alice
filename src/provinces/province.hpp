@@ -92,4 +92,25 @@ void remove_core(sys::state& state, dcon::province_id prov, dcon::national_ident
 void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c);
 void enable_canal(sys::state& state, int32_t id);
 
+// distance from a state to a given province (does not pathfind)
+float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
+// distance between to adjacent provinces 
+float distance(sys::state& state, dcon::province_adjacency_id pair);
+// direct distance between two provinces; does not pathfind
+float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
+
+// determines whether a land unit is allowed to move to / be in a province
+bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+
+//
+// when pathfinding, check that the destination province is valid on its own (i.e. accessible for normal, or embark-able for sea)
+//
+
+// normal pathfinding
+std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
+// used for rebel unit and black-flagged unit pathfinding
+std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+// naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
+std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+
 } // namespace province
