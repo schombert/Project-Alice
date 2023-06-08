@@ -34,7 +34,7 @@ struct token_and_type {
 };
 
 class token_generator {
-private:
+	private:
 	char const* position = nullptr;
 	char const* file_end = nullptr;
 	int32_t current_line = 1;
@@ -44,7 +44,7 @@ private:
 
 	token_and_type internal_next();
 
-public:
+	public:
 	token_generator() { }
 	token_generator(char const* file_start, char const* fe) : position(file_start), file_end(fe) { }
 	bool at_end() const {
@@ -57,7 +57,7 @@ public:
 };
 
 class error_handler {
-public:
+	public:
 	std::string file_name;
 	std::string accumulated_errors;
 	std::string accumulated_warnings;
@@ -67,47 +67,47 @@ public:
 
 	void unhandled_group_key(token_and_type const& t) {
 		accumulated_errors += "unexpected group key " + std::string(t.content) + " found on line " + std::to_string(t.line) +
-							  " of file " + file_name + "\n";
+													" of file " + file_name + "\n";
 	}
 	void unhandled_association_key(token_and_type const& t) {
 		accumulated_errors += "unexpected value key " + std::string(t.content) + " found on line " + std::to_string(t.line) +
-							  " of file " + file_name + "\n";
+													" of file " + file_name + "\n";
 	}
 	void unhandled_free_value(token_and_type const& t) {
 		accumulated_errors += "unexpected free value " + std::string(t.content) + " found on line " + std::to_string(t.line) +
-							  " of file " + file_name + "\n";
+													" of file " + file_name + "\n";
 	}
 	void unhandled_free_group(token_and_type const& t) {
 		accumulated_errors += "unhandled free set beggining with  " + std::string(t.content) + " found on line " +
-							  std::to_string(t.line) + " of file " + file_name + "\n";
+													std::to_string(t.line) + " of file " + file_name + "\n";
 	}
 	void bad_date(std::string_view s, int32_t l) {
 		accumulated_errors +=
-			"tried to parse  " + std::string(s) + " as a date on line " + std::to_string(l) + " of file " + file_name + "\n";
+				"tried to parse  " + std::string(s) + " as a date on line " + std::to_string(l) + " of file " + file_name + "\n";
 	}
 	void bad_float(std::string_view s, int32_t l) {
 		accumulated_errors +=
-			"tried to parse  " + std::string(s) + " as a float on line " + std::to_string(l) + " of file " + file_name + "\n";
+				"tried to parse  " + std::string(s) + " as a float on line " + std::to_string(l) + " of file " + file_name + "\n";
 	}
 	void bad_double(std::string_view s, int32_t l) {
 		accumulated_errors +=
-			"tried to parse  " + std::string(s) + " as a double on line " + std::to_string(l) + " of file " + file_name + "\n";
+				"tried to parse  " + std::string(s) + " as a double on line " + std::to_string(l) + " of file " + file_name + "\n";
 	}
 	void bad_bool(std::string_view s, int32_t l) {
 		accumulated_errors +=
-			"tried to parse  " + std::string(s) + " as a boolean on line " + std::to_string(l) + " of file " + file_name + "\n";
+				"tried to parse  " + std::string(s) + " as a boolean on line " + std::to_string(l) + " of file " + file_name + "\n";
 	}
 	void bad_int(std::string_view s, int32_t l) {
 		accumulated_errors +=
-			"tried to parse  " + std::string(s) + " as an integer on line " + std::to_string(l) + " of file " + file_name + "\n";
+				"tried to parse  " + std::string(s) + " as an integer on line " + std::to_string(l) + " of file " + file_name + "\n";
 	}
 	void bad_unsigned_int(std::string_view s, int32_t l) {
 		accumulated_errors += "tried to parse  " + std::string(s) + " as an unsigned integer on line " + std::to_string(l) +
-							  " of file " + file_name + "\n";
+													" of file " + file_name + "\n";
 	}
 	void bad_association_token(std::string_view s, int32_t l) {
 		accumulated_errors += "tried to parse  " + std::string(s) + " as equality or comparison on line " + std::to_string(l) +
-							  " of file " + file_name + "\n";
+													" of file " + file_name + "\n";
 	}
 };
 

@@ -20,8 +20,8 @@ image load_stb_image(simple_fs::file& file) {
 	int32_t size_x = 0;
 	int32_t size_y = 0;
 	auto content = simple_fs::view_contents(file);
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x,
-		&size_y, &file_channels, 4);
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y,
+			&file_channels, 4);
 	return image(data, size_x, size_y, 4);
 }
 
@@ -70,14 +70,14 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 		size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
 		size_t p_dy = image.size_y / tiles_y; // Pixels of each tile in y
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA,
-			GL_UNSIGNED_BYTE, NULL);
+				GL_UNSIGNED_BYTE, NULL);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.size_x);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, image.size_y);
 
 		for(int32_t x = 0; x < tiles_x; x++)
 			for(int32_t y = 0; y < tiles_y; y++)
 				glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(x * tiles_x + y), GLsizei(p_dx), GLsizei(p_dy), 1, GL_RGBA,
-					GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
+						GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
 
 		set_gltex_parameters(texture_handle, GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -297,16 +297,13 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul),
-						province::from_map_id(prov_id_ur));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 				}
 				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul),
-						province::from_map_id(prov_id_dl));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
 				}
 				if(prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul),
-						province::from_map_id(prov_id_dr));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 				}
 			}
 		}
@@ -322,16 +319,13 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
 
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul),
-						province::from_map_id(prov_id_ur));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 				}
 				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul),
-						province::from_map_id(prov_id_dl));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
 				}
 				if(prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul),
-						province::from_map_id(prov_id_dr));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 				}
 			}
 		}
@@ -347,10 +341,10 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		border.start_index = int32_t(border_vertices.size());
 		border.count = int32_t(current_border_vertices.size());
 		border.type_flag = context.state.world.province_adjacency_get_type(
-			dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
+				dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 
 		border_vertices.insert(border_vertices.end(), std::make_move_iterator(current_border_vertices.begin()),
-			std::make_move_iterator(current_border_vertices.end()));
+				std::make_move_iterator(current_border_vertices.end()));
 	}
 }
 
@@ -358,7 +352,7 @@ void display_data::update_borders(sys::state& state) {
 	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
 		auto& border = borders[border_id];
 		border.type_flag = state.world.province_adjacency_get_type(
-			dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
+				dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 	}
 }
 
@@ -407,7 +401,7 @@ void display_data::create_meshes() {
 	std::vector<map_vertex> land_vertices;
 
 	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0,
-						glm::vec2 pos1) {
+											glm::vec2 pos1) {
 		// Rescale the coordinate to 0-1
 		pos0 /= map_size;
 		pos1 /= map_size;
@@ -539,7 +533,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 }
 
 void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode,
-	map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
+		map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -625,8 +619,8 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	if(zoom > 8) {
 		glUniform1f(4, 0.0013f);
 		uint8_t visible_borders =
-			(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
-				province::border::impassible_bit | province::border::state_bit);
+				(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
+						province::border::impassible_bit | province::border::state_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -642,7 +636,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	if(zoom > 3.5f) {
 		glUniform1f(4, 0.0018f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-								   province::border::non_adjacent_bit | province::border::impassible_bit);
+															 province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -658,7 +652,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	{
 		glUniform1f(4, 0.0027f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-								   province::border::non_adjacent_bit | province::border::impassible_bit);
+															 province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -711,7 +705,7 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 		// Set the texture data for each layer
 		for(int i = 0; i < layers; i++) {
 			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, i, width, height / layers, 1, GL_RGBA, GL_UNSIGNED_BYTE,
-				&prov_color[i * (prov_color.size() / layers)]);
+					&prov_color[i * (prov_color.size() / layers)]);
 		}
 	}
 
@@ -751,7 +745,7 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 	}
 
 	for(int i = context.state.world.province_size();
-		i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+			i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		int max_index = 64;
 		int max = 0;
 		for(int j = max_index; j-- > 0;) {
@@ -798,8 +792,8 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	for(uint32_t y = 0; y < terrain_size_y; ++y) {
 		for(uint32_t x = 0; x < size_x; ++x) {
 			if(province_id_map[(y + top_free_space) * size_x + x] == 0 ||
-				province_id_map[(y + top_free_space) * size_x + x] >=
-					province::to_map_id(context.state.province_definitions.first_sea_province)) {
+					province_id_map[(y + top_free_space) * size_x + x] >=
+							province::to_map_id(context.state.province_definitions.first_sea_province)) {
 				terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(255);
 			} else {
 				auto value = *(terrain_data + x + (terrain_size_y - (y)-1) * terrain_size_x);
@@ -826,7 +820,7 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 		tiles_number[prov_id]++;
 	}
 	for(int i = context.state.world.province_size();
-		i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+			i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		glm::ivec2 tile_pos;
 		if(tiles_number[i] == 0)
 			tile_pos = glm::ivec2(0, 0);
@@ -849,7 +843,7 @@ void display_data::load_province_data(parsers::scenario_building_context& contex
 	auto first_actual_map_pixel = top_free_space * size_x; // schombert: where the real data starts
 	for(; i < first_actual_map_pixel + image.size_x * image.size_y; ++i) {
 		uint8_t* ptr =
-			image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
+				image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
 			province_id_map[i] = province::to_map_id(it->second);

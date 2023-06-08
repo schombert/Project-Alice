@@ -19,7 +19,7 @@ class production_project_input_item : public listbox_row_element_base<production
 	simple_text_element_base* amount_text = nullptr;
 	element_base* commodity_icon = nullptr;
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<production_project_input_data>::on_create(state);
 		amount_text->base_data.position.y = commodity_icon->base_data.position.y + commodity_icon->base_data.size.y - 4;
@@ -53,19 +53,18 @@ public:
 };
 
 class production_project_input_listbox
-	: public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
-protected:
+		: public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
+	protected:
 	std::string_view get_row_element_name() override {
 		return "goods_need_template";
 	}
 };
 
 class production_project_invest_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload =
-				element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
+			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -105,7 +104,7 @@ class production_project_info : public listbox_row_element_base<production_proje
 		return dcon::state_instance_id{};
 	}
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_bg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -153,7 +152,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
 			factory_icon->frame = uint16_t(fat_id.get_type());
 			name_text->set_text(state, text::produce_simple_string(state,
-										   province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
+																		 province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
 			switch(economy::province_building_type(fat_id.get_type())) {
 			case economy::province_building_type::railroad:
 				needed_commodities = state.economy_definitions.railroad_definition.cost;
@@ -181,9 +180,9 @@ public:
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
 				if(bool(needed_commodities.commodity_type[i]))
 					input_listbox->row_contents.push_back(production_project_input_data{
-						needed_commodities.commodity_type[i],		// cid
-						satisfied_commodities.commodity_amounts[i], // satisfied
-						needed_commodities.commodity_amounts[i]		// needed
+							needed_commodities.commodity_type[i],				// cid
+							satisfied_commodities.commodity_amounts[i], // satisfied
+							needed_commodities.commodity_amounts[i]			// needed
 					});
 			input_listbox->update(state);
 		}
@@ -203,26 +202,26 @@ public:
 };
 
 class production_project_listbox : public listbox_element_base<production_project_info, production_project_data> {
-protected:
+	protected:
 	std::string_view get_row_element_name() override {
 		return "project_info";
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation,
-			[&](dcon::state_building_construction_id id) {
-				auto fat_id = dcon::fatten(state.world, id);
-				if(fat_id.get_is_pop_project())
-					row_contents.push_back(production_project_data(id));
-			});
+				[&](dcon::state_building_construction_id id) {
+					auto fat_id = dcon::fatten(state.world, id);
+					if(fat_id.get_is_pop_project())
+						row_contents.push_back(production_project_data(id));
+				});
 		state.world.nation_for_each_province_building_construction_as_nation(state.local_player_nation,
-			[&](dcon::province_building_construction_id id) {
-				auto fat_id = dcon::fatten(state.world, id);
-				if(fat_id.get_is_pop_project())
-					row_contents.push_back(production_project_data(id));
-			});
+				[&](dcon::province_building_construction_id id) {
+					auto fat_id = dcon::fatten(state.world, id);
+					if(fat_id.get_is_pop_project())
+						row_contents.push_back(production_project_data(id));
+				});
 		update(state);
 	}
 };

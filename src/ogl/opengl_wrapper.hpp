@@ -51,8 +51,8 @@ struct color3f {
 
 #ifndef NDEBUG
 inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
-	GLsizei, // length
-	GLchar const* message, void const*) {
+		GLsizei, // length
+		GLchar const* message, void const*) {
 
 	std::string source_str;
 	switch(source) {
@@ -174,12 +174,12 @@ void load_shaders(sys::state& state);
 void load_global_squares(sys::state& state);
 
 class lines {
-private:
+	private:
 	float* buffer = nullptr;
 	GLuint buffer_handle = 0;
 	bool pending_data_update = true;
 
-public:
+	public:
 	uint32_t count = 0;
 
 	lines(uint32_t c) : count(c) {
@@ -187,7 +187,7 @@ public:
 		set_default_y();
 	}
 	lines(lines&& o) noexcept
-		: buffer(o.buffer), buffer_handle(o.buffer_handle), pending_data_update(o.pending_data_update), count(o.count) {
+			: buffer(o.buffer), buffer_handle(o.buffer_handle), pending_data_update(o.pending_data_update), count(o.count) {
 		o.buffer = nullptr;
 	}
 	lines& operator=(lines&& o) noexcept {
@@ -208,24 +208,24 @@ public:
 };
 
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-	GLuint texture_handle, ui::rotation r, bool flipped);
+		GLuint texture_handle, ui::rotation r, bool flipped);
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, lines& l);
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-	data_texture& t, ui::rotation r, bool flipped);
+		data_texture& t, ui::rotation r, bool flipped);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
-	float height, GLuint texture_handle, ui::rotation r, bool flipped);
+		float height, GLuint texture_handle, ui::rotation r, bool flipped);
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-	GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped);
+		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped);
 void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width,
-	float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped);
+		float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped);
 void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b,
-	GLuint texture_handle, ui::rotation rot, bool flipped);
+		GLuint texture_handle, ui::rotation rot, bool flipped);
 void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y,
-	float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
+		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
 void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x,
-	float y, float size, color3f const& c, text::font& f);
+		float y, float size, color3f const& c, text::font& f);
 void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y,
-	color3f const& c, uint16_t font_id);
+		color3f const& c, uint16_t font_id);
 } // namespace ogl

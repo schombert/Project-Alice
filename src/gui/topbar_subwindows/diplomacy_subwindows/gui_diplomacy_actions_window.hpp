@@ -39,7 +39,7 @@ class diplomacy_action_ally_button : public button_element_base {
 		return drid && state.world.diplomatic_relation_get_are_allied(drid);
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -47,7 +47,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			set_button_text(state,
-				text::produce_simple_string(state, can_cancel(state, content) ? "cancelalliance_button" : "alliance_button"));
+					text::produce_simple_string(state, can_cancel(state, content) ? "cancelalliance_button" : "alliance_button"));
 
 			if(can_cancel(state, content))
 				disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
@@ -79,31 +79,31 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			can_cancel(state, content) ? text::localised_format_box(state, contents, box, std::string_view("cancelalliance_desc"))
-									   : text::localised_format_box(state, contents, box, std::string_view("alliance_desc"));
+																 : text::localised_format_box(state, contents, box, std::string_view("alliance_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
 				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{!can_cancel(state, content) ? state.defines.alliance_diplomatic_cost
-																	: state.defines.cancelalliance_diplomatic_cost});
+						text::fp_two_places{!can_cancel(state, content) ? state.defines.alliance_diplomatic_cost
+																														: state.defines.cancelalliance_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 (!can_cancel(state, content) ? state.defines.alliance_diplomatic_cost
-																		  : state.defines.cancelalliance_diplomatic_cost)
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 (!can_cancel(state, content) ? state.defines.alliance_diplomatic_cost
+																																	: state.defines.cancelalliance_diplomatic_cost)
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
 				text::substitution_map ai_map{};
 				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"),
-					ai_map); // Always return 0, that way leafs ai ambititions will be stunted :3
-							 // leaf: Of course this will never occur because the AI would absolutely obliterate the player in 1v1
+						ai_map); // Always return 0, that way leafs ai ambititions will be stunted :3
+										 // leaf: Of course this will never occur because the AI would absolutely obliterate the player in 1v1
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -111,7 +111,7 @@ public:
 };
 
 class diplomacy_action_call_ally_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "callally_button"));
@@ -127,7 +127,7 @@ public:
 			auto fat = dcon::fatten(state.world, content);
 			for(auto war_par : fat.get_war_participant()) {
 				if(command::can_call_to_arms(state, state.local_player_nation, content,
-					   dcon::fatten(state.world, war_par).get_war().id)) {
+							 dcon::fatten(state.world, war_par).get_war().id)) {
 					disabled = false;
 					break;
 				}
@@ -170,15 +170,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.callally_diplomatic_cost});
+						text::fp_two_places{state.defines.callally_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 state.defines.callally_diplomatic_cost
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(
+								state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.callally_diplomatic_cost
+										? "dip_enough_diplo"
+										: "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
 				text::substitution_map ai_map{};
@@ -196,16 +196,15 @@ class diplomacy_action_military_access_button : public button_element_base {
 		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			set_button_text(state,
-				text::produce_simple_string(state,
-					can_cancel(state, content) ? "cancelaskmilitaryaccess_button" : "askmilitaryaccess_button"));
+			set_button_text(state, text::produce_simple_string(state,
+																 can_cancel(state, content) ? "cancelaskmilitaryaccess_button" : "askmilitaryaccess_button"));
 
 			// TODO: Conditions for enabling/disabling
 			if(can_cancel(state, content))
@@ -222,7 +221,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			Cyto::Any ac_payload =
-				can_cancel(state, content) ? diplomacy_action::cancel_military_access : diplomacy_action::military_access;
+					can_cancel(state, content) ? diplomacy_action::cancel_military_access : diplomacy_action::military_access;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -239,25 +238,25 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			can_cancel(state, content)
-				? text::localised_format_box(state, contents, box, std::string_view("cancelaskmilitaryaccess_desc"))
-				: text::localised_format_box(state, contents, box, std::string_view("askmilitaryaccess_desc"));
+					? text::localised_format_box(state, contents, box, std::string_view("cancelaskmilitaryaccess_desc"))
+					: text::localised_format_box(state, contents, box, std::string_view("askmilitaryaccess_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
 				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost
-																	: state.defines.cancelaskmilaccess_diplomatic_cost});
+						text::fp_two_places{!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost
+																														: state.defines.cancelaskmilaccess_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 (!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost
-																		  : state.defines.cancelaskmilaccess_diplomatic_cost)
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 (!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost
+																																	: state.defines.cancelaskmilaccess_diplomatic_cost)
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -271,16 +270,15 @@ class diplomacy_action_give_military_access_button : public button_element_base 
 		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			set_button_text(state,
-				text::produce_simple_string(state,
-					can_cancel(state, content) ? "cancelgivemilitaryaccess_button" : "givemilitaryaccess_button"));
+			set_button_text(state, text::produce_simple_string(state,
+																 can_cancel(state, content) ? "cancelgivemilitaryaccess_button" : "givemilitaryaccess_button"));
 
 			// TODO: Conditions for enabling/disabling
 			if(can_cancel(state, content))
@@ -296,8 +294,8 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			Cyto::Any ac_payload = can_cancel(state, content) ? diplomacy_action::cancel_give_military_access
-															  : diplomacy_action::give_military_access;
+			Cyto::Any ac_payload =
+					can_cancel(state, content) ? diplomacy_action::cancel_give_military_access : diplomacy_action::give_military_access;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -314,25 +312,25 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			can_cancel(state, content)
-				? text::localised_format_box(state, contents, box, std::string_view("cancelgivemilitaryaccess_desc"))
-				: text::localised_format_box(state, contents, box, std::string_view("givemilitaryaccess_desc"));
+					? text::localised_format_box(state, contents, box, std::string_view("cancelgivemilitaryaccess_desc"))
+					: text::localised_format_box(state, contents, box, std::string_view("givemilitaryaccess_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
 				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost
-																	: state.defines.cancelgivemilaccess_diplomatic_cost});
+						text::fp_two_places{!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost
+																														: state.defines.cancelgivemilaccess_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 (!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost
-																		  : state.defines.cancelgivemilaccess_diplomatic_cost)
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 (!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost
+																																	: state.defines.cancelgivemilaccess_diplomatic_cost)
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -341,7 +339,7 @@ public:
 };
 
 class diplomacy_action_increase_relations_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "increaserelation_button"));
@@ -381,15 +379,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.increaserelation_diplomatic_cost});
+						text::fp_two_places{state.defines.increaserelation_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 state.defines.increaserelation_diplomatic_cost
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 state.defines.increaserelation_diplomatic_cost
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -398,7 +396,7 @@ public:
 };
 
 class diplomacy_action_decrease_relations_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decreaserelation_button"));
@@ -438,15 +436,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.decreaserelation_diplomatic_cost});
+						text::fp_two_places{state.defines.decreaserelation_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 state.defines.decreaserelation_diplomatic_cost
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 state.defines.decreaserelation_diplomatic_cost
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -460,18 +458,18 @@ class diplomacy_action_war_subisides_button : public button_element_base {
 		return rel && state.world.unilateral_relationship_get_war_subsidies(rel);
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			set_button_text(state, text::produce_simple_string(state,
-									   can_cancel(state, content) ? "cancel_warsubsidies_button" : "warsubsidies_button"));
+			set_button_text(state,
+					text::produce_simple_string(state, can_cancel(state, content) ? "cancel_warsubsidies_button" : "warsubsidies_button"));
 
 			disabled = can_cancel(state, content) ? !command::can_cancel_war_subsidies(state, state.local_player_nation, content)
-												  : !command::can_give_war_subsidies(state, state.local_player_nation, content);
+																						: !command::can_give_war_subsidies(state, state.local_player_nation, content);
 		}
 	}
 
@@ -482,7 +480,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			Cyto::Any ac_payload =
-				can_cancel(state, content) ? diplomacy_action::cancel_war_subsidies : diplomacy_action::war_subsidies;
+					can_cancel(state, content) ? diplomacy_action::cancel_war_subsidies : diplomacy_action::war_subsidies;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -500,9 +498,9 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map ws_map{};
 			text::add_to_substitution_map(ws_map, text::variable_type::money,
-				text::fp_currency{economy::estimate_war_subsidies(state, content)});
+					text::fp_currency{economy::estimate_war_subsidies(state, content)});
 			text::localised_format_box(state, contents, box,
-				std::string_view(can_cancel(state, content) ? "cancel_warsubsidies_desc" : "warsubsidies_desc"), ws_map);
+					std::string_view(can_cancel(state, content) ? "cancel_warsubsidies_desc" : "warsubsidies_desc"), ws_map);
 
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
@@ -510,17 +508,17 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost
-																	: state.defines.cancelwarsubsidy_diplomatic_cost});
+						text::fp_two_places{!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost
+																														: state.defines.cancelwarsubsidy_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 (!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost
-																		  : state.defines.cancelwarsubsidy_diplomatic_cost)
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 (!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost
+																																	: state.defines.cancelwarsubsidy_diplomatic_cost)
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -529,7 +527,7 @@ public:
 };
 
 class diplomacy_action_declare_war_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 	}
@@ -542,7 +540,7 @@ public:
 
 			if(military::are_at_war(state, state.local_player_nation, content)) {
 				disabled = !command::can_start_peace_offer(state, state.local_player_nation, content,
-					military::find_war_between(state, state.local_player_nation, content), true);
+						military::find_war_between(state, state.local_player_nation, content), true);
 				set_button_text(state, text::produce_simple_string(state, "peace_button"));
 			} else {
 				disabled = true;
@@ -560,9 +558,8 @@ public:
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 
-			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content)
-									   ? diplomacy_action::make_peace
-									   : diplomacy_action::declare_war;
+			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace
+																																														 : diplomacy_action::declare_war;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -589,17 +586,17 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+						text::fp_two_places{state.defines.declarewar_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 (military::are_at_war(state, state.local_player_nation, content)
-													 ? state.defines.peace_diplomatic_cost
-													 : state.defines.declarewar_diplomatic_cost)
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
+																		 (military::are_at_war(state, state.local_player_nation, content)
+																						 ? state.defines.peace_diplomatic_cost
+																						 : state.defines.declarewar_diplomatic_cost)
+																 ? "dip_enough_diplo"
+																 : "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -613,7 +610,7 @@ class diplomacy_action_command_units_button : public button_element_base {
 		return false;
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -621,7 +618,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			set_button_text(state, text::produce_simple_string(state,
-									   can_cancel(state, content) ? "cancel_unit_command_button" : "give_unit_command_button"));
+																 can_cancel(state, content) ? "cancel_unit_command_button" : "give_unit_command_button"));
 
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
@@ -637,7 +634,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			Cyto::Any ac_payload =
-				can_cancel(state, content) ? diplomacy_action::cancel_command_units : diplomacy_action::command_units;
+					can_cancel(state, content) ? diplomacy_action::cancel_command_units : diplomacy_action::command_units;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -653,9 +650,8 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			can_cancel(state, content)
-				? text::localised_format_box(state, contents, box, std::string_view("cancel_unit_command_desc"))
-				: text::localised_format_box(state, contents, box, std::string_view("give_unit_command_desc"));
+			can_cancel(state, content) ? text::localised_format_box(state, contents, box, std::string_view("cancel_unit_command_desc"))
+																 : text::localised_format_box(state, contents, box, std::string_view("give_unit_command_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
 				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -671,7 +667,7 @@ public:
 };
 
 class diplomacy_action_discredit_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "discredit_button"));
@@ -684,7 +680,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			disabled = !command::can_discredit_advisors(state, state.local_player_nation, content,
-				dcon::fatten(state.world, content).get_in_sphere_of().id);
+					dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -715,16 +711,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.discredit_influence_cost});
+						text::fp_two_places{state.defines.discredit_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.discredit_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.discredit_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -733,7 +728,7 @@ public:
 };
 
 class diplomacy_action_expel_advisors_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "expeladvisors_button"));
@@ -745,7 +740,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 			disabled = !command::can_expel_advisors(state, state.local_player_nation, content,
-				dcon::fatten(state.world, content).get_in_sphere_of().id);
+					dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -776,16 +771,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.expeladvisors_influence_cost});
+						text::fp_two_places{state.defines.expeladvisors_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.expeladvisors_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.expeladvisors_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -794,7 +788,7 @@ public:
 };
 
 class diplomacy_action_ban_embassy_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "banembassy_button"));
@@ -807,7 +801,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			disabled = !command::can_ban_embassy(state, state.local_player_nation, content,
-				dcon::fatten(state.world, content).get_in_sphere_of().id);
+					dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -838,16 +832,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.banembassy_influence_cost});
+						text::fp_two_places{state.defines.banembassy_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.banembassy_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.banembassy_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -856,7 +849,7 @@ public:
 };
 
 class diplomacy_action_increase_opinion_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "increaseopinion_button"));
@@ -898,16 +891,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.increaseopinion_influence_cost});
+						text::fp_two_places{state.defines.increaseopinion_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.increaseopinion_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.increaseopinion_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -916,7 +908,7 @@ public:
 };
 
 class diplomacy_action_decrease_opinion_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decreaseopinion_button"));
@@ -929,7 +921,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			disabled = !command::can_decrease_opinion(state, state.local_player_nation, content,
-				dcon::fatten(state.world, content).get_in_sphere_of().id);
+					dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -960,16 +952,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.decreaseopinion_influence_cost});
+						text::fp_two_places{state.defines.decreaseopinion_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.decreaseopinion_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.decreaseopinion_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -978,7 +969,7 @@ public:
 };
 
 class diplomacy_action_add_to_sphere_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "addtosphere_button"));
@@ -1020,16 +1011,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.addtosphere_influence_cost});
+						text::fp_two_places{state.defines.addtosphere_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.addtosphere_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.addtosphere_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -1038,7 +1028,7 @@ public:
 };
 
 class diplomacy_action_remove_from_sphere_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "removefromsphere_button"));
@@ -1051,7 +1041,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			disabled = !command::can_remove_from_sphere(state, state.local_player_nation, content,
-				dcon::fatten(state.world, content).get_in_sphere_of().id);
+					dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -1082,16 +1072,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.removefromsphere_influence_cost});
+						text::fp_two_places{state.defines.removefromsphere_influence_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(
-						state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content,
-							state.local_player_nation)) >= state.defines.removefromsphere_influence_cost
-							? "dip_enough_influence"
-							: "dip_no_influence"),
-					dp_map);
+						std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(
+																 content, state.local_player_nation)) >= state.defines.removefromsphere_influence_cost
+																 ? "dip_enough_influence"
+																 : "dip_no_influence"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -1100,7 +1089,7 @@ public:
 };
 
 class diplomacy_action_justify_war_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "make_cb_button"));
@@ -1111,10 +1100,9 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			disabled = !(
-				!military::are_at_war(state, state.local_player_nation, content) &&
-				state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost &&
-				state.local_player_nation != content);
+			disabled = !(!military::are_at_war(state, state.local_player_nation, content) &&
+									 state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost &&
+									 state.local_player_nation != content);
 		}
 	}
 
@@ -1143,15 +1131,15 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
-					text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-					text::fp_two_places{state.defines.make_cb_diplomatic_cost});
+						text::fp_two_places{state.defines.make_cb_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-					std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-											 state.defines.make_cb_diplomatic_cost
-										 ? "dip_enough_diplo"
-										 : "dip_no_diplo"),
-					dp_map);
+						std::string_view(
+								state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost
+										? "dip_enough_diplo"
+										: "dip_no_diplo"),
+						dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 			}
 			text::close_layout_box(contents, box);
@@ -1213,7 +1201,7 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 		}
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, text::produce_simple_string(state, get_title_key(content)));
 	}
@@ -1272,11 +1260,11 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 		}
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		auto contents = text::create_endless_layout(internal_layout,
-			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white});
+				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white});
 		auto box = text::open_layout_box(contents);
 		text::localised_format_box(state, contents, box, get_title_key(content));
 		text::close_layout_box(contents, box);
@@ -1305,8 +1293,7 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 				return command::can_cancel_alliance(state, state.local_player_nation, target);
 			case diplomacy_action::call_ally: {
 				for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
-					if(command::can_call_to_arms(state, state.local_player_nation, target,
-						   dcon::fatten(state.world, wp).get_war().id))
+					if(command::can_call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id))
 						return true;
 				return false;
 			}
@@ -1361,7 +1348,7 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 		return false;
 	}
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "agree"));
@@ -1458,14 +1445,14 @@ public:
 	}
 };
 class diplomacy_action_dialog_decline_button : public generic_close_button {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decline"));
 	}
 };
 class diplomacy_action_dialog_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "title") {
 			return make_element_by_type<diplomacy_action_dialog_title_text>(state, id);
@@ -1492,7 +1479,7 @@ public:
 };
 
 class diplomacy_action_gp_dialog_select_button : public flag_button {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -1506,7 +1493,7 @@ public:
 };
 
 class diplomacy_action_gp_dialog_select_window : public window_element_base {
-public:
+	public:
 	uint8_t rank = 0;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1531,16 +1518,16 @@ public:
 class diplomacy_gp_action_dialog_window : public window_element_base {
 	dcon::nation_id selected_gp{};
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
 		xy_pair gp_base_select_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("gpselectoptionpos")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find("gpselectoptionpos")->second.definition].position;
 		xy_pair gp_select_offset = gp_base_select_offset;
 		for(uint8_t i = 0; i < uint8_t(state.defines.great_nations_count); i++) {
 			auto ptr = make_element_by_type<diplomacy_action_gp_dialog_select_window>(state,
-				state.ui_state.defs_by_name.find("gpselectoption")->second.definition);
+					state.ui_state.defs_by_name.find("gpselectoption")->second.definition);
 			ptr->base_data.position = gp_select_offset;
 			ptr->rank = i;
 			// Arrange in columns of 2 elements each...
@@ -1590,7 +1577,7 @@ public:
 };
 
 template<typename T> class diplomacy_action_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "action_option") {
 			return make_element_by_type<T>(state, id);

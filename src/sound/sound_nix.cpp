@@ -70,7 +70,7 @@ void initialize_sound_system(sys::state& state) {
 
 		auto file_name = get_full_name(mp3_file);
 		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
-			   NATIVE("thecoronation_titletheme.mp3")))
+					 NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
 	}
 

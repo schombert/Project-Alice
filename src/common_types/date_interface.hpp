@@ -15,7 +15,7 @@ class absolute_time_point {
 	int64_t days = 0;
 	absolute_time_point(int64_t days) : days(days) { }
 
-public:
+	public:
 	absolute_time_point() noexcept = default;
 	absolute_time_point(year_month_day const& date);
 	absolute_time_point(absolute_time_point const&) noexcept = default;
@@ -54,7 +54,7 @@ public:
 };
 
 class date {
-public:
+	public:
 	using value_base_t = uint16_t;
 	using zero_is_null_t = std::true_type;
 

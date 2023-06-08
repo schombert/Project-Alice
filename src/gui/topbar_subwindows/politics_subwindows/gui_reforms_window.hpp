@@ -7,7 +7,7 @@
 namespace ui {
 
 class reforms_reform_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::issue_option_id{};
@@ -56,7 +56,7 @@ public:
 class reforms_option : public listbox_row_element_base<dcon::issue_option_id> {
 	image_element_base* selected_icon = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
@@ -78,12 +78,12 @@ public:
 };
 
 class reforms_listbox : public listbox_element_base<reforms_option, dcon::issue_option_id> {
-protected:
+	protected:
 	std::string_view get_row_element_name() override {
 		return "reform_option_window";
 	}
 
-public:
+	public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::issue_id>()) {
 			auto issue_id = any_cast<dcon::issue_id>(payload);
@@ -102,7 +102,7 @@ public:
 class reforms_reform_window : public window_element_base {
 	dcon::issue_id issue_id{};
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
 			return make_element_by_type<generic_multiline_name_text<dcon::issue_id>>(state, id);
@@ -139,7 +139,7 @@ public:
 };
 
 class reforms_window : public window_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

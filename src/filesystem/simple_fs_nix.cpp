@@ -182,11 +182,10 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 						continue;
 
 					auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(),
-						[n = dir_ent->d_name](auto const& f) { return f.file_name.compare(n) == 0; });
+							[n = dir_ent->d_name](auto const& f) { return f.file_name.compare(n) == 0; });
 					if(search_result == accumulated_results.end()) {
-						accumulated_results.emplace_back(dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("/") +
-															 dir_ent->d_name,
-							dir_ent->d_name);
+						accumulated_results.emplace_back(
+								dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("/") + dir_ent->d_name, dir_ent->d_name);
 					}
 				}
 				closedir(d);
@@ -222,8 +221,8 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 	}
 	std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const& a, unopened_file const& b) {
 		return std::lexicographical_compare(std::begin(a.file_name), std::end(a.file_name), std::begin(b.file_name),
-			std::end(b.file_name),
-			[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
+				std::end(b.file_name),
+				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 	return accumulated_results;
 }
@@ -250,7 +249,7 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 					native_string const rel_name = dir.relative_path + NATIVE("/") + dir_ent->d_name;
 					if(dir_ent->d_name[0] != NATIVE('.')) {
 						auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(),
-							[&rel_name](auto const& s) { return s.relative_path.compare(rel_name) == 0; });
+								[&rel_name](auto const& s) { return s.relative_path.compare(rel_name) == 0; });
 						if(search_result == accumulated_results.end()) {
 							accumulated_results.emplace_back(dir.parent_system, rel_name);
 						}
@@ -283,8 +282,8 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 	}
 	std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const& a, directory const& b) {
 		return std::lexicographical_compare(std::begin(a.relative_path), std::end(a.relative_path), std::begin(b.relative_path),
-			std::end(b.relative_path),
-			[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
+				std::end(b.relative_path),
+				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 
 	return accumulated_results;
@@ -320,8 +319,7 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-			native_string full_path =
-				dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('/') + native_string(file_name);
+			native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('/') + native_string(file_name);
 			if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
 				continue;
 			}

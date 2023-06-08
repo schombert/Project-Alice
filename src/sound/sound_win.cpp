@@ -108,8 +108,8 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			}
 
 			LONGLONG new_position = 0;
-			hr = ((IMediaSeeking*)pSeek)
-					 ->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
+			hr =
+					((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 			if(FAILED(hr)) {
 				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
@@ -192,7 +192,7 @@ bool sound_impl::music_finished() const {
 		while(SUCCEEDED(event_interface->GetEvent(&evCode, &param1, &param2, 0))) {
 			event_interface->FreeEventParams(evCode, param1, param2);
 			switch(evCode) {
-			case EC_COMPLETE:  // Fall through.
+			case EC_COMPLETE:	 // Fall through.
 			case EC_USERABORT: // Fall through.
 				return true;
 			default:;
@@ -257,7 +257,7 @@ void initialize_sound_system(sys::state& state) {
 		auto file_name = get_full_name(mp3_file);
 		state.sound_ptr->music_list.emplace_back(file_name);
 		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
-			   NATIVE("thecoronation_titletheme.mp3")))
+					 NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
 	}
 

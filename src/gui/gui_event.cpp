@@ -4,8 +4,8 @@
 namespace ui {
 
 static void populate_event_submap(sys::state& state, text::substitution_map& sub,
-	std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event,
-		event::pending_human_f_p_event> const& phe) noexcept {
+		std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event,
+				event::pending_human_f_p_event> const& phe) noexcept {
 	dcon::nation_id target_nation{};
 	dcon::nation_id from_nation{};
 	dcon::province_id target_province{};
@@ -97,9 +97,9 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name,
-		state.world.nation_get_constructing_cb_target(target_nation));
+			state.world.nation_get_constructing_cb_target(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj,
-		state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
+			state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
@@ -111,12 +111,12 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	// text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_colony);
 	text::add_to_substitution_map(sub, text::variable_type::crisistaker, state.crisis_liberation_tag);
 	text::add_to_substitution_map(sub, text::variable_type::crisistaker_adj,
-		state.world.national_identity_get_adjective(state.crisis_liberation_tag));
+			state.world.national_identity_get_adjective(state.crisis_liberation_tag));
 	text::add_to_substitution_map(sub, text::variable_type::crisisattacker, state.primary_crisis_attacker);
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender, state.primary_crisis_defender);
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.primary_crisis_defender);
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj,
-		state.world.nation_get_adjective(state.primary_crisis_defender));
+			state.world.nation_get_adjective(state.primary_crisis_defender));
 }
 
 void event_option_button::on_update(sys::state& state) noexcept {
@@ -126,8 +126,8 @@ void event_option_button::on_update(sys::state& state) noexcept {
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
 		auto contents = text::create_endless_layout(internal_layout,
-			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
+				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
 		sys::event_option opt{};
@@ -164,19 +164,19 @@ void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto phe = std::get<event::pending_human_n_event>(content);
 			effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
-				trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
+					trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
-				trigger::to_generic(phe.n), -1, -1, phe.r_lo, phe.r_hi);
+					trigger::to_generic(phe.n), -1, -1, phe.r_lo, phe.r_hi);
 		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 			auto phe = std::get<event::pending_human_p_event>(content);
 			effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,
-				trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
+					trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
 		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 			auto phe = std::get<event::pending_human_f_p_event>(content);
 			effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
-				trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
+					trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 		}
 	}
 }
@@ -210,11 +210,10 @@ void event_image::on_update(sys::state& state) noexcept {
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 		if(std::holds_alternative<event::pending_human_n_event>(content))
-			base_data.data.image.gfx_object =
-				state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
+			base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
 		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
 			base_data.data.image.gfx_object =
-				state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
+					state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
 	}
 }
 
@@ -231,8 +230,8 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
 		auto contents = text::create_endless_layout(delegate->internal_layout,
-			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
@@ -266,8 +265,8 @@ void event_name_text::on_update(sys::state& state) noexcept {
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
 		auto contents = text::create_endless_layout(internal_layout,
-			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
+				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
 
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
@@ -307,18 +306,18 @@ void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32
 		}
 
 		if(std::holds_alternative<event::pending_human_p_event>(content) ||
-			std::holds_alternative<event::pending_human_n_event>(content)) {
+				std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 			auto phe = std::get<event::pending_human_f_p_event>(content);
 			trigger_description(state, contents, state.world.free_provincial_event_get_trigger(phe.e), trigger::to_generic(phe.p),
-				trigger::to_generic(phe.p), -1);
+					trigger::to_generic(phe.p), -1);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			trigger_description(state, contents, state.world.free_national_event_get_trigger(phe.e), trigger::to_generic(phe.n),
-				trigger::to_generic(phe.n), -1);
+					trigger::to_generic(phe.n), -1);
 		}
 	}
 }
@@ -336,18 +335,18 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 		}
 
 		if(std::holds_alternative<event::pending_human_p_event>(content) ||
-			std::holds_alternative<event::pending_human_n_event>(content)) {
+				std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 			auto phe = std::get<event::pending_human_f_p_event>(content);
 			multiplicative_value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e),
-				trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
+					trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			multiplicative_value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e),
-				trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
+					trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
 		}
 	}
 }
@@ -374,13 +373,13 @@ template<bool IsMajor> void national_event_window<IsMajor>::on_create(sys::state
 
 template<bool IsMajor>
 std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::state& state, std::string_view name,
-	dcon::gui_def_id id) noexcept {
+		dcon::gui_def_id id) noexcept {
 	if(name == "background") {
 		auto bg_ptr = make_element_by_type<draggable_target>(state, id);
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<event_lr_button<false>>(state,
-				state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -388,7 +387,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 		}
 		{
 			auto ptr = make_element_by_type<simple_text_element_base>(state,
-				state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
@@ -396,22 +395,22 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 		}
 		{
 			auto ptr = make_element_by_type<event_lr_button<true>>(state,
-				state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state,
-				state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_odds_icon>(state,
-				state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			auto ptr =
+					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
@@ -505,15 +504,15 @@ template<bool IsMajor> message_result national_event_window<IsMajor>::get(sys::s
 void provincial_event_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	xy_pair cur_offset =
-		state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
 	xy_pair offset =
-		state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_offset")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_offset")->second.definition].position;
 	divider_image->base_data.position.y = cur_offset.y;
 	divider_image->base_data.position.y -= 150; // Omega nudge??
 	cur_offset.y += divider_image->base_data.size.y;
 	for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
 		auto ptr = make_element_by_type<event_option_button>(state,
-			state.ui_state.defs_by_name.find("event_province_optionbutton")->second.definition);
+				state.ui_state.defs_by_name.find("event_province_optionbutton")->second.definition);
 		ptr->base_data.position = cur_offset;
 		ptr->base_data.position.y -= 150; // Omega nudge??
 		ptr->index = uint8_t(i);
@@ -525,13 +524,13 @@ void provincial_event_window::on_create(sys::state& state) noexcept {
 	set_visible(state, false);
 }
 std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& state, std::string_view name,
-	dcon::gui_def_id id) noexcept {
+		dcon::gui_def_id id) noexcept {
 	if(name == "background") {
 		auto bg_ptr = make_element_by_type<draggable_target>(state, id);
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<event_lr_button<false>>(state,
-				state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -539,7 +538,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		}
 		{
 			auto ptr = make_element_by_type<simple_text_element_base>(state,
-				state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
@@ -547,22 +546,22 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		}
 		{
 			auto ptr = make_element_by_type<event_lr_button<true>>(state,
-				state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state,
-				state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_odds_icon>(state,
-				state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			auto ptr =
+					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;

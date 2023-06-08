@@ -35,7 +35,7 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 }
 
 void building_file::result(std::string_view name, building_definition&& res, error_handler& err, int32_t line,
-	scenario_building_context& context) {
+		scenario_building_context& context) {
 	res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
 	switch(res.stored_type) {
 	case building_type::factory: {
@@ -58,8 +58,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			auto amount = res.goods_cost.data.safe_get(id);
 			if(amount > 0) {
 				if(added >= economy::commodity_set::set_size) {
-					err.accumulated_errors +=
-						"Too many factory cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+					err.accumulated_errors += "Too many factory cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
 				} else {
 					cc.commodity_type[added] = id;
 					cc.commodity_amounts[added] = amount;
@@ -81,8 +80,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 				auto amount = res.goods_cost.data.safe_get(id);
 				if(amount > 0) {
 					if(added >= economy::commodity_set::set_size) {
-						err.accumulated_errors +=
-							"Too many naval_base cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						err.accumulated_errors += "Too many naval_base cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
 					} else {
 						context.state.economy_definitions.naval_base_definition.cost.commodity_type[added] = id;
 						context.state.economy_definitions.naval_base_definition.cost.commodity_amounts[added] = amount;
@@ -97,14 +95,14 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.economy_definitions.naval_base_definition.name = text::find_or_add_key(context.state, name);
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.naval_base_definition.province_modifier = context.state.world.create_modifier();
-			context.state.world.modifier_set_province_values(
-				context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_province_mod());
-			context.state.world.modifier_set_national_values(
-				context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier,
+					res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier,
+					res.peek_national_mod());
 			context.state.world.modifier_set_icon(context.state.economy_definitions.naval_base_definition.province_modifier,
-				uint8_t(res.icon_index));
+					uint8_t(res.icon_index));
 			context.state.world.modifier_set_name(context.state.economy_definitions.naval_base_definition.province_modifier,
-				context.state.economy_definitions.naval_base_definition.name);
+					context.state.economy_definitions.naval_base_definition.name);
 		}
 		break;
 	case building_type::fort: {
@@ -128,13 +126,13 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.fort_definition.province_modifier = context.state.world.create_modifier();
 			context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier,
-				res.peek_province_mod());
-			context.state.world.modifier_set_national_values(
-				context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+					res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier,
+					res.peek_national_mod());
 			context.state.world.modifier_set_icon(context.state.economy_definitions.fort_definition.province_modifier,
-				uint8_t(res.icon_index));
+					uint8_t(res.icon_index));
 			context.state.world.modifier_set_name(context.state.economy_definitions.fort_definition.province_modifier,
-				context.state.economy_definitions.fort_definition.name);
+					context.state.economy_definitions.fort_definition.name);
 		}
 		break;
 	case building_type::railroad: {
@@ -143,8 +141,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			auto amount = res.goods_cost.data.safe_get(id);
 			if(amount > 0) {
 				if(added >= economy::commodity_set::set_size) {
-					err.accumulated_errors +=
-						"Too many railroad cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+					err.accumulated_errors += "Too many railroad cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
 				} else {
 					context.state.economy_definitions.railroad_definition.cost.commodity_type[added] = id;
 					context.state.economy_definitions.railroad_definition.cost.commodity_amounts[added] = amount;
@@ -159,14 +156,14 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.economy_definitions.railroad_definition.name = text::find_or_add_key(context.state, name);
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.railroad_definition.province_modifier = context.state.world.create_modifier();
-			context.state.world.modifier_set_province_values(
-				context.state.economy_definitions.railroad_definition.province_modifier, res.peek_province_mod());
-			context.state.world.modifier_set_national_values(
-				context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier,
+					res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier,
+					res.peek_national_mod());
 			context.state.world.modifier_set_icon(context.state.economy_definitions.railroad_definition.province_modifier,
-				uint8_t(res.icon_index));
+					uint8_t(res.icon_index));
 			context.state.world.modifier_set_name(context.state.economy_definitions.railroad_definition.province_modifier,
-				context.state.economy_definitions.railroad_definition.name);
+					context.state.economy_definitions.railroad_definition.name);
 		}
 		break;
 	}
@@ -174,7 +171,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 
 dcon::trigger_key make_production_bonus_trigger(token_generator& gen, error_handler& err, production_context& context) {
 	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation,
-		trigger::slot_contents::empty};
+			trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 
@@ -203,8 +200,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 			auto amount = pt.input_goods.data.safe_get(id);
 			if(amount > 0) {
 				if(added >= economy::commodity_set::set_size) {
-					err.accumulated_errors +=
-						"Too many artisan input goods in" + std::string(name) + " (" + err.file_name + ")\n";
+					err.accumulated_errors += "Too many artisan input goods in" + std::string(name) + " (" + err.file_name + ")\n";
 				} else {
 					cset.commodity_type[added] = id;
 					cset.commodity_amounts[added] = amount;
@@ -216,7 +212,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 		context.outer_context.state.world.commodity_set_artisan_output_amount(pt.output_goods_, pt.value);
 	} else if(pt.type_ == production_type_enum::factory) {
 		if(auto it = context.outer_context.map_of_production_types.find(std::string(name));
-			it != context.outer_context.map_of_production_types.end()) {
+				it != context.outer_context.map_of_production_types.end()) {
 			auto factory_handle = fatten(context.outer_context.state.world, it->second);
 
 			economy::commodity_set cset;
@@ -225,8 +221,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 				auto amount = pt.input_goods.data.safe_get(id);
 				if(amount > 0) {
 					if(added >= economy::commodity_set::set_size) {
-						err.accumulated_errors +=
-							"Too many factory input goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						err.accumulated_errors += "Too many factory input goods in " + std::string(name) + " (" + err.file_name + ")\n";
 					} else {
 						cset.commodity_type[added] = id;
 						cset.commodity_amounts[added] = amount;
@@ -241,8 +236,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 				auto amount = pt.efficiency.data.safe_get(id);
 				if(amount > 0) {
 					if(sm_added >= economy::small_commodity_set::set_size) {
-						err.accumulated_errors +=
-							"Too many factory efficiency goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						err.accumulated_errors += "Too many factory efficiency goods in " + std::string(name) + " (" + err.file_name + ")\n";
 					} else {
 						sm_cset.commodity_type[sm_added] = id;
 						sm_cset.commodity_amounts[sm_added] = amount;

@@ -7,15 +7,15 @@ modification, are permitted provided that the following conditions are
 met:
 
 * Redistributions of source code must retain the above copyright
-  notice, this list of conditions, and the following disclaimer.
+	notice, this list of conditions, and the following disclaimer.
 
 * Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions, and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
+	notice, this list of conditions, and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
 
 * Neither the name of D. E. Shaw Research nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
+	contributors may be used to endorse or promote products derived from
+	this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -110,17 +110,17 @@ using std::make_unsigned;
 template<typename T> struct make_signed { };
 template<typename T> struct make_unsigned { };
 #define R123_MK_SIGNED_UNSIGNED(ST, UT)                                                                                          \
-	template<> struct make_signed<ST> {                                                                                          \
-		typedef ST type;                                                                                                         \
-	};                                                                                                                           \
-	template<> struct make_signed<UT> {                                                                                          \
-		typedef ST type;                                                                                                         \
-	};                                                                                                                           \
-	template<> struct make_unsigned<ST> {                                                                                        \
-		typedef UT type;                                                                                                         \
-	};                                                                                                                           \
-	template<> struct make_unsigned<UT> {                                                                                        \
-		typedef UT type;                                                                                                         \
+	template<> struct make_signed<ST> {                                                                                            \
+		typedef ST type;                                                                                                             \
+	};                                                                                                                             \
+	template<> struct make_signed<UT> {                                                                                            \
+		typedef ST type;                                                                                                             \
+	};                                                                                                                             \
+	template<> struct make_unsigned<ST> {                                                                                          \
+		typedef UT type;                                                                                                             \
+	};                                                                                                                             \
+	template<> struct make_unsigned<UT> {                                                                                          \
+		typedef UT type;                                                                                                             \
 	}
 
 R123_MK_SIGNED_UNSIGNED(int8_t, uint8_t);
@@ -174,8 +174,8 @@ template<typename T> R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() {
 -    The result is never exactly 0.0.
 -    The smallest value returned is 2^-(W-1).
 -    Let M be the number of mantissa bits in Ftype (typically 24 or 53).
-  -    If W>M  then the largest value retured is 1.0.
-  -    If W<=M then the largest value returned is Ftype(1.0 - 2^(-W-1)).
+	-    If W>M  then the largest value retured is 1.0.
+	-    If W<=M then the largest value returned is Ftype(1.0 - 2^(-W-1)).
 */
 template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01(Itype in) {
 	typedef typename make_unsigned<Itype>::type Utype;
@@ -192,10 +192,10 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 //! Return a signed value in [-1,1]
 /**
 	@ingroup uniform
-   The argument is converted to a W-bit signed integer, multiplied by Ftype(2^-(W-1)) and
-   then added to Ftype(2^-W).  A good compiler should optimize
-   it down to an int-to-float conversion followed by a multiply and
-   an add, which might be fused, depending on the architecture.
+	 The argument is converted to a W-bit signed integer, multiplied by Ftype(2^-(W-1)) and
+	 then added to Ftype(2^-W).  A good compiler should optimize
+	 it down to an int-to-float conversion followed by a multiply and
+	 an add, which might be fused, depending on the architecture.
 
  If the input is a uniformly distributed integer, and if Ftype
  arithmetic follows IEEE754 round-to-nearest rules, then the
@@ -204,8 +204,8 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 - The result is never exactly 0.0.
 - The smallest absolute value returned is 2^-W
 - Let M be the number of mantissa bits in Ftype.
-  - If W>M  then the largest value retured is 1.0 and the smallest is -1.0.
-  - If W<=M then the largest value returned is the Ftype(1.0 - 2^-W)
+	- If W>M  then the largest value retured is 1.0 and the smallest is -1.0.
+	- If W<=M then the largest value returned is the Ftype(1.0 - 2^-W)
 	and the smallest value returned is -Ftype(1.0 - 2^-W).
 */
 template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in) {
@@ -223,20 +223,20 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 //! Return a value in (0,1) chosen from a set of equally spaced fixed-point values
 /**
 	@ingroup uniform
-   Let:
+	 Let:
 	 - W = width of Itype, e.g., 32 or 64, regardless of signedness.
 	 - M = mantissa bits of Ftype, e.g., 24, 53 or 64
 	 - B = min(M, W)
 
-   Then the 2^(B-1) possible output values are: 2^-B*{1, 3, 5, ..., 2^B - 1}
+	 Then the 2^(B-1) possible output values are: 2^-B*{1, 3, 5, ..., 2^B - 1}
 
-   The smallest output is: 2^-B
+	 The smallest output is: 2^-B
 
-   The largest output is:  1 - 2^-B
+	 The largest output is:  1 - 2^-B
 
-   The output is never exactly 0.0, nor 0.5, nor 1.0.
+	 The output is never exactly 0.0, nor 0.5, nor 1.0.
 
-   The 2^(B-1) possible outputs:
+	 The 2^(B-1) possible outputs:
 	 - are equally likely,
 	 - are uniformly spaced by 2^-(B-1),
 	 - are balanced around 0.5

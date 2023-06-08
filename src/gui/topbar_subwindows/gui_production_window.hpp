@@ -22,7 +22,7 @@ struct production_selection_wrapper {
 };
 
 class factory_employment_image : public image_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -57,7 +57,7 @@ public:
 };
 
 class factory_priority_button : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -133,7 +133,7 @@ public:
 };
 
 class factory_upgrade_button : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -191,7 +191,7 @@ public:
 };
 
 class factory_shutdown_button : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -236,7 +236,7 @@ public:
 };
 
 class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -249,7 +249,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip
-									   // function details this afaik
+																 // function details this afaik
 				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
 					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false);
 					frame = 0;
@@ -290,7 +290,7 @@ public:
 };
 
 class factory_delete_button : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -335,7 +335,7 @@ struct production_factory_slot_data {
 };
 
 class factory_build_progress_bar : public progress_bar {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = economy::new_factory{};
@@ -346,7 +346,7 @@ public:
 };
 
 class factory_upgrade_progress_bar : public progress_bar {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = economy::upgraded_factory{};
@@ -365,7 +365,7 @@ class production_factory_info : public window_element_base {
 	std::vector<element_base*> build_elements;
 	std::vector<element_base*> closed_elements;
 
-public:
+	public:
 	uint8_t index = 0; // from 0 to int32_t(state.defines.factories_per_state)
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -518,8 +518,7 @@ public:
 				if(input_icons[size_t(i)]) {
 					dcon::commodity_id cid = cset.commodity_type[size_t(i)];
 					input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
-					bool is_lack =
-						cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+					bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
 					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 				}
 		}
@@ -559,14 +558,14 @@ class production_factory_info_bounds_window : public window_element_base {
 		return content.filter;
 	}
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		factories.resize(size_t(state.defines.factories_per_state));
 		// Create factory slots for each of the provinces
 		for(uint8_t factory_index = 0; factory_index < uint8_t(state.defines.factories_per_state); ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state,
-				state.ui_state.defs_by_name.find("factory_info")->second.definition);
+					state.ui_state.defs_by_name.find("factory_info")->second.definition);
 			ptr->index = factory_index;
 			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
 			infos.push_back(ptr.get());
@@ -632,7 +631,7 @@ public:
 };
 
 class production_build_new_factory : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -680,13 +679,13 @@ class production_national_focus_button : public button_element_base {
 			auto content = any_cast<dcon::state_instance_id>(payload);
 
 			return bool(state.world.state_instance_get_owner_focus(content).id)
-					   ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-					   : 0;
+								 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+								 : 0;
 		}
 		return 0;
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -709,8 +708,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
-			Cyto::Any s_payload =
-				production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
+			Cyto::Any s_payload = production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
 			parent->impl_get(state, s_payload);
 		}
 	}
@@ -734,7 +732,7 @@ public:
 };
 
 class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_focus") {
 			return make_element_by_type<production_national_focus_button>(state, id);
@@ -755,12 +753,12 @@ public:
 };
 
 class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
-protected:
+	protected:
 	std::string_view get_row_element_name() override {
 		return "state_info";
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -783,7 +781,7 @@ public:
 						ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
 							auto fid = state.world.factory_location_get_factory(flid);
 							Cyto::Any payload = commodity_filter_query_data{
-								state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
+									state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
 							parent->impl_get(state, payload);
 							auto content = any_cast<commodity_filter_query_data>(payload);
 							count += content.filter ? 1 : 0;
@@ -802,7 +800,7 @@ public:
 class production_goods_category_name : public window_element_base {
 	simple_text_element_base* goods_cat_name = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cat_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -841,7 +839,7 @@ public:
 class commodity_output_total_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1));
 	}
@@ -861,7 +859,7 @@ class production_good_info : public window_element_base {
 	commodity_player_production_text* good_output_total = nullptr;
 	image_element_base* good_not_producing_overlay = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "output_factory") {
 			return make_element_by_type<commodity_factory_image>(state, id);
@@ -949,7 +947,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 		set_visible_vector_elements(state, good_elements, false);
 	}
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
@@ -957,12 +955,12 @@ public:
 		commodity_filters.resize(state.world.commodity_size(), true);
 
 		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count;
-			curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
+				curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
 			commodity_offset.x = base_commodity_offset.x;
 
 			// Place legend for this category...
 			auto ptr = make_element_by_type<production_goods_category_name>(state,
-				state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+					state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
 			ptr->base_data.position = commodity_offset;
 			Cyto::Any payload = curr_commodity_group;
 			ptr->impl_set(state, payload);
@@ -978,7 +976,7 @@ public:
 					return;
 
 				auto info_ptr = make_element_by_type<production_good_info>(state,
-					state.ui_state.defs_by_name.find("production_info")->second.definition);
+						state.ui_state.defs_by_name.find("production_info")->second.definition);
 				info_ptr->base_data.position = commodity_offset;
 				info_ptr->set_visible(state, false);
 
@@ -1009,13 +1007,13 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		auto win = make_element_by_type<factory_build_window>(state,
-			state.ui_state.defs_by_name.find("build_factory")->second.definition);
+		auto win =
+				make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
 		build_win = win.get();
 		add_child_to_front(std::move(win));
 
 		auto win2 = make_element_by_type<project_investment_window>(state,
-			state.ui_state.defs_by_name.find("invest_project_window")->second.definition);
+				state.ui_state.defs_by_name.find("invest_project_window")->second.definition);
 		win2->set_visible(state, false);
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));
@@ -1192,8 +1190,7 @@ public:
 			case production_action::close_all:
 				break;
 			case production_action::investment_window:
-				project_window->is_visible() ? project_window->set_visible(state, false)
-											 : project_window->set_visible(state, true);
+				project_window->is_visible() ? project_window->set_visible(state, false) : project_window->set_visible(state, true);
 				break;
 			default:
 				break;

@@ -319,7 +319,7 @@ void update_crisis(sys::state& state);
 void update_pop_acceptance(sys::state& state, dcon::nation_id n);
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated,
-	dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+		dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
 void perform_nationalization(sys::state& state, dcon::nation_id n);
 

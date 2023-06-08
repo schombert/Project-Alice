@@ -9,7 +9,7 @@ typedef struct HDC__* HDC;
 
 namespace window {
 class window_data_impl {
-public:
+	public:
 	HWND hwnd = nullptr;
 	HDC opengl_window_dc = nullptr;
 
@@ -25,7 +25,7 @@ struct GLFWwindow;
 
 namespace window {
 class window_data_impl {
-public:
+	public:
 	GLFWwindow* window = nullptr;
 
 	int32_t creation_x_size = 600;
@@ -51,7 +51,7 @@ struct creation_parameters {
 };
 
 void create_window(sys::state& game_state,
-	creation_parameters const& params);	   // this function will not return until the window is closed or otherwise destroyed
+		creation_parameters const& params);		 // this function will not return until the window is closed or otherwise destroyed
 void close_window(sys::state& game_state); // close the main window
 void set_borderless_full_screen(sys::state& game_state, bool fullscreen);
 bool is_in_fullscreen(sys::state const& game_state);

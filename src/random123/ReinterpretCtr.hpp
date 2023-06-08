@@ -7,15 +7,15 @@ modification, are permitted provided that the following conditions are
 met:
 
 * Redistributions of source code must retain the above copyright
-  notice, this list of conditions, and the following disclaimer.
+	notice, this list of conditions, and the following disclaimer.
 
 * Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions, and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
+	notice, this list of conditions, and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
 
 * Neither the name of D. E. Shaw Research nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
+	contributors may be used to endorse or promote products derived from
+	this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -37,17 +37,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace r123 {
 /*!
-  ReinterpretCtr uses memcpy to map back and forth
-  between a CBRNG's ctr_type and the specified ToType.  For example,
-  after:
+	ReinterpretCtr uses memcpy to map back and forth
+	between a CBRNG's ctr_type and the specified ToType.  For example,
+	after:
 
 	typedef ReinterpretCtr<r123array4x32, Philox2x64> G;
 
-  G is a bona fide CBRNG with ctr_type r123array4x32.
+	G is a bona fide CBRNG with ctr_type r123array4x32.
 
-  WARNING:  ReinterpretCtr is endian dependent.  The
-  values returned by G, declared as above,
-  will depend on the endianness of the machine on which it runs.
+	WARNING:  ReinterpretCtr is endian dependent.  The
+	values returned by G, declared as above,
+	will depend on the endianness of the machine on which it runs.
  */
 
 template<typename ToType, typename CBRNG> struct ReinterpretCtr {
@@ -56,8 +56,8 @@ template<typename ToType, typename CBRNG> struct ReinterpretCtr {
 	typedef typename CBRNG::ctr_type bctype;
 	typedef typename CBRNG::ukey_type ukey_type;
 	R123_STATIC_ASSERT(sizeof(ToType) == sizeof(bctype) && sizeof(typename bctype::value_type) != 16,
-		"ReinterpretCtr:  sizeof(ToType) is not the same as sizeof(CBRNG::ctr_type) or CBRNG::ctr_type::value_type looks "
-		"like it might be __m128i");
+			"ReinterpretCtr:  sizeof(ToType) is not the same as sizeof(CBRNG::ctr_type) or CBRNG::ctr_type::value_type looks "
+			"like it might be __m128i");
 	// It's amazingly difficult to safely do conversions with __m128i.
 	// If we use the operator() implementation below with a CBRNG
 	// whose ctr_type is r123array1xm128i, gcc4.6 optimizes away the

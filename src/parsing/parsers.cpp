@@ -136,8 +136,8 @@ token_and_type token_generator::internal_next() {
 			position = close + 1;
 			return token_and_type{std::string_view(non_ws + 1, close - (non_ws + 1)), current_line, token_type::quoted_string};
 		} else if(has_fixed_prefix(non_ws, file_end, "==") || has_fixed_prefix(non_ws, file_end, "<=") ||
-				  has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>") ||
-				  has_fixed_prefix(non_ws, file_end, "!=")) {
+							has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>") ||
+							has_fixed_prefix(non_ws, file_end, "!=")) {
 
 			position = non_ws + 2;
 			return token_and_type{std::string_view(non_ws, 2), current_line, token_type::special_identifier};
@@ -242,7 +242,7 @@ uint32_t parse_uint(std::string_view content, int32_t line, error_handler& err) 
 uint32_t parse_tag(std::string_view tag, int32_t line, error_handler& err) {
 	if(tag.length() != 3) {
 		err.accumulated_errors +=
-			err.file_name + " line " + std::to_string(line) + ": encountered a tag that was not three characters\n";
+				err.file_name + " line " + std::to_string(line) + ": encountered a tag that was not three characters\n";
 		return 0;
 	}
 	return nations::tag_to_int(tag[0], tag[1], tag[2]);
@@ -274,8 +274,8 @@ sys::year_month_day parse_date(std::string_view content, int32_t line, error_han
 	auto day_end = position;
 
 	return sys::year_month_day{parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
-		uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
-		uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))};
+			uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
+			uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))};
 }
 
 bool starts_with(std::string_view content, char v) {

@@ -13,7 +13,7 @@ namespace ui {
 enum class movements_sort_order { size, radicalism, name };
 
 class movements_sort_order_button : public button_element_base {
-public:
+	public:
 	movements_sort_order order = movements_sort_order::size;
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -24,7 +24,7 @@ public:
 };
 
 class movement_suppress_button : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -51,12 +51,12 @@ public:
 };
 
 class movements_option : public listbox_row_element_base<dcon::movement_id> {
-private:
+	private:
 	flag_button* nationalist_flag = nullptr;
 	movement_nationalist_name_text* nationalist_name = nullptr;
 	movement_issue_name_text* issue_name = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			auto ptr = make_element_by_type<movement_issue_name_text>(state, id);
@@ -104,15 +104,15 @@ public:
 };
 
 class movements_list : public listbox_element_base<movements_option, dcon::movement_id> {
-private:
+	private:
 	dcon::nation_id nation_id{};
 
-protected:
+	protected:
 	std::string_view get_row_element_name() override {
 		return "movement_entry";
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto movement : state.world.nation_get_movement_within(nation_id)) {
@@ -133,7 +133,7 @@ public:
 };
 
 class rebel_faction_size_text : public standard_rebel_faction_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		float total = 0.f;
 		for(auto member : state.world.rebel_faction_get_pop_rebellion_membership(rebel_faction_id)) {
@@ -144,7 +144,7 @@ public:
 };
 
 class rebel_faction_active_brigade_count_text : public standard_rebel_faction_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto count = rebel::get_faction_brigades_active(state, rebel_faction_id);
 		return text::prettify(count);
@@ -152,7 +152,7 @@ public:
 };
 
 class rebel_faction_ready_brigade_count_text : public standard_rebel_faction_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto count = rebel::get_faction_brigades_ready(state, rebel_faction_id);
 		return text::prettify(count);
@@ -160,7 +160,7 @@ public:
 };
 
 class rebel_faction_organization_text : public standard_rebel_faction_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto org = rebel::get_faction_organization(state, rebel_faction_id);
 		return text::format_percentage(org, 1);
@@ -168,7 +168,7 @@ public:
 };
 
 class rebel_faction_revolt_risk_text : public standard_rebel_faction_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto risk = rebel::get_faction_revolt_risk(state, rebel_faction_id);
 		return text::format_percentage(risk, 1);
@@ -176,9 +176,9 @@ public:
 };
 
 class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_faction_id> {
-public:
+	public:
 	void populate_layout(sys::state& state, text::endless_layout& contents,
-		dcon::rebel_faction_id rebel_faction_id) noexcept override {
+			dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
@@ -201,7 +201,7 @@ public:
 };
 
 class rebel_faction_type_icon : public opaque_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::rebel_faction_id{};
@@ -213,7 +213,7 @@ public:
 };
 
 class movements_rebel_option : public listbox_row_element_base<dcon::rebel_faction_id> {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "size") {
 			return make_element_by_type<rebel_faction_size_text>(state, id);
@@ -236,12 +236,12 @@ public:
 };
 
 class movements_rebel_list : public listbox_element_base<movements_rebel_option, dcon::rebel_faction_id> {
-protected:
+	protected:
 	std::string_view get_row_element_name() override {
 		return "rebel_window";
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto rebellion : state.world.nation_get_rebellion_within(state.local_player_nation)) {
@@ -252,10 +252,10 @@ public:
 };
 
 class movements_window : public window_element_base {
-private:
+	private:
 	movements_list* movements_listbox = nullptr;
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
@@ -295,41 +295,41 @@ public:
 			switch(enum_val) {
 			case movements_sort_order::size:
 				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(),
-					[&](dcon::movement_id a, dcon::movement_id b) {
-						auto a_size = state.world.movement_get_pop_support(a);
-						auto b_size = state.world.movement_get_pop_support(b);
-						return a_size > b_size;
-					});
+						[&](dcon::movement_id a, dcon::movement_id b) {
+							auto a_size = state.world.movement_get_pop_support(a);
+							auto b_size = state.world.movement_get_pop_support(b);
+							return a_size > b_size;
+						});
 				movements_listbox->update(state);
 				break;
 			case movements_sort_order::radicalism:
 				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(),
-					[&](dcon::movement_id a, dcon::movement_id b) {
-						auto a_rad = state.world.movement_get_radicalism(a);
-						auto b_rad = state.world.movement_get_radicalism(b);
-						return a_rad > b_rad;
-					});
+						[&](dcon::movement_id a, dcon::movement_id b) {
+							auto a_rad = state.world.movement_get_radicalism(a);
+							auto b_rad = state.world.movement_get_radicalism(b);
+							return a_rad > b_rad;
+						});
 				movements_listbox->update(state);
 				break;
 			case movements_sort_order::name:
 				std::sort(movements_listbox->row_contents.begin(), movements_listbox->row_contents.end(),
-					[&](dcon::movement_id a, dcon::movement_id b) {
-						auto fat_a = dcon::fatten(state.world, a);
-						std::string a_name;
-						if(fat_a.get_associated_independence()) {
-							a_name = text::get_name_as_string(state, fat_a.get_associated_independence());
-						} else {
-							a_name = text::produce_simple_string(state, fat_a.get_associated_issue_option().get_movement_name());
-						}
-						auto fat_b = dcon::fatten(state.world, b);
-						std::string b_name;
-						if(fat_b.get_associated_independence()) {
-							b_name = text::get_name_as_string(state, fat_b.get_associated_independence());
-						} else {
-							b_name = text::produce_simple_string(state, fat_b.get_associated_issue_option().get_movement_name());
-						}
-						return a_name < b_name;
-					});
+						[&](dcon::movement_id a, dcon::movement_id b) {
+							auto fat_a = dcon::fatten(state.world, a);
+							std::string a_name;
+							if(fat_a.get_associated_independence()) {
+								a_name = text::get_name_as_string(state, fat_a.get_associated_independence());
+							} else {
+								a_name = text::produce_simple_string(state, fat_a.get_associated_issue_option().get_movement_name());
+							}
+							auto fat_b = dcon::fatten(state.world, b);
+							std::string b_name;
+							if(fat_b.get_associated_independence()) {
+								b_name = text::get_name_as_string(state, fat_b.get_associated_independence());
+							} else {
+								b_name = text::produce_simple_string(state, fat_b.get_associated_issue_option().get_movement_name());
+							}
+							return a_name < b_name;
+						});
 				movements_listbox->update(state);
 				break;
 			}

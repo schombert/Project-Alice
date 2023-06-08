@@ -45,7 +45,7 @@ void file::operator=(file&& other) noexcept {
 
 file::file(native_string const& full_path) {
 	file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	if(file_handle != INVALID_HANDLE_VALUE) {
 		absolute_path = full_path;
 		mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
@@ -166,15 +166,14 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
-					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-						!impl::contains_non_ascii(find_result.cFileName)) {
+					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 						if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(),
-							   [n = find_result.cFileName](auto const& f) { return f.file_name.compare(n) == 0; });
-							search_result == accumulated_results.end()) {
+									 [n = find_result.cFileName](auto const& f) { return f.file_name.compare(n) == 0; });
+								search_result == accumulated_results.end()) {
 
-							accumulated_results.emplace_back(dir.parent_system->ordered_roots[i] + dir.relative_path +
-																 NATIVE("\\") + find_result.cFileName,
-								find_result.cFileName);
+							accumulated_results.emplace_back(dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\") +
+																									 find_result.cFileName,
+									find_result.cFileName);
 						}
 					}
 				} while(FindNextFileW(find_handle, &find_result) != 0);
@@ -187,10 +186,8 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 		auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 		if(find_handle != INVALID_HANDLE_VALUE) {
 			do {
-				if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-					!impl::contains_non_ascii(find_result.cFileName)) {
-					accumulated_results.emplace_back(dir.relative_path + NATIVE("\\") + find_result.cFileName,
-						find_result.cFileName);
+				if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
+					accumulated_results.emplace_back(dir.relative_path + NATIVE("\\") + find_result.cFileName, find_result.cFileName);
 				}
 			} while(FindNextFileW(find_handle, &find_result) != 0);
 			FindClose(find_handle);
@@ -198,8 +195,8 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 	}
 	std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const& a, unopened_file const& b) {
 		return std::lexicographical_compare(std::begin(a.file_name), std::end(a.file_name), std::begin(b.file_name),
-			std::end(b.file_name),
-			[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
+				std::end(b.file_name),
+				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 	return accumulated_results;
 }
@@ -216,13 +213,11 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
-					if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-						!impl::contains_non_ascii(find_result.cFileName)) {
+					if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 						native_string const rel_name = dir.relative_path + NATIVE("\\") + find_result.cFileName;
 						if(find_result.cFileName[0] != NATIVE('.') &&
-							std::find_if(accumulated_results.begin(), accumulated_results.end(), [&rel_name](auto const& s) {
-								return s.relative_path.compare(rel_name) == 0;
-							}) == accumulated_results.end()) {
+								std::find_if(accumulated_results.begin(), accumulated_results.end(),
+										[&rel_name](auto const& s) { return s.relative_path.compare(rel_name) == 0; }) == accumulated_results.end()) {
 							accumulated_results.emplace_back(dir.parent_system, rel_name);
 						}
 					}
@@ -236,8 +231,7 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 		auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 		if(find_handle != INVALID_HANDLE_VALUE) {
 			do {
-				if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-					!impl::contains_non_ascii(find_result.cFileName)) {
+				if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 					native_string const rel_name = dir.relative_path + NATIVE("\\") + find_result.cFileName;
 					if(find_result.cFileName[0] != NATIVE('.')) {
 						accumulated_results.emplace_back(nullptr, rel_name);
@@ -249,8 +243,8 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 	}
 	std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const& a, directory const& b) {
 		return std::lexicographical_compare(std::begin(a.relative_path), std::end(a.relative_path), std::begin(b.relative_path),
-			std::end(b.relative_path),
-			[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
+				std::end(b.relative_path),
+				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 	return accumulated_results;
 }
@@ -272,7 +266,7 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 				continue;
 			}
 			HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
-				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+					FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 			if(file_handle != INVALID_HANDLE_VALUE) {
 				return std::optional<file>(file(file_handle, full_path));
 			}
@@ -280,7 +274,7 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 	} else {
 		native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
 		HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 		if(file_handle != INVALID_HANDLE_VALUE) {
 			return std::optional<file>(file(file_handle, full_path));
 		}
@@ -347,7 +341,7 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 	native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
 
 	HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	if(file_handle != INVALID_HANDLE_VALUE) {
 		WriteFile(file_handle, file_data, DWORD(file_size), nullptr, nullptr);
 		SetEndOfFile(file_handle);
@@ -414,7 +408,7 @@ native_string utf8_to_native(std::string_view str) {
 	WCHAR* buffer = new WCHAR[str.length() * 2];
 
 	auto chars_written =
-		MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 2));
+			MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 2));
 
 	std::wstring result(buffer, size_t(chars_written));
 
@@ -426,7 +420,7 @@ std::string native_to_utf8(native_string_view str) {
 	char* buffer = new char[str.length() * 4];
 
 	auto chars_written =
-		WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 4), nullptr, nullptr);
+			WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 4), nullptr, nullptr);
 
 	std::string result(buffer, size_t(chars_written));
 

@@ -26,13 +26,13 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
-		if(std::string("NONE") != GAME_DIR) {					 // check for user-defined location
+		if(std::string("NONE") != GAME_DIR) {									 // check for user-defined location
 			add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
-			add_root(game_state->common_fs, NATIVE("."));		 // for the moment this lets us find the shader files
+			add_root(game_state->common_fs, NATIVE("."));				 // for the moment this lets us find the shader files
 		} else { // before exiting, check if they've installed the game and it's told us where via the registry
 			HKEY hKey;
 			LSTATUS res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Paradox Interactive\\Victoria 2", 0, KEY_READ,
-				&hKey); // open key if key exists
+					&hKey); // open key if key exists
 			if(res != ERROR_SUCCESS) {
 				assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
 			}
@@ -42,7 +42,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			if(res != ERROR_SUCCESS) {
 				assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
 			}
-			add_root(game_state->common_fs, szBuffer);	  // game files directory is overlaid on top of that
+			add_root(game_state->common_fs, szBuffer);		// game files directory is overlaid on top of that
 			add_root(game_state->common_fs, NATIVE(".")); // for the moment this lets us find the shader files
 			RegCloseKey(hKey);
 		}
@@ -65,7 +65,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		// entire game runs during this line
 		window::create_window(*game_state,
-			window::creation_parameters{1024, 780, window::window_state::maximized, game_state->user_settings.prefer_fullscreen});
+				window::creation_parameters{1024, 780, window::window_state::maximized, game_state->user_settings.prefer_fullscreen});
 
 		game_state->quit_signaled.store(true, std::memory_order_release);
 		update_thread.join();

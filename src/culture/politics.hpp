@@ -45,7 +45,7 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 void recalculate_upper_house(sys::state& state, dcon::nation_id n);
 
 float party_total_support(sys::state& state, dcon::pop_id pop, dcon::political_party_id par_id, dcon::nation_id nat_id,
-	dcon::province_id prov_id);
+		dcon::province_id prov_id);
 void update_elections(sys::state& state);
 void daily_party_loyalty_update(sys::state& state);
 void start_election(sys::state& state, dcon::nation_id n);

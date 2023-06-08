@@ -11,8 +11,8 @@ void message_log_text::on_update(sys::state& state) noexcept {
 		if(index < int32_t(messages.size())) {
 			auto m = messages[index];
 			auto container = text::create_endless_layout(internal_layout,
-				text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0,
-					text::alignment::left, text::text_color::white});
+					text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0,
+							text::alignment::left, text::text_color::white});
 			m.title(state, container);
 		}
 	}
@@ -24,7 +24,7 @@ void message_log_window::on_create(sys::state& state) noexcept {
 }
 
 std::unique_ptr<element_base> message_log_window::make_child(sys::state& state, std::string_view name,
-	dcon::gui_def_id id) noexcept {
+		dcon::gui_def_id id) noexcept {
 	if(name == "close") {
 		return make_element_by_type<generic_close_button>(state, id);
 	} else if(name == "messagelog") {

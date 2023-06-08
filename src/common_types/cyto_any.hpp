@@ -102,7 +102,7 @@ using StorageBuffer = std::aligned_storage_t<StorageBufferSize, std::alignment_o
 
 template<class T>
 using IsStorageBufferSized_ =
-	std::bool_constant<sizeof(T) <= sizeof(StorageBuffer) && std::alignment_of_v<StorageBuffer> % std::alignment_of_v<T> == 0>;
+		std::bool_constant<sizeof(T) <= sizeof(StorageBuffer) && std::alignment_of_v<StorageBuffer> % std::alignment_of_v<T> == 0>;
 
 template<class T> constexpr bool IsStorageBufferSized = IsStorageBufferSized_<T>::value;
 
@@ -173,20 +173,20 @@ template<class T> struct AnyTraits {
 	}
 
 	template< class X = T, class... Args,
-		std::enable_if_t<IsStorageBufferSized<X> && !std::is_trivially_copyable_v<X> && std::is_nothrow_move_constructible_v<X>,
-			int> = 0>
+			std::enable_if_t<IsStorageBufferSized<X> && !std::is_trivially_copyable_v<X> && std::is_nothrow_move_constructible_v<X>,
+					int> = 0>
 	ANY_ALWAYS_INLINE static X& make(Storage* s, std::in_place_type_t<X> vtype, Args&&... args) {
 		return *(::new(static_cast<void*>(&s->buf)) X(std::forward<Args>(args)...));
 	}
-#else  // ANY_USE(SMALL_MEMCPY_STRATEGY)
+#else	 // ANY_USE(SMALL_MEMCPY_STRATEGY)
 	template<class X = T, class... Args,
-		std::enable_if_t<IsStorageBufferSized<X> && std::is_nothrow_move_constructible_v<X>, int> = 0>
+			std::enable_if_t<IsStorageBufferSized<X> && std::is_nothrow_move_constructible_v<X>, int> = 0>
 	ANY_ALWAYS_INLINE static X& make(Storage* s, std::in_place_type_t<X> vtype, Args&&... args) {
 		return *(::new(static_cast<void*>(&s->buf)) X(std::forward<Args>(args)...));
 	}
 #endif // ANY_USE(SMALL_MEMCPY_STRATEGY)
 
-private:
+	private:
 	AnyTraits(AnyTraits const&) = default;
 	AnyTraits(AnyTraits&&) = default;
 	AnyTraits& operator=(AnyTraits const&) = default;
@@ -229,12 +229,12 @@ private:
 	}
 
 	template< class X = T,
-		std::enable_if_t<IsStorageBufferSized<X> && !std::is_trivially_copyable_v<X> && std::is_nothrow_move_constructible_v<X>,
-			int> = 0>
+			std::enable_if_t<IsStorageBufferSized<X> && !std::is_trivially_copyable_v<X> && std::is_nothrow_move_constructible_v<X>,
+					int> = 0>
 	ANY_ALWAYS_INLINE static void copy(Storage* dst, Storage const* src) {
 		AnyTraits::make(dst, std::in_place_type_t<X>(), *static_cast<X const*>(static_cast<void const*>(&src->buf)));
 	}
-#else  // ANY_USE(SMALL_MEMCPY_STRATEGY)
+#else	 // ANY_USE(SMALL_MEMCPY_STRATEGY)
 	template<class X = T, std::enable_if_t<IsStorageBufferSized<X> && std::is_nothrow_move_constructible_v<X>, int> = 0>
 	ANY_ALWAYS_INLINE static void copy(Storage* dst, Storage const* src) {
 		AnyTraits::make(dst, std::in_place_type_t<X>(), *static_cast<X const*>(static_cast<void const*>(&src->buf)));
@@ -252,7 +252,7 @@ private:
 	ANY_ALWAYS_INLINE static void move(Storage* dst, Storage* src) {
 		memcpy(static_cast<void*>(&dst->buf), static_cast<void*>(const_cast<StorageBuffer*>(&src->buf)), sizeof(X));
 	}
-#else  // ANY_USE(SMALL_MEMCPY_STRATEGY)
+#else	 // ANY_USE(SMALL_MEMCPY_STRATEGY)
 	template<class X = T, std::enable_if_t<IsStorageBufferSized<X>, int> = 0>
 	ANY_ALWAYS_INLINE static void move(Storage* dst, Storage* src) {
 		AnyTraits::make(dst, std::in_place_type_t<X>(), std::move(*static_cast<X const*>(static_cast<void const*>(&src->buf))));
@@ -273,12 +273,12 @@ private:
 		t.~X();
 	}
 
-public:
+	public:
 	static constexpr AnyActions actions = AnyActions(get<T>, copy<T>, move<T>, drop<T>,
 #if ANY_USE_TYPEINFO
-		&typeid(T)
+			&typeid(T)
 #else
-		fallback_typeid<T>()
+			fallback_typeid<T>()
 #endif
 	);
 };
@@ -292,13 +292,13 @@ template<class V> constexpr bool IsAnyConstructible = IsAnyConstructible_<V>::va
 
 template<class T, class U, class... Args>
 using IsAnyInitializerListConstructible_ =
-	std::bool_constant<std::is_constructible_v<T, std::initializer_list<U>&, Args...> && std::is_copy_constructible_v<T>>;
+		std::bool_constant<std::is_constructible_v<T, std::initializer_list<U>&, Args...> && std::is_copy_constructible_v<T>>;
 
 template<class T, class U, class... Args>
 constexpr bool IsAnyInitializerListConstructible = IsAnyInitializerListConstructible_<T, U, Args...>::value;
 
 class Any {
-public:
+	public:
 	constexpr Any() noexcept : actions(VoidAnyActions) { }
 
 	template<class V, class T = std::decay_t<V>, std::enable_if_t<IsAnyConstructible<V>, int> = 0>
@@ -312,7 +312,7 @@ public:
 	}
 
 	template<class V, class U, class... Args, class T = std::decay_t<V>,
-		std::enable_if_t<IsAnyInitializerListConstructible<T, U, Args...>, int> = 0>
+			std::enable_if_t<IsAnyInitializerListConstructible<T, U, Args...>, int> = 0>
 	explicit Any(std::in_place_type_t<V> vtype, std::initializer_list<U> list, Args&&... args) : actions(&AnyTraits<T>::actions) {
 		AnyTraits<T>::make(&storage, vtype, V{list, std::forward<Args>(args)...});
 	}
@@ -355,7 +355,7 @@ public:
 	}
 
 	template<class V, class... Args, class T = std::decay_t<V>,
-		std::enable_if_t<std::is_constructible_v<T, Args...> && std::is_copy_constructible_v<T>, int> = 0>
+			std::enable_if_t<std::is_constructible_v<T, Args...> && std::is_copy_constructible_v<T>, int> = 0>
 	T& emplace(Args&&... args) {
 		actions->drop(&storage);
 		actions = &AnyTraits<T>::actions;
@@ -363,7 +363,7 @@ public:
 	}
 
 	template<class V, class U, class... Args, class T = std::decay_t<V>,
-		std::enable_if_t<IsAnyInitializerListConstructible<T, U, Args...>, int> = 0>
+			std::enable_if_t<IsAnyInitializerListConstructible<T, U, Args...>, int> = 0>
 	T& emplace(std::initializer_list<U> list, Args&&... args) {
 		reset();
 		actions = &AnyTraits<T>::actions;
@@ -420,7 +420,7 @@ public:
 
 	template<class V> friend std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept;
 
-private:
+	private:
 	static constexpr AnyActions _VoidAnyActions = AnyActions();
 	static constexpr AnyActions const* const VoidAnyActions = &_VoidAnyActions;
 
@@ -442,7 +442,7 @@ template<class T, class U, class... Args> ANY_ALWAYS_INLINE Any make_any(std::in
 }
 
 template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>,
-	std::enable_if_t<std::is_constructible<V, T const&>{}, int> = 0>
+		std::enable_if_t<std::is_constructible<V, T const&>{}, int> = 0>
 V any_cast(Any const& a) {
 	auto tmp = any_cast<std::add_const_t<T>>(&a);
 	if(tmp == nullptr) {
@@ -452,7 +452,7 @@ V any_cast(Any const& a) {
 }
 
 template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>,
-	std::enable_if_t<std::is_constructible<V, T const&>{}, int> = 0>
+		std::enable_if_t<std::is_constructible<V, T const&>{}, int> = 0>
 V any_cast(Any& a) {
 	auto tmp = any_cast<T>(&a);
 	if(tmp == nullptr) {
@@ -462,7 +462,7 @@ V any_cast(Any& a) {
 }
 
 template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>,
-	std::enable_if_t<std::is_constructible<V, T const&>{}, int> = 0>
+		std::enable_if_t<std::is_constructible<V, T const&>{}, int> = 0>
 V any_cast(Any&& a) {
 	auto tmp = any_cast<T>(&a);
 	if(tmp == nullptr) {
@@ -481,9 +481,9 @@ template<class V> std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a)
 	if(a && a->has_value()) {
 		void* p = a->actions->get(&a->storage,
 #if ANY_USE_TYPEINFO
-			&typeid(U)
+				&typeid(U)
 #else
-			fallback_typeid<U>()
+				fallback_typeid<U>()
 #endif
 		);
 		return (std::is_function<V>{}) ? nullptr : static_cast<T*>(p);

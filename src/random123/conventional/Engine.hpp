@@ -7,15 +7,15 @@ modification, are permitted provided that the following conditions are
 met:
 
 * Redistributions of source code must retain the above copyright
-  notice, this list of conditions, and the following disclaimer.
+	notice, this list of conditions, and the following disclaimer.
 
 * Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions, and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
+	notice, this list of conditions, and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
 
 * Neither the name of D. E. Shaw Research nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
+	contributors may be used to endorse or promote products derived from
+	this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -45,23 +45,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace r123 {
 /**
-  If G satisfies the requirements of a CBRNG, and has a ctr_type whose
-  value_type is an unsigned integral type, then Engine<G> satisfies
-  the requirements of a C++11 "Uniform Random Number Engine" and can
-  be used in any context where such an object is expected.
+	If G satisfies the requirements of a CBRNG, and has a ctr_type whose
+	value_type is an unsigned integral type, then Engine<G> satisfies
+	the requirements of a C++11 "Uniform Random Number Engine" and can
+	be used in any context where such an object is expected.
 
-  Note that wrapping a counter based RNG with a traditional API in
-  this way obscures much of the power of counter based PRNGs.
-  Nevertheless, it may be of value in applications that are already
-  coded to work with the C++11 random number engines.
+	Note that wrapping a counter based RNG with a traditional API in
+	this way obscures much of the power of counter based PRNGs.
+	Nevertheless, it may be of value in applications that are already
+	coded to work with the C++11 random number engines.
 
-  The MicroURNG template in MicroURNG.hpp
-  provides the more limited functionality of a C++11 "Uniform
-  Random Number Generator", but leaves the application in control
-  of counters and keys and hence may be preferable to the Engine template.
-  For example, a MicroURNG allows one to use C++11 "Random Number
-  Distributions"  without giving up control over the counters
-  and keys.
+	The MicroURNG template in MicroURNG.hpp
+	provides the more limited functionality of a C++11 "Uniform
+	Random Number Generator", but leaves the application in control
+	of counters and keys and hence may be preferable to the Engine template.
+	For example, a MicroURNG allows one to use C++11 "Random Number
+	Distributions"  without giving up control over the counters
+	and keys.
 */
 
 template<typename CBRNG> struct Engine {
@@ -71,7 +71,7 @@ template<typename CBRNG> struct Engine {
 	typedef typename CBRNG::ukey_type ukey_type;
 	typedef typename ctr_type::value_type result_type;
 
-protected:
+	protected:
 	cbrng_type b;
 	key_type key;
 	ctr_type c;
@@ -85,7 +85,7 @@ protected:
 		}
 	}
 
-public:
+	public:
 	explicit Engine() : b(), c() {
 		ukey_type x = {{}};
 		v.back() = 0;
@@ -124,11 +124,11 @@ public:
 	template<typename SeedSeq>
 	explicit Engine(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
-		,
-		typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
+			,
+			typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
-		)
-		: b(), c() {
+			)
+			: b(), c() {
 		ukey_type ukey = ukey_type::seed(s);
 		key = ukey;
 		v.back() = 0;
@@ -139,8 +139,8 @@ public:
 	template<typename SeedSeq>
 	void seed(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
-		,
-		typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
+			,
+			typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
 	) {
 		*this = Engine(s);
@@ -236,7 +236,7 @@ public:
 #if R123_USE_CXX11_TYPE_TRAITS
 	template<typename DUMMY = void>
 	explicit Engine(key_type const& k, typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
-		: key(k), c() {
+			: key(k), c() {
 		v.back() = 0;
 	}
 

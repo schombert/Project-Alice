@@ -49,7 +49,7 @@ struct user_settings_s {
 	bool map_is_globe = false;
 	bool fake_graphs = false;
 	bool guimode = false; // TODO - Replace with Enum, currently we have no need to support >2 gui modes, but in future we may and
-						  // its better to be prepared
+												// its better to be prepared
 	// gui_modes guimode = gui_modes::faithful;
 	//  uint8_t guimode_size = 2;
 	bool use_classic_fonts = false;
@@ -121,7 +121,7 @@ struct alignas(64) state {
 	std::vector<text::text_component> text_components;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
 	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
-		key_to_text_sequence;
+			key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
@@ -166,15 +166,15 @@ struct alignas(64) state {
 
 	std::vector<int32_t> unit_names_indices; // indices for the names
 	std::vector<char>
-		unit_names; // a second text buffer, this time for just the unit names
-					// why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
-					// ordinary game text, partly because I envision the possibility that we may stick dynamic names into
-					// this We also may push this into the save game if we handle unit renaming using this
+			unit_names; // a second text buffer, this time for just the unit names
+									// why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
+									// ordinary game text, partly because I envision the possibility that we may stick dynamic names into
+									// this We also may push this into the save game if we handle unit renaming using this
 
 	ui::definitions ui_defs; // definitions for graphics and ui
 
-	std::vector<uint8_t> flag_type_map;			// flag_type remapper for saving space while also allowing
-												// mods to add flags not present in vanilla
+	std::vector<uint8_t> flag_type_map;					// flag_type remapper for saving space while also allowing
+																							// mods to add flags not present in vanilla
 	std::vector<culture::flag_type> flag_types; // List of unique flag types
 
 	// persistent user settings
@@ -189,16 +189,16 @@ struct alignas(64) state {
 	float inflation = 1.0f;
 	player_data player_data_cache{};
 
-	simple_fs::file_system common_fs;							 // file system for looking up graphics assets, etc
+	simple_fs::file_system common_fs;														 // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
-	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;		 // platform-dependent sound information
-	ui::state ui_state;											 // transient information for the state of the ui
+	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;			 // platform-dependent sound information
+	ui::state ui_state;																					 // transient information for the state of the ui
 	text::font_manager font_collection;
 
 	// synchronization data (between main update logic and ui thread)
-	std::atomic<bool> game_state_updated = false;			// game state -> ui signal
-	std::atomic<bool> quit_signaled = false;				// ui -> game state signal
-	std::atomic<int32_t> actual_game_speed = 0;				// ui -> game state message
+	std::atomic<bool> game_state_updated = false;						// game state -> ui signal
+	std::atomic<bool> quit_signaled = false;								// ui -> game state signal
+	std::atomic<int32_t> actual_game_speed = 0;							// ui -> game state message
 	rigtorp::SPSCQueue<command::payload> incoming_commands; // ui or network -> local gamestate
 
 	// synchronization: notifications from the gamestate to ui
@@ -239,14 +239,14 @@ struct alignas(64) state {
 	void on_mouse_move(int32_t x, int32_t y, key_modifiers mod);
 	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
 	void on_drag_finished(int32_t x, int32_t y,
-		key_modifiers mod); // called when the left button is released after one or more drag events
+			key_modifiers mod); // called when the left button is released after one or more drag events
 	void on_resize(int32_t x, int32_t y, window::window_state win_state);
 	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char c); // c is win1250 codepage value
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
-				   // for vsync
+								 // for vsync
 
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 
@@ -259,7 +259,7 @@ struct alignas(64) state {
 	dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
 	dcon::text_key add_to_pool(std::string_view text);
 	dcon::text_key add_to_pool_lowercase(
-		std::string const& text); // these functions are as above, but force the text into lower case
+			std::string const& text); // these functions are as above, but force the text into lower case
 	dcon::text_key add_to_pool_lowercase(std::string_view text);
 
 	// searches the string pool for any existing string, appends if it is new
@@ -267,16 +267,15 @@ struct alignas(64) state {
 	// the text has already been added. Searching *all* the text may not be cheap
 	dcon::text_key add_unique_to_pool(std::string const& text);
 
-	dcon::unit_name_id add_unit_name(std::string_view text);	   // returns the newly added text
+	dcon::unit_name_id add_unit_name(std::string_view text);			 // returns the newly added text
 	std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
 
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
 	state()
-		: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)),
-		  incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024),
-		  new_requests(256), new_messages(1024) { }
+			: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024),
+				new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
 
 	~state();
 
@@ -285,7 +284,7 @@ struct alignas(64) state {
 	void update_ui_scale(float new_scale);
 
 	void load_scenario_data(); // loads all scenario files other than map data
-	void fill_unsaved_data();  // reconstructs derived values that are not directly saved after a save has been loaded
+	void fill_unsaved_data();	 // reconstructs derived values that are not directly saved after a save has been loaded
 
 	/**
 	 * Method for logging to console.

@@ -11,7 +11,7 @@ struct commodity_filter_query_data {
 struct commodity_filter_toggle_data : public element_selection_wrapper<dcon::commodity_id> { };
 
 class commodity_filter_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::commodity_id();
@@ -32,13 +32,13 @@ public:
 		parent->impl_get(state, payload);
 		auto content = any_cast<dcon::commodity_id>(payload); // Runtime Error >w<
 		text::localised_single_sub_box(state, contents, box, std::string_view("production_toggle_filter_tooltip"),
-			text::variable_type::goods, dcon::fatten(state.world, content).get_name());
+				text::variable_type::goods, dcon::fatten(state.world, content).get_name());
 		text::close_layout_box(contents, box);
 	}
 };
 
 class commodity_filter_enabled_image : public image_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::commodity_id();
@@ -53,7 +53,7 @@ public:
 };
 
 class commodity_filter_item : public window_element_base {
-public:
+	public:
 	dcon::commodity_id content{};
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -78,7 +78,7 @@ public:
 };
 
 class commodity_filters_window : public window_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 

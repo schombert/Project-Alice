@@ -87,7 +87,7 @@ typedef struct {
 } DDS_header;
 
 unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, unsigned int buffer_length, unsigned int& width,
-	unsigned int& height, int flags) {
+		unsigned int& height, int flags) {
 	/*	variables	*/
 	DDS_header header;
 	unsigned int buffer_index = 0;
@@ -140,9 +140,9 @@ unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer,
 	}
 	/*	make sure it is a type we can upload	*/
 	if((header.sPixelFormat.dwFlags & ALICE_DDPF_FOURCC) &&
-		!((header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
-			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
-			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24))))) {
+			!((header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
+					(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
+					(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24))))) {
 		goto quick_exit;
 	}
 	/*	OK, validated the header, let's load the image data	*/
@@ -336,7 +336,7 @@ GLuint texture::get_texture_handle() const {
 }
 
 GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture,
-	bool keep_data) {
+		bool keep_data) {
 	auto name_length = native_name.length();
 
 	auto root = get_root(fs);
@@ -349,7 +349,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 			uint32_t w = 0;
 			uint32_t h = 0;
 			asset_texture.texture_handle =
-				SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
+					SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
 
 			if(asset_texture.texture_handle) {
 				asset_texture.channels = 4;
@@ -360,7 +360,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 				if(keep_data) {
 					asset_texture.data = static_cast<uint8_t*>(STBI_MALLOC(4 * w * h));
 					glGetTextureImage(asset_texture.texture_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(4 * w * h),
-						asset_texture.data);
+							asset_texture.data);
 				}
 				return asset_texture.texture_handle;
 			}
@@ -374,7 +374,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 		int32_t file_channels = 4;
 
 		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-			&(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
+				&(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
 
 		asset_texture.channels = 4;
 		asset_texture.loaded = true;
@@ -385,7 +385,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 
 			glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, asset_texture.size_x, asset_texture.size_y);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, asset_texture.size_x, asset_texture.size_y, GL_RGBA, GL_UNSIGNED_BYTE,
-				asset_texture.data);
+					asset_texture.data);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -408,7 +408,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
 	auto const offset = culture::get_remapped_flag_type(state, type);
 	dcon::texture_id id = dcon::texture_id{
-		dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset)};
+			dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset)};
 
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
@@ -610,7 +610,7 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 	int32_t channels = 4;
 
 	data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &(size_x), &(size_y),
-		&file_channels, 4);
+			&file_channels, 4);
 
 	uint32_t ftexid = 0;
 

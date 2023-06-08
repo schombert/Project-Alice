@@ -5,7 +5,7 @@
 namespace ui {
 
 class diplomacy_crisis_backdown_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = diplomacy_action::crisis_backdown;
@@ -15,7 +15,7 @@ public:
 };
 
 class diplomacy_crisis_support_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = diplomacy_action::crisis_support;
@@ -25,7 +25,7 @@ public:
 };
 
 class diplomacy_crisis_attacker_flag : public flag_button {
-public:
+	public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			return state.crisis_liberation_tag;
@@ -38,36 +38,34 @@ public:
 };
 
 class diplomacy_crisis_sponsor_attacker_flag : public flag_button {
-public:
+	public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_attacker);
 			return fat_id.get_identity_from_identity_holder();
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			return dcon::national_identity_id{
-				0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+					0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
 };
 
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
-			set_text(state,
-				text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
+			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
 			return;
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			set_text(state,
-				text::produce_simple_string(state, dcon::fatten(state.world, state.primary_crisis_attacker).get_name()));
+			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.primary_crisis_attacker).get_name()));
 			return;
 		}
 	}
 };
 
 class diplomacy_crisis_attacker_backers : public overlapping_flags_box {
-protected:
+	protected:
 	void populate_flags(sys::state& state) noexcept override {
 		if(bool(current_nation)) {
 			row_contents.clear();
@@ -83,7 +81,7 @@ protected:
 };
 
 class diplomacy_crisis_attacker_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_attacker_flag>(state, id);
@@ -119,16 +117,16 @@ public:
 };
 
 class diplomacy_crisis_defender_flag : public flag_button {
-public:
+	public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			if(nations::is_great_power(state, state.primary_crisis_defender)) {
 				return state.crisis_liberation_tag;
 			} else {
 				return dcon::fatten(state.world, state.crisis_state)
-					.get_nation_from_state_ownership()
-					.get_identity_from_identity_holder()
-					.id;
+						.get_nation_from_state_ownership()
+						.get_identity_from_identity_holder()
+						.id;
 			}
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			return dcon::fatten(state.world, state.primary_crisis_defender).get_identity_from_identity_holder();
@@ -139,21 +137,21 @@ public:
 };
 
 class diplomacy_crisis_sponsor_defender_flag : public flag_button {
-public:
+	public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
 			return fat_id.get_identity_from_identity_holder();
 		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			return dcon::national_identity_id{
-				0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+					0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
 };
 
 class diplomacy_crisis_defender_name : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
 		set_text(state, text::produce_simple_string(state, fat_id.get_name()));
@@ -161,7 +159,7 @@ public:
 };
 
 class diplomacy_crisis_defender_backers : public overlapping_flags_box {
-protected:
+	protected:
 	void populate_flags(sys::state& state) noexcept override {
 		if(bool(current_nation)) {
 			row_contents.clear();
@@ -177,7 +175,7 @@ protected:
 };
 
 class diplomacy_crisis_defender_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_defender_flag>(state, id);
@@ -213,13 +211,12 @@ public:
 };
 
 class diplomacy_crisis_title_text : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.current_crisis == sys::crisis_type::colonial || state.current_crisis == sys::crisis_type::claim) {
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_colony).get_name()));
 		} else if(state.current_crisis == sys::crisis_type::liberation || state.current_crisis == sys::crisis_type::influence) {
-			set_text(state,
-				text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
+			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
 		} else {
 			set_text(state, "Pwease gib me Crisis UwU");
 		}
@@ -227,7 +224,7 @@ public:
 };
 
 class diplomacy_crisis_subtitle_text : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis) {
 		case sys::crisis_type::none:
@@ -250,14 +247,14 @@ public:
 };
 
 class diplomacy_crisis_temperature_bar : public progress_bar {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		progress = state.crisis_temperature;
 	}
 };
 
 class diplomacy_crisis_status_text : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis_mode) {
 		case sys::crisis_mode::inactive:
@@ -277,7 +274,7 @@ public:
 };
 
 class diplomacy_crisis_info_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "crisis_bg") {
 			return make_element_by_type<image_element_base>(state, id);

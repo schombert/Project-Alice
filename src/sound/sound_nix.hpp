@@ -7,7 +7,7 @@
 namespace sound {
 
 class audio_instance {
-public:
+	public:
 	native_string filename;
 
 	audio_instance() = default;
@@ -25,7 +25,7 @@ public:
 };
 
 class sound_impl {
-public:
+	public:
 	std::optional<ma_sound> effect_sound;
 	std::optional<ma_sound> interface_sound;
 	std::optional<ma_sound> music;

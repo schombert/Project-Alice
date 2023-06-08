@@ -545,8 +545,8 @@ struct int_percentage {
 	int32_t value = 0;
 };
 using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
-	dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
-	fp_currency, pretty_integer, dp_percentage, fp_percentage, int_percentage, dcon::text_sequence_id, dcon::state_definition_id>;
+		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
+		fp_currency, pretty_integer, dp_percentage, fp_percentage, int_percentage, dcon::text_sequence_id, dcon::state_definition_id>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 struct text_chunk {
@@ -591,7 +591,7 @@ struct layout_base {
 	layout_parameters fixed_parameters;
 
 	layout_base(layout& base_layout, layout_parameters const& fixed_parameters)
-		: base_layout(base_layout), fixed_parameters(fixed_parameters) { }
+			: base_layout(base_layout), fixed_parameters(fixed_parameters) { }
 
 	virtual void internal_close_box(layout_box& box) = 0;
 };
@@ -603,10 +603,10 @@ struct columnar_layout : public layout_base {
 	int32_t current_column = 0;
 	int32_t column_width = 0;
 
-	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0,
-		int32_t used_width = 0, int32_t y_cursor = 0, int32_t current_column = 0, int32_t column_width = 0)
-		: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
-		  current_column(current_column), column_width(column_width) { }
+	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0,
+			int32_t y_cursor = 0, int32_t current_column = 0, int32_t column_width = 0)
+			: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
+				current_column(current_column), column_width(column_width) { }
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -615,7 +615,7 @@ struct endless_layout : public layout_base {
 	int32_t y_cursor = 0;
 
 	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t y_cursor = 0)
-		: layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
+			: layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -630,13 +630,13 @@ columnar_layout create_columnar_layout(layout& dest, layout_parameters const& pa
 layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 void close_layout_box(columnar_layout& dest, layout_box& box);
 void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text,
-	substitution_map const& mp = substitution_map{});
+		substitution_map const& mp = substitution_map{});
 void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view,
-	text_color color = text_color::white, substitution source = std::monostate{});
+		text_color color = text_color::white, substitution source = std::monostate{});
 void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, substitution val,
-	text_color color = text_color::white);
+		text_color color = text_color::white);
 void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const& val,
-	text_color color = text_color::white);
+		text_color color = text_color::white);
 void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 
@@ -667,41 +667,41 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 std::string get_influence_level_name(sys::state const& state, uint8_t v);
 
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
-	substitution_map const& sub = substitution_map{});
+		substitution_map const& sub = substitution_map{});
 void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey,
-	substitution value);
+		substitution value);
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
 #define TEXT_NOTIF_MSG_TITLE(str)                                                                                                \
-	{                                                                                                                            \
-		auto box = text::open_layout_box(layout);                                                                                \
-		text::localised_format_box(state, layout, box, std::string_view(#str "_log"), sub);                                      \
-		text::close_layout_box(layout, box);                                                                                     \
+	{                                                                                                                              \
+		auto box = text::open_layout_box(layout);                                                                                    \
+		text::localised_format_box(state, layout, box, std::string_view(#str "_log"), sub);                                          \
+		text::close_layout_box(layout, box);                                                                                         \
 	}
 
 #define TEXT_NOTIF_MSG_BODY(str)                                                                                                 \
-	{                                                                                                                            \
-		auto box0 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box0, std::string_view(#str "_header"), sub);                                  \
-		text::close_layout_box(layout, box0);                                                                                    \
-		auto box1 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box1, std::string_view(#str "_1"), sub);                                       \
-		text::close_layout_box(layout, box1);                                                                                    \
-		auto box2 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box2, std::string_view(#str "_2"), sub);                                       \
-		text::close_layout_box(layout, box2);                                                                                    \
-		auto box3 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box3, std::string_view(#str "_3"), sub);                                       \
-		text::close_layout_box(layout, box3);                                                                                    \
-		auto box4 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box4, std::string_view(#str "_4"), sub);                                       \
-		text::close_layout_box(layout, box4);                                                                                    \
-		auto box5 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box5, std::string_view(#str "_5"), sub);                                       \
-		text::close_layout_box(layout, box5);                                                                                    \
-		auto box6 = text::open_layout_box(layout);                                                                               \
-		text::localised_format_box(state, layout, box6, std::string_view(#str "_6"), sub);                                       \
-		text::close_layout_box(layout, box6);                                                                                    \
+	{                                                                                                                              \
+		auto box0 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box0, std::string_view(#str "_header"), sub);                                      \
+		text::close_layout_box(layout, box0);                                                                                        \
+		auto box1 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box1, std::string_view(#str "_1"), sub);                                           \
+		text::close_layout_box(layout, box1);                                                                                        \
+		auto box2 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box2, std::string_view(#str "_2"), sub);                                           \
+		text::close_layout_box(layout, box2);                                                                                        \
+		auto box3 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box3, std::string_view(#str "_3"), sub);                                           \
+		text::close_layout_box(layout, box3);                                                                                        \
+		auto box4 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box4, std::string_view(#str "_4"), sub);                                           \
+		text::close_layout_box(layout, box4);                                                                                        \
+		auto box5 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box5, std::string_view(#str "_5"), sub);                                           \
+		text::close_layout_box(layout, box5);                                                                                        \
+		auto box6 = text::open_layout_box(layout);                                                                                   \
+		text::localised_format_box(state, layout, box6, std::string_view(#str "_6"), sub);                                           \
+		text::close_layout_box(layout, box6);                                                                                        \
 	}
 
 } // namespace text

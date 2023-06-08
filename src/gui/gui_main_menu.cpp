@@ -77,10 +77,9 @@ void window_mode_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.prefer_fullscreen == false);
 }
 void window_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.key_to_text_sequence.find(state.user_settings.prefer_fullscreen ? std::string_view("alice_mode_fullscreen")
-																					: std::string_view("alice_mode_window"));
-	auto temp_string =
-		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	auto it = state.key_to_text_sequence.find(
+			state.user_settings.prefer_fullscreen ? std::string_view("alice_mode_fullscreen") : std::string_view("alice_mode_window"));
+	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
@@ -99,8 +98,7 @@ void projection_mode_right::button_action(sys::state& state) noexcept {
 }
 void projection_mode_right::on_update(sys::state& state) noexcept { }
 void projection_mode_display::on_update(sys::state& state) noexcept {
-	auto it =
-		state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
+	auto it = state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
 	set_text(state, text::produce_simple_string(state, it));
 }
 
@@ -144,9 +142,8 @@ void fonts_mode_right::button_action(sys::state& state) noexcept {
 void fonts_mode_right::on_update(sys::state& state) noexcept { }
 void fonts_mode_display::on_update(sys::state& state) noexcept {
 	auto it = state.key_to_text_sequence.find(
-		state.user_settings.use_classic_fonts ? std::string_view("use_classic_fonts") : std::string_view("use_standard_fonts"));
-	auto temp_string =
-		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+			state.user_settings.use_classic_fonts ? std::string_view("use_classic_fonts") : std::string_view("use_standard_fonts"));
+	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
@@ -166,9 +163,8 @@ void linegraph_mode_right::button_action(sys::state& state) noexcept {
 void linegraph_mode_right::on_update(sys::state& state) noexcept { }
 void linegraph_mode_display::on_update(sys::state& state) noexcept {
 	auto it = state.key_to_text_sequence.find(state.user_settings.fake_graphs ? std::string_view("linegraph_mode_aesthetic")
-																			  : std::string_view("linegraph_mode_accurate"));
-	auto temp_string =
-		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+																																						: std::string_view("linegraph_mode_accurate"));
+	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 
@@ -176,7 +172,7 @@ void gui_mode_left::button_action(sys::state& state) noexcept {
 	/*
 	uint8_t value = uint8_t(state.user_settings.guimode);
 	(state.user_settings.guimode == sys::gui_modes{0}) ? state.user_settings.guimode = sys::gui_modes::faithful
-													   : state.user_settings.guimode = sys::gui_modes{value--};
+														 : state.user_settings.guimode = sys::gui_modes{value--};
 	*/
 	state.user_settings.guimode = !state.user_settings.guimode;
 	Cyto::Any payload = notify_setting_update{};
@@ -212,9 +208,8 @@ void gui_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	};*/
 	auto it = state.key_to_text_sequence.find(
-		state.user_settings.guimode ? std::string_view("gui_mode_faithful") : std::string_view("gui_mode_wip"));
-	auto temp_string =
-		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+			state.user_settings.guimode ? std::string_view("gui_mode_faithful") : std::string_view("gui_mode_wip"));
+	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
 

@@ -43,9 +43,9 @@ struct gfx_object {
 	xy_pair size; // 4bytes
 
 	dcon::texture_id primary_texture_handle; // 6bytes
-	uint16_t type_dependent = 0;			 // secondary texture handle or border size -- 8bytes
+	uint16_t type_dependent = 0;						 // secondary texture handle or border size -- 8bytes
 
-	uint8_t flags = 0;			  // 9bytes
+	uint8_t flags = 0;						// 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
 
 	object_type get_object_type() const {
@@ -259,27 +259,27 @@ struct element_data {
 
 	static constexpr uint8_t ex_is_top_level = 0x01;
 
-	xy_pair position;	 // 4
-	xy_pair size;		 // 8
+	xy_pair position;		 // 4
+	xy_pair size;				 // 8
 	dcon::text_key name; // 12
 
 	union alignas(4) internal_data {
-		text_base_data text_common;	  // +5
-		button_data button;			  // +5 + ? +3
-		text_data text;				  // +5 + ? +4
-		image_data image;			  // +6
+		text_base_data text_common;		// +5
+		button_data button;						// +5 + ? +3
+		text_data text;								// +5 + ? +4
+		image_data image;							// +6
 		overlapping_data overlapping; //+5
-		list_box_data list_box;		  // +11
-		scrollbar_data scrollbar;	  //+10
-		window_data window;			  // +4
-		position_data position;		  //+0
+		list_box_data list_box;				// +11
+		scrollbar_data scrollbar;			//+10
+		window_data window;						// +4
+		position_data position;				//+0
 
 		internal_data() {
 			position = position_data{};
 		}
 	} data; // +12 = 24
 
-	uint8_t flags = 0;	  // 25
+	uint8_t flags = 0;		// 25
 	uint8_t ex_flags = 0; // 26
 
 	element_data() {
@@ -302,7 +302,7 @@ struct element_data {
 static_assert(sizeof(element_data) == 28);
 
 class definitions {
-public:
+	public:
 	static constexpr dcon::texture_id small_tiles_dialog = dcon::texture_id(0);
 	static constexpr dcon::texture_id tiles_dialog = dcon::texture_id(1);
 	static constexpr dcon::texture_id transparency = dcon::texture_id(2);

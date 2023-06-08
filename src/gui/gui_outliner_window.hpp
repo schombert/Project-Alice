@@ -25,12 +25,12 @@ enum class outliner_filter : uint8_t {
 };
 
 typedef std::variant< outliner_filter, dcon::army_id, dcon::navy_id, dcon::gp_relationship_id,
-	dcon::state_building_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id,
-	dcon::province_naval_construction_id>
-	outliner_data;
+		dcon::state_building_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id,
+		dcon::province_naval_construction_id>
+		outliner_data;
 
 class outliner_element_button : public generic_settable_element<button_element_base, outliner_data> {
-public:
+	public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -41,10 +41,9 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::army_name,
-				state.to_string_view(state.world.army_get_name(aid)));
+			text::add_to_substitution_map(sub, text::variable_type::army_name, state.to_string_view(state.world.army_get_name(aid)));
 			text::add_to_substitution_map(sub, text::variable_type::location,
-				state.world.army_location_get_location(state.world.army_get_army_location(aid)));
+					state.world.army_location_get_location(state.world.army_get_army_location(aid)));
 			text::localised_format_box(state, contents, box, std::string_view("ol_armies_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
@@ -52,10 +51,9 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::navy_name,
-				state.to_string_view(state.world.navy_get_name(nid)));
+			text::add_to_substitution_map(sub, text::variable_type::navy_name, state.to_string_view(state.world.navy_get_name(nid)));
 			text::add_to_substitution_map(sub, text::variable_type::location,
-				state.world.navy_location_get_location(state.world.navy_get_navy_location(nid)));
+					state.world.navy_location_get_location(state.world.navy_get_navy_location(nid)));
 			text::localised_format_box(state, contents, box, std::string_view("ol_navies_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
@@ -131,7 +129,7 @@ class outliner_element : public listbox_row_element_base<outliner_data> {
 		}
 	}
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "outliner_header") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -258,7 +256,7 @@ public:
 };
 
 class outliner_listbox : public listbox_element_base<outliner_element, outliner_data> {
-protected:
+	protected:
 	std::string_view get_row_element_name() override {
 		return "outliner_entry";
 	}
@@ -272,7 +270,7 @@ protected:
 		return false;
 	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		// TODO: rebel_occupations,
@@ -334,7 +332,7 @@ public:
 			row_contents.push_back(outliner_filter::factories);
 			auto old_size = row_contents.size();
 			state.world.nation_for_each_state_building_construction(state.local_player_nation,
-				[&](dcon::state_building_construction_id sbcid) { row_contents.push_back(sbcid); });
+					[&](dcon::state_building_construction_id sbcid) { row_contents.push_back(sbcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -342,7 +340,7 @@ public:
 			row_contents.push_back(outliner_filter::buildings);
 			auto old_size = row_contents.size();
 			state.world.nation_for_each_province_building_construction(state.local_player_nation,
-				[&](dcon::province_building_construction_id pbcid) { row_contents.push_back(pbcid); });
+					[&](dcon::province_building_construction_id pbcid) { row_contents.push_back(pbcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -350,7 +348,7 @@ public:
 			row_contents.push_back(outliner_filter::army_construction);
 			auto old_size = row_contents.size();
 			state.world.nation_for_each_province_land_construction(state.local_player_nation,
-				[&](dcon::province_land_construction_id plcid) { row_contents.push_back(plcid); });
+					[&](dcon::province_land_construction_id plcid) { row_contents.push_back(plcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -358,7 +356,7 @@ public:
 			row_contents.push_back(outliner_filter::navy_construction);
 			auto old_size = row_contents.size();
 			state.world.nation_for_each_province_naval_construction(state.local_player_nation,
-				[&](dcon::province_naval_construction_id pncid) { row_contents.push_back(pncid); });
+					[&](dcon::province_naval_construction_id pncid) { row_contents.push_back(pncid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -367,7 +365,7 @@ public:
 			row_contents.push_back(outliner_filter::gp_influence);
 			auto old_size = row_contents.size();
 			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation,
-				[&](dcon::gp_relationship_id grid) { row_contents.push_back(grid); });
+					[&](dcon::gp_relationship_id grid) { row_contents.push_back(grid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
@@ -391,7 +389,7 @@ public:
 };
 
 class outliner_minmax_button : public button_element_base {
-public:
+	public:
 };
 
 template<outliner_filter Filter> class outliner_filter_checkbox : public checkbox_button {
@@ -430,7 +428,7 @@ template<outliner_filter Filter> class outliner_filter_checkbox : public checkbo
 		}
 	}
 
-public:
+	public:
 	bool is_active(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = Filter;
@@ -461,7 +459,7 @@ public:
 };
 
 class outliner_button : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.ui_state.outliner_window)
 			frame = state.ui_state.outliner_window->is_visible() ? 1 : 0;
@@ -493,12 +491,12 @@ class outliner_window : public window_element_base {
 	outliner_listbox* listbox = nullptr;
 	image_element_base* bottom_image = nullptr;
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto ptr = make_element_by_type<image_element_base>(state,
-			state.ui_state.defs_by_name.find("outliner_bottom")->second.definition);
+		auto ptr =
+				make_element_by_type<image_element_base>(state, state.ui_state.defs_by_name.find("outliner_bottom")->second.definition);
 		ptr->set_visible(state, true);
 		bottom_image = ptr.get();
 		add_child_to_front(std::move(ptr));

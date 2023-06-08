@@ -134,7 +134,7 @@ struct new_factory {
 };
 template<typename F>
 void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
-	F&& func); // calls the function repeatedly with new_factory as parameters
+		F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
@@ -142,7 +142,7 @@ struct upgraded_factory {
 };
 template<typename F>
 void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
-	F&& func); // calls the function repeatedly with new_factory as parameters
+		F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);

@@ -179,7 +179,7 @@ uint32_t get_remapped_flag_type(sys::state const& state, flag_type type);
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);
 flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity);
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id); // note: does react to changes in slavery rule
-void update_all_nations_issue_rules(sys::state& state);					 // note: doesn't react to changes in slavery rule
+void update_all_nations_issue_rules(sys::state& state);									 // note: doesn't react to changes in slavery rule
 
 void create_initial_ideology_and_issues_distribution(sys::state& state);
 void set_default_issue_and_reform_options(sys::state& state);

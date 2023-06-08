@@ -69,32 +69,32 @@ obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_c
 }
 
 void gfx_object_outer::spritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::generic_sprite);
 }
 void gfx_object_outer::corneredtilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::bordered_rect);
 }
 void gfx_object_outer::maskedshieldtype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::flag_mask);
 }
 void gfx_object_outer::textspritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::text_sprite);
 }
 void gfx_object_outer::tilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::tile_sprite);
 }
 void gfx_object_outer::progressbartype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	if(res.horizontal)
 		res.obj->flags |= uint8_t(ui::object_type::horizontal_progress_bar);
@@ -102,17 +102,17 @@ void gfx_object_outer::progressbartype(gfx_object const& obj, parsers::error_han
 		res.obj->flags |= uint8_t(ui::object_type::vertical_progress_bar);
 }
 void gfx_object_outer::barcharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::barchart);
 }
 void gfx_object_outer::piecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::piechart);
 }
 void gfx_object_outer::linecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::linegraph);
 }
@@ -134,16 +134,16 @@ void gui_element_common::position(gfx_xy_pair const& pr, error_handler& err, int
 }
 
 void gui_element_common::orientation(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "center") ||
-		is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "centre")) {
+			is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "centre")) {
 		target.flags |= uint8_t(ui::orientation::center);
 	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "lower_left")) {
 		target.flags |= uint8_t(ui::orientation::lower_left);
 	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "lower_right")) {
 		target.flags |= uint8_t(ui::orientation::lower_right);
 	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "upper_left") ||
-			  is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "upperl_left")) {
+						is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "upperl_left")) {
 		target.flags |= uint8_t(ui::orientation::upper_left);
 	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "upper_right")) {
 		target.flags |= uint8_t(ui::orientation::upper_right);
@@ -153,15 +153,15 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 		target.flags |= uint8_t(ui::orientation::lower_center);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as an orientation on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void gui_element_common::name(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	target.name = context.full_state.add_to_pool_lowercase(txt);
 }
 void gui_element_common::rotation(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")) {
 		target.flags |= uint8_t(ui::rotation::r90_right);
 	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.5708")) {
@@ -170,7 +170,7 @@ void gui_element_common::rotation(association_type, std::string_view txt, error_
 		target.flags |= uint8_t(ui::rotation::upright);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as a rotation on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void gui_element_common::maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -192,7 +192,7 @@ void button::spritetype(association_type, std::string_view txt, error_handler& e
 		target.data.button.button_image = it->second;
 	} else {
 		err.accumulated_errors += "referenced unknown gfx object  " + std::string(txt) + " on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 
@@ -252,7 +252,7 @@ void button::shortcut(association_type, std::string_view t, error_handler& err, 
 			target.data.button.shortcut = sys::virtual_key::QUOTE;
 		} else {
 			err.accumulated_errors += "tried to parse  " + std::string(t) + " as a key name on line " + std::to_string(line) +
-									  " of file " + err.file_name + "\n";
+																" of file " + err.file_name + "\n";
 		}
 	} else {
 		if(is_fixed_token_ci(t.data(), t.data() + t.length(), "none")) {
@@ -379,7 +379,7 @@ void button::shortcut(association_type, std::string_view t, error_handler& err, 
 			target.data.button.shortcut = sys::virtual_key::DIVIDE;
 		} else {
 			err.accumulated_errors += "tried to parse  " + std::string(t) + " as a key name on line " + std::to_string(line) +
-									  " of file " + err.file_name + "\n";
+																" of file " + err.file_name + "\n";
 		}
 	}
 }
@@ -415,7 +415,7 @@ void button::buttonfont(association_type, std::string_view txt, error_handler& e
 
 void button::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(t.data(), t.data() + t.length(), "centre") ||
-		is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
+			is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
 		target.data.button.flags |= uint8_t(ui::alignment::centered);
 	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "left")) {
 		target.data.button.flags |= uint8_t(ui::alignment::left);
@@ -425,7 +425,7 @@ void button::format(association_type, std::string_view t, error_handler& err, in
 		target.data.button.flags |= uint8_t(ui::alignment::justified);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as an alignment on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 
@@ -438,7 +438,7 @@ void button::clicksound(association_type, std::string_view t, error_handler& err
 		target.data.button.flags |= uint8_t(ui::clicksound::start_game);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as a click sound on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 
@@ -451,7 +451,7 @@ void image::frame(association_type, uint32_t v, error_handler& err, int32_t line
 		target.data.image.flags |= uint8_t(v);
 	} else {
 		err.accumulated_errors +=
-			"asked for more than 127 frames on line " + std::to_string(line) + " of file " + err.file_name + "\n";
+				"asked for more than 127 frames on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 }
 void image::spritetype(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -462,7 +462,7 @@ void image::spritetype(association_type, std::string_view txt, error_handler& er
 		target.data.image.gfx_object = it->second;
 	} else {
 		err.accumulated_errors += "referenced unknown gfx object  " + std::string(txt) + " on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void image::scale(association_type, float v, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -487,7 +487,7 @@ void textbox::font(association_type, std::string_view txt, error_handler& err, i
 }
 void textbox::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(t.data(), t.data() + t.length(), "centre") ||
-		is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
+			is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
 		target.data.text.flags |= uint8_t(ui::alignment::centered);
 	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "left")) {
 		target.data.text.flags |= uint8_t(ui::alignment::left);
@@ -497,7 +497,7 @@ void textbox::format(association_type, std::string_view t, error_handler& err, i
 		target.data.text.flags |= uint8_t(ui::alignment::justified);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as an alignment on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void textbox::text(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -525,8 +525,8 @@ void textbox::texturefile(association_type, std::string_view t, error_handler& e
 	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "gfx\\\\interface\\\\small_tiles_dialog.dds")) {
 		target.data.text.flags |= uint8_t(ui::text_background::small_tiles_dialog);
 	} else {
-		err.accumulated_errors += "tried to parse  " + std::string(t) + " as a text box background on line " +
-								  std::to_string(line) + " of file " + err.file_name + "\n";
+		err.accumulated_errors += "tried to parse  " + std::string(t) + " as a text box background on line " + std::to_string(line) +
+															" of file " + err.file_name + "\n";
 	}
 }
 
@@ -536,7 +536,7 @@ listbox::listbox() {
 }
 
 void listbox::background(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	if(txt.length() == 0)
 		return;
 	auto it = context.map_of_names.find(std::string(txt));
@@ -544,7 +544,7 @@ void listbox::background(association_type, std::string_view txt, error_handler& 
 		target.data.list_box.background_image = it->second;
 	} else {
 		err.accumulated_errors += "referenced unknown gfx object  " + std::string(txt) + " on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void listbox::bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -563,7 +563,7 @@ overlapping::overlapping() {
 }
 void overlapping::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(is_fixed_token_ci(t.data(), t.data() + t.length(), "centre") ||
-		is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
+			is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {
 		target.data.overlapping.image_alignment = ui::alignment::centered;
 	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "left")) {
 		target.data.overlapping.image_alignment = ui::alignment::left;
@@ -573,7 +573,7 @@ void overlapping::format(association_type, std::string_view t, error_handler& er
 		target.data.overlapping.image_alignment = ui::alignment::justified;
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as an alignment on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void overlapping::spacing(association_type, float v, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -589,19 +589,19 @@ void scrollbar::horizontal(association_type, bool v, error_handler& err, int32_t
 		target.data.scrollbar.flags |= ui::scrollbar_data::is_horizontal_mask;
 }
 void scrollbar::leftbutton(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	leftbutton_ = txt;
 }
 void scrollbar::rightbutton(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	rightbutton_ = txt;
 }
 void scrollbar::rangelimitmaxicon(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	rangelimitmaxicon_ = txt;
 }
 void scrollbar::rangelimitminicon(association_type, std::string_view txt, error_handler& err, int32_t line,
-	building_gfx_context& context) {
+		building_gfx_context& context) {
 	rangelimitminicon_ = txt;
 }
 void scrollbar::slider(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -634,7 +634,7 @@ void scrollbar::stepsize(association_type, std::string_view t, error_handler& er
 		target.data.scrollbar.flags |= uint8_t(ui::step_size::one_thousandth);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as a step size on line " + std::to_string(line) +
-								  " of file " + err.file_name + "\n";
+															" of file " + err.file_name + "\n";
 	}
 }
 void scrollbar::bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -657,37 +657,37 @@ auto find_in_children(std::string_view name, std::vector<ui::element_data> const
 }
 void scrollbar::finish(building_gfx_context& context) {
 	if(auto fr = find_in_children(leftbutton_, children, context.full_state);
-		fr != size_t(-1) && leftbutton_.length() > 0 && children.size() > 0) {
+			fr != size_t(-1) && leftbutton_.length() > 0 && children.size() > 0) {
 		if(fr != 0) {
 			std::swap(children[0], children[fr]);
 		}
 	}
 	if(auto fr = find_in_children(rightbutton_, children, context.full_state);
-		fr != size_t(-1) && rightbutton_.length() > 0 && children.size() > 1) {
+			fr != size_t(-1) && rightbutton_.length() > 0 && children.size() > 1) {
 		if(fr != 1) {
 			std::swap(children[1], children[fr]);
 		}
 	}
 	if(auto fr = find_in_children(slider_, children, context.full_state);
-		fr != size_t(-1) && slider_.length() > 0 && children.size() > 2) {
+			fr != size_t(-1) && slider_.length() > 0 && children.size() > 2) {
 		if(fr != 2) {
 			std::swap(children[2], children[fr]);
 		}
 	}
 	if(auto fr = find_in_children(track_, children, context.full_state);
-		fr != size_t(-1) && track_.length() > 0 && children.size() > 3) {
+			fr != size_t(-1) && track_.length() > 0 && children.size() > 3) {
 		if(fr != 3) {
 			std::swap(children[3], children[fr]);
 		}
 	}
 	if(auto fr = find_in_children(rangelimitmaxicon_, children, context.full_state);
-		fr != size_t(-1) && rangelimitmaxicon_.length() > 0 && children.size() > 4) {
+			fr != size_t(-1) && rangelimitmaxicon_.length() > 0 && children.size() > 4) {
 		if(fr != 4) {
 			std::swap(children[4], children[fr]);
 		}
 	}
 	if(auto fr = find_in_children(rangelimitminicon_, children, context.full_state);
-		fr != size_t(-1) && rangelimitminicon_.length() > 0 && children.size() > 5) {
+			fr != size_t(-1) && rangelimitminicon_.length() > 0 && children.size() > 5) {
 		if(fr != 5) {
 			std::swap(children[5], children[fr]);
 		}

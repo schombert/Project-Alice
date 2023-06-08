@@ -29,9 +29,7 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 		};
 		break;
 	case country_list_sort::total_rank:
-		fn = [&](dcon::nation_id a, dcon::nation_id b) {
-			return state.world.nation_get_rank(a) < state.world.nation_get_rank(b);
-		};
+		fn = [&](dcon::nation_id a, dcon::nation_id b) { return state.world.nation_get_rank(a) < state.world.nation_get_rank(b); };
 		break;
 	case country_list_sort::relation:
 		fn = [&](dcon::nation_id a, dcon::nation_id b) {
@@ -83,7 +81,7 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 				auto urel_a = state.world.get_unilateral_relationship_by_unilateral_pair(a, gp);
 				auto urel_b = state.world.get_unilateral_relationship_by_unilateral_pair(b, gp);
 				return state.world.unilateral_relationship_get_foreign_investment(urel_a) <
-					   state.world.unilateral_relationship_get_foreign_investment(urel_b);
+							 state.world.unilateral_relationship_get_foreign_investment(urel_b);
 			};
 		} else {
 			assert(0);

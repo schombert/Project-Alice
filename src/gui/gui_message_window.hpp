@@ -7,7 +7,7 @@
 namespace ui {
 
 template<bool Left> class message_lr_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		frame = Left ? 0 : 1;
@@ -26,7 +26,7 @@ struct message_dismiss_notification {
 };
 
 class message_dismiss_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = message_dismiss_notification{};
@@ -36,7 +36,7 @@ public:
 };
 
 class message_count_text : public simple_text_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		simple_text_element_base::on_create(state);
 		black_text = false;
@@ -44,7 +44,7 @@ public:
 };
 
 class message_desc_text : public scrollable_text {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.x = 500 - (base_data.position.x * 2) - 8;
 		base_data.size.y = 18 * 6;
@@ -53,7 +53,7 @@ public:
 };
 
 class message_flag_button : public nation_player_flag {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.position.y -= 6;
 		base_data.size.y += 32;
@@ -73,9 +73,9 @@ public:
 			auto& gfx_def = state.ui_defs.gfx[gid];
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
-			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-				float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle,
-				base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
+					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+					gfx_def.is_vertically_flipped());
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -88,7 +88,7 @@ class message_window : public window_element_base {
 	multiline_text_element_base* title_text = nullptr;
 	message_desc_text* desc_text = nullptr;
 
-public:
+	public:
 	std::vector<notification::message> messages;
 
 	void on_create(sys::state& state) noexcept override {
@@ -96,7 +96,7 @@ public:
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<message_lr_button<false>>(state,
-				state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -104,7 +104,7 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<message_count_text>(state,
-				state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
@@ -112,7 +112,7 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<message_lr_button<true>>(state,
-				state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
@@ -176,12 +176,12 @@ public:
 			auto const& m = messages[index];
 
 			auto title_container = text::create_endless_layout(title_text->internal_layout,
-				text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y,
-					title_text->base_data.data.text.font_handle, -6, text::alignment::center, text::text_color::black});
+					text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y,
+							title_text->base_data.data.text.font_handle, -6, text::alignment::center, text::text_color::black});
 			m.title(state, title_container);
 			auto desc_container = text::create_endless_layout(desc_text->delegate->internal_layout,
-				text::layout_parameters{0, 0, desc_text->base_data.size.x, desc_text->base_data.size.y,
-					desc_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white});
+					text::layout_parameters{0, 0, desc_text->base_data.size.x, desc_text->base_data.size.y,
+							desc_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white});
 			m.body(state, desc_container);
 		}
 	}

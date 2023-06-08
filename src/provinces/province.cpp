@@ -12,7 +12,7 @@ template<typename T> auto is_overseas(sys::state const& state, T ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(ids);
 	auto owner_cap = state.world.nation_get_capital(owners);
 	return (state.world.province_get_continent(ids) != state.world.province_get_continent(owner_cap)) &&
-		   (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
+				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
 }
 
 template<typename F> void for_each_land_province(sys::state& state, F const& func) {
@@ -78,7 +78,7 @@ void update_connected_regions(sys::state& state) {
 				state.world.province_set_connected_region_id(current_id, current_fill_id);
 				for(auto rel : state.world.province_get_province_adjacency(current_id)) {
 					if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) ==
-						0) { // not entering sea, not impassible
+							0) { // not entering sea, not impassible
 						auto owner_a = rel.get_connected_provinces(0).get_nation_from_province_ownership();
 						auto owner_b = rel.get_connected_provinces(1).get_nation_from_province_ownership();
 						if(owner_a == owner_b) { // both have the same owner
@@ -106,8 +106,8 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 	dcon::province_id best_choice;
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
 		if(prov.get_province().get_demographics(demographics::total) >
-				state.world.province_get_demographics(best_choice, demographics::total) &&
-			prov.get_province().get_is_owner_core() == state.world.province_get_is_owner_core(best_choice)) {
+						state.world.province_get_demographics(best_choice, demographics::total) &&
+				prov.get_province().get_is_owner_core() == state.world.province_get_is_owner_core(best_choice)) {
 			best_choice = prov.get_province().id;
 		} else if(prov.get_province().get_is_owner_core() && !state.world.province_get_is_owner_core(best_choice)) {
 			best_choice = prov.get_province().id;
@@ -118,13 +118,11 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 
 void restore_cached_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_owned_province_count(ids, ve::int_vector()); });
-	state.world.execute_serial_over_nation(
-		[&](auto ids) { state.world.nation_set_central_province_count(ids, ve::int_vector()); });
+	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_province_count(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_blockaded(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation(
-		[&](auto ids) { state.world.nation_set_central_rebel_controlled(ids, ve::int_vector()); });
-	state.world.execute_serial_over_nation(
-		[&](auto ids) { state.world.nation_set_rebel_controlled_count(ids, ve::int_vector()); });
+			[&](auto ids) { state.world.nation_set_central_rebel_controlled(ids, ve::int_vector()); });
+	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_rebel_controlled_count(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_ports(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_crime_count(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_total_ports(ids, ve::int_vector()); });
@@ -295,7 +293,7 @@ bool generic_can_build_railroads(sys::state& state, dcon::province_id id, dcon::
 	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
 	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(n);
 	int32_t min_build_railroad =
-		int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+			int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
 
 	return (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0) && !has_railroads_being_built(state, id);
 }
@@ -328,7 +326,7 @@ bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_i
 	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
 	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(n);
 	int32_t min_build_railroad =
-		int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+			int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
 
 	return (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0) && !has_railroads_being_built(state, id);
 }
@@ -395,7 +393,7 @@ float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	float total_pops = state.world.province_get_demographics(id, demographics::total);
 
 	float life_rating = state.world.province_get_life_rating(id) *
-						(1 + state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::life_rating));
+											(1 + state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::life_rating));
 	life_rating = std::clamp(life_rating, 0.f, 40.f);
 
 	if(life_rating > state.defines.min_life_rating_for_growth) {
@@ -408,15 +406,15 @@ float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	float growth_factor = life_rating + state.defines.base_popgrowth;
 
 	float life_needs = state.world.province_get_demographics(id, demographics::poor_everyday_needs) +
-					   state.world.province_get_demographics(id, demographics::middle_everyday_needs) +
-					   state.world.province_get_demographics(id, demographics::rich_everyday_needs);
+										 state.world.province_get_demographics(id, demographics::middle_everyday_needs) +
+										 state.world.province_get_demographics(id, demographics::rich_everyday_needs);
 
 	life_needs /= total_pops;
 
 	float growth_modifier_sum = ((life_needs - state.defines.life_need_starvation_limit) * growth_factor * 4 +
-								 state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) +
-								 state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) *
-									 0.1f); // /state.defines.slave_growth_divisor;
+															 state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) +
+															 state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) *
+																	 0.1f); // /state.defines.slave_growth_divisor;
 
 	// TODO: slaves growth
 
@@ -439,14 +437,14 @@ float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
 }
 float rgo_employment(sys::state& state, dcon::province_id id) {
 	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id) *
-		   state.world.province_get_rgo_employment(id);
+				 state.world.province_get_rgo_employment(id);
 }
 float rgo_income(sys::state& state, dcon::province_id id) {
 	return state.world.province_get_rgo_full_profit(id);
 }
 float rgo_production_quantity(sys::state& state, dcon::province_id id) {
 	return economy::rgo_full_production_quantity(state, state.world.province_get_nation_from_province_ownership(id), id) *
-		   state.world.province_get_rgo_employment(id);
+				 state.world.province_get_rgo_employment(id);
 }
 float rgo_size(sys::state& state, dcon::province_id prov_id) {
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
@@ -454,10 +452,10 @@ float rgo_size(sys::state& state, dcon::province_id prov_id) {
 
 	auto n = dcon::fatten(state.world, prov_id).get_nation_from_province_ownership();
 	auto bonus = state.world.province_get_modifier_values(prov_id,
-					 is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size) +
-				 state.world.nation_get_modifier_values(n,
-					 is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size) +
-				 state.world.nation_get_rgo_size(n, state.world.province_get_rgo(prov_id)) + 1.0f;
+									 is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size) +
+							 state.world.nation_get_modifier_values(n,
+									 is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size) +
+							 state.world.nation_get_rgo_size(n, state.world.province_get_rgo(prov_id)) + 1.0f;
 	return sz * bonus;
 }
 
@@ -466,7 +464,7 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
 		for(auto po : state.world.province_get_pop_location(p)) {
 			if(po.get_pop().get_is_primary_or_accepted_culture() &&
-				po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
 				bsum += po.get_pop().get_size();
 			}
 		}
@@ -492,18 +490,18 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 		}
 		for(auto po : state.world.province_get_pop_location(p)) {
 			if(po.get_pop().get_is_primary_or_accepted_culture() &&
-				po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
 				bsum += po.get_pop().get_size();
 			}
 		}
 	});
 	auto total_pop = state.world.state_instance_get_demographics(id, demographics::total);
 	auto total =
-		total_pop > 0
-			? std::clamp(admin_mod + non_core_effect + state.defines.base_country_admin_efficiency +
-							 std::min(state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop, 1.0f) / from_issues,
-				  0.0f, 1.0f)
-			: 0.0f;
+			total_pop > 0
+					? std::clamp(admin_mod + non_core_effect + state.defines.base_country_admin_efficiency +
+													 std::min(state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop, 1.0f) / from_issues,
+								0.0f, 1.0f)
+					: 0.0f;
 
 	return total;
 }
@@ -525,10 +523,10 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
 	if(si && owner)
 		return (state_admin_efficiency(state, si) * state.defines.admin_efficiency_crimefight_percent +
-				   (1 - state.defines.admin_efficiency_crimefight_percent) *
-					   state.world.nation_get_administrative_efficiency(owner)) *
-				   (state.defines.max_crimefight_percent - state.defines.min_crimefight_percent) +
-			   state.defines.min_crimefight_percent;
+							 (1 - state.defines.admin_efficiency_crimefight_percent) *
+									 state.world.nation_get_administrative_efficiency(owner)) *
+							 (state.defines.max_crimefight_percent - state.defines.min_crimefight_percent) +
+					 state.defines.min_crimefight_percent;
 	else
 		return 0.0f;
 }
@@ -588,7 +586,7 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 		float distance = state_distance(state, id, state.world.nation_get_capital(owner).id);
 		return state.defines.colonization_create_state_cost * prov_count *
-			   std::max(distance / state.defines.colonization_colony_state_distance, 1.f);
+					 std::max(distance / state.defines.colonization_colony_state_distance, 1.f);
 	} else {
 		return 0.f;
 	}
@@ -609,9 +607,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	dcon::state_instance_id new_si;
 
 	bool will_be_colonial = state.world.province_get_is_colonial(id) ||
-							(old_owner && state.world.nation_get_is_civilized(old_owner) == false &&
-								state.world.nation_get_is_civilized(new_owner) == true) ||
-							(!old_owner);
+													(old_owner && state.world.nation_get_is_civilized(old_owner) == false &&
+															state.world.nation_get_is_civilized(new_owner) == true) ||
+													(!old_owner);
 
 	if(new_owner) {
 		for(auto si : state.world.nation_get_state_ownership(new_owner)) {
@@ -646,7 +644,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
 
 		auto excess_factories = std::min(
-			(factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
+				(factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
 		if(excess_factories > 0) {
 			std::vector<dcon::factory_id> to_delete;
 			while(excess_factories > 0) {
@@ -711,7 +709,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.world.province_set_last_control_change(id, state.current_date);
 	state.world.province_set_nation_from_province_control(id, new_owner);
 	state.world.province_set_is_owner_core(id,
-		bool(state.world.get_core_by_prov_tag_key(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
+			bool(state.world.get_core_by_prov_tag_key(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
 
 	if(old_si) {
 		dcon::province_id a_province;
@@ -763,7 +761,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		spawn event
 		*/
 		event::fire_fixed_event(state, state.national_definitions.on_state_conquest, trigger::to_generic(new_si),
-			event::slot_type::state, new_owner, -1, event::slot_type::none);
+				event::slot_type::state, new_owner, -1, event::slot_type::none);
 	}
 }
 
@@ -792,12 +790,11 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 			auto rp = state.world.pop_type_get_research_points(t);
 			if(rp > 0) {
 				sum_from_pops += rp * std::min(1.0f, state.world.province_get_demographics(id, demographics::to_key(state, t)) /
-														 (total_pop * state.world.pop_type_get_research_optimum(t)));
+																								 (total_pop * state.world.pop_type_get_research_optimum(t)));
 			}
 		});
 
-		auto amount =
-			total_pop > 0.0f ? (state.defines.research_points_on_conquer_mult * sum_from_pops) * (rp_mod_mod + 1.0f) : 0.0f;
+		auto amount = total_pop > 0.0f ? (state.defines.research_points_on_conquer_mult * sum_from_pops) * (rp_mod_mod + 1.0f) : 0.0f;
 		state.world.nation_get_research_points(new_owner) += amount;
 	}
 
@@ -808,8 +805,7 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 	if(state.world.province_get_is_owner_core(id) == false && !was_colonial) {
 		for(auto pop : state.world.province_get_pop_location(id)) {
 			if(!pop.get_pop().get_is_primary_or_accepted_culture()) {
-				pop.get_pop().set_militancy(
-					std::clamp(pop.get_pop().get_militancy() + state.defines.mil_hit_from_conquest, 0.0f, 10.0f));
+				pop.get_pop().set_militancy(std::clamp(pop.get_pop().get_militancy() + state.defines.mil_hit_from_conquest, 0.0f, 10.0f));
 			}
 		}
 	}
@@ -852,8 +848,7 @@ void update_crimes(sys::state& state) {
 
 				for(uint32_t i = 0; i < state.culture_definitions.crimes.size(); ++i) {
 					dcon::crime_id c{dcon::crime_id::value_base_t(i)};
-					if(state.culture_definitions.crimes[c].available_by_default ||
-						state.world.nation_get_active_crime(owner, c)) {
+					if(state.culture_definitions.crimes[c].available_by_default || state.world.nation_get_active_crime(owner, c)) {
 						if(auto t = state.culture_definitions.crimes[c].trigger; t) {
 							if(trigger::evaluate(state, t, trigger::to_generic(p), trigger::to_generic(owner), 0))
 								possible_crimes.push_back(c);
@@ -914,7 +909,7 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 	*/
 
 	if(state.world.colonization_get_last_investment(colony_status) + int32_t(state.defines.colonization_days_between_investment) >
-		state.current_date)
+			state.current_date)
 		return false;
 
 	/*
@@ -930,8 +925,8 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 		return free_points >= int32_t(state.defines.colonization_influence_cost);
 	} else {
 		return free_points >=
-			   int32_t(state.defines.colonization_extra_guard_cost * (state.world.colonization_get_level(colony_status) - 4) +
-					   state.defines.colonization_influence_cost);
+					 int32_t(state.defines.colonization_extra_guard_cost * (state.world.colonization_get_level(colony_status) - 4) +
+									 state.defines.colonization_influence_cost);
 	}
 }
 
@@ -968,8 +963,8 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 	*/
 
 	if(state.defines.colonial_liferating +
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::colonial_life_rating) >
-		max_life_rating) {
+					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::colonial_life_rating) >
+			max_life_rating) {
 		return false;
 	}
 
@@ -1029,7 +1024,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 	auto free_points = nations::free_colonial_points(state, n);
 
 	return free_points >= int32_t(state.defines.colonization_interest_cost_initial +
-								  (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
+																(adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
 }
 
 void update_colonization(sys::state& state) {
@@ -1052,21 +1047,20 @@ void update_colonization(sys::state& state) {
 			for(auto c : colonizers) {
 				max_points = std::max(max_points, int32_t(c.get_level()));
 				if(state.world.nation_get_is_at_war(c.get_colonizer()) ||
-					(state.world.nation_get_disarmed_until(c.get_colonizer()) &&
-						state.current_date <= state.world.nation_get_disarmed_until(c.get_colonizer()))) {
+						(state.world.nation_get_disarmed_until(c.get_colonizer()) &&
+								state.current_date <= state.world.nation_get_disarmed_until(c.get_colonizer()))) {
 					at_war_adjust = state.defines.at_war_tension_decay;
 				}
 			}
 
 			float adjust = state.defines.colonization_influence_temperature_per_day +
-						   float(max_points) * state.defines.colonization_influence_temperature_per_level +
-						   (state.current_crisis != sys::crisis_type::none ? state.defines.tension_while_crisis : 0.0f) +
-						   at_war_adjust;
+										 float(max_points) * state.defines.colonization_influence_temperature_per_level +
+										 (state.current_crisis != sys::crisis_type::none ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
 
 			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
 		} else if(num_colonizers == 1 &&
-				  (*colonizers.begin()).get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment) <=
-					  state.current_date) {
+							(*colonizers.begin()).get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment) <=
+									state.current_date) {
 			/*
 			If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without
 			any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
@@ -1079,7 +1073,7 @@ void update_colonization(sys::state& state) {
 			phase 0 (no colonization in progress).
 			*/
 			if((*colonizers.begin()).get_last_investment() + 31 * int32_t(state.defines.colonization_months_to_colonize) <=
-				state.current_date) {
+					state.current_date) {
 
 				d.set_colonization_stage(uint8_t(0));
 				do {
@@ -1106,7 +1100,7 @@ void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity
 	if(tag && prov) {
 		state.world.try_create_core(prov, tag);
 		if(state.world.province_get_nation_from_province_ownership(prov) ==
-			state.world.national_identity_get_nation_from_identity_holder(tag)) {
+				state.world.national_identity_get_nation_from_identity_holder(tag)) {
 			state.world.province_set_is_owner_core(prov, true);
 		}
 	}
@@ -1117,7 +1111,7 @@ void remove_core(sys::state& state, dcon::province_id prov, dcon::national_ident
 	if(core_rel) {
 		state.world.delete_core(core_rel);
 		if(state.world.province_get_nation_from_province_ownership(prov) ==
-			state.world.national_identity_get_nation_from_identity_holder(tag)) {
+				state.world.national_identity_get_nation_from_identity_holder(tag)) {
 			state.world.province_set_is_owner_core(prov, false);
 		}
 	}

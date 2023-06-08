@@ -45,13 +45,13 @@ dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U> auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
 	auto is_accepted = ve::apply(
-		[&state](dcon::nation_id n, dcon::culture_id c) {
-			if(n)
-				return state.world.nation_get_accepted_cultures(n).contains(c);
-			else
-				return false;
-		},
-		ids, cul_ids);
+			[&state](dcon::nation_id n, dcon::culture_id c) {
+				if(n)
+					return state.world.nation_get_accepted_cultures(n).contains(c);
+				else
+					return false;
+			},
+			ids, cul_ids);
 	return (state.world.nation_get_primary_culture(ids) == cul_ids) || is_accepted;
 }
 
@@ -185,7 +185,7 @@ void generate_initial_state_instances(sys::state& state) {
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
 	auto target_nation = state.world.national_identity_get_nation_from_identity_holder(releasable);
 	if(!state.world.national_identity_get_is_not_releasable(releasable) &&
-		state.world.nation_get_owned_province_count(target_nation) == 0) {
+			state.world.nation_get_owned_province_count(target_nation) == 0) {
 		bool owns_a_core = false;
 		bool not_on_capital = true;
 		state.world.national_identity_for_each_core(releasable, [&](dcon::core_id core) {
@@ -236,8 +236,7 @@ void update_administrative_efficiency(sys::state& state) {
 	define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod =
-			state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
+		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
 		ve::fp_vector issue_sum;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
@@ -246,7 +245,7 @@ void update_administrative_efficiency(sys::state& state) {
 
 		auto non_colonial = state.world.nation_get_non_colonial_population(ids);
 		auto total = ve::select(non_colonial > 0.0f,
-			(admin_mod + 1.0f) * state.world.nation_get_non_colonial_bureaucrats(ids) / (non_colonial * from_issues), 0.0f);
+				(admin_mod + 1.0f) * state.world.nation_get_non_colonial_bureaucrats(ids) / (non_colonial * from_issues), 0.0f);
 
 		state.world.nation_set_administrative_efficiency(ids, ve::min(total, 1.0f));
 	});
@@ -270,7 +269,7 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 		auto rp = state.world.pop_type_get_research_points(t);
 		if(rp > 0) {
 			sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(n, demographics::to_key(state, t)) /
-													 (total_pop * state.world.pop_type_get_research_optimum(t)));
+																							 (total_pop * state.world.pop_type_get_research_optimum(t)));
 		}
 	});
 
@@ -294,20 +293,20 @@ void update_research_points(sys::state& state) {
 			auto rp = state.world.pop_type_get_research_points(t);
 			if(rp > 0) {
 				sum_from_pops = ve::multiply_and_add(rp,
-					ve::min(1.0f, state.world.nation_get_demographics(ids, demographics::to_key(state, t)) /
-									  (total_pop * state.world.pop_type_get_research_optimum(t))),
-					sum_from_pops);
+						ve::min(1.0f, state.world.nation_get_demographics(ids, demographics::to_key(state, t)) /
+															(total_pop * state.world.pop_type_get_research_optimum(t))),
+						sum_from_pops);
 			}
 		});
 		auto amount = ve::select(total_pop >= 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
-			(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
+				(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x
 		daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
 		*/
 		auto current_points = state.world.nation_get_research_points(ids);
 		auto capped_value = ve::min(amount + current_points,
-			ve::select(state.world.nation_get_is_civilized(ids), amount * 365.0f, state.defines.max_research_points));
+				ve::select(state.world.nation_get_is_civilized(ids), amount * 365.0f, state.defines.max_research_points));
 		state.world.nation_set_research_points(ids, capped_value);
 	});
 }
@@ -325,15 +324,14 @@ void update_industrial_scores(sys::state& state) {
 		if(state.world.nation_get_owned_province_count(n) != 0) {
 			for(auto si : state.world.nation_get_state_ownership(n)) {
 				float total_level = 0;
-				float worker_total = si.get_state().get_demographics(
-										 demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
-									 si.get_state().get_demographics(
-										 demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+				float worker_total =
+						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
+						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
 				float total_factory_capacity = 0;
 				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 					for(auto f : state.world.province_get_factory_location(p)) {
 						total_factory_capacity +=
-							float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+								float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
 						total_level += float(f.get_factory().get_level());
 					}
 				});
@@ -367,25 +365,25 @@ void update_military_scores(sys::state& state) {
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
 		auto is_disarmed =
-			ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
+				ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
 		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
 		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply(
-			[&](dcon::nation_id i) {
-				auto gen_range = state.world.nation_get_leader_loyalty(i);
-				return float((gen_range.end() - gen_range.begin()));
-			},
-			n);
+				[&](dcon::nation_id i) {
+					auto gen_range = state.world.nation_get_leader_loyalty(i);
+					return float((gen_range.end() - gen_range.begin()));
+				},
+				n);
 		state.world.nation_set_military_score(n,
-			ve::to_int((ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f) +
-					   state.world.nation_get_capital_ship_score(n) + ve::max(num_leaders, active_regs)));
+				ve::to_int((ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f) +
+									 state.world.nation_get_capital_ship_score(n) + ve::max(num_leaders, active_regs)));
 	});
 }
 
 float prestige_score(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_prestige(n) +
-		   state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige);
+				 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige);
 }
 
 void update_rankings(sys::state& state) {
@@ -395,22 +393,22 @@ void update_rankings(sys::state& state) {
 		++to_sort_count;
 	});
 	std::sort(state.nations_by_rank.begin(), state.nations_by_rank.begin() + to_sort_count,
-		[&](dcon::nation_id a, dcon::nation_id b) {
-			auto fa = fatten(state.world, a);
-			auto fb = fatten(state.world, b);
-			if((fa.get_owned_province_count() != 0) != (fb.get_owned_province_count() != 0)) {
-				return (fa.get_owned_province_count() != 0);
-			}
-			if(fa.get_is_civilized() != fb.get_is_civilized())
-				return fa.get_is_civilized();
-			if(bool(fa.get_overlord_as_subject()) != bool(fa.get_overlord_as_subject()))
-				return !bool(fa.get_overlord_as_subject());
-			auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
-			auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
-			if(a_score != b_score)
-				return a_score > b_score;
-			return a.index() > b.index(); // create a total order
-		});
+			[&](dcon::nation_id a, dcon::nation_id b) {
+				auto fa = fatten(state.world, a);
+				auto fb = fatten(state.world, b);
+				if((fa.get_owned_province_count() != 0) != (fb.get_owned_province_count() != 0)) {
+					return (fa.get_owned_province_count() != 0);
+				}
+				if(fa.get_is_civilized() != fb.get_is_civilized())
+					return fa.get_is_civilized();
+				if(bool(fa.get_overlord_as_subject()) != bool(fa.get_overlord_as_subject()))
+					return !bool(fa.get_overlord_as_subject());
+				auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
+				auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
+				if(a_score != b_score)
+					return a_score > b_score;
+				return a.index() > b.index(); // create a total order
+			});
 	if(to_sort_count < state.nations_by_rank.size()) {
 		state.nations_by_rank[to_sort_count] = dcon::nation_id{};
 	}
@@ -430,59 +428,59 @@ void update_ui_rankings(sys::state& state) {
 		}
 	});
 	std::sort(state.nations_by_industrial_score.begin(), state.nations_by_industrial_score.begin() + to_sort_count,
-		[&](dcon::nation_id a, dcon::nation_id b) {
-			auto fa = fatten(state.world, a);
-			auto fb = fatten(state.world, b);
-			if(fa.get_is_civilized() && !fb.get_is_civilized())
-				return true;
-			if(!fa.get_is_civilized() && fb.get_is_civilized())
-				return false;
-			if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
-				return false;
-			if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
-				return true;
-			auto a_score = fa.get_industrial_score();
-			auto b_score = fb.get_industrial_score();
-			if(a_score != b_score)
-				return a_score > b_score;
-			return a.index() > b.index();
-		});
+			[&](dcon::nation_id a, dcon::nation_id b) {
+				auto fa = fatten(state.world, a);
+				auto fb = fatten(state.world, b);
+				if(fa.get_is_civilized() && !fb.get_is_civilized())
+					return true;
+				if(!fa.get_is_civilized() && fb.get_is_civilized())
+					return false;
+				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+					return false;
+				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+					return true;
+				auto a_score = fa.get_industrial_score();
+				auto b_score = fb.get_industrial_score();
+				if(a_score != b_score)
+					return a_score > b_score;
+				return a.index() > b.index();
+			});
 	std::sort(state.nations_by_military_score.begin(), state.nations_by_military_score.begin() + to_sort_count,
-		[&](dcon::nation_id a, dcon::nation_id b) {
-			auto fa = fatten(state.world, a);
-			auto fb = fatten(state.world, b);
-			if(fa.get_is_civilized() && !fb.get_is_civilized())
-				return true;
-			if(!fa.get_is_civilized() && fb.get_is_civilized())
-				return false;
-			if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
-				return false;
-			if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
-				return true;
-			auto a_score = fa.get_military_score();
-			auto b_score = fb.get_military_score();
-			if(a_score != b_score)
-				return a_score > b_score;
-			return a.index() > b.index();
-		});
+			[&](dcon::nation_id a, dcon::nation_id b) {
+				auto fa = fatten(state.world, a);
+				auto fb = fatten(state.world, b);
+				if(fa.get_is_civilized() && !fb.get_is_civilized())
+					return true;
+				if(!fa.get_is_civilized() && fb.get_is_civilized())
+					return false;
+				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+					return false;
+				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+					return true;
+				auto a_score = fa.get_military_score();
+				auto b_score = fb.get_military_score();
+				if(a_score != b_score)
+					return a_score > b_score;
+				return a.index() > b.index();
+			});
 	std::sort(state.nations_by_prestige_score.begin(), state.nations_by_prestige_score.begin() + to_sort_count,
-		[&](dcon::nation_id a, dcon::nation_id b) {
-			auto fa = fatten(state.world, a);
-			auto fb = fatten(state.world, b);
-			if(fa.get_is_civilized() && !fb.get_is_civilized())
-				return true;
-			if(!fa.get_is_civilized() && fb.get_is_civilized())
-				return false;
-			if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
-				return false;
-			if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
-				return true;
-			auto a_score = prestige_score(state, a);
-			auto b_score = prestige_score(state, b);
-			if(a_score != b_score)
-				return a_score > b_score;
-			return a.index() > b.index();
-		});
+			[&](dcon::nation_id a, dcon::nation_id b) {
+				auto fa = fatten(state.world, a);
+				auto fb = fatten(state.world, b);
+				if(fa.get_is_civilized() && !fb.get_is_civilized())
+					return true;
+				if(!fa.get_is_civilized() && fb.get_is_civilized())
+					return false;
+				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+					return false;
+				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+					return true;
+				auto a_score = prestige_score(state, a);
+				auto b_score = prestige_score(state, b);
+				if(a_score != b_score)
+					return a_score > b_score;
+				return a.index() > b.index();
+			});
 	for(uint32_t i = 0; i < to_sort_count; ++i) {
 		state.world.nation_set_industrial_rank(state.nations_by_industrial_score[i], uint16_t(i + 1));
 		state.world.nation_set_military_rank(state.nations_by_military_score[i], uint16_t(i + 1));
@@ -500,7 +498,7 @@ void update_great_powers(sys::state& state) {
 			// is still a gp
 			state.great_nations[i].last_greatness = state.current_date;
 		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date ||
-				  state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
+							state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
 
 			auto n = state.great_nations[i].nation;
 			state.great_nations[i] = state.great_nations.back();
@@ -509,7 +507,7 @@ void update_great_powers(sys::state& state) {
 			state.world.nation_set_is_great_power(n, false);
 
 			event::fire_fixed_event(state, state.national_definitions.on_lost_great_nation, trigger::to_generic(n),
-				event::slot_type::nation, n, -1, event::slot_type::none);
+					event::slot_type::nation, n, -1, event::slot_type::none);
 
 			// kill gp relationships
 			auto rels = state.world.nation_get_gp_relationship_as_great_power(n);
@@ -534,7 +532,7 @@ void update_great_powers(sys::state& state) {
 				}
 
 				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n),
-					event::slot_type::nation, n, -1, event::slot_type::none);
+						event::slot_type::nation, n, -1, event::slot_type::none);
 			}
 		}
 	}
@@ -590,14 +588,13 @@ int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
 	1 + the number of national focuses provided by technology.
 	*/
 	float relevant_pop =
-		state.world.nation_get_demographics(n, demographics::to_key(state, state.world.nation_get_primary_culture(n)));
+			state.world.nation_get_demographics(n, demographics::to_key(state, state.world.nation_get_primary_culture(n)));
 	for(auto ac : state.world.nation_get_accepted_cultures(n)) {
 		relevant_pop += state.world.nation_get_demographics(n, demographics::to_key(state, ac));
 	}
 
-	return std::max(1,
-		std::min(int32_t(relevant_pop / state.defines.national_focus_divider),
-			int32_t(1 + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_national_focus))));
+	return std::max(1, std::min(int32_t(relevant_pop / state.defines.national_focus_divider),
+												 int32_t(1 + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_national_focus))));
 }
 
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
@@ -631,8 +628,8 @@ int32_t free_colonial_points(sys::state& state, dcon::nation_id n) {
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
 		if(prov.get_province().get_is_colonial()) {
 			used_points += state.defines.colonization_colony_province_maintainance;
-			used_points += state.economy_definitions.railroad_definition.infrastructure *
-						   prov.get_province().get_railroad_level() * state.defines.colonization_colony_railway_maintainance;
+			used_points += state.economy_definitions.railroad_definition.infrastructure * prov.get_province().get_railroad_level() *
+										 state.defines.colonization_colony_railway_maintainance;
 		}
 	}
 
@@ -660,8 +657,8 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 			auto nb_rank = state.world.province_get_naval_base_level(p.get_province());
 			if(nb_rank > 0) {
 				if(p.get_province().get_is_owner_core() ||
-					p.get_province().get_connected_region_id() ==
-						state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
+						p.get_province().get_connected_region_id() ==
+								state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
 
 					points += float(state.economy_definitions.naval_base_definition.colonial_points[nb_rank - 1]);
 				} else {
@@ -708,8 +705,7 @@ bool can_expand_colony(sys::state& state, dcon::nation_id n) {
 			If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without
 			any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
 			*/
-			if(state.current_date >=
-				cols.get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment)) {
+			if(state.current_date >= cols.get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment)) {
 				if(free_colonial_points(state, n) >= int32_t(state.defines.colonization_create_protectorate_cost)) {
 					return true;
 				}
@@ -728,10 +724,9 @@ bool can_expand_colony(sys::state& state, dcon::nation_id n) {
 				of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point,
 				further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
 				*/
-				auto points = cols.get_level() < 4
-								  ? int32_t(state.defines.colonization_interest_cost)
-								  : int32_t(state.defines.colonization_extra_guard_cost * (cols.get_level() - 4) +
-											state.defines.colonization_influence_cost);
+				auto points = cols.get_level() < 4 ? int32_t(state.defines.colonization_interest_cost)
+																					 : int32_t(state.defines.colonization_extra_guard_cost * (cols.get_level() - 4) +
+																										 state.defines.colonization_influence_cost);
 				if(free_colonial_points(state, n) >= points) {
 					return true;
 				}
@@ -757,14 +752,14 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 		auto act_date = it.get_penalty_expires_date();
 		if((it.get_status() & influence::is_banned) == 0) {
 			if(it.get_influence() >= state.defines.increaseopinion_influence_cost &&
-				(influence::level_mask & it.get_status()) != influence::level_in_sphere) {
+					(influence::level_mask & it.get_status()) != influence::level_in_sphere) {
 				return true;
 			} else if(!(it.get_influence_target().get_in_sphere_of()) &&
-					  it.get_influence() >= state.defines.addtosphere_influence_cost) {
+								it.get_influence() >= state.defines.addtosphere_influence_cost) {
 				return true;
 			} else if(it.get_influence_target().get_in_sphere_of() &&
-					  (influence::level_mask & it.get_status()) == influence::level_friendly &&
-					  it.get_influence() >= state.defines.removefromsphere_influence_cost) {
+								(influence::level_mask & it.get_status()) == influence::level_friendly &&
+								it.get_influence() >= state.defines.removefromsphere_influence_cost) {
 				return true;
 			}
 		}
@@ -909,14 +904,14 @@ void update_monthly_points(sys::state& state) {
 		auto wmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::war_exhaustion);
 		auto wmax_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::max_war_exhaustion);
 		state.world.nation_set_war_exhaustion(ids,
-			ve::max(ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod), 0.0f));
+				ve::max(ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod), 0.0f));
 	});
 	/*
 	- Monthly plurality increase: plurality increases by average consciousness / 45 per month.
 	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
 		auto pmod = state.world.nation_get_demographics(ids, demographics::consciousness) /
-					ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * 0.0222f;
+								ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * 0.0222f;
 		state.world.nation_set_plurality(ids, ve::min(state.world.nation_get_plurality(ids) + pmod, 100.0f));
 	});
 	/*
@@ -937,12 +932,12 @@ void update_monthly_points(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
 		auto bmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::suppression_points_modifier) + 1.0f);
 		auto cmod = (bmod * state.defines.suppression_points_gain_base) *
-					(state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.bureaucrat)) /
-						ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) *
-						state.defines.suppress_bureaucrat_factor);
+								(state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.bureaucrat)) /
+										ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) *
+										state.defines.suppress_bureaucrat_factor);
 
 		state.world.nation_set_suppression_points(ids,
-			ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
+				ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
 	});
 	/*
 	- Monthly relations adjustment = +0.25 for subjects/overlords, -0.01 for being at war, +0.05 if adjacent and both are at
@@ -1067,15 +1062,15 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 		state.world.nation_set_active_inventions(n, t, state.world.nation_get_active_inventions(base, t));
 	});
 	state.world.for_each_issue(
-		[&](dcon::issue_id t) { state.world.nation_set_issues(n, t, state.world.nation_get_issues(base, t)); });
+			[&](dcon::issue_id t) { state.world.nation_set_issues(n, t, state.world.nation_get_issues(base, t)); });
 	if(!state.world.nation_get_is_civilized(base)) {
 		state.world.for_each_reform(
-			[&](dcon::reform_id t) { state.world.nation_set_reforms(n, t, state.world.nation_get_reforms(base, t)); });
+				[&](dcon::reform_id t) { state.world.nation_set_reforms(n, t, state.world.nation_get_reforms(base, t)); });
 	}
 	state.world.nation_set_last_issue_or_reform_change(n, sys::date{});
 	culture::update_nation_issue_rules(state, n);
 	state.world.for_each_ideology(
-		[&](dcon::ideology_id i) { state.world.nation_set_upper_house(n, i, state.world.nation_get_upper_house(base, i)); });
+			[&](dcon::ideology_id i) { state.world.nation_set_upper_house(n, i, state.world.nation_get_upper_house(base, i)); });
 	state.world.nation_set_is_substate(n, false);
 	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
 		state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
@@ -1095,13 +1090,13 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	});
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		state.world.nation_set_unit_stats(n, dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)},
-			state.world.nation_get_unit_stats(base, dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)}));
+				state.world.nation_get_unit_stats(base, dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)}));
 		state.world.nation_set_active_unit(n, dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)},
-			state.world.nation_get_active_unit(base, dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)}));
+				state.world.nation_get_active_unit(base, dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)}));
 	}
 	for(uint32_t i = 0; i < state.culture_definitions.crimes.size(); ++i) {
 		state.world.nation_set_active_crime(n, dcon::crime_id{dcon::crime_id::value_base_t(i)},
-			state.world.nation_get_active_crime(base, dcon::crime_id{dcon::crime_id::value_base_t(i)}));
+				state.world.nation_get_active_crime(base, dcon::crime_id{dcon::crime_id::value_base_t(i)}));
 	}
 	state.world.for_each_factory_type([&](dcon::factory_type_id t) {
 		state.world.nation_set_active_building(n, t, state.world.nation_get_active_building(base, t));
@@ -1136,8 +1131,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-		if(politics::political_party_is_active(state, pid) &&
-			state.world.political_party_get_ideology(pid) == base_ruling_ideology) {
+		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == base_ruling_ideology) {
 			state.world.nation_set_ruling_party(n, pid);
 			break;
 		}
@@ -1180,7 +1174,7 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	for(auto w : state.world.nation_get_war_participant(n)) {
 		for(auto wg : w.get_war().get_wargoals_attached()) {
 			if(wg.get_wargoal().get_target_nation() == n || wg.get_wargoal().get_added_by() == n ||
-				wg.get_wargoal().get_secondary_nation() == n) {
+					wg.get_wargoal().get_secondary_nation() == n) {
 
 				to_delete.push_back(wg.get_wargoal().id);
 			}
@@ -1311,7 +1305,7 @@ bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::
 	if(military::are_at_war(state, gp, target))
 		return false;
 	if(state.world.gp_relationship_get_influence(rel) >= state.defines.max_influence &&
-		!other_nation_is_influencing(state, target, rel))
+			!other_nation_is_influencing(state, target, rel))
 		return false;
 	return true;
 }
@@ -1355,8 +1349,8 @@ void update_influence(sys::state& state) {
 			in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc).
 			*/
 			float total_gain = state.defines.base_greatpower_daily_influence *
-							   (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)) *
-							   (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
+												 (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)) *
+												 (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
 
 			/*
 			This influence value does not translate directly into influence with the target nation. Instead it is first multiplied
@@ -1394,11 +1388,9 @@ void update_influence(sys::state& state) {
 
 					bool has_sphere_neighbor = [&]() {
 						for(auto g : rel.get_influence_target().get_nation_adjacency()) {
-							if(g.get_connected_nations(0) != rel.get_influence_target() &&
-								g.get_connected_nations(0).get_in_sphere_of() == n)
+							if(g.get_connected_nations(0) != rel.get_influence_target() && g.get_connected_nations(0).get_in_sphere_of() == n)
 								return true;
-							if(g.get_connected_nations(1) != rel.get_influence_target() &&
-								g.get_connected_nations(1).get_in_sphere_of() == n)
+							if(g.get_connected_nations(1) != rel.get_influence_target() && g.get_connected_nations(1).get_in_sphere_of() == n)
 								return true;
 						}
 						return false;
@@ -1409,47 +1401,39 @@ void update_influence(sys::state& state) {
 						total_fi += i.get_foreign_investment();
 					}
 					auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
-						state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
+							state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
 
-					float discredit_factor = (rel.get_status() & influence::is_discredited) != 0
-												 ? state.defines.discredit_influence_gain_factor
-												 : 0.0f;
-					float neighbor_factor =
-						bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, rel.get_influence_target()))
-							? state.defines.neighbour_bonus_influence_percent
-							: 0.0f;
-					float sphere_neighbor_factor =
-						has_sphere_neighbor ? state.defines.sphere_neighbour_bonus_influence_percent : 0.0f;
-					float continent_factor =
-						n.get_capital().get_continent() != rel.get_influence_target().get_capital().get_continent()
-							? state.defines.other_continent_bonus_influence_percent
-							: 0.0f;
+					float discredit_factor =
+							(rel.get_status() & influence::is_discredited) != 0 ? state.defines.discredit_influence_gain_factor : 0.0f;
+					float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, rel.get_influence_target()))
+																			? state.defines.neighbour_bonus_influence_percent
+																			: 0.0f;
+					float sphere_neighbor_factor = has_sphere_neighbor ? state.defines.sphere_neighbour_bonus_influence_percent : 0.0f;
+					float continent_factor = n.get_capital().get_continent() != rel.get_influence_target().get_capital().get_continent()
+																			 ? state.defines.other_continent_bonus_influence_percent
+																			 : 0.0f;
 					float puppet_factor = rel.get_influence_target().get_overlord_as_subject().get_ruler() == n
-											  ? state.defines.puppet_bonus_influence_percent
-											  : 0.0f;
-					float relationship_factor =
-						state.world.diplomatic_relation_get_value(
-							state.world.get_diplomatic_relation_by_diplomatic_pair(n, rel.get_influence_target())) /
-						state.defines.relation_influence_modifier;
-					float investment_factor =
-						total_fi > 0.0f ? state.defines.investment_influence_defense * gp_invest / total_fi : 0.0f;
+																		? state.defines.puppet_bonus_influence_percent
+																		: 0.0f;
+					float relationship_factor = state.world.diplomatic_relation_get_value(
+																					state.world.get_diplomatic_relation_by_diplomatic_pair(n, rel.get_influence_target())) /
+																			state.defines.relation_influence_modifier;
+					float investment_factor = total_fi > 0.0f ? state.defines.investment_influence_defense * gp_invest / total_fi : 0.0f;
 					float pop_factor =
-						rel.get_influence_target().get_demographics(demographics::total) > state.defines.large_population_limit
-							? state.defines.large_population_influence_penalty *
-								  rel.get_influence_target().get_demographics(demographics::total) /
-								  state.defines.large_population_influence_penalty_chunk
-							: 0.0f;
-					float score_factor = gp_score > 0.0f
-											 ? std::max(1.0f - (rel.get_influence_target().get_industrial_score() +
-																   rel.get_influence_target().get_military_score() +
-																   prestige_score(state, rel.get_influence_target())) /
-																   gp_score,
-												   0.0f)
-											 : 0.0f;
+							rel.get_influence_target().get_demographics(demographics::total) > state.defines.large_population_limit
+									? state.defines.large_population_influence_penalty *
+												rel.get_influence_target().get_demographics(demographics::total) /
+												state.defines.large_population_influence_penalty_chunk
+									: 0.0f;
+					float score_factor = gp_score > 0.0f ? std::max(1.0f - (rel.get_influence_target().get_industrial_score() +
+																																		 rel.get_influence_target().get_military_score() +
+																																		 prestige_score(state, rel.get_influence_target())) /
+																																		 gp_score,
+																										 0.0f)
+																							 : 0.0f;
 
-					float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor +
-											 continent_factor + puppet_factor + relationship_factor + investment_factor +
-											 pop_factor + score_factor;
+					float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor +
+																	 puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
 
 					auto gain_amount = base_shares * total_multiplier;
 
@@ -1546,10 +1530,10 @@ void monthly_flashpoint_update(sys::state& state) {
 				if(p.get_province().get_nation_from_province_ownership() == owner) {
 					for(auto cores : p.get_province().get_core()) {
 						if(!cores.get_identity().get_is_not_releasable() &&
-							!owner_accepts_culture(cores.get_identity().get_primary_culture()) &&
-							si.get_demographics(demographics::to_key(state, cores.get_identity().get_primary_culture())) >
-								si.get_demographics(demographics::to_key(state,
-									state.world.national_identity_get_primary_culture(qualifying_tag)))) {
+								!owner_accepts_culture(cores.get_identity().get_primary_culture()) &&
+								si.get_demographics(demographics::to_key(state, cores.get_identity().get_primary_culture())) >
+										si.get_demographics(
+												demographics::to_key(state, state.world.national_identity_get_primary_culture(qualifying_tag)))) {
 
 							qualifying_tag = cores.get_identity();
 						}
@@ -1563,7 +1547,7 @@ void monthly_flashpoint_update(sys::state& state) {
 
 	// set which nations contain such states
 	state.world.execute_serial_over_nation(
-		[&](auto ids) { state.world.nation_set_has_flash_point_state(ids, ve::mask_vector(false)); });
+			[&](auto ids) { state.world.nation_set_has_flash_point_state(ids, ve::mask_vector(false)); });
 	for(auto si : state.world.in_state_instance) {
 		if(si.get_flashpoint_tag()) {
 			si.get_nation_from_state_ownership().set_has_flash_point_state(true);
@@ -1572,7 +1556,7 @@ void monthly_flashpoint_update(sys::state& state) {
 
 	// set which of those nations are targeted by some cb
 	state.world.execute_serial_over_nation(
-		[&](auto ids) { state.world.nation_set_is_target_of_some_cb(ids, ve::mask_vector(false)); });
+			[&](auto ids) { state.world.nation_set_is_target_of_some_cb(ids, ve::mask_vector(false)); });
 
 	for(auto target : state.world.in_nation) {
 		if(target.get_has_flash_point_state()) {
@@ -1612,11 +1596,10 @@ void daily_update_flashpoint_tension(sys::state& state) {
 				auto radicalism = state.world.movement_get_radicalism(mov);
 				auto support = state.world.movement_get_pop_support(mov);
 				auto state_pop = si.get_demographics(demographics::total);
-				auto pop_of_culture =
-					si.get_demographics(demographics::to_key(state, si.get_flashpoint_tag().get_primary_culture()));
+				auto pop_of_culture = si.get_demographics(demographics::to_key(state, si.get_flashpoint_tag().get_primary_culture()));
 				if(state_pop > 0) {
 					total_increase += std::min(state.defines.tension_from_movement_max,
-						state.defines.tension_from_movement * radicalism * pop_of_culture * support / state_pop);
+							state.defines.tension_from_movement * radicalism * pop_of_culture * support / state_pop);
 				}
 			}
 
@@ -1643,10 +1626,10 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			- If the state is owned by a great power, tension is increased by define:RANK_X_TENSION_DECAY per day
 			*/
 			if(auto rank = si.get_nation_from_state_ownership().get_rank();
-				uint16_t(1) <= rank && rank <= uint16_t(int32_t(state.defines.great_nations_count))) {
+					uint16_t(1) <= rank && rank <= uint16_t(int32_t(state.defines.great_nations_count))) {
 				static float rank_amounts[8] = {state.defines.rank_1_tension_decay, state.defines.rank_2_tension_decay,
-					state.defines.rank_3_tension_decay, state.defines.rank_4_tension_decay, state.defines.rank_5_tension_decay,
-					state.defines.rank_6_tension_decay, state.defines.rank_7_tension_decay, state.defines.rank_8_tension_decay};
+						state.defines.rank_3_tension_decay, state.defines.rank_4_tension_decay, state.defines.rank_5_tension_decay,
+						state.defines.rank_6_tension_decay, state.defines.rank_7_tension_decay, state.defines.rank_8_tension_decay};
 
 				total_increase += rank_amounts[rank - 1];
 			}
@@ -1657,11 +1640,11 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			*/
 			for(auto& gp : state.great_nations) {
 				if(state.world.nation_get_is_at_war(gp.nation) ||
-					(state.world.nation_get_disarmed_until(gp.nation) &&
-						state.current_date <= state.world.nation_get_disarmed_until(gp.nation))) {
+						(state.world.nation_get_disarmed_until(gp.nation) &&
+								state.current_date <= state.world.nation_get_disarmed_until(gp.nation))) {
 					auto continent = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
 					if(si.get_capital().get_continent() == continent ||
-						si.get_nation_from_state_ownership().get_capital().get_continent() == continent) {
+							si.get_nation_from_state_ownership().get_capital().get_continent() == continent) {
 						total_increase += state.defines.at_war_tension_decay;
 						break;
 					}
@@ -1746,8 +1729,8 @@ void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
 void reject_crisis_participation(sys::state& state) {
 	++state.crisis_last_checked_gp;
 	if(state.crisis_last_checked_gp < state.great_nations.size() &&
-		(state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_attacker ||
-			state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_defender)) {
+			(state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_attacker ||
+					state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_defender)) {
 		++state.crisis_last_checked_gp;
 	}
 	if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
@@ -1779,7 +1762,7 @@ void update_crisis(sys::state& state) {
 		return; // not enough nations obviously
 
 	if(state.current_crisis == sys::crisis_type::none &&
-		state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date) {
+			state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date) {
 		// try to start a crisis
 		// determine type if any
 
@@ -1792,24 +1775,23 @@ void update_crisis(sys::state& state) {
 		std::vector<dcon::state_instance_id> most_likely_states;
 		for(auto si : state.world.in_state_instance) {
 			if(si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag() &&
-				si.get_flashpoint_tension() > 50.0f &&
-				si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
+					si.get_flashpoint_tension() > 50.0f &&
+					si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
 				most_likely_states.push_back(si);
 			}
 		}
-		std::sort(most_likely_states.begin(), most_likely_states.end(),
-			[&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				auto tension_diff =
+		std::sort(most_likely_states.begin(), most_likely_states.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+			auto tension_diff =
 					state.world.state_instance_get_flashpoint_tension(a) - state.world.state_instance_get_flashpoint_tension(b);
-				if(tension_diff != 0.0f) {
-					return tension_diff > 0.0f;
-				} else {
-					return a.index() < b.index(); // create a total order
-				}
-			});
+			if(tension_diff != 0.0f) {
+				return tension_diff > 0.0f;
+			} else {
+				return a.index() < b.index(); // create a total order
+			}
+		});
 		for(uint32_t i = 0; i < 3 && i < most_likely_states.size(); ++i) {
 			auto chance = uint32_t(state.defines.crisis_base_chance *
-								   state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
+														 state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
 			auto rvalue = rng::get_random(state, uint32_t(most_likely_states[i].index())) % 10000;
 			if(rvalue < chance) {
 				state.crisis_state = most_likely_states[i];
@@ -1817,7 +1799,7 @@ void update_crisis(sys::state& state) {
 				state.world.state_instance_set_flashpoint_tension(state.crisis_state, 0.0f);
 				state.current_crisis = sys::crisis_type::liberation;
 				if(auto owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
-					state.world.nation_get_is_great_power(owner)) {
+						state.world.nation_get_is_great_power(owner)) {
 					state.primary_crisis_defender = owner;
 				}
 
@@ -1906,7 +1888,7 @@ void update_crisis(sys::state& state) {
 				state.current_crisis_mode = sys::crisis_mode::finding_defender;
 				state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
 				ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
-			} else {															// defender is already a gp
+			} else {																													// defender is already a gp
 				state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
 				state.crisis_last_checked_gp = 0;
 			}
@@ -1933,42 +1915,41 @@ void update_crisis(sys::state& state) {
 			state.crisis_participants[1].merely_interested = false;
 
 			auto crisis_state_continent =
-				state.crisis_state
-					? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
-					: [&]() {
-						  if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony);
-							  p.begin() != p.end()) {
-							  return (*p.begin()).get_province().get_continent().id;
-						  }
-						  return dcon::modifier_id{};
-					  }();
+					state.crisis_state ? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
+														 : [&]() {
+																 if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony);
+																		 p.begin() != p.end()) {
+																	 return (*p.begin()).get_province().get_continent().id;
+																 }
+																 return dcon::modifier_id{};
+															 }();
 			auto crisis_defender_continent =
-				state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
+					state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
 			uint32_t added_count = 2;
 
 			for(auto& gp : state.great_nations) {
 				if(gp.nation != state.primary_crisis_attacker && gp.nation != state.primary_crisis_defender &&
-					!state.world.nation_get_is_at_war(gp.nation) &&
-					state.world.nation_get_war_exhaustion(gp.nation) < state.defines.crisis_interest_war_exhaustion_limit) {
+						!state.world.nation_get_is_at_war(gp.nation) &&
+						state.world.nation_get_war_exhaustion(gp.nation) < state.defines.crisis_interest_war_exhaustion_limit) {
 					auto cap_con = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
 					if(cap_con == state.province_definitions.europe || cap_con == crisis_state_continent ||
-						cap_con == crisis_defender_continent ||
-						(cap_con == state.province_definitions.north_america &&
-							crisis_state_continent == state.province_definitions.south_america) ||
-						(cap_con == state.province_definitions.north_america &&
-							crisis_defender_continent == state.province_definitions.south_america) ||
-						(cap_con == state.province_definitions.south_america &&
-							crisis_state_continent == state.province_definitions.north_america) ||
-						(cap_con == state.province_definitions.south_america &&
-							crisis_defender_continent == state.province_definitions.north_america)) {
+							cap_con == crisis_defender_continent ||
+							(cap_con == state.province_definitions.north_america &&
+									crisis_state_continent == state.province_definitions.south_america) ||
+							(cap_con == state.province_definitions.north_america &&
+									crisis_defender_continent == state.province_definitions.south_america) ||
+							(cap_con == state.province_definitions.south_america &&
+									crisis_state_continent == state.province_definitions.north_america) ||
+							(cap_con == state.province_definitions.south_america &&
+									crisis_defender_continent == state.province_definitions.north_america)) {
 
 						state.crisis_participants[added_count].id = gp.nation;
 						state.crisis_participants[added_count].supports_attacker = false;
 						state.crisis_participants[added_count].merely_interested = true;
 						++added_count;
 
-						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest,
-							trigger::to_generic(gp.nation), event::slot_type::nation, gp.nation, -1, event::slot_type::none);
+						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation),
+								event::slot_type::nation, gp.nation, -1, event::slot_type::none);
 					}
 				}
 			}
@@ -1993,8 +1974,8 @@ void update_crisis(sys::state& state) {
 		}
 
 		assert(total != 0);
-		state.crisis_temperature += state.defines.crisis_temperature_increase *
-									state.defines.crisis_temperature_participant_factor * float(participants) / float(total);
+		state.crisis_temperature += state.defines.crisis_temperature_increase * state.defines.crisis_temperature_participant_factor *
+																float(participants) / float(total);
 
 		// TODO: start crisis war at temperature 100; set mode to none
 	}
@@ -2062,7 +2043,7 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 	}
 	for(auto c : state.world.national_identity_get_core(liberated)) {
 		if(c.get_province().get_nation_from_province_ownership() == from &&
-			!(state.world.get_core_by_prov_tag_key(c.get_province(), source_tag))) {
+				!(state.world.get_core_by_prov_tag_key(c.get_province(), source_tag))) {
 			province::change_province_owner(state, c.get_province(), holder);
 		}
 	}
@@ -2196,9 +2177,9 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 	assert(total_econ_reforms_count != 0);
 
 	float mil_tech_fraction = std::clamp(float(military_reforms_active_count) / float(total_military_reforms_count),
-		state.defines.unciv_tech_spread_min, state.defines.unciv_tech_spread_max);
+			state.defines.unciv_tech_spread_min, state.defines.unciv_tech_spread_max);
 	float econ_tech_fraction = std::clamp(float(econ_reforms_active_count) / float(total_econ_reforms_count),
-		state.defines.unciv_tech_spread_min, state.defines.unciv_tech_spread_max);
+			state.defines.unciv_tech_spread_min, state.defines.unciv_tech_spread_max);
 
 	dcon::nation_id model = state.world.nation_get_in_sphere_of(n);
 	if(!model)
@@ -2208,7 +2189,7 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 		// start: this tech must have a new index:
 		auto this_group = state.world.technology_get_folder_index(dcon::technology_id{dcon::technology_id::value_base_t(idx)});
 		bool is_military = state.culture_definitions.tech_folders[this_group].category == culture::tech_category::army ||
-						   state.culture_definitions.tech_folders[this_group].category == culture::tech_category::navy;
+											 state.culture_definitions.tech_folders[this_group].category == culture::tech_category::navy;
 
 		// find out how many techs of this index the model has
 		int32_t model_tech_count = 0;
@@ -2263,8 +2244,8 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 	sys::update_single_nation_modifiers(state, n);
 	culture::update_nation_issue_rules(state, n);
 
-	event::fire_fixed_event(state, state.national_definitions.on_civilize, trigger::to_generic(n), event::slot_type::nation, n,
-		-1, event::slot_type::none);
+	event::fire_fixed_event(state, state.national_definitions.on_civilize, trigger::to_generic(n), event::slot_type::nation, n, -1,
+			event::slot_type::none);
 }
 void make_uncivilized(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_is_civilized(n, false);
