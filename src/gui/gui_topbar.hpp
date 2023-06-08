@@ -492,7 +492,7 @@ class topbar_nation_population_text : public nation_population_text {
 					text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total)) * 4});
 			text::close_layout_box(contents, box);
 
-			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
+			// if(state.user_settings.use_new_ui == sys::gui_modes::inaccurate) {
 			if(state.user_settings.use_new_ui) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
 			}

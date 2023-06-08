@@ -48,41 +48,48 @@ The `trigger::is_disjunctive_scope` tells us we're dealing with a scope where we
 Afterwards, we see a `trigger::x_core_scope_nation` which corresponds to `all_core = { ... }` (`any_core` has an aditional OR'ed `trigger::is_existence_scope`). Next, the payload size, which is 4, this means the total data (plus the payload) has a size of 4. Then we obtain the first conditional, which is a `trigger::association_lt` "this is less than" OR'ed with a `trigger::blockade`
  "is this blockaded?", to form the question: "is the blockade value, less than x?", where `x` corresponds to the first cell, which is encoded from a float into an uint16_t by the means of `trigger::payload(float(2.0))`.
 
+### Packed floats
+
+Sometimes one might see that the size of a trigger's payload is 2 (on the table below for example), but it only has 1 argument, before going to fix the supposed bug, this is an intentional feature. Floats are stored as two consecutive `uint16_t` cells that are composed by packing them into an union and reading them back as their binary form.
+
+- `void add_float_to_payload(float f)` : Allows to write the float payload.
+- `float read_float_from_payload(uint16_t const* data)` : Allows to read the float payload back.
+
 ### List of triggers
 
 Not an exhaustive list of triggers, be wary the trigger codes **may** have flags alongside them, so accounting for that is very important in order to parse them correctly. It's as simple as performing a bitwise AND, as such: `value & trigger::code_mask` (where `value` is the `uint16_t` value of the cell that is believed to be the code of the trigger). Triggers only evaluate 
 
-| Code | Name | Arguments |
-|---|---|---|
-| 0x0000 | none | 0 | 
-| 0x0001 | year | 1 | 
-| 0x0002 | month | 1 | 
-| 0x0003 | port | 0 | 
-| 0x0004 | rank | 1 | 
-| 0x0005 | technology | 1 | 
-| 0x0006 | strata_rich | 0 | 
-| 0x0007 | life_rating_province | 1 | 
-| 0x0008 | life_rating_state | 1 | 
-| 0x0009 | has_empty_adjacent_state_province | 0 | 
-| 0x000A | has_empty_adjacent_state_state | 0 | 
-| 0x000B | state_id_province | 1 | 
-| 0x000C | state_id_state | 1 | 
-| 0x000D | cash_reserves | 2 | 
-| 0x000E | unemployment_nation | 2 | 
-| 0x000F | unemployment_state | 2 | 
-| 0x0010 | unemployment_province | 2 | 
-| 0x0011 | unemployment_pop | 2 | 
-| 0x0012 | is_slave_nation | 0 | 
-| 0x0013 | is_slave_state | 0 | 
-| 0x0014 | is_slave_province | 0 | 
-| 0x0015 | is_slave_pop | 0 | 
-| 0x0016 | is_independant | 0 | 
-| 0x0017 | has_national_minority_province | 0 | 
-| 0x0018 | has_national_minority_state | 0 | 
-| 0x0019 | has_national_minority_nation | 0 | 
-| 0x001A | government_nation | 1 | 
-| 0x001B | government_pop | 1 | 
-| 0x001C | capital | 1 | 
+| Code | Name | Number of arguments | Notes/Arguments |
+|---|---|---|---|
+| 0x0000 | none | 0 | Empty, dummy trigger that does nothing |
+| 0x0001 | year | 1 | Compares to the year #1 (`uint16_t`) |
+| 0x0002 | month | 1 | Compares the current month to #1 (`uint16_t`) |
+| 0x0003 | port | 0 | Does this `dcon::province_id` have a port? |
+| 0x0004 | rank | 1 | Compares the rank of the primary `dcon::nation_id` to #1 (`uint16_t`) | 
+| 0x0005 | technology | 1 | Checks that primary `dcon::nation_id` has technology #1 (`dcon::technology_id`) |
+| 0x0006 | strata_rich | 0 | Is the primary `dcon::pop_id` part of the rich strata? |
+| 0x0007 | life_rating_province | 1 | Checks the liferating of the primary `dcon::province_id` with #1 (`uint16_t`) |
+| 0x0008 | life_rating_state | 1 | Checks the liferating of the primary `dcon::state_instance_id` with #1 (`uint16_t`) |
+| 0x0009 | has_empty_adjacent_state_province | 0 | Does the primary `dcon::province_id` have an empty adjacent state? |
+| 0x000A | has_empty_adjacent_state_state | 0 | Does the primary `dcon::state_instance_id` have an empty adjacent state? |
+| 0x000B | state_id_province | 1 | Does the primary `dcon::province_id` pertain to the same state as #1 (`dcon::province_id`)? |
+| 0x000C | state_id_state | 1 | Does the primary `dcon::state_instance_id` pertain to the same state as #1 (`dcon::province_id`)? |
+| 0x000D | cash_reserves | 2 | Tests that the primary `dcon::pop_id` has an amount of cash reserves, told by #1 (`float`) |
+| 0x000E | unemployment_nation | 2 | Unemployment of the primary `dcon::nation_id` has #1 (`float`) |
+| 0x000F | unemployment_state | 2 | Unemployment of the primary `dcon::state_instance_id` has #1 (`float`) |
+| 0x0010 | unemployment_province | 2 | Unemployment of the primary `dcon::province_id` has #1 (`float`) |
+| 0x0011 | unemployment_pop | 2 | Unemployment of the primary `dcon::pop_id` has #1 (`float`) |
+| 0x0012 | is_slave_nation | 0 | Is the primary `dcon::nation_id` a nation that allows slavery? |
+| 0x0013 | is_slave_state | 0 | Is the primary `dcon::state_instance_id` a slave state? |
+| 0x0014 | is_slave_province | 0 | Is the primary `dcon::province_id` a province pertaining to a slave state? |
+| 0x0015 | is_slave_pop | 0 | Is the primary `dcon::pop_id` a slave? |
+| 0x0016 | is_independant | 0 | Is the primary `dcon::nation_id` independent? (No puppet overlord and not a substate) |
+| 0x0017 | has_national_minority_province | 0 | **All** pops on `dcon::province_id` are of non-primary culture | 
+| 0x0018 | has_national_minority_state | 0 | **All** pops on `dcon::state_instance_id` are of non-primary culture |
+| 0x0019 | has_national_minority_nation | 0 | **All** pops on `dcon::nation_id` are of non-primary culture |
+| 0x001A | government_nation | 1 | Government of primary `dcon::nation_id` are #1 (`dcon::goverment_type_id`) |
+| 0x001B | government_pop | 1 | Government of primary `dcon::pop_id` is #1 (`dcon::goverment_type`) |
+| 0x001C | capital | 1 | Checks that primary `dcon::nation_id` capital is #1 (`dcon::province_id`) |
 | 0x001D | tech_school | 1 | 
 | 0x001E | primary_culture | 1 | 
 | 0x001F | accepted_culture | 1 | 
@@ -143,10 +150,10 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x0056 | can_build_factory_pop | 0 | 
 | 0x0057 | war_pop | 0 | 
 | 0x0058 | war_nation | 0 | 
-| 0x0059 | war_exhaustion_nation | 2 | 
+| 0x0059 | war_exhaustion_nation | 2 | War exhaustion of primary `dcon::nation_id` compared with #1 (`float`) |
 | 0x005A | blockade | 2 | 
-| 0x005B | owns | 1 | 
-| 0x005C | controls | 1 | 
+| 0x005B | owns | 1 | Primary `dcon::nation_id` owns #1 (`dcon::province_id`) |
+| 0x005C | controls | 1 | Primary `dcon::nation_id` controls #1 (`dcon::province_id`) |
 | 0x005D | is_core_integer | 1 | 
 | 0x005E | is_core_this_nation | 0 | 
 | 0x005F | is_core_this_state | 0 | 
@@ -431,7 +438,7 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x0176 | this_culture_union_this_union_province | 0 | 
 | 0x0177 | this_culture_union_this_union_state | 0 | 
 | 0x0178 | this_culture_union_this_union_pop | 0 | 
-| 0x0179 | minorities_nation | 0 | 
+| 0x0179 | minorities_nation | 0 | Primary `dcon::nation_id`
 | 0x017A | minorities_state | 0 | 
 | 0x017B | minorities_province | 0 | 
 | 0x017C | revanchism_nation | 2 | 
@@ -506,21 +513,21 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x01C1 | has_pop_religion_state | 1 | 
 | 0x01C2 | has_pop_religion_province | 1 | 
 | 0x01C3 | has_pop_religion_nation | 1 | 
-| 0x01C4 | life_needs | 2 | 
-| 0x01C5 | everyday_needs | 2 | 
-| 0x01C6 | luxury_needs | 2 | 
-| 0x01C7 | consciousness_pop | 2 | 
-| 0x01C8 | consciousness_province | 2 | 
-| 0x01C9 | consciousness_state | 2 | 
-| 0x01CA | consciousness_nation | 2 | 
+| 0x01C4 | life_needs | 2 | Life needs of primary `dcon::pop_id` compared against #1 (`float`) |
+| 0x01C5 | everyday_needs | 2 | Everyday needs of primary `dcon::pop_id` compared against #1 (`float`) |
+| 0x01C6 | luxury_needs | 2 | Luxury needs of primary `dcon::pop_id` compared against #1 (`float`) |
+| 0x01C7 | consciousness_pop | 2 | Consciousness of primary `dcon::pop_id` compared against #1 (`float`) |
+| 0x01C8 | consciousness_province | 2 | Average consciousness of primary `dcon::province_id` compared against #1 (`float`) |
+| 0x01C9 | consciousness_state | 2 | Average consciousness of primary `dcon::state_instance_id` compared against #1 (`float`) |
+| 0x01CA | consciousness_nation | 2 | Average consciousness of primary `dcon::nation_id` compared against #1 (`float`) |
 | 0x01CB | literacy_pop | 2 | 
 | 0x01CC | literacy_province | 2 | 
 | 0x01CD | literacy_state | 2 | 
 | 0x01CE | literacy_nation | 2 | 
-| 0x01CF | militancy_pop | 2 | 
-| 0x01D0 | militancy_province | 2 | 
-| 0x01D1 | militancy_state | 2 | 
-| 0x01D2 | militancy_nation | 2 | 
+| 0x01CF | militancy_pop | 2 | Militancy of primary `dcon::pop_id` compared against #1 (`float`) |
+| 0x01D0 | militancy_province | 2 | Average militancy of primary `dcon::province_id` compared against #1 (`float`) |
+| 0x01D1 | militancy_state | 2 | Average militancy of primary `dcon::state_instance_id` compared against #1 (`float`) |
+| 0x01D2 | militancy_nation | 2 | Average militancy of primary `dcon::nation_id` compared against #1 (`float`) |
 | 0x01D3 | military_spending_pop | 1 | 
 | 0x01D4 | military_spending_province | 1 | 
 | 0x01D5 | military_spending_state | 1 | 
@@ -537,10 +544,10 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x01E0 | trade_goods_in_state_province | 1 | 
 | 0x01E1 | has_flashpoint | 0 | 
 | 0x01E2 | flashpoint_tension | 2 | 
-| 0x01E3 | crisis_exist | 0 | 
+| 0x01E3 | crisis_exist | 0 | Is there an active crisis right now? |
 | 0x01E4 | is_liberation_crisis | 0 | 
 | 0x01E5 | is_claim_crisis | 0 | 
-| 0x01E6 | crisis_temperature | 2 | 
+| 0x01E6 | crisis_temperature | 2 | Crisis temperature compared with #1 (`float`) |
 | 0x01E7 | involved_in_crisis_pop | 0 | 
 | 0x01E8 | involved_in_crisis_nation | 0 | 
 | 0x01E9 | rich_strata_life_needs_nation | 2 | 
@@ -675,7 +682,7 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x026A | has_building_state_from_province | 1 | 
 | 0x026B | has_building_factory_from_province | 0 | 
 | 0x026C | party_loyalty_generic | 2 | 
-| 0x026D | invention | 1 | 
+| 0x026D | invention | 1 | Primary `dcon::nation_id` has invention #1 (`dcon::invention_id`) |
 | 0x026E | political_movement_from_reb | 0 | 
 | 0x026F | social_movement_from_reb | 0 | 
 | 0x0270 | is_next_rreform_nation | 1 | 
@@ -713,18 +720,18 @@ Effects describe what "effects" will occur upon the game state - those do modify
 
 ### List of effects
 
-| Code | Name | Arguments |
-|---|---|---|
-| 0x0000 | none | 0 | 
-| 0x0001 | capital | 1 | 
-| 0x0002 | add_core_tag | 1 | 
-| 0x0003 | add_core_int | 1 | 
-| 0x0004 | add_core_this_nation | 0 | 
-| 0x0005 | add_core_this_province | 0 | 
-| 0x0006 | add_core_this_state | 0 | 
-| 0x0007 | add_core_this_pop | 0 | 
-| 0x0008 | add_core_from_province | 0 | 
-| 0x0009 | add_core_from_nation | 0 | 
+| Code | Name | Number of arguments | Notes/Arguments |
+|---|---|---|---|
+| 0x0000 | none | 0 | Use for indicating no effect |
+| 0x0001 | capital | 1 | #1 is capital to move to |
+| 0x0002 | add_core_tag | 1 | Adds all of the #1 argument (`dcon::nation_id`) as cores |
+| 0x0003 | add_core_int | 1 | ? |
+| 0x0004 | add_core_this_nation | 0 | Adds all of `THIS` (`dcon::nation_id`) as cores |
+| 0x0005 | add_core_this_province | 0 | Adds all of `THIS` (`dcon::province_id`) as cores |
+| 0x0006 | add_core_this_state | 0 | Adds all of `THIS` (`dcon::state_instance_id`) as cores |
+| 0x0007 | add_core_this_pop | 0 | Adds `THIS` (`dcon::pop_id` - location of) as cores |
+| 0x0008 | add_core_from_province | 0 | Adds `FROM` `dcon::province_id` as cores |
+| 0x0009 | add_core_from_nation | 0 | Adds all of `FROM` `dcon::nation_id` as cores |
 | 0x000A | add_core_reb | 0 | 
 | 0x000B | remove_core_tag | 1 | 
 | 0x000C | remove_core_int | 1 | 
@@ -735,12 +742,12 @@ Effects describe what "effects" will occur upon the game state - those do modify
 | 0x0011 | remove_core_from_province | 0 | 
 | 0x0012 | remove_core_from_nation | 0 | 
 | 0x0013 | remove_core_reb | 0 | 
-| 0x0014 | change_region_name_state | 1 | 
-| 0x0015 | change_region_name_province | 1 | 
-| 0x0016 | trade_goods | 1 | 
+| 0x0014 | change_region_name_state | 1 | Sets name of the `dcon::state_instance_id` to #1 (`dcon::text_key_id`) |
+| 0x0015 | change_region_name_province | 1 | Sets name of the `dcon::province_id` to #1 (`dcon::text_key_id`) |
+| 0x0016 | trade_goods | 1 | Sets the RGO of the `dcon::province_id` to #1 (`dcon::commodity_id`) |
 | 0x0017 | add_accepted_culture | 1 | 
 | 0x0018 | add_accepted_culture_union | 0 | 
-| 0x0019 | primary_culture | 1 | 
+| 0x0019 | primary_culture | 1 | Sets primary culture to #1 (`dcon::culture_id`) |
 | 0x001A | primary_culture_this_nation | 0 | 
 | 0x001B | primary_culture_this_state | 0 | 
 | 0x001C | primary_culture_this_province | 0 | 
