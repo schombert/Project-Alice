@@ -6,8 +6,8 @@
 out/
 docs/out/
 .vscode/
-build/
-build-rel/
+# Ignore all build* folders in top directory
+build*/
 mod[s]/
 
 # Generated parsers

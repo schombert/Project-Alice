@@ -2,6 +2,7 @@
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "text.hpp"
 
 namespace ui {
 
@@ -10,6 +11,143 @@ class unit_selection_close_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
 		if(parent && parent->parent)
 			parent->parent->set_visible(state, false);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("deselect_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("deselect_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_new_unit_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("new_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("new_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_split_in_half_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("splitinhalf"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("splitinhalf_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_disband_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("disband_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("disband_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_disband_too_small_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("disband_too_small_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("disband_too_small_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_unit_name_text : public simple_text_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("uw_unitnames_iro"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("uw_unitnames_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_unit_location_text : public simple_text_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("uw_loc_iro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+template<class T> class unit_selection_str_bar : public vertical_progress_bar {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<T>(payload);
+
+			float total_strenght = 0.0f;
+			std::uint16_t unit_count = 0u;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id nmid) {
+					auto regiment = dcon::fatten(state.world, state.world.army_membership_get_regiment(nmid));
+					total_strenght += regiment.get_strength();
+					++unit_count;
+				});
+			} else {
+				state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
+					auto ship = dcon::fatten(state.world, state.world.navy_membership_get_ship(nmid));
+					total_strenght += ship.get_strength();
+					++unit_count;
+				});
+			}
+			total_strenght /= static_cast<float>(unit_count);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
+			text::add_to_layout_box(contents, state, box, text::fp_percentage{total_strenght}, text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -25,21 +163,21 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "unitname") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<unit_selection_unit_name_text>(state, id);
 		} else if(name == "only_unit_from_selection_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "remove_unit_from_selection_button") {
 			return make_element_by_type<unit_selection_close_button>(state, id);
 		} else if(name == "newunitbutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_new_unit_button>(state, id);
 		} else if(name == "splitinhalf") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_split_in_half_button>(state, id);
 		} else if(name == "disbandbutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_disband_button>(state, id);
 		} else if(name == "disbandtoosmallbutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_disband_too_small_button>(state, id);
 		} else if(name == "str_bar") {
-			return make_element_by_type<vertical_progress_bar>(state, id);
+			return make_element_by_type<unit_selection_str_bar<T>>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
 		} else if(name == "unitattrition_icon") {
@@ -49,7 +187,7 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "unitstrength") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "unitlocation") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<unit_selection_unit_location_text>(state, id);
 		} else if(name == "unit_location_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "unitleader") {
@@ -415,8 +553,8 @@ template<class T> class unit_details_window : public window_element_base {
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_selection_panel<bool>>(state,
-					state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+			auto ptr =
+					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
 			ptr->base_data.position.y -= 81;
 			add_child_to_front(std::move(ptr));
 		}
