@@ -5,8 +5,10 @@ namespace event {
 
 void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt) {
 	for(auto i = state.pending_n_event.size(); i-- > 0;) {
-		if(state.pending_n_event[i].date == e.date && state.pending_n_event[i].e == e.e && state.pending_n_event[i].from_slot == e.from_slot && state.pending_n_event[i].n == e.n && state.pending_n_event[i].primary_slot == e.primary_slot && state.pending_n_event[i].r_hi == e.r_hi &&
-			state.pending_n_event[i].r_lo == e.r_lo) {
+		if(state.pending_n_event[i].date == e.date && state.pending_n_event[i].e == e.e &&
+				state.pending_n_event[i].from_slot == e.from_slot && state.pending_n_event[i].n == e.n &&
+				state.pending_n_event[i].primary_slot == e.primary_slot && state.pending_n_event[i].r_hi == e.r_hi &&
+				state.pending_n_event[i].r_lo == e.r_lo) {
 
 			if(opt > state.world.national_event_get_options(e.e).size() || !(state.world.national_event_get_options(e.e)[opt].name))
 				return; // invalid option
@@ -14,7 +16,8 @@ void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt)
 			state.pending_n_event[i] = state.pending_n_event.back();
 			state.pending_n_event.pop_back();
 
-			effect::execute(state, state.world.national_event_get_options(e.e)[opt].effect, e.primary_slot, trigger::to_generic(e.n), e.from_slot, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.national_event_get_options(e.e)[opt].effect, e.primary_slot, trigger::to_generic(e.n),
+					e.from_slot, e.r_lo, e.r_hi);
 
 			return;
 		}
@@ -23,15 +26,18 @@ void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt)
 
 void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
-		if(state.pending_f_n_event[i].date == e.date && state.pending_f_n_event[i].e == e.e && state.pending_f_n_event[i].n == e.n && state.pending_f_n_event[i].r_hi == e.r_hi && state.pending_f_n_event[i].r_lo == e.r_lo) {
+		if(state.pending_f_n_event[i].date == e.date && state.pending_f_n_event[i].e == e.e && state.pending_f_n_event[i].n == e.n &&
+				state.pending_f_n_event[i].r_hi == e.r_hi && state.pending_f_n_event[i].r_lo == e.r_lo) {
 
-			if(opt > state.world.free_national_event_get_options(e.e).size() || !(state.world.free_national_event_get_options(e.e)[opt].name))
+			if(opt > state.world.free_national_event_get_options(e.e).size() ||
+					!(state.world.free_national_event_get_options(e.e)[opt].name))
 				return; // invalid option
 
 			state.pending_f_n_event[i] = state.pending_f_n_event.back();
 			state.pending_f_n_event.pop_back();
 
-			effect::execute(state, state.world.free_national_event_get_options(e.e)[opt].effect, trigger::to_generic(e.n), trigger::to_generic(e.n), 0, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.free_national_event_get_options(e.e)[opt].effect, trigger::to_generic(e.n),
+					trigger::to_generic(e.n), 0, e.r_lo, e.r_hi);
 
 			return;
 		}
@@ -40,7 +46,9 @@ void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t op
 
 void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_p_event.size(); i-- > 0;) {
-		if(state.pending_p_event[i].date == e.date && state.pending_p_event[i].e == e.e && state.pending_p_event[i].from_slot == e.from_slot && state.pending_p_event[i].p == e.p && state.pending_p_event[i].r_hi == e.r_hi && state.pending_p_event[i].r_lo == e.r_lo) {
+		if(state.pending_p_event[i].date == e.date && state.pending_p_event[i].e == e.e &&
+				state.pending_p_event[i].from_slot == e.from_slot && state.pending_p_event[i].p == e.p &&
+				state.pending_p_event[i].r_hi == e.r_hi && state.pending_p_event[i].r_lo == e.r_lo) {
 
 			if(opt > state.world.provincial_event_get_options(e.e).size() || !(state.world.provincial_event_get_options(e.e)[opt].name))
 				return; // invalid option
@@ -48,7 +56,8 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 			state.pending_p_event[i] = state.pending_p_event.back();
 			state.pending_p_event.pop_back();
 
-			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(e.p), e.from_slot, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p),
+					trigger::to_generic(e.p), e.from_slot, e.r_lo, e.r_hi);
 
 			return;
 		}
@@ -56,24 +65,29 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 }
 void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
-		if(state.pending_f_p_event[i].date == e.date && state.pending_f_p_event[i].e == e.e && state.pending_f_p_event[i].p == e.p && state.pending_f_p_event[i].r_hi == e.r_hi && state.pending_f_p_event[i].r_lo == e.r_lo) {
+		if(state.pending_f_p_event[i].date == e.date && state.pending_f_p_event[i].e == e.e && state.pending_f_p_event[i].p == e.p &&
+				state.pending_f_p_event[i].r_hi == e.r_hi && state.pending_f_p_event[i].r_lo == e.r_lo) {
 
-			if(opt > state.world.free_provincial_event_get_options(e.e).size() || !(state.world.free_provincial_event_get_options(e.e)[opt].name))
+			if(opt > state.world.free_provincial_event_get_options(e.e).size() ||
+					!(state.world.free_provincial_event_get_options(e.e)[opt].name))
 				return; // invalid option
 
 			state.pending_f_p_event[i] = state.pending_f_p_event.back();
 			state.pending_f_p_event.pop_back();
 
-			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(e.p), -1, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p),
+					trigger::to_generic(e.p), -1, e.r_lo, e.r_hi);
 
 			return;
 		}
 	}
 }
 
-void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi, int32_t primary_slot, slot_type pt, int32_t from_slot, slot_type ft) {
+void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi,
+		int32_t primary_slot, slot_type pt, int32_t from_slot, slot_type ft) {
 	if(ft == slot_type::province)
-		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
+		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)))
+							 .is_valid());
 
 	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
@@ -89,7 +103,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		float odds[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, primary_slot, trigger::to_generic(n), from_slot);
+				odds[i] =
+						trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, primary_slot, trigger::to_generic(n), from_slot);
 				total += odds[i];
 			}
 		}
@@ -114,7 +129,10 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		// TODO: notify
 	}
 }
-void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) { trigger_national_event(state, e, n, r_hi, r_lo, trigger::to_generic(n), slot_type::nation, from_slot, ft); }
+void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo,
+		int32_t from_slot, slot_type ft) {
+	trigger_national_event(state, e, n, r_hi, r_lo, trigger::to_generic(n), slot_type::nation, from_slot, ft);
+}
 void trigger_national_event(sys::state& state, dcon::free_national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi) {
 	if(state.world.free_national_event_get_only_once(e) && state.world.free_national_event_get_has_been_triggered(e))
 		return;
@@ -134,7 +152,8 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		float odds[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
+				odds[i] =
+						trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
 				total += odds[i];
 			}
 		}
@@ -159,9 +178,11 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		// TODO: notify
 	}
 }
-void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
+void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo,
+		int32_t from_slot, slot_type ft) {
 	if(ft == slot_type::province)
-		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
+		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)))
+							 .is_valid());
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
@@ -175,7 +196,8 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		float odds[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), from_slot);
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p),
+						trigger::to_generic(p), from_slot);
 				total += odds[i];
 			}
 		}
@@ -200,7 +222,8 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		// TODO: notify
 	}
 }
-void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo) {
+void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi,
+		uint32_t r_lo) {
 	state.world.free_provincial_event_set_has_been_triggered(e, true);
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
@@ -215,7 +238,8 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		float odds[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), 0);
+				odds[i] =
+						trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), 0);
 				total += odds[i];
 			}
 		}
@@ -245,15 +269,23 @@ struct event_nation_pair {
 	dcon::nation_id n;
 	dcon::free_national_event_id e;
 
-	bool operator==(event_nation_pair const& other) const noexcept { return other.n == n && other.e == e; }
-	bool operator<(event_nation_pair const& other) const noexcept { return other.n != n ? (n.value < other.n.value) : (e.value < other.e.value); }
+	bool operator==(event_nation_pair const& other) const noexcept {
+		return other.n == n && other.e == e;
+	}
+	bool operator<(event_nation_pair const& other) const noexcept {
+		return other.n != n ? (n.value < other.n.value) : (e.value < other.e.value);
+	}
 };
 struct event_prov_pair {
 	dcon::province_id p;
 	dcon::free_provincial_event_id e;
 
-	bool operator==(event_prov_pair const& other) const noexcept { return other.p == p && other.e == e; }
-	bool operator<(event_prov_pair const& other) const noexcept { return other.p != p ? (p.value < other.p.value) : (e.value < other.e.value); }
+	bool operator==(event_prov_pair const& other) const noexcept {
+		return other.p == p && other.e == e;
+	}
+	bool operator<(event_prov_pair const& other) const noexcept {
+		return other.p != p ? (p.value < other.p.value) : (e.value < other.e.value);
+	}
 };
 
 void update_events(sys::state& state) {
@@ -270,16 +302,20 @@ void update_events(sys::state& state) {
 		auto mod = state.world.free_national_event_get_mtth(id);
 		auto t = state.world.free_national_event_get_trigger(id);
 
-		if(mod && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)) {
+		if(mod && (state.world.free_national_event_get_only_once(id) == false ||
+									state.world.free_national_event_get_has_been_triggered(id) == false)) {
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 				/*
-				For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non
-				positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is
-				guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
+				For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is
+				non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the
+				event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
 				*/
-				auto some_exist = t ? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0) : (state.world.nation_get_owned_province_count(ids) != 0);
+				auto some_exist = t ? (state.world.nation_get_owned_province_count(ids) != 0) &&
+																	trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
+														: (state.world.nation_get_owned_province_count(ids) != 0);
 				if(ve::compress_mask(some_exist).v != 0) {
-					auto chances = trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+					auto chances =
+							trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 					auto adj_chance = 1.0f - ve::select(chances <= 1.0f, 1.0f, 1.0f / (chances));
 					auto adj_chance_2 = adj_chance * adj_chance;
 					auto adj_chance_4 = adj_chance_2 * adj_chance_2;
@@ -287,15 +323,15 @@ void update_events(sys::state& state) {
 					auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
 					ve::apply(
-						[&](dcon::nation_id n, float c, bool condition) {
-							auto owned_range = state.world.nation_get_province_ownership(n);
-							if(condition && owned_range.begin() != owned_range.end()) {
-								if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
-									events_triggered.local().push_back(event_nation_pair{n, id});
+							[&](dcon::nation_id n, float c, bool condition) {
+								auto owned_range = state.world.nation_get_province_ownership(n);
+								if(condition && owned_range.begin() != owned_range.end()) {
+									if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+										events_triggered.local().push_back(event_nation_pair{n, id});
+									}
 								}
-							}
-						},
-						ids, adj_chance_16, some_exist);
+							},
+							ids, adj_chance_16, some_exist);
 				}
 			});
 		}
@@ -320,31 +356,36 @@ void update_events(sys::state& state) {
 		auto t = state.world.free_provincial_event_get_trigger(id);
 
 		if(mod) {
-			ve::execute_serial_fast<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&](ve::contiguous_tags<dcon::province_id> ids) {
-				/*
-				The probabilities for province events are calculated in the same way, except that they are twice as likely to happen.
-				*/
-				auto owners = state.world.province_get_nation_from_province_ownership(ids);
-				auto some_exist = t ? (owners != dcon::nation_id{}) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0) : (owners != dcon::nation_id{});
-				if(ve::compress_mask(some_exist).v != 0) {
-					auto chances = trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0);
-					auto adj_chance = 1.0f - ve::select(chances <= 2.0f, 1.0f, 2.0f / chances);
-					auto adj_chance_2 = adj_chance * adj_chance;
-					auto adj_chance_4 = adj_chance_2 * adj_chance_2;
-					auto adj_chance_8 = adj_chance_4 * adj_chance_4;
-					auto adj_chance_16 = adj_chance_8 * adj_chance_8;
+			ve::execute_serial_fast<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
+					[&](ve::contiguous_tags<dcon::province_id> ids) {
+						/*
+						The probabilities for province events are calculated in the same way, except that they are twice as likely to
+						happen.
+						*/
+						auto owners = state.world.province_get_nation_from_province_ownership(ids);
+						auto some_exist = t ? (owners != dcon::nation_id{}) &&
+																			trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+																: (owners != dcon::nation_id{});
+						if(ve::compress_mask(some_exist).v != 0) {
+							auto chances =
+									trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+							auto adj_chance = 1.0f - ve::select(chances <= 2.0f, 1.0f, 2.0f / chances);
+							auto adj_chance_2 = adj_chance * adj_chance;
+							auto adj_chance_4 = adj_chance_2 * adj_chance_2;
+							auto adj_chance_8 = adj_chance_4 * adj_chance_4;
+							auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
-					ve::apply(
-						[&](dcon::province_id p, dcon::nation_id o, float c, bool condition) {
-							if(condition) {
-								if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
-									p_events_triggered.local().push_back(event_prov_pair{p, id});
-								}
-							}
-						},
-						ids, owners, adj_chance_16, some_exist);
-				}
-			});
+							ve::apply(
+									[&](dcon::province_id p, dcon::nation_id o, float c, bool condition) {
+										if(condition) {
+											if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+												p_events_triggered.local().push_back(event_prov_pair{p, id});
+											}
+										}
+									},
+									ids, owners, adj_chance_16, some_exist);
+						}
+					});
 		}
 	});
 
@@ -363,7 +404,9 @@ void update_events(sys::state& state) {
 			auto& opt = state.world.national_event_get_options(state.pending_n_event[i].e);
 
 			if(opt[0].effect) {
-				effect::execute(state, opt[0].effect, state.pending_n_event[i].primary_slot, trigger::to_generic(state.pending_n_event[i].n), state.pending_n_event[i].from_slot, state.pending_n_event[i].r_lo, state.pending_n_event[i].r_hi);
+				effect::execute(state, opt[0].effect, state.pending_n_event[i].primary_slot,
+						trigger::to_generic(state.pending_n_event[i].n), state.pending_n_event[i].from_slot, state.pending_n_event[i].r_lo,
+						state.pending_n_event[i].r_hi);
 			}
 
 			// TODO: notify
@@ -378,7 +421,9 @@ void update_events(sys::state& state) {
 			auto& opt = state.world.free_national_event_get_options(state.pending_f_n_event[i].e);
 
 			if(opt[0].effect) {
-				effect::execute(state, opt[0].effect, trigger::to_generic(state.pending_f_n_event[i].n), trigger::to_generic(state.pending_f_n_event[i].n), 0, state.pending_f_n_event[i].r_lo, state.pending_f_n_event[i].r_hi);
+				effect::execute(state, opt[0].effect, trigger::to_generic(state.pending_f_n_event[i].n),
+						trigger::to_generic(state.pending_f_n_event[i].n), 0, state.pending_f_n_event[i].r_lo,
+						state.pending_f_n_event[i].r_hi);
 			}
 
 			// TODO: notify
@@ -393,7 +438,9 @@ void update_events(sys::state& state) {
 			auto& opt = state.world.provincial_event_get_options(state.pending_p_event[i].e);
 
 			if(opt[0].effect) {
-				effect::execute(state, opt[0].effect, trigger::to_generic(state.pending_p_event[i].p), trigger::to_generic(state.pending_p_event[i].p), state.pending_p_event[i].from_slot, state.pending_p_event[i].r_lo, state.pending_p_event[i].r_hi);
+				effect::execute(state, opt[0].effect, trigger::to_generic(state.pending_p_event[i].p),
+						trigger::to_generic(state.pending_p_event[i].p), state.pending_p_event[i].from_slot, state.pending_p_event[i].r_lo,
+						state.pending_p_event[i].r_hi);
 			}
 
 			// TODO: notify
@@ -408,7 +455,9 @@ void update_events(sys::state& state) {
 			auto& opt = state.world.free_provincial_event_get_options(state.pending_f_p_event[i].e);
 
 			if(opt[0].effect) {
-				effect::execute(state, opt[0].effect, trigger::to_generic(state.pending_f_p_event[i].p), trigger::to_generic(state.pending_f_p_event[i].p), 0, state.pending_f_p_event[i].r_lo, state.pending_f_p_event[i].r_hi);
+				effect::execute(state, opt[0].effect, trigger::to_generic(state.pending_f_p_event[i].p),
+						trigger::to_generic(state.pending_f_p_event[i].p), 0, state.pending_f_p_event[i].r_lo,
+						state.pending_f_p_event[i].r_hi);
 			}
 
 			// TODO: notify
@@ -424,7 +473,8 @@ struct internal_n_epair {
 	int32_t chance;
 };
 
-void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const& v, int32_t primary_slot, slot_type pt, dcon::nation_id this_slot, int32_t from_slot, slot_type ft) {
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const& v, int32_t primary_slot, slot_type pt,
+		dcon::nation_id this_slot, int32_t from_slot, slot_type ft) {
 	static std::vector<internal_n_epair> valid_list;
 	valid_list.clear();
 
@@ -440,7 +490,9 @@ void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const
 	auto possible_events = valid_list.size();
 	if(possible_events > 0) {
 
-		int32_t random_value = int32_t(rng::get_random(state, uint32_t(primary_slot + (state.world.nation_get_owned_province_count(this_slot) << 3))) % total_chances);
+		int32_t random_value =
+				int32_t(rng::get_random(state, uint32_t(primary_slot + (state.world.nation_get_owned_province_count(this_slot) << 3))) %
+								total_chances);
 
 		for(auto& fe : valid_list) {
 			random_value -= fe.chance;
@@ -457,7 +509,8 @@ struct internal_p_epair {
 	int32_t chance;
 };
 
-void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_event> const& v, dcon::province_id prov, int32_t from_slot, slot_type ft) {
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_event> const& v, dcon::province_id prov,
+		int32_t from_slot, slot_type ft) {
 	static std::vector<internal_p_epair> valid_list;
 	valid_list.clear();
 

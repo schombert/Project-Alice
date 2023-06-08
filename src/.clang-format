@@ -1,10 +1,10 @@
 UseTab: Always
-TabWidth: 4
-IndentWidth: 4
+TabWidth: 2
+IndentWidth: 2
 NamespaceIndentation: None
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-ColumnLimit: 300
+ColumnLimit: 130
 SortIncludes: Never
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
@@ -26,12 +26,12 @@ SpacesInSquareBrackets: false
 ReferenceAlignment: Left
 PointerAlignment: Left
 QualifierAlignment: Right
-AlignConsecutiveDeclarations: false
 
+AlignConsecutiveDeclarations: false
 AlignAfterOpenBracket: DontAlign
 BinPackArguments: true
 BinPackParameters: true
 AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
-AllowShortBlocksOnASingleLine: true
-AllowShortFunctionsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty

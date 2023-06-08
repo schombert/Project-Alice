@@ -8,8 +8,10 @@
 namespace ui {
 
 class decision_requirements : public button_element_base {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
@@ -27,13 +29,15 @@ public:
 
 			auto ef = fat_id.get_effect();
 			if(bool(ef))
-				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
+				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
+						trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
+						uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 		}
 	}
 };
 
 class make_decision : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::decision_id{};
@@ -59,7 +63,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
@@ -68,7 +74,8 @@ public:
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto condition = state.world.decision_get_allow(id);
 			if(condition)
-				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation),
+						trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 };
@@ -78,7 +85,7 @@ public:
 // -------------
 
 class decision_name : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
 		if(parent) {
@@ -96,7 +103,7 @@ public:
 // --------------
 
 class decision_image : public image_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
 		if(parent) {
@@ -113,7 +120,7 @@ public:
 // --------------------
 
 class decision_desc : public scrollable_text {
-private:
+	private:
 	dcon::text_sequence_id description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
@@ -121,7 +128,7 @@ private:
 		text::close_layout_box(contents, box);
 	}
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.y = 77;
 		scrollable_text::on_create(state);
@@ -135,7 +142,9 @@ public:
 			auto fat_id = dcon::fatten(state.world, id);
 			description = fat_id.get_description();
 		}
-		auto container = text::create_endless_layout(delegate->internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+		auto container = text::create_endless_layout(delegate->internal_layout,
+				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
@@ -146,7 +155,7 @@ public:
 // ---------------
 
 class ignore_checkbox : public checkbox_button {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
 		if(parent) {
@@ -174,7 +183,7 @@ public:
 // -------------
 
 class decision_item : public listbox_row_element_base<dcon::decision_id> {
-public:
+	public:
 	std::unique_ptr<ui::element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "decision_name") {
 			return make_element_by_type<decision_name>(state, id);
@@ -216,8 +225,10 @@ public:
 // ----------------
 
 class decision_listbox : public listbox_element_base<decision_item, dcon::decision_id> {
-protected:
-	std::string_view get_row_element_name() { return "decision_entry"; }
+	protected:
+	std::string_view get_row_element_name() {
+		return "decision_entry";
+	}
 };
 
 // ----------------
@@ -225,7 +236,7 @@ protected:
 // ----------------
 
 class decision_window : public window_element_base {
-private:
+	private:
 	decision_listbox* decision_list{nullptr};
 
 	std::vector<dcon::decision_id> get_decisions(sys::state& state) {
@@ -241,7 +252,7 @@ private:
 		return list;
 	}
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

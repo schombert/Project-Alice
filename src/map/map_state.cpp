@@ -10,13 +10,19 @@
 
 namespace map {
 
-dcon::province_id map_state::get_selected_province() { return selected_province; }
+dcon::province_id map_state::get_selected_province() {
+	return selected_province;
+}
 
 // Called to load the terrain and province map data
-void map_state::load_map_data(parsers::scenario_building_context& context) { map_data.load_map_data(context); }
+void map_state::load_map_data(parsers::scenario_building_context& context) {
+	map_data.load_map_data(context);
+}
 
 // Called to load the map. Will load the texture and shaders from disk
-void map_state::load_map(sys::state& state) { map_data.load_map(state); }
+void map_state::load_map(sys::state& state) {
+	map_data.load_map(state);
+}
 
 void map_state::set_selected_province(dcon::province_id prov_id) {
 	unhandled_province_selection = selected_province != prov_id;
@@ -26,7 +32,8 @@ void map_state::set_selected_province(dcon::province_id prov_id) {
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
 	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
-	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
+	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom,
+			state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
 }
 
 void map_state::update(sys::state& state) {
@@ -87,7 +94,9 @@ void map_state::set_province_color(std::vector<uint32_t> const& prov_color, map_
 	map_data.set_province_color(prov_color);
 }
 
-void map_state::set_terrain_map_mode() { active_map_mode = map_mode::mode::terrain; }
+void map_state::set_terrain_map_mode() {
+	active_map_mode = map_mode::mode::terrain;
+}
 
 void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::LEFT) {
@@ -150,7 +159,8 @@ void map_state::set_pos(glm::vec2 new_pos) {
 	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
 }
 
-void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
+void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod,
+		float amount) {
 	constexpr auto zoom_speed_factor = 15.f;
 
 	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
@@ -194,7 +204,8 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 		glm::vec3 intersection_pos;
 		glm::vec3 intersection_normal;
 
-		if(glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos, intersection_normal)) {
+		if(glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos,
+					 intersection_normal)) {
 			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
 			float theta = std::acos(std::clamp(intersection_pos.z / glm::length(intersection_pos), -1.f, 1.f));
 			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
@@ -228,9 +239,12 @@ void map_state::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int
 	pos_velocity = glm::vec2(0);
 }
 
-void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) { is_dragging = false; }
+void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
+	is_dragging = false;
+}
 
-void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
+void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
+		sys::key_modifiers mod) {
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	glm::vec2 map_pos;
@@ -240,7 +254,8 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
 	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		sound::play_interface_sound(state, sound::get_click_sound(state),
+				state.user_settings.interface_volume * state.user_settings.master_volume);
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			set_selected_province(province::from_map_id(map_data.province_id_map[idx]));

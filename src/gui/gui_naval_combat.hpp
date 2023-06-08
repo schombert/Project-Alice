@@ -12,7 +12,7 @@ class naval_combat_ship_lslot : public window_element_base {
 	image_element_base* nav_icon_disengaged = nullptr;
 	image_element_base* nav_icon_seeking = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "attacker_icon_normal") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
@@ -73,7 +73,7 @@ class naval_combat_ship_rslot : public window_element_base {
 	image_element_base* nav_icon_disengaged = nullptr;
 	image_element_base* nav_icon_seeking = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "attacker_icon_normal") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
@@ -127,7 +127,7 @@ public:
 };
 
 class naval_combat_ship_unit : public listbox_row_element_base<bool> {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -169,10 +169,12 @@ public:
 };
 
 class naval_slots_listbox : public listbox_element_base<naval_combat_ship_unit, bool> {
-protected:
-	std::string_view get_row_element_name() override { return "ship_unit"; }
+	protected:
+	std::string_view get_row_element_name() override {
+		return "ship_unit";
+	}
 
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			row_contents.clear();
@@ -183,7 +185,7 @@ public:
 };
 
 class naval_combat_attacker_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -240,7 +242,7 @@ public:
 };
 
 class naval_combat_defender_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -297,7 +299,7 @@ public:
 };
 
 class naval_combat_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "combat_bg") {
 			return make_element_by_type<image_element_base>(state, id);

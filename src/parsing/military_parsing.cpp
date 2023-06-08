@@ -46,15 +46,19 @@ void make_trait(std::string_view name, token_generator& gen, error_handler& err,
 	trait_context new_context{context, new_id};
 	parse_trait(gen, err, new_context);
 }
-void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context) { parse_traits_set(gen, err, context); }
+void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	parse_traits_set(gen, err, context);
+}
 void background_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	context.state.military_definitions.first_background_trait = dcon::leader_trait_id(dcon::leader_trait_id::value_base_t(context.state.world.leader_trait_size()));
+	context.state.military_definitions.first_background_trait =
+			dcon::leader_trait_id(dcon::leader_trait_id::value_base_t(context.state.world.leader_trait_size()));
 	parse_traits_set(gen, err, context);
 }
 
 void make_base_units(scenario_building_context& context) {
 	{
-		dcon::unit_type_id army_base_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
+		dcon::unit_type_id army_base_id =
+				dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
 		context.state.military_definitions.unit_base_definitions.emplace_back();
 
 		auto name_id = text::find_or_add_key(context.state, "army_base");
@@ -65,7 +69,8 @@ void make_base_units(scenario_building_context& context) {
 		context.state.military_definitions.base_army_unit = army_base_id;
 	}
 	{
-		dcon::unit_type_id navy_base_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
+		dcon::unit_type_id navy_base_id =
+				dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
 		context.state.military_definitions.unit_base_definitions.emplace_back();
 
 		auto name_id = text::find_or_add_key(context.state, "navy_base");
@@ -78,7 +83,8 @@ void make_base_units(scenario_building_context& context) {
 }
 
 void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	dcon::unit_type_id new_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
+	dcon::unit_type_id new_id =
+			dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
 	context.state.military_definitions.unit_base_definitions.emplace_back();
 
 	auto name_id = text::find_or_add_key(context.state, name);
@@ -90,31 +96,38 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 }
 
 dcon::trigger_key cb_allowed_states(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_trigger(gen, err, t_context);
 }
 dcon::trigger_key cb_allowed_crisis_states(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_trigger(gen, err, t_context);
 }
 dcon::trigger_key cb_allowed_substates(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_trigger(gen, err, t_context);
 }
 dcon::trigger_key cb_allowed_countries(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_trigger(gen, err, t_context);
 }
 dcon::trigger_key cb_can_use(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_trigger(gen, err, t_context);
 }
 dcon::effect_key cb_on_add(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	effect_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	effect_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_effect(gen, err, t_context);
 }
 dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, individual_cb_context& context) {
-	effect_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation};
+	effect_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
+			trigger::slot_contents::nation};
 	return make_effect(gen, err, t_context);
 }
 

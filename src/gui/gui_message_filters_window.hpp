@@ -6,7 +6,7 @@
 namespace ui {
 
 class message_filters_country_button : public button_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
@@ -35,7 +35,7 @@ public:
 };
 
 class message_filters_country_item : public listbox_row_element_base<dcon::nation_id> {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_bg") {
 			return make_element_by_type<message_filters_country_button>(state, id);
@@ -56,10 +56,12 @@ public:
 };
 
 class message_filters_country_listbox : public listbox_element_base<message_filters_country_item, dcon::nation_id> {
-protected:
-	std::string_view get_row_element_name() override { return "message_filters_entry"; }
+	protected:
+	std::string_view get_row_element_name() override {
+		return "message_filters_entry";
+	}
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
 		on_update(state);
@@ -78,7 +80,7 @@ public:
 class message_filters_window : public window_element_base {
 	message_filters_country_listbox* country_listbox = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
@@ -145,8 +147,11 @@ public:
 			case country_list_filter::best_guess:
 				state.world.for_each_nation([&](dcon::nation_id id) {
 					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
-					if(state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id) || military::are_at_war(state, state.local_player_nation, id) || state.world.nation_get_in_sphere_of(id) == state.local_player_nation ||
-						state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id))
+					if(state.world.diplomatic_relation_get_are_allied(rel) ||
+							military::are_allied_in_war(state, state.local_player_nation, id) ||
+							military::are_at_war(state, state.local_player_nation, id) ||
+							state.world.nation_get_in_sphere_of(id) == state.local_player_nation ||
+							state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id))
 						state.world.nation_set_is_interesting(id, true);
 				});
 				break;
@@ -156,7 +161,8 @@ public:
 			case country_list_filter::allies:
 				state.world.for_each_nation([&](dcon::nation_id id) {
 					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
-					if(state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id))
+					if(state.world.diplomatic_relation_get_are_allied(rel) ||
+							military::are_allied_in_war(state, state.local_player_nation, id))
 						state.world.nation_set_is_interesting(id, true);
 				});
 				break;

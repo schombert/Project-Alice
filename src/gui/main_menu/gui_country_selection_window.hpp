@@ -7,7 +7,7 @@
 namespace ui {
 
 class country_selection_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -46,7 +46,8 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "version_label") {
-			return make_element_by_type<simple_text_element_base>(state, id); // TODO - we want to display the current version of PA here
+			return make_element_by_type<simple_text_element_base>(state,
+					id); // TODO - we want to display the current version of PA here
 
 		} else if(name == "multiplayer_menu") {
 			return make_element_by_type<multiplayer_menu_window>(state, id);

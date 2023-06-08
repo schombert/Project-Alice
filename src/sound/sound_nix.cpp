@@ -64,16 +64,17 @@ void initialize_sound_system(sys::state& state) {
 
 	auto root = get_root(state.common_fs);
 
-	const auto music_directory = open_directory(root, NATIVE("music"));
-	for(const auto& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
+	auto const music_directory = open_directory(root, NATIVE("music"));
+	for(auto const& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
 		state.sound_ptr->music_list.emplace_back(mp3_file);
 
 		auto file_name = get_full_name(mp3_file);
-		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(), NATIVE("thecoronation_titletheme.mp3")))
+		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
+					 NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
 	}
 
-	const auto sound_directory = open_directory(root, NATIVE("sound"));
+	auto const sound_directory = open_directory(root, NATIVE("sound"));
 	auto click_peek = peek_file(sound_directory, NATIVE("GI_ValidClick.wav"));
 	if(!click_peek) {
 		printf("can't open click sound\n");

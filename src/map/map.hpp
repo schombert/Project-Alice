@@ -10,10 +10,10 @@
 #include <glm/mat4x4.hpp>
 
 namespace sys {
-	struct state;
+struct state;
 };
 namespace parsers {
-	struct scenario_building_context;
+struct scenario_building_context;
 };
 
 namespace map {
@@ -42,7 +42,8 @@ struct map_vertex {
 };
 struct border_vertex {
 	border_vertex(){};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id) : position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id){};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id)
+			: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id){};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
@@ -55,7 +56,7 @@ struct border {
 };
 enum class map_view;
 class display_data {
-public:
+	public:
 	display_data(){};
 	~display_data();
 
@@ -64,7 +65,8 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter);
+	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
+			glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
@@ -80,7 +82,7 @@ public:
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 
-private:
+	private:
 	// Meshes
 	GLuint land_vao = 0;
 	GLuint land_vbo = 0;
