@@ -420,29 +420,31 @@ void state::on_create() {
 		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("declarewardialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
+	//if(!user_settings.guimode) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these windows are moveable
+		ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("declarewardialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
