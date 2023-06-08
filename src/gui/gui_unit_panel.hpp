@@ -553,8 +553,8 @@ template<class T> class unit_details_window : public window_element_base {
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_selection_panel<T>>(state,
-					state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+			auto ptr =
+					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
 			ptr->base_data.position.y -= 81;
 			add_child_to_front(std::move(ptr));
 		}
