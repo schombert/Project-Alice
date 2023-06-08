@@ -2,6 +2,7 @@
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "text.hpp"
 
 namespace ui {
 
@@ -113,6 +114,43 @@ class unit_selection_unit_location_text : public simple_text_element_base {
 	}
 };
 
+template<class T> class unit_selection_str_bar : public vertical_progress_bar {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<T>(payload);
+
+			float total_strenght = 0.0f;
+			std::uint16_t unit_count = 0u;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id nmid) {
+					auto regiment = dcon::fatten(state.world, state.world.army_membership_get_regiment(nmid));
+					total_strenght += regiment.get_strength();
+					++unit_count;
+				});
+			} else {
+				state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
+					auto ship = dcon::fatten(state.world, state.world.navy_membership_get_ship(nmid));
+					total_strenght += ship.get_strength();
+					++unit_count;
+				});
+			}
+			total_strenght /= static_cast<float>(unit_count);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
+			text::add_to_layout_box(contents, state, box, text::fp_percentage{total_strenght}, text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 template<class T> class unit_selection_panel : public window_element_base {
 	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -139,7 +177,7 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "disbandtoosmallbutton") {
 			return make_element_by_type<unit_selection_disband_too_small_button>(state, id);
 		} else if(name == "str_bar") {
-			return make_element_by_type<vertical_progress_bar>(state, id);
+			return make_element_by_type<unit_selection_str_bar<T>>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
 		} else if(name == "unitattrition_icon") {
@@ -515,7 +553,7 @@ template<class T> class unit_details_window : public window_element_base {
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_selection_panel<bool>>(state,
+			auto ptr = make_element_by_type<unit_selection_panel<T>>(state,
 					state.ui_state.defs_by_name.find("unitpanel")->second.definition);
 			ptr->base_data.position.y -= 81;
 			add_child_to_front(std::move(ptr));
