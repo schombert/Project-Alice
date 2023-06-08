@@ -11,6 +11,106 @@ class unit_selection_close_button : public button_element_base {
 		if(parent && parent->parent)
 			parent->parent->set_visible(state, false);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("deselect_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("deselect_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_new_unit_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("new_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("new_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_split_in_half_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("splitinhalf"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("splitinhalf_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_disband_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("disband_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("disband_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_disband_too_small_button : public button_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("disband_too_small_unit"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("disband_too_small_unit_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_unit_name_text : public simple_text_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("uw_unitnames_iro"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("uw_unitnames_dro"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class unit_selection_unit_location_text : public simple_text_element_base {
+	public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("uw_loc_iro"));
+		text::close_layout_box(contents, box);
+	}
 };
 
 template<class T> class unit_selection_panel : public window_element_base {
@@ -25,19 +125,19 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "unitname") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<unit_selection_unit_name_text>(state, id);
 		} else if(name == "only_unit_from_selection_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "remove_unit_from_selection_button") {
 			return make_element_by_type<unit_selection_close_button>(state, id);
 		} else if(name == "newunitbutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_new_unit_button>(state, id);
 		} else if(name == "splitinhalf") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_split_in_half_button>(state, id);
 		} else if(name == "disbandbutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_disband_button>(state, id);
 		} else if(name == "disbandtoosmallbutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_disband_too_small_button>(state, id);
 		} else if(name == "str_bar") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
 		} else if(name == "org_bar") {
@@ -49,7 +149,7 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "unitstrength") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "unitlocation") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<unit_selection_unit_location_text>(state, id);
 		} else if(name == "unit_location_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "unitleader") {
