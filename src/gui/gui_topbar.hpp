@@ -493,7 +493,7 @@ class topbar_nation_population_text : public nation_population_text {
 			text::close_layout_box(contents, box);
 
 			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
-			if(!state.user_settings.guimode) {
+			if(state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
 			}
 		}
@@ -551,7 +551,7 @@ class topbar_nation_focus_allocation_text : public nation_focus_allocation_text 
 			text::close_layout_box(contents, box);
 
 			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
-			if(!state.user_settings.guimode) {
+			if(state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::max_national_focus, false);
 			}
 		}
@@ -584,7 +584,7 @@ class topbar_nation_militancy_text : public nation_militancy_text {
 			text::close_layout_box(contents, box);
 
 			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
-			if(!state.user_settings.guimode) {
+			if(state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_militancy_modifier,
 						true);
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
@@ -622,7 +622,7 @@ class topbar_nation_consciousness_text : public nation_consciousness_text {
 			text::close_layout_box(contents, box);
 
 			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
-			if(!state.user_settings.guimode) {
+			if(state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_consciousness_modifier,
 						true);
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_consciousness_modifier,

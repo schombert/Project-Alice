@@ -208,7 +208,7 @@ void gui_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	};*/
 	auto it = state.key_to_text_sequence.find(
-			state.user_settings.guimode ? std::string_view("gui_mode_faithful") : std::string_view("gui_mode_new"));
+			state.user_settings.guimode ? std::string_view("gui_mode_new") : std::string_view("gui_mode_faithful"));
 	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
