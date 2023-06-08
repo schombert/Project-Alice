@@ -1206,7 +1206,7 @@ class nation_mobilization_size_text : public standard_nation_text {
 class nation_brigade_allocation_text : public standard_nation_text {
 	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto available = state.world.nation_get_recruitable_regiments(nation_id);
+		auto available = (state.world.nation_get_recruitable_regiments(nation_id) + state.world.nation_get_active_regiments(nation_id));
 		auto in_use = state.world.nation_get_active_regiments(nation_id);
 		return text::format_ratio(in_use, available);
 	}
@@ -1239,20 +1239,28 @@ class nation_ships_text : public standard_nation_text {
 };
 
 class nation_brigades_text : public standard_nation_text {
-	public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+protected:
+	int32_t get_num_brigades(sys::state& state, dcon::nation_id n) {
 		int32_t count = 0;
-		state.world.nation_for_each_army_control_as_controller(nation_id, [&](dcon::army_control_id) { ++count; });
-		return std::to_string(count);
+		state.world.nation_for_each_army_control_as_controller(n, [&](dcon::army_control_id) { ++count; });
+		return count;
+	}
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return std::to_string(get_num_brigades(state, nation_id));
 	}
 };
 
 class nation_navies_text : public standard_nation_text {
-	public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+protected:
+	int32_t get_num_navies(sys::state& state, dcon::nation_id n) {
 		int32_t count = 0;
-		state.world.nation_for_each_navy_control_as_controller(nation_id, [&](dcon::navy_control_id) { ++count; });
-		return std::to_string(count);
+		state.world.nation_for_each_navy_control_as_controller(n, [&](dcon::navy_control_id) { ++count; });
+		return count;
+	}
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return std::to_string(get_num_navies(state, nation_id));
 	}
 };
 

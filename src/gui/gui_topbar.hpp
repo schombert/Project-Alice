@@ -689,7 +689,7 @@ class topbar_nation_brigade_allocation_text : public nation_brigade_allocation_t
 	}
 };
 
-class topbar_nation_navy_allocation_text : public nation_brigade_allocation_text {
+class topbar_nation_navy_allocation_text : public nation_navy_allocation_text {
 	public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -707,10 +707,8 @@ class topbar_nation_navy_allocation_text : public nation_brigade_allocation_text
 			text::localised_format_box(state, contents, box, std::string_view("topbar_ship_tooltip"), sub);
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_to_substitution_map(sub, text::variable_type::tot,
-					text::pretty_integer{military::naval_supply_points(state, nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::req,
-					text::pretty_integer{military::naval_supply_points_used(state, nation_id)});
+			text::add_to_substitution_map(sub, text::variable_type::tot, text::pretty_integer{military::naval_supply_points(state, nation_id)});
+			text::add_to_substitution_map(sub, text::variable_type::req, text::pretty_integer{military::naval_supply_points_used(state, nation_id)});
 			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_basic"), sub);
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_detailed_list"), sub);
