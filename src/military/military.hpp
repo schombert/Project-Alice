@@ -205,5 +205,12 @@ void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void update_ticking_war_score(sys::state& state);
 
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a);
+float effective_army_speed(sys::state& state, dcon::army_id a);
+float effective_navy_speed(sys::state& state, dcon::navy_id n);
+
+sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
+sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
+
+void update_movement(sys::state& state);
 
 } // namespace military

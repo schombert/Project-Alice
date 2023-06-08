@@ -2046,7 +2046,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 13, [&](int32_t index) {
+				concurrency::parallel_for(0, 14, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2086,6 +2086,9 @@ void state::game_loop() {
 						break;
 					case 12:
 						military::update_ticking_war_score(*this);
+						break;
+					case 13:
+						military::update_movement(*this);
 						break;
 					}
 				});

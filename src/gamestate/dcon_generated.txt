@@ -1502,6 +1502,23 @@ object {
 		type{ unit_name_id }
 		tag{ save }
 	}
+
+	property{
+		name{ black_flag }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ path }
+		type{vector_pool{2500}{province_id}}
+		tag{ save }
+	}
+	property{
+		name{ arrival_time }
+		type{ sys::date }
+		tag{ save }
+	}
 }
 
 object {
@@ -1513,6 +1530,17 @@ object {
 	property{
 		name{ name }
 		type{ unit_name_id }
+		tag{ save }
+	}
+
+	property{
+		name{ path }
+		type{vector_pool{2500}{province_id}}
+		tag{ save }
+	}
+	property{
+		name{ arrival_time }
+		type{ sys::date }
 		tag{ save }
 	}
 }
@@ -1528,6 +1556,23 @@ relationship{
 	}
 	link{
 		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_rebel_control }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{rebel_faction}
 		name{controller}
 		type{many}
 		index_storage{array}

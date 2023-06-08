@@ -1161,6 +1161,9 @@ bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::
 	if(!controller)
 		return true;
 
+	if(!nation_as) // rebels go everywhere
+		return true;
+
 	if(controller == nation_as)
 		return true;
 
@@ -1204,7 +1207,6 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 			path_result.push_back(i);
 			i = origins_vector.get(i);
 		}
-		path_result.push_back(start);
 	};
 
 	path_heap.push_back(province_and_distance{0.0f, direct_distance(state, start, end), start});
@@ -1262,7 +1264,6 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 			path_result.push_back(i);
 			i = origins_vector.get(i);
 		}
-		path_result.push_back(start);
 	};
 
 	path_heap.push_back(province_and_distance{0.0f, direct_distance(state, start, end), start});
@@ -1307,7 +1308,6 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 			path_result.push_back(i);
 			i = origins_vector.get(i);
 		}
-		path_result.push_back(start);
 	};
 
 	path_heap.push_back(province_and_distance{0.0f, direct_distance(state, start, end), start});
