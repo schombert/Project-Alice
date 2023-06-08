@@ -383,6 +383,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -391,6 +392,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -398,6 +400,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -406,6 +409,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -414,6 +418,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		return bg_ptr;
@@ -464,10 +469,12 @@ template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
 
-	if(events.empty()) {
-		set_visible(state, false);
-	}
+	for(auto e : new_elements)
+		e->set_visible(state, state.user_settings.use_new_ui);
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
+
+	if(events.empty())
+		set_visible(state, false);
 }
 
 template<bool IsMajor> message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
@@ -534,6 +541,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -542,6 +550,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -549,6 +558,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -557,6 +567,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -565,6 +576,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
+			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		return bg_ptr;
@@ -600,11 +612,13 @@ void provincial_event_window::on_update(sys::state& state) noexcept {
 	});
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
+	
+	for(auto e : new_elements)
+		e->set_visible(state, state.user_settings.use_new_ui);
+	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 
 	if(events.empty())
 		set_visible(state, false);
-
-	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 }
 message_result provincial_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(index >= int32_t(events.size()))
