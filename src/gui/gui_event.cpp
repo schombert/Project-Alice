@@ -469,12 +469,12 @@ template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
 
-	if(events.empty())
-		set_visible(state, false);
-	
 	for(auto e : new_elements)
 		e->set_visible(state, state.user_settings.use_new_ui);
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
+
+	if(events.empty())
+		set_visible(state, false);
 }
 
 template<bool IsMajor> message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
@@ -612,13 +612,13 @@ void provincial_event_window::on_update(sys::state& state) noexcept {
 	});
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
-
-	if(events.empty())
-		set_visible(state, false);
 	
 	for(auto e : new_elements)
 		e->set_visible(state, state.user_settings.use_new_ui);
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
+
+	if(events.empty())
+		set_visible(state, false);
 }
 message_result provincial_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(index >= int32_t(events.size()))
