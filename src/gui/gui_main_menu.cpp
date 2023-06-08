@@ -211,7 +211,8 @@ void gui_mode_display::on_update(sys::state& state) noexcept {
 		var = "gui_mode_faithful";
 		break;
 	};*/
-	auto it = state.key_to_text_sequence.find(state.user_settings.guimode ? std::string_view("gui_mode_faithful") : std::string_view("gui_mode_inaccurate"));
+	auto it = state.key_to_text_sequence.find(
+		state.user_settings.guimode ? std::string_view("gui_mode_faithful") : std::string_view("gui_mode_inaccurate"));
 	auto temp_string =
 		(it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);

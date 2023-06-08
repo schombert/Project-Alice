@@ -497,7 +497,7 @@ public:
 				text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total)) * 4});
 			text::close_layout_box(contents, box);
 
-			//if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
+			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
 			if(!state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
 			}
@@ -557,7 +557,7 @@ public:
 			}
 			text::close_layout_box(contents, box);
 
-			//if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
+			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
 			if(!state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::max_national_focus, false);
 			}
@@ -590,7 +590,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 
-			//if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
+			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
 			if(!state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0,
 					sys::national_mod_offsets::global_pop_militancy_modifier, true);
@@ -629,7 +629,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 
-			//if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
+			// if(state.user_settings.guimode == sys::gui_modes::inaccurate) {
 			if(!state.user_settings.guimode) {
 				active_modifiers_description(state, contents, nation_id, 0,
 					sys::national_mod_offsets::global_pop_consciousness_modifier, true);

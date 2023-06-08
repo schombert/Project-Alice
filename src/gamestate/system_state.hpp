@@ -35,11 +35,7 @@
 
 namespace sys {
 
-enum class gui_modes : uint8_t {
-	faithful = 0,
-	inaccurate = 1,
-	dummycabooseval = 2
-};
+enum class gui_modes : uint8_t { faithful = 0, inaccurate = 1, dummycabooseval = 2 };
 
 #define DEF_guimode_size 2
 
@@ -52,9 +48,10 @@ struct user_settings_s {
 	bool prefer_fullscreen = false;
 	bool map_is_globe = false;
 	bool fake_graphs = false;
-	bool guimode = false;	// TODO - Replace with Enum, currently we have no need to support >2 gui modes, but in future we may and its better to be prepared
-	//gui_modes guimode = gui_modes::faithful;
-	// uint8_t guimode_size = 2;
+	bool guimode = false; // TODO - Replace with Enum, currently we have no need to support >2 gui modes, but in future we may and
+						  // its better to be prepared
+	// gui_modes guimode = gui_modes::faithful;
+	//  uint8_t guimode_size = 2;
 	bool use_classic_fonts = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };
