@@ -35,7 +35,7 @@
 
 namespace sys {
 
-enum class gui_modes : uint8_t { faithful = 0, inaccurate = 1, dummycabooseval = 2 };
+enum class gui_modes : uint8_t { faithful = 0, wip = 1, dummycabooseval = 2 };
 
 #define DEF_guimode_size 2
 

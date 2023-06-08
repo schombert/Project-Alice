@@ -1,6 +1,6 @@
 UseTab: Always
-TabWidth: 4
-IndentWidth: 4
+TabWidth: 2
+IndentWidth: 2
 NamespaceIndentation: None
 IndentAccessModifiers: false
 AccessModifierOffset: -4
