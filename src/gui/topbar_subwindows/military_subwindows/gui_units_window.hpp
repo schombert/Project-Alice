@@ -31,7 +31,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, std::string_view("UwU"));	// TODO - this should only display if the unit is being built,
+		text::add_to_layout_box(state, contents, box, std::string_view("UwU"));	// TODO - this should only display if the unit is being built,
 											// it needs to display the goods that are needed before contruction can
 											// begin, once said goods are found it doesnt display anything
 		text::close_layout_box(contents, box);

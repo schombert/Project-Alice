@@ -195,7 +195,7 @@ class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_factio
 			text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
 			text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
 		}
-		text::add_to_layout_box(contents, state, box, fat_id.get_type().get_name(), sub);
+		text::add_to_layout_box(state, contents, box, fat_id.get_type().get_name(), sub);
 		text::close_layout_box(contents, box);
 	}
 };

@@ -791,10 +791,10 @@ template<class T>
 void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept {
 	auto fat_t = dcon::fatten(state.world, t);
 	auto box = text::open_layout_box(contents, 0);
-	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
-	text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::white);
-	text::add_space_to_layout_box(contents, state, box);
-	text::add_to_layout_box(contents, state, box, text::format_percentage(percentage, 1), text::text_color::white);
+	text::add_to_layout_box(state, contents, box, fat_t.get_name(), text::substitution_map{});
+	text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::white);
+	text::add_space_to_layout_box(state, contents, box);
+	text::add_to_layout_box(state, contents, box, text::format_percentage(percentage, 1), text::text_color::white);
 	text::close_layout_box(contents, box);
 }
 
@@ -1256,7 +1256,7 @@ void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	auto name = nations::name_from_tag(state, ident);
 	if(name) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, name, text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, name, text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 }

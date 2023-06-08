@@ -96,9 +96,9 @@ class release_nation_description_text : public generic_multiline_text<dcon::nati
 		text::add_to_substitution_map(sub, text::variable_type::provinces, std::string_view(provinces));
 		text::localised_format_box(state, contents, box, std::string_view("politics_release_vassal_desc"), sub);
 		if(province_count > 5) {
-			text::add_to_layout_box(contents, state, box, std::string(" and others."), text::text_color::black);
+			text::add_to_layout_box(state, contents, box, std::string(" and others."), text::text_color::black);
 		} else {
-			text::add_to_layout_box(contents, state, box, std::string("."), text::text_color::black);
+			text::add_to_layout_box(state, contents, box, std::string("."), text::text_color::black);
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -122,7 +122,7 @@ class release_nation_button : public button_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, std::string_view("Rewease me"));
+		text::add_to_layout_box(state, contents, box, std::string_view("Rewease me"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -202,9 +202,9 @@ class release_nation_window_description_text : public generic_multiline_text<dco
 		text::add_to_substitution_map(sub, text::variable_type::provinces, std::string_view(provinces));
 		text::localised_format_box(state, contents, box, std::string_view("politics_release_vassal_desc"), sub);
 		if(province_count > 5) {
-			text::add_to_layout_box(contents, state, box, std::string(" and others."));
+			text::add_to_layout_box(state, contents, box, std::string(" and others."));
 		} else {
-			text::add_to_layout_box(contents, state, box, std::string("."));
+			text::add_to_layout_box(state, contents, box, std::string("."));
 		}
 		text::close_layout_box(contents, box);
 	}

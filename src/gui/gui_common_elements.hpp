@@ -122,7 +122,7 @@ template<class T> class generic_multiline_name_text : public multiline_text_elem
 							text::alignment::left, color});
 			auto fat_id = dcon::fatten(state.world, content);
 			auto box = text::open_layout_box(container);
-			text::add_to_layout_box(container, state, box, fat_id.get_name(), text::substitution_map{});
+			text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
 			text::close_layout_box(container, box);
 		}
 	}
@@ -303,7 +303,7 @@ class province_rgo_icon : public standard_province_icon {
 			auto rgo_good = state.world.province_get_rgo(prov_id);
 			if(rgo_good) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, state.world.commodity_get_name(rgo_good), text::substitution_map{});
+				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(rgo_good), text::substitution_map{});
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -389,12 +389,12 @@ class movement_nationalist_name_text : public standard_movement_multiline_text {
 			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
 			movementAdj = text::get_adjective_as_string(state, independence_target);
 			text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movementAdj));
-			text::add_to_layout_box(contents, state, box, k->second, sub);
+			text::add_to_layout_box(state, contents, box, k->second, sub);
 		} else {
 			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
 			movementAdj = text::get_adjective_as_string(state, independence_target);
 			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(movementAdj));
-			text::add_to_layout_box(contents, state, box, k->second, sub);
+			text::add_to_layout_box(state, contents, box, k->second, sub);
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -1372,7 +1372,7 @@ class nation_technology_admin_type_text : public standard_nation_text {
 			auto name = fat_id.get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 			auto mod_id = fat_id.get_tech_school().id;
@@ -1501,7 +1501,7 @@ class nation_national_value_icon : public standard_nation_icon {
 			auto name = fat_id.get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 			auto mod_id = fat_id.get_national_value().id;
@@ -1605,7 +1605,7 @@ class fixed_pop_type_icon : public opaque_element_base {
 		auto name = state.world.pop_type_get_name(type);
 		if(bool(name)) {
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, name);
+			text::add_to_layout_box(state, contents, box, name);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1637,7 +1637,7 @@ class pop_type_icon : public button_element_base {
 			auto name = state.world.pop_type_get_name(content);
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, name);
+				text::add_to_layout_box(state, contents, box, name);
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -1669,7 +1669,7 @@ class religion_type_icon : public button_element_base {
 			auto name = state.world.religion_get_name(content);
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, name);
+				text::add_to_layout_box(state, contents, box, name);
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -1948,7 +1948,7 @@ class factory_profit_text : public multiline_text_element_base {
 					text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 							base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(contents, state, box, text,
+			text::add_to_layout_box(state, contents, box, text,
 					is_positive ? text::text_color::dark_green : text::text_color::dark_red);
 			text::close_layout_box(contents, box);
 		}
@@ -1996,7 +1996,7 @@ class national_focus_icon : public button_element_base {
 			auto content = any_cast<dcon::national_focus_id>(payload);
 			if(bool(content)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{});
+				text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -2151,7 +2151,7 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 				// TODO: ordinal numbering, 1st, 2nd, 3rd, 4th, etc...
 				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
 
-				text::add_to_layout_box(contents, state, box, state.world.war_get_name(war), sub);
+				text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
 
 				text::close_layout_box(contents, box);
 				break;

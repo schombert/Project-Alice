@@ -97,7 +97,7 @@ class diplomacy_action_ally_button : public button_element_base {
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 
 				text::substitution_map ai_map{};
 				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
@@ -179,7 +179,7 @@ class diplomacy_action_call_ally_button : public button_element_base {
 										? "dip_enough_diplo"
 										: "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 
 				text::substitution_map ai_map{};
 				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
@@ -257,7 +257,7 @@ class diplomacy_action_military_access_button : public button_element_base {
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -331,7 +331,7 @@ class diplomacy_action_give_military_access_button : public button_element_base 
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -388,7 +388,7 @@ class diplomacy_action_increase_relations_button : public button_element_base {
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -445,7 +445,7 @@ class diplomacy_action_decrease_relations_button : public button_element_base {
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -519,7 +519,7 @@ class diplomacy_action_war_subisides_button : public button_element_base {
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -597,7 +597,7 @@ class diplomacy_action_declare_war_button : public button_element_base {
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -720,7 +720,7 @@ class diplomacy_action_discredit_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -780,7 +780,7 @@ class diplomacy_action_expel_advisors_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -841,7 +841,7 @@ class diplomacy_action_ban_embassy_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -900,7 +900,7 @@ class diplomacy_action_increase_opinion_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -961,7 +961,7 @@ class diplomacy_action_decrease_opinion_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -1020,7 +1020,7 @@ class diplomacy_action_add_to_sphere_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -1081,7 +1081,7 @@ class diplomacy_action_remove_from_sphere_button : public button_element_base {
 																 ? "dip_enough_influence"
 																 : "dip_no_influence"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -1140,7 +1140,7 @@ class diplomacy_action_justify_war_button : public button_element_base {
 										? "dip_enough_diplo"
 										: "dip_no_diplo"),
 						dp_map);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}

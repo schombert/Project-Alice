@@ -51,8 +51,8 @@ class nation_growth_indicator : public opaque_element_base {
 			auto pop_increase = nations::get_monthly_pop_increase_of_nation(state, content);
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, pop_increase);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, pop_increase);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -97,8 +97,8 @@ class state_growth_indicator : public opaque_element_base {
 			auto pop_increase = demographics::get_monthly_pop_increase(state, content);
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, pop_increase);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, pop_increase);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -144,8 +144,8 @@ class pop_growth_indicator : public opaque_element_base {
 			auto pop_increase = demographics::get_monthly_pop_increase(state, content);
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, pop_increase);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, pop_increase);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -191,9 +191,9 @@ class pop_revolt_faction : public opaque_element_base {
 			auto rebel_fact = fat_id.get_pop_rebellion_membership().get_rebel_faction().get_type();
 			auto box = text::open_layout_box(contents, 0);
 			if(rebel_fact) {
-				text::add_to_layout_box(contents, state, box, rebel_fact.get_name());
+				text::add_to_layout_box(state, contents, box, rebel_fact.get_name());
 				text::add_divider_to_layout_box(state, contents, box);
-				text::add_to_layout_box(contents, state, box, rebel_fact.get_description());
+				text::add_to_layout_box(state, contents, box, rebel_fact.get_description());
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -242,7 +242,7 @@ class pop_movement_social : public opaque_element_base {
 			auto box = text::open_layout_box(contents, 0);
 			if(movement_fact) {
 				auto movement_issue = movement_fact.get_movement().get_associated_issue_option();
-				text::add_to_layout_box(contents, state, box, movement_issue.get_movement_name());
+				text::add_to_layout_box(state, contents, box, movement_issue.get_movement_name());
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -291,7 +291,7 @@ class pop_movement_political : public opaque_element_base {
 			auto box = text::open_layout_box(contents, 0);
 			if(movement_fact) {
 				auto movement_issue = movement_fact.get_movement().get_associated_issue_option();
-				text::add_to_layout_box(contents, state, box, movement_issue.get_movement_name());
+				text::add_to_layout_box(state, contents, box, movement_issue.get_movement_name());
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -344,7 +344,7 @@ class pop_movement_flag : public opaque_element_base {
 
 			auto box = text::open_layout_box(contents, 0);
 			if(independence_fact) {
-				text::add_to_layout_box(contents, state, box, independence_fact.get_name());
+				text::add_to_layout_box(state, contents, box, independence_fact.get_name());
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -379,10 +379,10 @@ class pop_cash_reserve_text : public simple_text_element_base {
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val,
 					text::fp_currency{1984});
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val,
 					text::fp_currency{1984});
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("available_in_bank"), text::variable_type::val,
 					text::fp_currency{1984});
 			text::close_layout_box(contents, box);
@@ -459,8 +459,8 @@ class pop_militancy_text : public simple_text_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_mil_total"), text::substitution_map{});
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box,
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box,
 				text::dp_percentage{demographics::get_estimated_mil_change(state, state.local_player_nation)});
 		text::close_layout_box(contents, box);
 	}
@@ -485,8 +485,8 @@ class pop_con_text : public simple_text_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_con_total"), text::substitution_map{});
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box,
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box,
 				text::dp_percentage{demographics::get_estimated_con_change(state, state.local_player_nation)});
 		text::close_layout_box(contents, box);
 	}
@@ -512,8 +512,8 @@ class pop_literacy_text : public simple_text_element_base {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_con_total"),
 				text::substitution_map{}); // There is no POP_LIT_TOTAL in the CSV files soo...
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box,
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box,
 				text::dp_percentage{demographics::get_estimated_literacy_change(state, state.local_player_nation)});
 		text::close_layout_box(contents, box);
 	}
@@ -609,8 +609,8 @@ class pop_unemployment_progress_bar : public standard_pop_progress_bar {
 													: 0.0f;
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::fp_percentage{un_empl});
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{un_empl});
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -852,7 +852,7 @@ class pop_national_focus_button : public button_element_base {
 
 			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::add_to_layout_box(state, contents, box, focus.get_name());
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1546,7 +1546,7 @@ class pop_details_icon : public button_element_base {
 			auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, name);
+				text::add_to_layout_box(state, contents, box, name);
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -1747,7 +1747,7 @@ template<pop_list_sort Sort> class pop_sort_button : public button_element_base 
 			text::localised_format_box(state, contents, box, std::string_view("popv_sort_by_con"), text::substitution_map{});
 			break;
 		default:
-			// text::add_to_layout_box(contents, state, box, std::string_view("Not sure how you got here but have a UwU"));
+			// text::add_to_layout_box(state, contents, box, std::string_view("Not sure how you got here but have a UwU"));
 			break;
 		}
 		text::close_layout_box(contents, box);

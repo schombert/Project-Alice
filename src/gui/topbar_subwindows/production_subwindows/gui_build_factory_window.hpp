@@ -279,7 +279,7 @@ class factory_build_description : public multiline_text_element_base {
 					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0,
 							text::alignment::left, text::text_color::black});
 			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(layout, state, box, fat.get_description());
+			text::add_to_layout_box(state, layout, box, fat.get_description());
 			text::close_layout_box(layout, box);
 		}
 	}

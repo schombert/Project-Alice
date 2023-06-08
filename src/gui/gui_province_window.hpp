@@ -97,7 +97,7 @@ class province_terrain_image : public opaque_element_base {
 			auto name = fat_id.get_terrain().get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 			auto mod_id = fat_id.get_terrain().id;
@@ -161,8 +161,8 @@ class province_controller_flag : public flag_button {
 			auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, controller_name);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, controller_name);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -215,7 +215,7 @@ class province_colony_button : public standard_state_instance_button {
 			text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
 			text::localised_format_box(state, contents, box, std::string_view("pw_colony_no_state"), sub1);
 
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::substitution_map sub2{};
 			text::add_to_substitution_map(sub2, text::variable_type::value,
 					int32_t(province::colony_integration_cost(state, state_instance_id)));
@@ -280,7 +280,7 @@ class province_national_focus_button : public button_element_base {
 
 			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::add_to_layout_box(state, contents, box, focus.get_name());
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -828,7 +828,7 @@ class province_colony_rgo_icon : public image_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, rgo_name);
+		text::add_to_layout_box(state, contents, box, rgo_name);
 		text::close_layout_box(contents, box);
 	}
 };

@@ -50,7 +50,7 @@ class topbar_nation_prestige_text : public nation_prestige_text {
 
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			switch(nations::get_status(state, nation_id)) {
 			case(nations::status::great_power):
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"),
@@ -162,10 +162,10 @@ class topbar_nation_colonial_power_text : public nation_colonial_power_text {
 			text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("available_colonial_power"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::format_float(points, 0), text::text_color::green);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::format_float(points, 0), text::text_color::green);
 
 			text::close_layout_box(contents, box);
 		}
@@ -231,56 +231,56 @@ class topbar_nation_budget_funds_text : public nation_budget_funds_text {
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_income"), text::variable_type::val,
 					text::fp_three_places{total_income}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_poor"), text::variable_type::val,
 					text::fp_one_place{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_middle"), text::variable_type::val,
 					text::fp_one_place{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_rich"), text::variable_type::val,
 					text::fp_one_place{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("tariffs_income"), text::variable_type::val,
 					text::fp_one_place{economy::estimate_tariff_income(state, nation_id)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("budget_exports"), text::substitution_map{}); // $VAL	TODO
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_gold"), text::variable_type::val,
 					text::fp_one_place{economy::estimate_gold_income(state, nation_id)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_expense"), text::variable_type::val,
 					text::fp_three_places{-total_expense}); // $VAL	TODO
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_expense_slider_education"),
 					text::variable_type::val,
 					text::fp_three_places{
 							-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_administration"),
 					text::variable_type::val,
 					text::fp_three_places{
 							-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_social_spending"),
 					text::variable_type::val,
 					text::fp_three_places{
 							-economy::estimate_social_spending(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_military_spending"),
 					text::variable_type::val,
 					text::fp_two_places{
 							-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_interest"), text::variable_type::val,
 					text::fp_one_place{
 							-economy::estimate_loan_payments(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("budget_imports"), text::variable_type::val,
 					text::fp_one_place{-economy::nation_total_imports(state,
 							nation_id)}); // $VAL - presumably nation_total_imports is for national stockpile (?)
-			text::add_line_break_to_layout_box(contents, state, box); // Intentional, theres meant to be two new lines here.
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box); // Intentional, theres meant to be two new lines here.
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_projected_income"), text::variable_type::val,
 					text::fp_two_places{economy::estimate_daily_income(state, nation_id)}); // $VAL	TODO
 
@@ -338,7 +338,7 @@ class topbar_nation_current_research_text : public nation_current_research_text 
 				text::add_to_substitution_map(sub, text::variable_type::cost, dcon::fatten(state.world, tech_id).get_cost());
 
 				text::localised_format_box(state, contents, box, std::string_view("technologyview_research_tooltip"), sub);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 				text::localised_format_box(state, contents, box, std::string_view("technologyview_research_invested_tooltip"), sub);
 			} else {
 				text::localised_format_box(state, contents, box, std::string_view("technologyview_no_research_tooltip"));
@@ -374,7 +374,7 @@ class topbar_nation_literacy_text : public nation_literacy_text {
 					1);
 			text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 		}
@@ -428,8 +428,8 @@ class topbar_nation_suppression_points_text : public nation_suppression_points_t
 
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "suppression_points", text::substitution_map{});
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
 			text::close_layout_box(contents, box);
 
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier, false);
@@ -454,11 +454,11 @@ class topbar_nation_infamy_text : public nation_infamy_text {
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy"), text::variable_type::value,
 					text::fp_two_places{fat_id.get_infamy()});
 			text::add_divider_to_layout_box(state, contents, box);
-			// text::add_to_layout_box(contents, state, box, text::format_ratio(fat_id.get_infamy(), ));
-			text::add_to_layout_box(contents, state, box, text::fp_two_places{fat_id.get_infamy()});
-			text::add_to_layout_box(contents, state, box, std::string_view("/"));
-			text::add_to_layout_box(contents, state, box, text::fp_two_places{state.defines.badboy_limit});
-			text::add_line_break_to_layout_box(contents, state, box);
+			// text::add_to_layout_box(state, contents, box, text::format_ratio(fat_id.get_infamy(), ));
+			text::add_to_layout_box(state, contents, box, text::fp_two_places{fat_id.get_infamy()});
+			text::add_to_layout_box(state, contents, box, std::string_view("/"));
+			text::add_to_layout_box(state, contents, box, text::fp_two_places{state.defines.badboy_limit});
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
 			text::close_layout_box(contents, box);
 
@@ -524,7 +524,7 @@ class topbar_nation_focus_allocation_text : public nation_focus_allocation_text 
 																																					// doesnt really matter so im leaving it -breizh
 			text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 			text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::substitution_map sub2;
 			text::add_to_substitution_map(sub2, text::variable_type::focus, nations::max_national_focuses(state, nation_id));
 			text::localised_format_box(state, contents, box, std::string_view("tb_max_focus"), sub2);
@@ -538,8 +538,8 @@ class topbar_nation_focus_allocation_text : public nation_focus_allocation_text 
 						if(staat.is_valid()) {
 							auto natl_fat_id = staat.get_owner_focus();
 							if(natl_fat_id.is_valid()) {
-								text::add_to_layout_box(contents, state, box, natl_fat_id.get_name());
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_to_layout_box(state, contents, box, natl_fat_id.get_name());
+								text::add_line_break_to_layout_box(state, contents, box);
 							}
 						}
 					}
@@ -578,7 +578,7 @@ class topbar_nation_militancy_text : public nation_militancy_text {
 			text::add_to_substitution_map(sub, text::variable_type::val,
 					text::fp_four_places{mil_change}); // TODO - This needs to display the estimated militancy change -breizh
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 
@@ -615,7 +615,7 @@ class topbar_nation_consciousness_text : public nation_consciousness_text {
 			text::add_to_substitution_map(sub, text::variable_type::val,
 					text::fp_four_places{con_change}); // TODO - This needs to display the estimated consciousness change -breizh
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 
@@ -654,7 +654,7 @@ class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_tex
 			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_gain"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_basegain"));
 			text::close_layout_box(contents, box);
 
@@ -702,12 +702,12 @@ class topbar_nation_navy_allocation_text : public nation_navy_allocation_text {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr, military::naval_supply_points_used(state, nation_id));
 			text::localised_format_box(state, contents, box, std::string_view("topbar_ship_tooltip"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_to_substitution_map(sub, text::variable_type::tot, text::pretty_integer{military::naval_supply_points(state, nation_id)});
 			text::add_to_substitution_map(sub, text::variable_type::req, text::pretty_integer{military::naval_supply_points_used(state, nation_id)});
 			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_basic"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_detailed_list"), sub);
 			text::close_layout_box(contents, box);
 		}
@@ -751,9 +751,9 @@ class topbar_nation_mobilization_size_text : public nation_mobilization_size_tex
 
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_mobilize_tooltip"), text::variable_type::curr,
 					possible_sum);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc"), sub2);
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc2"), sub2);
 
 			text::close_layout_box(contents, box);
@@ -1052,10 +1052,10 @@ class topbar_building_factories_icon : public standard_nation_icon {
 					auto stateName = building_fat_id.get_state().get_definition().get_name();
 					auto factoryType = building_fat_id.get_type().get_name();
 
-					text::add_line_break_to_layout_box(contents, state, box);
-					text::add_to_layout_box(contents, state, box, stateName);
-					text::add_space_to_layout_box(contents, state, box);
-					text::add_to_layout_box(contents, state, box, factoryType);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, stateName);
+					text::add_space_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, factoryType);
 				});
 			}
 			text::close_layout_box(contents, box);
@@ -1084,7 +1084,7 @@ class topbar_closed_factories_icon : public standard_nation_icon {
 				text::localised_format_box(state, contents, box, "remove_countryalert_no_hasclosedfactories", text::substitution_map{});
 			} else if(economy::nation_has_closed_factories(state, nation_id)) {
 				text::localised_format_box(state, contents, box, "remove_countryalert_hasclosedfactories", text::substitution_map{});
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 				auto nation_fat = dcon::fatten(state.world, nation_id);
 				for(auto staat_owner : nation_fat.get_state_ownership()) {
 					auto staat = staat_owner.get_state().get_definition();
@@ -1095,15 +1095,15 @@ class topbar_closed_factories_icon : public standard_nation_icon {
 							auto scale = factloc.get_factory().get_production_scale();
 							if(scale < 0.05) {
 								if(new_staat) {
-									text::add_to_layout_box(contents, state, box, staat.get_name(), text::text_color::yellow);
+									text::add_to_layout_box(state, contents, box, staat.get_name(), text::text_color::yellow);
 									// text::add_divider_to_layout_box(state, contents, box);		// TODO - Parity needed!
-									text::add_line_break_to_layout_box(contents, state, box);
+									text::add_line_break_to_layout_box(state, contents, box);
 									new_staat = false;
 								}
-								text::add_to_layout_box(contents, state, box, std::string_view(" - "));
-								text::add_to_layout_box(contents, state, box, factloc.get_factory().get_building_type().get_name(),
+								text::add_to_layout_box(state, contents, box, std::string_view(" - "));
+								text::add_to_layout_box(state, contents, box, factloc.get_factory().get_building_type().get_name(),
 										text::text_color::yellow);
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_line_break_to_layout_box(state, contents, box);
 							}
 						}
 					}
@@ -1156,7 +1156,7 @@ class topbar_unemployment_icon : public standard_nation_icon {
 						if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id) >= 10.0f &&
 								state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) >
 										10.0f) {
-							text::add_line_break_to_layout_box(contents, state, box);
+							text::add_line_break_to_layout_box(state, contents, box);
 							text::substitution_map sub;
 
 							auto popFat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
@@ -1187,7 +1187,7 @@ class topbar_unemployment_icon : public standard_nation_icon {
 					}
 				});
 			} else {
-				text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+				text::add_to_layout_box(state, contents, box, std::string_view("Error!"));
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -1231,8 +1231,8 @@ class topbar_available_reforms_icon : public standard_nation_button {
 							if(o && politics::can_enact_political_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(contents, state, box, name);
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_to_layout_box(state, contents, box, name);
+								text::add_line_break_to_layout_box(state, contents, box);
 							}
 						}
 					}
@@ -1243,8 +1243,8 @@ class topbar_available_reforms_icon : public standard_nation_button {
 							if(o && politics::can_enact_social_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(contents, state, box, name);
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_to_layout_box(state, contents, box, name);
+								text::add_line_break_to_layout_box(state, contents, box);
 							}
 						}
 					}
@@ -1259,8 +1259,8 @@ class topbar_available_reforms_icon : public standard_nation_button {
 							if(o && politics::can_enact_military_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(contents, state, box, name);
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_to_layout_box(state, contents, box, name);
+								text::add_line_break_to_layout_box(state, contents, box);
 							}
 						}
 					}
@@ -1271,8 +1271,8 @@ class topbar_available_reforms_icon : public standard_nation_button {
 							if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(contents, state, box, name);
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_to_layout_box(state, contents, box, name);
+								text::add_line_break_to_layout_box(state, contents, box);
 							}
 						}
 					}
@@ -1313,9 +1313,9 @@ class topbar_available_decisions_icon : public standard_nation_button {
 						if(!lim || trigger::evaluate(state, lim, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
 							auto allow = state.world.decision_get_allow(di);
 							if(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
-								text::add_line_break_to_layout_box(contents, state, box);
+								text::add_line_break_to_layout_box(state, contents, box);
 								auto fat_id = dcon::fatten(state.world, di);
-								text::add_to_layout_box(contents, state, box, fat_id.get_name(), text::text_color::yellow);
+								text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
 							}
 						}
 					}
@@ -1390,7 +1390,7 @@ class topbar_rebels_icon : public standard_nation_button {
 					auto rbl_fact_fat_id = fat_id.get_rebels();
 					auto rbl_type_fat_id = rbl_fact_fat_id.get_type();
 					auto rbl_fact_slim_id = rbl_fact_fat_id.id;
-					text::add_line_break_to_layout_box(contents, state, box);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::substitution_map sub;
 					auto rebelname = text::produce_simple_string(state, rbl_type_fat_id.get_name());
 					auto rebelsize = text::prettify(rebel::get_faction_brigades_active(state, rbl_fact_slim_id));
@@ -1400,7 +1400,7 @@ class topbar_rebels_icon : public standard_nation_button {
 					text::add_to_substitution_map(sub, text::variable_type::org, std::string_view(rebelOrg));
 					text::localised_format_box(state, contents, box, std::string_view("topbar_faction"), sub);
 				});
-				// text::add_line_break_to_layout_box(contents, state, box);
+				// text::add_line_break_to_layout_box(state, contents, box);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -1490,7 +1490,7 @@ class topbar_crisis_icon : public standard_nation_icon {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
 			} else {
 #define STRINGIFY(x) #x
-				text::add_to_layout_box(contents, state, box, std::string_view(__FILE__ ":" STRINGIFY(__LINE__)));
+				text::add_to_layout_box(state, contents, box, std::string_view(__FILE__ ":" STRINGIFY(__LINE__)));
 #undef STRINGIFY
 			}
 			text::close_layout_box(contents, box);
@@ -1528,7 +1528,7 @@ class topbar_sphere_icon : public standard_nation_icon {
 					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"),
 							text::substitution_map{});
 				} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-					text::add_to_layout_box(contents, state, box,
+					text::add_to_layout_box(state, contents, box,
 							std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then
 																																	// we might have to display text -breizh
 				} else {
@@ -1580,7 +1580,7 @@ class topbar_nation_daily_research_points_text : public nation_daily_research_po
 						 demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
 				text::substitution_map sub2;
 				if(clergy_passed) {
-					text::add_line_break_to_layout_box(contents, state, box);
+					text::add_line_break_to_layout_box(state, contents, box);
 				}
 				text::add_to_substitution_map(sub2, text::variable_type::poptype,
 						state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
@@ -1627,11 +1627,11 @@ class topbar_commodity_xport_icon : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box,
+			text::add_to_layout_box(state, contents, box,
 					text::produce_simple_string(state, state.world.commodity_get_name(commodity_id)), text::text_color::white);
-			text::add_to_layout_box(contents, state, box, std::string_view(":"), text::text_color::white);
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::format_float(amount, 2), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::format_float(amount, 2), text::text_color::white);
 			text::close_layout_box(contents, box);
 		}
 	}

@@ -67,7 +67,7 @@ class unciv_reforms_reform_button : public button_element_base {
 			auto name = fat_id.get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 			auto mod_id = fat_id.get_modifier().id;

@@ -148,7 +148,7 @@ void event_option_button::on_update(sys::state& state) noexcept {
 			opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
 			populate_event_submap(state, sub, phe);
 		}
-		text::add_to_layout_box(contents, state, box, opt.name, sub);
+		text::add_to_layout_box(state, contents, box, opt.name, sub);
 		text::close_layout_box(contents, box);
 
 		if(!bool(opt.name) && !bool(opt.effect))
@@ -253,7 +253,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 			description = state.world.free_provincial_event_get_description(phe.e);
 			populate_event_submap(state, sub, phe);
 		}
-		text::add_to_layout_box(contents, state, box, description, sub);
+		text::add_to_layout_box(state, contents, box, description, sub);
 		text::close_layout_box(contents, box);
 	}
 }
@@ -288,7 +288,7 @@ void event_name_text::on_update(sys::state& state) noexcept {
 			name = state.world.free_provincial_event_get_name(phe.e);
 			populate_event_submap(state, sub, phe);
 		}
-		text::add_to_layout_box(contents, state, box, name, sub);
+		text::add_to_layout_box(state, contents, box, name, sub);
 		text::close_layout_box(contents, box);
 	}
 }
@@ -455,7 +455,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 }
 
 template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
-	if(state.user_settings.guimode) {
+	if(state.user_settings.use_new_ui) {
 		odds_icon->set_visible(state, true);
 		req_icon->set_visible(state, true);
 	} else {
@@ -606,7 +606,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 	}
 }
 void provincial_event_window::on_update(sys::state& state) noexcept {
-	if(state.user_settings.guimode) {
+	if(state.user_settings.use_new_ui) {
 		odds_icon->set_visible(state, true);
 		req_icon->set_visible(state, true);
 	} else {

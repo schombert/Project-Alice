@@ -145,7 +145,7 @@ template<class T> class unit_selection_str_bar : public vertical_progress_bar {
 
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
-			text::add_to_layout_box(contents, state, box, text::fp_percentage{total_strenght}, text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{total_strenght}, text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
 	}

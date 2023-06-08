@@ -44,14 +44,14 @@ class factory_employment_image : public image_element_base {
 
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("production_factory_employeecount_tooltip"));
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view(" -"));
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, std::string_view(" -"));
 		text::localised_format_box(state, contents, box, std::string_view("craftsmen"));
-		text::add_to_layout_box(contents, state, box, int64_t(fat.get_primary_employment()));
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view(" -"));
+		text::add_to_layout_box(state, contents, box, int64_t(fat.get_primary_employment()));
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, std::string_view(" -"));
 		text::localised_format_box(state, contents, box, std::string_view("clerks"));
-		text::add_to_layout_box(contents, state, box, int64_t(fat.get_secondary_employment()));
+		text::add_to_layout_box(state, contents, box, int64_t(fat.get_secondary_employment()));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -666,7 +666,7 @@ class production_build_new_factory : public button_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, std::string_view("OwO *notices you building new factory*"));
+		text::add_to_layout_box(state, contents, box, std::string_view("OwO *notices you building new factory*"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -725,7 +725,7 @@ class production_national_focus_button : public button_element_base {
 
 			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::add_to_layout_box(state, contents, box, focus.get_name());
 			text::close_layout_box(contents, box);
 		}
 	}

@@ -136,7 +136,7 @@ template<culture::pop_strata Strata> class pop_satisfaction_piechart : public pi
 		auto needs_type = text::produce_simple_string(state, needs_types[psw.value]);
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{percentage * 100.f});
 		text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-		text::add_to_layout_box(contents, state, box, fat_psw.get_name(), sub);
+		text::add_to_layout_box(state, contents, box, fat_psw.get_name(), sub);
 		text::close_layout_box(contents, box);
 	}
 };

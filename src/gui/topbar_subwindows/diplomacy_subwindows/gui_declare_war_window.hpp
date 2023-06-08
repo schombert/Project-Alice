@@ -498,7 +498,7 @@ class diplomacy_declare_war_description2 : public generic_multiline_text<dcon::c
 			text::add_to_substitution_map(sub, text::variable_type::state, dcon::fatten(state.world, staat).get_name());
 			text::add_to_substitution_map(sub, text::variable_type::region, dcon::fatten(state.world, staat).get_name());
 
-			text::add_to_layout_box(contents, state, box, fat_cb.get_long_desc(), sub);
+			text::add_to_layout_box(state, contents, box, fat_cb.get_long_desc(), sub);
 		}
 
 		text::close_layout_box(contents, box);
@@ -648,8 +648,8 @@ class diplomacy_peace_pick_side_description : public generic_multiline_text<bool
 	void populate_layout(sys::state& state, text::endless_layout& contents, bool id) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("po_pd_neg_5"));
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("po_welead"));
 		text::close_layout_box(contents, box);
 	}

@@ -23,7 +23,7 @@ class decision_requirements : public button_element_base {
 			auto name = fat_id.get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 
@@ -124,7 +124,7 @@ class decision_desc : public scrollable_text {
 	dcon::text_sequence_id description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(contents, state, box, description, text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, description, text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 

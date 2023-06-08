@@ -56,7 +56,7 @@ class diplomacy_nation_brigades_text : public nation_brigades_text {
 					num);
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
 			text::close_layout_box(contents, box);
 		}
@@ -192,7 +192,7 @@ class diplomacy_priority_button : public button_element_base {
 					text::add_to_substitution_map(sub, text::variable_type::value, k->second);
 				}
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio"), sub);
-				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_line_break_to_layout_box(state, contents, box);
 				text::add_to_substitution_map(sub, text::variable_type::country, nation_id);
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_dailyinflulence_gain"));
 			}
@@ -552,11 +552,11 @@ template<bool IsAttacker> class war_side_strength_text : public button_element_b
 				if(o.get_is_attacker() == IsAttacker) {
 					auto name = o.get_nation().get_name();
 					auto box = text::open_layout_box(contents, 0);
-					text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-					text::add_to_layout_box(contents, state, box, std::string{":"}, text::text_color::yellow);
-					text::add_space_to_layout_box(contents, state, box);
+					text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+					text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::yellow);
+					text::add_space_to_layout_box(state, contents, box);
 					auto strength = int32_t(o.get_nation().get_military_score());
-					text::add_to_layout_box(contents, state, box, std::to_string(strength), text::text_color::white);
+					text::add_to_layout_box(state, contents, box, std::to_string(strength), text::text_color::white);
 					text::close_layout_box(contents, box);
 				}
 		}

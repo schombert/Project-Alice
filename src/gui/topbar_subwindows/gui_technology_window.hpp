@@ -15,36 +15,36 @@ static void technology_description(element_base& element, sys::state& state, tex
 	auto increase_naval_base = tech_fat_id.get_increase_naval_base();
 	if(increase_naval_base) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "naval_base"), text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "+1"), text::text_color::green);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "naval_base"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
 		text::close_layout_box(contents, box);
 	}
 
 	auto increase_railroad = tech_fat_id.get_increase_railroad();
 	if(increase_railroad) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "railroad"), text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "+1"), text::text_color::green);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "railroad"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
 		text::close_layout_box(contents, box);
 	}
 
 	auto increase_fort = tech_fat_id.get_increase_fort();
 	if(increase_fort) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "fort"), text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "+1"), text::text_color::green);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "fort"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
 		text::close_layout_box(contents, box);
 	}
 
@@ -53,10 +53,10 @@ static void technology_description(element_base& element, sys::state& state, tex
 			auto unit_type_name = state.military_definitions.unit_base_definitions[id].name;
 
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "enable_unit_tech"),
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "enable_unit_tech"),
 					text::text_color::white);
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, unit_type_name), text::text_color::yellow);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, unit_type_name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
 	};
@@ -70,18 +70,18 @@ static void technology_description(element_base& element, sys::state& state, tex
 			auto factory_type_fat_id = dcon::fatten(state.world, id);
 
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "enable_building_tech"),
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "enable_building_tech"),
 					text::text_color::white);
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, factory_type_fat_id.get_name()),
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, factory_type_fat_id.get_name()),
 					text::text_color::yellow);
 			text::close_layout_box(contents, box);
 
 			box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "activate_goods"),
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "activate_goods"),
 					text::text_color::white);
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box,
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box,
 					text::produce_simple_string(state, factory_type_fat_id.get_output().get_name()), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
@@ -97,17 +97,17 @@ static void technology_description(element_base& element, sys::state& state, tex
 			auto box = text::open_layout_box(contents, 0);
 			auto name = state.world.commodity_get_name(mod.type);
 			if(bool(name)) {
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::white);
-				text::add_space_to_layout_box(contents, state, box);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::white);
+				text::add_space_to_layout_box(state, contents, box);
 			}
-			text::add_to_layout_box(contents, state, box,
+			text::add_to_layout_box(state, contents, box,
 					text::produce_simple_string(state,
 							state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name),
 					text::text_color::white);
-			text::add_to_layout_box(contents, state, box, std::string{":"}, text::text_color::white);
-			text::add_space_to_layout_box(contents, state, box);
+			text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
 			auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red;
-			text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1),
+			text::add_to_layout_box(state, contents, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1),
 					color);
 			text::close_layout_box(contents, box);
 		}
@@ -119,12 +119,12 @@ static void technology_description(element_base& element, sys::state& state, tex
 	auto colonial_points = tech_fat_id.get_colonial_points();
 	if(colonial_points != 0) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "colonial_points_tech"),
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "colonial_points_tech"),
 				text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
 		auto color = colonial_points > 0.f ? text::text_color::green : text::text_color::red;
-		text::add_to_layout_box(contents, state, box, (colonial_points > 0.f ? "+" : "") + text::prettify(int64_t(colonial_points)),
+		text::add_to_layout_box(state, contents, box, (colonial_points > 0.f ? "+" : "") + text::prettify(int64_t(colonial_points)),
 				color);
 		text::close_layout_box(contents, box);
 	}
@@ -149,7 +149,7 @@ class technology_folder_tab_sub_button : public checkbox_button {
 			auto color = discovered ? text::text_color::green : text::text_color::red;
 			auto name = fat_id.get_name();
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), color);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), color);
 			text::close_layout_box(contents, box);
 		});
 	}
@@ -333,7 +333,7 @@ class technology_item_button : public button_element_base {
 			auto name = fat_id.get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 			technology_description(*this, state, contents, content);
@@ -430,7 +430,7 @@ class invention_image : public opaque_element_base {
 				break;
 			}
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, category_name), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, category_name), text::text_color::white);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -458,7 +458,7 @@ class invention_name_text : public simple_text_element_base {
 			auto content = any_cast<dcon::invention_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 
 			auto invention_fat_id = dcon::fatten(state.world, content);
@@ -763,7 +763,7 @@ class technology_sort_by_type_button : public button_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_type_tooltip"),
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "technologyview_sort_by_type_tooltip"),
 				text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
@@ -777,7 +777,7 @@ class technology_sort_by_name_button : public button_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_name_tooltip"),
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "technologyview_sort_by_name_tooltip"),
 				text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
@@ -791,7 +791,7 @@ class technology_sort_by_percent_button : public button_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_percent_tooltip"),
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "technologyview_sort_by_percent_tooltip"),
 				text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
