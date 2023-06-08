@@ -67,6 +67,8 @@ enum class command_type : uint8_t {
 	start_peace_offer = 58,
 	add_peace_offer_term = 59,
 	send_peace_offer = 60,
+	move_army = 61,
+	move_navy = 62,
 
 	// console cheats
 	switch_nation = 128,
@@ -272,6 +274,16 @@ struct offer_wargoal_data {
 	dcon::wargoal_id wg;
 };
 
+struct army_movement_data {
+	dcon::army_id a;
+	dcon::province_id dest;
+};
+
+struct navy_movement_data {
+	dcon::navy_id n;
+	dcon::province_id dest;
+};
+
 struct cheat_data {
 	float value;
 };
@@ -312,6 +324,8 @@ struct payload {
 		new_offer_data new_offer;
 		offer_wargoal_data offer_wargoal;
 		cheat_data cheat;
+		army_movement_data army_movement;
+		navy_movement_data navy_movement;
 
 		dtype() { }
 	} data;
@@ -523,9 +537,16 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation);
 
-void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+// NOTE: sending an invalid province id will stop movement of an army or navy;
+//     otherwise path will be appended to its current destination if any
+// Thus, if you want to move the unit to a new location from its current location,
+//     first stop its current movement and then send the new destination as a second command
+// ALSO: can returns an empty vector if no path could be made
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+
+void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
 
 /*
 PEACE OFFER COMMANDS:
@@ -546,6 +567,12 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 void send_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
 
+
+
+
+void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
 void c_change_money(sys::state& state, dcon::nation_id source, float value);
 void c_westernize(sys::state& state, dcon::nation_id source);

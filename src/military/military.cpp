@@ -279,6 +279,16 @@ bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 	return false;
 }
 
+bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b)
+				return true;
+		}
+	}
+	return false;
+}
+
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
@@ -2834,6 +2844,134 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 	}
 
 	return std::clamp(total, 0.0f, 100.0f);
+}
+
+bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a) {
+	// TODO
+	return false;
+}
+
+float effective_army_speed(sys::state& state, dcon::army_id a) {
+	auto owner = state.world.army_get_controller_from_army_control(a);
+	if(!owner)
+		owner = state.world.rebel_faction_get_ruler_from_rebellion_within(state.world.army_get_controller_from_army_rebel_control(a));
+
+	float min_speed = 10000.0f;
+	for(auto reg : state.world.army_get_army_membership(a)) {
+		auto reg_speed = state.world.nation_get_unit_stats(owner, reg.get_regiment().get_type()).maximum_speed;
+		min_speed = std::min(min_speed, reg_speed);
+	}
+
+	/*
+	 slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+	*/
+	auto leader = state.world.army_get_general_from_army_leadership(a);
+	auto bg = state.world.leader_get_background(leader);
+	auto per = state.world.leader_get_personality(leader);
+	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
+	return
+		min_speed
+		* (1.0f + state.world.province_get_railroad_level(state.world.army_get_location_from_army_location(a)) *
+										 state.economy_definitions.railroad_definition.infrastructure)
+		* (leader_move + 1.0f);
+}
+float effective_navy_speed(sys::state& state, dcon::navy_id n) {
+	auto owner = state.world.navy_get_controller_from_navy_control(n);
+
+	float min_speed = 10000.0f;
+	for(auto reg : state.world.navy_get_navy_membership(n)) {
+		auto reg_speed = state.world.nation_get_unit_stats(owner, reg.get_ship().get_type()).maximum_speed;
+		min_speed = std::min(min_speed, reg_speed);
+	}
+
+	auto leader = state.world.navy_get_admiral_from_navy_leadership(n);
+	auto bg = state.world.leader_get_background(leader);
+	auto per = state.world.leader_get_personality(leader);
+	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
+	return min_speed *  (leader_move + 1.0f);
+}
+
+sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
+	auto current_location = state.world.army_get_location_from_army_location(a);
+	auto adj = state.world.get_province_adjacency_by_province_pair(current_location, p);
+	float distance = province::distance(state, adj);
+	float sum_mods = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::movement_cost) +
+									 state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::movement_cost);
+	float effective_distance = distance * (sum_mods + 1.0f);
+
+	float effective_speed = effective_army_speed(state, a);
+
+	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	return state.current_date + days;
+}
+sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p) {
+	auto current_location = state.world.navy_get_location_from_navy_location(n);
+	auto adj = state.world.get_province_adjacency_by_province_pair(current_location, p);
+	float distance = province::distance(state, adj);
+	float sum_mods = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::movement_cost) +
+									 state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::movement_cost);
+	float effective_distance = distance * (sum_mods + 1.0f);
+
+	float effective_speed = effective_navy_speed(state, n);
+
+	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	return state.current_date + days;
+}
+
+void update_movement(sys::state& state) {
+	for(auto a : state.world.in_army) {
+		if(auto path = a.get_path(); a.get_arrival_time() == state.current_date && path.size() > 0) {
+			auto dest = path.at(path.size() - 1);
+			path.pop_back();
+
+			if(dest.index() < state.province_definitions.first_sea_province.index()) { // sea province
+				// TODO: check for embarkation possibility, then embark
+			} else { // land province
+				if(a.get_black_flag() || province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
+					// TODO if not blackflagged: check for battle, start siege if final destination
+					a.set_location_from_army_location(dest);
+				} else {
+					path.clear();
+				}
+			}
+			
+
+			if(path.size() > 0) {
+				auto next_dest = path.at(path.size() - 1);
+				a.set_arrival_time(arrival_time_to(state, a, next_dest));
+			} else {
+				a.set_arrival_time(sys::date{});
+			}
+		}
+	}
+
+	for(auto n : state.world.in_navy) {
+		if(auto path = n.get_path(); n.get_arrival_time() == state.current_date && path.size() > 0) {
+			auto dest = path.at(path.size() - 1);
+			path.pop_back();
+
+			if(dest.index() < state.province_definitions.first_sea_province.index()) { // land province
+				if(province::has_access_to_province(state, n.get_controller_from_navy_control(), dest)) {
+					// TODO check for battle
+					n.set_location_from_navy_location(dest);
+					// TODO: check for whether there are troops to disembark
+				} else {
+					path.clear();
+				}
+			} else { // sea province
+				// TODO check for battle
+				n.set_location_from_navy_location(dest);
+				// TODO, take embarked units along with
+			}
+
+			if(path.size() > 0) {
+				auto next_dest = path.at(path.size() - 1);
+				n.set_arrival_time(arrival_time_to(state, n, next_dest));
+			} else {
+				n.set_arrival_time(sys::date{});
+			}
+		}
+	}
 }
 
 } // namespace military

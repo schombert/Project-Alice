@@ -2949,6 +2949,155 @@ void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float va
 	state.world.nation_get_infamy(source) += value;
 }
 
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::move_army;
+	p.source = source;
+	p.data.army_movement.a = a;
+	p.data.army_movement.dest = dest;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+	if(source != state.world.army_get_controller_from_army_control(a))
+		return std::vector<dcon::province_id>{};
+	if(!dest)
+		return std::vector<dcon::province_id>{}; // stop movement
+
+	auto last_province = state.world.army_get_location_from_army_location(a);
+	auto movement = state.world.army_get_path(a);
+	if(movement.size() > 0) {
+		last_province = movement.at(movement.size() - 1);
+	}
+
+	if(last_province == dest)
+		return std::vector<dcon::province_id>{};
+
+	// TODO: check if in battle
+
+	if(dest.index() < state.province_definitions.first_sea_province.index()) {
+		if(state.world.army_get_black_flag(a)) {
+			return province::make_unowned_land_path(state, last_province, dest);
+		} else if(province::has_access_to_province(state, source, dest)) {
+			return province::make_land_path(state, last_province, dest, source, a);
+		} else {
+			return std::vector<dcon::province_id>{};
+		}
+	} else {
+		if(!military::can_embark_onto_sea_tile(state, source, dest, a))
+			return std::vector<dcon::province_id>{};
+
+		if(state.world.army_get_black_flag(a)) {
+			return province::make_unowned_land_path(state, last_province, dest);
+		} else {
+			return province::make_land_path(state, last_province, dest, source, a);
+		}
+	}
+}
+
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+	if(source != state.world.army_get_controller_from_army_control(a))
+		return;
+
+	if(!dest) {
+		state.world.army_get_path(a).clear();
+		state.world.army_set_arrival_time(a, sys::date{});
+		return;
+	}
+
+	auto path = can_move_army(state, source, a, dest);
+	if(path.size() > 0) {
+		auto existing_path = state.world.army_get_path(a);
+		auto append_size = uint32_t(path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = 0; i < old_size; ++i) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = path[i];
+		}
+
+		if(old_size == 0) {
+			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		}
+	}
+}
+
+void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::move_navy;
+	p.source = source;
+	p.data.navy_movement.n = n;
+	p.data.navy_movement.dest = dest;
+	auto b = state.incoming_commands.try_push(p);
+}
+std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+	if(source != state.world.navy_get_controller_from_navy_control(n))
+		return std::vector<dcon::province_id>{};
+	if(!dest)
+		return std::vector<dcon::province_id>{}; // stop movement
+
+	auto last_province = state.world.navy_get_location_from_navy_location(n);
+	auto movement = state.world.navy_get_path(n);
+	if(movement.size() > 0) {
+		last_province = movement.at(movement.size() - 1);
+	}
+
+	if(last_province == dest)
+		return std::vector<dcon::province_id>{};
+
+	// TODO: check if in battle
+
+	if(dest.index() < state.province_definitions.first_sea_province.index()) {
+		return province::make_naval_path(state, last_province, dest);
+	} else {
+		if(!state.world.province_get_is_coast(dest))
+			return std::vector<dcon::province_id>{};
+
+		if(!province::has_access_to_province(state, source, dest))
+			return std::vector<dcon::province_id>{};
+
+		return province::make_naval_path(state, last_province, dest);
+	}
+}
+void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+	if(source != state.world.navy_get_controller_from_navy_control(n))
+		return;
+
+	if(!dest) {
+		state.world.navy_get_path(n).clear();
+		state.world.navy_set_arrival_time(n, sys::date{});
+		return;
+	}
+
+	auto path = can_move_navy(state, source, n, dest);
+	if(path.size() > 0) {
+		auto existing_path = state.world.navy_get_path(n);
+		auto append_size = uint32_t(path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = 0; i < old_size; ++i) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = path[i];
+		}
+
+		if(old_size == 0) {
+			state.world.navy_set_arrival_time(n, military::arrival_time_to(state, n, path.back()));
+		}
+	}
+}
+
+
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -3147,6 +3296,12 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::send_peace_offer:
 			execute_send_peace_offer(state, c->source);
+			break;
+		case command_type::move_army:
+			execute_move_army(state, c->source, c->data.army_movement.a, c->data.army_movement.dest);
+			break;
+		case command_type::move_navy:
+			execute_move_navy(state, c->source, c->data.navy_movement.n, c->data.navy_movement.dest);
 			break;
 		// console commands
 		case command_type::switch_nation:

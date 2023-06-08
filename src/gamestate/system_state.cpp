@@ -412,7 +412,7 @@ void state::on_create() {
 			ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
-	// if(!user_settings.guimode) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these windows
+	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these windows
 	// are moveable
 	ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=
@@ -2046,7 +2046,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 13, [&](int32_t index) {
+				concurrency::parallel_for(0, 14, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2086,6 +2086,9 @@ void state::game_loop() {
 						break;
 					case 12:
 						military::update_ticking_war_score(*this);
+						break;
+					case 13:
+						military::update_movement(*this);
 						break;
 					}
 				});
