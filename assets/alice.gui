@@ -1,18 +1,18 @@
 guiTypes = {
 	windowType = {
 		name = "alice_main_menu"
-		position = { x= -176 y = -216 }	
+		position = { x= -176 y = -216 }
 		size = { x=352 y = 432 }
 		moveable = 1
 		Orientation = "CENTER"
-		
+
 		iconType = {
 			name = "background"
 			spriteType = "GFX_menu"
 			position = { x= 0 y = 0 }
 			Orientation = "UPPER_LEFT"
 		}
-			
+
 		guiButtonType = {
 			name = "close_button"
 			quadTextureSprite = "GFX_main_close_button"
@@ -20,11 +20,11 @@ guiTypes = {
 			Orientation = "UPPER_RIGHT"
 			shortcut = "ESCAPE"
 		}
-		
+
 		guiButtonType = {
 			name = "save_and_exit"
 			position = { x = 58 y = 104 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "alice_save_exit"
 			buttonFont = "vic_22_black"
 		}
@@ -32,39 +32,39 @@ guiTypes = {
 		guiButtonType = {
 			name = "save"
 			position = { x = 58 y = 142 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "alice_save"
 			buttonFont = "vic_22_black"
 		}
-		
+
 		guiButtonType = {
 			name = "exit"
 			position = { x = 58 y = 180 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "alice_exit"
 			buttonFont = "vic_22_black"
 		}
-		
+
 		guiButtonType = {
 			name = "graphics"
 			position = { x = 58 y = 218 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "graphics_options"
 			buttonFont = "vic_22_black"
 		}
-		
+
 		guiButtonType = {
 			name = "sound"
 			position = { x = 58 y = 256 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "sound_options"
 			buttonFont = "vic_22_black"
 		}
-		
+
 		guiButtonType = {
 			name = "controls"
 			position = { x = 58 y = 294 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "controls_options"
 			buttonFont = "vic_22_black"
 		}
@@ -72,25 +72,25 @@ guiTypes = {
 		guiButtonType = {
 			name = "message_settings"
 			position = { x = 58 y = 332 }
-			quadTextureSprite ="GFX_frontend_button_236"	
+			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "message_settings_options"
 			buttonFont = "vic_22_black"
 		}
-	
+
 		windowType = {
 			name = "alice_graphics_menu"
-			position = { x= 0 y = 0 }	
+			position = { x= 0 y = 0 }
 			size = { x=352 y = 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
-		
+
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
 				position = { x= 0 y = 0 }
 				Orientation = "UPPER_LEFT"
 			}
-			
+
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
@@ -98,24 +98,24 @@ guiTypes = {
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 104 }
 				name = "window_mode_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "window_mode"	
+				text = "window_mode"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 122 }
 				name = "window_mode_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -133,24 +133,24 @@ guiTypes = {
 				position = { x = 269 y = 115 }
 				quadTextureSprite = "option_next"
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 157 }
 				name = "projection_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "map_projection"	
+				text = "map_projection"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 175 }
 				name = "projection_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -168,24 +168,24 @@ guiTypes = {
 				position = { x = 269 y = 168 }
 				quadTextureSprite = "option_next"
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 210 }
 				name = "ui_scale_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "ui_scale"	
+				text = "ui_scale"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 228 }
 				name = "ui_scale_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -207,7 +207,7 @@ guiTypes = {
 				position = {x = 58 y = 270 }
 				name = "fonts_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -218,7 +218,7 @@ guiTypes = {
 				position = {x = 58 y = 288 }
 				name = "fonts_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -241,10 +241,10 @@ guiTypes = {
 				position = {x = 58 y = 330 }
 				name = "linegraph_mode_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "linegraph_mode"	
+				text = "linegraph_mode"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -252,7 +252,7 @@ guiTypes = {
 				position = {x = 58 y = 348 }
 				name = "linegraph_mode_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -268,22 +268,54 @@ guiTypes = {
 				position = { x = 269 y = 341 }
 				quadTextureSprite = "option_next"
 			}
+
+			instantTextBoxType={
+				position = {x = 58 y = 390 }
+				name = "gui_mode"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "gui_mode"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				position = {x = 58 y = 408 }
+				name = "guimode_value"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "guimode_left"
+				position = { x = 51 y = 401 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "guimode_right"
+				position = { x = 269 y = 401 }
+				quadTextureSprite = "option_next"
+			}
 		}
-	
+
 		windowType = {
 			name = "alice_controls_menu"
-			position = { x= 0 y = 0 }	
+			position = { x= 0 y = 0 }
 			size = { x=352 y = 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
-		
+
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
 				position = { x= 0 y = 0 }
 				Orientation = "UPPER_LEFT"
 			}
-			
+
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
@@ -291,24 +323,24 @@ guiTypes = {
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 104 }
 				name = "zoom_mode_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "zoom_mode_label"	
+				text = "zoom_mode_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 122 }
 				name = "zoom_mode_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -327,21 +359,21 @@ guiTypes = {
 				quadTextureSprite = "option_next"
 			}
 		}
-	
+
 		windowType = {
 			name = "alice_audio_menu"
-			position = { x= 0 y = 0 }	
+			position = { x= 0 y = 0 }
 			size = { x=352 y = 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
-		
+
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
 				position = { x= 0 y = 0 }
 				Orientation = "UPPER_LEFT"
 			}
-			
+
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
@@ -349,197 +381,197 @@ guiTypes = {
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 104 }
 				name = "master_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "master_volume_label"	
+				text = "master_volume_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			scrollbarType = {
-				name = "master_volume_scroll_bar"	
+				name = "master_volume_scroll_bar"
 				slider = "slider"
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
 				size = {x = 236 y = 16 }
-				position = {x= 58 y = 123 }	
+				position = {x= 58 y = 123 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-			
+
 				guiButtonType = {
-					name = "slider"	
+					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
 					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}	
-				}	
+					position = { x=0 y =0}
+				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}	
+					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}	
-				}		
+					position = { x=0 y =236}
+				}
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 157 }
 				name = "music_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "music_volume_label"	
+				text = "music_volume_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			scrollbarType = {
-				name = "music_volume_scroll_bar"	
+				name = "music_volume_scroll_bar"
 				slider = "slider"
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
 				size = {x = 236 y = 16 }
-				position = {x= 58 y = 176 }	
+				position = {x= 58 y = 176 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-			
+
 				guiButtonType = {
-					name = "slider"	
+					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
 					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}	
-				}	
+					position = { x=0 y =0}
+				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}	
+					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}	
-				}		
+					position = { x=0 y =236}
+				}
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 210 }
 				name = "interface_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "interface_volume_label"	
+				text = "interface_volume_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			scrollbarType = {
-				name = "interface_volume_scroll_bar"	
+				name = "interface_volume_scroll_bar"
 				slider = "slider"
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
 				size = {x = 236 y = 16 }
-				position = {x= 58 y = 229 }	
+				position = {x= 58 y = 229 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-			
+
 				guiButtonType = {
-					name = "slider"	
+					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
 					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}	
-				}	
+					position = { x=0 y =0}
+				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}	
+					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}	
-				}		
+					position = { x=0 y =236}
+				}
 			}
-		
+
 			instantTextBoxType={
 				position = {x = 58 y = 263 }
 				name = "effect_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}	
+				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "effect_volume_label"	
+				text = "effect_volume_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-		
+
 			scrollbarType = {
-				name = "effect_volume_scroll_bar"	
+				name = "effect_volume_scroll_bar"
 				slider = "slider"
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
 				size = {x = 236 y = 16 }
-				position = {x= 58 y = 282 }	
+				position = {x= 58 y = 282 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-			
+
 				guiButtonType = {
-					name = "slider"	
+					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
 					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}	
-				}	
+					position = { x=0 y =0}
+				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}	
+					position = { x=0 y =0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}	
-				}		
+					position = { x=0 y =236}
+				}
 			}
 		}
 	}
@@ -553,7 +585,7 @@ guiTypes = {
 	instantTextBoxType = {
 		name = "alice_page_count"
 		font = "vic_18_black"
-		borderSize = {x = 0 y = 0}	
+		borderSize = {x = 0 y = 0}
 		maxWidth = 32
 		maxHeight = 18
 		orientation = "UPPER_LEFT"
@@ -590,7 +622,7 @@ guiTypes = {
 		position = { x=0 y=6 }
 		Orientation = "UPPER_LEFT"
 	}
-	
+
 	iconType = {
 		name = "alice_rgo_mapicon"
 		spriteType = "GFX_resources_big"

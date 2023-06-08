@@ -14,7 +14,7 @@ void remove_pop_from_movement(sys::state& state, dcon::pop_id p);
 void suppress_movement(sys::state& state, dcon::nation_id n, dcon::movement_id m);
 
 void daily_update_rebel_organization(sys::state& state); // increases org based on pop income and militancy
-void update_factions(sys::state& state);                 // adds pops to factions, deletes invalid factions
+void update_factions(sys::state& state);								 // adds pops to factions, deletes invalid factions
 dcon::rebel_faction_id get_faction_by_type(sys::state& state, dcon::nation_id n, dcon::rebel_type_id r);
 void remove_pop_from_rebel_faction(sys::state& state, dcon::pop_id p);
 
@@ -28,6 +28,7 @@ float get_suppression_point_cost(sys::state& state, dcon::movement_id m);
 void execute_rebel_victories(sys::state& state);
 void execute_province_defections(sys::state& state);
 
-void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t, dcon::ideology_id i, dcon::culture_id c, dcon::religion_id r);
+void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t, dcon::ideology_id i, dcon::culture_id c,
+		dcon::religion_id r);
 
 } // namespace rebel

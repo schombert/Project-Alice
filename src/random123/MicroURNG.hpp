@@ -7,15 +7,15 @@ modification, are permitted provided that the following conditions are
 met:
 
 * Redistributions of source code must retain the above copyright
-  notice, this list of conditions, and the following disclaimer.
+	notice, this list of conditions, and the following disclaimer.
 
 * Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions, and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
+	notice, this list of conditions, and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
 
 * Neither the name of D. E. Shaw Research nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
+	contributors may be used to endorse or promote products derived from
+	this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -47,7 +47,7 @@ namespace r123 {
 
 	The MicroURNG functor has a period of "only"
 
-	   ctr_type.size()*2^32,
+		 ctr_type.size()*2^32,
 
 	after which it will silently repeat.
 
@@ -62,16 +62,16 @@ namespace r123 {
 	numbers of counter bits could, conceivably "collide".
 
 \code
-	   typedef ?someCBRNG? RNG;
-	   RNG::ctr_type c = ...; // under application control
-	   RNG::key_type k = ...; //
-	   std::normal_distribution<float> nd;
-	   MicroURNG<RNG> urng(c, k);
-	   for(???){
+		 typedef ?someCBRNG? RNG;
+		 RNG::ctr_type c = ...; // under application control
+		 RNG::key_type k = ...; //
+		 std::normal_distribution<float> nd;
+		 MicroURNG<RNG> urng(c, k);
+		 for(???){
 		 ...
 		 nd(urng);  // may be called several hundred times with BITS=10
 		 ...
-	   }
+		 }
 \endcode
 */
 
@@ -81,7 +81,7 @@ template<typename CBRNG> class MicroURNG {
 	// (ctr_type, key_type, reset() method, etc.) is "value added"
 	// for the benefit of users that "know" that they're dealing with
 	// a MicroURNG.
-public:
+	public:
 	typedef CBRNG cbrng_type;
 	static int const BITS = 32;
 	typedef typename cbrng_type::ctr_type ctr_type;
@@ -103,18 +103,28 @@ public:
 		}
 		return rdata[--last_elem];
 	}
-	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) { chkhighbits(); }
-	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) { chkhighbits(); }
+	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) {
+		chkhighbits();
+	}
+	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) {
+		chkhighbits();
+	}
 
 	// _Min and _Max work around a bug in the library shipped with MacOS Xcode 4.5.2.
 	// See the commment in conventional/Engine.hpp.
 	const static result_type _Min = 0;
 	const static result_type _Max = ~((result_type)0);
 
-	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() { return _Min; }
-	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
+	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() {
+		return _Min;
+	}
+	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() {
+		return _Max;
+	}
 	// extra methods:
-	ctr_type const& counter() const { return c0; }
+	ctr_type const& counter() const {
+		return c0;
+	}
 	void reset(ctr_type _c0, ukey_type _uk) {
 		c0 = _c0;
 		chkhighbits();
@@ -123,7 +133,7 @@ public:
 		last_elem = 0;
 	}
 
-private:
+	private:
 	cbrng_type b;
 	ctr_type c0;
 	key_type k;

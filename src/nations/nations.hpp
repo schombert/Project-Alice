@@ -220,21 +220,14 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
 // returns whether a culture is on the accepted list OR is the primary culture
-template<typename T, typename U>
-auto nation_accepts_culture(sys::state const& state, T ids, U c);
+template<typename T, typename U> auto nation_accepts_culture(sys::state const& state, T ids, U c);
 
-template<typename T>
-auto primary_culture_group(sys::state const& state, T ids);
-template<typename T>
-auto owner_of_pop(sys::state const& state, T pop_ids);
-template<typename T>
-auto central_reb_controlled_fraction(sys::state const& state, T ids);
-template<typename T>
-auto central_blockaded_fraction(sys::state const& state, T ids);
-template<typename T>
-auto central_has_crime_fraction(sys::state const& state, T ids);
-template<typename T>
-auto occupied_provinces_fraction(sys::state const& state, T ids);
+template<typename T> auto primary_culture_group(sys::state const& state, T ids);
+template<typename T> auto owner_of_pop(sys::state const& state, T pop_ids);
+template<typename T> auto central_reb_controlled_fraction(sys::state const& state, T ids);
+template<typename T> auto central_blockaded_fraction(sys::state const& state, T ids);
+template<typename T> auto central_has_crime_fraction(sys::state const& state, T ids);
+template<typename T> auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
@@ -260,16 +253,10 @@ void update_ui_rankings(sys::state& state);
 bool is_great_power(sys::state const& state, dcon::nation_id n);
 float prestige_score(sys::state const& state, dcon::nation_id n);
 
-enum class status : uint8_t {
-	great_power,
-	secondary_power,
-	civilized,
-	westernizing,
-	uncivilized,
-	primitive
-};
+enum class status : uint8_t { great_power, secondary_power, civilized, westernizing, uncivilized, primitive };
 status get_status(sys::state& state, dcon::nation_id n);
 
+sys::date get_research_end_date(sys::state& state, dcon::technology_id, dcon::nation_id);
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n);
 float suppression_points(sys::state const& state, dcon::nation_id n);
 float diplomatic_points(sys::state const& state, dcon::nation_id n);
@@ -331,7 +318,8 @@ void update_crisis(sys::state& state);
 
 void update_pop_acceptance(sys::state& state, dcon::nation_id n);
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
-void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+void release_nation_from(sys::state& state, dcon::national_identity_id liberated,
+		dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
 void perform_nationalization(sys::state& state, dcon::nation_id n);
 

@@ -5,7 +5,7 @@
 namespace ui {
 
 class multiplayer_menu_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg_multiplayer_menu_02") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -37,7 +37,7 @@ public:
 };
 
 class multiplayer_connect_window : public window_element_base {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "frontend_connectlog_bg") {
 			return make_element_by_type<image_element_base>(state, id);

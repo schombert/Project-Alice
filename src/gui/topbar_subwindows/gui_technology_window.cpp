@@ -2,7 +2,9 @@
 
 namespace ui {
 
-bool technology_folder_tab_sub_button::is_active(sys::state& state) noexcept { return parent && parent->parent && static_cast<technology_window*>(parent->parent)->active_tab == category; }
+bool technology_folder_tab_sub_button::is_active(sys::state& state) noexcept {
+	return parent && parent->parent && static_cast<technology_window*>(parent->parent)->active_tab == category;
+}
 
 void technology_folder_tab_sub_button::button_action(sys::state& state) noexcept {
 	if(parent) {

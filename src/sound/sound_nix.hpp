@@ -7,7 +7,7 @@
 namespace sound {
 
 class audio_instance {
-public:
+	public:
 	native_string filename;
 
 	audio_instance() = default;
@@ -21,13 +21,11 @@ public:
 		filename = simple_fs::get_full_name(file);
 	}
 
-	~audio_instance() {
-
-	}
+	~audio_instance() { }
 };
 
 class sound_impl {
-public:
+	public:
 	std::optional<ma_sound> effect_sound;
 	std::optional<ma_sound> interface_sound;
 	std::optional<ma_sound> music;
@@ -54,5 +52,4 @@ public:
 	bool music_finished();
 };
 
-
-}
+} // namespace sound

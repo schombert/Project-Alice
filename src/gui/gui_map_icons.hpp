@@ -32,12 +32,14 @@ class unit_icon_color : public image_element_base {
 		return 2; // gray, i.e not involved or irrelevant for us
 	}
 
-public:
-	void on_update(sys::state& state) noexcept override { frame = get_frame(state); }
+	public:
+	void on_update(sys::state& state) noexcept override {
+		frame = get_frame(state);
+	}
 };
 
 class unit_strength_text : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = float{0.f};
@@ -49,7 +51,7 @@ public:
 };
 
 class unit_icon_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -79,7 +81,7 @@ class unit_icon_window : public window_element_base {
 	unit_strength_text* strength_text = nullptr;
 	image_element_base* attr_icon = nullptr;
 
-public:
+	public:
 	dcon::province_id content{};
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -118,7 +120,8 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size =
+				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;
@@ -167,12 +170,13 @@ public:
 };
 
 class rgo_icon : public image_element_base {
-public:
+	public:
 	dcon::province_id content{};
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size =
+				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;

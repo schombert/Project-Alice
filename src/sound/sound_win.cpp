@@ -43,8 +43,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 	if(!graph_interface) {
 		IGraphBuilder* pGraph = nullptr;
 
-		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, nullptr,
-		                              CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
+		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
 		if(FAILED(hr)) {
 			MessageBoxW(nullptr, L"failed to create graph builder", L"Audio error", MB_OK);
 			std::abort();
@@ -109,7 +108,8 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			}
 
 			LONGLONG new_position = 0;
-			hr = ((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
+			hr =
+					((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 			if(FAILED(hr)) {
 				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
@@ -181,18 +181,18 @@ void sound_impl::play_new_track(sys::state& ws) {
 }
 
 bool sound_impl::music_finished() const {
-	const auto lm = last_music;
+	auto const lm = last_music;
 	if(lm == -1)
 		return false;
 
 	long evCode;
 	LONG_PTR param1, param2;
-	const auto event_interface = music_list[lm].event_interface;
+	auto const event_interface = music_list[lm].event_interface;
 	if(event_interface) {
 		while(SUCCEEDED(event_interface->GetEvent(&evCode, &param1, &param2, 0))) {
 			event_interface->FreeEventParams(evCode, param1, param2);
 			switch(evCode) {
-			case EC_COMPLETE:  // Fall through.
+			case EC_COMPLETE:	 // Fall through.
 			case EC_USERABORT: // Fall through.
 				return true;
 			default:;
@@ -220,7 +220,7 @@ void sound_impl::play_interface_sound(audio_instance& s, float volume) {
 }
 
 void sound_impl::play_music(int32_t track, float volume) {
-	const auto lm = last_music;
+	auto const lm = last_music;
 	if(lm != -1)
 		music_list[lm].stop();
 	last_music = track;
@@ -239,7 +239,7 @@ void sound_impl::change_interface_volume(float v) const {
 }
 
 void sound_impl::change_music_volume(float v) const {
-	const auto lm = last_music;
+	auto const lm = last_music;
 	if(lm != -1) {
 		music_list[lm].change_volume(v);
 	}
@@ -249,18 +249,19 @@ void sound_impl::change_music_volume(float v) const {
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();
 	auto root_dir = get_root(state.common_fs);
-	const auto music_directory = open_directory(root_dir, NATIVE("music"));
+	auto const music_directory = open_directory(root_dir, NATIVE("music"));
 
 	state.sound_ptr->window_handle = state.win_ptr->hwnd;
 
-	for(const auto& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
+	for(auto const& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
 		auto file_name = get_full_name(mp3_file);
 		state.sound_ptr->music_list.emplace_back(file_name);
-		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(), NATIVE("thecoronation_titletheme.mp3")))
+		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
+					 NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
 	}
 
-	const auto sound_directory = open_directory(root_dir, NATIVE("\\sound"));
+	auto const sound_directory = open_directory(root_dir, NATIVE("\\sound"));
 	auto click_peek = peek_file(sound_directory, NATIVE("GI_ValidClick.wav"));
 
 	state.sound_ptr->click_sound.set_file(click_peek ? get_full_name(*click_peek) : std::wstring());

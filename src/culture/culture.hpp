@@ -101,25 +101,14 @@ struct crime_info {
 	bool available_by_default = false;
 };
 
-enum class tech_category : uint8_t {
-	army,
-	navy,
-	commerce,
-	culture,
-	industry,
-	count
-};
+enum class tech_category : uint8_t { army, navy, commerce, culture, industry, count };
 
 struct folder_info {
 	dcon::text_sequence_id name;
 	tech_category category = tech_category::army;
 };
 
-enum class pop_strata : uint8_t {
-	poor = 0,
-	middle = 1,
-	rich = 2
-};
+enum class pop_strata : uint8_t { poor = 0, middle = 1, rich = 2 };
 enum class income_type : uint8_t {
 	none = 0,
 	administration = 1,
@@ -127,13 +116,7 @@ enum class income_type : uint8_t {
 	education = 3,
 	reforms = 4,
 };
-enum class issue_type : uint8_t {
-	party = 0,
-	political = 1,
-	social = 2,
-	military = 3,
-	economic = 4
-};
+enum class issue_type : uint8_t { party = 0, political = 1, social = 2, military = 3, economic = 4 };
 struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
@@ -179,42 +162,11 @@ struct global_cultural_state {
 	dcon::value_modifier_key conversion_chance;
 };
 
-enum class issue_category : uint8_t {
-	party,
-	political,
-	social,
-	military,
-	economic
-};
+enum class issue_category : uint8_t { party, political, social, military, economic };
 
-enum class rebel_area : uint8_t {
-	none = 0,
-	nation,
-	culture,
-	nation_culture,
-	nation_religion,
-	religion,
-	culture_group,
-	all
-};
-enum class rebel_defection : uint8_t {
-	none = 0,
-	culture,
-	culture_group,
-	religion,
-	ideology,
-	any,
-	pan_nationalist
-};
-enum class rebel_independence : uint8_t {
-	none = 0,
-	culture,
-	culture_group,
-	religion,
-	colonial,
-	any,
-	pan_nationalist
-};
+enum class rebel_area : uint8_t { none = 0, nation, culture, nation_culture, nation_religion, religion, culture_group, all };
+enum class rebel_defection : uint8_t { none = 0, culture, culture_group, religion, ideology, any, pan_nationalist };
+enum class rebel_independence : uint8_t { none = 0, culture, culture_group, religion, colonial, any, pan_nationalist };
 
 // these functions are to be called only after loading a save
 void repopulate_technology_effects(sys::state& state);
@@ -227,7 +179,7 @@ uint32_t get_remapped_flag_type(sys::state const& state, flag_type type);
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);
 flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity);
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id); // note: does react to changes in slavery rule
-void update_all_nations_issue_rules(sys::state& state);                  // note: doesn't react to changes in slavery rule
+void update_all_nations_issue_rules(sys::state& state);									 // note: doesn't react to changes in slavery rule
 
 void create_initial_ideology_and_issues_distribution(sys::state& state);
 void set_default_issue_and_reform_options(sys::state& state);

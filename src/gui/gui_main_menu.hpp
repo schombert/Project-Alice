@@ -6,12 +6,12 @@
 namespace ui {
 
 class ui_scale_left : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class ui_scale_right : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
@@ -20,12 +20,12 @@ class ui_scale_display : public simple_text_element_base {
 };
 
 class window_mode_left : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class window_mode_right : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
@@ -34,12 +34,12 @@ class window_mode_display : public simple_text_element_base {
 };
 
 class projection_mode_left : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class projection_mode_right : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
@@ -48,12 +48,12 @@ class projection_mode_display : public simple_text_element_base {
 };
 
 class fonts_mode_left : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class fonts_mode_right : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
@@ -62,16 +62,30 @@ class fonts_mode_display : public simple_text_element_base {
 };
 
 class linegraph_mode_left : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class linegraph_mode_right : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class linegraph_mode_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
+class gui_mode_left : public button_element_base {
+	public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class gui_mode_right : public button_element_base {
+	public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class gui_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
@@ -120,43 +134,70 @@ class controls_menu_window : public window_element_base {
 class graphics_menu_window : public window_element_base {
 	bool setting_changed = false;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button")
+		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
-		else if(name == "background")
+
+		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
-		else if(name == "ui_scale_value")
+
+		} else if(name == "ui_scale_value") {
 			return make_element_by_type<ui_scale_display>(state, id);
-		else if(name == "ui_scale_left")
+
+		} else if(name == "ui_scale_left") {
 			return make_element_by_type<ui_scale_left>(state, id);
-		else if(name == "ui_scale_right")
+
+		} else if(name == "ui_scale_right") {
 			return make_element_by_type<ui_scale_right>(state, id);
-		else if(name == "window_mode_value")
+
+		} else if(name == "window_mode_value") {
 			return make_element_by_type<window_mode_display>(state, id);
-		else if(name == "window_mode_left")
+
+		} else if(name == "window_mode_left") {
 			return make_element_by_type<window_mode_left>(state, id);
-		else if(name == "window_mode_right")
+
+		} else if(name == "window_mode_right") {
 			return make_element_by_type<window_mode_right>(state, id);
-		else if(name == "projection_value")
+
+		} else if(name == "projection_value") {
 			return make_element_by_type<projection_mode_display>(state, id);
-		else if(name == "projection_left")
+
+		} else if(name == "projection_left") {
 			return make_element_by_type<projection_mode_left>(state, id);
-		else if(name == "projection_right")
+
+		} else if(name == "projection_right") {
 			return make_element_by_type<projection_mode_right>(state, id);
-		else if(name == "fonts_value")
+
+		} else if(name == "fonts_value") {
 			return make_element_by_type<fonts_mode_display>(state, id);
-		else if(name == "fonts_left")
+
+		} else if(name == "fonts_left") {
 			return make_element_by_type<fonts_mode_right>(state, id);
-		else if(name == "fonts_right")
+
+		} else if(name == "fonts_right") {
 			return make_element_by_type<fonts_mode_right>(state, id);
-		else if(name == "linegraph_mode_value")
+
+		} else if(name == "linegraph_mode_value") {
 			return make_element_by_type<linegraph_mode_display>(state, id);
-		else if(name == "linegraph_mode_left")
+
+		} else if(name == "linegraph_mode_left") {
 			return make_element_by_type<linegraph_mode_right>(state, id);
-		else if(name == "linegraph_mode_right")
+
+		} else if(name == "linegraph_mode_right") {
 			return make_element_by_type<linegraph_mode_right>(state, id);
-		// window_mode_left
-		else
+
+		} else if(name == "guimode_value") {
+			return make_element_by_type<gui_mode_display>(state, id);
+
+		} else if(name == "guimode_left") {
+			return make_element_by_type<gui_mode_left>(state, id);
+
+		} else if(name == "guimode_right") {
+			return make_element_by_type<gui_mode_right>(state, id);
+
+			// window_mode_left
+		} else {
 			return nullptr;
+		}
 	}
 	void on_hide(sys::state& state) noexcept override {
 		if(setting_changed)
@@ -206,8 +247,10 @@ class audio_menu_window : public window_element_base {
 enum class main_menu_sub_window { controls, audio, graphics, message_settings };
 
 class close_application_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override { window::close_window(state); }
+	public:
+	void button_action(sys::state& state) noexcept override {
+		window::close_window(state);
+	}
 };
 
 class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
@@ -216,7 +259,7 @@ class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	audio_menu_window* audio_menu = nullptr;
 	message_settings_window* message_settings_menu = nullptr;
 
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		// Message settings isn't a topmost window...

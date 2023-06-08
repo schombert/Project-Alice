@@ -15,21 +15,50 @@
 #include <unordered_map>
 #include <vector>
 
+/*
+ * DO NOT INTRODUCE TOOLTIPS INTO THIS FILE FOR ANY NON-SPECifiC CLASSES
+ * Adding tooltips into this file means that the tooltips will be the
+ * same for any instance of the element, THIS IS NOT A FEATURE BUT A BUG
+ * if you wish for two elements to have the same tooltips, and thats how Vic2
+ * does it, then just copy the already existant tooltip code from that element
+ * instead of putting it in here.
+ * for adding tooltips to elements defined in this file, simply inherit from them
+ * and add the tooltips to the inherited version, you can see a example of this
+ * in gui/gui_topbar.hpp,	BUT NEVER UNDER ANY CIRCUMSTANCE ADD TOOLTIPS HERE.
+ */
+
 namespace ui {
 
 typedef std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id> pop_list_filter;
 
-void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
-void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
-void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
+		int32_t this_slot = -1, int32_t from_slot = -1);
+void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
+		int32_t primary, int32_t this_slot, int32_t from_slot);
+void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
+		int32_t primary, int32_t this_slot, int32_t from_slot);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, bool header);
-void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
+		dcon::national_modifier_value nmid, bool header);
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
+		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
-enum class country_list_sort : uint8_t { country, boss, economic_rank, military_rank, prestige_rank, total_rank, relation, opinion, priority, gp_influence = 0x40, gp_investment = 0x80 };
+enum class country_list_sort : uint8_t {
+	country,
+	boss,
+	economic_rank,
+	military_rank,
+	prestige_rank,
+	total_rank,
+	relation,
+	opinion,
+	priority,
+	gp_influence = 0x40,
+	gp_investment = 0x80
+};
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
 template<country_list_sort Sort> class country_sort_button : public button_element_base {
-public:
+	public:
 	uint8_t offset = 0;
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -47,13 +76,13 @@ enum class country_list_filter : uint8_t {
 	enemies,
 	allies,
 	deselect_all, // Used only by message filter window
-	best_guess,	  // Used only by message filter window
+	best_guess,		// Used only by message filter window
 	continent
 };
 class button_press_notification { };
 
 template<class T, class K> class generic_settable_element : public T {
-public:
+	public:
 	K content{};
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -67,7 +96,7 @@ public:
 };
 
 template<class T> class generic_name_text : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
@@ -80,7 +109,7 @@ public:
 };
 
 template<class T> class generic_multiline_name_text : public multiline_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
@@ -88,7 +117,9 @@ public:
 			T content = any_cast<T>(payload);
 			auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
 			auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
-				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x, multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, color});
+					text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
+							multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
+							text::alignment::left, color});
 			auto fat_id = dcon::fatten(state.world, content);
 			auto box = text::open_layout_box(container);
 			text::add_to_layout_box(container, state, box, fat_id.get_name(), text::substitution_map{});
@@ -98,8 +129,10 @@ public:
 };
 
 template<typename T> class generic_simple_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, T content) noexcept { return ""; }
+	public:
+	virtual std::string get_text(sys::state& state, T content) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -112,7 +145,7 @@ public:
 };
 
 template<typename T> class generic_multiline_text : public multiline_text_element_base {
-public:
+	public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents, T id) noexcept { }
 
 	void on_update(sys::state& state) noexcept override {
@@ -121,19 +154,23 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<T>(payload);
 			auto color = black_text ? text::text_color::black : text::text_color::white;
-			auto container = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color});
+			auto container =
+					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y,
+																													 base_data.data.text.font_handle, 0, text::alignment::left, color});
 			populate_layout(state, container, content);
 		}
 	}
 };
 
 class state_name_text : public generic_simple_text<dcon::state_instance_id> {
-public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override { return text::get_dynamic_state_name(state, content); }
+	public:
+	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
+		return text::get_dynamic_state_name(state, content);
+	}
 };
 
 class state_factory_count_text : public generic_simple_text<dcon::state_instance_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		uint8_t count = 0;
 		province::for_each_province_in_state_instance(state, content, [&](dcon::province_id pid) {
@@ -145,12 +182,14 @@ public:
 };
 
 class state_admin_efficiency_text : public generic_simple_text<dcon::state_instance_id> {
-public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override { return text::format_percentage(province::state_admin_efficiency(state, content), 1); }
+	public:
+	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
+		return text::format_percentage(province::state_admin_efficiency(state, content), 1);
+	}
 };
 
 class state_aristocrat_presence_text : public generic_simple_text<dcon::state_instance_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
 		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
@@ -160,13 +199,15 @@ public:
 };
 
 class state_population_text : public generic_simple_text<dcon::state_instance_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
 		return text::prettify(int32_t(total_pop));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -176,8 +217,10 @@ public:
 };
 
 class standard_province_progress_bar : public progress_bar {
-public:
-	virtual float get_progress(sys::state& state, dcon::province_id prov_id) noexcept { return 0.f; }
+	public:
+	virtual float get_progress(sys::state& state, dcon::province_id prov_id) noexcept {
+		return 0.f;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -190,10 +233,14 @@ public:
 };
 
 class province_liferating_progress_bar : public standard_province_progress_bar {
-public:
-	float get_progress(sys::state& state, dcon::province_id prov_id) noexcept override { return state.world.province_get_life_rating(prov_id) / 100.f; }
+	public:
+	float get_progress(sys::state& state, dcon::province_id prov_id) noexcept override {
+		return state.world.province_get_life_rating(prov_id) / 100.f;
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -203,7 +250,8 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map lr_sub;
-			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
+			text::add_to_substitution_map(lr_sub, text::variable_type::value,
+					text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
 			text::localised_format_box(state, contents, box, std::string_view("provinceview_liferating"), lr_sub);
 			text::close_layout_box(contents, box);
 		}
@@ -211,8 +259,10 @@ public:
 };
 
 class standard_province_icon : public opaque_element_base {
-public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept { return 0; }
+	public:
+	virtual int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -226,7 +276,7 @@ public:
 };
 
 class province_rgo_employment_progress_icon : public standard_province_icon {
-public:
+	public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 		return int32_t(10.f * employment_ratio);
@@ -234,13 +284,15 @@ public:
 };
 
 class province_rgo_icon : public standard_province_icon {
-public:
+	public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_rgo().get_icon();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -259,7 +311,7 @@ public:
 };
 
 class province_crime_icon : public standard_province_icon {
-public:
+	public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_crime().index();
@@ -267,8 +319,10 @@ public:
 };
 
 class standard_movement_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept { return ""; }
+	public:
+	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -281,7 +335,7 @@ public:
 };
 
 class movement_size_text : public standard_movement_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto size = state.world.movement_get_pop_support(movement_id);
 		return text::prettify(int64_t(size));
@@ -289,7 +343,7 @@ public:
 };
 
 class movement_radicalism_text : public standard_movement_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto radicalism = state.world.movement_get_radicalism(movement_id);
 		return text::format_float(radicalism, 1);
@@ -297,7 +351,7 @@ public:
 };
 
 class movement_issue_name_text : public standard_movement_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto issue = state.world.movement_get_associated_issue_option(movement_id);
 		return text::produce_simple_string(state, issue.get_movement_name());
@@ -305,7 +359,7 @@ public:
 };
 
 class standard_movement_multiline_text : public multiline_text_element_base {
-public:
+	public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept { }
 
 	void on_update(sys::state& state) noexcept override {
@@ -315,14 +369,16 @@ public:
 			auto content = any_cast<dcon::movement_id>(payload);
 
 			auto color = black_text ? text::text_color::black : text::text_color::white;
-			auto container = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color});
+			auto container =
+					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y,
+																													 base_data.data.text.font_handle, 0, text::alignment::left, color});
 			populate_layout(state, container, content);
 		}
 	}
 };
 
 class movement_nationalist_name_text : public standard_movement_multiline_text {
-public:
+	public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, movement_id);
 		auto independence_target = fat_id.get_associated_independence();
@@ -345,8 +401,10 @@ public:
 };
 
 class standard_rebel_faction_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept { return ""; }
+	public:
+	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -359,8 +417,10 @@ public:
 };
 
 class standard_province_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::province_id province_id) noexcept { return ""; }
+	public:
+	virtual std::string get_text(sys::state& state, dcon::province_id province_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -373,13 +433,15 @@ public:
 };
 
 class province_population_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
 		return text::prettify(int32_t(total_pop));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -389,7 +451,7 @@ public:
 };
 
 class province_militancy_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
@@ -398,7 +460,7 @@ public:
 };
 
 class province_consciousness_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto consciousness = state.world.province_get_demographics(province_id, demographics::consciousness);
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
@@ -407,7 +469,7 @@ public:
 };
 
 class province_literacy_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto literacy = state.world.province_get_demographics(province_id, demographics::literacy);
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
@@ -416,7 +478,7 @@ public:
 };
 
 class province_dominant_culture_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		dcon::culture_id last_culture{};
 		float last_culture_amount = 0.f;
@@ -431,7 +493,7 @@ public:
 	}
 };
 class province_dominant_religion_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		dcon::religion_id last_religion{};
 		float last_religion_amount = 0.f;
@@ -446,7 +508,7 @@ public:
 	}
 };
 class province_dominant_issue_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		dcon::issue_option_id last_issue{};
 		float last_issue_amount = 0.f;
@@ -461,7 +523,7 @@ public:
 	}
 };
 class province_dominant_ideology_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		dcon::ideology_id last_ideology{};
 		float last_ideology_amount = 0.f;
@@ -477,13 +539,15 @@ public:
 };
 
 class province_supply_limit_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto supply = military::supply_limit_in_province(state, state.local_player_nation, province_id);
 		return std::to_string(supply);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -493,7 +557,7 @@ public:
 };
 
 class province_crime_name_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, province_id);
 		auto crime_id = fat_id.get_crime();
@@ -506,9 +570,14 @@ public:
 };
 
 class province_crime_fighting_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1); }
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -516,36 +585,47 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_crimefight"), text::variable_type::value, text::fp_one_place{province::crime_fighting_efficiency(state, content) * 100});
+			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_crimefight"),
+					text::variable_type::value, text::fp_one_place{province::crime_fighting_efficiency(state, content) * 100});
 			text::close_layout_box(contents, box);
 		}
 	}
 };
 
 class province_rebel_percent_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::format_float(province::revolt_risk(state, province_id), 2); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_float(province::revolt_risk(state, province_id), 2);
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
-			// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can substitute.
+			// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
+			// substitute.
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value, text::fp_one_place{province::revolt_risk(state, content) * 100});
+			text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value,
+					text::fp_one_place{province::revolt_risk(state, content) * 100});
 			text::close_layout_box(contents, box);
 		}
 	}
 };
 
 class province_rgo_workers_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::prettify(int32_t(province::rgo_employment(state, province_id))); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::prettify(int32_t(province::rgo_employment(state, province_id)));
+	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -555,32 +635,42 @@ public:
 };
 
 class province_rgo_employment_percent_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
+	}
 };
 
 class province_rgo_name_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::get_name_as_string(state, state.world.province_get_rgo(province_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::get_name_as_string(state, state.world.province_get_rgo(province_id));
+	}
 };
 
 class province_player_rgo_size_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::format_float(economy::rgo_effective_size(state, state.local_player_nation, province_id), 2); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_float(economy::rgo_effective_size(state, state.local_player_nation, province_id), 2);
+	}
 };
 
 class province_goods_produced_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::format_float(province::rgo_production_quantity(state, province_id), 3); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_float(province::rgo_production_quantity(state, province_id), 3);
+	}
 };
 
 class province_income_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::format_money(province::rgo_income(state, province_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_money(province::rgo_income(state, province_id));
+	}
 };
 
 class province_migration_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
 		auto external = province::monthly_net_pop_external_migration(state, province_id);
@@ -589,12 +679,14 @@ public:
 };
 
 class province_pop_growth_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id))); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
+	}
 };
 
 class province_army_size_text : public standard_province_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto built = military::regiments_created_from_province(state, province_id);
 		auto max_possible = military::regiments_max_possible_from_province(state, province_id);
@@ -603,12 +695,14 @@ public:
 };
 
 class province_state_name_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override { return text::get_province_state_name(state, province_id); }
+	public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::get_province_state_name(state, province_id);
+	}
 };
 
 class national_identity_vassal_type_text : public generic_simple_text<dcon::national_identity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::national_identity_id content) noexcept override {
 		// TODO: figure out if it should be a substate
 		return text::produce_simple_string(state, "satellite");
@@ -616,8 +710,10 @@ public:
 };
 
 class standard_nation_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept { return ""; }
+	public:
+	virtual std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -630,7 +726,7 @@ public:
 };
 
 class nation_gp_opinion_text : public standard_nation_text {
-public:
+	public:
 	uint16_t rank = 0;
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto const great_power_id = nations::get_nth_great_power(state, rank);
@@ -644,7 +740,7 @@ public:
 };
 
 class nation_player_investment_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
@@ -653,7 +749,7 @@ public:
 };
 
 class nation_gp_investment_text : public standard_nation_text {
-public:
+	public:
 	uint16_t rank = 0;
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto const great_power_id = nations::get_nth_great_power(state, rank);
@@ -666,7 +762,7 @@ public:
 };
 
 class nation_overlord_flag : public flag_button {
-public:
+	public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -686,7 +782,7 @@ public:
 };
 
 class nation_actual_stockpile_spending_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		float amount = state.world.nation_get_effective_construction_spending(nation_id);
 		amount += state.world.nation_get_effective_land_spending(nation_id);
@@ -696,137 +792,81 @@ public:
 };
 
 class nation_tariff_percentage_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_percentage(state.world.nation_get_tariffs(nation_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_percentage(state.world.nation_get_tariffs(nation_id));
+	}
 };
 
 class nation_gold_income_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_money(economy::estimate_gold_income(state, nation_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_money(economy::estimate_gold_income(state, nation_id));
+	}
 };
 
 class nation_loan_spending_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_money(economy::estimate_loan_payments(state, nation_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_money(economy::estimate_loan_payments(state, nation_id));
+	}
 };
 
 class nation_diplomatic_balance_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_money(economy::estimate_diplomatic_balance(state, nation_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_money(economy::estimate_diplomatic_balance(state, nation_id));
+	}
 };
 
 class nation_subsidy_spending_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_money(economy::estimate_subsidy_spending(state, nation_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_money(economy::estimate_subsidy_spending(state, nation_id));
+	}
 };
 
 class nation_administrative_efficiency_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
+	}
 };
 
 class nation_prestige_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return std::to_string(int32_t(nations::prestige_score(state, nation_id))); }
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
-			text::add_line_break_to_layout_box(contents, state, box);
-			switch(nations::get_status(state, nation_id)) {
-			case(nations::status::great_power):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"), text::substitution_map{});
-				break;
-			case(nations::status::secondary_power):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"), text::substitution_map{});
-				break;
-			case(nations::status::civilized):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"), text::substitution_map{});
-				// Civil
-				break;
-			case(nations::status::westernizing):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"), text::substitution_map{});
-				// ???
-				break;
-			case(nations::status::uncivilized):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"), text::substitution_map{});
-				// Nothing
-				break;
-			case(nations::status::primitive):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"), text::substitution_map{});
-				// Nothing
-				break;
-			default:
-				break;
-			};
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::colonial_prestige, true);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
-		}
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return std::to_string(int32_t(nations::prestige_score(state, nation_id)));
 	}
 };
 
 class nation_industry_score_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(int32_t(fat_id.get_industrial_score()));
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("rank_industry"), text::substitution_map{});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("rank_industry_d"), text::substitution_map{});
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_military_score_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(int32_t(fat_id.get_military_score()));
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("rank_military"), text::substitution_map{});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("rank_military_d"), text::substitution_map{});
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_total_score_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		return std::to_string(int32_t(nations::prestige_score(state, nation_id) + fat_id.get_industrial_score() + fat_id.get_military_score()));
+		return std::to_string(
+				int32_t(nations::prestige_score(state, nation_id) + fat_id.get_industrial_score() + fat_id.get_military_score()));
 	}
 };
 
 class nation_prestige_rank_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(fat_id.get_prestige_rank());
@@ -834,7 +874,7 @@ public:
 };
 
 class nation_industry_rank_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(fat_id.get_industrial_rank());
@@ -842,7 +882,7 @@ public:
 };
 
 class nation_military_rank_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(fat_id.get_military_rank());
@@ -850,7 +890,7 @@ public:
 };
 
 class nation_rank_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(fat_id.get_rank());
@@ -858,7 +898,7 @@ public:
 };
 
 class nation_status_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		switch(nations::get_status(state, nation_id)) {
 		case nations::status::great_power:
@@ -880,7 +920,7 @@ public:
 };
 
 class nation_ruling_party_ideology_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
 		auto ideology = state.world.political_party_get_ideology(ruling_party);
@@ -889,34 +929,15 @@ public:
 };
 
 class nation_ruling_party_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return text::get_name_as_string(state, fat_id.get_ruling_party());
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			std::string ruling_party = text::get_name_as_string(state, fat_id.get_ruling_party());
-			ruling_party = ruling_party + " (" + text::get_name_as_string(state, state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) + ")";
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(ruling_party));
-			text::add_divider_to_layout_box(state, contents, box);
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_government_type_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto gov_type_id = fat_id.get_government_type();
@@ -926,7 +947,7 @@ public:
 };
 
 class nation_sphere_list_label : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		if(bool(fat_id.get_in_sphere_of().id)) {
@@ -938,7 +959,7 @@ public:
 };
 
 class nation_puppet_list_label : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto puppets_iter = state.world.nation_get_overlord_as_ruler(nation_id);
@@ -953,7 +974,7 @@ public:
 };
 
 class nation_player_opinion_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
 		if(bool(gp_rel_id)) {
@@ -965,17 +986,21 @@ public:
 };
 
 class nation_industries_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		uint32_t num_factories = 0;
-		for(auto si : state.world.nation_get_state_ownership(nation_id))
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) { num_factories += uint32_t(state.world.province_get_factory_location(p).end() - state.world.province_get_factory_location(p).begin()); });
+		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				num_factories +=
+						uint32_t(state.world.province_get_factory_location(p).end() - state.world.province_get_factory_location(p).begin());
+			});
+		}
 		return std::to_string(num_factories);
 	}
 };
 
 class nation_provinces_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		size_t num_provinces = 0;
 		for(auto si : state.world.nation_get_state_ownership(nation_id))
@@ -985,7 +1010,7 @@ public:
 };
 
 class nation_player_relations_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(nation_id, state.local_player_nation);
 		auto fat_rel = dcon::fatten(state.world, rel);
@@ -994,189 +1019,42 @@ public:
 };
 
 class nation_militancy_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto militancy = state.world.nation_get_demographics(nation_id, demographics::militancy);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::format_float(militancy / total_pop);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			auto mil_change = (demographics::get_estimated_mil_change(state, nation_id) / 30);
-			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) / state.world.nation_get_demographics(nation_id, demographics::total))});
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{mil_change}); // TODO - This needs to display the estimated militancy change -breizh
-			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_militancy_modifier, true);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, true);
-		}
-	}
 };
 
 class nation_consciousness_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto consciousness = state.world.nation_get_demographics(nation_id, demographics::consciousness);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::format_float(consciousness / total_pop);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			auto con_change = (demographics::get_estimated_con_change(state, nation_id) / 30);
-			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
-			// text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change}); // TODO - This needs to display the estimated consciousness change -breizh
-			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_consciousness_modifier, true);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_consciousness_modifier, true);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier, true);
-		}
-	}
 };
 
 class nation_colonial_power_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fcp = nations::free_colonial_points(state, nation_id);
 		auto mcp = nations::max_colonial_points(state, nation_id);
 		return text::format_ratio(fcp, mcp);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			float points = 0.f;
-			state.world.for_each_technology([&](dcon::technology_id t) {
-				if(state.world.nation_get_active_technologies(nation_id, t))
-					points += float(state.world.technology_get_colonial_points(t));
-			});
-
-			text::substitution_map sub;
-			std::string value;
-			value = text::prettify(nations::free_colonial_points(state, nation_id));
-			text::add_to_substitution_map(sub, text::variable_type::value, std::string_view(value));
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("available_colonial_power"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::format_float(points, 0), text::text_color::green);
-
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_budget_funds_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto budget = nations::get_treasury(state, nation_id);
 		return text::format_money(budget);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-
-			text::substitution_map sub{};
-
-			auto total_income = economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor);
-			total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle);
-			total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich);
-			total_income += economy::estimate_gold_income(state, nation_id);
-
-			auto total_expense = economy::estimate_construction_spending(state, nation_id);
-			total_expense += economy::estimate_land_spending(state, nation_id);
-			total_expense += economy::estimate_naval_spending(state, nation_id);
-			total_expense += economy::estimate_social_spending(state, nation_id);
-			total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education);
-			total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration);
-			total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military);
-			total_expense += economy::estimate_loan_payments(state, nation_id);
-			total_expense += economy::estimate_subsidy_spending(state, nation_id);
-
-			text::add_to_substitution_map(sub, text::variable_type::yesterday, text::fp_currency{nations::get_yesterday_income(state, nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_currency{nations::get_treasury(state, nation_id)});
-
-			text::localised_format_box(state, contents, box, std::string_view("topbar_funds"), sub); // $YESTERDAY && $CASH
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_income"), text::variable_type::val, text::fp_currency{total_income}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_poor"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_middle"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_rich"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("tariffs_income"), text::variable_type::val, text::fp_currency{economy::estimate_tariff_income(state, nation_id)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("budget_exports"), text::substitution_map{}); // $VAL	TODO
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_gold"), text::variable_type::val, text::fp_currency{economy::estimate_gold_income(state, nation_id)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_expense"), text::variable_type::val, text::fp_currency{-total_expense}); // $VAL	TODO
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_expense_slider_education"), text::variable_type::val, text::fp_currency{-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_administration"), text::variable_type::val, text::fp_currency{-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_social_spending"), text::variable_type::val, text::fp_currency{-economy::estimate_social_spending(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_military_spending"), text::variable_type::val, text::fp_currency{-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military)}); // $VAL
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_interest"), text::variable_type::val, text::fp_currency{-economy::estimate_loan_payments(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("budget_imports"), text::variable_type::val, text::fp_currency{-economy::nation_total_imports(state, nation_id)}); // $VAL - presumably nation_total_imports is for national stockpile (?)
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_projected_income"), text::variable_type::val, text::fp_currency{economy::estimate_daily_income(state, nation_id)}); // $VAL	TODO
-
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_budget_bank_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto budget = nations::get_bank_funds(state, nation_id);
 		return text::format_money(budget);
@@ -1184,7 +1062,7 @@ public:
 };
 
 class nation_budget_debt_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto budget = nations::get_debt(state, nation_id);
 		return text::format_money(budget);
@@ -1192,75 +1070,32 @@ public:
 };
 
 class nation_literacy_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto literacy = state.world.nation_get_demographics(nation_id, demographics::literacy);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::format_percentage(literacy / total_pop, 1);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			auto literacy_change = (demographics::get_estimated_literacy_change(state, nation_id) / 30);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change}); // TODO - This needs to display the estimated literacy change -breizh
-			auto avg_literacy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
-			text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
-			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_infamy_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return text::format_float(fat_id.get_infamy(), 2);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy"), text::variable_type::value, text::fp_two_places{fat_id.get_infamy()});
-			text::add_divider_to_layout_box(state, contents, box);
-			// text::add_to_layout_box(contents, state, box, text::format_ratio(fat_id.get_infamy(), ));
-			text::add_to_layout_box(contents, state, box, text::fp_two_places{fat_id.get_infamy()});
-			text::add_to_layout_box(contents, state, box, std::string_view(" / "));
-			text::add_to_layout_box(contents, state, box, text::fp_two_places{state.defines.badboy_limit});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::badboy, false);
-		}
-	}
 };
 
 class nation_war_exhaustion_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return text::format_float(fat_id.get_war_exhaustion(), 2);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1270,7 +1105,8 @@ public:
 
 			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"),
+					text::variable_type::value, text::fp_percentage{num});
 			// TODO - check if the nation is at peace, if it is then we display stuff
 			text::close_layout_box(contents, box);
 
@@ -1280,37 +1116,15 @@ public:
 };
 
 class nation_population_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::prettify(int32_t(total_pop));
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total))});
-
-			text::localised_format_box(state, contents, box, std::string_view("topbar_population"), sub);
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_population_visual"), text::variable_type::curr, text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total)) * 4});
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
-		}
-	}
 };
 
 class nation_current_research_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto tech_id = nations::current_research(state, nation_id);
 		if(tech_id) {
@@ -1322,6 +1136,7 @@ public:
 };
 
 class nation_daily_research_points_text : public standard_nation_text {
+	protected:
 	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
 		auto fat_pop = dcon::fatten(state.world, pop);
 		/*
@@ -1329,58 +1144,21 @@ class nation_daily_research_points_text : public standard_nation_text {
 		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
 		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
 		*/
-		float sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum()));
+		float sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) /
+																											state.world.nation_get_demographics(n, demographics::total)) /
+																										 fat_pop.get_research_optimum()));
 		return sum;
 	}
 
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
 		return text::format_float(points, 2);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			bool clergy_passed = false; // Ugly fix but it should work -breizh
-			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))) > 1.0f) {
-				text::substitution_map sub1;
-				clergy_passed = true;
-				text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.clergy));
-				text::add_to_substitution_map(sub1, text::variable_type::value, text::fp_two_places{get_research_points_from_pop(state, state.culture_definitions.clergy, nation_id)});
-				text::add_to_substitution_map(sub1, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-				text::add_to_substitution_map(sub1, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.clergy) * 100)});
-				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
-			}
-
-			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
-				text::substitution_map sub2;
-				if(clergy_passed) {
-					text::add_line_break_to_layout_box(contents, state, box);
-				}
-				text::add_to_substitution_map(sub2, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
-				text::add_to_substitution_map(sub2, text::variable_type::value, text::fp_two_places{get_research_points_from_pop(state, state.culture_definitions.secondary_factory_worker, nation_id)});
-				text::add_to_substitution_map(sub2, text::variable_type::fraction,
-					text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-				text::add_to_substitution_map(sub2, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.secondary_factory_worker) * 100)});
-				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub2);
-			}
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
-		}
-	}
 };
 
 class nation_research_points_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = state.world.nation_get_research_points(nation_id);
 		return text::format_float(points, 1);
@@ -1388,118 +1166,32 @@ public:
 };
 
 class nation_suppression_points_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::suppression_points(state, nation_id);
 		return text::format_float(points, 1);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "suppression_points", text::substitution_map{});
-			text::add_space_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier, false);
-		}
-	}
 };
 
 class nation_focus_allocation_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto available = nations::max_national_focuses(state, nation_id);
 		auto in_use = nations::national_focuses_in_use(state, nation_id);
 		return text::format_ratio(in_use, available);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub1;
-			float relevant_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
-			for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
-				relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
-			}
-			text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
-			auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occasionally inaccurate by a few 0.01, this
-																				// doesnt really matter so im leaving it -breizh
-			text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
-			text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::substitution_map sub2;
-			text::add_to_substitution_map(sub2, text::variable_type::focus, nations::max_national_focuses(state, nation_id));
-			text::localised_format_box(state, contents, box, std::string_view("tb_max_focus"), sub2);
-			if(nations::national_focuses_in_use(state, nation_id) > 0) {
-				text::add_divider_to_layout_box(state, contents, box);
-				auto nation_fat_id = dcon::fatten(state.world, nation_id);
-				nation_fat_id.for_each_state_ownership([&](dcon::state_ownership_id so) {
-					auto fat_state_id = dcon::fatten(state.world, so);
-					if(fat_state_id.is_valid()) {
-						auto staat = fat_state_id.get_state();
-						if(staat.is_valid()) {
-							auto natl_fat_id = staat.get_owner_focus();
-							if(natl_fat_id.is_valid()) {
-								text::add_to_layout_box(contents, state, box, natl_fat_id.get_name());
-								text::add_line_break_to_layout_box(contents, state, box);
-							}
-						}
-					}
-				});
-			} else {
-				text::add_divider_to_layout_box(state, contents, box);
-				text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_none"), text::substitution_map{});
-			}
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::max_national_focus, false);
-		}
-	}
 };
 
 class nation_diplomatic_points_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::diplomatic_points(state, nation_id);
 		return text::format_float(points, 0);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::diplomatic_points(state, nation_id)});
-			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
-			text::add_divider_to_layout_box(state, contents, box);
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
-		}
-	}
 };
 
 class nation_mobilization_size_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		int32_t sum = 0;
 		auto fat_id = dcon::fatten(state.world, nation_id);
@@ -1509,210 +1201,92 @@ public:
 		}
 		return std::to_string(sum);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto issue_id = politics::get_issue_by_name(state, std::string_view("war_policy"));
-			int32_t possible_sum = 0;
-			int32_t raised_sum = 0;
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
-				auto prov = prov_own.get_province();
-				possible_sum += military::mobilized_regiments_possible_from_province(state, prov.id);
-			}
-			for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
-				auto prov = prov_own.get_province();
-				raised_sum += military::mobilized_regiments_created_from_province(state, prov.id);
-			}
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub2;
-			text::add_to_substitution_map(sub2, text::variable_type::curr, raised_sum);
-			// TODO - we (might) want to give the value the current war policy provides, though its more transparent perhaps to just give
-			// the NV + Mob. Impact Modifier?
-			text::add_to_substitution_map(sub2, text::variable_type::impact, text::fp_percentage{(state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::mobilization_impact))});
-			text::add_to_substitution_map(sub2, text::variable_type::policy, fat_id.get_issues(issue_id).get_name());
-			text::add_to_substitution_map(sub2, text::variable_type::units, possible_sum);
-
-			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_mobilize_tooltip"), text::variable_type::curr, possible_sum);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc"), sub2);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc2"), sub2);
-
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_brigade_allocation_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto available = state.world.nation_get_recruitable_regiments(nation_id);
 		auto in_use = state.world.nation_get_active_regiments(nation_id);
 		return text::format_ratio(in_use, available);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
-			text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
-			text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_navy_allocation_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto available = military::naval_supply_points(state, nation_id);
 		auto in_use = military::naval_supply_points_used(state, nation_id);
 		return text::format_ratio(in_use, available);
 	}
+};
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, military::naval_supply_points_used(state, nation_id));
-			text::localised_format_box(state, contents, box, std::string_view("topbar_ship_tooltip"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_to_substitution_map(sub, text::variable_type::tot, text::pretty_integer{military::naval_supply_points(state, nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::req, text::pretty_integer{military::naval_supply_points_used(state, nation_id)});
-			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_basic"), sub);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_detailed_list"), sub);
-			text::close_layout_box(contents, box);
+class nation_ships_text : public standard_nation_text {
+	protected:
+	int32_t get_ship_count(sys::state& state, dcon::nation_id nation_id) {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		int32_t total = 0;
+		for(auto nv : fat_id.get_navy_control()) {
+			total += int32_t(nv.get_navy().get_navy_membership().end() - nv.get_navy().get_navy_membership().begin());
 		}
+		return total;
+	}
+
+	public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return std::to_string(get_ship_count(state, nation_id));
 	}
 };
 
-class nation_armies_text : public standard_nation_text {
-public:
+class nation_brigades_text : public standard_nation_text {
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		int32_t count = 0;
 		state.world.nation_for_each_army_control_as_controller(nation_id, [&](dcon::army_control_id) { ++count; });
 		return std::to_string(count);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			int32_t count = 0;
-			state.world.nation_for_each_army_control_as_controller(nation_id, [&](dcon::army_control_id) { ++count; });
-			text::add_to_substitution_map(sub, text::variable_type::value, count);
-			text::localised_format_box(state, contents, box, std::string_view("military_army_count_tooltip"), sub);
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_navies_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		int32_t count = 0;
 		state.world.nation_for_each_navy_control_as_controller(nation_id, [&](dcon::navy_control_id) { ++count; });
 		return std::to_string(count);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			int32_t count = 0;
-			state.world.nation_for_each_navy_control_as_controller(nation_id, [&](dcon::navy_control_id) { ++count; });
-			text::add_to_substitution_map(sub, text::variable_type::value, count);
-			text::localised_format_box(state, contents, box, std::string_view("military_navy_count_tooltip"), sub);
-			text::close_layout_box(contents, box);
-		}
-	}
 };
 
 class nation_leadership_points_text : public standard_nation_text {
-private:
+	private:
 	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
 		/*
 		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
 		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
 		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
 		*/
-		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) / state.world.nation_get_demographics(n, demographics::total)) / state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
+		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) /
+										state.world.nation_get_demographics(n, demographics::total)) /
+								state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
 		return sum;
 	}
 
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::leadership_points(state, nation_id);
 		return text::format_float(points, 1);
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			// text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::leadership_points(state,
-			// nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.officers));
-			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{get_research_points_from_pop(state, state.culture_definitions.officers, nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.officers)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-			text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
-			text::localised_format_box(state, contents, box, std::string_view("topbar_leadership_tooltip"), sub);
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership, false);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership_modifier, false);
-		}
-	}
 };
 
 class nation_plurality_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto plurality = state.world.nation_get_plurality(nation_id);
 		return std::to_string(int32_t(plurality)) + '%';
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1726,7 +1300,7 @@ public:
 };
 
 class nation_revanchism_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto revanchism = state.world.nation_get_revanchism(nation_id);
 		return std::to_string(int32_t(revanchism)) + '%';
@@ -1734,7 +1308,7 @@ public:
 };
 
 class nation_can_do_social_reform_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		if(nations::has_social_reform_available(state, nation_id)) {
 			// yes, the original localisation says "refroms"
@@ -1746,7 +1320,7 @@ public:
 };
 
 class nation_can_do_political_reform_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		if(nations::has_political_reform_available(state, nation_id)) {
 			// yes, the original localisation says "refroms"
@@ -1758,7 +1332,7 @@ public:
 };
 
 class nation_national_value_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return text::produce_simple_string(state, fat_id.get_national_value().get_name());
@@ -1766,7 +1340,7 @@ public:
 };
 
 class nation_technology_admin_type_text : public standard_nation_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto mod_id = state.world.nation_get_tech_school(nation_id);
 		if(bool(mod_id)) {
@@ -1776,7 +1350,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1800,8 +1376,10 @@ public:
 };
 
 class standard_nation_icon : public image_element_base {
-public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept { return 0; }
+	public:
+	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1814,8 +1392,10 @@ public:
 };
 
 class standard_nation_progress_bar : public progress_bar {
-public:
-	virtual float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept { return 0.f; }
+	public:
+	virtual float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return 0.f;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1828,12 +1408,14 @@ public:
 };
 
 class nation_westernization_progress_bar : public standard_nation_progress_bar {
-public:
-	float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept override { return state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier); }
+	public:
+	float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier);
+	}
 };
 
 class nation_technology_research_progress : public progress_bar {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -1848,55 +1430,13 @@ public:
 			}
 		}
 	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto tech_id = nations::current_research(state, nation_id);
-			auto box = text::open_layout_box(contents, 0);
-			// TODO - check for other research?
-			if(tech_id) {
-				auto tech_fat = dcon::fatten(state.world, tech_id);
-				text::localised_single_sub_box(state, contents, box, std::string_view("technologyview_under_research_tooltip"), text::variable_type::tech, tech_fat.get_name());
-			} else {
-				text::localised_format_box(state, contents, box, std::string_view("technologyview_no_research_tooltip"));
-			}
-			text::close_layout_box(contents, box);
-
-			if(bool(tech_id)) {
-				auto fidx = state.world.technology_get_folder_index(tech_id);
-				switch(state.culture_definitions.tech_folders[fidx].category) {
-				case culture::tech_category::army:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::army_tech_research_bonus, true);
-					break;
-				case culture::tech_category::navy:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
-					break;
-				case culture::tech_category::commerce:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::commerce_tech_research_bonus, true);
-					break;
-				case culture::tech_category::culture:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::culture_tech_research_bonus, true);
-					break;
-				case culture::tech_category::industry:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
 };
 
 class standard_state_instance_button : public button_element_base {
-public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::state_instance_id state_instance_id) noexcept { return 0; }
+	public:
+	virtual int32_t get_icon_frame(sys::state& state, dcon::state_instance_id state_instance_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1909,8 +1449,10 @@ public:
 };
 
 class standard_nation_button : public button_element_base {
-public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept { return 0; }
+	public:
+	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept {
+		return 0;
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1923,7 +1465,7 @@ public:
 };
 
 class nation_flag_frame : public standard_nation_icon {
-public:
+	public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto status = nations::get_status(state, nation_id);
 		return std::min(3, int32_t(status));
@@ -1931,13 +1473,15 @@ public:
 };
 
 class nation_national_value_icon : public standard_nation_icon {
-public:
+	public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto nat_val = state.world.nation_get_national_value(nation_id);
 		return nat_val.get_icon();
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -1961,27 +1505,35 @@ public:
 };
 
 class nation_can_do_social_reform_icon : public standard_nation_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!nations::has_social_reform_available(state, nation_id)); }
+	public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(!nations::has_social_reform_available(state, nation_id));
+	}
 };
 
 class nation_can_do_political_reform_icon : public standard_nation_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(!nations::has_political_reform_available(state, nation_id)); }
+	public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(!nations::has_political_reform_available(state, nation_id));
+	}
 };
 
 class nation_military_reform_multiplier_icon : public standard_nation_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f); }
+	public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f);
+	}
 };
 
 class nation_economic_reform_multiplier_icon : public standard_nation_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override { return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f); }
+	public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f);
+	}
 };
 
 class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
-public:
+	public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -1996,7 +1548,7 @@ public:
 };
 
 class nation_player_flag : public flag_button {
-public:
+	public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
 		return fat_id.get_identity_from_identity_holder();
@@ -2004,7 +1556,7 @@ public:
 };
 
 class nation_gp_flag : public flag_button {
-public:
+	public:
 	uint16_t rank = 0;
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		auto const nat_id = nations::get_nth_great_power(state, rank);
@@ -2016,7 +1568,7 @@ public:
 };
 
 class ideology_plupp : public tinted_image_element_base {
-public:
+	public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::ideology_id{};
@@ -2029,7 +1581,7 @@ public:
 };
 
 class fixed_pop_type_icon : public opaque_element_base {
-public:
+	public:
 	dcon::pop_type_id type{};
 
 	void set_type(sys::state& state, dcon::pop_type_id t) {
@@ -2037,7 +1589,9 @@ public:
 		frame = int32_t(state.world.pop_type_get_sprite(t) - 1);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto name = state.world.pop_type_get_name(type);
@@ -2050,7 +1604,7 @@ public:
 };
 
 class pop_type_icon : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_type_id{};
@@ -2062,7 +1616,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -2080,7 +1636,7 @@ public:
 	}
 };
 class religion_type_icon : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::religion_id{};
@@ -2092,7 +1648,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -2111,7 +1669,7 @@ public:
 };
 
 class nation_ideology_percentage_text : public simple_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -2130,7 +1688,7 @@ public:
 };
 
 class upper_house_piechart : public piechart<dcon::ideology_id> {
-protected:
+	protected:
 	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
 		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
@@ -2149,7 +1707,7 @@ protected:
 };
 
 class voter_ideology_piechart : public piechart<dcon::ideology_id> {
-protected:
+	protected:
 	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
 		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
@@ -2187,7 +1745,7 @@ protected:
 };
 
 class commodity_factory_image : public image_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::commodity_id{};
@@ -2199,42 +1757,47 @@ public:
 };
 
 class commodity_price_text : public generic_simple_text<dcon::commodity_id> {
-public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override { return text::format_money(state.world.commodity_get_current_price(commodity_id)); }
+	public:
+	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
+		return text::format_money(state.world.commodity_get_current_price(commodity_id));
+	}
 };
 
 class commodity_player_availability_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id)
+		if(commodity_id) {
 			return text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
-		else
+		} else {
 			return "";
+		}
 	}
 };
 
 class commodity_player_real_demand_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id)
+		if(commodity_id) {
 			return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
-		else
+		} else {
 			return "";
+		}
 	}
 };
 
 class commodity_player_production_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id)
+		if(commodity_id) {
 			return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
-		else
+		} else {
 			return "";
+		}
 	}
 };
 
 class commodity_national_player_stockpile_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		if(commodity_id) {
 			float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
@@ -2246,7 +1809,7 @@ public:
 };
 
 class commodity_player_stockpile_increase_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = economy::stockpile_commodity_daily_increase(state, commodity_id, state.local_player_nation);
 		return std::string(amount >= 0.f ? "+" : "") + text::format_float(amount, 2);
@@ -2254,7 +1817,7 @@ public:
 };
 
 class commodity_market_increase_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = economy::global_market_commodity_daily_increase(state, commodity_id);
 		return std::string("(") + text::format_float(amount, 0) + ")";
@@ -2262,7 +1825,7 @@ public:
 };
 
 class commodity_global_market_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = state.world.commodity_get_global_market_pool(commodity_id);
 		return text::format_float(amount, 2);
@@ -2270,7 +1833,7 @@ public:
 };
 
 class commodity_player_domestic_market_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 1);
@@ -2278,7 +1841,7 @@ public:
 };
 
 class commodity_player_factory_needs_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 3);
@@ -2286,7 +1849,7 @@ public:
 };
 
 class commodity_player_pop_needs_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 3);
@@ -2294,7 +1857,7 @@ public:
 };
 
 class commodity_player_government_needs_text : public generic_simple_text<dcon::commodity_id> {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 3);
@@ -2302,8 +1865,10 @@ public:
 };
 
 class standard_factory_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept { return ""; }
+	public:
+	virtual std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept {
+		return "";
+	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -2315,7 +1880,7 @@ public:
 	}
 };
 class factory_state_name_text : public standard_factory_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override {
 		auto flid = state.world.factory_get_factory_location_as_factory(factory_id);
 		auto pid = state.world.factory_location_get_province(flid);
@@ -2329,30 +1894,38 @@ public:
 	}
 };
 class factory_output_name_text : public standard_factory_text {
-public:
+	public:
 	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override {
 		auto cid = state.world.factory_get_building_type(factory_id).get_output();
 		return text::get_name_as_string(state, cid);
 	}
 };
 class factory_produced_text : public standard_factory_text {
-public:
-	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override { return text::format_float(state.world.factory_get_actual_production(factory_id), 2); }
+	public:
+	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override {
+		return text::format_float(state.world.factory_get_actual_production(factory_id), 2);
+	}
 };
 class factory_income_text : public standard_factory_text {
-public:
-	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override { return text::format_float(state.world.factory_get_full_profit(factory_id), 2); }
+	public:
+	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override {
+		return text::format_float(state.world.factory_get_full_profit(factory_id), 2);
+	}
 };
 class factory_workers_text : public standard_factory_text {
-public:
-	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override { return text::format_float(economy::factory_total_employment(state, factory_id), 2); }
+	public:
+	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override {
+		return text::format_float(economy::factory_total_employment(state, factory_id), 2);
+	}
 };
 class factory_level_text : public standard_factory_text {
-public:
-	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override { return std::to_string(uint32_t(state.world.factory_get_level(factory_id))); }
+	public:
+	std::string get_text(sys::state& state, dcon::factory_id factory_id) noexcept override {
+		return std::to_string(uint32_t(state.world.factory_get_level(factory_id)));
+	}
 };
 class factory_profit_text : public multiline_text_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -2363,15 +1936,18 @@ public:
 			bool is_positive = profit >= 0.f;
 			auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 			// Create colour
-			auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+			auto contents = text::create_endless_layout(internal_layout,
+					text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+							base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::dark_green : text::text_color::dark_red);
+			text::add_to_layout_box(contents, state, box, text,
+					is_positive ? text::text_color::dark_green : text::text_color::dark_red);
 			text::close_layout_box(contents, box);
 		}
 	}
 };
 class factory_priority_image : public image_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -2385,7 +1961,7 @@ public:
 // -----------------------------------------------------------------------------
 // National focuses
 class national_focus_icon : public button_element_base {
-public:
+	public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::national_focus_id{};
@@ -2401,7 +1977,9 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -2431,7 +2009,7 @@ public:
 };
 
 class national_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "focus_icon") {
 			return make_element_by_type<national_focus_icon>(state, id);
@@ -2442,16 +2020,18 @@ public:
 };
 
 class national_focus_category_list : public overlapping_listbox_element_base<national_focus_item, dcon::national_focus_id> {
-public:
-	std::string_view get_row_element_name() override { return "focus_item"; }
+	public:
+	std::string_view get_row_element_name() override {
+		return "focus_item";
+	}
 };
 
 class national_focus_category : public window_element_base {
-private:
+	private:
 	simple_text_element_base* category_label = nullptr;
 	national_focus_category_list* focus_list = nullptr;
 
-public:
+	public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -2486,7 +2066,7 @@ public:
 };
 
 class national_focus_remove_button : public button_element_base {
-public:
+	public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -2498,7 +2078,7 @@ public:
 };
 
 class national_focus_window : public window_element_base {
-public:
+	public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto start = make_element_by_type<window_element_base>(state, "focuscategory_start");
@@ -2548,7 +2128,8 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
 				if(dcon::fatten(state.world, sdef).is_valid()) {
 					text::add_to_substitution_map(sub, text::variable_type::second, sdef);
-				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
+				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) !=
+									0) {
 					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
 				} else if((bits & (military::cb_flag::po_transfer_provinces)) != 0) {
 					auto niid = wg.get_wargoal().get_associated_tag();
