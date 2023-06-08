@@ -412,7 +412,7 @@ void state::on_create() {
 			ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
-	// if(!user_settings.guimode) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these windows
+	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these windows
 	// are moveable
 	ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=

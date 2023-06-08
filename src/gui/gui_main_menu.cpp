@@ -170,11 +170,11 @@ void linegraph_mode_display::on_update(sys::state& state) noexcept {
 
 void gui_mode_left::button_action(sys::state& state) noexcept {
 	/*
-	uint8_t value = uint8_t(state.user_settings.guimode);
-	(state.user_settings.guimode == sys::gui_modes{0}) ? state.user_settings.guimode = sys::gui_modes::faithful
-														 : state.user_settings.guimode = sys::gui_modes{value--};
+	uint8_t value = uint8_t(state.user_settings.use_new_ui);
+	(state.user_settings.use_new_ui == sys::gui_modes{0}) ? state.user_settings.use_new_ui = sys::gui_modes::faithful
+														 : state.user_settings.use_new_ui = sys::gui_modes{value--};
 	*/
-	state.user_settings.guimode = !state.user_settings.guimode;
+	state.user_settings.use_new_ui = !state.user_settings.use_new_ui;
 	Cyto::Any payload = notify_setting_update{};
 	if(parent)
 		parent->impl_get(state, payload);
@@ -182,12 +182,12 @@ void gui_mode_left::button_action(sys::state& state) noexcept {
 void gui_mode_left::on_update(sys::state& state) noexcept { }
 void gui_mode_right::button_action(sys::state& state) noexcept {
 	/*
-	uint8_t value = uint8_t(state.user_settings.guimode);
-	(state.user_settings.guimode == sys::gui_modes{DEF_guimode_size})
-		? state.user_settings.guimode = sys::gui_modes{DEF_guimode_size}
-		: state.user_settings.guimode = sys::gui_modes{value++};
+	uint8_t value = uint8_t(state.user_settings.use_new_ui);
+	(state.user_settings.use_new_ui == sys::gui_modes{DEF_guimode_size})
+		? state.user_settings.use_new_ui = sys::gui_modes{DEF_guimode_size}
+		: state.user_settings.use_new_ui = sys::gui_modes{value++};
 	*/
-	state.user_settings.guimode = !state.user_settings.guimode;
+	state.user_settings.use_new_ui = !state.user_settings.use_new_ui;
 	Cyto::Any payload = notify_setting_update{};
 	if(parent)
 		parent->impl_get(state, payload);
@@ -196,7 +196,7 @@ void gui_mode_right::on_update(sys::state& state) noexcept { }
 void gui_mode_display::on_update(sys::state& state) noexcept {
 	/*
 	std::string var;
-	switch(state.user_settings.guimode) {
+	switch(state.user_settings.use_new_ui) {
 	case sys::gui_modes::faithful:
 		var = "gui_mode_faithful";
 		break;
@@ -208,7 +208,7 @@ void gui_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	};*/
 	auto it = state.key_to_text_sequence.find(
-			state.user_settings.guimode ? std::string_view("gui_mode_faithful") : std::string_view("gui_mode_new"));
+			state.user_settings.use_new_ui ? std::string_view("gui_mode_new") : std::string_view("gui_mode_faithful"));
 	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
 }
