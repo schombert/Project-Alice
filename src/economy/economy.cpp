@@ -2998,7 +2998,7 @@ void resolve_constructions(sys::state& state) {
 						}
 						auto new_navy = fatten(state.world, state.world.create_navy());
 						new_navy.set_controller_from_navy_control(c.get_nation());
-						military::navy_arrives_in_province(state, new_navy, p);
+						new_navy.set_location_from_navy_location(p);
 						return new_navy.id;
 					}();
 					state.world.try_create_navy_membership(new_ship, a);
