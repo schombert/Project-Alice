@@ -26,6 +26,7 @@ SpacesInSquareBrackets: false
 ReferenceAlignment: Left
 PointerAlignment: Left
 QualifierAlignment: Right
+AlwaysBreakTemplateDeclarations: Yes
 
 AlignConsecutiveDeclarations: false
 AlignAfterOpenBracket: DontAlign
