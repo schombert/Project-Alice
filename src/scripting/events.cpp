@@ -93,7 +93,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		pending_human_n_event new_event{r_lo, r_hi + 1, primary_slot, pt, from_slot, ft, e, n, state.current_date};
+		pending_human_n_event new_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft};
 		state.pending_n_event.push_back(new_event);
 		if(n == state.local_player_nation)
 			state.new_n_event.push(new_event);
@@ -186,7 +186,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		pending_human_p_event new_event{r_lo, r_hi, from_slot, ft, e, p, state.current_date};
+		pending_human_p_event new_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft};
 		state.pending_p_event.push_back(new_event);
 		if(owner == state.local_player_nation)
 			state.new_p_event.push(new_event);

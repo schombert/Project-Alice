@@ -70,6 +70,14 @@ enum class command_type : uint8_t {
 	move_army = 61,
 	move_navy = 62,
 	embark_army = 63,
+	merge_armies = 64,
+	merge_navies = 65,
+	split_army = 66,
+	split_navy = 67,
+	delete_army = 68,
+	delete_navy = 69,
+	designate_split_regiments = 70,
+	designate_split_ships = 71,
 
 	// console cheats
 	switch_nation = 128,
@@ -211,12 +219,12 @@ struct pending_human_n_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
 	int32_t primary_slot;
-	event::slot_type pt;
 	int32_t from_slot;
-	event::slot_type ft;
 	dcon::national_event_id e;
 	sys::date date;
 	uint8_t opt_choice;
+	event::slot_type pt;
+	event::slot_type ft;
 };
 struct pending_human_f_n_event_data {
 	uint32_t r_lo = 0;
@@ -229,11 +237,11 @@ struct pending_human_p_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
 	int32_t from_slot;
-	event::slot_type ft;
 	dcon::provincial_event_id e;
 	dcon::province_id p;
 	sys::date date;
 	uint8_t opt_choice;
+	event::slot_type ft;
 };
 struct pending_human_f_p_event_data {
 	uint32_t r_lo = 0;
@@ -285,6 +293,25 @@ struct navy_movement_data {
 	dcon::province_id dest;
 };
 
+struct merge_army_data {
+	dcon::army_id a;
+	dcon::army_id b;
+};
+
+struct merge_navy_data {
+	dcon::navy_id a;
+	dcon::navy_id b;
+};
+
+constexpr inline size_t num_packed_units = 10;
+
+struct split_regiments_data {
+	dcon::regiment_id regs[num_packed_units];
+};
+struct split_ships_data {
+	dcon::ship_id ships[num_packed_units];
+};
+
 struct cheat_data {
 	float value;
 };
@@ -327,6 +354,10 @@ struct payload {
 		cheat_data cheat;
 		army_movement_data army_movement;
 		navy_movement_data navy_movement;
+		merge_army_data merge_army;
+		merge_navy_data merge_navy;
+		split_regiments_data split_regiments;
+		split_ships_data split_ships;
 
 		dtype() { }
 	} data;
@@ -554,6 +585,31 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 // Embarking an army onto/off a ship that is off the coast is done by moving the army into the sea/land tile instead.
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+
+void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b);
+bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b);
+
+void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
+bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
+
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+
+void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+
+void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+
+// Each ship / regiment carries a "to split" flag. When the split command is sent, any marked units will be split off into
+//     a new army / navy and their split flag will be unset
+// The commands below *toggle* the split flag (you can also use them to turn the flag off)
+// Fill any unused slots with the invalid handle, but remember that each of these requires some network traffic 
+void mark_regiments_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::regiment_id, num_packed_units> const& list);
+void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
 /*
 PEACE OFFER COMMANDS:

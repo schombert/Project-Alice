@@ -2148,7 +2148,8 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
-			event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft, e.e, source, e.date}, e.opt_choice);
+			event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft},
+			e.opt_choice);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event{e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
@@ -2157,7 +2158,7 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_p_event{e.r_lo, e.r_hi, e.from_slot, e.ft, e.e, e.p, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_p_event{e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date, e.ft}, e.opt_choice);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
@@ -3143,6 +3144,279 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 	}
 }
 
+void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::merge_armies;
+	p.source = source;
+	p.data.merge_army.a = a;
+	p.data.merge_army.b = b;
+	auto x = state.incoming_commands.try_push(p);
+}
+bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
+	if(state.world.army_get_controller_from_army_control(a) != source)
+		return false;
+	if(state.world.army_get_controller_from_army_control(b) != source)
+		return false;
+
+	if(state.world.army_get_location_from_army_location(a) != state.world.army_get_location_from_army_location(b))
+		return false;
+
+	// TODO: check for if they are in combat
+
+	return true;
+}
+
+void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
+	if(!can_merge_armies(state, source, a, b))
+		return;
+
+	// take leader
+	auto a_leader = state.world.army_get_general_from_army_leadership(a);
+	auto b_leader = state.world.army_get_general_from_army_leadership(b);
+	if(!a_leader && b_leader) {
+		state.world.army_set_general_from_army_leadership(a, b_leader);
+	}
+
+	// stop movement
+	state.world.army_get_path(a).clear();
+	state.world.army_set_arrival_time(a, sys::date{});
+
+	auto regs = state.world.army_get_army_membership(b);
+	while(regs.begin() != regs.end()) {
+		auto reg = (*regs.begin()).get_regiment();
+		reg.set_army_from_army_membership(a);
+	}
+
+	state.world.delete_army(b);
+}
+
+void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::merge_navies;
+	p.source = source;
+	p.data.merge_navy.a = a;
+	p.data.merge_navy.b = b;
+	auto x = state.incoming_commands.try_push(p);
+}
+bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
+	if(state.world.navy_get_controller_from_navy_control(a) != source)
+		return false;
+	if(state.world.navy_get_controller_from_navy_control(b) != source)
+		return false;
+
+	if(state.world.navy_get_location_from_navy_location(a) != state.world.navy_get_location_from_navy_location(b))
+		return false;
+
+	// TODO: check for if they are in combat
+
+	return true;
+}
+void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
+	if(!can_merge_navies(state, source, a, b))
+		return;
+
+	// take leader
+	auto a_leader = state.world.navy_get_admiral_from_navy_leadership(a);
+	auto b_leader = state.world.navy_get_admiral_from_navy_leadership(b);
+	if(!a_leader && b_leader) {
+		state.world.navy_set_admiral_from_navy_leadership(a, b_leader);
+	}
+
+	// stop movement
+	state.world.navy_get_path(a).clear();
+	state.world.navy_set_arrival_time(a, sys::date{});
+
+	auto regs = state.world.navy_get_navy_membership(b);
+	while(regs.begin() != regs.end()) {
+		auto reg = (*regs.begin()).get_ship();
+		reg.set_navy_from_navy_membership(a);
+	}
+
+	auto transported = state.world.navy_get_army_transport(b);
+	while(transported.begin() != transported.end()) {
+		auto arm = (*transported.begin()).get_army();
+		arm.set_navy_from_army_transport(a);
+	}
+
+	state.world.delete_navy(b);
+}
+
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::split_army;
+	p.source = source;
+	p.data.army_movement.a = a;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	return state.world.army_get_controller_from_army_control(a) == source;
+}
+void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!can_split_army(state, source, a))
+		return;
+
+	static std::vector<dcon::regiment_id> to_transfer;
+	to_transfer.clear();
+
+	for(auto t : state.world.army_get_army_membership(a)) {
+		if(t.get_regiment().get_pending_split()) {
+			t.get_regiment().set_pending_split(false);
+			to_transfer.push_back(t.get_regiment().id);
+		}
+	}
+
+	if(to_transfer.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_army());
+		new_u.set_controller_from_army_control(source);
+		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
+		new_u.set_black_flag(state.world.army_get_black_flag(a));
+
+		for(auto t : to_transfer) {
+			state.world.regiment_set_army_from_army_membership(t, new_u);
+		}
+
+		auto old_regs = state.world.army_get_army_membership(a);
+		if(old_regs.begin() == old_regs.end()) {
+			state.world.leader_set_army_from_army_leadership(state.world.army_get_general_from_army_leadership(a), new_u);
+			state.world.delete_army(a);
+		}
+	}
+
+}
+
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::split_navy;
+	p.source = source;
+	p.data.navy_movement.n = a;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	auto embarked = state.world.navy_get_army_transport(a);
+	return state.world.navy_get_controller_from_navy_control(a) == source && embarked.begin() == embarked.end();
+}
+void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!can_split_navy(state, source, a))
+		return;
+
+	static std::vector<dcon::ship_id> to_transfer;
+	to_transfer.clear();
+
+	for(auto t : state.world.navy_get_navy_membership(a)) {
+		if(t.get_ship().get_pending_split()) {
+			t.get_ship().set_pending_split(false);
+			to_transfer.push_back(t.get_ship().id);
+		}
+	}
+
+	if(to_transfer.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_navy());
+		new_u.set_controller_from_navy_control(source);
+		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(a));
+
+		for(auto t : to_transfer) {
+			state.world.ship_set_navy_from_navy_membership(t, new_u);
+		}
+
+		auto old_regs = state.world.navy_get_navy_membership(a);
+		if(old_regs.begin() == old_regs.end()) {
+			state.world.leader_set_navy_from_navy_leadership(state.world.navy_get_admiral_from_navy_leadership(a), new_u);
+			state.world.delete_navy(a);
+		}
+	}
+}
+
+void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::delete_army;
+	p.source = source;
+	p.data.army_movement.a = a;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	return state.world.army_get_controller_from_army_control(a) == source && province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
+}
+void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!can_delete_army(state, source, a))
+		return;
+
+	auto r = state.world.army_get_army_membership(a);
+	while(r.begin() != r.end()) {
+		state.world.delete_regiment((*r.begin()).get_regiment());
+	}
+	state.world.delete_army(a);
+}
+
+
+void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::delete_navy;
+	p.source = source;
+	p.data.navy_movement.n = a;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	auto embarked = state.world.navy_get_army_transport(a);
+	return state.world.navy_get_controller_from_navy_control(a) == source && embarked.begin() == embarked.end() &&
+				 province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a));
+}
+void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!can_delete_navy(state, source, a))
+		return;
+
+	auto r = state.world.navy_get_navy_membership(a);
+	while(r.begin() != r.end()) {
+		state.world.delete_ship((*r.begin()).get_ship());
+	}
+	state.world.delete_navy(a);
+}
+
+void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
+		std::array<dcon::regiment_id, num_packed_units> const& list) {
+
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::designate_split_regiments;
+	p.source = source;
+	std::copy_n(list.data(), num_packed_units, p.data.split_regiments.regs);
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, dcon::regiment_id const* regs) {
+	for(uint32_t i = 0; i < num_packed_units; ++i) {
+		if(regs[i]) {
+			if(source == state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(regs[i]))) {
+				state.world.regiment_set_pending_split(regs[i], !state.world.regiment_get_pending_split(regs[i]));
+			}
+		}
+	}
+}
+
+void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::designate_split_ships;
+	p.source = source;
+	std::copy_n(list.data(), num_packed_units, p.data.split_ships.ships);
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon::ship_id const* regs) {
+	for(uint32_t i = 0; i < num_packed_units; ++i) {
+		if(regs[i]) {
+			if(source ==
+					state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(regs[i]))) {
+				state.world.ship_set_pending_split(regs[i], !state.world.ship_get_pending_split(regs[i]));
+			}
+		}
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -3350,6 +3624,31 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::embark_army:
 			execute_embark_army(state, c->source, c->data.army_movement.a);
+			break;
+		case command_type::merge_armies:
+			execute_merge_armies(state, c->source, c->data.merge_army.a, c->data.merge_army.b);
+			break;
+		case command_type::merge_navies:
+			execute_merge_navies(state, c->source, c->data.merge_navy.a, c->data.merge_navy.b);
+			break;
+		case command_type::split_army:
+			execute_split_army(state, c->source, c->data.army_movement.a);
+			break;
+		case command_type::split_navy:
+			execute_split_navy(state, c->source, c->data.navy_movement.n);
+			break;
+		case command_type::delete_army:
+			execute_delete_army(state, c->source, c->data.army_movement.a);
+			break;
+		case command_type::delete_navy:
+			execute_delete_navy(state, c->source, c->data.navy_movement.n);
+			break;
+		case command_type::designate_split_regiments:
+			execute_mark_regiments_to_split(state, c->source, c->data.split_regiments.regs);
+			break;
+		case command_type::designate_split_ships:
+			execute_mark_ships_to_split(state, c->source, c->data.split_ships.ships);
+			break;
 
 		// console commands
 		case command_type::switch_nation:
