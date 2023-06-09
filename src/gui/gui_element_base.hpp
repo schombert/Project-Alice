@@ -8,7 +8,7 @@ namespace ui {
 enum class mouse_probe_type { click, tooltip, scroll };
 
 class element_base {
-	public:
+public:
 	static constexpr uint8_t is_invisible_mask = 0x01;
 
 	element_data base_data;
@@ -57,7 +57,7 @@ class element_base {
 
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
-	protected:
+protected:
 	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y,
 			mouse_probe_type type) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
 	virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
@@ -83,10 +83,10 @@ class element_base {
 	}
 	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
-	private:
+private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
 
-	public:
+public:
 	// these commands are meaningful only if the element has children
 	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
 		return std::unique_ptr<element_base>{};

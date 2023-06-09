@@ -8,8 +8,10 @@ class statswin_warexhaustion : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		auto fat = dcon::fatten(state.world, n);
-		return (text::format_float(fat.get_war_exhaustion()) + "/" + text::format_float(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_war_exhaustion)));
+		return (text::format_float(fat.get_war_exhaustion()) + "/" +
+						text::format_float(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_war_exhaustion)));
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -19,8 +21,10 @@ public:
 class statswin_supplyconsumption : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f);
+		return text::format_percentage(
+				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -32,6 +36,7 @@ protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::org_regain) + 1.0f);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -41,8 +46,10 @@ public:
 class statswin_armyorg : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_organisation) + 1.0f);
+		return text::format_percentage(
+				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_organisation) + 1.0f);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -52,8 +59,10 @@ public:
 class statswin_navyorg : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_organisation) + 1.0f);
+		return text::format_percentage(
+				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_organisation) + 1.0f);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -64,8 +73,9 @@ class statswin_unitexperience : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return (text::format_float(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level)) +
-					"/" + text::format_float(69.0f));
+						"/" + text::format_float(69.0f));
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -77,6 +87,7 @@ protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::reinforce_speed) + 1.0f);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -86,8 +97,10 @@ public:
 class statswin_combatwidth : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return std::to_string(int16_t(state.defines.base_combat_width + int16_t(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::combat_width))));
+		return std::to_string(int16_t(state.defines.base_combat_width +
+																	int16_t(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::combat_width))));
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -99,6 +112,7 @@ protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return std::to_string(int16_t(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::dig_in_cap)));
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -110,6 +124,7 @@ protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::military_tactics) + 1.0f);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -216,4 +231,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

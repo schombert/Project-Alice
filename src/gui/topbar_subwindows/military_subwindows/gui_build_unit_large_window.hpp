@@ -5,7 +5,7 @@
 namespace ui {
 
 class buildable_unit_entry_info {
-	public:
+public:
 	dcon::pop_id pop_info;
 	dcon::province_id province_info;
 	// false == army
@@ -14,7 +14,7 @@ class buildable_unit_entry_info {
 };
 
 class build_unit_close_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, true);
 		state.ui_state.unit_window_navy->set_visible(state, true);
@@ -24,7 +24,7 @@ class build_unit_close_button : public button_element_base {
 };
 
 class unit_build_button : public button_element_base {
-	public:
+public:
 	bool is_navy = false;
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -55,15 +55,14 @@ class unit_build_button : public button_element_base {
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents);
-		is_navy ?
-			text::localised_format_box(state, contents, box, std::string_view("military_build_army")) :
-			text::localised_format_box(state, contents, box, std::string_view("military_build_navy"));
+		is_navy ? text::localised_format_box(state, contents, box, std::string_view("military_build_army"))
+						: text::localised_format_box(state, contents, box, std::string_view("military_build_navy"));
 		text::close_layout_box(contents, box);
 	}
 };
 
 class unit_folder_button : public button_element_base {
-	public:
+public:
 	dcon::unit_type_id unit_type{};
 
 	void button_action(sys::state& state) noexcept override {
@@ -85,7 +84,7 @@ class unit_folder_button : public button_element_base {
 };
 
 class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
-	public:
+public:
 	ui::unit_build_button* build_button;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
@@ -165,12 +164,12 @@ class units_build_item : public listbox_row_element_base<buildable_unit_entry_in
 };
 
 class units_build_listbox : public listbox_element_base<units_build_item, buildable_unit_entry_info> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "build_unit_entry_wide";
 	}
 
-	public:
+public:
 	// false == army
 	// true == navy
 	bool is_navy = true;
@@ -220,7 +219,7 @@ class units_build_listbox : public listbox_element_base<units_build_item, builda
 
 class units_queue_item
 		: public listbox_row_element_base<std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
-	public:
+public:
 	ui::image_element_base* unit_icon = nullptr;
 	ui::simple_text_element_base* unit_name = nullptr;
 
@@ -293,12 +292,12 @@ class units_queue_item
 
 class units_queue_listbox : public listbox_element_base<units_queue_item,
 																std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "queue_unit_entry";
 	}
 
-	public:
+public:
 	// false == army
 	// true == navy
 	bool is_navy = true;
@@ -326,7 +325,7 @@ class build_unit_large_window : public window_element_base {
 	dcon::unit_type_id first_land_type{};
 	dcon::unit_type_id first_naval_type{};
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

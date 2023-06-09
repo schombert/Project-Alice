@@ -45,7 +45,7 @@ public:
 };
 
 class politics_unciv_overlay : public standard_nation_icon {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		set_visible(state, !state.world.nation_get_is_civilized(nation_id));
 		return 0;
@@ -53,7 +53,7 @@ class politics_unciv_overlay : public standard_nation_icon {
 };
 
 class politics_upper_house_entry : public listbox_row_element_base<dcon::ideology_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "ideology_icon") {
 			return make_element_by_type<ideology_plupp>(state, id);
@@ -68,7 +68,7 @@ class politics_upper_house_entry : public listbox_row_element_base<dcon::ideolog
 };
 
 class politics_hold_election : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		command::start_election(state, state.local_player_nation);
 	}
@@ -79,12 +79,12 @@ class politics_hold_election : public button_element_base {
 };
 
 class politics_upper_house_listbox : public listbox_element_base<politics_upper_house_entry, dcon::ideology_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "ideology_option_window";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_ideology([&](dcon::ideology_id ideology_id) {
@@ -96,7 +96,7 @@ class politics_upper_house_listbox : public listbox_element_base<politics_upper_
 };
 
 class politics_party_issue_entry : public listbox_row_element_base<dcon::issue_option_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "issue_group") {
 			return make_element_by_type<generic_name_text<dcon::issue_id>>(state, id);
@@ -117,12 +117,12 @@ class politics_party_issue_entry : public listbox_row_element_base<dcon::issue_o
 };
 
 class politics_party_issues_listbox : public listbox_element_base<politics_party_issue_entry, dcon::issue_option_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "party_issue_option_window";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::political_party_id{};
@@ -145,7 +145,7 @@ class politics_party_issues_listbox : public listbox_element_base<politics_party
 };
 
 class politics_choose_party_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::political_party_id{};
@@ -173,7 +173,7 @@ class politics_choose_party_button : public button_element_base {
 };
 
 class politics_all_party_entry : public listbox_row_element_base<dcon::political_party_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "party_name") {
 			return make_element_by_type<politics_choose_party_button>(state, id);
@@ -200,7 +200,7 @@ class politics_all_party_entry : public listbox_row_element_base<dcon::political
 };
 
 class politics_all_party_listbox : public listbox_element_base<politics_all_party_entry, dcon::political_party_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "party_window";
 	}
@@ -212,7 +212,7 @@ class politics_all_party_listbox : public listbox_element_base<politics_all_part
 };
 
 class politics_all_party_window : public window_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		base_data.position.y -= 66;
@@ -230,10 +230,10 @@ class politics_all_party_window : public window_element_base {
 };
 
 class politics_change_party_button : public standard_nation_button {
-	private:
+private:
 	politics_all_party_window* all_party_window = nullptr;
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -259,7 +259,7 @@ class politics_change_party_button : public standard_nation_button {
 };
 
 class politics_ruling_party_window : public window_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("ruling_party_pos")->second.definition].position;
@@ -291,7 +291,7 @@ class politics_ruling_party_window : public window_element_base {
 };
 
 class nation_government_description_text : public generic_multiline_text<dcon::nation_id> {
-	public:
+public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::nation_id nation_id) noexcept override {
 		if(politics::can_appoint_ruling_party(state, nation_id)) {
 			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
@@ -331,7 +331,7 @@ class nation_government_description_text : public generic_multiline_text<dcon::n
 };
 
 class standard_nation_issue_option_text : public simple_text_element_base {
-	public:
+public:
 	virtual std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept {
 		return "";
 	}
@@ -347,21 +347,21 @@ class standard_nation_issue_option_text : public simple_text_element_base {
 };
 
 class issue_option_popular_support : public standard_nation_issue_option_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept override {
 		return text::format_percentage(politics::get_popular_support(state, state.local_player_nation, issue_option_id), 1);
 	}
 };
 
 class issue_option_voter_support : public standard_nation_issue_option_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::issue_option_id issue_option_id) noexcept override {
 		return text::format_percentage(politics::get_voter_support(state, state.local_player_nation, issue_option_id), 1);
 	}
 };
 
 class politics_issue_support_item : public listbox_row_element_base<dcon::issue_option_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "issue_name") {
 			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
@@ -376,12 +376,12 @@ class politics_issue_support_item : public listbox_row_element_base<dcon::issue_
 };
 
 class politics_issue_support_listbox : public listbox_element_base<politics_issue_support_item, dcon::issue_option_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "issue_option_window";
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base<politics_issue_support_item, dcon::issue_option_id>::on_create(state);
 		state.world.for_each_issue_option([&](dcon::issue_option_id io_id) { row_contents.push_back(io_id); });
@@ -400,7 +400,7 @@ class politics_hold_election_button : public button_element_base {
 };
 
 class politics_issue_sort_button : public button_element_base {
-	public:
+public:
 	politics_issue_sort_order order = politics_issue_sort_order::name;
 
 	void button_action(sys::state& state) noexcept override {
@@ -412,7 +412,7 @@ class politics_issue_sort_button : public button_element_base {
 };
 
 class politics_window : public generic_tabbed_window<politics_window_tab> {
-	private:
+private:
 	reforms_window* reforms_win = nullptr;
 	unciv_reforms_window* unciv_reforms_win = nullptr;
 	movements_window* movements_win = nullptr;
@@ -422,7 +422,7 @@ class politics_window : public generic_tabbed_window<politics_window_tab> {
 	element_base* release_win = nullptr;
 	dcon::nation_id release_nation_id{};
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 		{

@@ -2883,17 +2883,18 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	}
 
 	/*
-	 slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+	 slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x
+	 (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait
+	 + 1)
 	*/
 	auto leader = state.world.army_get_general_from_army_leadership(a);
 	auto bg = state.world.leader_get_background(leader);
 	auto per = state.world.leader_get_personality(leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return
-		min_speed
-		* (1.0f + state.world.province_get_railroad_level(state.world.army_get_location_from_army_location(a)) *
-										 state.economy_definitions.railroad_definition.infrastructure)
-		* (leader_move + 1.0f);
+	return min_speed *
+				 (1.0f + state.world.province_get_railroad_level(state.world.army_get_location_from_army_location(a)) *
+										 state.economy_definitions.railroad_definition.infrastructure) *
+				 (leader_move + 1.0f);
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
@@ -2908,7 +2909,7 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto bg = state.world.leader_get_background(leader);
 	auto per = state.world.leader_get_personality(leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed *  (leader_move + 1.0f);
+	return min_speed * (leader_move + 1.0f);
 }
 
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
@@ -2974,7 +2975,6 @@ void update_movement(sys::state& state) {
 					path.clear();
 				}
 			}
-			
 
 			if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
@@ -2992,7 +2992,7 @@ void update_movement(sys::state& state) {
 
 			if(dest.index() < state.province_definitions.first_sea_province.index()) { // land province
 				if(province::has_access_to_province(state, n.get_controller_from_navy_control(), dest)) {
-					
+
 					n.set_location_from_navy_location(dest);
 
 					// check for whether there are troops to disembark

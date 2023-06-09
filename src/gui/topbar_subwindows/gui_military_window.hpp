@@ -58,6 +58,7 @@ protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return text::format_percentage(4.20, 2);
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
@@ -106,6 +107,7 @@ class military_window : public window_element_base {
 private:
 	button_element_base* mob_button = nullptr;
 	button_element_base* demob_button = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);

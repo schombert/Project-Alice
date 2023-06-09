@@ -6,7 +6,7 @@
 namespace ui {
 
 class factory_build_cancel_button : public generic_close_button {
-	public:
+public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -19,7 +19,7 @@ class factory_build_cancel_button : public generic_close_button {
 };
 
 class factory_build_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any sidload = dcon::state_instance_id{};
@@ -48,7 +48,7 @@ class factory_build_button : public button_element_base {
 };
 
 class factory_build_output_name_text : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
 		auto name = fat.get_name();
@@ -66,7 +66,7 @@ class factory_build_output_name_text : public simple_text_element_base {
 };
 
 class factory_build_cost_text : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
 		auto& name = fat.get_construction_costs();
@@ -91,7 +91,7 @@ class factory_build_cost_text : public simple_text_element_base {
 };
 
 class factory_build_time_text : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
 		auto name = fat.get_construction_time();
@@ -109,7 +109,7 @@ class factory_build_time_text : public simple_text_element_base {
 };
 
 class factory_build_item_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any sidload = dcon::state_instance_id{};
@@ -136,7 +136,7 @@ class factory_build_item_button : public button_element_base {
 };
 
 class factory_build_item : public listbox_row_element_base<dcon::factory_type_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			auto ptr = make_element_by_type<factory_build_item_button>(state, id);
@@ -172,12 +172,12 @@ class factory_build_item : public listbox_row_element_base<dcon::factory_type_id
 };
 
 class factory_build_list : public listbox_element_base<factory_build_item, dcon::factory_type_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "new_factory_option";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any s_payload = dcon::state_instance_id{};
@@ -201,7 +201,7 @@ class factory_build_list : public listbox_element_base<factory_build_item, dcon:
 };
 
 class factory_title : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::factory_type_id fid) noexcept {
 		auto fat = dcon::fatten(state.world, fid);
 		return text::produce_simple_string(state, fat.get_name());
@@ -218,7 +218,7 @@ class factory_title : public simple_text_element_base {
 };
 
 class needed_workers_count_text : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::factory_type_id fid) noexcept {
 		auto fat = dcon::fatten(state.world, fid);
 		return text::prettify(fat.get_base_workforce());
@@ -235,7 +235,7 @@ class needed_workers_count_text : public simple_text_element_base {
 };
 
 class output_amount_text : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::factory_type_id fid) noexcept {
 		auto fat = dcon::fatten(state.world, fid);
 		return text::prettify(int64_t(fat.get_output_amount()));
@@ -252,7 +252,7 @@ class output_amount_text : public simple_text_element_base {
 };
 
 class factory_current_funds_text : public simple_text_element_base {
-	public:
+public:
 	std::string get_text(sys::state& state) noexcept {
 		return text::format_money(nations::get_treasury(state, state.local_player_nation));
 	}
@@ -263,7 +263,7 @@ class factory_current_funds_text : public simple_text_element_base {
 };
 
 class factory_build_description : public multiline_text_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		multiline_text_element_base::on_create(state);
 	}
@@ -286,10 +286,10 @@ class factory_build_description : public multiline_text_element_base {
 };
 
 class factory_build_window : public window_element_base {
-	private:
+private:
 	dcon::factory_type_id factory_to_build{};
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

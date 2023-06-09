@@ -14,7 +14,7 @@
 
 namespace dcon {
 class pop_satisfaction_wrapper_id {
-	public:
+public:
 	using value_base_t = uint8_t;
 	uint8_t value = 0;
 	pop_satisfaction_wrapper_id() { }
@@ -26,7 +26,7 @@ class pop_satisfaction_wrapper_id {
 class pop_satisfaction_wrapper_fat {
 	static text_sequence_id names[5];
 
-	public:
+public:
 	uint8_t value = 0;
 	void set_name(text_sequence_id text) noexcept {
 		names[value] = text;
@@ -67,7 +67,7 @@ template<> uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapp
 
 namespace ui {
 template<culture::pop_strata Strata> class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
-	protected:
+protected:
 	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
 			sys::state& state) noexcept override {
 		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
@@ -114,7 +114,7 @@ template<culture::pop_strata Strata> class pop_satisfaction_piechart : public pi
 		return distrib;
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		// Fill-in static information...
 		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
@@ -163,7 +163,7 @@ struct budget_slider_signal {
 };
 
 template<budget_slider_target SliderTarget> class budget_slider : public scrollbar {
-	public:
+public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
 			float amount = float(v) / 100.0f;
@@ -198,7 +198,7 @@ template<budget_slider_target SliderTarget> class budget_slider : public scrollb
 		commit_changes(state);
 	}
 
-	private:
+private:
 	void commit_changes(sys::state& state) noexcept {
 		auto budget_settings = command::make_empty_budget_settings();
 		update_budget_settings(budget_settings);
@@ -314,11 +314,11 @@ class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs>
 };
 
 class budget_scaled_monetary_value_text : public standard_nation_text {
-	private:
+private:
 	std::array<float, size_t(budget_slider_target::target_count)> values;
 	std::array<float, size_t(budget_slider_target::target_count)> multipliers;
 
-	public:
+public:
 	virtual void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept { }
 
 	void on_create(sys::state& state) noexcept override {
@@ -355,7 +355,7 @@ class budget_scaled_monetary_value_text : public standard_nation_text {
 };
 
 class budget_estimated_stockpile_spending_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::construction_stock)] =
 				economy::estimate_construction_spending(state, state.local_player_nation);
@@ -365,21 +365,21 @@ class budget_estimated_stockpile_spending_text : public budget_scaled_monetary_v
 };
 
 class budget_army_spending_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
 	}
 };
 
 class budget_naval_spending_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 	}
 };
 
 class budget_tariff_income_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
 	}
@@ -394,21 +394,21 @@ class budget_stratified_tax_income_text : public budget_scaled_monetary_value_te
 
 template<culture::income_type IncomeType, budget_slider_target BudgetTarget>
 class budget_expenditure_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(BudgetTarget)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, IncomeType);
 	}
 };
 
 class budget_social_spending_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation);
 	}
 };
 
 class budget_income_projection_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::poor_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
@@ -421,7 +421,7 @@ class budget_income_projection_text : public budget_scaled_monetary_value_text {
 };
 
 class budget_expenditure_projection_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::construction_stock)] =
 				economy::estimate_construction_spending(state, state.local_player_nation);
@@ -440,7 +440,7 @@ class budget_expenditure_projection_text : public budget_scaled_monetary_value_t
 };
 
 class budget_balance_projection_text : public budget_scaled_monetary_value_text {
-	public:
+public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		// income
 		vals[uint8_t(budget_slider_target::poor_tax)] =
@@ -473,7 +473,7 @@ class budget_balance_projection_text : public budget_scaled_monetary_value_text 
 };
 
 class budget_take_loan_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<bool>{bool{true}};
@@ -486,7 +486,7 @@ class budget_take_loan_button : public button_element_base {
 // loan window
 
 class budget_repay_loan_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<bool>{bool{false}};
@@ -496,7 +496,7 @@ class budget_repay_loan_button : public button_element_base {
 };
 
 class budget_take_loan_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -518,7 +518,7 @@ class budget_take_loan_window : public window_element_base {
 };
 
 class budget_repay_loan_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -540,10 +540,10 @@ class budget_repay_loan_window : public window_element_base {
 };
 
 class budget_pop_list_item : public window_element_base {
-	private:
+private:
 	fixed_pop_type_icon* pop_type_icon = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
@@ -566,12 +566,12 @@ class budget_pop_list_item : public window_element_base {
 
 template<culture::pop_strata Strata>
 class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "pop_listitem";
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
 		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
@@ -585,12 +585,12 @@ class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_l
 
 template<culture::income_type Income>
 class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "pop_listitem";
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
 		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
@@ -605,18 +605,18 @@ class budget_pop_income_list : public overlapping_listbox_element_base<budget_po
 };
 
 template<culture::income_type Income> class budget_small_pop_income_list : public budget_pop_income_list<Income> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "pop_listitem_small";
 	}
 };
 
 class budget_window : public window_element_base {
-	private:
+private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
 	budget_repay_loan_window* budget_repay_loan_win = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 

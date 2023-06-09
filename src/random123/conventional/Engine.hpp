@@ -71,7 +71,7 @@ template<typename CBRNG> struct Engine {
 	typedef typename CBRNG::ukey_type ukey_type;
 	typedef typename ctr_type::value_type result_type;
 
-	protected:
+protected:
 	cbrng_type b;
 	key_type key;
 	ctr_type c;
@@ -85,7 +85,7 @@ template<typename CBRNG> struct Engine {
 		}
 	}
 
-	public:
+public:
 	explicit Engine() : b(), c() {
 		ukey_type x = {{}};
 		v.back() = 0;

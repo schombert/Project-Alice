@@ -7,8 +7,7 @@ namespace ui {
 template<typename T>
 struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> { };
 
-template<typename T>
-class military_unit_name_text : public simple_text_element_base {
+template<typename T> class military_unit_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -31,9 +30,10 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, std::string_view("UwU"));	// TODO - this should only display if the unit is being built,
-											// it needs to display the goods that are needed before contruction can
-											// begin, once said goods are found it doesnt display anything
+		text::add_to_layout_box(state, contents, box,
+				std::string_view("UwU")); // TODO - this should only display if the unit is being built,
+																	// it needs to display the goods that are needed before contruction can
+																	// begin, once said goods are found it doesnt display anything
 		text::close_layout_box(contents, box);
 	}
 };
@@ -46,7 +46,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("military_morale_tooltip"), text::variable_type::value, uint8_t(progress * 100));
+		text::localised_single_sub_box(state, contents, box, std::string_view("military_morale_tooltip"), text::variable_type::value,
+				uint8_t(progress * 100));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -60,13 +61,13 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		// This should change to use "military_shipstrength_tooltip" instead for naval units
-		text::localised_single_sub_box(state, contents, box, std::string_view("military_strength_tooltip2"), text::variable_type::percent, uint8_t(progress * 100));
+		text::localised_single_sub_box(state, contents, box, std::string_view("military_strength_tooltip2"),
+				text::variable_type::percent, uint8_t(progress * 100));
 		text::close_layout_box(contents, box);
 	}
 };
 
-template<typename T>
-class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
+template<typename T> class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
 	simple_text_element_base* unit_name = nullptr;
 	image_element_base* unit_icon = nullptr;
 	image_element_base* leader_icon = nullptr;
@@ -82,7 +83,7 @@ class military_unit_entry : public listbox_row_element_base<military_unit_info<T
 	image_element_base* unit_digin_icon = nullptr;
 	image_element_base* unit_combat_icon = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "military_unit_entry_bg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -231,14 +232,13 @@ class military_unit_entry : public listbox_row_element_base<military_unit_info<T
 	}
 };
 
-template<typename T>
-class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
-	protected:
+template<typename T> class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
+protected:
 	std::string_view get_row_element_name() override {
 		return "unit_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		auto& row_contents = listbox_element_base<military_unit_entry<T>, military_unit_info<T>>::row_contents;
 		row_contents.clear();
@@ -269,9 +269,8 @@ class military_units_listbox : public listbox_element_base<military_unit_entry<T
 	}
 };
 
-template<class T>
-class build_unit_button : public button_element_base {
-	public:
+template<class T> class build_unit_button : public button_element_base {
+public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, false);
 		state.ui_state.unit_window_navy->set_visible(state, false);
@@ -297,7 +296,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("military_army_count_tooltip"), text::variable_type::value, get_num_brigades(state, state.local_player_nation));
+		text::localised_single_sub_box(state, contents, box, std::string_view("military_army_count_tooltip"),
+				text::variable_type::value, get_num_brigades(state, state.local_player_nation));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -310,7 +310,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("military_navy_count_tooltip"), text::variable_type::value, get_num_navies(state, state.local_player_nation));
+		text::localised_single_sub_box(state, contents, box, std::string_view("military_navy_count_tooltip"),
+				text::variable_type::value, get_num_navies(state, state.local_player_nation));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -345,10 +346,10 @@ public:
 	}
 };
 
-template<class T>
-class military_units_window : public window_element_base {
+template<class T> class military_units_window : public window_element_base {
 private:
 	image_element_base* cdts_icon = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "current_count") {
@@ -388,7 +389,6 @@ public:
 		} else {
 			return nullptr;
 		}
-
 	}
 };
 

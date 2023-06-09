@@ -48,7 +48,7 @@ public:
 };
 
 class nation_growth_indicator : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -94,7 +94,7 @@ class nation_growth_indicator : public opaque_element_base {
 };
 
 class state_growth_indicator : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -140,7 +140,7 @@ class state_growth_indicator : public opaque_element_base {
 };
 
 class pop_growth_indicator : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -187,7 +187,7 @@ class pop_growth_indicator : public opaque_element_base {
 };
 
 class pop_revolt_faction : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -236,7 +236,7 @@ class pop_revolt_faction : public opaque_element_base {
 };
 
 class pop_movement_social : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -285,7 +285,7 @@ class pop_movement_social : public opaque_element_base {
 };
 
 class pop_movement_political : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -334,7 +334,7 @@ class pop_movement_political : public opaque_element_base {
 };
 
 class pop_movement_flag : public opaque_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -387,7 +387,7 @@ class pop_movement_flag : public opaque_element_base {
 };
 
 class pop_cash_reserve_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -425,7 +425,7 @@ class pop_cash_reserve_text : public simple_text_element_base {
 	}
 };
 class pop_culture_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -448,7 +448,7 @@ class pop_culture_text : public simple_text_element_base {
 	}
 };
 class pop_size_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -461,7 +461,7 @@ class pop_size_text : public simple_text_element_base {
 	}
 };
 class pop_location_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -475,7 +475,7 @@ class pop_location_text : public simple_text_element_base {
 	}
 };
 class pop_militancy_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -501,7 +501,7 @@ class pop_militancy_text : public simple_text_element_base {
 	}
 };
 class pop_con_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -527,7 +527,7 @@ class pop_con_text : public simple_text_element_base {
 	}
 };
 class pop_literacy_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -575,7 +575,7 @@ enum class pop_list_sort : uint8_t {
 };
 
 class standard_pop_progress_bar : public progress_bar {
-	public:
+public:
 	virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept {
 		return 0.f;
 	}
@@ -597,7 +597,7 @@ class standard_pop_progress_bar : public progress_bar {
 	}
 };
 class standard_pop_needs_progress_bar : public progress_bar {
-	public:
+public:
 	virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept {
 		return 0.f;
 	}
@@ -620,7 +620,7 @@ class standard_pop_needs_progress_bar : public progress_bar {
 };
 
 class pop_unemployment_progress_bar : public standard_pop_progress_bar {
-	public:
+public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto pfat_id = dcon::fatten(state.world, content);
 		if(state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)))
@@ -651,7 +651,7 @@ class pop_unemployment_progress_bar : public standard_pop_progress_bar {
 	}
 };
 class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
-	public:
+public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_life_needs_satisfaction();
@@ -680,7 +680,7 @@ class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
 };
 
 class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
-	public:
+public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_everyday_needs_satisfaction();
@@ -709,7 +709,7 @@ class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
 };
 
 class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
-	public:
+public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_luxury_needs_satisfaction();
@@ -738,12 +738,12 @@ class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
 };
 
 class pop_issues_piechart : public demographic_piechart<dcon::pop_id, dcon::issue_option_id> {
-	protected:
+protected:
 	void for_each_demo(sys::state& state, std::function<void(dcon::issue_option_id)> fun) override {
 		state.world.for_each_issue_option(fun);
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.x = 28;
 		base_data.size.y = 28;
@@ -752,12 +752,12 @@ class pop_issues_piechart : public demographic_piechart<dcon::pop_id, dcon::issu
 	}
 };
 class pop_ideology_piechart : public demographic_piechart<dcon::pop_id, dcon::ideology_id> {
-	protected:
+protected:
 	void for_each_demo(sys::state& state, std::function<void(dcon::ideology_id)> fun) override {
 		state.world.for_each_ideology(fun);
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.x = 28;
 		base_data.size.y = 28;
@@ -768,7 +768,7 @@ class pop_ideology_piechart : public demographic_piechart<dcon::pop_id, dcon::id
 
 typedef std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id> pop_left_side_data;
 template<typename T> class pop_left_side_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
@@ -797,7 +797,7 @@ template<typename T> class pop_left_side_button : public button_element_base {
 	}
 };
 class pop_left_side_country_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "poplistbutton") {
 			return make_element_by_type<pop_left_side_button<dcon::nation_id>>(state, id);
@@ -814,7 +814,7 @@ class pop_left_side_country_window : public window_element_base {
 };
 typedef std::variant< std::monostate, dcon::state_instance_id, bool> pop_left_side_expand_action;
 class pop_left_side_expand_button : public button_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
@@ -847,7 +847,7 @@ class pop_left_side_expand_button : public button_element_base {
 };
 
 class pop_national_focus_button : public button_element_base {
-	public:
+public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -896,7 +896,7 @@ class pop_national_focus_button : public button_element_base {
 class pop_left_side_state_window : public window_element_base {
 	image_element_base* colonial_icon = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "poplistbutton") {
 			return make_element_by_type<pop_left_side_button<dcon::state_instance_id>>(state, id);
@@ -929,7 +929,7 @@ class pop_left_side_state_window : public window_element_base {
 	}
 };
 class pop_left_side_province_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "poplistbutton") {
 			return make_element_by_type<pop_left_side_button<dcon::province_id>>(state, id);
@@ -950,7 +950,7 @@ class pop_left_side_item : public listbox_row_element_base<pop_left_side_data> {
 	pop_left_side_state_window* state_window = nullptr;
 	pop_left_side_province_window* province_window = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<pop_left_side_data>::on_create(state);
 
@@ -999,7 +999,7 @@ class pop_left_side_item : public listbox_row_element_base<pop_left_side_data> {
 };
 
 class pop_left_side_listbox : public listbox_element_base<pop_left_side_item, pop_left_side_data> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "pop_left_side_list_base_window";
 	}
@@ -1008,7 +1008,7 @@ class pop_left_side_listbox : public listbox_element_base<pop_left_side_item, po
 template<typename T> class pop_distribution_plupp : public tinted_image_element_base {
 	T content{};
 
-	public:
+public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any id_payload = T{};
@@ -1068,7 +1068,7 @@ template<typename T, bool Multiple> class pop_distribution_piechart : public pie
 		}
 	}
 
-	protected:
+protected:
 	std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept override {
 		std::unordered_map<typename T::value_base_t, float> distrib{};
 		if(piechart<T>::parent) {
@@ -1087,7 +1087,7 @@ template<typename T, bool Multiple> class pop_distribution_piechart : public pie
 		return distrib;
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		piechart<T>::on_create(state);
 		// piechart<T>::base_data.position.x -= piechart<T>::base_data.size.x;
@@ -1102,7 +1102,7 @@ template<typename T> class pop_distribution_item : public listbox_row_element_ba
 	element_base* title_text = nullptr;
 	simple_text_element_base* value_text = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "legend_color") {
 			return make_element_by_type<pop_distribution_plupp<T>>(state, id);
@@ -1132,7 +1132,7 @@ template<typename T> class pop_distribution_item : public listbox_row_element_ba
 	}
 };
 template<typename T> class pop_distribution_listbox : public listbox_element_base<pop_distribution_item<T>, std::pair<T, float>> {
-	public:
+public:
 	std::string_view get_row_element_name() override {
 		return "pop_legend_item";
 	}
@@ -1140,7 +1140,7 @@ template<typename T> class pop_distribution_listbox : public listbox_element_bas
 template<typename T, bool Multiple> class pop_distribution_window : public window_element_base {
 	pop_distribution_listbox<T>* distrib_listbox;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "item_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -1232,7 +1232,7 @@ class pop_details_promotion_percent_text : public button_element_base {
 	dcon::pop_location_id pop_loc{};
 	float chance = 0.f;
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		set_button_text(state, text::format_percentage(chance, 1));
 	}
@@ -1270,7 +1270,7 @@ template<size_t N> class pop_details_promotion_window : public window_element_ba
 	fixed_pop_type_icon* type_icon = nullptr;
 	pop_details_promotion_percent_text* percent_text = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop_type") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
@@ -1308,7 +1308,7 @@ class pop_details_needs_item : public listbox_row_element_base<pop_details_needs
 	commodity_factory_image* commodity_icon = nullptr;
 	simple_text_element_base* value_text = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
 			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
@@ -1336,7 +1336,7 @@ class pop_details_needs_item : public listbox_row_element_base<pop_details_needs
 	}
 };
 class pop_details_needs_listbox : public listbox_element_base<pop_details_needs_item, pop_details_needs_data> {
-	public:
+public:
 	std::string_view get_row_element_name() override {
 		return "popdetail_needs_entry";
 	}
@@ -1377,7 +1377,7 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 			generate_distribution_windows<Targs...>(state);
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
@@ -1545,7 +1545,7 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 };
 
 class pop_details_icon : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -1589,7 +1589,7 @@ class pop_details_icon : public button_element_base {
 };
 
 class pop_item : public listbox_row_element_base<dcon::pop_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop_size") {
 			return make_element_by_type<pop_size_text>(state, id);
@@ -1648,7 +1648,7 @@ class pop_item : public listbox_row_element_base<dcon::pop_id> {
 	}
 };
 class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "popinfomember_popview";
 	}
@@ -1656,7 +1656,7 @@ class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
 
 typedef std::variant< std::monostate, dcon::pop_type_id, bool> pop_filter_data;
 class pop_filter_button : public generic_settable_element<button_element_base, dcon::pop_type_id> {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		frame = int32_t(state.world.pop_type_get_sprite(content) - 1);
 	}
@@ -1714,11 +1714,11 @@ class pop_filter_button : public generic_settable_element<button_element_base, d
 };
 
 class pop_filter_select_action {
-	public:
+public:
 	bool value;
 };
 template<bool B> class pop_filter_select_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = pop_filter_select_action{B};
@@ -1728,7 +1728,7 @@ template<bool B> class pop_filter_select_button : public button_element_base {
 };
 
 template<pop_list_sort Sort> class pop_sort_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = Sort;
@@ -1790,7 +1790,7 @@ template<pop_list_sort Sort> class pop_sort_button : public button_element_base 
 };
 
 class population_window : public window_element_base {
-	private:
+private:
 	pop_listbox* country_pop_listbox = nullptr;
 	pop_left_side_listbox* left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
@@ -2007,7 +2007,7 @@ class population_window : public window_element_base {
 			generate_distribution_windows<Targs...>(state);
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

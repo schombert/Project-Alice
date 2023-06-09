@@ -13,7 +13,7 @@ namespace ui {
 enum class movements_sort_order { size, radicalism, name };
 
 class movements_sort_order_button : public button_element_base {
-	public:
+public:
 	movements_sort_order order = movements_sort_order::size;
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -24,7 +24,7 @@ class movements_sort_order_button : public button_element_base {
 };
 
 class movement_suppress_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -51,12 +51,12 @@ class movement_suppress_button : public button_element_base {
 };
 
 class movements_option : public listbox_row_element_base<dcon::movement_id> {
-	private:
+private:
 	flag_button* nationalist_flag = nullptr;
 	movement_nationalist_name_text* nationalist_name = nullptr;
 	movement_issue_name_text* issue_name = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			auto ptr = make_element_by_type<movement_issue_name_text>(state, id);
@@ -104,15 +104,15 @@ class movements_option : public listbox_row_element_base<dcon::movement_id> {
 };
 
 class movements_list : public listbox_element_base<movements_option, dcon::movement_id> {
-	private:
+private:
 	dcon::nation_id nation_id{};
 
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "movement_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto movement : state.world.nation_get_movement_within(nation_id)) {
@@ -133,7 +133,7 @@ class movements_list : public listbox_element_base<movements_option, dcon::movem
 };
 
 class rebel_faction_size_text : public standard_rebel_faction_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		float total = 0.f;
 		for(auto member : state.world.rebel_faction_get_pop_rebellion_membership(rebel_faction_id)) {
@@ -144,7 +144,7 @@ class rebel_faction_size_text : public standard_rebel_faction_text {
 };
 
 class rebel_faction_active_brigade_count_text : public standard_rebel_faction_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto count = rebel::get_faction_brigades_active(state, rebel_faction_id);
 		return text::prettify(count);
@@ -152,7 +152,7 @@ class rebel_faction_active_brigade_count_text : public standard_rebel_faction_te
 };
 
 class rebel_faction_ready_brigade_count_text : public standard_rebel_faction_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto count = rebel::get_faction_brigades_ready(state, rebel_faction_id);
 		return text::prettify(count);
@@ -160,7 +160,7 @@ class rebel_faction_ready_brigade_count_text : public standard_rebel_faction_tex
 };
 
 class rebel_faction_organization_text : public standard_rebel_faction_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto org = rebel::get_faction_organization(state, rebel_faction_id);
 		return text::format_percentage(org, 1);
@@ -168,7 +168,7 @@ class rebel_faction_organization_text : public standard_rebel_faction_text {
 };
 
 class rebel_faction_revolt_risk_text : public standard_rebel_faction_text {
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto risk = rebel::get_faction_revolt_risk(state, rebel_faction_id);
 		return text::format_percentage(risk, 1);
@@ -176,7 +176,7 @@ class rebel_faction_revolt_risk_text : public standard_rebel_faction_text {
 };
 
 class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_faction_id> {
-	public:
+public:
 	void populate_layout(sys::state& state, text::endless_layout& contents,
 			dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
@@ -201,7 +201,7 @@ class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_factio
 };
 
 class rebel_faction_type_icon : public opaque_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::rebel_faction_id{};
@@ -213,7 +213,7 @@ class rebel_faction_type_icon : public opaque_element_base {
 };
 
 class movements_rebel_option : public listbox_row_element_base<dcon::rebel_faction_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "size") {
 			return make_element_by_type<rebel_faction_size_text>(state, id);
@@ -236,12 +236,12 @@ class movements_rebel_option : public listbox_row_element_base<dcon::rebel_facti
 };
 
 class movements_rebel_list : public listbox_element_base<movements_rebel_option, dcon::rebel_faction_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "rebel_window";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto rebellion : state.world.nation_get_rebellion_within(state.local_player_nation)) {
@@ -252,10 +252,10 @@ class movements_rebel_list : public listbox_element_base<movements_rebel_option,
 };
 
 class movements_window : public window_element_base {
-	private:
+private:
 	movements_list* movements_listbox = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

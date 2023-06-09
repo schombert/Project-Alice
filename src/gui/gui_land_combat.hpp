@@ -5,7 +5,7 @@
 namespace ui {
 
 class land_combat_defender_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -53,7 +53,7 @@ class land_combat_defender_window : public window_element_base {
 };
 
 class land_combat_attacker_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -103,7 +103,7 @@ class land_combat_attacker_window : public window_element_base {
 class land_combat_window : public window_element_base {
 	image_element_base* land_combat_may_retreat = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "combat_bg") {
 			return make_element_by_type<image_element_base>(state, id);

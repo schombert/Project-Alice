@@ -498,11 +498,11 @@ struct goods_file {
 	}
 
 struct modifier_base {
-	protected:
+protected:
 	sys::national_modifier_definition constructed_definition_n;
 	sys::provincial_modifier_definition constructed_definition_p;
 
-	public:
+public:
 	uint32_t next_to_add_p = 0;
 	uint32_t next_to_add_n = 0;
 	uint8_t icon_index = 0;

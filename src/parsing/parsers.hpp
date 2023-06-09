@@ -34,7 +34,7 @@ struct token_and_type {
 };
 
 class token_generator {
-	private:
+private:
 	char const* position = nullptr;
 	char const* file_end = nullptr;
 	int32_t current_line = 1;
@@ -44,7 +44,7 @@ class token_generator {
 
 	token_and_type internal_next();
 
-	public:
+public:
 	token_generator() { }
 	token_generator(char const* file_start, char const* fe) : position(file_start), file_end(fe) { }
 	bool at_end() const {
@@ -57,7 +57,7 @@ class token_generator {
 };
 
 class error_handler {
-	public:
+public:
 	std::string file_name;
 	std::string accumulated_errors;
 	std::string accumulated_warnings;

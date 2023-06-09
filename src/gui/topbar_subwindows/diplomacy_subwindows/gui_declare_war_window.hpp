@@ -5,7 +5,7 @@
 namespace ui {
 
 class wargoal_cancel_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<dcon::cb_type_id>{};
@@ -17,7 +17,7 @@ class wargoal_cancel_button : public button_element_base {
 //====================================================================================================================================
 
 class wargoal_type_item_icon : public image_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
@@ -29,7 +29,7 @@ class wargoal_type_item_icon : public image_element_base {
 };
 
 class wargoal_type_item_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
@@ -52,7 +52,7 @@ class wargoal_type_item_button : public button_element_base {
 };
 
 class wargoal_type_item : public listbox_row_element_base<dcon::cb_type_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {
 			auto ptr = make_element_by_type<wargoal_type_item_icon>(state, id);
@@ -73,12 +73,12 @@ class wargoal_type_item : public listbox_row_element_base<dcon::cb_type_id> {
 }; // Done by Leaf
 
 class wargoal_type_listbox : public listbox_element_base<wargoal_type_item, dcon::cb_type_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal_item";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -112,7 +112,7 @@ class wargoal_type_listbox : public listbox_element_base<wargoal_type_item, dcon
 };
 
 class wargoal_setup_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_list") {
 			return make_element_by_type<wargoal_type_listbox>(state, id);
@@ -127,7 +127,7 @@ class wargoal_setup_window : public window_element_base {
 //====================================================================================================================================
 
 class wargoal_state_item_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::state_definition_id{};
@@ -150,7 +150,7 @@ class wargoal_state_item_button : public button_element_base {
 };
 
 class wargoal_state_item : public listbox_row_element_base<dcon::state_definition_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select_state") {
 			return make_element_by_type<wargoal_state_item_button>(state, id);
@@ -161,12 +161,12 @@ class wargoal_state_item : public listbox_row_element_base<dcon::state_definitio
 };
 
 class wargoal_state_listbox : public listbox_element_base<wargoal_state_item, dcon::state_definition_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal_state_item";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -189,7 +189,7 @@ class wargoal_state_listbox : public listbox_element_base<wargoal_state_item, dc
 };
 
 class wargoal_state_select_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_list") {
 			return make_element_by_type<wargoal_state_listbox>(state, id);
@@ -204,7 +204,7 @@ class wargoal_state_select_window : public window_element_base {
 //====================================================================================================================================
 
 class wargoal_country_item_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
@@ -226,7 +226,7 @@ class wargoal_country_item_button : public button_element_base {
 };
 
 class wargoal_country_item : public listbox_row_element_base<dcon::national_identity_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select_country") {
 			return make_element_by_type<wargoal_country_item_button>(state, id);
@@ -237,12 +237,12 @@ class wargoal_country_item : public listbox_row_element_base<dcon::national_iden
 };
 
 class wargoal_country_listbox : public listbox_element_base<wargoal_country_item, dcon::national_identity_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal_country_item";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -264,7 +264,7 @@ class wargoal_country_listbox : public listbox_element_base<wargoal_country_item
 };
 
 class wargoal_country_select_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_list") {
 			return make_element_by_type<wargoal_country_listbox>(state, id);
@@ -279,7 +279,7 @@ class wargoal_country_select_window : public window_element_base {
 //====================================================================================================================================
 
 class diplomacy_wargoal_add_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_gain_effect_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -302,7 +302,7 @@ class diplomacy_wargoal_add_window : public window_element_base {
 };
 
 class diplomacy_wargoal_success_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_gain_effect_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -325,7 +325,7 @@ class diplomacy_wargoal_success_window : public window_element_base {
 };
 
 class diplomacy_wargoal_failure_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_gain_effect_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -348,14 +348,14 @@ class diplomacy_wargoal_failure_window : public window_element_base {
 };
 
 class diplomacy_declare_war_title : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, text::produce_simple_string(state, "wartitle"));
 	}
 };
 
 class diplomacy_declare_war_agree_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -447,7 +447,7 @@ class diplomacy_declare_war_agree_button : public button_element_base {
 };
 
 class diplomacy_declare_war_description1 : public generic_multiline_text<dcon::cb_type_id> {
-	public:
+public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept override {
 		auto fat_cb = dcon::fatten(state.world, id);
 		auto box = text::open_layout_box(contents);
@@ -470,7 +470,7 @@ class diplomacy_declare_war_description1 : public generic_multiline_text<dcon::c
 };
 
 class diplomacy_declare_war_description2 : public generic_multiline_text<dcon::cb_type_id> {
-	public:
+public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept override {
 		Cyto::Any payload = dcon::nation_id{};
 		parent->impl_get(state, payload);
@@ -506,7 +506,7 @@ class diplomacy_declare_war_description2 : public generic_multiline_text<dcon::c
 };
 
 class diplomacy_declare_war_call_allies_checkbox : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = bool{};
@@ -528,7 +528,7 @@ class diplomacy_declare_war_call_allies_checkbox : public button_element_base {
 };
 
 class diplomacy_declare_war_dialog : public window_element_base { // eu3dialogtype
-	private:
+private:
 	wargoal_setup_window* wargoal_setup_win = nullptr;
 	wargoal_state_select_window* wargoal_state_win = nullptr;
 	wargoal_country_select_window* wargoal_country_win = nullptr;
@@ -538,7 +538,7 @@ class diplomacy_declare_war_dialog : public window_element_base { // eu3dialogty
 	dcon::national_identity_id target_country{};
 	bool will_call_allies = false;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
@@ -644,7 +644,7 @@ class diplomacy_declare_war_dialog : public window_element_base { // eu3dialogty
 //====================================================================================================================================
 
 class diplomacy_peace_pick_side_description : public generic_multiline_text<bool> {
-	public:
+public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, bool id) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("po_pd_neg_5"));
@@ -656,7 +656,7 @@ class diplomacy_peace_pick_side_description : public generic_multiline_text<bool
 };
 
 template<bool B> class diplomacy_peace_tab_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<bool>{B};
@@ -666,7 +666,7 @@ template<bool B> class diplomacy_peace_tab_button : public button_element_base {
 };
 
 class diplomacy_peace_pick_side_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "war_desc") {
 			return make_element_by_type<diplomacy_peace_pick_side_description>(state, id);
@@ -685,7 +685,7 @@ class diplomacy_peace_pick_side_window : public window_element_base {
 };
 
 template<bool B> class diplomacy_peace_nation_flag : public flag_button {
-	public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::wargoals_attached_id{};
@@ -700,7 +700,7 @@ template<bool B> class diplomacy_peace_nation_flag : public flag_button {
 };
 
 class diplomacy_peace_wargoal_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::wargoals_attached_id{};
@@ -714,7 +714,7 @@ class diplomacy_peace_wargoal_text : public simple_text_element_base {
 };
 
 class diplomacy_peace_wargoal_score_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			int32_t score = 0;
@@ -729,7 +729,7 @@ struct diplomacy_peace_wargoal {
 class diplomacy_peace_select_button : public button_element_base {
 	uint32_t color = 0;
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::wargoals_attached_id{};
@@ -755,7 +755,7 @@ class diplomacy_peace_select_button : public button_element_base {
 };
 
 class diplomacy_peace_goal_row : public listbox_row_element_base<dcon::wargoals_attached_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select") {
 			return make_element_by_type<diplomacy_peace_select_button>(state, id);
@@ -776,12 +776,12 @@ class diplomacy_peace_goal_row : public listbox_row_element_base<dcon::wargoals_
 };
 
 class diplomacy_peace_goal_listbox : public listbox_element_base<diplomacy_peace_goal_row, dcon::wargoals_attached_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "peace_goal_item";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -803,7 +803,7 @@ class diplomacy_peace_goal_listbox : public listbox_element_base<diplomacy_peace
 };
 
 class diplomacy_peace_setup_goals_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_list") {
 			return make_element_by_type<diplomacy_peace_goal_listbox>(state, id);
@@ -818,7 +818,7 @@ class diplomacy_peace_setup_goals_window : public window_element_base {
 };
 
 class diplomacy_peace_total_warscore : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::war_id{};
@@ -834,7 +834,7 @@ class diplomacy_peace_total_warscore : public simple_text_element_base {
 };
 
 class diplomacy_peace_send : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::war_id{};
@@ -864,7 +864,7 @@ class diplomacy_setup_peace_dialog : public window_element_base { // eu3dialogty
 	bool side = true;
 	std::map<int32_t, bool> wargoals;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
@@ -931,7 +931,7 @@ class diplomacy_setup_peace_dialog : public window_element_base { // eu3dialogty
 //==========================================================================================================================================================
 
 class cb_wargoal_icon : public image_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
@@ -943,7 +943,7 @@ class cb_wargoal_icon : public image_element_base {
 };
 
 class cb_wargoal_button : public button_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
@@ -965,7 +965,7 @@ class cb_wargoal_button : public button_element_base {
 };
 
 class diplomacy_make_cb_type : public listbox_row_element_base<dcon::cb_type_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {
 			return make_element_by_type<cb_wargoal_icon>(state, id);
@@ -978,12 +978,12 @@ class diplomacy_make_cb_type : public listbox_row_element_base<dcon::cb_type_id>
 };
 
 class diplomacy_make_cb_listbox : public listbox_element_base<diplomacy_make_cb_type, dcon::cb_type_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "cb_type_item";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -1000,7 +1000,7 @@ class diplomacy_make_cb_listbox : public listbox_element_base<diplomacy_make_cb_
 };
 
 class diplomacy_make_cb_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
@@ -1032,7 +1032,7 @@ class diplomacy_make_cb_button : public button_element_base {
 };
 
 class diplomacy_make_cb_desc : public generic_multiline_text<dcon::cb_type_id> {
-	public:
+public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept override {
 		auto fat_cb = dcon::fatten(state.world, id);
 
@@ -1051,17 +1051,17 @@ class diplomacy_make_cb_desc : public generic_multiline_text<dcon::cb_type_id> {
 };
 
 class make_cb_title : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, text::produce_simple_string(state, "make_cbtitle"));
 	}
 };
 
 class diplomacy_make_cb_window : public window_element_base { // eu3dialogtype
-	private:
+private:
 	dcon::cb_type_id root_cb{};
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
@@ -1104,7 +1104,7 @@ class diplomacy_make_cb_window : public window_element_base { // eu3dialogtype
 };
 
 class diplomacy_crisis_setup_crisis_pick_side_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "crisis_desc") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -1123,7 +1123,7 @@ class diplomacy_crisis_setup_crisis_pick_side_window : public window_element_bas
 };
 
 class diplomacy_crisis_setup_goals_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_list") {
 			// TODO - Listbox here
@@ -1135,7 +1135,7 @@ class diplomacy_crisis_setup_goals_window : public window_element_base {
 };
 
 class diplomacy_crisis_backdown_window : public window_element_base { // eu3dialogtype
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);

@@ -39,6 +39,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "leader_entry";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -121,11 +122,12 @@ private:
 	vertical_progress_bar* subunit_strbar = nullptr;
 	vertical_progress_bar* subunit_orgbar = nullptr;
 	image_element_base* rebellion_icon = nullptr;
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto fat = dcon::fatten(state.world, content);
 		subunit_name->set_text(state, std::string{state.to_string_view(fat.get_name())});
-		//subunit_type->set_text(state, std::string{state.to_string_view(fat.get_type())});
+		// subunit_type->set_text(state, std::string{state.to_string_view(fat.get_type())});
 		subunit_strbar->progress = (fat.get_strength() * 100);
 	}
 
@@ -193,6 +195,7 @@ protected:
 	std::string_view get_row_element_name() {
 		return "reorg_entry";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -217,6 +220,7 @@ protected:
 	std::string_view get_row_element_name() {
 		return "reorg_entry_right";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -236,7 +240,6 @@ public:
 	}
 };
 
-
 class unit_reorg_balance_button : public button_element_base {
 public:
 	// TODO - super complex behaviour here , much stuff
@@ -245,6 +248,7 @@ public:
 class unit_reorg_window : public window_element_base {
 private:
 	dcon::army_id armyToReorg{};
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reorg_bg") {
@@ -310,5 +314,4 @@ public:
 	}
 };
 
-
-}
+} // namespace ui

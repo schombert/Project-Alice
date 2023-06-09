@@ -38,7 +38,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer,
 class texture {
 	GLuint texture_handle = 0;
 
-	public:
+public:
 	uint8_t* data = nullptr;
 	int32_t size_x = 0;
 	int32_t size_y = 0;
@@ -65,7 +65,7 @@ class texture {
 class data_texture {
 	GLuint texture_handle = 0;
 
-	public:
+public:
 	uint8_t* data = nullptr;
 	int32_t size = 0;
 	int32_t channels = 4;

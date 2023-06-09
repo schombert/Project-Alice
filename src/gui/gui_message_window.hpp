@@ -7,7 +7,7 @@
 namespace ui {
 
 template<bool Left> class message_lr_button : public button_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		frame = Left ? 0 : 1;
@@ -26,7 +26,7 @@ struct message_dismiss_notification {
 };
 
 class message_dismiss_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = message_dismiss_notification{};
@@ -36,7 +36,7 @@ class message_dismiss_button : public button_element_base {
 };
 
 class message_count_text : public simple_text_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		simple_text_element_base::on_create(state);
 		black_text = false;
@@ -44,7 +44,7 @@ class message_count_text : public simple_text_element_base {
 };
 
 class message_desc_text : public scrollable_text {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.x = 500 - (base_data.position.x * 2) - 8;
 		base_data.size.y = 18 * 6;
@@ -53,7 +53,7 @@ class message_desc_text : public scrollable_text {
 };
 
 class message_flag_button : public nation_player_flag {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.position.y -= 6;
 		base_data.size.y += 32;
@@ -88,7 +88,7 @@ class message_window : public window_element_base {
 	multiline_text_element_base* title_text = nullptr;
 	message_desc_text* desc_text = nullptr;
 
-	public:
+public:
 	std::vector<notification::message> messages;
 
 	void on_create(sys::state& state) noexcept override {

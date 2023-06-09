@@ -9,7 +9,7 @@ typedef struct HDC__* HDC;
 
 namespace window {
 class window_data_impl {
-	public:
+public:
 	HWND hwnd = nullptr;
 	HDC opengl_window_dc = nullptr;
 
@@ -25,7 +25,7 @@ struct GLFWwindow;
 
 namespace window {
 class window_data_impl {
-	public:
+public:
 	GLFWwindow* window = nullptr;
 
 	int32_t creation_x_size = 600;
