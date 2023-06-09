@@ -574,9 +574,6 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 void send_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
 
-
-
-
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

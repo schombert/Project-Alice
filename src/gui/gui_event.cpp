@@ -148,7 +148,7 @@ void event_option_button::on_update(sys::state& state) noexcept {
 			opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
 			populate_event_submap(state, sub, phe);
 		}
-		text::add_to_layout_box(contents, state, box, opt.name, sub);
+		text::add_to_layout_box(state, contents, box, opt.name, sub);
 		text::close_layout_box(contents, box);
 
 		if(!bool(opt.name) && !bool(opt.effect))
@@ -253,7 +253,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 			description = state.world.free_provincial_event_get_description(phe.e);
 			populate_event_submap(state, sub, phe);
 		}
-		text::add_to_layout_box(contents, state, box, description, sub);
+		text::add_to_layout_box(state, contents, box, description, sub);
 		text::close_layout_box(contents, box);
 	}
 }
@@ -288,7 +288,7 @@ void event_name_text::on_update(sys::state& state) noexcept {
 			name = state.world.free_provincial_event_get_name(phe.e);
 			populate_event_submap(state, sub, phe);
 		}
-		text::add_to_layout_box(contents, state, box, name, sub);
+		text::add_to_layout_box(state, contents, box, name, sub);
 		text::close_layout_box(contents, box);
 	}
 }
@@ -351,7 +351,8 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 	}
 }
 
-template<bool IsMajor> void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
+template<bool IsMajor>
+void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	auto s1 = IsMajor ? "event_major_option_start" : "event_country_option_start";
 	auto s2 = IsMajor ? "event_major_option_offset" : "event_country_option_offset";
@@ -454,7 +455,15 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 	}
 }
 
-template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
+template<bool IsMajor>
+void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
+	if(state.user_settings.use_new_ui) {
+		odds_icon->set_visible(state, true);
+		req_icon->set_visible(state, true);
+	} else {
+		odds_icon->set_visible(state, false);
+		req_icon->set_visible(state, false);
+	}
 	for(auto e : option_buttons)
 		e->set_visible(state, true);
 
@@ -477,7 +486,8 @@ template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state
 		set_visible(state, false);
 }
 
-template<bool IsMajor> message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
+template<bool IsMajor>
+message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(index >= int32_t(events.size()))
 		index = 0;
 	else if(index < 0)
@@ -564,6 +574,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state,
 					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			req_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
@@ -599,6 +610,13 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 	}
 }
 void provincial_event_window::on_update(sys::state& state) noexcept {
+	if(state.user_settings.use_new_ui) {
+		odds_icon->set_visible(state, true);
+		req_icon->set_visible(state, true);
+	} else {
+		odds_icon->set_visible(state, false);
+		req_icon->set_visible(state, false);
+	}
 	for(auto e : option_buttons)
 		e->set_visible(state, true);
 
@@ -612,7 +630,7 @@ void provincial_event_window::on_update(sys::state& state) noexcept {
 	});
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
-	
+
 	for(auto e : new_elements)
 		e->set_visible(state, state.user_settings.use_new_ui);
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));

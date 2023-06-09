@@ -5,7 +5,7 @@
 namespace ui {
 
 class military_leaders : public listbox_row_element_base<dcon::leader_id> {
-	public:
+public:
 	ui::simple_text_element_base* leader_name = nullptr;
 	ui::simple_text_element_base* background = nullptr;
 	ui::simple_text_element_base* personality = nullptr;
@@ -22,25 +22,30 @@ class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			leader_name = ptr.get();
 			return ptr;
+
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			background = ptr.get();
 			return ptr;
+
 		} else if(name == "personality") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			personality = ptr.get();
 			return ptr;
+
 		} else if(name == "use_leader") {
-			auto ptr = make_element_by_type<checkbox_button>(state, id);
-			return ptr;
+			return make_element_by_type<checkbox_button>(state, id);
+
 		} else if(name == "army") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			army = ptr.get();
 			return ptr;
+
 		} else if(name == "location") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			location = ptr.get();
 			return ptr;
+
 		} else {
 			return nullptr;
 		}
@@ -78,12 +83,12 @@ class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 };
 
 class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::leader_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "milview_leader_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto const fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
@@ -92,8 +97,9 @@ class military_leaders_listbox : public listbox_element_base<military_leaders, d
 	}
 };
 
-template<bool B> class military_make_leader_button : public button_element_base {
-	public:
+template<bool B>
+class military_make_leader_button : public button_element_base {
+public:
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
@@ -103,29 +109,85 @@ template<bool B> class military_make_leader_button : public button_element_base 
 	}
 };
 
-class leaders_window : public window_element_base {
-	public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
+class leaders_sortby_prestige : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
 	}
 
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sort_by_prestige"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class leaders_sortby_type : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("military_sort_by_type_tooltip"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class leaders_sortby_name : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("military_sort_by_name_tooltip"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class leaders_sortby_army : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("military_sort_by_assignment_tooltip"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class leaders_window : public window_element_base {
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "sort_leader_prestige") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<leaders_sortby_prestige>(state, id);
+
+		} else if(name == "sort_prestige_icon") {
+			return make_element_by_type<image_element_base>(state, id);
+
 		} else if(name == "sort_leader_type") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<leaders_sortby_type>(state, id);
+
 		} else if(name == "sort_leader_name") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<leaders_sortby_name>(state, id);
+
+		} else if(name == "sort_leader_army") {
+			return make_element_by_type<leaders_sortby_army>(state, id);
+
 		} else if(name == "leader_listbox") {
 			return make_element_by_type<military_leaders_listbox>(state, id);
+
 		} else if(name == "new_general") {
 			return make_element_by_type<military_make_leader_button<true>>(state, id);
+
 		} else if(name == "new_admiral") {
 			return make_element_by_type<military_make_leader_button<false>>(state, id);
+
 		} else {
 			return nullptr;
 		}

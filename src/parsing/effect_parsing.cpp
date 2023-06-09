@@ -1068,7 +1068,8 @@ int32_t simplify_effect(uint16_t* source) {
 	}
 }
 
-template<typename T> void recurse_over_effects(uint16_t* source, T const& f) {
+template<typename T>
+void recurse_over_effects(uint16_t* source, T const& f) {
 	f(source);
 
 	if((source[0] & effect::code_mask) >= effect::first_scope_code) {

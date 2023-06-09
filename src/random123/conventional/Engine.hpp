@@ -64,14 +64,15 @@ namespace r123 {
 	and keys.
 */
 
-template<typename CBRNG> struct Engine {
+template<typename CBRNG>
+struct Engine {
 	typedef CBRNG cbrng_type;
 	typedef typename CBRNG::ctr_type ctr_type;
 	typedef typename CBRNG::key_type key_type;
 	typedef typename CBRNG::ukey_type ukey_type;
 	typedef typename ctr_type::value_type result_type;
 
-	protected:
+protected:
 	cbrng_type b;
 	key_type key;
 	ctr_type c;
@@ -85,7 +86,7 @@ template<typename CBRNG> struct Engine {
 		}
 	}
 
-	public:
+public:
 	explicit Engine() : b(), c() {
 		ukey_type x = {{}};
 		v.back() = 0;

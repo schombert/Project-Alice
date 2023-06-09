@@ -3,7 +3,7 @@ TabWidth: 2
 IndentWidth: 2
 NamespaceIndentation: None
 IndentAccessModifiers: false
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 ColumnLimit: 130
 SortIncludes: Never
 SpaceAfterLogicalNot: false
@@ -26,6 +26,7 @@ SpacesInSquareBrackets: false
 ReferenceAlignment: Left
 PointerAlignment: Left
 QualifierAlignment: Right
+AlwaysBreakTemplateDeclarations: Yes
 
 AlignConsecutiveDeclarations: false
 AlignAfterOpenBracket: DontAlign

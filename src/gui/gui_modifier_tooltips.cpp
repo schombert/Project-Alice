@@ -54,12 +54,12 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 			break;
 		auto data = province_modifier_names[prov_def.offsets[i].index()];
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
-		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(layout, state, box);
+		text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, data.name), text::text_color::white);
+		text::add_to_layout_box(state, layout, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, layout, box);
 		auto color = data.positive_is_green ? (prov_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
 																				: (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
-		text::add_to_layout_box(layout, state, box, format_modifier_value(state, prov_def.values[i], data.type), color);
+		text::add_to_layout_box(state, layout, box, format_modifier_value(state, prov_def.values[i], data.type), color);
 		text::close_layout_box(layout, box);
 	}
 
@@ -69,12 +69,12 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 			break;
 		auto data = national_modifier_names[nat_def.offsets[i].index()];
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
-		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(layout, state, box);
+		text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, data.name), text::text_color::white);
+		text::add_to_layout_box(state, layout, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, layout, box);
 		auto color = data.positive_is_green ? (nat_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
 																				: (nat_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
-		text::add_to_layout_box(layout, state, box, format_modifier_value(state, nat_def.values[i], data.type), color);
+		text::add_to_layout_box(state, layout, box, format_modifier_value(state, nat_def.values[i], data.type), color);
 		text::close_layout_box(layout, box);
 	}
 }
@@ -94,21 +94,21 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 		if(!header) {
 			header = true;
 			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, national_modifier_names[nmid.index()].name),
+			text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, national_modifier_names[nmid.index()].name),
 					text::text_color::yellow);
-			text::add_to_layout_box(layout, state, box, std::string_view(":"), text::text_color::yellow);
+			text::add_to_layout_box(state, layout, box, std::string_view(":"), text::text_color::yellow);
 			text::close_layout_box(layout, box);
 		}
 
 		auto data = national_modifier_names[nmid.index()];
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, fat_id.get_name()), text::text_color::white);
-		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(layout, state, box);
+		text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, fat_id.get_name()), text::text_color::white);
+		text::add_to_layout_box(state, layout, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, layout, box);
 		auto value = def.values[i] * scaled;
 		auto color = data.positive_is_green ? (value >= 0.f ? text::text_color::green : text::text_color::red)
 																				: (value >= 0.f ? text::text_color::red : text::text_color::green);
-		text::add_to_layout_box(layout, state, box, format_modifier_value(state, value, data.type), color);
+		text::add_to_layout_box(state, layout, box, format_modifier_value(state, value, data.type), color);
 		text::close_layout_box(layout, box);
 	}
 }
@@ -127,21 +127,21 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 		if(!header) {
 			header = true;
 			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, national_modifier_names[pmid.index()].name),
+			text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, national_modifier_names[pmid.index()].name),
 					text::text_color::yellow);
-			text::add_to_layout_box(layout, state, box, std::string_view(":"), text::text_color::yellow);
+			text::add_to_layout_box(state, layout, box, std::string_view(":"), text::text_color::yellow);
 			text::close_layout_box(layout, box);
 		}
 
 		auto data = national_modifier_names[pmid.index()];
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, fat_id.get_name()), text::text_color::white);
-		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(layout, state, box);
+		text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, fat_id.get_name()), text::text_color::white);
+		text::add_to_layout_box(state, layout, box, std::string_view{":"}, text::text_color::white);
+		text::add_space_to_layout_box(state, layout, box);
 		auto value = def.values[i] * scaled;
 		auto color = data.positive_is_green ? (value >= 0.f ? text::text_color::green : text::text_color::red)
 																				: (value >= 0.f ? text::text_color::red : text::text_color::green);
-		text::add_to_layout_box(layout, state, box, format_modifier_value(state, value, data.type), color);
+		text::add_to_layout_box(state, layout, box, format_modifier_value(state, value, data.type), color);
 		text::close_layout_box(layout, box);
 	}
 }

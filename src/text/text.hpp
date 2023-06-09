@@ -629,16 +629,16 @@ columnar_layout create_columnar_layout(layout& dest, layout_parameters const& pa
 
 layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 void close_layout_box(columnar_layout& dest, layout_box& box);
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text,
 		substitution_map const& mp = substitution_map{});
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view,
 		text_color color = text_color::white, substitution source = std::monostate{});
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, substitution val,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, substitution val,
 		text_color color = text_color::white);
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const& val,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string const& val,
 		text_color color = text_color::white);
-void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
-void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
+void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
+void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
 void close_layout_box(layout_base& dest, layout_box& box);
 
@@ -659,8 +659,10 @@ std::string format_money(float num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
-template<class T> std::string get_name_as_string(sys::state const& state, T t);
-template<class T> std::string get_adjective_as_string(sys::state const& state, T t);
+template<class T>
+std::string get_name_as_string(sys::state const& state, T t);
+template<class T>
+std::string get_adjective_as_string(sys::state const& state, T t);
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);

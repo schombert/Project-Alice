@@ -62,11 +62,12 @@ struct modifier_hash {
 };
 } // namespace sys
 
-template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>> class tagged_vector {
-	private:
+template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
+class tagged_vector {
+private:
 	std::vector<value_type, allocator> storage;
 
-	public:
+public:
 	using public_value_type = value_type;
 	using public_tag_type = tag_type;
 
@@ -91,7 +92,8 @@ template<typename value_type, typename tag_type, typename allocator = std::alloc
 	value_type& operator[](tag_type t) {
 		return *(storage.data() + t.index());
 	}
-	template<typename... T> tag_type emplace_back(T&&... ts) {
+	template<typename... T>
+	tag_type emplace_back(T&&... ts) {
 		storage.emplace_back(std::forward<T>(ts)...);
 		return tag_type(typename tag_type::value_base_t(storage.size() - 1));
 	}

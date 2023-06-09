@@ -220,14 +220,21 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
 // returns whether a culture is on the accepted list OR is the primary culture
-template<typename T, typename U> auto nation_accepts_culture(sys::state const& state, T ids, U c);
+template<typename T, typename U>
+auto nation_accepts_culture(sys::state const& state, T ids, U c);
 
-template<typename T> auto primary_culture_group(sys::state const& state, T ids);
-template<typename T> auto owner_of_pop(sys::state const& state, T pop_ids);
-template<typename T> auto central_reb_controlled_fraction(sys::state const& state, T ids);
-template<typename T> auto central_blockaded_fraction(sys::state const& state, T ids);
-template<typename T> auto central_has_crime_fraction(sys::state const& state, T ids);
-template<typename T> auto occupied_provinces_fraction(sys::state const& state, T ids);
+template<typename T>
+auto primary_culture_group(sys::state const& state, T ids);
+template<typename T>
+auto owner_of_pop(sys::state const& state, T pop_ids);
+template<typename T>
+auto central_reb_controlled_fraction(sys::state const& state, T ids);
+template<typename T>
+auto central_blockaded_fraction(sys::state const& state, T ids);
+template<typename T>
+auto central_has_crime_fraction(sys::state const& state, T ids);
+template<typename T>
+auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);

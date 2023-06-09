@@ -27,17 +27,22 @@ struct global_provincial_state {
 	dcon::modifier_id oceania;
 };
 
-template<typename F> void for_each_land_province(sys::state& state, F const& func);
-template<typename F> void for_each_sea_province(sys::state& state, F const& func);
-template<typename F> void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
-template<typename F> void ve_for_each_land_province(sys::state& state, F const& func);
+template<typename F>
+void for_each_land_province(sys::state& state, F const& func);
+template<typename F>
+void for_each_sea_province(sys::state& state, F const& func);
+template<typename F>
+void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
+template<typename F>
+void ve_for_each_land_province(sys::state& state, F const& func);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);
 void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
-template<typename T> auto is_overseas(sys::state const& state, T ids);
+template<typename T>
+auto is_overseas(sys::state const& state, T ids);
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id);
 dcon::province_id get_connected_province(sys::state& state, dcon::province_adjacency_id adj, dcon::province_id curr);
 float colony_integration_cost(sys::state& state, dcon::state_instance_id id);
@@ -89,7 +94,7 @@ void enable_canal(sys::state& state, int32_t id);
 
 // distance from a state to a given province (does not pathfind)
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
-// distance between to adjacent provinces 
+// distance between to adjacent provinces
 float distance(sys::state& state, dcon::province_adjacency_id pair);
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
@@ -104,7 +109,8 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 //
 
 // normal pathfinding
-std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
+std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end,
+		dcon::nation_id nation_as, dcon::army_id a);
 // used for rebel unit and black-flagged unit pathfinding
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both

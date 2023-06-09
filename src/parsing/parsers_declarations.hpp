@@ -369,10 +369,12 @@ struct national_identity_file {
 
 struct color_from_3f {
 	uint32_t value = 0;
-	template<typename T> void free_value(float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void free_value(float v, error_handler& err, int32_t line, T& context) {
 		value = (value >> 8) | (uint32_t(v * 255.0f) << 16);
 	}
-	template<typename T> void finish(T& context) { }
+	template<typename T>
+	void finish(T& context) { }
 };
 
 struct religion_context {
@@ -399,10 +401,12 @@ struct religion_file {
 
 struct color_from_3i {
 	uint32_t value = 0;
-	template<typename T> void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
 		value = (value >> 8) | (uint32_t(v & 0xFF) << 16);
 	}
-	template<typename T> void finish(T& context) { }
+	template<typename T>
+	void finish(T& context) { }
 };
 
 struct culture_group_context {
@@ -477,7 +481,8 @@ struct goods_file {
 };
 
 #define MOD_PROV_FUNCTION(X)                                                                                                     \
-	template<typename T> void X(association_type, float v, error_handler& err, int32_t line, T& context) {                         \
+	template<typename T>                                                                                                           \
+	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {                                         \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
 		} else {                                                                                                                     \
@@ -487,7 +492,8 @@ struct goods_file {
 		}                                                                                                                            \
 	}
 #define MOD_NAT_FUNCTION(X)                                                                                                      \
-	template<typename T> void X(association_type, float v, error_handler& err, int32_t line, T& context) {                         \
+	template<typename T>                                                                                                           \
+	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {                                           \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
 		} else {                                                                                                                     \
@@ -498,15 +504,16 @@ struct goods_file {
 	}
 
 struct modifier_base {
-	protected:
+protected:
 	sys::national_modifier_definition constructed_definition_n;
 	sys::provincial_modifier_definition constructed_definition_p;
 
-	public:
+public:
 	uint32_t next_to_add_p = 0;
 	uint32_t next_to_add_n = 0;
 	uint8_t icon_index = 0;
-	template<typename T> void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
 		icon_index = uint8_t(v);
 	}
 
@@ -556,7 +563,8 @@ struct modifier_base {
 	MOD_NAT_FUNCTION(unemployment_benefit)
 	MOD_NAT_FUNCTION(pension_level)
 	MOD_PROV_FUNCTION(population_growth)
-	template<typename T> void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -606,7 +614,8 @@ struct modifier_base {
 	MOD_PROV_FUNCTION(poor_income_modifier)
 	MOD_PROV_FUNCTION(boost_strongest_party)
 	MOD_NAT_FUNCTION(global_immigrant_attract)
-	template<typename T> void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -631,7 +640,8 @@ struct modifier_base {
 	MOD_PROV_FUNCTION(min_build_railroad)
 	MOD_PROV_FUNCTION(min_build_fort)
 	MOD_PROV_FUNCTION(attack)
-	template<typename T> void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -640,7 +650,8 @@ struct modifier_base {
 			++next_to_add_p;
 		}
 	}
-	template<typename T> void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -649,7 +660,8 @@ struct modifier_base {
 			++next_to_add_p;
 		}
 	}
-	template<typename T> void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -704,12 +716,14 @@ struct modifier_base {
 	MOD_NAT_FUNCTION(plurality)
 	MOD_NAT_FUNCTION(colonial_prestige)
 
-	template<typename T> void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
 		land_unit_start_experience(type, v, err, line, context);
 		naval_unit_start_experience(type, v, err, line, context);
 	}
 
-	template<typename T> void finish(T& context) { }
+	template<typename T>
+	void finish(T& context) { }
 
 	sys::provincial_modifier_definition const& peek_province_mod() const {
 		return constructed_definition_p;
@@ -858,10 +872,12 @@ struct modifier_base {
 
 struct int_vector {
 	std::vector<int32_t> data;
-	template<typename T> void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+	template<typename T>
+	void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
 		data.push_back(v);
 	}
-	template<typename T> void finish(T& context) { }
+	template<typename T>
+	void finish(T& context) { }
 };
 struct commodity_array {
 	tagged_vector<float, dcon::commodity_id> data;
@@ -1780,7 +1796,8 @@ struct tech_context {
 };
 
 struct unit_modifier_body : public sys::unit_modifier {
-	template<typename T> void finish(T&) { }
+	template<typename T>
+	void finish(T&) { }
 };
 
 struct tech_rgo_goods_output {

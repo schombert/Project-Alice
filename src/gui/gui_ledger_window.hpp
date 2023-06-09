@@ -6,12 +6,12 @@
 namespace ui {
 
 class ledger_page_number {
-	public:
+public:
 	int8_t value;
 };
 
 class ledger_prev_button : public generic_settable_element<button_element_base, ledger_page_number> {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			auto num = int8_t(content.value - 1);
@@ -24,7 +24,7 @@ class ledger_prev_button : public generic_settable_element<button_element_base, 
 };
 
 class ledger_next_button : public generic_settable_element<button_element_base, ledger_page_number> {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			auto num = int8_t(content.value + 1);
@@ -42,7 +42,7 @@ class ledger_next_button : public generic_settable_element<button_element_base, 
 class ledger_nation_ranking_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
@@ -118,12 +118,12 @@ class ledger_nation_ranking_entry : public listbox_row_element_base<dcon::nation
 	}
 };
 class ledger_nation_ranking_listbox : public listbox_element_base<ledger_nation_ranking_entry, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -140,7 +140,7 @@ class ledger_nation_ranking_listbox : public listbox_element_base<ledger_nation_
 class ledger_nation_comparison_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
@@ -201,7 +201,7 @@ class ledger_nation_comparison_entry : public listbox_row_element_base<dcon::nat
 		}
 		// Brigades
 		{
-			auto ptr = make_element_by_type<nation_brigades_text>(state,
+			auto ptr = make_element_by_type<nation_armies_text>(state,
 					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
@@ -224,12 +224,12 @@ class ledger_nation_comparison_entry : public listbox_row_element_base<dcon::nat
 	}
 };
 class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nation_comparison_entry, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -246,7 +246,7 @@ class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nati
 class ledger_nation_political_systems_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
@@ -310,12 +310,12 @@ class ledger_nation_political_systems_entry : public listbox_row_element_base<dc
 };
 class ledger_nation_political_systems_listbox
 		: public listbox_element_base<ledger_nation_political_systems_entry, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -332,7 +332,7 @@ class ledger_nation_political_systems_listbox
 class nation_selected_issue_text : public standard_nation_text {
 	dcon::issue_id issue_id{};
 
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		// Obtain the active issue option for this issue id
 		auto active_issue_option = state.world.nation_get_issues(nation_id, issue_id);
@@ -348,10 +348,11 @@ class nation_selected_issue_text : public standard_nation_text {
 		return standard_nation_text::set(state, payload);
 	}
 };
-template<bool IsPolitical> class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
+template<bool IsPolitical>
+class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
@@ -407,12 +408,12 @@ template<bool IsPolitical> class ledger_nation_reforms_entry : public listbox_ro
 	}
 };
 class ledger_nation_political_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<true>, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -423,12 +424,12 @@ class ledger_nation_political_reforms_listbox : public listbox_element_base<ledg
 	}
 };
 class ledger_nation_social_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<false>, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -445,7 +446,7 @@ class ledger_nation_social_reforms_listbox : public listbox_element_base<ledger_
 class nation_population_per_pop_type_text : public standard_nation_text {
 	dcon::pop_type_id pop_type_id{};
 
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
@@ -463,7 +464,7 @@ class nation_population_per_pop_type_text : public standard_nation_text {
 class ledger_nation_population_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
@@ -512,12 +513,12 @@ class ledger_nation_population_entry : public listbox_row_element_base<dcon::nat
 	}
 };
 class ledger_nation_population_listbox : public listbox_element_base<ledger_nation_population_entry, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -532,7 +533,7 @@ class ledger_nation_population_listbox : public listbox_element_base<ledger_nati
 // Provinces
 //
 class ledger_province_entry : public listbox_row_element_base<dcon::province_id> {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
@@ -623,12 +624,12 @@ class ledger_province_entry : public listbox_row_element_base<dcon::province_id>
 	}
 };
 class ledger_province_listbox : public listbox_element_base<ledger_province_entry, dcon::province_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
@@ -644,7 +645,7 @@ class ledger_province_listbox : public listbox_element_base<ledger_province_entr
 class province_population_per_pop_type_text : public standard_province_text {
 	dcon::pop_type_id pop_type_id{};
 
-	public:
+public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
@@ -660,7 +661,7 @@ class province_population_per_pop_type_text : public standard_province_text {
 	}
 };
 class ledger_province_population_entry : public listbox_row_element_base<dcon::province_id> {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
@@ -702,12 +703,12 @@ class ledger_province_population_entry : public listbox_row_element_base<dcon::p
 	}
 };
 class ledger_province_population_listbox : public listbox_element_base<ledger_province_population_entry, dcon::province_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
@@ -721,7 +722,7 @@ class ledger_province_population_listbox : public listbox_element_base<ledger_pr
 // Provinces production
 //
 class ledger_provinces_production_entry : public listbox_row_element_base<dcon::province_id> {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
@@ -798,12 +799,12 @@ class ledger_provinces_production_entry : public listbox_row_element_base<dcon::
 	}
 };
 class ledger_provinces_production_listbox : public listbox_element_base<ledger_provinces_production_entry, dcon::province_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
@@ -817,7 +818,7 @@ class ledger_provinces_production_listbox : public listbox_element_base<ledger_p
 // Factory production
 //
 class ledger_factories_production_entry : public listbox_row_element_base<dcon::factory_id> {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
@@ -874,12 +875,12 @@ class ledger_factories_production_entry : public listbox_row_element_base<dcon::
 	}
 };
 class ledger_factories_production_listbox : public listbox_element_base<ledger_factories_production_entry, dcon::factory_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "default_listbox_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto const fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
@@ -893,7 +894,7 @@ class ledger_factories_production_listbox : public listbox_element_base<ledger_f
 };
 
 class ledger_commodity_plupp : public tinted_image_element_base {
-	public:
+public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::commodity_id{};
@@ -909,7 +910,7 @@ class ledger_commodity_plupp : public tinted_image_element_base {
 // Commodity price
 //
 class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commodity_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "ledger_default_textbox") {
 			return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
@@ -921,12 +922,12 @@ class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commo
 	}
 };
 class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "ledger_legend_entry";
 	}
 
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) { row_contents.push_back(id); });
@@ -934,7 +935,7 @@ class ledger_commodity_price_listbox : public listbox_element_base<ledger_commod
 	}
 };
 class commodity_linegraph_legend_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "legend_list") {
 			return make_element_by_type<ledger_commodity_price_listbox>(state, id);
@@ -983,7 +984,7 @@ class ledger_window : public window_element_base {
 		commodity_linegraph_image->set_visible(state, false);
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 

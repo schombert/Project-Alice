@@ -3096,7 +3096,6 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	}
 }
 
-
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -3143,7 +3142,6 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 		}
 	}
 }
-
 
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
@@ -3352,8 +3350,6 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::embark_army:
 			execute_embark_army(state, c->source, c->data.army_movement.a);
-
-
 
 		// console commands
 		case command_type::switch_nation:

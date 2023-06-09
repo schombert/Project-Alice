@@ -107,19 +107,25 @@ using std::make_unsigned;
 // Sigh... We could try to find another <type_traits>, e.g., from
 // boost or TR1.  Or we can do it ourselves in the r123 namespace.
 // It's not clear which will cause less headache...
-template<typename T> struct make_signed { };
-template<typename T> struct make_unsigned { };
+template<typename T>
+struct make_signed { };
+template<typename T>
+struct make_unsigned { };
 #define R123_MK_SIGNED_UNSIGNED(ST, UT)                                                                                          \
-	template<> struct make_signed<ST> {                                                                                            \
+	template<>                                                                                                                     \
+	struct make_signed<ST> {                                                                                                       \
 		typedef ST type;                                                                                                             \
 	};                                                                                                                             \
-	template<> struct make_signed<UT> {                                                                                            \
+	template<>                                                                                                                     \
+	struct make_signed<UT> {                                                                                                       \
 		typedef ST type;                                                                                                             \
 	};                                                                                                                             \
-	template<> struct make_unsigned<ST> {                                                                                          \
+	template<>                                                                                                                     \
+	struct make_unsigned<ST> {                                                                                                     \
 		typedef UT type;                                                                                                             \
 	};                                                                                                                             \
-	template<> struct make_unsigned<UT> {                                                                                          \
+	template<>                                                                                                                     \
+	struct make_unsigned<UT> {                                                                                                     \
 		typedef UT type;                                                                                                             \
 	}
 
@@ -145,12 +151,14 @@ R123_MK_SIGNED_UNSIGNED(__int128_t, __uint128_t);
 //
 // In both cases, we find max() by computing ~(unsigned)0 right-shifted
 // by is_signed.
-template<typename T> R123_CONSTEXPR R123_STATIC_INLINE R123_CUDA_DEVICE T maxTvalue() {
+template<typename T>
+R123_CONSTEXPR R123_STATIC_INLINE R123_CUDA_DEVICE T maxTvalue() {
 	typedef typename make_unsigned<T>::type uT;
 	return (~uT(0)) >> std::numeric_limits<T>::is_signed;
 }
 #else
-template<typename T> R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() {
+template<typename T>
+R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() {
 	return std::numeric_limits<T>::max();
 }
 #endif
@@ -177,7 +185,8 @@ template<typename T> R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() {
 	-    If W>M  then the largest value retured is 1.0.
 	-    If W<=M then the largest value returned is Ftype(1.0 - 2^(-W-1)).
 */
-template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01(Itype in) {
+template<typename Ftype, typename Itype>
+R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01(Itype in) {
 	typedef typename make_unsigned<Itype>::type Utype;
 	R123_CONSTEXPR Ftype factor = Ftype(1.) / (Ftype(maxTvalue<Utype>()) + Ftype(1.));
 	R123_CONSTEXPR Ftype halffactor = Ftype(0.5) * factor;
@@ -208,7 +217,8 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 	- If W<=M then the largest value returned is the Ftype(1.0 - 2^-W)
 	and the smallest value returned is -Ftype(1.0 - 2^-W).
 */
-template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in) {
+template<typename Ftype, typename Itype>
+R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in) {
 	typedef typename make_signed<Itype>::type Stype;
 	R123_CONSTEXPR Ftype factor = Ftype(1.) / (Ftype(maxTvalue<Stype>()) + Ftype(1.));
 	R123_CONSTEXPR Ftype halffactor = Ftype(0.5) * factor;
@@ -241,7 +251,8 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
 	 - are uniformly spaced by 2^-(B-1),
 	 - are balanced around 0.5
 */
-template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01fixedpt(Itype in) {
+template<typename Ftype, typename Itype>
+R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01fixedpt(Itype in) {
 	typedef typename make_unsigned<Itype>::type Utype;
 	R123_CONSTEXPR int excess = std::numeric_limits<Utype>::digits - std::numeric_limits<Ftype>::digits;
 	if(excess >= 0) {
@@ -260,7 +271,8 @@ template<typename Ftype, typename Itype> R123_CUDA_DEVICE R123_STATIC_INLINE Fty
  * The argument type may be any integer collection with a constexpr static_size member,
  * e.g., an r123array or a std::array of an integer type.
  */
-template<typename Ftype, typename CollType> static inline std::array<Ftype, CollType::static_size> u01all(CollType in) {
+template<typename Ftype, typename CollType>
+static inline std::array<Ftype, CollType::static_size> u01all(CollType in) {
 	std::array<Ftype, CollType::static_size> ret;
 	auto p = ret.begin();
 	for(auto e : in) {
@@ -275,7 +287,8 @@ template<typename Ftype, typename CollType> static inline std::array<Ftype, Coll
  * The argument type may be any integer collection with a constexpr static_size member,
  * e.g., an r123array or a std::array of an integer type.
  */
-template<typename Ftype, typename CollType> static inline std::array<Ftype, CollType::static_size> uneg11all(CollType in) {
+template<typename Ftype, typename CollType>
+static inline std::array<Ftype, CollType::static_size> uneg11all(CollType in) {
 	std::array<Ftype, CollType::static_size> ret;
 	auto p = ret.begin();
 	for(auto e : in) {
@@ -290,7 +303,8 @@ template<typename Ftype, typename CollType> static inline std::array<Ftype, Coll
  * The argument type may be any integer collection with a constexpr static_size member,
  * e.g., an r123array or a std::array of an integer type.
  */
-template<typename Ftype, typename CollType> static inline std::array<Ftype, CollType::static_size> u01fixedptall(CollType in) {
+template<typename Ftype, typename CollType>
+static inline std::array<Ftype, CollType::static_size> u01fixedptall(CollType in) {
 	std::array<Ftype, CollType::static_size> ret;
 	auto p = ret.begin();
 	for(auto e : in) {

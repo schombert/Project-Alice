@@ -6,7 +6,7 @@
 namespace ui {
 
 class production_investment_country_select : public button_element_base {
-	public:
+public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
 		return parent->impl_on_scroll(state, x, y, amount, mods);
 	}
@@ -20,10 +20,10 @@ class production_investment_country_select : public button_element_base {
 };
 
 class production_investment_country_info : public listbox_row_element_base<dcon::nation_id> {
-	private:
+private:
 	flag_button* country_flag = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_select") {
 			return make_element_by_type<production_investment_country_select>(state, id);
@@ -77,14 +77,14 @@ class production_investment_country_info : public listbox_row_element_base<dcon:
 };
 
 class production_country_listbox : public listbox_element_base<production_investment_country_info, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "investment_country_entry";
 	}
 };
 
 class production_sort_nation_gp_flag : public nation_gp_flag {
-	public:
+public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -125,7 +125,7 @@ class invest_brow_window : public window_element_base {
 		});
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

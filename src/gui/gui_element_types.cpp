@@ -727,7 +727,8 @@ void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 	}
 }
 
-template<class T> void piechart<T>::on_create(sys::state& state) noexcept {
+template<class T>
+void piechart<T>::on_create(sys::state& state) noexcept {
 	base_data.position.x -= base_data.size.x;
 	radius = float(base_data.size.x);
 	base_data.size.x *= 2;
@@ -735,7 +736,8 @@ template<class T> void piechart<T>::on_create(sys::state& state) noexcept {
 	on_update(state);
 }
 
-template<class T> void piechart<T>::on_update(sys::state& state) noexcept {
+template<class T>
+void piechart<T>::on_update(sys::state& state) noexcept {
 	get_distribution(state).swap(distribution);
 
 	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
@@ -791,10 +793,10 @@ template<class T>
 void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept {
 	auto fat_t = dcon::fatten(state.world, t);
 	auto box = text::open_layout_box(contents, 0);
-	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
-	text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::white);
-	text::add_space_to_layout_box(contents, state, box);
-	text::add_to_layout_box(contents, state, box, text::format_percentage(percentage, 1), text::text_color::white);
+	text::add_to_layout_box(state, contents, box, fat_t.get_name(), text::substitution_map{});
+	text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::white);
+	text::add_space_to_layout_box(state, contents, box);
+	text::add_to_layout_box(state, contents, box, text::format_percentage(percentage, 1), text::text_color::white);
 	text::close_layout_box(contents, box);
 }
 
@@ -920,7 +922,8 @@ void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& s
 	static_cast<listbox_element_base<RowWinT, RowConT>*>(parent)->update(state);
 }
 
-template<class RowConT> message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+template<class RowConT>
+message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
 		return message_result::consumed;
@@ -938,7 +941,8 @@ message_result listbox_row_element_base<RowConT>::on_scroll(sys::state& state, i
 	return parent->impl_on_scroll(state, x, y, amount, mods);
 }
 
-template<class RowConT> message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+template<class RowConT>
+message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
 		return message_result::consumed;
@@ -956,7 +960,8 @@ message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, in
 	return parent->impl_on_scroll(state, x, y, amount, mods);
 }
 
-template<class RowWinT, class RowConT> void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 	auto content_off_screen = int32_t(row_contents.size() - row_windows.size());
 	int32_t scroll_pos = int32_t(list_scrollbar->scaled_value());
 	if(content_off_screen <= 0) {
@@ -1004,7 +1009,8 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 	return message_result::consumed;
 }
 
-template<class RowWinT, class RowConT> void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
 	int16_t current_y = 0;
 	int16_t subwindow_y_size = 0;
 	while(current_y + subwindow_y_size <= base_data.size.y) {
@@ -1045,7 +1051,8 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	}
 	container_base::render(state, x, y);
 }
-template<class ItemWinT, class ItemConT> void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
+template<class ItemWinT, class ItemConT>
+void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
 	auto spacing = int16_t(base_data.data.overlapping.spacing);
 	if(base_data.get_element_type() == element_type::overlapping) {
 		while(row_contents.size() > windows.size()) {
@@ -1256,7 +1263,7 @@ void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	auto name = nations::name_from_tag(state, ident);
 	if(name) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, name, text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, name, text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 }

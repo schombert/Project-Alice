@@ -82,7 +82,8 @@ void remove_modifier_from_province(sys::state& state, dcon::province_id target_p
 	}
 }
 
-template<typename F> void bulk_apply_masked_modifier_to_nations(sys::state& state, dcon::modifier_id m, F const& mask_functor) {
+template<typename F>
+void bulk_apply_masked_modifier_to_nations(sys::state& state, dcon::modifier_id m, F const& mask_functor) {
 	auto& nat_values = state.world.modifier_get_national_values(m);
 	for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
 		if(!(nat_values.offsets[i]))
@@ -98,7 +99,8 @@ template<typename F> void bulk_apply_masked_modifier_to_nations(sys::state& stat
 	}
 }
 
-template<typename F> void bulk_apply_scaled_modifier_to_nations(sys::state& state, dcon::modifier_id m, F const& scale_functor) {
+template<typename F>
+void bulk_apply_scaled_modifier_to_nations(sys::state& state, dcon::modifier_id m, F const& scale_functor) {
 	auto& nat_values = state.world.modifier_get_national_values(m);
 	for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
 		if(!(nat_values.offsets[i]))

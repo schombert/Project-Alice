@@ -16,7 +16,7 @@ namespace map {
 
 enum class map_view { globe, flat };
 class map_state {
-	public:
+public:
 	map_state(){};
 
 	// Called to load the terrain and province map data
@@ -53,7 +53,7 @@ class map_state {
 
 	display_data map_data;
 
-	private:
+private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 
@@ -83,7 +83,7 @@ class map_state {
 
 	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
 
-	public:
+public:
 	float get_zoom() {
 		return zoom;
 	}

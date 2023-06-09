@@ -54,7 +54,8 @@ struct global_economy_state {
 
 enum class worker_effect : uint8_t { none = 0, input, output, throughput };
 
-template<typename T> auto desired_needs_spending(sys::state const& state, T pop_indices) {
+template<typename T>
+auto desired_needs_spending(sys::state const& state, T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc
 	return 0.0f;
 }
