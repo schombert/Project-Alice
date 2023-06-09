@@ -2,9 +2,19 @@
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "gui_unit_panel_subwindow.hpp"
 #include "text.hpp"
 
+
 namespace ui {
+
+enum class unitpanel_action : uint8_t {
+	close,
+	reorg,
+	split,
+	disband,
+	changeleader
+};
 
 class unit_selection_close_button : public button_element_base {
 	public:
@@ -27,7 +37,12 @@ class unit_selection_close_button : public button_element_base {
 };
 
 class unit_selection_new_unit_button : public button_element_base {
-	public:
+public:
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg};
+		parent->impl_get(state, payload);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -101,6 +116,14 @@ class unit_selection_unit_name_text : public simple_text_element_base {
 	}
 };
 
+class unit_selection_change_leader_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::changeleader};
+		parent->impl_get(state, payload);
+	}
+};
+
 class unit_selection_unit_location_text : public simple_text_element_base {
 	public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -151,8 +174,27 @@ template<class T> class unit_selection_str_bar : public vertical_progress_bar {
 	}
 };
 
-template<class T> class unit_selection_panel : public window_element_base {
-	public:
+template<class T>
+class unit_selection_panel : public window_element_base {
+private:
+	window_element_base* leader_change_win = nullptr;
+	window_element_base* reorg_window = nullptr;
+public:
+	void on_create(sys::state& state) noexcept override {
+		{
+		auto win1 = make_element_by_type<leader_selection_window>(state, state.ui_state.defs_by_name.find("leader_selection_panel")->second.definition);
+		win1->set_visible(state, false);
+		leader_change_win = win1.get();
+		add_child_to_front(std::move(win1));
+		}
+		{
+		auto win2 = make_element_by_type<unit_reorg_window>(state, state.ui_state.defs_by_name.find("reorg_window")->second.definition);
+		win2->set_visible(state, false);
+		reorg_window = win2.get();
+		add_child_to_front(std::move(win2));
+		}
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unitpanel_bg") {
 			return make_element_by_type<draggable_target>(state, id);
@@ -167,7 +209,8 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "only_unit_from_selection_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "remove_unit_from_selection_button") {
-			return make_element_by_type<unit_selection_close_button>(state, id);
+			//return make_element_by_type<unit_selection_close_button>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "newunitbutton") {
 			return make_element_by_type<unit_selection_new_unit_button>(state, id);
 		} else if(name == "splitinhalf") {
@@ -193,7 +236,7 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else if(name == "unitleader") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "leader_button") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_change_leader_button>(state, id);
 		} else if(name == "unit_activity") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leader_photo") {
@@ -201,6 +244,28 @@ template<class T> class unit_selection_panel : public window_element_base {
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<element_selection_wrapper<unitpanel_action>>()) {
+			auto action = any_cast<element_selection_wrapper<unitpanel_action>>(payload).data;
+			switch(action) {
+				case unitpanel_action::close:
+					break;
+				case unitpanel_action::reorg:
+					reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
+					reorg_window->impl_on_update(state);
+					break;
+				case unitpanel_action::changeleader:
+					leader_change_win->is_visible() ? leader_change_win->set_visible(state, false) : leader_change_win->set_visible(state, true);
+					leader_change_win->impl_on_update(state);
+					break;
+				default:
+					break;
+			}
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

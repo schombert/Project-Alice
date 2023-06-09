@@ -48,6 +48,18 @@ class unit_build_button : public button_element_base {
 			}
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents);
+		is_navy ?
+			text::localised_format_box(state, contents, box, std::string_view("military_build_army")) :
+			text::localised_format_box(state, contents, box, std::string_view("military_build_navy"));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class unit_folder_button : public button_element_base {

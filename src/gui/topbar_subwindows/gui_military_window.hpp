@@ -54,7 +54,30 @@ public:
 };
 
 class military_mob_progress_bar_text : public simple_text_element_base {
+protected:
+	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
+		return text::format_percentage(4.20, 2);
+	}
 public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state, state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat = dcon::fatten(state.world, state.local_player_nation);
+		auto box = text::open_layout_box(contents);
+
+		if(fat.get_is_mobilized()) {
+			text::localised_format_box(state, contents, box, std::string_view("mobilization_progress_pending"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("mobilization_progress_not_mobilized"));
+		}
+
+		text::close_layout_box(contents, box);
+	}
 };
 
 class military_mob_size_text : public nation_mobilization_size_text {
