@@ -34,7 +34,7 @@ public:
 	}
 };
 
-class available_leader_listbox : public listbox_element_base<leader_listbox_element, uint8_t> {
+class available_leader_listbox : public listbox_element_base<leader_listbox_element, uint16_t> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "leader_entry";
@@ -192,7 +192,7 @@ public:
 
 class reorg_unit_listbox_left : public listbox_element_base<reorg_unit_listbox_row, dcon::regiment_id> {
 protected:
-	std::string_view get_row_element_name() {
+	std::string_view get_row_element_name() override {
 		return "reorg_entry";
 	}
 
@@ -217,7 +217,7 @@ public:
 
 class reorg_unit_listbox_right : public listbox_element_base<reorg_unit_listbox_row, dcon::regiment_id> {
 protected:
-	std::string_view get_row_element_name() {
+	std::string_view get_row_element_name() override {
 		return "reorg_entry_right";
 	}
 
