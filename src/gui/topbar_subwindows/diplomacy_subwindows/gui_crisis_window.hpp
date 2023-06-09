@@ -5,7 +5,7 @@
 namespace ui {
 
 class diplomacy_crisis_backdown_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = diplomacy_action::crisis_backdown;
@@ -15,7 +15,7 @@ class diplomacy_crisis_backdown_button : public button_element_base {
 };
 
 class diplomacy_crisis_support_button : public button_element_base {
-	public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = diplomacy_action::crisis_support;
@@ -25,7 +25,7 @@ class diplomacy_crisis_support_button : public button_element_base {
 };
 
 class diplomacy_crisis_attacker_flag : public flag_button {
-	public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			return state.crisis_liberation_tag;
@@ -38,7 +38,7 @@ class diplomacy_crisis_attacker_flag : public flag_button {
 };
 
 class diplomacy_crisis_sponsor_attacker_flag : public flag_button {
-	public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_attacker);
@@ -52,7 +52,7 @@ class diplomacy_crisis_sponsor_attacker_flag : public flag_button {
 };
 
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
@@ -65,7 +65,7 @@ class diplomacy_crisis_attacker_name : public simple_text_element_base {
 };
 
 class diplomacy_crisis_attacker_backers : public overlapping_flags_box {
-	protected:
+protected:
 	void populate_flags(sys::state& state) noexcept override {
 		if(bool(current_nation)) {
 			row_contents.clear();
@@ -81,7 +81,7 @@ class diplomacy_crisis_attacker_backers : public overlapping_flags_box {
 };
 
 class diplomacy_crisis_attacker_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_attacker_flag>(state, id);
@@ -117,7 +117,7 @@ class diplomacy_crisis_attacker_window : public window_element_base {
 };
 
 class diplomacy_crisis_defender_flag : public flag_button {
-	public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			if(nations::is_great_power(state, state.primary_crisis_defender)) {
@@ -137,7 +137,7 @@ class diplomacy_crisis_defender_flag : public flag_button {
 };
 
 class diplomacy_crisis_sponsor_defender_flag : public flag_button {
-	public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
@@ -151,7 +151,7 @@ class diplomacy_crisis_sponsor_defender_flag : public flag_button {
 };
 
 class diplomacy_crisis_defender_name : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
 		set_text(state, text::produce_simple_string(state, fat_id.get_name()));
@@ -159,7 +159,7 @@ class diplomacy_crisis_defender_name : public simple_text_element_base {
 };
 
 class diplomacy_crisis_defender_backers : public overlapping_flags_box {
-	protected:
+protected:
 	void populate_flags(sys::state& state) noexcept override {
 		if(bool(current_nation)) {
 			row_contents.clear();
@@ -175,7 +175,7 @@ class diplomacy_crisis_defender_backers : public overlapping_flags_box {
 };
 
 class diplomacy_crisis_defender_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_defender_flag>(state, id);
@@ -211,7 +211,7 @@ class diplomacy_crisis_defender_window : public window_element_base {
 };
 
 class diplomacy_crisis_title_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.current_crisis == sys::crisis_type::colonial || state.current_crisis == sys::crisis_type::claim) {
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_colony).get_name()));
@@ -224,7 +224,7 @@ class diplomacy_crisis_title_text : public simple_text_element_base {
 };
 
 class diplomacy_crisis_subtitle_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis) {
 		case sys::crisis_type::none:
@@ -247,14 +247,14 @@ class diplomacy_crisis_subtitle_text : public simple_text_element_base {
 };
 
 class diplomacy_crisis_temperature_bar : public progress_bar {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		progress = state.crisis_temperature;
 	}
 };
 
 class diplomacy_crisis_status_text : public simple_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis_mode) {
 		case sys::crisis_mode::inactive:
@@ -274,7 +274,7 @@ class diplomacy_crisis_status_text : public simple_text_element_base {
 };
 
 class diplomacy_crisis_info_window : public window_element_base {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "crisis_bg") {
 			return make_element_by_type<image_element_base>(state, id);

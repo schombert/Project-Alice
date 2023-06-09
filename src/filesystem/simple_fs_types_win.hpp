@@ -22,7 +22,7 @@ class file_system {
 	void operator=(file_system const& other) = delete;
 	void operator=(file_system&& other) = delete;
 
-	public:
+public:
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
 	friend void reset(file_system& fs);
 	friend void add_root(file_system& fs, native_string_view root_path);
@@ -43,7 +43,7 @@ class directory {
 	native_string relative_path;
 	file_system const* parent_system = nullptr;
 
-	public:
+public:
 	directory(file_system const* parent_system, native_string_view relative_path)
 			: relative_path(relative_path), parent_system(parent_system) { }
 
@@ -62,7 +62,7 @@ class unopened_file {
 	native_string file_name;
 	native_string absolute_path;
 
-	public:
+public:
 	unopened_file(native_string_view absolute_path, native_string_view file_name)
 			: file_name(file_name), absolute_path(absolute_path) { }
 
@@ -82,7 +82,7 @@ class file {
 	file(native_string const& full_path);
 	file(HANDLE file_handle, native_string const& full_path);
 
-	public:
+public:
 	file(file const& other) = delete;
 	file(file&& other) noexcept;
 	void operator=(file const& other) = delete;

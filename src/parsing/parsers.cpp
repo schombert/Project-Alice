@@ -72,7 +72,8 @@ bool is_fp(char const* start, char const* end) {
 		return is_positive_fp(start, end);
 }
 
-template<typename T> char const* scan_for_match(char const* start, char const* end, int32_t& current_line, T&& condition) {
+template<typename T>
+char const* scan_for_match(char const* start, char const* end, int32_t& current_line, T&& condition) {
 	while(start < end) {
 		if(condition(*start))
 			return start;
@@ -82,7 +83,8 @@ template<typename T> char const* scan_for_match(char const* start, char const* e
 	}
 	return start;
 }
-template<typename T> char const* scan_for_not_match(char const* start, char const* end, int32_t& current_line, T&& condition) {
+template<typename T>
+char const* scan_for_not_match(char const* start, char const* end, int32_t& current_line, T&& condition) {
 	while(start < end) {
 		if(!condition(*start))
 			return start;

@@ -68,7 +68,8 @@ uint32_t size(sys::state const& state) {
 				 uint32_t(2) * state.world.pop_type_size() + state.world.culture_size() + state.world.religion_size();
 }
 
-template<typename F> void sum_over_demographics(sys::state& state, dcon::demographics_key key, F const& source) {
+template<typename F>
+void sum_over_demographics(sys::state& state, dcon::demographics_key key, F const& source) {
 	// clear province
 	province::ve_for_each_land_province(state, [&](auto pi) { state.world.province_set_demographics(pi, key, ve::fp_vector()); });
 	// sum in province
@@ -639,7 +640,8 @@ void regenerate_from_pop_data(sys::state& state) {
 
 inline constexpr uint32_t executions_per_block = 16 / ve::vector_size;
 
-template<typename F> void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
+template<typename F>
+void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
 	auto block_index = 16 * offset;
 	auto const block_advance = 16 * divisions;
 
@@ -651,7 +653,8 @@ template<typename F> void execute_staggered_blocks(uint32_t offset, uint32_t div
 	}
 }
 
-template<typename F> void pexecute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
+template<typename F>
+void pexecute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
 	concurrency::parallel_for(16 * offset, max, 16 * divisions, [&](uint32_t index) {
 		for(uint32_t i = 0; i < executions_per_block; ++i) {
 			functor(ve::contiguous_tags<dcon::pop_id>(index + i * ve::vector_size));

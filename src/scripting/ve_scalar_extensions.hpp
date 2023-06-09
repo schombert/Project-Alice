@@ -2,7 +2,8 @@
 
 namespace ve {
 
-template<typename T> inline T select(bool v, T a, T b) {
+template<typename T>
+inline T select(bool v, T a, T b) {
 	return v ? a : b;
 }
 
@@ -51,17 +52,21 @@ inline bool compress_mask(bool v) {
 	return v;
 }
 
-template<typename tag_type> mask_vector operator==(contiguous_tags_base<tag_type> a, tag_type b) {
+template<typename tag_type>
+mask_vector operator==(contiguous_tags_base<tag_type> a, tag_type b) {
 	return a == tagged_vector<tag_type>(b);
 }
-template<typename tag_type> mask_vector operator!=(contiguous_tags_base<tag_type> a, tag_type b) {
+template<typename tag_type>
+mask_vector operator!=(contiguous_tags_base<tag_type> a, tag_type b) {
 	return a != tagged_vector<tag_type>(b);
 }
 
-template<typename tag_type> mask_vector operator==(tag_type b, contiguous_tags_base<tag_type> a) {
+template<typename tag_type>
+mask_vector operator==(tag_type b, contiguous_tags_base<tag_type> a) {
 	return a == tagged_vector<tag_type>(b);
 }
-template<typename tag_type> mask_vector operator!=(tag_type b, contiguous_tags_base<tag_type> a) {
+template<typename tag_type>
+mask_vector operator!=(tag_type b, contiguous_tags_base<tag_type> a) {
 	return a != tagged_vector<tag_type>(b);
 }
 

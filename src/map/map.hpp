@@ -56,7 +56,7 @@ struct border {
 };
 enum class map_view;
 class display_data {
-	public:
+public:
 	display_data(){};
 	~display_data();
 
@@ -82,7 +82,7 @@ class display_data {
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 
-	private:
+private:
 	// Meshes
 	GLuint land_vao = 0;
 	GLuint land_vbo = 0;

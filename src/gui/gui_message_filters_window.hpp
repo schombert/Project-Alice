@@ -6,7 +6,7 @@
 namespace ui {
 
 class message_filters_country_button : public button_element_base {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
@@ -35,7 +35,7 @@ class message_filters_country_button : public button_element_base {
 };
 
 class message_filters_country_item : public listbox_row_element_base<dcon::nation_id> {
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_bg") {
 			return make_element_by_type<message_filters_country_button>(state, id);
@@ -56,12 +56,12 @@ class message_filters_country_item : public listbox_row_element_base<dcon::natio
 };
 
 class message_filters_country_listbox : public listbox_element_base<message_filters_country_item, dcon::nation_id> {
-	protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "message_filters_entry";
 	}
 
-	public:
+public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
 		on_update(state);
@@ -80,7 +80,7 @@ class message_filters_country_listbox : public listbox_element_base<message_filt
 class message_filters_window : public window_element_base {
 	message_filters_country_listbox* country_listbox = nullptr;
 
-	public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);

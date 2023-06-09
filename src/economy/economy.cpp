@@ -2825,7 +2825,8 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 	return construction_status{0.0f, false};
 }
 
-template<typename F> void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
+template<typename F>
+void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
 	for(auto st_con : state.world.state_instance_get_state_building_construction(s)) {
 		if(!st_con.get_is_upgrade()) {
 			float total = 0.0f;
@@ -2842,7 +2843,8 @@ template<typename F> void for_each_new_factory(sys::state& state, dcon::state_in
 	}
 }
 
-template<typename F> void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
+template<typename F>
+void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
 	for(auto st_con : state.world.state_instance_get_state_building_construction(s)) {
 		if(st_con.get_is_upgrade()) {
 			float total = 0.0f;

@@ -8,14 +8,16 @@
 
 namespace province {
 
-template<typename T> auto is_overseas(sys::state const& state, T ids) {
+template<typename T>
+auto is_overseas(sys::state const& state, T ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(ids);
 	auto owner_cap = state.world.nation_get_capital(owners);
 	return (state.world.province_get_continent(ids) != state.world.province_get_continent(owner_cap)) &&
 				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
 }
 
-template<typename F> void for_each_land_province(sys::state& state, F const& func) {
+template<typename F>
+void for_each_land_province(sys::state& state, F const& func) {
 	int32_t last = state.province_definitions.first_sea_province.index();
 	for(int32_t i = 0; i < last; ++i) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
@@ -23,12 +25,14 @@ template<typename F> void for_each_land_province(sys::state& state, F const& fun
 	}
 }
 
-template<typename F> void ve_for_each_land_province(sys::state& state, F const& func) {
+template<typename F>
+void ve_for_each_land_province(sys::state& state, F const& func) {
 	int32_t last = state.province_definitions.first_sea_province.index();
 	ve::execute_serial<dcon::province_id>(uint32_t(last), func);
 }
 
-template<typename F> void for_each_sea_province(sys::state& state, F const& func) {
+template<typename F>
+void for_each_sea_province(sys::state& state, F const& func) {
 	int32_t first = state.province_definitions.first_sea_province.index();
 	for(int32_t i = first; i < int32_t(state.world.province_size()); ++i) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
@@ -36,7 +40,8 @@ template<typename F> void for_each_sea_province(sys::state& state, F const& func
 	}
 }
 
-template<typename F> void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func) {
+template<typename F>
+void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
@@ -1217,7 +1222,8 @@ struct province_and_distance {
 };
 
 // normal pathfinding
-std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a) {
+std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end,
+		dcon::nation_id nation_as, dcon::army_id a) {
 
 	std::vector<province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
@@ -1239,7 +1245,8 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 		path_heap.pop_back();
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
-			auto other_prov = adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto other_prov =
+					adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
@@ -1248,10 +1255,11 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 					fill_path_result(nearest.province);
 					return path_result;
 				}
-				
+
 				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
 					if(has_access_to_province(state, nation_as, other_prov)) {
-						path_heap.push_back(province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+						path_heap.push_back(
+								province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
@@ -1259,14 +1267,14 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 					}
 				} else { // is sea
 					if(military::can_embark_onto_sea_tile(state, nation_as, other_prov, a)) {
-						path_heap.push_back(province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+						path_heap.push_back(
+								province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
 						origins_vector.set(other_prov, state.province_definitions.first_sea_province); // exclude it from being checked again
 					}
 				}
-				
 			}
 		}
 	}
@@ -1296,7 +1304,8 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 		path_heap.pop_back();
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
-			auto other_prov = adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto other_prov =
+					adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
@@ -1306,7 +1315,8 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 					return path_result;
 				}
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
-					path_heap.push_back(province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+					path_heap.push_back(
+							province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);
 				}
@@ -1340,7 +1350,8 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 		path_heap.pop_back();
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
-			auto other_prov = adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto other_prov =
+					adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
@@ -1350,7 +1361,8 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 					return path_result;
 				}
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is sea province
-					path_heap.push_back(province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+					path_heap.push_back(
+							province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);
 				}

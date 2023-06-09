@@ -5,8 +5,9 @@
 
 namespace ui {
 
-template<bool Left> class event_lr_button : public button_element_base {
-	public:
+template<bool Left>
+class event_lr_button : public button_element_base {
+public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		frame = Left ? 0 : 1;
@@ -28,7 +29,7 @@ typedef std::variant< event::pending_human_n_event, event::pending_human_f_n_eve
 		event::pending_human_f_p_event>
 		event_data_wrapper;
 class event_option_button : public multiline_button_element_base {
-	public:
+public:
 	uint8_t index = 0;
 	void on_update(sys::state& state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -38,27 +39,27 @@ class event_option_button : public multiline_button_element_base {
 	void button_action(sys::state& state) noexcept override;
 };
 class event_image : public image_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override;
 };
 class event_desc_text : public scrollable_text {
-	public:
+public:
 	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class event_name_text : public multiline_text_element_base {
-	public:
+public:
 	void on_update(sys::state& state) noexcept override;
 };
 class event_requirements_icon : public image_element_base {
-	public:
+public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 class event_odds_icon : public image_element_base {
-	public:
+public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -68,13 +69,16 @@ class event_odds_icon : public image_element_base {
 //
 // National events
 //
-template<bool IsMajor> class national_event_window : public window_element_base {
+template<bool IsMajor>
+class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
 	std::vector<element_base*> new_elements;
 	simple_text_element_base* count_text = nullptr;
+	image_element_base* odds_icon = nullptr;
+	image_element_base* req_icon = nullptr;
 	int32_t index = 0;
 
-	public:
+public:
 	std::vector<event_data_wrapper> events;
 
 	void on_create(sys::state& state) noexcept override;
@@ -91,9 +95,11 @@ class provincial_event_window : public window_element_base {
 	std::vector<element_base*> new_elements;
 	simple_text_element_base* count_text = nullptr;
 	image_element_base* divider_image = nullptr;
+	image_element_base* odds_icon = nullptr;
+	image_element_base* req_icon = nullptr;
 	int32_t index = 0;
 
-	public:
+public:
 	std::vector<event_data_wrapper> events;
 
 	void on_create(sys::state& state) noexcept override;

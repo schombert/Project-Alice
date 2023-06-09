@@ -7,18 +7,21 @@
 
 namespace sys {
 
-template<typename T> size_t serialize_size(std::vector<T> const& vec) {
+template<typename T>
+size_t serialize_size(std::vector<T> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
-template<typename T> uint8_t* serialize(uint8_t* ptr_in, std::vector<T> const& vec) {
+template<typename T>
+uint8_t* serialize(uint8_t* ptr_in, std::vector<T> const& vec) {
 	uint32_t length = uint32_t(vec.size());
 	memcpy(ptr_in, &length, sizeof(uint32_t));
 	memcpy(ptr_in + sizeof(uint32_t), vec.data(), sizeof(T) * vec.size());
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
-template<typename T> uint8_t const* deserialize(uint8_t const* ptr_in, std::vector<T>& vec) {
+template<typename T>
+uint8_t const* deserialize(uint8_t const* ptr_in, std::vector<T>& vec) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	vec.resize(length);
@@ -26,28 +29,33 @@ template<typename T> uint8_t const* deserialize(uint8_t const* ptr_in, std::vect
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * length;
 }
 
-template<typename T> uint8_t* memcpy_serialize(uint8_t* ptr_in, T const& obj) {
+template<typename T>
+uint8_t* memcpy_serialize(uint8_t* ptr_in, T const& obj) {
 	memcpy(ptr_in, &obj, sizeof(T));
 	return ptr_in + sizeof(T);
 }
 
-template<typename T> uint8_t const* memcpy_deserialize(uint8_t const* ptr_in, T& obj) {
+template<typename T>
+uint8_t const* memcpy_deserialize(uint8_t const* ptr_in, T& obj) {
 	memcpy(&obj, ptr_in, sizeof(T));
 	return ptr_in + sizeof(T);
 }
 
-template<typename T, typename tag_type> size_t serialize_size(tagged_vector<T, tag_type> const& vec) {
+template<typename T, typename tag_type>
+size_t serialize_size(tagged_vector<T, tag_type> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
-template<typename T, typename tag_type> uint8_t* serialize(uint8_t* ptr_in, tagged_vector<T, tag_type> const& vec) {
+template<typename T, typename tag_type>
+uint8_t* serialize(uint8_t* ptr_in, tagged_vector<T, tag_type> const& vec) {
 	uint32_t length = uint32_t(vec.size());
 	memcpy(ptr_in, &length, sizeof(uint32_t));
 	memcpy(ptr_in + sizeof(uint32_t), vec.data(), sizeof(T) * vec.size());
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
-template<typename T, typename tag_type> uint8_t const* deserialize(uint8_t const* ptr_in, tagged_vector<T, tag_type>& vec) {
+template<typename T, typename tag_type>
+uint8_t const* deserialize(uint8_t const* ptr_in, tagged_vector<T, tag_type>& vec) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	vec.resize(length);

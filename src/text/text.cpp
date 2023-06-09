@@ -173,7 +173,8 @@ void load_text_data(sys::state& state, uint32_t language) {
 	}
 }
 
-template<size_t N> bool is_fixed_token_ci(std::string_view v, char const (&t)[N]) {
+template<size_t N>
+bool is_fixed_token_ci(std::string_view v, char const (&t)[N]) {
 	if(v.length() != (N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {
@@ -700,11 +701,13 @@ std::string prettify(int64_t num) {
 	return std::string("#inf");
 }
 
-template<class T> std::string get_name_as_string(sys::state const& state, T t) {
+template<class T>
+std::string get_name_as_string(sys::state const& state, T t) {
 	return text::produce_simple_string(state, t.get_name());
 }
 
-template<class T> std::string get_adjective_as_string(sys::state const& state, T t) {
+template<class T>
+std::string get_adjective_as_string(sys::state const& state, T t) {
 	return text::produce_simple_string(state, t.get_adjective());
 }
 
@@ -862,7 +865,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 
 } // namespace impl
 
-void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box) {
+void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -872,14 +875,16 @@ void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_b
 	impl::lb_finish_line(dest, box, line_height);
 }
 
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view txt, text_color color,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,
 		substitution source) {
 	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
 	auto tmp_color = color;
 
-	if(state.user_settings.use_new_ui && (std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) || std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
+	if(state.user_settings.use_new_ui &&
+			(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
+					std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
 		if(color != text_color::black)
 			tmp_color = text_color::light_blue;
 		else
@@ -1029,7 +1034,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 
 } // namespace impl
 
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text,
 		substitution_map const& mp) {
 	if(!source_text)
 		return;
@@ -1046,9 +1051,9 @@ void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dc
 		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
 			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
 			std::string_view text = state.to_string_view(tkey);
-			add_to_layout_box(dest, state, box, std::string_view(text), current_color, std::monostate{});
+			add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
 		} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
-			add_line_break_to_layout_box(dest, state, box);
+			add_line_break_to_layout_box(state, dest, box);
 		} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
 			if(std::get<text::text_color>(state.text_components[i]) == text_color::reset)
 				current_color = dest.fixed_parameters.color;
@@ -1058,22 +1063,22 @@ void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dc
 			auto var_type = std::get<text::variable_type>(state.text_components[i]);
 			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 				auto txt = impl::lb_resolve_substitution(state, it->second);
-				add_to_layout_box(dest, state, box, std::string_view(txt), current_color, it->second);
+				add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
 			} else {
-				add_to_layout_box(dest, state, box, std::string_view("???"), current_color, std::monostate{});
+				add_to_layout_box(state, dest, box, std::string_view("???"), current_color, std::monostate{});
 			}
 		}
 	}
 }
 
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, substitution val, text_color color) {
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, substitution val, text_color color) {
 	auto txt = impl::lb_resolve_substitution(state, val);
-	add_to_layout_box(dest, state, box, std::string_view(txt), color, val);
+	add_to_layout_box(state, dest, box, std::string_view(txt), color, val);
 }
-void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const& val, text_color color) {
-	add_to_layout_box(dest, state, box, std::string_view(val), color, std::monostate{});
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string const& val, text_color color) {
+	add_to_layout_box(state, dest, box, std::string_view(val), color, std::monostate{});
 }
-void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box) {
+void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto amount = state.font_collection.text_extent(state, " ", uint32_t(1), dest.fixed_parameters.font_id);
 	box.x_position += amount;
 }
@@ -1135,7 +1140,7 @@ columnar_layout create_columnar_layout(layout& dest, layout_parameters const& pa
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
 		text::substitution_map const& sub) {
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
-		add_to_layout_box(dest, state, box, k->second, sub);
+		add_to_layout_box(state, dest, box, k->second, sub);
 	}
 }
 
@@ -1144,17 +1149,17 @@ void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& 
 	text::substitution_map sub;
 	text::add_to_substitution_map(sub, subkey, value);
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
-		add_to_layout_box(dest, state, box, k->second, sub);
+		add_to_layout_box(state, dest, box, k->second, sub);
 	}
 }
 
 // Standardised dividers :3
 // Without the Leasion of Post-1.0 Stuff
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	text::add_line_break_to_layout_box(dest, state, box);
+	text::add_line_break_to_layout_box(state, dest, box);
 	// Why do many thing when one can do one thing.
 	// Vote on it, went 6-3, 6 in favour and 3 against the old vic2 way
-	text::add_to_layout_box(dest, state, box, std::string_view("--------------"));
-	text::add_line_break_to_layout_box(dest, state, box);
+	text::add_to_layout_box(state, dest, box, std::string_view("--------------"));
+	text::add_line_break_to_layout_box(state, dest, box);
 }
 } // namespace text

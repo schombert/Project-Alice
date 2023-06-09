@@ -33,119 +33,119 @@ inline uint32_t display_subeffects(EFFECT_DISPLAY_PARAMS) {
 void display_value(int64_t value, bool positive_is_green, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
 
 	if(value >= 0)
-		text::add_to_layout_box(layout, ws, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
+		text::add_to_layout_box(ws, layout, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
 				std::monostate{});
 
 	if(positive_is_green)
-		text::add_to_layout_box(layout, ws, box, value, value >= 0 ? text::text_color::green : text::text_color::red);
+		text::add_to_layout_box(ws, layout, box, value, value >= 0 ? text::text_color::green : text::text_color::red);
 	else
-		text::add_to_layout_box(layout, ws, box, value, value >= 0 ? text::text_color::red : text::text_color::green);
+		text::add_to_layout_box(ws, layout, box, value, value >= 0 ? text::text_color::red : text::text_color::green);
 
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 }
 void display_value(text::fp_currency value, bool positive_is_green, sys::state& ws, text::layout_base& layout,
 		text::layout_box& box) {
 
 	if(value.value >= 0)
-		text::add_to_layout_box(layout, ws, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
+		text::add_to_layout_box(ws, layout, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
 				std::monostate{});
 
 	if(positive_is_green)
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
 	else
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
 
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 }
 void display_value(text::fp_percentage value, bool positive_is_green, sys::state& ws, text::layout_base& layout,
 		text::layout_box& box) {
 
 	if(value.value >= 0)
-		text::add_to_layout_box(layout, ws, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
+		text::add_to_layout_box(ws, layout, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
 				std::monostate{});
 
 	if(positive_is_green)
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
 	else
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
 
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 }
 void display_value(text::fp_one_place value, bool positive_is_green, sys::state& ws, text::layout_base& layout,
 		text::layout_box& box) {
 
 	if(value.value >= 0)
-		text::add_to_layout_box(layout, ws, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
+		text::add_to_layout_box(ws, layout, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
 				std::monostate{});
 
 	if(positive_is_green)
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
 	else
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
 
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 }
 void display_value(text::fp_two_places value, bool positive_is_green, sys::state& ws, text::layout_base& layout,
 		text::layout_box& box) {
 
 	if(value.value >= 0)
-		text::add_to_layout_box(layout, ws, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
+		text::add_to_layout_box(ws, layout, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
 				std::monostate{});
 
 	if(positive_is_green)
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
 	else
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
 
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 }
 void display_value(text::fp_three_places value, bool positive_is_green, sys::state& ws, text::layout_base& layout,
 		text::layout_box& box) {
 
 	if(value.value >= 0)
-		text::add_to_layout_box(layout, ws, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
+		text::add_to_layout_box(ws, layout, box, "+", positive_is_green ? text::text_color::green : text::text_color::red,
 				std::monostate{});
 
 	if(positive_is_green)
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::green : text::text_color::red);
 	else
-		text::add_to_layout_box(layout, ws, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
+		text::add_to_layout_box(ws, layout, box, value, value.value >= 0 ? text::text_color::red : text::text_color::green);
 
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 }
 
 void tag_type_this_nation_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
-	text::add_to_layout_box(layout, ws, box,
+	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot)))
 											: text::produce_simple_string(ws, "this_nation"));
 }
 void tag_type_this_state_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
-	text::add_to_layout_box(layout, ws, box,
+	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
 								ws.world.nation_get_name(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 }
 void tag_type_this_province_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
-	text::add_to_layout_box(layout, ws, box,
+	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
 								ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 }
 void tag_type_this_pop_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
-	text::add_to_layout_box(layout, ws, box,
+	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws, ws.world.nation_get_name(nations::owner_of_pop(ws, trigger::to_pop(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 }
 void tag_type_from_nation_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
-	text::add_to_layout_box(layout, ws, box,
+	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot)))
 											: text::produce_simple_string(ws, "from_nation"));
 }
 void tag_type_from_province_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
-	text::add_to_layout_box(layout, ws, box,
+	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
 								ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
@@ -166,7 +166,7 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 		auto limit = trigger::payload(tval[2]).tr_id;
 
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "where"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "where"));
 		text::close_layout_box(layout, box);
 
 		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index()], -1,
@@ -207,7 +207,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -219,9 +219,9 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "neighboring_province"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_province"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -259,7 +259,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -271,9 +271,9 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "neighboring_nation"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_nation"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -303,7 +303,7 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(layout, ws, box, rlist[r]);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
 			text::close_layout_box(layout, box);
 
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -314,9 +314,9 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "nation"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -360,7 +360,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -372,9 +372,9 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "empty_neighboring_province"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "empty_neighboring_province"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -404,7 +404,7 @@ uint32_t es_x_greater_power_scope(EFFECT_DISPLAY_PARAMS) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(layout, ws, box, rlist[r]);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
 			text::close_layout_box(layout, box);
 
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -415,9 +415,9 @@ uint32_t es_x_greater_power_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "great_power"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "great_power"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -429,9 +429,9 @@ uint32_t es_x_greater_power_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_poor_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "poor_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "poor_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -443,9 +443,9 @@ uint32_t es_poor_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_poor_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "poor_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "poor_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -457,9 +457,9 @@ uint32_t es_poor_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_poor_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "poor_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "poor_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -471,9 +471,9 @@ uint32_t es_poor_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_middle_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "middle_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "middle_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -485,9 +485,9 @@ uint32_t es_middle_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_middle_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "middle_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "middle_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -499,9 +499,9 @@ uint32_t es_middle_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_middle_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "middle_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "middle_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -513,9 +513,9 @@ uint32_t es_middle_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_rich_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "rich_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "rich_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -527,9 +527,9 @@ uint32_t es_rich_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_rich_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "rich_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "rich_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -541,9 +541,9 @@ uint32_t es_rich_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_rich_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "rich_strata_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "rich_strata_pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -555,9 +555,9 @@ uint32_t es_rich_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_x_pop_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -569,9 +569,9 @@ uint32_t es_x_pop_scope_nation(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_x_pop_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -583,9 +583,9 @@ uint32_t es_x_pop_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_x_pop_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -616,7 +616,7 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -628,14 +628,14 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owned_province"));
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
+		text::add_space_to_layout_box(ws, layout, box);
 		if(primary_slot != -1)
-			text::add_to_layout_box(layout, ws, box, trigger::to_nation(primary_slot));
+			text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
 		else
-			text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "singular_nation"));
+			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -674,7 +674,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -686,14 +686,14 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owned_province"));
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
+		text::add_space_to_layout_box(ws, layout, box);
 		if(primary_slot != -1)
-			text::add_to_layout_box(layout, ws, box, trigger::to_state(primary_slot));
+			text::add_to_layout_box(ws, layout, box, trigger::to_state(primary_slot));
 		else
-			text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "singular_state"));
+			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_state"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -726,7 +726,7 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -738,14 +738,14 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "core_of"));
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "core_of"));
+		text::add_space_to_layout_box(ws, layout, box);
 		if(primary_slot != -1)
-			text::add_to_layout_box(layout, ws, box, trigger::to_nation(primary_slot));
+			text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
 		else
-			text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "singular_nation"));
+			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -775,7 +775,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(layout, ws, box, rlist[r]);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
 
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
@@ -787,14 +787,14 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "state_of"));
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "state_of"));
+		text::add_space_to_layout_box(ws, layout, box);
 		if(primary_slot != -1)
-			text::add_to_layout_box(layout, ws, box, trigger::to_nation(primary_slot));
+			text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
 		else
-			text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "singular_nation"));
+			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
@@ -812,9 +812,9 @@ uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 	uint32_t rval = 0;
 	while(sub_units_start < tval + source_size) {
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::fp_percentage{float(*sub_units_start) / float(chances_total)});
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "chance_of"));
+		text::add_to_layout_box(ws, layout, box, text::fp_percentage{float(*sub_units_start) / float(chances_total)});
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
 		text::close_layout_box(layout, box);
 
 		rval = 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1,
@@ -828,9 +828,9 @@ uint32_t es_random_scope(EFFECT_DISPLAY_PARAMS) {
 	auto chance = tval[2];
 
 	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(layout, ws, box, text::fp_percentage{float(chance) / float(100)});
-	text::add_space_to_layout_box(layout, ws, box);
-	text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "chance_of"));
+	text::add_to_layout_box(ws, layout, box, text::fp_percentage{float(chance) / float(100)});
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
 	text::close_layout_box(layout, box);
 
 	return 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1,
@@ -839,9 +839,9 @@ uint32_t es_random_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_owner_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owner_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(primary_slot))
 													 : text::produce_simple_string(ws, "singular_state"));
 		text::close_layout_box(layout, box);
@@ -856,9 +856,9 @@ uint32_t es_owner_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_owner_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owner_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_province"));
 		text::close_layout_box(layout, box);
@@ -873,9 +873,9 @@ uint32_t es_owner_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_controller_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "controller_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "controller_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_province"));
 		text::close_layout_box(layout, box);
@@ -889,7 +889,7 @@ uint32_t es_controller_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_location_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "location_of_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "location_of_pop"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -900,7 +900,7 @@ uint32_t es_location_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_country_scope_pop(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "nation_of_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation_of_pop"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -911,9 +911,9 @@ uint32_t es_country_scope_pop(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_country_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owner_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(primary_slot))
 													 : text::produce_simple_string(ws, "singular_state"));
 		text::close_layout_box(layout, box);
@@ -928,9 +928,9 @@ uint32_t es_country_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_capital_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "capital_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
@@ -943,7 +943,7 @@ uint32_t es_capital_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_this_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot)))
 												: text::produce_simple_string(ws, "this_nation"));
 		text::close_layout_box(layout, box);
@@ -954,7 +954,7 @@ uint32_t es_this_scope_nation(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_this_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				this_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(this_slot))
 												: text::produce_simple_string(ws, "this_state"));
 		text::close_layout_box(layout, box);
@@ -964,7 +964,7 @@ uint32_t es_this_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_this_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				this_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(this_slot)))
 												: text::produce_simple_string(ws, "this_province"));
 		text::close_layout_box(layout, box);
@@ -974,7 +974,7 @@ uint32_t es_this_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_this_scope_pop(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_pop"));
 		text::close_layout_box(layout, box);
 	}
 	return display_subeffects(ws, tval, layout, this_slot, this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
@@ -982,7 +982,7 @@ uint32_t es_this_scope_pop(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_from_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				from_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(from_slot)))
 												: text::produce_simple_string(ws, "from_nation"));
 		text::close_layout_box(layout, box);
@@ -992,7 +992,7 @@ uint32_t es_from_scope_nation(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_from_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				from_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(from_slot))
 												: text::produce_simple_string(ws, "from_state"));
 		text::close_layout_box(layout, box);
@@ -1002,7 +1002,7 @@ uint32_t es_from_scope_state(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_from_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				from_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(from_slot)))
 												: text::produce_simple_string(ws, "from_province"));
 		text::close_layout_box(layout, box);
@@ -1012,7 +1012,7 @@ uint32_t es_from_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_from_scope_pop(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "from_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_pop"));
 		text::close_layout_box(layout, box);
 	}
 	return display_subeffects(ws, tval, layout, from_slot, this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
@@ -1020,7 +1020,7 @@ uint32_t es_from_scope_pop(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_sea_zone_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "adjacent_sea"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "adjacent_sea"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1047,9 +1047,9 @@ uint32_t es_cultural_union_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "cultural_union_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "cultural_union_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 					 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
@@ -1064,9 +1064,9 @@ uint32_t es_cultural_union_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_overlord_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "overlord_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "overlord_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
@@ -1079,9 +1079,9 @@ uint32_t es_overlord_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_sphere_owner_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "sphere_leader_of"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "sphere_leader_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
@@ -1098,7 +1098,7 @@ uint32_t es_independence_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "reb_independence_nation"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "reb_independence_nation"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1111,7 +1111,7 @@ uint32_t es_flashpoint_tag_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "flashpoint_nation"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "flashpoint_nation"));
 		text::close_layout_box(layout, box);
 	}
 	return display_subeffects(ws, tval, layout, fp_nation ? trigger::to_generic(fp_nation) : -1, this_slot, from_slot, r_hi, r_lo,
@@ -1120,7 +1120,7 @@ uint32_t es_flashpoint_tag_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_crisis_state_scope(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "crisis_state"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "crisis_state"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1130,9 +1130,9 @@ uint32_t es_crisis_state_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_state_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "containing_state"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "containing_state"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
 				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_province"));
 		text::close_layout_box(layout, box);
@@ -1145,9 +1145,9 @@ uint32_t es_state_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_state_scope_pop(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "containing_state"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "singular_pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "containing_state"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_pop"));
 		text::close_layout_box(layout, box);
 	}
 	auto st = primary_slot != -1 ? ws.world.province_get_state_membership(
@@ -1162,7 +1162,7 @@ uint32_t es_tag_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box,
+		text::add_to_layout_box(ws, layout, box,
 				text::produce_simple_string(ws,
 						tag_holder ? ws.world.nation_get_name(tag_holder) : ws.world.national_identity_get_name(tag)));
 		text::close_layout_box(layout, box);
@@ -1175,7 +1175,7 @@ uint32_t es_integer_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
 		text::close_layout_box(layout, box);
 	}
 	return display_subeffects(ws, tval, layout, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo,
@@ -1186,11 +1186,11 @@ uint32_t es_pop_type_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "every"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.pop_type_get_name(type)));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "every"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.pop_type_get_name(type)));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1203,11 +1203,11 @@ uint32_t es_pop_type_scope_state(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "every"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.pop_type_get_name(type)));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "every"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.pop_type_get_name(type)));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1220,11 +1220,11 @@ uint32_t es_pop_type_scope_province(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "every"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.pop_type_get_name(type)));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "pop"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "every"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.pop_type_get_name(type)));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1239,7 +1239,7 @@ uint32_t es_region_scope(EFFECT_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, region);
+		text::add_to_layout_box(ws, layout, box, region);
 		text::close_layout_box(layout, box);
 	}
 
@@ -1251,7 +1251,7 @@ uint32_t es_region_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_none(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "no_effect"));
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "no_effect"));
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -1260,9 +1260,9 @@ uint32_t ef_capital(EFFECT_DISPLAY_PARAMS) {
 	auto new_capital = trigger::payload(tval[1]).prov_id;
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "move_capital_to"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, new_capital);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "move_capital_to"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, new_capital);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -1293,9 +1293,9 @@ uint32_t ef_add_core_int(EFFECT_DISPLAY_PARAMS) {
 	auto prov = trigger::payload(tval[1]).prov_id;
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "add_core_to"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, prov);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "add_core_to"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, prov);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -1448,9 +1448,9 @@ uint32_t ef_remove_core_int(EFFECT_DISPLAY_PARAMS) {
 	auto prov = trigger::payload(tval[1]).prov_id;
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "remove_core_from"));
-		text::add_space_to_layout_box(layout, ws, box);
-		text::add_to_layout_box(layout, ws, box, prov);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "remove_core_from"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, prov);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -1682,7 +1682,7 @@ uint32_t ef_life_rating(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "life_rating", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -1721,7 +1721,7 @@ uint32_t ef_research_points(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "research_points", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -1782,7 +1782,7 @@ uint32_t ef_war_exhaustion(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "war_exhaustion", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -1802,7 +1802,7 @@ uint32_t ef_prestige(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "prestige", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(change), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -1945,7 +1945,7 @@ uint32_t ef_badboy(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "prestige", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_one_place{amount}, false, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -2312,7 +2312,7 @@ uint32_t ef_infrastructure(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "railroad_level", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(amount), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -2324,7 +2324,7 @@ uint32_t ef_money(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "pop_savings", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_currency{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -2336,7 +2336,7 @@ uint32_t ef_leadership(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "leadership_points", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(amount), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -2568,7 +2568,7 @@ uint32_t ef_plurality(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "plurality", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -2910,7 +2910,7 @@ uint32_t ef_reduce_pop(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "pop_size", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1) - 1.0f}, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -2943,7 +2943,7 @@ uint32_t ef_years_of_research(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "research_points", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(result), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 		return 0;
@@ -2960,7 +2960,7 @@ uint32_t ef_prestige_factor_positive(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "prestige", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -2969,7 +2969,7 @@ uint32_t ef_prestige_factor_negative(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "prestige", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3185,7 +3185,7 @@ uint32_t ef_literacy(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "literacy", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3201,7 +3201,7 @@ uint32_t ef_flashpoint_tension(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "flashpoint_tension", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(int64_t(trigger::read_float_from_payload(tval + 1)), true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3210,7 +3210,7 @@ uint32_t ef_add_crisis_temperature(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "crisis_temperature_plain", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(int64_t(trigger::read_float_from_payload(tval + 1)), true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3219,7 +3219,7 @@ uint32_t ef_consciousness(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "consciousness", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3228,7 +3228,7 @@ uint32_t ef_militancy(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "militancy", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3237,7 +3237,7 @@ uint32_t ef_rgo_size(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "rgo_size", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(int64_t(trigger::payload(tval[1]).signed_value), false, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3246,7 +3246,7 @@ uint32_t ef_fort(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "fort_level", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(int64_t(trigger::payload(tval[1]).signed_value), false, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3255,7 +3255,7 @@ uint32_t ef_naval_base(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "naval_base_level", m);
-	text::add_space_to_layout_box(layout, ws, box);
+	text::add_space_to_layout_box(ws, layout, box);
 	display_value(int64_t(trigger::payload(tval[1]).signed_value), false, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3310,7 +3310,7 @@ uint32_t ef_diplomatic_influence(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, target);
 		text::localised_format_box(ws, layout, box, "diplomatic_influence_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[2]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3322,7 +3322,7 @@ uint32_t ef_diplomatic_influence_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "diplomatic_influence_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3334,7 +3334,7 @@ uint32_t ef_diplomatic_influence_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "diplomatic_influence_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3346,7 +3346,7 @@ uint32_t ef_diplomatic_influence_from_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "diplomatic_influence_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3358,7 +3358,7 @@ uint32_t ef_diplomatic_influence_from_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "diplomatic_influence_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3371,7 +3371,7 @@ uint32_t ef_relation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, target);
 		text::localised_format_box(ws, layout, box, "relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[2]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3383,7 +3383,7 @@ uint32_t ef_relation_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3395,7 +3395,7 @@ uint32_t ef_relation_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3407,7 +3407,7 @@ uint32_t ef_relation_from_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -3419,7 +3419,7 @@ uint32_t ef_relation_from_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5044,7 +5044,7 @@ uint32_t ef_ideology(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5056,7 +5056,7 @@ uint32_t ef_upper_house(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "uh_support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5414,7 +5414,7 @@ uint32_t ef_dominant_issue(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5426,7 +5426,7 @@ uint32_t ef_dominant_issue_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5457,7 +5457,7 @@ uint32_t ef_move_issue_percentage_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5466,7 +5466,7 @@ uint32_t ef_move_issue_percentage_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5479,7 +5479,7 @@ uint32_t ef_move_issue_percentage_state(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5488,7 +5488,7 @@ uint32_t ef_move_issue_percentage_state(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5501,7 +5501,7 @@ uint32_t ef_move_issue_percentage_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5510,7 +5510,7 @@ uint32_t ef_move_issue_percentage_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5523,7 +5523,7 @@ uint32_t ef_move_issue_percentage_pop(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5532,7 +5532,7 @@ uint32_t ef_move_issue_percentage_pop(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5545,7 +5545,7 @@ uint32_t ef_party_loyalty_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "blank_loyalty", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5555,7 +5555,7 @@ uint32_t ef_party_loyalty(EFFECT_DISPLAY_PARAMS) {
 	float amount = float(trigger::payload(tval[3]).signed_value) / 100.0f;
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(layout, ws, box, trigger::payload(tval[1]).prov_id);
+		text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).prov_id);
 		text::close_layout_box(layout, box);
 	}
 	{
@@ -5563,7 +5563,7 @@ uint32_t ef_party_loyalty(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[2]).ideo_id));
 		text::localised_format_box(ws, layout, box, "blank_loyalty", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5647,7 +5647,7 @@ uint32_t ef_relation_reb(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_rebel(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5734,7 +5734,7 @@ uint32_t ef_relation_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, target);
 		text::localised_format_box(ws, layout, box, "o_relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[2]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5746,7 +5746,7 @@ uint32_t ef_relation_province_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "o_relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5758,7 +5758,7 @@ uint32_t ef_relation_province_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "o_relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5770,7 +5770,7 @@ uint32_t ef_relation_province_from_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "o_relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5782,7 +5782,7 @@ uint32_t ef_relation_province_from_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "o_relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -5794,7 +5794,7 @@ uint32_t ef_relation_province_reb(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_rebel(from_slot)), "from_nation", [](auto x) { return x; });
 		text::localised_format_box(ws, layout, box, "o_relations_with", m);
-		text::add_space_to_layout_box(layout, ws, box);
+		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(trigger::payload(tval[1]).signed_value), true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
