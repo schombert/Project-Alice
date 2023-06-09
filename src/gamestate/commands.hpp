@@ -69,6 +69,7 @@ enum class command_type : uint8_t {
 	send_peace_offer = 60,
 	move_army = 61,
 	move_navy = 62,
+	embark_army = 63,
 
 	// console cheats
 	switch_nation = 128,
@@ -547,6 +548,12 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+
+// This command is used for getting armies in/out of transports while those transports are docked in port
+// If the army is already embarked, it will disembark; if it is not embarked it will embark
+// Embarking an army onto/off a ship that is off the coast is done by moving the army into the sea/land tile instead.
+void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 
 /*
 PEACE OFFER COMMANDS:

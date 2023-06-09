@@ -2846,9 +2846,29 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 	return std::clamp(total, 0.0f, 100.0f);
 }
 
-bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a) {
-	// TODO
-	return false;
+bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a) {
+	int32_t max_cap = 0;
+	for(auto n : state.world.province_get_navy_location(p)) {
+		if(n.get_navy().get_controller_from_navy_control() == from) {
+			max_cap = std::max(free_transport_capacity(state, n.get_navy()), max_cap);
+		}
+	}
+	auto regs = state.world.army_get_army_membership(a);
+	return int32_t(regs.end() - regs.begin()) <= max_cap;
+}
+
+dcon::navy_id find_embark_target(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a) {
+	auto regs = state.world.army_get_army_membership(a);
+	int32_t count = int32_t(regs.end() - regs.begin());
+
+	int32_t max_cap = 0;
+	for(auto n : state.world.province_get_navy_location(p)) {
+		if(n.get_navy().get_controller_from_navy_control() == from) {
+			if(free_transport_capacity(state, n.get_navy()) >= count)
+				return n.get_navy();
+		}
+	}
+	return dcon::navy_id{};
 }
 
 float effective_army_speed(sys::state& state, dcon::army_id a) {
@@ -2918,6 +2938,19 @@ sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id 
 	return state.current_date + days;
 }
 
+void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p) {
+	state.world.army_set_location_from_army_location(a, p);
+	if(!state.world.army_get_black_flag(a)) {
+		// TODO: start battle
+	}
+}
+
+void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p) {
+	state.world.navy_set_location_from_navy_location(n, p);
+
+	// TODO: start battle
+}
+
 void update_movement(sys::state& state) {
 	for(auto a : state.world.in_army) {
 		if(auto path = a.get_path(); a.get_arrival_time() == state.current_date && path.size() > 0) {
@@ -2925,11 +2958,18 @@ void update_movement(sys::state& state) {
 			path.pop_back();
 
 			if(dest.index() < state.province_definitions.first_sea_province.index()) { // sea province
-				// TODO: check for embarkation possibility, then embark
+				// check for embarkation possibility, then embark
+				auto to_navy = find_embark_target(state, a.get_controller_from_army_control(), dest, a);
+				if(to_navy) {
+					a.set_location_from_army_location(dest);
+					a.set_navy_from_army_transport(to_navy);
+				} else {
+					path.clear();
+				}
 			} else { // land province
 				if(a.get_black_flag() || province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
-					// TODO if not blackflagged: check for battle, start siege if final destination
-					a.set_location_from_army_location(dest);
+					army_arrives_in_province(state, a, dest);
+					a.set_navy_from_army_transport(dcon::navy_id{});
 				} else {
 					path.clear();
 				}
@@ -2952,16 +2992,33 @@ void update_movement(sys::state& state) {
 
 			if(dest.index() < state.province_definitions.first_sea_province.index()) { // land province
 				if(province::has_access_to_province(state, n.get_controller_from_navy_control(), dest)) {
-					// TODO check for battle
+					
 					n.set_location_from_navy_location(dest);
-					// TODO: check for whether there are troops to disembark
+
+					// check for whether there are troops to disembark
+					auto attached = state.world.navy_get_army_transport(n);
+					while(attached.begin() != attached.end()) {
+						auto a = (*attached.begin()).get_army();
+
+						a.set_navy_from_army_transport(dcon::navy_id{});
+						a.set_location_from_army_location(dest);
+						a.get_path().clear();
+						a.set_arrival_time(sys::date{});
+					}
 				} else {
 					path.clear();
 				}
 			} else { // sea province
 				// TODO check for battle
-				n.set_location_from_navy_location(dest);
-				// TODO, take embarked units along with
+
+				navy_arrives_in_province(state, n, dest);
+
+				// take embarked units along with
+				for(auto a : state.world.navy_get_army_transport(n)) {
+					a.get_army().set_location_from_army_location(dest);
+					a.get_army().get_path().clear();
+					a.get_army().set_arrival_time(sys::date{});
+				}
 			}
 
 			if(path.size() > 0) {
@@ -2972,6 +3029,23 @@ void update_movement(sys::state& state) {
 			}
 		}
 	}
+}
+
+int32_t transport_capacity(sys::state& state, dcon::navy_id n) {
+	int32_t total = 0;
+	for(auto s : state.world.navy_get_navy_membership(n)) {
+		if(state.military_definitions.unit_base_definitions[s.get_ship().get_type()].type == unit_type::transport)
+			++total;
+	}
+	return total;
+}
+int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
+	int32_t used_total = 0;
+	for(auto a : state.world.navy_get_army_transport(n)) {
+		auto regs = a.get_army().get_army_membership();
+		used_total += int32_t(regs.end() - regs.begin());
+	}
+	return transport_capacity(state, n) - used_total;
 }
 
 } // namespace military

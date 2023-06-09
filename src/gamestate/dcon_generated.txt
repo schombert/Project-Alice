@@ -1546,6 +1546,23 @@ object {
 }
 
 relationship{
+	name{ army_transport }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{navy}
+		name{navy}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
 	name{ army_control }
 	tag{ save }
 

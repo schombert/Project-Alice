@@ -670,28 +670,32 @@ The garrison returns to 100% immediately after the siege is complete and the con
 When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
 
 Siege Table:
-0: 1.0
-1: 2.0
-2: 3.8
-3: 3.4
-4: 3.8
-5: 4.2
-6: 4.5
-7: 4.8
-8: 5.0
-9: 5.2
+| modified roll | value |
+|----|----|
+| 0 | 1.0 |
+| 1 | 2.0 |
+| 2 | 3.8 |
+| 3 | 3.4 |
+| 4 | 3.8 |
+| 5 | 4.2 |
+| 6 | 4.5 |
+| 7 | 4.8 |
+| 8 | 5.0 |
+| 9 | 5.2 |
 
 Progress Table:
-0: 0
-1: 0.2
-2: 0.5
-3: 0.75
-4: 0.75
-5: 1
-6: 1.1
-7: 1.1
-8: 1.25
-9: 1.25
+| modified roll | value |
+|----|----|
+| 0 | 0    |
+| 1 | 0.2  |
+| 2 | 0.5  |
+| 3 | 0.75 |
+| 4 | 0.75 |
+| 5 | 1    |
+| 6 | 1.1  |
+| 7 | 1.1  |
+| 8 | 1.25 |
+| 9 | 1.25 |
 
 ### Land combat
 
@@ -748,25 +752,27 @@ When you beat someone else's rebels without them being present, you get +5 relat
 Then, any unit in the back row with an empty font row slot ahead of it is moved forwards.
 
 Modifier Table
--1 or less: 0
-0: 0.02
-1: 0.04
-2: 0.06
-3: 0.08
-4: 0.1
-5: 0.12
-6: 0.16
-7: 0.20
-8: 0.25
-9: 0.30
-10: 0.35
-11: 0.40
-12: 0.45
-13: 0.50
-14: 0.60
-15: 0.70
-16: 0.80
-17+: 0.90
+| modified roll | value |
+|----|----|
+| -1 or less | 0 |
+| 0  | 0.02 |
+| 1  | 0.04 |
+| 2  | 0.06 |
+| 3  | 0.08 |
+| 4  | 0.10 |
+| 5  | 0.12 |
+| 6  | 0.16 |
+| 7  | 0.20 |
+| 8  | 0.25 |
+| 9  | 0.30 |
+| 10 | 0.35 |
+| 11 | 0.40 |
+| 12 | 0.45 |
+| 13 | 0.50 |
+| 14 | 0.60 |
+| 15 | 0.70 |
+| 16 | 0.80 |
+| 17+ | 0.90 |
 
 ### Naval combat
 
@@ -858,7 +864,7 @@ When player navies die from attrition, the admirals are lost too.
 
 ### Movement
 
-Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (destination-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-destination) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (origin-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
 
 When a unit arrives in a new province, it takes attrition (as if it had spent the monthly tick in the province).
 

@@ -3059,7 +3059,7 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 		if(!state.world.province_get_is_coast(dest))
 			return std::vector<dcon::province_id>{};
 
-		if(!province::has_access_to_province(state, source, dest))
+		if(!province::has_naval_access_to_province(state, source, dest))
 			return std::vector<dcon::province_id>{};
 
 		return province::make_naval_path(state, last_province, dest);
@@ -3096,6 +3096,53 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	}
 }
 
+
+void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::embark_army;
+	p.source = source;
+	p.data.army_movement.a = a;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(source != state.world.army_get_controller_from_army_control(a))
+		return false;
+
+	auto location = state.world.army_get_location_from_army_location(a);
+	if(location.index() >= state.province_definitions.first_sea_province.index())
+		return false;
+
+	// TODO: test not in battle
+
+	if(state.world.army_get_navy_from_army_transport(a)) {
+		return true;
+	} else {
+		return military::can_embark_onto_sea_tile(state, source, location, a);
+	}
+}
+
+void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(source != state.world.army_get_controller_from_army_control(a))
+		return;
+
+	// TODO: test not in battle
+
+	auto location = state.world.army_get_location_from_army_location(a);
+	if(location.index() >= state.province_definitions.first_sea_province.index())
+		return;
+
+	if(state.world.army_get_navy_from_army_transport(a)) {
+		state.world.army_set_navy_from_army_transport(a, dcon::navy_id{});
+		military::army_arrives_in_province(state, a, location);
+	} else {
+		auto to_navy = military::find_embark_target(state, source, location, a);
+		if(to_navy) {
+			state.world.army_set_navy_from_army_transport(a, to_navy);
+		}
+	}
+}
 
 
 void execute_pending_commands(sys::state& state) {
@@ -3303,6 +3350,11 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::move_navy:
 			execute_move_navy(state, c->source, c->data.navy_movement.n, c->data.navy_movement.dest);
 			break;
+		case command_type::embark_army:
+			execute_embark_army(state, c->source, c->data.army_movement.a);
+
+
+
 		// console commands
 		case command_type::switch_nation:
 			execute_switch_nation(state, c->source, c->data.tag_target.ident);
