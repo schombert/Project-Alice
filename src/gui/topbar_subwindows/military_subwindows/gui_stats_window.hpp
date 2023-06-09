@@ -227,7 +227,6 @@ public:
 		} else {
 			return nullptr;
 		}
-		return nullptr;
 	}
 };
 
