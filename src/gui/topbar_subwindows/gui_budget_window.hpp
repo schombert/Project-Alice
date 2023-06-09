@@ -48,7 +48,8 @@ pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wr
 }
 } // namespace dcon
 namespace ogl {
-template<> uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
+template<>
+uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 	switch(id.value) {
 	case 0: // red
 		return sys::pack_color(1.0f, 0.1f, 0.1f);
@@ -66,7 +67,8 @@ template<> uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapp
 } // namespace ogl
 
 namespace ui {
-template<culture::pop_strata Strata> class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
+template<culture::pop_strata Strata>
+class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
 	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
 			sys::state& state) noexcept override {
@@ -162,7 +164,8 @@ struct budget_slider_signal {
 	float amount;
 };
 
-template<budget_slider_target SliderTarget> class budget_slider : public scrollbar {
+template<budget_slider_target SliderTarget>
+class budget_slider : public scrollbar {
 public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
@@ -604,7 +607,8 @@ public:
 	}
 };
 
-template<culture::income_type Income> class budget_small_pop_income_list : public budget_pop_income_list<Income> {
+template<culture::income_type Income>
+class budget_small_pop_income_list : public budget_pop_income_list<Income> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "pop_listitem_small";

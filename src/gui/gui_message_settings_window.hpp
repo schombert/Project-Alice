@@ -130,7 +130,8 @@ protected:
 	}
 };
 
-template<message_settings_category Filter> class message_log_filter_checkbox : public checkbox_button {
+template<message_settings_category Filter>
+class message_log_filter_checkbox : public checkbox_button {
 	static std::string_view get_filter_text_key(message_settings_category f) noexcept {
 		switch(f) {
 		case message_settings_category::all:

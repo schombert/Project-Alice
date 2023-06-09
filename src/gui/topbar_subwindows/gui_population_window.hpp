@@ -767,7 +767,8 @@ public:
 };
 
 typedef std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id> pop_left_side_data;
-template<typename T> class pop_left_side_button : public button_element_base {
+template<typename T>
+class pop_left_side_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1005,7 +1006,8 @@ protected:
 	}
 };
 
-template<typename T> class pop_distribution_plupp : public tinted_image_element_base {
+template<typename T>
+class pop_distribution_plupp : public tinted_image_element_base {
 	T content{};
 
 public:
@@ -1019,7 +1021,8 @@ public:
 	}
 };
 
-template<typename T, bool Multiple> class pop_distribution_piechart : public piechart<T> {
+template<typename T, bool Multiple>
+class pop_distribution_piechart : public piechart<T> {
 	float iterate_one_pop(sys::state& state, std::unordered_map<typename T::value_base_t, float>& distrib, dcon::pop_id pop_id) {
 		auto amount = 0.f;
 		auto const weight_fn = [&](auto id) {
@@ -1098,7 +1101,8 @@ public:
 		piechart<T>::on_update(state);
 	}
 };
-template<typename T> class pop_distribution_item : public listbox_row_element_base<std::pair<T, float>> {
+template<typename T>
+class pop_distribution_item : public listbox_row_element_base<std::pair<T, float>> {
 	element_base* title_text = nullptr;
 	simple_text_element_base* value_text = nullptr;
 
@@ -1131,13 +1135,15 @@ public:
 		return listbox_row_element_base<std::pair<T, float>>::get(state, payload);
 	}
 };
-template<typename T> class pop_distribution_listbox : public listbox_element_base<pop_distribution_item<T>, std::pair<T, float>> {
+template<typename T>
+class pop_distribution_listbox : public listbox_element_base<pop_distribution_item<T>, std::pair<T, float>> {
 public:
 	std::string_view get_row_element_name() override {
 		return "pop_legend_item";
 	}
 };
-template<typename T, bool Multiple> class pop_distribution_window : public window_element_base {
+template<typename T, bool Multiple>
+class pop_distribution_window : public window_element_base {
 	pop_distribution_listbox<T>* distrib_listbox;
 
 public:
@@ -1264,7 +1270,8 @@ public:
 		return message_result::unseen;
 	}
 };
-template<size_t N> class pop_details_promotion_window : public window_element_base {
+template<size_t N>
+class pop_details_promotion_window : public window_element_base {
 	dcon::pop_type_id content{};
 	float chance = 0.f;
 	fixed_pop_type_icon* type_icon = nullptr;
@@ -1368,7 +1375,8 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 				...);
 	}
 
-	template<typename T, typename... Targs> void generate_distribution_windows(sys::state& state) {
+	template<typename T, typename... Targs>
+	void generate_distribution_windows(sys::state& state) {
 		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
 		dist_windows.push_back(win.get());
 		add_child_to_front(std::move(win));
@@ -1717,7 +1725,8 @@ class pop_filter_select_action {
 public:
 	bool value;
 };
-template<bool B> class pop_filter_select_button : public button_element_base {
+template<bool B>
+class pop_filter_select_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -1727,7 +1736,8 @@ public:
 	}
 };
 
-template<pop_list_sort Sort> class pop_sort_button : public button_element_base {
+template<pop_list_sort Sort>
+class pop_sort_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -1998,7 +2008,8 @@ private:
 		}
 	}
 
-	template<typename T, typename... Targs> void generate_distribution_windows(sys::state& state) {
+	template<typename T, typename... Targs>
+	void generate_distribution_windows(sys::state& state) {
 		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
 		dist_windows.push_back(win.get());
 		add_child_to_front(std::move(win));

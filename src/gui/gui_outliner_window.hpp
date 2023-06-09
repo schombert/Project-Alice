@@ -392,7 +392,8 @@ class outliner_minmax_button : public button_element_base {
 public:
 };
 
-template<outliner_filter Filter> class outliner_filter_checkbox : public checkbox_button {
+template<outliner_filter Filter>
+class outliner_filter_checkbox : public checkbox_button {
 	static std::string_view get_filter_text_key(outliner_filter f) noexcept {
 		switch(f) {
 		case outliner_filter::rebel_occupations:

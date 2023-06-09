@@ -655,7 +655,8 @@ public:
 	}
 };
 
-template<bool B> class diplomacy_peace_tab_button : public button_element_base {
+template<bool B>
+class diplomacy_peace_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -684,7 +685,8 @@ public:
 	}
 };
 
-template<bool B> class diplomacy_peace_nation_flag : public flag_button {
+template<bool B>
+class diplomacy_peace_nation_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {

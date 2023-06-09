@@ -93,7 +93,8 @@ public:
 	}
 };
 
-template<class T> class trade_goods_needs_entry : public listbox_row_element_base<dcon::commodity_id> {
+template<class T>
+class trade_goods_needs_entry : public listbox_row_element_base<dcon::commodity_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
@@ -347,7 +348,8 @@ protected:
 		return "trade_flow_entry";
 	}
 
-	template<typename F> void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
+	template<typename F>
+	void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
 		if(parent) {
 			Cyto::Any payload = dcon::commodity_id{};
 			parent->impl_get(state, payload);
@@ -546,7 +548,8 @@ public:
 	}
 };
 
-template<sys::commodity_group Group> class trade_commodity_group_window : public window_element_base {
+template<sys::commodity_group Group>
+class trade_commodity_group_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);

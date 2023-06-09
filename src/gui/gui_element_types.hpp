@@ -271,7 +271,8 @@ public:
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
-template<class TabT> class generic_tabbed_window : public window_element_base {
+template<class TabT>
+class generic_tabbed_window : public window_element_base {
 public:
 	TabT active_tab = TabT();
 };
@@ -296,7 +297,8 @@ public:
 	}
 };
 
-template<class RowConT> class wrapped_listbox_row_content {
+template<class RowConT>
+class wrapped_listbox_row_content {
 public:
 	RowConT content;
 	wrapped_listbox_row_content() {
@@ -307,7 +309,8 @@ public:
 	}
 };
 
-template<class ItemWinT, class ItemConT> class overlapping_listbox_element_base : public window_element_base {
+template<class ItemWinT, class ItemConT>
+class overlapping_listbox_element_base : public window_element_base {
 private:
 	int16_t subwindow_width = 0;
 
@@ -393,7 +396,8 @@ protected:
 	void populate_flags(sys::state& state) override;
 };
 
-template<class TabT> class generic_tab_button : public checkbox_button {
+template<class TabT>
+class generic_tab_button : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept final {
 		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
@@ -409,7 +413,8 @@ public:
 	TabT target = TabT();
 };
 
-template<class TabT> class generic_opaque_checkbox_button : public checkbox_button {
+template<class TabT>
+class generic_opaque_checkbox_button : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept final {
 		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
@@ -440,7 +445,8 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
-template<class T> class piechart : public piechart_element_base {
+template<class T>
+class piechart : public piechart_element_base {
 protected:
 	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
 		std::unordered_map<typename T::value_base_t, float> out{};
@@ -480,27 +486,31 @@ public:
 	virtual void populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept;
 };
 
-template<class SrcT, class DemoT> class demographic_piechart : public piechart<DemoT> {
+template<class SrcT, class DemoT>
+class demographic_piechart : public piechart<DemoT> {
 protected:
 	std::unordered_map<typename DemoT::value_base_t, float> get_distribution(sys::state& state) noexcept override;
 	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
 };
 
-template<class SrcT> class culture_piechart : public demographic_piechart<SrcT, dcon::culture_id> {
+template<class SrcT>
+class culture_piechart : public demographic_piechart<SrcT, dcon::culture_id> {
 protected:
 	void for_each_demo(sys::state& state, std::function<void(dcon::culture_id)> fun) override {
 		state.world.for_each_culture(fun);
 	}
 };
 
-template<class SrcT> class workforce_piechart : public demographic_piechart<SrcT, dcon::pop_type_id> {
+template<class SrcT>
+class workforce_piechart : public demographic_piechart<SrcT, dcon::pop_type_id> {
 protected:
 	void for_each_demo(sys::state& state, std::function<void(dcon::pop_type_id)> fun) override {
 		state.world.for_each_pop_type(fun);
 	}
 };
 
-template<class SrcT> class ideology_piechart : public demographic_piechart<SrcT, dcon::ideology_id> {
+template<class SrcT>
+class ideology_piechart : public demographic_piechart<SrcT, dcon::ideology_id> {
 protected:
 	void for_each_demo(sys::state& state, std::function<void(dcon::ideology_id)> fun) override {
 		state.world.for_each_ideology(fun);
@@ -660,12 +670,14 @@ public:
 	}
 };
 
-template<class RowWinT, class RowConT> class standard_listbox_scrollbar : public autoscaling_scrollbar {
+template<class RowWinT, class RowConT>
+class standard_listbox_scrollbar : public autoscaling_scrollbar {
 public:
 	void on_value_change(sys::state& state, int32_t v) noexcept override;
 };
 
-template<class RowConT> class listbox_row_element_base : public window_element_base {
+template<class RowConT>
+class listbox_row_element_base : public window_element_base {
 protected:
 	RowConT content{};
 
@@ -675,7 +687,8 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 };
 
-template<class RowConT> class listbox_row_button_base : public button_element_base {
+template<class RowConT>
+class listbox_row_button_base : public button_element_base {
 protected:
 	RowConT content{};
 
@@ -685,7 +698,8 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 };
 
-template<class RowWinT, class RowConT> class listbox_element_base : public container_base {
+template<class RowWinT, class RowConT>
+class listbox_element_base : public container_base {
 private:
 	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
 
@@ -711,7 +725,8 @@ public:
 	}
 };
 
-template<typename T> struct element_selection_wrapper {
+template<typename T>
+struct element_selection_wrapper {
 	T data{};
 };
 

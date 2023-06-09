@@ -1576,7 +1576,8 @@ public:
 	}
 };
 
-template<typename T> class diplomacy_action_window : public window_element_base {
+template<typename T>
+class diplomacy_action_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "action_option") {

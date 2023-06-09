@@ -2355,7 +2355,8 @@ inline int32_t trigger_scope_data_payload(uint16_t code) {
 	return 0;
 }
 
-template<typename T> uint16_t* recurse_over_triggers(uint16_t* source, T const& f) {
+template<typename T>
+uint16_t* recurse_over_triggers(uint16_t* source, T const& f) {
 	f(source);
 	assert(
 			(source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);

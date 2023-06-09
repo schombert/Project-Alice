@@ -5,7 +5,8 @@
 
 namespace ui {
 
-template<bool Left> class event_lr_button : public button_element_base {
+template<bool Left>
+class event_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -68,7 +69,8 @@ public:
 //
 // National events
 //
-template<bool IsMajor> class national_event_window : public window_element_base {
+template<bool IsMajor>
+class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
 	std::vector<element_base*> new_elements;
 	simple_text_element_base* count_text = nullptr;

@@ -351,7 +351,8 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 	}
 }
 
-template<bool IsMajor> void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
+template<bool IsMajor>
+void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	auto s1 = IsMajor ? "event_major_option_start" : "event_country_option_start";
 	auto s2 = IsMajor ? "event_major_option_offset" : "event_country_option_offset";
@@ -454,7 +455,8 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 	}
 }
 
-template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
+template<bool IsMajor>
+void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
 	if(state.user_settings.use_new_ui) {
 		odds_icon->set_visible(state, true);
 		req_icon->set_visible(state, true);
@@ -484,7 +486,8 @@ template<bool IsMajor> void national_event_window<IsMajor>::on_update(sys::state
 		set_visible(state, false);
 }
 
-template<bool IsMajor> message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
+template<bool IsMajor>
+message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(index >= int32_t(events.size()))
 		index = 0;
 	else if(index < 0)

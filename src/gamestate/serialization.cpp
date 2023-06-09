@@ -57,7 +57,8 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 	return ptr_out + sizeof(uint32_t) * 2 + section_length;
 }
 
-template<typename T> uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& function) {
+template<typename T>
+uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& function) {
 	uint32_t section_length = 0;
 	uint32_t decompressed_length = 0;
 	memcpy(&section_length, ptr_in, sizeof(uint32_t));

@@ -499,7 +499,8 @@ public:
 	}
 };
 
-template<economy::province_building_type Value> class province_building_icon : public standard_province_icon {
+template<economy::province_building_type Value>
+class province_building_icon : public standard_province_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		switch(Value) {
@@ -519,7 +520,8 @@ public:
 		return 0;
 	}
 };
-template<economy::province_building_type Value> class province_building_expand_button : public button_element_base {
+template<economy::province_building_type Value>
+class province_building_expand_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -539,7 +541,8 @@ public:
 		}
 	}
 };
-template<economy::province_building_type Value> class province_building_progress : public progress_bar {
+template<economy::province_building_type Value>
+class province_building_progress : public progress_bar {
 public:
 	void on_create(sys::state& state) noexcept override {
 		progress_bar::on_create(state);
@@ -555,7 +558,8 @@ public:
 		}
 	}
 };
-template<economy::province_building_type Value> class province_building_window : public window_element_base {
+template<economy::province_building_type Value>
+class province_building_window : public window_element_base {
 	button_element_base* expand_button = nullptr;
 	image_element_base* under_construction_icon = nullptr;
 	element_base* building_progress = nullptr;

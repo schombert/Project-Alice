@@ -71,7 +71,8 @@ template<typename B>
 	}
 }
 
-template<typename A> [[nodiscard]] auto compare_to_true(uint16_t trigger_code, A value_a) -> decltype(!value_a) {
+template<typename A>
+[[nodiscard]] auto compare_to_true(uint16_t trigger_code, A value_a) -> decltype(!value_a) {
 	switch(trigger_code & trigger::association_mask) {
 	case trigger::association_eq:
 		return value_a;
@@ -89,7 +90,8 @@ template<typename A> [[nodiscard]] auto compare_to_true(uint16_t trigger_code, A
 		return value_a;
 	}
 }
-template<typename A> [[nodiscard]] auto compare_to_false(uint16_t trigger_code, A value_a) -> decltype(!value_a) {
+template<typename A>
+[[nodiscard]] auto compare_to_false(uint16_t trigger_code, A value_a) -> decltype(!value_a) {
 	switch(trigger_code & trigger::association_mask) {
 	case trigger::association_eq:
 		return !value_a;
@@ -122,23 +124,28 @@ float read_float_from_payload(uint16_t const* data) {
 	return pack_float.f;
 }
 
-template<typename T> struct gathered_s {
+template<typename T>
+struct gathered_s {
 	using type = T;
 };
 
-template<> struct gathered_s<ve::contiguous_tags<int32_t>> {
+template<>
+struct gathered_s<ve::contiguous_tags<int32_t>> {
 	using type = ve::tagged_vector<int32_t>;
 };
 
-template<> struct gathered_s<ve::unaligned_contiguous_tags<int32_t>> {
+template<>
+struct gathered_s<ve::unaligned_contiguous_tags<int32_t>> {
 	using type = ve::tagged_vector<int32_t>;
 };
 
-template<> struct gathered_s<ve::partial_contiguous_tags<int32_t>> {
+template<>
+struct gathered_s<ve::partial_contiguous_tags<int32_t>> {
 	using type = ve::tagged_vector<int32_t>;
 };
 
-template<typename T> using gathered_t = typename gathered_s<T>::type;
+template<typename T>
+using gathered_t = typename gathered_s<T>::type;
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, primary_type primary_slot, this_type this_slot,
@@ -149,21 +156,27 @@ return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, 
 	return_type CALLTYPE function_name(uint16_t const* tval, sys::state& ws, primary_type primary_slot, this_type this_slot,       \
 			from_type from_slot)
 
-template<typename T> struct full_mask { };
+template<typename T>
+struct full_mask { };
 
-template<> struct full_mask<bool> {
+template<>
+struct full_mask<bool> {
 	static constexpr bool value = true;
 };
-template<> struct full_mask<ve::vbitfield_type> {
+template<>
+struct full_mask<ve::vbitfield_type> {
 	static constexpr ve::vbitfield_type value = ve::vbitfield_type{ve::vbitfield_type::storage(-1)};
 };
 
-template<typename T> struct empty_mask { };
+template<typename T>
+struct empty_mask { };
 
-template<> struct empty_mask<bool> {
+template<>
+struct empty_mask<bool> {
 	static constexpr bool value = false;
 };
-template<> struct empty_mask<ve::vbitfield_type> {
+template<>
+struct empty_mask<ve::vbitfield_type> {
 	static constexpr ve::vbitfield_type value = ve::vbitfield_type{ve::vbitfield_type::storage(0)};
 };
 
@@ -225,7 +238,8 @@ TRIGGER_FUNCTION(tf_generic_scope) {
 	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, primary_slot, this_slot, from_slot);
 }
 
-template<typename F> class true_accumulator : public F {
+template<typename F>
+class true_accumulator : public F {
 private:
 	ve::tagged_vector<int32_t> value;
 	uint32_t index = 0;
@@ -257,7 +271,8 @@ public:
 	}
 };
 
-template<typename F> class false_accumulator : public F {
+template<typename F>
+class false_accumulator : public F {
 private:
 	ve::tagged_vector<int32_t> value;
 	uint32_t index = 0;
@@ -289,7 +304,8 @@ public:
 	}
 };
 
-template<typename TAG, typename F> class value_accumulator : public F {
+template<typename TAG, typename F>
+class value_accumulator : public F {
 private:
 	ve::fp_vector value;
 	ve::tagged_vector<TAG> store;
@@ -320,15 +336,18 @@ public:
 	}
 };
 
-template<typename F> auto make_true_accumulator(F&& f) -> true_accumulator<F> {
+template<typename F>
+auto make_true_accumulator(F&& f) -> true_accumulator<F> {
 	return true_accumulator<F>(std::forward<F>(f));
 }
 
-template<typename F> auto make_false_accumulator(F&& f) -> false_accumulator<F> {
+template<typename F>
+auto make_false_accumulator(F&& f) -> false_accumulator<F> {
 	return false_accumulator<F>(std::forward<F>(f));
 }
 
-template<typename TAG, typename F> auto make_value_accumulator(F&& f) -> value_accumulator<TAG, F> {
+template<typename TAG, typename F>
+auto make_value_accumulator(F&& f) -> value_accumulator<TAG, F> {
 	return value_accumulator<TAG, F>(std::forward<F>(f));
 }
 
@@ -4895,7 +4914,8 @@ TRIGGER_FUNCTION(tf_invention) {
 	auto tid = trigger::payload(tval[1]).invt_id;
 	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(to_nation(primary_slot), tid));
 }
-template<typename return_type, typename primary_type, typename this_type, typename from_type> struct trigger_container {
+template<typename return_type, typename primary_type, typename this_type, typename from_type>
+struct trigger_container {
 	constexpr static return_type(
 			CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&, primary_type, this_type, from_type) = {
 

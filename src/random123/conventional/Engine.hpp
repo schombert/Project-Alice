@@ -64,7 +64,8 @@ namespace r123 {
 	and keys.
 */
 
-template<typename CBRNG> struct Engine {
+template<typename CBRNG>
+struct Engine {
 	typedef CBRNG cbrng_type;
 	typedef typename CBRNG::ctr_type ctr_type;
 	typedef typename CBRNG::key_type key_type;

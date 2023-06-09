@@ -7,7 +7,8 @@ namespace ui {
 template<typename T>
 struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> { };
 
-template<typename T> class military_unit_name_text : public simple_text_element_base {
+template<typename T>
+class military_unit_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -67,7 +68,8 @@ public:
 	}
 };
 
-template<typename T> class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
+template<typename T>
+class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
 	simple_text_element_base* unit_name = nullptr;
 	image_element_base* unit_icon = nullptr;
 	image_element_base* leader_icon = nullptr;
@@ -232,7 +234,8 @@ public:
 	}
 };
 
-template<typename T> class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
+template<typename T>
+class military_units_listbox : public listbox_element_base<military_unit_entry<T>, military_unit_info<T>> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "unit_entry";
@@ -269,7 +272,8 @@ public:
 	}
 };
 
-template<class T> class build_unit_button : public button_element_base {
+template<class T>
+class build_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, false);
@@ -346,7 +350,8 @@ public:
 	}
 };
 
-template<class T> class military_units_window : public window_element_base {
+template<class T>
+class military_units_window : public window_element_base {
 private:
 	image_element_base* cdts_icon = nullptr;
 

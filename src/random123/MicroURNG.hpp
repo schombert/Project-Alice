@@ -75,7 +75,8 @@ namespace r123 {
 \endcode
 */
 
-template<typename CBRNG> class MicroURNG {
+template<typename CBRNG>
+class MicroURNG {
 	// According to C++11, a URNG requires only a result_type,
 	// operator()(), min() and max() methods.  Everything else
 	// (ctr_type, key_type, reset() method, etc.) is "value added"

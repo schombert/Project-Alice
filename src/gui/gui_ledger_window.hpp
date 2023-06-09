@@ -348,7 +348,8 @@ public:
 		return standard_nation_text::set(state, payload);
 	}
 };
-template<bool IsPolitical> class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
+template<bool IsPolitical>
+class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
 	flag_button* country_flag = nullptr;
 
 public:

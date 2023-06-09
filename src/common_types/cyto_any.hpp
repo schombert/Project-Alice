@@ -91,11 +91,16 @@ static ANY_ALWAYS_INLINE void handle_bad_any_cast() {
 #endif
 }
 
-template<class T> struct IsInPlaceType_ : std::false_type { };
-template<> struct IsInPlaceType_<std::in_place_t> : std::true_type { };
-template<class T> struct IsInPlaceType_<std::in_place_type_t<T>> : std::true_type { };
-template<size_t S> struct IsInPlaceType_<std::in_place_index_t<S>> : std::true_type { };
-template<class T> constexpr bool IsInPlaceType = IsInPlaceType_<T>::value;
+template<class T>
+struct IsInPlaceType_ : std::false_type { };
+template<>
+struct IsInPlaceType_<std::in_place_t> : std::true_type { };
+template<class T>
+struct IsInPlaceType_<std::in_place_type_t<T>> : std::true_type { };
+template<size_t S>
+struct IsInPlaceType_<std::in_place_index_t<S>> : std::true_type { };
+template<class T>
+constexpr bool IsInPlaceType = IsInPlaceType_<T>::value;
 
 constexpr size_t StorageBufferSize = 6 * sizeof(void*);
 using StorageBuffer = std::aligned_storage_t<StorageBufferSize, std::alignment_of_v<void*>>;
@@ -104,7 +109,8 @@ template<class T>
 using IsStorageBufferSized_ =
 		std::bool_constant<sizeof(T) <= sizeof(StorageBuffer) && std::alignment_of_v<StorageBuffer> % std::alignment_of_v<T> == 0>;
 
-template<class T> constexpr bool IsStorageBufferSized = IsStorageBufferSized_<T>::value;
+template<class T>
+constexpr bool IsStorageBufferSized = IsStorageBufferSized_<T>::value;
 
 union Storage {
 	constexpr Storage() { }
@@ -117,13 +123,16 @@ union Storage {
 };
 
 #if !ANY_USE_TYPEINFO
-template<class T> struct fallback_typeinfo {
+template<class T>
+struct fallback_typeinfo {
 	static int id;
 };
 
-template<class T> int fallback_typeinfo<T>::id = 0;
+template<class T>
+int fallback_typeinfo<T>::id = 0;
 
-template<class T> ANY_ALWAYS_INLINE constexpr void const* fallback_typeid() {
+template<class T>
+ANY_ALWAYS_INLINE constexpr void const* fallback_typeid() {
 	return &fallback_typeinfo<std::decay_t<T>>::id;
 }
 #endif // !ANY_USE(TYPEINFO)
@@ -163,7 +172,8 @@ struct AnyActions {
 #endif
 };
 
-template<class T> struct AnyTraits {
+template<class T>
+struct AnyTraits {
 #if ANY_USE_SMALL_MEMCPY_STRATEGY
 	template<class X = T, class... Args, std::enable_if_t<IsStorageBufferSized<X> && std::is_trivially_copyable_v<X>, int> = 0>
 	ANY_ALWAYS_INLINE static X& make(Storage* s, std::in_place_type_t<X> vtype, Args&&... args) {
@@ -192,7 +202,8 @@ private:
 	AnyTraits& operator=(AnyTraits const&) = default;
 	AnyTraits& operator=(AnyTraits&&) = default;
 
-	template<class X = T> ANY_ALWAYS_INLINE static bool compare_typeid(void const* id) {
+	template<class X = T>
+	ANY_ALWAYS_INLINE static bool compare_typeid(void const* id) {
 #if ANY_USE_TYPEINFO
 		return *(static_cast< std::type_info const*>(id)) == typeid(X);
 #else
@@ -262,7 +273,8 @@ private:
 	//
 	// drop
 	//
-	template<class X = T, std::enable_if_t<std::is_same_v<X, void>, int> = 0> ANY_ALWAYS_INLINE static void drop(Storage* s) { }
+	template<class X = T, std::enable_if_t<std::is_same_v<X, void>, int> = 0>
+	ANY_ALWAYS_INLINE static void drop(Storage* s) { }
 
 	template<class X = T, std::enable_if_t<std::is_trivially_destructible_v<X>, int> = 0>
 	ANY_ALWAYS_INLINE static void drop(Storage* s) { }
@@ -288,7 +300,8 @@ class Any;
 template<class V, class T = std::decay_t<V>>
 using IsAnyConstructible_ = std::bool_constant<!std::is_same_v<T, Any> && !IsInPlaceType<V> && std::is_copy_constructible_v<T>>;
 
-template<class V> constexpr bool IsAnyConstructible = IsAnyConstructible_<V>::value;
+template<class V>
+constexpr bool IsAnyConstructible = IsAnyConstructible_<V>::value;
 
 template<class T, class U, class... Args>
 using IsAnyInitializerListConstructible_ =
@@ -345,7 +358,8 @@ public:
 		return *this;
 	}
 
-	template<class V, class T = std::decay_t<V>, std::enable_if_t<IsAnyConstructible<T>, int> = 0> Any& operator=(V&& v) {
+	template<class V, class T = std::decay_t<V>, std::enable_if_t<IsAnyConstructible<T>, int> = 0>
+	Any& operator=(V&& v) {
 		*this = Any(std::forward<V>(v));
 		return *this;
 	}
@@ -395,7 +409,8 @@ public:
 		actions = tmp.actions;
 	}
 
-	template<bool B> ANY_ALWAYS_INLINE bool has_value() const noexcept {
+	template<bool B>
+	ANY_ALWAYS_INLINE bool has_value() const noexcept {
 		return (actions != VoidAnyActions) == B;
 	}
 
@@ -410,7 +425,8 @@ public:
 	}
 #endif
 
-	template<typename CHECK_TYPE> ANY_ALWAYS_INLINE bool holds_type() const noexcept {
+	template<typename CHECK_TYPE>
+	ANY_ALWAYS_INLINE bool holds_type() const noexcept {
 #if ANY_USE_TYPEINFO
 		return typeid(CHECK_TYPE) == *static_cast< std::type_info const*>(actions->type);
 #else
@@ -418,7 +434,8 @@ public:
 #endif
 	}
 
-	template<class V> friend std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept;
+	template<class V>
+	friend std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept;
 
 private:
 	static constexpr AnyActions _VoidAnyActions = AnyActions();
@@ -433,11 +450,13 @@ void swap(Any& lhs, Any& rhs) noexcept {
 	lhs.swap(rhs);
 }
 
-template<class T, class... Args> ANY_ALWAYS_INLINE Any make_any(Args&&... args) {
+template<class T, class... Args>
+ANY_ALWAYS_INLINE Any make_any(Args&&... args) {
 	return Any(std::in_place_type<T>, std::forward<Args>(args)...);
 }
 
-template<class T, class U, class... Args> ANY_ALWAYS_INLINE Any make_any(std::initializer_list<U> il, Args&&... args) {
+template<class T, class U, class... Args>
+ANY_ALWAYS_INLINE Any make_any(std::initializer_list<U> il, Args&&... args) {
 	return Any(std::in_place_type<T>, il, std::forward<Args>(args)...);
 }
 
@@ -471,11 +490,13 @@ V any_cast(Any&& a) {
 	return static_cast<V>(std::move(*tmp));
 }
 
-template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>> T const* any_cast(Any const* a) noexcept {
+template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>>
+T const* any_cast(Any const* a) noexcept {
 	return any_cast<V>(const_cast<Any*>(a));
 }
 
-template<class V> std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept {
+template<class V>
+std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept {
 	using T = std::remove_cv_t<std::remove_reference_t<V>>;
 	using U = std::decay_t<V>;
 	if(a && a->has_value()) {

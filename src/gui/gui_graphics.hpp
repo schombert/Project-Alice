@@ -390,7 +390,8 @@ struct mouse_probe {
 	xy_pair relative_location;
 };
 
-template<typename T> constexpr ui_hook_fn hook() {
+template<typename T>
+constexpr ui_hook_fn hook() {
 	return +[](sys::state&, dcon::gui_def_id) { return std::make_unique<T>(); };
 }
 

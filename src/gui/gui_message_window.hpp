@@ -6,7 +6,8 @@
 
 namespace ui {
 
-template<bool Left> class message_lr_button : public button_element_base {
+template<bool Left>
+class message_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);

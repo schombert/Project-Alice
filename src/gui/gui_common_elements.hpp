@@ -57,7 +57,8 @@ enum class country_list_sort : uint8_t {
 	gp_investment = 0x80
 };
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
-template<country_list_sort Sort> class country_sort_button : public button_element_base {
+template<country_list_sort Sort>
+class country_sort_button : public button_element_base {
 public:
 	uint8_t offset = 0;
 	void button_action(sys::state& state) noexcept override {
@@ -81,7 +82,8 @@ enum class country_list_filter : uint8_t {
 };
 class button_press_notification { };
 
-template<class T, class K> class generic_settable_element : public T {
+template<class T, class K>
+class generic_settable_element : public T {
 public:
 	K content{};
 
@@ -95,7 +97,8 @@ public:
 	}
 };
 
-template<class T> class generic_name_text : public simple_text_element_base {
+template<class T>
+class generic_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -108,7 +111,8 @@ public:
 	}
 };
 
-template<class T> class generic_multiline_name_text : public multiline_text_element_base {
+template<class T>
+class generic_multiline_name_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -128,7 +132,8 @@ public:
 	}
 };
 
-template<typename T> class generic_simple_text : public simple_text_element_base {
+template<typename T>
+class generic_simple_text : public simple_text_element_base {
 public:
 	virtual std::string get_text(sys::state& state, T content) noexcept {
 		return "";
@@ -144,7 +149,8 @@ public:
 	}
 };
 
-template<typename T> class generic_multiline_text : public multiline_text_element_base {
+template<typename T>
+class generic_multiline_text : public multiline_text_element_base {
 public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents, T id) noexcept { }
 

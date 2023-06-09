@@ -544,7 +544,8 @@ protected:
 	}
 };
 
-template<bool IsAttacker> class war_side_strength_text : public button_element_base {
+template<bool IsAttacker>
+class war_side_strength_text : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -587,7 +588,8 @@ public:
 	}
 };
 
-template<bool B> class diplomacy_join_war_button : public button_element_base {
+template<bool B>
+class diplomacy_join_war_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -996,7 +998,8 @@ private:
 		});
 	}
 
-	template<typename T> void add_action_button(sys::state& state, xy_pair offset) noexcept {
+	template<typename T>
+	void add_action_button(sys::state& state, xy_pair offset) noexcept {
 		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("diplomacy_option")->second.definition);
 		ptr->base_data.position = offset;
 		action_buttons.push_back(ptr.get());

@@ -113,8 +113,10 @@ public:
 	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
 	friend void sys::state::on_text(char c);
 	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
-	template<typename T> friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id);
-	template<typename T> friend std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name);
+	template<typename T>
+	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id);
+	template<typename T>
+	friend std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name);
 };
 
 } // namespace ui

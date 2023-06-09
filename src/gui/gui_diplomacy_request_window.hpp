@@ -6,7 +6,8 @@
 
 namespace ui {
 
-template<bool Left> class diplomacy_request_lr_button : public button_element_base {
+template<bool Left>
+class diplomacy_request_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -24,7 +25,8 @@ public:
 struct diplomacy_reply_taken_notification {
 	int dummy = 0;
 };
-template<bool B> class diplomacy_request_reply_button : public button_element_base {
+template<bool B>
+class diplomacy_request_reply_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {

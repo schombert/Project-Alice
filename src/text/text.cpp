@@ -173,7 +173,8 @@ void load_text_data(sys::state& state, uint32_t language) {
 	}
 }
 
-template<size_t N> bool is_fixed_token_ci(std::string_view v, char const (&t)[N]) {
+template<size_t N>
+bool is_fixed_token_ci(std::string_view v, char const (&t)[N]) {
 	if(v.length() != (N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {
@@ -700,11 +701,13 @@ std::string prettify(int64_t num) {
 	return std::string("#inf");
 }
 
-template<class T> std::string get_name_as_string(sys::state const& state, T t) {
+template<class T>
+std::string get_name_as_string(sys::state const& state, T t) {
 	return text::produce_simple_string(state, t.get_name());
 }
 
-template<class T> std::string get_adjective_as_string(sys::state const& state, T t) {
+template<class T>
+std::string get_adjective_as_string(sys::state const& state, T t) {
 	return text::produce_simple_string(state, t.get_adjective());
 }
 
