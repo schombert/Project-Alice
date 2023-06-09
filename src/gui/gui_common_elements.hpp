@@ -1089,23 +1089,6 @@ public:
 	}
 };
 
-class nation_ships_text : public standard_nation_text {
-protected:
-	int32_t get_ship_count(sys::state& state, dcon::nation_id nation_id) {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		int32_t total = 0;
-		for(auto nv : fat_id.get_navy_control()) {
-			total += int32_t(nv.get_navy().get_navy_membership().end() - nv.get_navy().get_navy_membership().begin());
-		}
-		return total;
-	}
-
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return std::to_string(get_ship_count(state, nation_id));
-	}
-};
-
 class nation_armies_text : public standard_nation_text {
 protected:
 	int32_t get_num_armies(sys::state& state, dcon::nation_id n) {

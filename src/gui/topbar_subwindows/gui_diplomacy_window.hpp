@@ -16,7 +16,7 @@ namespace ui {
 
 enum class diplomacy_window_tab : uint8_t { great_powers = 0x0, wars = 0x1, casus_belli = 0x2, crisis = 0x3 };
 
-class diplomacy_nation_ships_text : public nation_ships_text {
+class diplomacy_nation_navies_text : public nation_navies_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -30,7 +30,7 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value,
-					get_ship_count(state, nation_id));
+					get_num_navies(state, nation_id));
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
 			text::close_layout_box(contents, box);
@@ -475,7 +475,7 @@ public:
 		} else if(name == "warexhastion_text") {
 			return make_element_by_type<diplomacy_war_exhaustion>(state, id);
 		} else if(name == "brigade_text") {
-			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
+			return make_element_by_type<diplomacy_nation_navies_text>(state, id);
 		} else if(name == "ships_text") {
 			return make_element_by_type<diplomacy_nation_armies_text>(state, id);
 		} else if(name == "add_wargoal") {
