@@ -716,6 +716,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.world.province_set_nation_from_province_control(id, new_owner);
 	state.world.province_set_siege_progress(id, 0.0f);
 
+	military::eject_ships(state, id);
 	military::update_blackflag_status(state, id);
 
 	state.world.province_set_is_owner_core(id,

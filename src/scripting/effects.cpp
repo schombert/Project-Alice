@@ -1860,6 +1860,7 @@ uint32_t ef_change_controller(EFFECT_PARAMTERS) {
 		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
 		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
 		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }
@@ -1869,6 +1870,7 @@ uint32_t ef_change_controller_this_nation(EFFECT_PARAMTERS) {
 		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
 		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
 		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }
@@ -1879,6 +1881,7 @@ uint32_t ef_change_controller_this_province(EFFECT_PARAMTERS) {
 		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
 		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
 		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }
@@ -1888,6 +1891,7 @@ uint32_t ef_change_controller_from_nation(EFFECT_PARAMTERS) {
 		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
 		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
 		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }
@@ -1898,6 +1902,7 @@ uint32_t ef_change_controller_from_province(EFFECT_PARAMTERS) {
 		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
 		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
 		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }

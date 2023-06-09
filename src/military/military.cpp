@@ -2,6 +2,7 @@
 #include "dcon_generated.hpp"
 #include "prng.hpp"
 #include "effects.hpp"
+#include "events.hpp"
 
 namespace military {
 
@@ -2085,6 +2086,21 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	if(rem_wars.begin() == rem_wars.end()) {
 		state.world.nation_set_is_at_war(n, false);
 	}
+
+	// Remove invalid occupations
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		if(auto c = p.get_province().get_nation_from_province_control(); c && c != n) {
+			if(!military::are_at_war(state, c, n)) {
+				state.world.province_set_rebel_faction_from_province_rebel_control(p.get_province(), dcon::rebel_faction_id{});
+				state.world.province_set_last_control_change(p.get_province(), state.current_date);
+				state.world.province_set_nation_from_province_control(p.get_province(), n);
+				state.world.province_set_siege_progress(p.get_province(), 0.0f);
+
+				military::eject_ships(state, p.get_province());
+				military::update_blackflag_status(state, p.get_province());
+			}
+		}
+	}
 }
 
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
@@ -3196,9 +3212,6 @@ void update_siege_progress(sys::state& state) {
 				/*
 				The garrison returns to 100% immediately after the siege is complete and the controller changes. If your siege returns a
 				province to its owner's control without the owner participating, you get +2.5 relations with the owner.
-
-				TODO: When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
-				-- can't do this inside the concurrent section
 				*/
 
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
@@ -3213,11 +3226,55 @@ void update_siege_progress(sys::state& state) {
 		}
 
 	});
+
+	province::for_each_land_province(state, [&](dcon::province_id prov) {
+		if(state.world.province_get_last_control_change(prov) == state.current_date) {
+			eject_ships(state, prov);
+
+			/*
+			TODO: When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
+			*/
+			// event::fire_fixed_event(state, );
+		}
+	});
 }
 
 void update_blackflag_status(sys::state& state, dcon::province_id p) {
 	for(auto ar : state.world.province_get_army_location(p)) {
 		ar.get_army().set_black_flag(!province::has_access_to_province(state, ar.get_army().get_controller_from_army_control(), p));
+	}
+}
+
+void eject_ships(sys::state& state, dcon::province_id p) {
+	if(!state.world.province_get_is_coast(p))
+		return;
+
+	dcon::province_id sea_zone;
+	for(auto a : state.world.province_get_province_adjacency(p)) {
+		auto other = a.get_connected_provinces(0) == p ? a.get_connected_provinces(1) : a.get_connected_provinces(0);
+		if(other.id.index() >= state.province_definitions.first_sea_province.index()) {
+			sea_zone = other.id;
+			break;
+		}
+	}
+	assert(sea_zone);
+
+	static std::vector<dcon::navy_id> to_eject;
+	to_eject.clear();
+
+	for(auto n : state.world.province_get_navy_location(p)) {
+		if(!province::has_naval_access_to_province(state, n.get_navy().get_controller_from_navy_control(), p)) {
+			to_eject.push_back(n.get_navy().id);
+		}
+	}
+	for(auto n : to_eject) {
+		navy_arrives_in_province(state, n, sea_zone);
+
+		for(auto a : state.world.navy_get_army_transport(n)) {
+			a.get_army().set_location_from_army_location(sea_zone);
+			a.get_army().get_path().clear();
+			a.get_army().set_arrival_time(sys::date{});
+		}
 	}
 }
 
