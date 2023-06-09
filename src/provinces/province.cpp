@@ -1153,6 +1153,29 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 	return 1.0f;
 }
 
+// whether a ship can dock at a land province
+bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
+	auto controller = state.world.province_get_nation_from_province_control(prov);
+
+	if(!controller)
+		return false;
+
+	if(controller == nation_as)
+		return true;
+
+	auto coverl = state.world.nation_get_overlord_as_subject(controller);
+	if(state.world.overlord_get_ruler(coverl) == nation_as)
+		return true;
+
+	auto url = state.world.get_unilateral_relationship_by_unilateral_pair(controller, nation_as);
+	if(state.world.unilateral_relationship_get_military_access(url))
+		return true;
+
+	if(military::are_allied_in_war(state, nation_as, controller))
+		return true;
+
+	return false;
+}
 
 // determines whether a land unit is allowed to move to / be in a province
 bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {

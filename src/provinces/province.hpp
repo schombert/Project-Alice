@@ -96,6 +96,8 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 
 // determines whether a land unit is allowed to move to / be in a province
 bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+// whether a ship can dock at a land province
+bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 
 //
 // when pathfinding, check that the destination province is valid on its own (i.e. accessible for normal, or embark-able for sea)
