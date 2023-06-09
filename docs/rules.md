@@ -665,7 +665,7 @@ We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greate
 We calculate the modifier for number of brigades: first we get the "number of brigades" as total-strength-of-regiments x 1000 / define:POP_SIZE_PER_REGIMENT, and capping it to at most define:SIEGE_BRIGADES_MAX. Then we calculate the bonus as (number-of-brigades - define:SIEGE_BRIGADES_MIN) x define:SIEGE_BRIGADES_BONUS if number-of-brigades is greater the minimum, and as number-of-brigades / define:SIEGE_BRIGADES_MIN otherwise.
 Finally, the amount subtracted from the garrison each day is: siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is sieging it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
 
-The garrison returns to 100% immediately after the siege is complete and the controller changes. If your siege returns a province to its owner's control without the owner participating, you get +25 relations with the owner.
+The garrison returns to 100% immediately after the siege is complete and the controller changes. If your siege returns a province to its owner's control without the owner participating, you get +2.5 relations with the owner.
 
 When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
 
@@ -674,14 +674,14 @@ Siege Table:
 |----|----|
 | 0 | 1.0 |
 | 1 | 2.0 |
-| 2 | 3.8 |
+| 2 | 2.8 |
 | 3 | 3.4 |
 | 4 | 3.8 |
 | 5 | 4.2 |
 | 6 | 4.5 |
 | 7 | 4.8 |
 | 8 | 5.0 |
-| 9 | 5.2 |
+| 9 | 5.22 |
 
 Progress Table:
 | modified roll | value |

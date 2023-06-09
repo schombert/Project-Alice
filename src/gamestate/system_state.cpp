@@ -1743,11 +1743,11 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	world.for_each_nation([&](dcon::nation_id id) { politics::update_displayed_identity(*this, id); });
 
-	nations_by_rank.resize(1000); // TODO: take this value directly from the data container: max number of nations
-	nations_by_industrial_score.resize(1000);
-	nations_by_military_score.resize(1000);
-	nations_by_prestige_score.resize(1000);
-	crisis_participants.resize(1000);
+	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
+	nations_by_industrial_score.resize(2000);
+	nations_by_military_score.resize(2000);
+	nations_by_prestige_score.resize(2000);
+	crisis_participants.resize(2000);
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {
@@ -2046,7 +2046,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 14, [&](int32_t index) {
+				concurrency::parallel_for(0, 13, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2087,13 +2087,13 @@ void state::game_loop() {
 					case 12:
 						military::update_ticking_war_score(*this);
 						break;
-					case 13:
-						military::update_movement(*this);
-						break;
 					}
 				});
 
 				economy::daily_update(*this);
+
+				military::update_movement(*this);
+				military::update_siege_progress(*this);
 
 				event::update_events(*this);
 
