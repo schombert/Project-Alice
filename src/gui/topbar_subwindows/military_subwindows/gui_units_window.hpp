@@ -288,7 +288,7 @@ public:
 	}
 };
 
-class military_brigades_text : public nation_brigades_text {
+class military_armies_text : public nation_armies_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -297,12 +297,12 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, std::string_view("military_army_count_tooltip"),
-				text::variable_type::value, get_num_brigades(state, state.local_player_nation));
+				text::variable_type::value, get_num_armies(state, state.local_player_nation));
 		text::close_layout_box(contents, box);
 	}
 };
 
-class military_ships_text : public nation_navies_text {
+class military_navies_text : public nation_navies_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -354,9 +354,9 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "current_count") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				return make_element_by_type<military_brigades_text>(state, id);
+				return make_element_by_type<military_armies_text>(state, id);
 			} else {
-				return make_element_by_type<military_ships_text>(state, id);
+				return make_element_by_type<military_navies_text>(state, id);
 			}
 		} else if(name == "under_construction") {
 			return make_element_by_type<military_units_construction_text>(state, id);

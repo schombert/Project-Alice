@@ -56,7 +56,7 @@ public:
 class military_mob_progress_bar_text : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(4.20, 2);
+		return text::format_percentage(float(4.20), 2);
 	}
 
 public:

@@ -1106,9 +1106,9 @@ public:
 	}
 };
 
-class nation_brigades_text : public standard_nation_text {
+class nation_armies_text : public standard_nation_text {
 protected:
-	int32_t get_num_brigades(sys::state& state, dcon::nation_id n) {
+	int32_t get_num_armies(sys::state& state, dcon::nation_id n) {
 		int32_t count = 0;
 		state.world.nation_for_each_army_control_as_controller(n, [&](dcon::army_control_id) { ++count; });
 		return count;
@@ -1116,7 +1116,7 @@ protected:
 
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return std::to_string(get_num_brigades(state, nation_id));
+		return std::to_string(get_num_armies(state, nation_id));
 	}
 };
 

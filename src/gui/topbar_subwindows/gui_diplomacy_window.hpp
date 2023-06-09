@@ -38,7 +38,7 @@ public:
 	}
 };
 
-class diplomacy_nation_brigades_text : public nation_brigades_text {
+class diplomacy_nation_armies_text : public nation_armies_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -477,7 +477,7 @@ public:
 		} else if(name == "brigade_text") {
 			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
 		} else if(name == "ships_text") {
-			return make_element_by_type<diplomacy_nation_brigades_text>(state, id);
+			return make_element_by_type<diplomacy_nation_armies_text>(state, id);
 		} else if(name == "add_wargoal") {
 			return make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 		} else {

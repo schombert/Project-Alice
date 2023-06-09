@@ -201,7 +201,7 @@ public:
 		}
 		// Brigades
 		{
-			auto ptr = make_element_by_type<nation_brigades_text>(state,
+			auto ptr = make_element_by_type<nation_armies_text>(state,
 					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
