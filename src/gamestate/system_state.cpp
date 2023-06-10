@@ -545,6 +545,7 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::country_selection_window>(*this, "country_selection_panel");
 		new_elm->impl_on_update(*this);
+		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 

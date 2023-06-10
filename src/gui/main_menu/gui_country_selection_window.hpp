@@ -28,6 +28,9 @@ public:
 		black_background->base_data.size.y = int16_t(height);
 
 		art_background->base_data.position.x = (int16_t(width) - art_background->base_data.size.x) - 60;
+		if(art_background->base_data.position.x < 0) {
+			art_background->base_data.position.x = 0;
+		}
 
 		mainmenu_panel_win->base_data.position.x = ((int16_t(width) / 2) - (mainmenu_panel_win->base_data.size.x / 2)) - 126;
 	}
@@ -47,34 +50,54 @@ public:
 			return ptr;
 
 		} else if(name == "frontend_toptile1") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_toptile2") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_toptile3") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_toptile4") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_toptile5") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_bottomtile1") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_bottomtile2") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_bottomtile3") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_bottomtile4") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "frontend_bottomtile5") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 1440;
+			return ptr;
 
 		} else if(name == "version_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
