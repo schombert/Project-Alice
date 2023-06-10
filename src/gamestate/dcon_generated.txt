@@ -1391,6 +1391,11 @@ object {
 		name{ daily_net_immigration }
 		type{ float }
 	}
+	property{
+		name{ siege_progress }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -2380,7 +2385,7 @@ object {
 object {
 	name{ nation }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 2000 }
 	tag{ save }
 
 	property{

@@ -2,6 +2,7 @@
 #include "dcon_generated.hpp"
 #include "prng.hpp"
 #include "effects.hpp"
+#include "events.hpp"
 
 namespace military {
 
@@ -233,8 +234,7 @@ auto province_is_blockaded(sys::state const& state, T ids) {
 
 template<typename T>
 auto province_is_under_siege(sys::state const& state, T ids) {
-	// TODO: implement function
-	return false;
+	return state.world.province_get_siege_progress(ids) > 0.0f;
 }
 
 template<typename T>
@@ -2086,6 +2086,21 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	if(rem_wars.begin() == rem_wars.end()) {
 		state.world.nation_set_is_at_war(n, false);
 	}
+
+	// Remove invalid occupations
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		if(auto c = p.get_province().get_nation_from_province_control(); c && c != n) {
+			if(!military::are_at_war(state, c, n)) {
+				state.world.province_set_rebel_faction_from_province_rebel_control(p.get_province(), dcon::rebel_faction_id{});
+				state.world.province_set_last_control_change(p.get_province(), state.current_date);
+				state.world.province_set_nation_from_province_control(p.get_province(), n);
+				state.world.province_set_siege_progress(p.get_province(), 0.0f);
+
+				military::eject_ships(state, p.get_province());
+				military::update_blackflag_status(state, p.get_province());
+			}
+		}
+	}
 }
 
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
@@ -2971,7 +2986,13 @@ void update_movement(sys::state& state) {
 					path.clear();
 				}
 			} else { // land province
-				if(a.get_black_flag() || province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
+				if(a.get_black_flag()) {
+					if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
+						a.set_black_flag(false);
+					}
+					army_arrives_in_province(state, a, dest);
+					a.set_navy_from_army_transport(dcon::navy_id{});
+				} else if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
 					army_arrives_in_province(state, a, dest);
 					a.set_navy_from_army_transport(dcon::navy_id{});
 				} else {
@@ -3050,5 +3071,212 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	}
 	return transport_capacity(state, n) - used_total;
 }
+
+
+void update_siege_progress(sys::state& state) {
+	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t id) {
+		dcon::province_id prov{dcon::province_id::value_base_t(id)};
+
+		auto controller = state.world.province_get_nation_from_province_control(prov);
+		auto owner = state.world.province_get_nation_from_province_ownership(prov);
+
+		if(!owner) // skip unowned provinces
+			return;
+
+		float max_siege_value = 0.0f;
+		float strength_siege_units = 0.0f;
+		float max_recon_value = 0.0f;
+		float strength_recon_units = 0.0f;
+		float total_sieging_strength = 0.0f;
+		bool owner_involved = false;
+		bool core_owner_involved = false;
+
+		dcon::army_id first_army;
+
+		for(auto ar : state.world.province_get_army_location(prov)) {
+			// TODO: exclude if in battle
+			// Only stationary, non black flagged regiments with at least 0.001 strength contribute to a siege.
+			if(ar.get_army().get_black_flag() || ar.get_army().get_navy_from_army_transport() || ar.get_army().get_arrival_time()) {
+				// skip -- blackflag or embarked or moving
+			} else {
+				bool will_siege = false;
+
+				auto army_controller = ar.get_army().get_controller_from_army_control();
+				if(!army_controller) { // rebel army
+					will_siege = bool(controller); // siege anything not rebel controlled
+				} else {
+					if(!controller) {
+						will_siege = true; // siege anything rebel controlled
+					} else if(are_at_war(state, controller, army_controller)) {
+						will_siege = true;
+					}
+				}
+
+				if(will_siege) {
+					if(!first_army)
+						first_army = ar.get_army();
+
+					auto army_stats = army_controller
+						? army_controller
+						: ar.get_army().get_army_rebel_control().get_controller().get_ruler_from_rebellion_within();
+
+					owner_involved = owner_involved || owner == army_controller;
+					core_owner_involved = core_owner_involved || bool(state.world.get_core_by_prov_tag_key(prov, state.world.nation_get_identity_from_identity_holder(army_controller)));
+
+					for(auto r : ar.get_army().get_army_membership()) {
+						auto reg_str = r.get_regiment().get_strength();
+						if(reg_str > 0.001f) {
+							auto type = r.get_regiment().get_type();
+							auto& stats = state.world.nation_get_unit_stats(army_stats, type);
+
+							total_sieging_strength += reg_str;
+
+							if(stats.siege_or_torpedo_attack > 0.0f) {
+								strength_siege_units += reg_str;
+								max_siege_value = std::max(max_siege_value, stats.siege_or_torpedo_attack);
+							}
+							if(stats.reconnaissance_or_fire_range > 0.0f) {
+								strength_recon_units += reg_str;
+								max_recon_value = std::max(max_recon_value, stats.reconnaissance_or_fire_range);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if(total_sieging_strength == 0.0f) {
+			//Garrison recovers at 10% per day when not being sieged (to 100%)
+
+			auto& progress = state.world.province_get_siege_progress(prov);
+			progress = std::max(progress, progress - 0.1f);
+		} else {
+			/*
+			We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
+			greatest-siege-value-present x
+			((the ratio of the strength of regiments with siege present to the total strength of all regiments) ^
+			define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
+			*/
+
+			int32_t effective_fort_level = std::clamp(
+					state.world.province_get_fort_level(prov) -
+					int32_t(max_siege_value *
+						std::min(strength_siege_units / total_sieging_strength, state.defines.engineer_unit_ratio) / state.defines.engineer_unit_ratio),
+					0, 9);
+
+			/*
+			We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greatest-reconnaissance-value-present x ((the
+			ratio of the strength of regiments with reconnaissance present to the total strength of all regiments) ^
+			define:RECON_UNIT_RATIO) / define:RECON_UNIT_RATIO.
+			*/
+
+			float siege_speed_modifier = 1.0f
+				+ state.defines.recon_siege_effect
+					* max_recon_value
+					* std::min(strength_recon_units / total_sieging_strength, state.defines.recon_unit_ratio) / state.defines.recon_unit_ratio;
+
+			/*
+			 We calculate the modifier for number of brigades: first we get the "number of brigades" as total-strength-of-regiments x 1000 /
+			define:POP_SIZE_PER_REGIMENT, and capping it to at most define:SIEGE_BRIGADES_MAX. Then we calculate the bonus as
+			(number-of-brigades - define:SIEGE_BRIGADES_MIN) x define:SIEGE_BRIGADES_BONUS if number-of-brigades is greater the minimum,
+			and as number-of-brigades / define:SIEGE_BRIGADES_MIN otherwise.
+			*/
+
+			float num_brigades = std::min(state.defines.siege_brigades_max, total_sieging_strength * 1000.0f / state.defines.pop_size_per_regiment);
+			float num_brigades_modifier = num_brigades > state.defines.siege_brigades_min
+				? 1.0f + (num_brigades - state.defines.siege_brigades_min) * state.defines.siege_brigades_bonus
+				: num_brigades / state.defines.siege_brigades_min;
+
+			/*
+			Finally, the amount subtracted from the garrison each day is:
+			siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is sieging
+			it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
+			*/
+
+			static constexpr float siege_table[] = {1.0f, 2.0f, 2.8f, 3.4f, 3.8f, 4.2f, 4.5f, 4.8f, 5.0f, 5.2f};
+			static constexpr float progress_table[] = {0.0f, 0.2f, 0.5f, 0.75f, 0.75f, 1, 1.1f, 1.1f, 1.25f, 1.25f};
+
+			float added_progress =
+				siege_speed_modifier
+				* num_brigades_modifier
+				* progress_table[rng::get_random(state, uint32_t(prov.value)) % 10]
+				* (owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f))
+				/ siege_table[effective_fort_level];
+
+			auto& progress = state.world.province_get_siege_progress(prov);
+			progress += added_progress;
+
+			if(progress >= 1.0f) {
+				progress = 0.0f;
+
+				/*
+				The garrison returns to 100% immediately after the siege is complete and the controller changes. If your siege returns a
+				province to its owner's control without the owner participating, you get +2.5 relations with the owner.
+				*/
+
+				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
+				state.world.province_set_nation_from_province_control(prov, new_controller);
+				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
+				state.world.province_set_rebel_faction_from_province_rebel_control(prov, rebel_controller);
+
+				state.world.province_set_last_control_change(prov, state.current_date);
+
+				update_blackflag_status(state, prov);
+			}
+		}
+
+	});
+
+	province::for_each_land_province(state, [&](dcon::province_id prov) {
+		if(state.world.province_get_last_control_change(prov) == state.current_date) {
+			eject_ships(state, prov);
+
+			/*
+			TODO: When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
+			*/
+			// event::fire_fixed_event(state, );
+		}
+	});
+}
+
+void update_blackflag_status(sys::state& state, dcon::province_id p) {
+	for(auto ar : state.world.province_get_army_location(p)) {
+		ar.get_army().set_black_flag(!province::has_access_to_province(state, ar.get_army().get_controller_from_army_control(), p));
+	}
+}
+
+void eject_ships(sys::state& state, dcon::province_id p) {
+	if(!state.world.province_get_is_coast(p))
+		return;
+
+	dcon::province_id sea_zone;
+	for(auto a : state.world.province_get_province_adjacency(p)) {
+		auto other = a.get_connected_provinces(0) == p ? a.get_connected_provinces(1) : a.get_connected_provinces(0);
+		if(other.id.index() >= state.province_definitions.first_sea_province.index()) {
+			sea_zone = other.id;
+			break;
+		}
+	}
+	assert(sea_zone);
+
+	static std::vector<dcon::navy_id> to_eject;
+	to_eject.clear();
+
+	for(auto n : state.world.province_get_navy_location(p)) {
+		if(!province::has_naval_access_to_province(state, n.get_navy().get_controller_from_navy_control(), p)) {
+			to_eject.push_back(n.get_navy().id);
+		}
+	}
+	for(auto n : to_eject) {
+		navy_arrives_in_province(state, n, sea_zone);
+
+		for(auto a : state.world.navy_get_army_transport(n)) {
+			a.get_army().set_location_from_army_location(sea_zone);
+			a.get_army().get_path().clear();
+			a.get_army().set_arrival_time(sys::date{});
+		}
+	}
+}
+
 
 } // namespace military
