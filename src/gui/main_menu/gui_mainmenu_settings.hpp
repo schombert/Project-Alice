@@ -188,12 +188,7 @@ public:
 	}
 };
 
-enum class settings_tab : uint8_t {
-	game,
-	video,
-	audio,
-	controls
-};
+enum class settings_tab : uint8_t { game, video, audio, controls };
 
 class mainmenu_settings_window : public window_element_base {
 private:
@@ -201,6 +196,7 @@ private:
 	window_element_base* video_settings_win = nullptr;
 	window_element_base* audio_settings_win = nullptr;
 	window_element_base* controls_settings_win = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "settings_bg") {
@@ -280,36 +276,36 @@ public:
 		if(payload.holds_type<settings_tab>()) {
 			auto content = any_cast<settings_tab>(payload);
 			switch(content) {
-				case settings_tab::game:
-					game_settings_win->set_visible(state, true);
-					video_settings_win->set_visible(state, false);
-					audio_settings_win->set_visible(state, false);
-					controls_settings_win->set_visible(state, false);
-					break;
-				case settings_tab::video:
-					game_settings_win->set_visible(state, false);
-					video_settings_win->set_visible(state, true);
-					audio_settings_win->set_visible(state, false);
-					controls_settings_win->set_visible(state, false);
-					break;
-				case settings_tab::audio:
-					game_settings_win->set_visible(state, false);
-					video_settings_win->set_visible(state, false);
-					audio_settings_win->set_visible(state, true);
-					controls_settings_win->set_visible(state, false);
-					break;
-				case settings_tab::controls:
-					game_settings_win->set_visible(state, false);
-					video_settings_win->set_visible(state, false);
-					audio_settings_win->set_visible(state, false);
-					controls_settings_win->set_visible(state, true);
-					break;
-				default:
-					game_settings_win->set_visible(state, true);
-					video_settings_win->set_visible(state, false);
-					audio_settings_win->set_visible(state, false);
-					controls_settings_win->set_visible(state, false);
-					break;
+			case settings_tab::game:
+				game_settings_win->set_visible(state, true);
+				video_settings_win->set_visible(state, false);
+				audio_settings_win->set_visible(state, false);
+				controls_settings_win->set_visible(state, false);
+				break;
+			case settings_tab::video:
+				game_settings_win->set_visible(state, false);
+				video_settings_win->set_visible(state, true);
+				audio_settings_win->set_visible(state, false);
+				controls_settings_win->set_visible(state, false);
+				break;
+			case settings_tab::audio:
+				game_settings_win->set_visible(state, false);
+				video_settings_win->set_visible(state, false);
+				audio_settings_win->set_visible(state, true);
+				controls_settings_win->set_visible(state, false);
+				break;
+			case settings_tab::controls:
+				game_settings_win->set_visible(state, false);
+				video_settings_win->set_visible(state, false);
+				audio_settings_win->set_visible(state, false);
+				controls_settings_win->set_visible(state, true);
+				break;
+			default:
+				game_settings_win->set_visible(state, true);
+				video_settings_win->set_visible(state, false);
+				audio_settings_win->set_visible(state, false);
+				controls_settings_win->set_visible(state, false);
+				break;
 			};
 			return message_result::consumed;
 		}
@@ -317,4 +313,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

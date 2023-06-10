@@ -607,8 +607,9 @@ bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a)
 // Each ship / regiment carries a "to split" flag. When the split command is sent, any marked units will be split off into
 //     a new army / navy and their split flag will be unset
 // The commands below *toggle* the split flag (you can also use them to turn the flag off)
-// Fill any unused slots with the invalid handle, but remember that each of these requires some network traffic 
-void mark_regiments_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::regiment_id, num_packed_units> const& list);
+// Fill any unused slots with the invalid handle, but remember that each of these requires some network traffic
+void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
+		std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
 /*

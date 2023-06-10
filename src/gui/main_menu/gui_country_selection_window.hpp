@@ -12,6 +12,7 @@ private:
 	image_element_base* art_background = nullptr;
 	window_element_base* multiplayer_menu = nullptr;
 	window_element_base* mainmenu_panel_win = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -37,7 +38,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);	// Black Background for larger screens
+			auto ptr = make_element_by_type<image_element_base>(state, id); // Black Background for larger screens
 			ptr->base_data.position.x = 100;
 			ptr->base_data.position.y = -61;
 			black_background = ptr.get();
@@ -131,12 +132,12 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 
-		} else if(name == "back_button") {	// Handle Junk Button
+		} else if(name == "back_button") { // Handle Junk Button
 			auto ptr = make_element_by_type<opaque_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
 
-		} else if(name == "start_button") {	// Handle Junk Button
+		} else if(name == "start_button") { // Handle Junk Button
 			auto ptr = make_element_by_type<opaque_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
@@ -150,14 +151,14 @@ public:
 		if(payload.holds_type<element_selection_wrapper<mainmenu_action>>()) {
 			auto content = any_cast<element_selection_wrapper<mainmenu_action>>(payload).data;
 			switch(content) {
-				case mainmenu_action::mp:
-					multiplayer_menu->is_visible() ? multiplayer_menu->set_visible(state, false) : multiplayer_menu->set_visible(state, true);
-					multiplayer_menu->impl_on_update(state);
-					break;
-				case mainmenu_action::sp:
-					set_visible(state, false);
-				default:
-					break;
+			case mainmenu_action::mp:
+				multiplayer_menu->is_visible() ? multiplayer_menu->set_visible(state, false) : multiplayer_menu->set_visible(state, true);
+				multiplayer_menu->impl_on_update(state);
+				break;
+			case mainmenu_action::sp:
+				set_visible(state, false);
+			default:
+				break;
 			};
 			return message_result::consumed;
 		}

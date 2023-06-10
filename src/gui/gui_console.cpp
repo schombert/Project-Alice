@@ -392,11 +392,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	switch(pstate.cmd.mode) {
 	case command_info::type::mainmenu:
-		state.ui_state.main_menu_win->is_visible() ? state.ui_state.main_menu_win->set_visible(state, false) : state.ui_state.main_menu_win->set_visible(state, true);
+		state.ui_state.main_menu_win->is_visible() ? state.ui_state.main_menu_win->set_visible(state, false)
+																							 : state.ui_state.main_menu_win->set_visible(state, true);
 		state.ui_state.main_menu_win->impl_on_update(state);
 		break;
 	case command_info::type::elecwin:
-		state.ui_state.election_window->is_visible() ? state.ui_state.election_window->set_visible(state, false) : state.ui_state.election_window->set_visible(state, true);
+		state.ui_state.election_window->is_visible() ? state.ui_state.election_window->set_visible(state, false)
+																								 : state.ui_state.election_window->set_visible(state, true);
 		state.ui_state.election_window->impl_on_update(state);
 		break;
 	case command_info::type::reload:
