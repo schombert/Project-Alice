@@ -708,7 +708,9 @@ public:
 		if(name == "diplo_war_entrybg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "war_name") {
-			return make_element_by_type<war_name_text>(state, id);
+			auto ptr = make_element_by_type<war_name_text>(state, id);
+			ptr->base_data.position.x += 90; // Nudge
+			return ptr;
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
 			ptr->base_data.position.y -= 4; // Nudge

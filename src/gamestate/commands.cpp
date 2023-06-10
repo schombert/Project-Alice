@@ -2148,8 +2148,7 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
-			event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft},
-			e.opt_choice);
+			event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft}, e.opt_choice);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event{e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
@@ -3284,7 +3283,6 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 			state.world.delete_army(a);
 		}
 	}
-
 }
 
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
@@ -3339,7 +3337,8 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source && province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
+	return state.world.army_get_controller_from_army_control(a) == source &&
+				 province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(!can_delete_army(state, source, a))
@@ -3351,7 +3350,6 @@ void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_i
 	}
 	state.world.delete_army(a);
 }
-
 
 void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	payload p;
@@ -3391,7 +3389,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, dcon::regiment_id const* regs) {
 	for(uint32_t i = 0; i < num_packed_units; ++i) {
 		if(regs[i]) {
-			if(source == state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(regs[i]))) {
+			if(source ==
+					state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(regs[i]))) {
 				state.world.regiment_set_pending_split(regs[i], !state.world.regiment_get_pending_split(regs[i]));
 			}
 		}
@@ -3409,8 +3408,7 @@ void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<d
 void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon::ship_id const* regs) {
 	for(uint32_t i = 0; i < num_packed_units; ++i) {
 		if(regs[i]) {
-			if(source ==
-					state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(regs[i]))) {
+			if(source == state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(regs[i]))) {
 				state.world.ship_set_pending_split(regs[i], !state.world.ship_get_pending_split(regs[i]));
 			}
 		}

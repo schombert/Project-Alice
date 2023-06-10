@@ -577,11 +577,11 @@ class scrollbar : public container_base {
 protected:
 	scrollbar_left* left = nullptr;
 	scrollbar_right* right = nullptr;
-	scrollbar_track* track = nullptr;
 	scrollbar_slider* slider = nullptr;
 	scrollbar_settings settings;
 
 public:
+	scrollbar_track* track = nullptr;
 	virtual void on_value_change(sys::state& state, int32_t v) noexcept { }
 
 	void update_raw_value(sys::state& state, int32_t v);
