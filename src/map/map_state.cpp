@@ -199,7 +199,7 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, -10 * zoom, -screen_pos.y);
 		glm::vec3 cursor_direction = glm::vec3(0, 1, 0);
 		glm::vec3 sphere_center = glm::vec3(0, 0, 0);
-		float sphere_radius = 0.2f * zoom;
+		float sphere_radius = zoom / glm::pi<float>();
 
 		glm::vec3 intersection_pos;
 		glm::vec3 intersection_normal;
@@ -282,7 +282,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 		cartesian_coords.y *= std::sin(angle_y);
 		cartesian_coords.z = std::cos(angle_y);
 		cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
-		cartesian_coords *= 0.2;
+		cartesian_coords /= glm::pi<float>();
 		cartesian_coords.x *= -1;
 		cartesian_coords.y *= -1;
 		if(cartesian_coords.y > 0) {
