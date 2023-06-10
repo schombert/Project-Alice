@@ -22,10 +22,10 @@ bool is_key_depressed(sys::state const& game_state, sys::virtual_key key) {
 }
 
 void get_window_size(sys::state const& game_state, int& width, int& height) {
-	RECT getRectangle{};
+	RECT getRect{};
 	GetWindowRect(game_state.win_ptr->hwnd, &getRectangle);
-	width = (right - left);
-	height = (bottom - top);
+	width = (getRect.right - getRect.left);
+	height = (getRect.bottom - getRect.top);
 }
 
 bool is_in_fullscreen(sys::state const& game_state) {
