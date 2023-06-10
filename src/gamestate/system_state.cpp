@@ -18,6 +18,7 @@
 #include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
+#include "main_menu/gui_country_selection_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -538,6 +539,11 @@ void state::on_create() {
 
 	{
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+		new_elm->impl_on_update(*this);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::country_selection_window>(*this, "country_selection_panel");
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui_element_types.h"
+#include "gui_element_types.hpp"
 
 namespace ui {
 
@@ -23,9 +23,11 @@ public:
 		} else if(name == "scan") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "metaserver") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->disabled = true;
+			return ptr;
 		} else if(name == "back") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "playername") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "name_label") {
@@ -36,7 +38,7 @@ public:
 	}
 };
 
-class multiplayer_connect_window : public window_element_base {
+class multiplayer_metaserver_connect_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "frontend_connectlog_bg") {

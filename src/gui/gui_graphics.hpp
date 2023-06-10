@@ -347,7 +347,7 @@ struct state {
 	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 	// elements we are keeping track of
-	element_base* main_menu = nullptr;
+	element_base* main_menu = nullptr;	// Settings window
 	element_base* fps_counter = nullptr;
 	element_base* console_window = nullptr; // console window
 	element_base* topbar_window = nullptr;
@@ -372,6 +372,7 @@ struct state {
 	element_base* navy_status_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
+	element_base* main_menu_win = nullptr;	// The actual main menu
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;

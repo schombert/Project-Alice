@@ -26,6 +26,8 @@ struct command_info {
 		money,
 		westernize,
 		unwesternize,
+		elecwin,
+		mainmenu,
 		cb_progress
 	} mode = type::none;
 	std::string_view desc;
@@ -77,13 +79,19 @@ static const std::vector<command_info> possible_commands = {
 		command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabritcation",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
-		command_info{"mony", command_info::type::money, "Adds the specified amount of money to the national treasury",
+		command_info{"money", command_info::type::money, "Adds the specified amount of money to the national treasury",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"west", command_info::type::westernize, "Westernizes",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"unwest", command_info::type::unwesternize, "Unwesternizes",
+				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"elecwin", command_info::type::elecwin, "Shows/Hides Election Window",
+				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"mainmenu", command_info::type::mainmenu, "Shows/Hides Main Menu",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text",
@@ -383,6 +391,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	}
 	switch(pstate.cmd.mode) {
+	case command_info::type::mainmenu:
+		state.ui_state.main_menu_win->is_visible() ? state.ui_state.main_menu_win->set_visible(state, false) : state.ui_state.main_menu_win->set_visible(state, true);
+		state.ui_state.main_menu_win->impl_on_update(state);
+		break;
+	case command_info::type::elecwin:
+		state.ui_state.election_window->is_visible() ? state.ui_state.election_window->set_visible(state, false) : state.ui_state.election_window->set_visible(state, true);
+		state.ui_state.election_window->impl_on_update(state);
+		break;
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
 		state.map_state.load_map(state);
