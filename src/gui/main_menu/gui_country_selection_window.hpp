@@ -24,12 +24,12 @@ public:
 		int width = 0;
 		int height = 0;
 		window::get_window_size(state, width, height);
-		black_background->base_data.size.x = width;
-		black_background->base_data.size.y = height;
+		black_background->base_data.size.x = int16_t(width);
+		black_background->base_data.size.y = int16_t(height);
 
-		art_background->base_data.position.x = (width - art_background->base_data.size.x) - 60;
+		art_background->base_data.position.x = (int16_t(width) - art_background->base_data.size.x) - 60;
 
-		mainmenu_panel_win->base_data.position.x = ((width / 2) - (mainmenu_panel_win->base_data.size.x / 2)) - 126;
+		mainmenu_panel_win->base_data.position.x = ((int16_t(width) / 2) - (mainmenu_panel_win->base_data.size.x / 2)) - 126;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
