@@ -2963,6 +2963,8 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return std::vector<dcon::province_id>{};
+	if(state.world.army_get_is_retreating(a))
+		return std::vector<dcon::province_id>{};
 	if(!dest)
 		return std::vector<dcon::province_id>{}; // stop movement
 
@@ -2999,6 +3001,8 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
 	if(source != state.world.army_get_controller_from_army_control(a))
+		return;
+	if(state.world.army_get_is_retreating(a))
 		return;
 
 	if(!dest) {
@@ -3040,6 +3044,8 @@ void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon:
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
 	if(source != state.world.navy_get_controller_from_navy_control(n))
 		return std::vector<dcon::province_id>{};
+	if(state.world.navy_get_is_retreating(n))
+		return std::vector<dcon::province_id>{};
 	if(!dest)
 		return std::vector<dcon::province_id>{}; // stop movement
 
@@ -3052,7 +3058,8 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 	if(last_province == dest)
 		return std::vector<dcon::province_id>{};
 
-	// TODO: check if in battle
+	if(state.world.navy_get_battle_from_navy_battle_participation(n))
+		return std::vector<dcon::province_id>{};
 
 	if(dest.index() < state.province_definitions.first_sea_province.index()) {
 		return province::make_naval_path(state, last_province, dest);
@@ -3068,6 +3075,8 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 }
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
 	if(source != state.world.navy_get_controller_from_navy_control(n))
+		return;
+	if(state.world.navy_get_is_retreating(n))
 		return;
 
 	if(!dest) {
@@ -3109,6 +3118,8 @@ void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return false;
+	if(state.world.army_get_is_retreating(a))
+		return false;
 
 	auto location = state.world.army_get_location_from_army_location(a);
 	if(location.index() >= state.province_definitions.first_sea_province.index())
@@ -3125,6 +3136,8 @@ bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a)
 
 void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(source != state.world.army_get_controller_from_army_control(a))
+		return;
+	if(state.world.army_get_is_retreating(a))
 		return;
 
 	// TODO: test not in battle
@@ -3157,6 +3170,8 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 	if(state.world.army_get_controller_from_army_control(a) != source)
 		return false;
 	if(state.world.army_get_controller_from_army_control(b) != source)
+		return false;
+	if(state.world.army_get_is_retreating(a) || state.world.army_get_is_retreating(b))
 		return false;
 
 	if(state.world.army_get_location_from_army_location(a) != state.world.army_get_location_from_army_location(b))
@@ -3205,11 +3220,15 @@ bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a
 		return false;
 	if(state.world.navy_get_controller_from_navy_control(b) != source)
 		return false;
+	if(state.world.navy_get_is_retreating(a) || state.world.navy_get_is_retreating(b))
+		return false;
 
 	if(state.world.navy_get_location_from_navy_location(a) != state.world.navy_get_location_from_navy_location(b))
 		return false;
 
-	// TODO: check for if they are in combat
+	if(state.world.navy_get_battle_from_navy_battle_participation(a) ||
+			state.world.navy_get_battle_from_navy_battle_participation(b))
+		return false;
 
 	return true;
 }
@@ -3252,7 +3271,7 @@ void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source;
+	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a);
 }
 void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(!can_split_army(state, source, a))
@@ -3297,7 +3316,8 @@ void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 }
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	auto embarked = state.world.navy_get_army_transport(a);
-	return state.world.navy_get_controller_from_navy_control(a) == source && embarked.begin() == embarked.end();
+	return state.world.navy_get_controller_from_navy_control(a) == source && !state.world.navy_get_is_retreating(a) &&
+				 !bool(state.world.navy_get_battle_from_navy_battle_participation(a)) && embarked.begin() == embarked.end();
 }
 void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	if(!can_split_navy(state, source, a))
@@ -3339,7 +3359,8 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source && province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
+	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
+				 province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(!can_delete_army(state, source, a))
@@ -3364,8 +3385,9 @@ void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 
 bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	auto embarked = state.world.navy_get_army_transport(a);
-	return state.world.navy_get_controller_from_navy_control(a) == source && embarked.begin() == embarked.end() &&
-				 province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a));
+	return state.world.navy_get_controller_from_navy_control(a) == source && !state.world.navy_get_is_retreating(a) &&
+				 embarked.begin() == embarked.end() && !bool(state.world.navy_get_battle_from_navy_battle_participation(a))
+				 && province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a));
 }
 void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	if(!can_delete_navy(state, source, a))
@@ -3415,6 +3437,34 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 			}
 		}
 	}
+}
+
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::naval_retreat;
+	p.source = source;
+	p.data.naval_battle.b = b;
+	auto discard = state.incoming_commands.try_push(p);
+}
+bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
+	if(state.world.naval_battle_get_start_date(b) + 10 < state.current_date)
+		return false;
+	if(source != military::get_naval_battle_lead_attacker(state, b) && source != military::get_naval_battle_lead_defender(state, b))
+		return false;
+
+	return true;
+}
+void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
+	if(state.world.naval_battle_get_start_date(b) + 10 < state.current_date)
+		return;
+
+	if(source == military::get_naval_battle_lead_attacker(state, b)) {
+		military::end_battle(state, b, military::battle_result::defender_won);
+	} else if(source == military::get_naval_battle_lead_attacker(state, b)) {
+		military::end_battle(state, b, military::battle_result::attacker_won);
+	}
+
 }
 
 void execute_pending_commands(sys::state& state) {
@@ -3648,6 +3698,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::designate_split_ships:
 			execute_mark_ships_to_split(state, c->source, c->data.split_ships.ships);
+			break;
+		case command_type::naval_retreat:
+			execute_retreat_from_naval_battle(state, c->source, c->data.naval_battle.b);
 			break;
 
 		// console commands

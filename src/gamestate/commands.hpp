@@ -78,6 +78,7 @@ enum class command_type : uint8_t {
 	delete_navy = 69,
 	designate_split_regiments = 70,
 	designate_split_ships = 71,
+	naval_retreat = 72,
 
 	// console cheats
 	switch_nation = 128,
@@ -303,6 +304,10 @@ struct merge_navy_data {
 	dcon::navy_id b;
 };
 
+struct naval_battle_data {
+	dcon::naval_battle_id b;
+};
+
 constexpr inline size_t num_packed_units = 10;
 
 struct split_regiments_data {
@@ -358,6 +363,7 @@ struct payload {
 		merge_navy_data merge_navy;
 		split_regiments_data split_regiments;
 		split_ships_data split_ships;
+		naval_battle_data naval_battle;
 
 		dtype() { }
 	} data;
@@ -610,6 +616,9 @@ bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a)
 // Fill any unused slots with the invalid handle, but remember that each of these requires some network traffic 
 void mark_regiments_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
+
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
+bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
 
 /*
 PEACE OFFER COMMANDS:

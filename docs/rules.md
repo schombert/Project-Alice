@@ -600,7 +600,7 @@ Each war goal has a value that determines how much it is worth in a peace offer 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - only if the war goal has tws_battle_factor > 0
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
-- subtract from tws_battle_factor and then divide by define:TWS_BATTLE_MAX_ASPECT (limited to -1 to +1). This then works is the occupied percentage described below.
+- subtract from tws_battle_factor and then divide by define:TWS_BATTLE_MAX_ASPECT (limited to -1 to +1). This then works as the occupied percentage described below.
 
 #### Occupation score
 
@@ -670,7 +670,7 @@ The garrison returns to 100% immediately after the siege is complete and the con
 When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
 
 Siege Table:
-| modified roll | value |
+| adjusted level | value |
 |----|----|
 | 0 | 1.0 |
 | 1 | 2.0 |

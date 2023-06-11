@@ -292,19 +292,28 @@ bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 	return false;
 }
 
-dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+struct participation {
+	dcon::war_id w;
+	war_role role = war_role::none;
+};
+
+participation internal_find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
 			if(o.get_nation() == b) {
 				if(o.get_is_attacker() != is_attacker)
-					return wa.get_war().id;
+					return participation{wa.get_war().id, is_attacker ? war_role::attacker : war_role::defender };
 				else
-					return dcon::war_id{};
+					return participation{};
 			}
 		}
 	}
-	return dcon::war_id{};
+	return participation{};
+}
+
+dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	return internal_find_war_between(state, a, b).w;
 }
 
 bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nation_id a, dcon::war_id w, bool as_attacker) {
@@ -1773,13 +1782,15 @@ dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon
 	reg.set_type(t);
 	// TODO make name
 	reg.set_strength(1.0f);
+	reg.set_org(1.0f);
 	return reg.id;
 }
 dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
 	auto shp = fatten(state.world, state.world.create_ship());
 	shp.set_type(t);
 	// TODO make name
-	shp.set_strength(state.world.nation_get_unit_stats(n, t).defence_or_hull);
+	shp.set_strength(1.0f);
+	shp.set_org(1.0f);
 	return shp.id;
 }
 
@@ -2121,6 +2132,11 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 	auto wg = state.world.war_get_wargoals_attached(w);
 	while(wg.begin() != wg.end()) {
 		state.world.delete_wargoal((*wg.begin()).get_wargoal());
+	}
+
+	auto nbattles = state.world.war_get_naval_battle_in_war(w);
+	while(nbattles.begin() != nbattles.end()) {
+		end_battle(state, (*nbattles.begin()).get_battle().id, battle_result::indecisive);
 	}
 
 	state.world.delete_war(w);
@@ -2867,7 +2883,8 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a) {
 	int32_t max_cap = 0;
 	for(auto n : state.world.province_get_navy_location(p)) {
-		if(n.get_navy().get_controller_from_navy_control() == from) {
+		if(n.get_navy().get_controller_from_navy_control() == from &&
+				!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 			max_cap = std::max(free_transport_capacity(state, n.get_navy()), max_cap);
 		}
 	}
@@ -2910,6 +2927,7 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto per = state.world.leader_get_personality(leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed *
+				 (state.world.army_get_is_retreating(a) ? 2.0f: 1.0f) *
 				 (1.0f + state.world.province_get_railroad_level(state.world.army_get_location_from_army_location(a)) *
 										 state.economy_definitions.railroad_definition.infrastructure) *
 				 (leader_move + 1.0f);
@@ -2927,7 +2945,7 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto bg = state.world.leader_get_background(leader);
 	auto per = state.world.leader_get_personality(leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (leader_move + 1.0f);
+	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
 }
 
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
@@ -2959,15 +2977,762 @@ sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id 
 
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p) {
 	state.world.army_set_location_from_army_location(a, p);
-	if(!state.world.army_get_black_flag(a)) {
+	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a)) {
 		// TODO: start battle
 	}
 }
 
+
+void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_id b, war_role r) {
+	bool battle_attacker = (r == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);
+	if(battle_attacker) {
+		// try add admiral as leader
+		if(!state.world.naval_battle_get_admiral_from_attacking_admiral(b)) {
+			state.world.naval_battle_set_admiral_from_attacking_admiral(b, state.world.navy_get_admiral_from_navy_leadership(n));
+		}
+		// put ships in slots
+		auto slots = state.world.naval_battle_get_slots(b);
+		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
+			switch(type) {
+				case unit_type::big_ship:
+					slots.push_back(ship_in_battle{ship.get_ship().id, 0,
+						1000 | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_big});
+					state.world.naval_battle_get_attacker_big_ships(b)++;
+					break;
+				case unit_type::light_ship:
+					slots.push_back(ship_in_battle{ship.get_ship().id, 0,
+						1000 | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_small});
+					state.world.naval_battle_get_attacker_small_ships(b)++;
+					break;
+				case unit_type::transport:
+					slots.push_back(ship_in_battle{ship.get_ship().id, 0,
+						1000 | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_transport});
+					state.world.naval_battle_get_attacker_transport_ships(b)++;
+					break;
+				default:
+					assert(false);
+			}
+		}
+	} else {
+		if(!state.world.naval_battle_get_admiral_from_defending_admiral(b)) {
+			state.world.naval_battle_set_admiral_from_defending_admiral(b, state.world.navy_get_admiral_from_navy_leadership(n));
+		}
+		auto slots = state.world.naval_battle_get_slots(b);
+		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
+			switch(type) {
+			case unit_type::big_ship:
+					slots.push_back(ship_in_battle{ship.get_ship().id, 0,
+							1000 | ship_in_battle::mode_seeking | ship_in_battle::type_big});
+					state.world.naval_battle_get_defender_big_ships(b)++;
+					break;
+			case unit_type::light_ship:
+					slots.push_back(ship_in_battle{ship.get_ship().id, 0,
+							1000 | ship_in_battle::mode_seeking | ship_in_battle::type_small});
+					state.world.naval_battle_get_defender_small_ships(b)++;
+					break;
+			case unit_type::transport:
+					slots.push_back(ship_in_battle{ship.get_ship().id, 0,
+							1000 | ship_in_battle::mode_seeking | ship_in_battle::type_transport});
+					state.world.naval_battle_get_defender_transport_ships(b)++;
+					break;
+			default:
+					assert(false);
+			}
+		}
+	}
+
+	state.world.navy_set_battle_from_navy_battle_participation(n, b);
+	state.world.navy_set_arrival_time(n, sys::date{}); // pause movement
+
+	for(auto em : state.world.navy_get_army_transport(n)) {
+		em.get_army().set_arrival_time(sys::date{});
+	}
+}
+
+void retreat(sys::state& state, dcon::navy_id n) {
+	auto province_start = state.world.navy_get_location_from_navy_location(n);
+	auto nation_controller = state.world.navy_get_controller_from_navy_control(n);
+
+	auto retreat_path = province::make_naval_retreat_path(state, nation_controller, province_start);
+	if(retreat_path.size() > 0) {
+		state.world.navy_set_is_retreating(n, true);
+		auto existing_path = state.world.navy_get_path(n);
+		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
+
+		state.world.navy_set_arrival_time(n, arrival_time_to(state, n, retreat_path.back()));
+
+		for(auto em : state.world.navy_get_army_transport(n)) {
+			em.get_army().get_path().clear();
+		}
+	} else {
+		auto em = state.world.navy_get_army_transport(n);
+		while(em.begin() != em.end()) {
+			state.world.delete_army((*em.begin()).get_army());
+		}
+
+		state.world.delete_navy(n);
+	}
+}
+
+dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b) {
+	auto by_admiral = state.world.leader_get_nation_from_leader_loyalty(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+	if(by_admiral)
+		return by_admiral;
+
+	
+	auto war = state.world.naval_battle_get_war_from_naval_battle_in_war(b);
+	bool war_attackers = state.world.naval_battle_get_war_attacker_is_attacker(b);
+
+	for(auto nbp : state.world.naval_battle_get_navy_battle_participation(b)) {
+		if(war_attackers && is_attacker(state, war, nbp.get_navy().get_controller_from_navy_control())) {
+			return nbp.get_navy().get_controller_from_navy_control();
+		} else if(!war_attackers && !is_attacker(state, war, nbp.get_navy().get_controller_from_navy_control())) {
+			return nbp.get_navy().get_controller_from_navy_control();
+		}
+	}
+	
+	return dcon::nation_id{};
+}
+
+dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_battle_id b) {
+	auto by_admiral =
+			state.world.leader_get_nation_from_leader_loyalty(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+	if(by_admiral)
+		return by_admiral;
+
+	auto war = state.world.naval_battle_get_war_from_naval_battle_in_war(b);
+	bool war_attackers = state.world.naval_battle_get_war_attacker_is_attacker(b);
+
+	for(auto nbp : state.world.naval_battle_get_navy_battle_participation(b)) {
+		if(!war_attackers && is_attacker(state, war, nbp.get_navy().get_controller_from_navy_control())) {
+			return nbp.get_navy().get_controller_from_navy_control();
+		} else if(war_attackers && !is_attacker(state, war, nbp.get_navy().get_controller_from_navy_control())) {
+			return nbp.get_navy().get_controller_from_navy_control();
+		}
+	}
+
+	return dcon::nation_id{};
+}
+
+void cleanup_army(sys::state& state, dcon::army_id n) {
+	auto regs = state.world.army_get_army_membership(n);
+	while(regs.begin() != regs.end()) {
+		state.world.delete_regiment((*regs.begin()).get_regiment());
+	}
+	state.world.delete_army(n);
+}
+
+void cleanup_navy(sys::state& state, dcon::navy_id n) {
+	auto shps = state.world.navy_get_navy_membership(n);
+	while(shps.begin() != shps.end()) {
+		state.world.delete_ship((*shps.begin()).get_ship());
+	}
+	auto em = state.world.navy_get_army_transport(n);
+	while(em.begin() != em.end()) {
+		cleanup_army(state, (*em.begin()).get_army());
+	}
+	state.world.delete_navy(n);
+}
+
+
+void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result) {
+	auto war = state.world.naval_battle_get_war_from_naval_battle_in_war(b);
+	auto location = state.world.naval_battle_get_location_from_naval_battle_location(b);
+
+	assert(war);
+	assert(location);
+
+	static std::vector<dcon::navy_id> to_delete;
+	to_delete.clear();
+	static std::vector<dcon::army_id> army_to_delete;
+	army_to_delete.clear();
+
+	for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
+		auto role_in_war = get_role(state, war, n.get_navy().get_controller_from_navy_control());
+		bool battle_attacker = (role_in_war == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);
+
+		auto members = n.get_navy().get_navy_membership();
+		if(members.begin() == members.end()) {
+			to_delete.push_back(n.get_navy());
+			continue;
+		}
+
+		auto transport_cap = military::free_transport_capacity(state, n.get_navy());
+		if(transport_cap < 0) {
+			for(auto em : n.get_navy().get_army_transport()) {
+				auto em_regs = em.get_army().get_army_membership();
+				while(em_regs.begin() != em_regs.end() && transport_cap < 0) {
+					state.world.delete_regiment((*em_regs.begin()).get_regiment());
+					++transport_cap;
+				}
+				if(em_regs.begin() == em_regs.end())
+					army_to_delete.push_back(em.get_army());
+				if(transport_cap >= 0)
+					break;
+			}
+		}
+
+		if(battle_attacker && result == battle_result::defender_won) {
+			if(state.world.naval_battle_get_start_date(b) + 10 < state.current_date) {
+				to_delete.push_back(n.get_navy());
+			} else {
+				retreat(state, n.get_navy());
+			}
+		} else if(!battle_attacker && result == battle_result::attacker_won) {
+			if(state.world.naval_battle_get_start_date(b) + 10 < state.current_date) {
+				to_delete.push_back(n.get_navy());
+			} else {
+				retreat(state, n.get_navy());
+			}
+		} else {
+			auto path = n.get_navy().get_path();
+			if(path.size() > 0) {
+				state.world.navy_set_arrival_time(n.get_navy(), arrival_time_to(state, n.get_navy(), path.at(path.size() - 1)));
+			}
+			
+			for(auto em : n.get_navy().get_army_transport()) {
+				auto apath = em.get_army().get_path();
+				if(apath.size() > 0) {
+					state.world.army_set_arrival_time(em.get_army(), arrival_time_to(state, em.get_army(), apath.at(apath.size() - 1)));
+				}
+			}
+		}
+
+		if(result != battle_result::indecisive) { // so we don't restart battles as the war is ending
+			navy_arrives_in_province(state, n.get_navy(), location);
+		}
+	}
+
+
+	/*
+	On finishing a naval battle:
+	Each winning combatant get a random `on_battle_won` event, and each losing combatant gets a random `on_battle_lost` event.
+
+	Both sides compute their scaled losses fraction, which is (1 + (sum over ship type: supply-consumption-score x strength-losses)) as a percentage of (total possible naval supply + 1). The scaled losses fraction of the loser / the sum of the scaled losses forms the base of the prestige gain for the nation and the leader in charge on the winning side. The winning leader gets that value / 100 as added prestige. The winning nations gets (defineLEADER_PRESTIGE_NAVAL_GAIN + 1) x (prestige-from-tech-modifier + 1) x that value. Similarly, the losing nation and leader have their prestige reduced, calculated in the same way.
+
+	War score is gained based on the difference in losses (in absolute terms) divided by 5 plus 0.1 to a minimum of 0.1
+	*/
+
+	if(result != battle_result::indecisive) {
+		state.world.war_get_number_of_battles(war)++;
+	
+		if(result == battle_result::attacker_won) {
+			auto score =
+					std::max(0.0f, (state.world.naval_battle_get_defender_loss_value(b) - state.world.naval_battle_get_attacker_loss_value(b)) / 10.0f);
+			if(state.world.naval_battle_get_war_attacker_is_attacker(b)) {
+				state.world.war_get_attacker_battle_score(war) += score;
+			} else {
+				state.world.war_get_defender_battle_score(war) += score;
+			}
+
+			auto a_nation = get_naval_battle_lead_attacker(state, b);
+			auto d_nation = get_naval_battle_lead_defender(state, b);
+
+			assert(a_nation);
+			assert(d_nation);
+
+			nations::adjust_prestige(state, a_nation, score / 50.0f);
+			nations::adjust_prestige(state, d_nation, score / -50.0f);
+
+			// Report
+			[&]() {
+				for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
+					if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
+						naval_battle_report rep;
+						rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
+						rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
+						rep.attacker_small_losses = state.world.naval_battle_get_attacker_small_ships_lost(b);
+						rep.attacker_small_ships = state.world.naval_battle_get_attacker_small_ships(b);
+						rep.attacker_transport_losses = state.world.naval_battle_get_attacker_transport_ships_lost(b);
+						rep.attacker_transport_ships = state.world.naval_battle_get_attacker_transport_ships(b);
+
+						rep.defender_big_losses = state.world.naval_battle_get_defender_big_ships_lost(b);
+						rep.defender_big_ships = state.world.naval_battle_get_defender_big_ships(b);
+						rep.defender_small_losses = state.world.naval_battle_get_defender_small_ships_lost(b);
+						rep.defender_small_ships = state.world.naval_battle_get_defender_small_ships(b);
+						rep.defender_transport_losses = state.world.naval_battle_get_defender_transport_ships_lost(b);
+						rep.defender_transport_ships = state.world.naval_battle_get_defender_transport_ships(b);
+
+						rep.attacker_won = (result == battle_result::attacker_won);
+
+						rep.attacking_nation = get_naval_battle_lead_attacker(state, b);
+						rep.defending_nation = get_naval_battle_lead_defender(state, b);
+						rep.attacking_admiral = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
+						rep.defending_admiral = state.world.naval_battle_get_admiral_from_defending_admiral(b);
+
+						rep.location = state.world.naval_battle_get_location_from_naval_battle_location(b);
+						rep.player_on_winning_side =
+								is_attacker(state, war, state.local_player_nation) == state.world.naval_battle_get_war_attacker_is_attacker(b);
+
+						if(rep.player_on_winning_side) {
+							rep.warscore_effect = score;
+							rep.prestige_effect = score / 50.0f;
+						} else {
+							rep.warscore_effect = -score;
+							rep.prestige_effect = -score / 50.0f;
+						}
+
+						auto discard = state.naval_battle_reports.try_push(rep);
+
+						return;
+					}
+				}
+			}();
+
+		} else if(result == battle_result::defender_won) {
+			auto score = std::max(0.0f,
+					(state.world.naval_battle_get_attacker_loss_value(b) - state.world.naval_battle_get_defender_loss_value(b)) / 10.0f);
+			if(state.world.naval_battle_get_war_attacker_is_attacker(b)) {
+				state.world.war_get_attacker_battle_score(war) += score;
+			} else {
+				state.world.war_get_defender_battle_score(war) += score;
+			}
+
+			auto a_nation = get_naval_battle_lead_attacker(state, b);
+			auto d_nation = get_naval_battle_lead_defender(state, b);
+
+			assert(a_nation);
+			assert(d_nation);
+
+			nations::adjust_prestige(state, a_nation, score / -50.0f);
+			nations::adjust_prestige(state, d_nation, score / 50.0f);
+
+			// Report
+			[&]() {
+				for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
+					if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
+						naval_battle_report rep;
+						rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
+						rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
+						rep.attacker_small_losses = state.world.naval_battle_get_attacker_small_ships_lost(b);
+						rep.attacker_small_ships = state.world.naval_battle_get_attacker_small_ships(b);
+						rep.attacker_transport_losses = state.world.naval_battle_get_attacker_transport_ships_lost(b);
+						rep.attacker_transport_ships = state.world.naval_battle_get_attacker_transport_ships(b);
+
+						rep.defender_big_losses = state.world.naval_battle_get_defender_big_ships_lost(b);
+						rep.defender_big_ships = state.world.naval_battle_get_defender_big_ships(b);
+						rep.defender_small_losses = state.world.naval_battle_get_defender_small_ships_lost(b);
+						rep.defender_small_ships = state.world.naval_battle_get_defender_small_ships(b);
+						rep.defender_transport_losses = state.world.naval_battle_get_defender_transport_ships_lost(b);
+						rep.defender_transport_ships = state.world.naval_battle_get_defender_transport_ships(b);
+
+						rep.attacker_won = (result == battle_result::attacker_won);
+
+						rep.attacking_nation = get_naval_battle_lead_attacker(state, b);
+						rep.defending_nation = get_naval_battle_lead_defender(state, b);
+						rep.attacking_admiral = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
+						rep.defending_admiral = state.world.naval_battle_get_admiral_from_defending_admiral(b);
+
+						rep.location = state.world.naval_battle_get_location_from_naval_battle_location(b);
+						rep.player_on_winning_side =
+								is_attacker(state, war, state.local_player_nation) != state.world.naval_battle_get_war_attacker_is_attacker(b);
+
+						if(rep.player_on_winning_side) {
+							rep.warscore_effect = score;
+							rep.prestige_effect = score / 50.0f;
+						} else {
+							rep.warscore_effect = -score;
+							rep.prestige_effect = -score / 50.0f;
+						}
+
+						auto discard = state.naval_battle_reports.try_push(rep);
+
+						return;
+					}
+				}
+			}();
+		}
+	}
+
+	
+
+	state.world.delete_naval_battle(b);
+
+	for(auto n : to_delete) {
+		cleanup_navy(state, n);
+	}
+	for(auto a : army_to_delete) {
+		state.world.delete_army(a);
+	}
+}
+
+inline constexpr float combat_modifier_table[] = { 0.0f, 0.02f, 0.04f, 0.06f, 0.08f, 0.10f, 0.12f, 0.16f, 0.20f, 0.25f, 0.30f, 0.35f, 0.40f, 0.45f, 0.50f, 0.60f, 0.70f, 0.80f, 0.90f };
+
+void update_naval_battles(sys::state& state) {
+	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(state.world.naval_battle_size());
+
+	concurrency::parallel_for(0, int32_t(state.world.naval_battle_size()), [&](int32_t index){
+		dcon::naval_battle_id b{dcon::naval_battle_id::value_base_t(index)};
+
+		if(!state.world.naval_battle_is_valid(b))
+			return;
+
+		int32_t attacker_ships = 0;
+		int32_t defender_ships = 0;
+
+		auto slots = state.world.naval_battle_get_slots(b);
+
+		for(uint32_t j = slots.size(); j-- > 0;) {
+			switch(slots[j].flags & ship_in_battle::mode_mask) {
+				case ship_in_battle::mode_seeking:
+				case ship_in_battle::mode_approaching:
+				case ship_in_battle::mode_retreating:
+				case ship_in_battle::mode_engaged:
+					if((slots[j].flags & ship_in_battle::is_attacking) != 0)
+						++attacker_ships;
+					else
+						++defender_ships;
+					break;
+				default:
+					break;
+			}
+		}
+
+		if(defender_ships == 0) {
+			to_delete.set(b, uint8_t(1));
+			return;
+		} else if(attacker_ships == 0) {
+			to_delete.set(b, uint8_t(2));
+			return;
+		}
+
+		if((state.current_date.value - state.world.naval_battle_get_start_date(b).value) % 5 == 4) {
+			state.world.naval_battle_set_dice_rolls(b, make_dice_rolls(state, uint32_t(index)));
+		}
+
+		auto both_dice = state.world.naval_battle_get_dice_rolls(b);
+		auto attacker_dice = both_dice & 0x0F;
+		auto defender_dice = (both_dice >> 4) & 0x0F;
+
+		auto attacker_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto attacker_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+
+		auto attack_bonus = int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
+
+		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+
+		auto defence_bonus = int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
+
+		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + 3, 0, 19)];
+		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + 3, 0, 19)];
+
+		for(uint32_t j = slots.size(); j-- > 0;) {
+			auto ship_owner =
+					state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
+			auto& ship_stats = state.world.nation_get_unit_stats(ship_owner, state.world.ship_get_type(slots[j].ship));
+
+			switch(slots[j].flags & ship_in_battle::mode_mask) {
+				case ship_in_battle::mode_approaching:
+				{
+					auto target_mode = slots[slots[j].target_slot].flags & ship_in_battle::mode_mask;
+					if(target_mode == ship_in_battle::mode_retreated || target_mode == ship_in_battle::mode_sunk) {
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_seeking;
+						break;
+					}
+
+					/*
+					An approaching ship:
+					Has its distance reduced by (random-value-in-range-\[0.0 - 0.5) + 0.5) x max-speed x define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR * 1000 to a minimum of 0.
+					Switches to engaged when its distance + the target's distance is less than its fire range
+					*/
+
+					float speed = ship_stats.maximum_speed * 1000.0f * state.defines.naval_combat_speed_to_distance_factor * (0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
+					auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
+					int32_t adjust = std::clamp(int32_t(std::ceil(speed)), 0, old_distance);
+					slots[j].flags &= ~ship_in_battle::distance_mask;
+					slots[j].flags |= ship_in_battle::distance_mask & (old_distance - adjust);
+
+					if(old_distance == adjust ||
+							(old_distance - adjust) + (slots[slots[j].target_slot].flags & ship_in_battle::distance_mask) < int32_t(1000.0f * ship_stats.reconnaissance_or_fire_range)) {
+
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_engaged;
+					}
+
+					break;
+				}
+				case ship_in_battle::mode_engaged:
+				{
+					auto target_mode = slots[slots[j].target_slot].flags & ship_in_battle::mode_mask;
+					if(target_mode == ship_in_battle::mode_retreated || target_mode == ship_in_battle::mode_sunk) {
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_seeking;
+						break;
+					}
+					bool target_is_big = (slots[slots[j].target_slot].flags & ship_in_battle::type_mask) == ship_in_battle::type_big;
+					bool is_attacker = (slots[j].flags & ship_in_battle::is_attacking) != 0;
+					auto tship = slots[slots[j].target_slot].ship;
+					assert(tship);
+
+					auto ship_target_owner = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(tship));
+					auto& ship_target_stats = state.world.nation_get_unit_stats(ship_target_owner, state.world.ship_get_type(tship));
+
+					/*
+					Torpedo attack: is treated as 0 except against big ships
+					Damage to organization is (gun-power + torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x target-strength x define:NAVAL_COMBAT_DAMAGE_ORG_MULT / (target-max-hull x target-experience x 0.1 + 1)
+					Damage to strength is (gun-power + torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x attacker-strength x define:NAVAL_COMBAT_DAMAGE_STR_MULT x define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG (if target has no org) / (target-max-hull x target-experience x 0.1 + 1)
+					*/
+
+					float org_damage = (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) * (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult / (ship_target_stats.defence_or_hull + 1.0f);
+					float str_damage = (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) * (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_str_mult / (ship_target_stats.defence_or_hull + 1.0f);
+
+					
+					auto& torg = state.world.ship_get_org(tship);
+					torg = std::max(0.0f, torg - org_damage);
+					auto& tstr = state.world.ship_get_strength(tship);
+					tstr = std::max(0.0f, tstr - str_damage);
+
+					break;
+				}
+				case ship_in_battle::mode_retreating:
+				{
+					/*
+					A retreating ship will increase its distance by define:NAVAL_COMBAT_RETREAT_SPEED_MOD x define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR x (random value in the range \[0.0 - 0.5) + 0.5) x ship-max-speed.
+					*/
+
+					float speed = ship_stats.maximum_speed * 1000.0f * state.defines.naval_combat_retreat_speed_mod * state.defines.naval_combat_speed_to_distance_factor * (0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
+
+					auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
+					int32_t new_distance = std::min(int32_t(std::ceil(speed)) + old_distance, 1000);
+					slots[j].flags &= ~ship_in_battle::distance_mask;
+					slots[j].flags |= ship_in_battle::distance_mask & (new_distance);
+
+					break;
+				}
+				case ship_in_battle::mode_seeking:
+				{
+					/*
+					When a target is selected, distance is increased by random-value-in-range-\[0.0, 1.0) x (1.0 - combat-duration^define:NAVAL_COMBAT_SHIFT_BACK_DURATION_SCALE) / NAVAL_COMBAT_SHIFT_BACK_DURATION_SCALE) x NAVAL_COMBAT_SHIFT_BACK_ON_NEXT_TARGET to a maximum of 1000, and the ship switches to approaching.
+					*/
+
+					if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
+						auto pick = rng::get_random(state, uint32_t(slots[j].ship.value)) % defender_ships;
+
+						[&]() {
+							for(uint32_t k = slots.size(); k-- > 0;) {
+								switch(slots[k].flags & ship_in_battle::mode_mask) {
+
+									case ship_in_battle::mode_seeking:
+									case ship_in_battle::mode_approaching:
+									case ship_in_battle::mode_retreating:
+									case ship_in_battle::mode_engaged:
+										if((slots[k].flags & ship_in_battle::is_attacking) == 0) {
+											if(pick == 0) {
+												slots[j].target_slot = uint16_t(k);
+												return;
+											} else {
+												--pick;
+											}
+										}
+										break;
+									default:
+										break;
+								}
+							}
+						}();
+
+						auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
+						int32_t new_distance = std::min(old_distance + 400, 1000);
+
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_approaching;
+						slots[j].flags &= ~ship_in_battle::distance_mask;
+						slots[j].flags |= ship_in_battle::distance_mask & new_distance;
+					} else {
+						auto pick = rng::get_random(state, uint32_t(slots[j].ship.value)) % attacker_ships;
+
+						[&]() {
+							for(uint32_t k = slots.size(); k-- > 0;) {
+								switch(slots[k].flags & ship_in_battle::mode_mask) {
+
+									case ship_in_battle::mode_seeking:
+									case ship_in_battle::mode_approaching:
+									case ship_in_battle::mode_retreating:
+									case ship_in_battle::mode_engaged:
+										if((slots[k].flags & ship_in_battle::is_attacking) != 0) {
+											if(pick == 0) {
+												slots[j].target_slot = uint16_t(k);
+												return;
+											} else {
+												--pick;
+											}
+										}
+										break;
+									default:
+										break;
+								}
+							}
+						}();
+
+						auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
+						int32_t new_distance = std::min(old_distance + 400, 1000);
+
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_approaching;
+						slots[j].flags &= ~ship_in_battle::distance_mask;
+						slots[j].flags |= ship_in_battle::distance_mask & new_distance;
+					}
+
+					break;
+				}
+				default:
+					break;
+			}
+		}
+
+		for(uint32_t j = slots.size(); j-- > 0;) { // test health, retreat and/or sink
+			auto ship_owner =
+				state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
+			auto type = state.world.ship_get_type(slots[j].ship);
+			auto& ship_stats = state.world.nation_get_unit_stats(ship_owner, type);
+
+			switch(slots[j].flags & ship_in_battle::mode_mask) {
+				case ship_in_battle::mode_seeking:
+				case ship_in_battle::mode_approaching:
+				case ship_in_battle::mode_engaged:
+					if(state.world.ship_get_strength(slots[j].ship) <= 0) {
+						if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
+							if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+								state.world.naval_battle_get_attacker_big_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+								state.world.naval_battle_get_attacker_small_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+								state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
+							}
+							state.world.naval_battle_get_attacker_loss_value(b) += ship_stats.supply_consumption;
+						} else {
+							if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+								state.world.naval_battle_get_defender_big_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+								state.world.naval_battle_get_defender_small_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+								state.world.naval_battle_get_defender_transport_ships_lost(b)++;
+							}
+							state.world.naval_battle_get_defender_loss_value(b) += ship_stats.supply_consumption;
+						}
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_sunk;
+						state.world.delete_ship(slots[j].ship);
+						break;
+					}
+					if(state.world.ship_get_strength(slots[j].ship) <= state.defines.naval_combat_retreat_str_org_level || state.world.ship_get_org(slots[j].ship)  <= state.defines.naval_combat_retreat_str_org_level) {
+
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_retreating;
+					}
+					break;
+				case ship_in_battle::mode_retreating:
+					if(state.world.ship_get_strength(slots[j].ship) <= 0) {
+						if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
+							if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+								state.world.naval_battle_get_attacker_big_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+								state.world.naval_battle_get_attacker_small_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+								state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
+							}
+						} else {
+							if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+								state.world.naval_battle_get_defender_big_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+								state.world.naval_battle_get_defender_small_ships_lost(b)++;
+							} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+								state.world.naval_battle_get_defender_transport_ships_lost(b)++;
+							}
+						}
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_sunk;
+						state.world.delete_ship(slots[j].ship);
+						break;
+					}
+					if((slots[j].flags & ship_in_battle::distance_mask) >= 1000) {
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_retreated;
+					}
+					break;
+				default:
+					break;
+			}
+		}
+
+		
+	});
+
+	for(auto b : state.world.in_naval_battle) {
+		if(to_delete.get(b) != 0) {
+			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
+		}
+	}
+	for(uint32_t i = state.world.ship_size(); i-- > 0;) {
+		dcon::ship_id s{dcon::ship_id::value_base_t(i)};
+		if(state.world.ship_is_valid(s)) {
+			if(state.world.ship_get_strength(s) <= 0.0f) {
+				state.world.delete_ship(s);
+			}
+		}
+	}
+}
+
+uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
+	auto rvals = rng::get_random_pair(state, seed);
+	auto low_roll = rvals.low % 10;
+	auto high_roll = rvals.high % 10;
+	return uint8_t((high_roll << 4) | low_roll);
+}
+
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p) {
 	state.world.navy_set_location_from_navy_location(n, p);
+	if(!state.world.navy_get_is_retreating(n)) {
+		auto owner_nation = state.world.navy_get_controller_from_navy_control(n);
 
-	// TODO: start battle
+		// look for existing battle
+		for(auto b : state.world.province_get_naval_battle_location(p)) {
+			auto battle_war = b.get_battle().get_war_from_naval_battle_in_war();
+			auto owner_role = get_role(state, battle_war, owner_nation);
+			if(owner_role != war_role::none) {
+				add_navy_to_battle(state, n, b.get_battle(), owner_role);
+				return; // done -- only one battle per
+			}
+		}
+
+		// start battle
+		dcon::naval_battle_id gather_to_battle;
+		dcon::war_id battle_in_war;
+
+		for(auto o : state.world.province_get_navy_location(p)) {
+			if(o.get_navy() == n)
+				continue;
+			if(o.get_navy().get_is_retreating())
+				continue;
+
+			auto other_nation = o.get_navy().get_controller_from_navy_control();
+			if(!gather_to_battle) {
+				if(auto par = internal_find_war_between(state, owner_nation, other_nation); par.role != war_role::none) {
+					auto new_battle = fatten(state.world, state.world.create_naval_battle());
+					new_battle.set_war_attacker_is_attacker(par.role == war_role::attacker);
+					new_battle.set_start_date(state.current_date);
+					new_battle.set_war_from_naval_battle_in_war(par.w);
+					new_battle.set_location_from_naval_battle_location(p);
+					new_battle.set_dice_rolls(make_dice_rolls(state, uint32_t(new_battle.id.value)));
+
+					add_navy_to_battle(state, n, new_battle, par.role);
+					add_navy_to_battle(state, o.get_navy(), new_battle,
+							par.role == war_role::attacker ? war_role::defender : war_role::attacker);
+
+					gather_to_battle = new_battle.id;
+					battle_in_war = par.w;
+				}
+			} else if(auto role = get_role(state, battle_in_war, other_nation); role != war_role::none) {
+				add_navy_to_battle(state, o.get_navy(), gather_to_battle, role);
+			}
+		}
+
+		//TODO: notify on new battle
+	}
 }
 
 void update_movement(sys::state& state) {
@@ -2993,8 +3758,16 @@ void update_movement(sys::state& state) {
 					army_arrives_in_province(state, a, dest);
 					a.set_navy_from_army_transport(dcon::navy_id{});
 				} else if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
-					army_arrives_in_province(state, a, dest);
-					a.set_navy_from_army_transport(dcon::navy_id{});
+					if(auto n = a.get_navy_from_army_transport()) {
+						if(!n.get_battle_from_navy_battle_participation()) {
+							army_arrives_in_province(state, a, dest);
+							a.set_navy_from_army_transport(dcon::navy_id{});
+						} else {
+							path.clear();
+						}
+					} else {
+						army_arrives_in_province(state, a, dest);
+					}
 				} else {
 					path.clear();
 				}
@@ -3005,6 +3778,10 @@ void update_movement(sys::state& state) {
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));
 			} else {
 				a.set_arrival_time(sys::date{});
+				if(a.get_is_retreating()) {
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, dest);
+				}
 			}
 		}
 	}
@@ -3033,7 +3810,6 @@ void update_movement(sys::state& state) {
 					path.clear();
 				}
 			} else { // sea province
-				// TODO check for battle
 
 				navy_arrives_in_province(state, n, dest);
 
@@ -3050,6 +3826,11 @@ void update_movement(sys::state& state) {
 				n.set_arrival_time(arrival_time_to(state, n, next_dest));
 			} else {
 				n.set_arrival_time(sys::date{});
+				if(n.get_is_retreating()) {
+					if(dest.index() >= state.province_definitions.first_sea_province.index())
+						navy_arrives_in_province(state, n, dest);
+					n.set_is_retreating(false);
+				}
 			}
 		}
 	}
@@ -3215,12 +3996,16 @@ void update_siege_progress(sys::state& state) {
 				*/
 
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
-				state.world.province_set_nation_from_province_control(prov, new_controller);
-				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
-				state.world.province_set_rebel_faction_from_province_rebel_control(prov, rebel_controller);
+				if(!new_controller || are_at_war(state, new_controller, owner)) {
+					state.world.province_set_nation_from_province_control(prov, new_controller);
+					auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
+					state.world.province_set_rebel_faction_from_province_rebel_control(prov, rebel_controller);
+				} else {
+					state.world.province_set_nation_from_province_control(prov, owner);
+					state.world.province_set_rebel_faction_from_province_rebel_control(prov, dcon::rebel_faction_id{});
+				}
 
 				state.world.province_set_last_control_change(prov, state.current_date);
-
 				update_blackflag_status(state, prov);
 			}
 		}
@@ -3234,6 +4019,7 @@ void update_siege_progress(sys::state& state) {
 			/*
 			TODO: When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
 			*/
+			// is controler != owner ...
 			// event::fire_fixed_event(state, );
 		}
 	});

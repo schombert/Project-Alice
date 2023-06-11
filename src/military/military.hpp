@@ -34,6 +34,30 @@ inline constexpr uint32_t po_destroy_naval_bases = 0x01000000;
 
 } // namespace cb_flag
 
+struct ship_in_battle {
+	static constexpr uint16_t distance_mask = 0x03FF;
+
+	static constexpr uint16_t mode_mask = 0x1C00;
+	static constexpr uint16_t mode_seeking = 0x0400;
+	static constexpr uint16_t mode_approaching = 0x0800;
+	static constexpr uint16_t mode_engaged = 0x0C00;
+	static constexpr uint16_t mode_retreating = 0x1000;
+	static constexpr uint16_t mode_retreated = 0x1400;
+	static constexpr uint16_t mode_sunk = 0x0000;
+
+	static constexpr uint16_t is_attacking = 0x2000;
+
+	static constexpr uint16_t type_mask = 0xC000;
+	static constexpr uint16_t type_big = 0x4000;
+	static constexpr uint16_t type_small = 0x8000;
+	static constexpr uint16_t type_transport = 0x0000;
+
+	dcon::ship_id ship;
+	uint16_t target_slot;
+	uint16_t flags = 0;
+};
+
+
 enum class unit_type : uint8_t { support, big_ship, cavalry, transport, light_ship, special, infantry };
 
 struct unit_definition : public sys::unit_variable_stats {
@@ -83,6 +107,40 @@ struct available_cb {
 	sys::date expiration;
 	dcon::cb_type_id cb_type;
 };
+
+struct naval_battle_report {
+	float warscore_effect;
+	float prestige_effect;
+
+	uint16_t attacker_big_ships;
+	uint16_t attacker_small_ships;
+	uint16_t attacker_transport_ships;
+
+	uint16_t attacker_big_losses;
+	uint16_t attacker_small_losses;
+	uint16_t attacker_transport_losses;
+
+	uint16_t defender_big_ships;
+	uint16_t defender_small_ships;
+	uint16_t defender_transport_ships;
+
+	uint16_t defender_big_losses;
+	uint16_t defender_small_losses;
+	uint16_t defender_transport_losses;
+
+	dcon::leader_id attacking_admiral;
+	dcon::leader_id defending_admiral;
+
+	dcon::nation_id attacking_nation;
+	dcon::nation_id defending_nation;
+
+	dcon::province_id location;
+
+	bool attacker_won;
+	bool player_on_winning_side;
+};
+
+enum class battle_result { indecisive, attacker_won, defender_won };
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
@@ -136,6 +194,7 @@ int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::provi
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool require_accepted);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture);
+uint8_t make_dice_rolls(sys::state& state, uint32_t seed);
 
 dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
 dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
@@ -217,10 +276,12 @@ sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id 
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p); // only for sea provinces
+void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
 
 void update_blackflag_status(sys::state& state, dcon::province_id p);
 void eject_ships(sys::state& state, dcon::province_id p);
 void update_movement(sys::state& state);
 void update_siege_progress(sys::state& state);
+void update_naval_battles(sys::state& state);
 
 } // namespace military

@@ -1471,6 +1471,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{	
+		name{ org }
+		type{ float }
+		tag{ save }
+	}
 	property{
 		name{ pending_split }
 		type{ bitfield }
@@ -1498,6 +1503,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{	
+		name{ org }
+		type{ float }
+		tag{ save }
+	}
 	property{
 		name{ pending_split }
 		type{ bitfield }
@@ -1518,6 +1528,11 @@ object {
 
 	property{
 		name{ black_flag }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ is_retreating }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -1554,6 +1569,11 @@ object {
 	property{
 		name{ arrival_time }
 		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ is_retreating }
+		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -1708,6 +1728,190 @@ relationship{
 		name{navy}
 		type{many}
 		index_storage{array}
+	}
+}
+
+object {
+	name{ naval_battle }
+	storage_type{ erasable }
+	size{ 1000 }
+
+	property{
+		name{ start_date }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ war_attacker_is_attacker }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ dice_rolls }
+		type{ uint8_t }
+		tag{ save }
+	}
+
+	property{
+		name{ attacker_big_ships }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_small_ships }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_transport_ships }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_big_ships_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_small_ships_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_transport_ships_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+
+	property{
+		name{ defender_big_ships }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_small_ships }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_transport_ships }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_big_ships_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_small_ships_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_transport_ships_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+
+	property{
+		name{ attacker_loss_value }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ defender_loss_value }
+		type{ float }
+		tag{ save }
+	}
+
+	property{
+		name{ slots }
+		type{vector_pool{2500}{military::ship_in_battle}}
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ naval_battle_location }
+	tag{ save }
+
+	link{
+		object{naval_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ naval_battle_in_war }
+	tag{ save }
+
+	link{
+		object{naval_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_battle_participation }
+	tag{ save }
+
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{naval_battle}
+		name{battle}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ attacking_admiral }
+	tag{ save }
+
+	link{
+		object{naval_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{leader}
+		name{admiral}
+		type{unique}
+	}
+}
+
+relationship{
+	name{ defending_admiral }
+	tag{ save }
+
+	link{
+		object{naval_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{leader}
+		name{admiral}
+		type{unique}
 	}
 }
 

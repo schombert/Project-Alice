@@ -205,6 +205,7 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<event::pending_human_f_p_event> new_f_p_event;
 	rigtorp::SPSCQueue<diplomatic_message::message> new_requests;
 	rigtorp::SPSCQueue<notification::message> new_messages;
+	rigtorp::SPSCQueue<military::naval_battle_report> naval_battle_reports;
 
 	// internal game timer / update logic
 	std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
@@ -272,7 +273,8 @@ struct alignas(64) state {
 
 	state()
 			: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024),
-				new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
+				new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256),
+				new_messages(1024), naval_battle_reports(256) { }
 
 	~state();
 

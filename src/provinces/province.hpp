@@ -116,4 +116,6 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
 std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 
+std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
+
 } // namespace province
