@@ -357,6 +357,9 @@ public:
 		stored_identity = identity;
 		flag_button::set_current_nation(state, identity);
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 };
 
 class overlapping_flags_box : public overlapping_listbox_element_base<overlapping_flags_flag_button, dcon::national_identity_id> {

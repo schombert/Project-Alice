@@ -666,9 +666,16 @@ public:
 	}
 };
 
+class province_country_flag_button : public flag_button {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+};
+
 class province_view_foreign_details : public window_element_base {
 private:
-	flag_button* country_flag_button = nullptr;
+	province_country_flag_button* country_flag_button = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	ideology_piechart<dcon::province_id>* ideology_chart = nullptr;
 	workforce_piechart<dcon::province_id>* workforce_chart = nullptr;
@@ -678,7 +685,7 @@ public:
 		if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_flag") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
+			auto ptr = make_element_by_type<province_country_flag_button>(state, id);
 			country_flag_button = ptr.get();
 			return ptr;
 		} else if(name == "country_gov") {
