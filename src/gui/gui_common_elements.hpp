@@ -1079,8 +1079,7 @@ public:
 class nation_brigade_allocation_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto available =
-				(state.world.nation_get_recruitable_regiments(nation_id) + state.world.nation_get_active_regiments(nation_id));
+		auto available = state.world.nation_get_recruitable_regiments(nation_id);
 		auto in_use = state.world.nation_get_active_regiments(nation_id);
 		return text::format_ratio(in_use, available);
 	}

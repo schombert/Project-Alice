@@ -2961,7 +2961,7 @@ void resolve_constructions(sys::state& state) {
 				}
 				auto new_army = fatten(state.world, state.world.create_army());
 				new_army.set_controller_from_army_control(c.get_nation());
-				military::army_arrives_in_province(state, new_army, pop_location);
+				military::army_arrives_in_province(state, new_army, pop_location, military::crossing_type::none);
 				return new_army.id;
 			}();
 			state.world.try_create_army_membership(new_reg, a);

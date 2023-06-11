@@ -79,6 +79,7 @@ enum class command_type : uint8_t {
 	designate_split_regiments = 70,
 	designate_split_ships = 71,
 	naval_retreat = 72,
+	land_retreat = 73,
 
 	// console cheats
 	switch_nation = 128,
@@ -308,6 +309,10 @@ struct naval_battle_data {
 	dcon::naval_battle_id b;
 };
 
+struct land_battle_data {
+	dcon::land_battle_id b;
+};
+
 constexpr inline size_t num_packed_units = 10;
 
 struct split_regiments_data {
@@ -364,6 +369,7 @@ struct payload {
 		split_regiments_data split_regiments;
 		split_ships_data split_ships;
 		naval_battle_data naval_battle;
+		land_battle_data land_battle;
 
 		dtype() { }
 	} data;
@@ -620,6 +626,9 @@ void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<d
 
 void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
 bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
+
+void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
+bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 
 /*
 PEACE OFFER COMMANDS:

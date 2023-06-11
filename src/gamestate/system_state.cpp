@@ -2102,6 +2102,7 @@ void state::game_loop() {
 				military::update_movement(*this);
 				military::update_siege_progress(*this);
 				military::update_naval_battles(*this);
+				military::update_land_battles(*this);
 
 				event::update_events(*this);
 

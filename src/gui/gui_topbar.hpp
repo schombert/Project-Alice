@@ -678,8 +678,7 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
-			text::add_to_substitution_map(sub, text::variable_type::max,
-					(state.world.nation_get_recruitable_regiments(nation_id) + state.world.nation_get_active_regiments(nation_id)));
+			text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
 			text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		}

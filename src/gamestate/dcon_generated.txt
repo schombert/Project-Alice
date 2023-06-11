@@ -1536,7 +1536,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
-
+	property {
+		name{ dig_in }
+		type{ uint8_t }
+		tag{ save }
+	}
 	property{
 		name{ path }
 		type{vector_pool{2500}{province_id}}
@@ -1911,6 +1915,220 @@ relationship{
 	link{
 		object{leader}
 		name{admiral}
+		type{unique}
+	}
+}
+
+object {
+	name{ land_battle }
+	storage_type{ erasable }
+	size{ 1000 }
+
+	property{
+		name{ start_date }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ war_attacker_is_attacker }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ dice_rolls }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_bonus }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ combat_width }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_infantry }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_cav }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_support }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_infantry_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_cav_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ attacker_support_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+
+	property{
+		name{ defender_infantry }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_cav }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_support }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_infantry_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_cav_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property{
+		name{ defender_support_lost }
+		type{ uint16_t }
+		tag{ save }
+	}
+
+	property{
+		name{ attacker_loss_value }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ defender_loss_value }
+		type{ float }
+		tag{ save }
+	}
+
+	property{
+		name{ attacker_back_line }
+		type{ std::array<regiment_id,30> }
+		tag{ save }
+	}
+	property{
+		name{ attacker_front_line }
+		type{ std::array<regiment_id,30> }
+		tag{ save }
+	}
+	property{
+		name{ defender_back_line }
+		type{ std::array<regiment_id,30> }
+		tag{ save }
+	}
+	property{
+		name{ defender_front_line }
+		type{ std::array<regiment_id,30> }
+		tag{ save }
+	}
+
+	property{
+		name{ reserves }
+		type{vector_pool{2500}{military::reserve_regiment}}
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ land_battle_location }
+	tag{ save }
+
+	link{
+		object{land_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ land_battle_in_war }
+	tag{ save }
+
+	link{
+		object{land_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_battle_participation }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{land_battle}
+		name{battle}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ attacking_general }
+	tag{ save }
+
+	link{
+		object{land_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{leader}
+		name{general}
+		type{unique}
+	}
+}
+
+relationship{
+	name{ defending_general }
+	tag{ save }
+
+	link{
+		object{land_battle}
+		name{battle}
+		type{unique}
+	}
+	link{
+		object{leader}
+		name{general}
 		type{unique}
 	}
 }
