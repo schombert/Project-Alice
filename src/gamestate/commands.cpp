@@ -3159,6 +3159,7 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 			state.world.army_set_navy_from_army_transport(a, to_navy);
 		}
 	}
+	state.world.army_set_dig_in(a, 0);
 }
 
 void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {

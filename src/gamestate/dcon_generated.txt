@@ -1472,6 +1472,10 @@ object {
 		tag{ save }
 	}
 	property{	
+		name{ pending_damage }
+		type{ float }
+	}
+	property{	
 		name{ org }
 		type{ float }
 		tag{ save }

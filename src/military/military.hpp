@@ -337,5 +337,8 @@ void update_movement(sys::state& state);
 void update_siege_progress(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
+void apply_regiment_damage(sys::state& state);
+void apply_attrition(sys::state& state);
+void increase_dig_in(sys::state& state);
 
 } // namespace military

@@ -383,15 +383,14 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are
 	sieging it) x (technology-supply-limit-modifier + 1)
 	*/
-	float modifier = 2.0f;
+	float modifier = 1.0f;
 	auto prov_controller = state.world.province_get_nation_from_province_control(p);
 	auto self_controlled = prov_controller == n;
 	if(state.world.province_get_nation_from_province_ownership(p) == n && self_controlled) {
 		modifier = 2.5f;
-	} else if(self_controlled ||
-						bool(state.world.province_get_rebel_faction_from_province_rebel_control(p))) { // TODO: check for sieging
+	} else if(self_controlled || bool(state.world.province_get_rebel_faction_from_province_rebel_control(p))) { // TODO: check for sieging
 		modifier = 2.0f;
-	} /*else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
+	} else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
 		state.world.diplomatic_relation_get_are_allied(dip_rel)
 		) {
 		modifier = 2.0f;
@@ -401,7 +400,9 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 		modifier = 2.0f;
 	} else if(bool(state.world.get_core_by_prov_tag_key(p, state.world.nation_get_identity_from_identity_holder(n)))) {
 		modifier = 2.0f;
-	}*/
+	} else if(state.world.province_get_siege_progress(p) > 0.0f) {
+		modifier = 2.0f;
+	}
 	auto base_supply_lim = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::supply_limit) + 1.0f);
 	auto national_supply_lim = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_limit) + 1.0f);
 	return int32_t(base_supply_lim * modifier * national_supply_lim);
@@ -3250,6 +3251,7 @@ bool retreat(sys::state& state, dcon::army_id n) {
 		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
 
 		state.world.army_set_arrival_time(n, arrival_time_to(state, n, retreat_path.back()));
+		state.world.army_set_dig_in(n, 0);
 		return true;
 	} else {
 		return false;
@@ -3823,6 +3825,103 @@ dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r)
 	return state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
 }
 
+void apply_attrition(sys::state& state) {
+	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t i) {
+		dcon::province_id prov{dcon::province_id::value_base_t(i)};
+		float total_army_weight = 0;
+		for(auto ar : state.world.province_get_army_location(prov)) {
+			if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
+					!bool(ar.get_army().get_navy_from_army_transport())) {
+
+				for(auto rg : ar.get_army().get_army_membership()) {
+					total_army_weight += 3.0f * rg.get_regiment().get_strength();
+				}
+			}
+		}
+
+
+		for(auto ar : state.world.province_get_army_location(prov)) {
+			if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
+					!bool(ar.get_army().get_navy_from_army_transport())) {
+
+				auto army_controller = ar.get_army().get_controller_from_army_control();
+				auto supply_limit = supply_limit_in_province(state, army_controller, prov);
+				auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
+				auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
+				float greatest_hostile_fort = 0.0f;
+
+				for(auto adj : state.world.province_get_province_adjacency(prov)) {
+					if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
+						auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+						if(other.get_fort_level() > 0) {
+							if(are_at_war(state, army_controller, other.get_nation_from_province_control())) {
+								greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_fort_level()));
+							}
+						}
+					}
+				}
+
+				/*
+				First we calculate (total-strength + leader-attrition-trait) x (attrition-modifier-from-technology + 1) - effective-province-supply-limit (rounded down to the nearest integer) + province-attrition-modifier + the-level-of-the-highest-hostile-fort-in-an-adjacent-province. We then reduce that value to at most the max-attrition modifier of the province, and finally we add define:SEIGE_ATTRITION if the army is conducting a siege. Units taking attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage taken in combat, meaning that it will reduce the size of the backing pop.
+				*/
+
+				float attrition_value =
+						std::clamp(total_army_weight * attrition_mod - supply_limit + prov_attrition_mod + greatest_hostile_fort, 0.0f,
+								state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::max_attrition)) + state.world.province_get_siege_progress(prov) > 0 ? state.defines.siege_attrition : 0.0f;
+
+
+				for(auto rg : ar.get_army().get_army_membership()) {
+					rg.get_regiment().get_pending_damage() += attrition_value * 0.01f;
+					rg.get_regiment().get_strength() -= attrition_value * 0.01f;
+				}
+			}
+		}
+	});
+}
+
+void apply_regiment_damage(sys::state& state) {
+	for(uint32_t i = state.world.regiment_size(); i-- > 0;) {
+		dcon::regiment_id s{dcon::regiment_id::value_base_t(i)};
+		if(state.world.regiment_is_valid(s)) {
+			auto& pending_damage = state.world.regiment_get_pending_damage(s);
+			if(pending_damage > 0) {
+				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
+				auto tech_nation = tech_nation_for_regiment(state, s);
+				auto current_strength = state.world.regiment_get_strength(s);
+
+				if(backing_pop) {
+					auto& psize = state.world.pop_get_size(backing_pop);
+					psize -= state.defines.pop_size_per_regiment * pending_damage *
+								state.defines.soldier_to_pop_damage / (3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss)));
+					if(psize <= 1.0f) {
+						state.world.delete_pop(backing_pop);
+					}
+				}
+				pending_damage = 0.0f;
+				if(current_strength <= 0.0f) {
+					// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
+					auto army = state.world.regiment_get_army_from_army_membership(s);
+					auto controller = state.world.army_get_controller_from_army_control(army);
+					if(!controller) {
+						auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
+						if(pop_backer) {
+							state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
+						}
+					} else {
+						auto maxr = state.world.nation_get_recruitable_regiments(controller);
+						if(maxr > 0) {
+							auto& wex = state.world.nation_get_war_exhaustion(controller);
+							wex = std::min(wex + 0.5f / float(maxr),
+									state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
+						}
+					}
+					state.world.delete_regiment(s);
+				}
+			}
+		}
+	}
+}
+
 void update_land_battles(sys::state& state) {
 	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::land_battle_id>(state.world.land_battle_size());
 
@@ -4020,12 +4119,16 @@ void update_land_battles(sys::state& state) {
 
 		auto attack_bonus =
 				int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
+		auto attacker_org_bonus =
+				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
 		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
 		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_attacking_general(b));
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
+		auto defender_org_bonus =
+				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
 		auto attacker_mod =
 				combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment + int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3, 0, 19)];
@@ -4065,19 +4168,16 @@ void update_land_battles(sys::state& state) {
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_back[i]));
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i]));
 
-				auto str_damage = 3.0f * (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
-				auto org_damage = 3.0f * (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort);
+				auto str_damage = (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
+				auto org_damage = (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
+						(defender_fort * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
 
+				state.world.regiment_get_pending_damage(def_front[i]) += str_damage;
 				state.world.regiment_get_strength(def_front[i]) -= str_damage;
+				state.world.land_battle_get_defender_loss_value(b) += str_damage;
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
 
-				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(def_front[i]);
-				if(backing_pop) {
-					auto& psize = state.world.pop_get_size(backing_pop);
-					psize = std::max(0.0f, psize - state.defines.pop_size_per_regiment * str_damage * state.defines.soldier_to_pop_damage /
-								(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::soldier_to_pop_loss))));
-				}
 			}
 
 			if(def_back[i] && att_front[i]) {
@@ -4087,19 +4187,15 @@ void update_land_battles(sys::state& state) {
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_back[i]));
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
-				auto str_damage = 3.0f * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
-				auto org_damage = 3.0f * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod;
+				auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
+				auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
+				state.world.regiment_get_pending_damage(att_front[i]) += str_damage;
 				state.world.regiment_get_strength(att_front[i]) -= str_damage;
+				state.world.land_battle_get_attacker_loss_value(b) += str_damage;
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
 
-				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(att_front[i]);
-				if(backing_pop) {
-					auto& psize = state.world.pop_get_size(backing_pop);
-					psize = std::max(0.0f, psize - state.defines.pop_size_per_regiment * str_damage * state.defines.soldier_to_pop_damage /
-								(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::soldier_to_pop_loss))));
-				}
 			}
 
 			
@@ -4123,19 +4219,15 @@ void update_land_battles(sys::state& state) {
 					auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(att_front_target));
 					
 
-					auto str_damage = 3.0f * (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
-					auto org_damage = 3.0f * (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort);
+					auto str_damage = (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
+					auto org_damage = (att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod / (defender_fort * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
 
+					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
 					state.world.regiment_get_strength(att_front_target) -= str_damage;
+					state.world.land_battle_get_defender_loss_value(b) += str_damage;
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
 
-					auto backing_pop = state.world.regiment_get_pop_from_regiment_source(att_front_target);
-					if(backing_pop) {
-						auto& psize = state.world.pop_get_size(backing_pop);
-						psize = std::max(0.0f, psize - state.defines.pop_size_per_regiment * str_damage * state.defines.soldier_to_pop_damage /
-									(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::soldier_to_pop_loss))));
-					}
 				}
 			}
 
@@ -4158,19 +4250,14 @@ void update_land_battles(sys::state& state) {
 					auto tech_att_nation = tech_nation_for_regiment(state, def_front_target);
 					auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(def_front_target));
 
-					auto str_damage = 3.0f * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
-					auto org_damage = 3.0f * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod;
+					auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
+					auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
+					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
 					state.world.regiment_get_strength(def_front_target) -= str_damage;
+					state.world.land_battle_get_attacker_loss_value(b) += str_damage;
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
-
-					auto backing_pop = state.world.regiment_get_pop_from_regiment_source(def_front_target);
-					if(backing_pop) {
-						auto& psize = state.world.pop_get_size(backing_pop);
-						psize = std::max(0.0f, psize - state.defines.pop_size_per_regiment * str_damage * state.defines.soldier_to_pop_damage /
-									(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::soldier_to_pop_loss))));
-					}
 				}
 			}
 		}
@@ -4192,7 +4279,6 @@ void update_land_battles(sys::state& state) {
 							state.world.land_battle_get_defender_support_lost(b)++;
 							break;
 					}
-					state.world.land_battle_get_defender_loss_value(b) += 1.0f;
 					def_back[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(def_back[i]) < 0.3f) {
 					def_back[i] = dcon::regiment_id{};
@@ -4212,7 +4298,6 @@ void update_land_battles(sys::state& state) {
 							state.world.land_battle_get_defender_support_lost(b)++;
 							break;
 					}
-					state.world.land_battle_get_defender_loss_value(b) += 1.0f;
 					def_front[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(def_front[i]) < 0.3f) {
 					def_front[i] = dcon::regiment_id{};
@@ -4232,7 +4317,6 @@ void update_land_battles(sys::state& state) {
 							state.world.land_battle_get_attacker_support_lost(b)++;
 							break;
 					}
-					state.world.land_battle_get_attacker_loss_value(b) += 1.0f;
 					att_back[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(att_back[i]) < 0.3f) {
 					att_back[i] = dcon::regiment_id{};
@@ -4252,7 +4336,6 @@ void update_land_battles(sys::state& state) {
 							state.world.land_battle_get_attacker_support_lost(b)++;
 							break;
 					}
-					state.world.land_battle_get_attacker_loss_value(b) += 1.0f;
 					att_front[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(att_front[i]) < 0.3f) {
 					att_front[i] = dcon::regiment_id{};
@@ -4265,30 +4348,6 @@ void update_land_battles(sys::state& state) {
 	for(auto b : state.world.in_land_battle) {
 		if(to_delete.get(b) != 0) {
 			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
-		}
-	}
-	for(uint32_t i = state.world.regiment_size(); i-- > 0;) {
-		dcon::regiment_id s{dcon::regiment_id::value_base_t(i)};
-		if(state.world.regiment_is_valid(s)) {
-			if(state.world.regiment_get_strength(s) <= 0.0f) {
-				// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
-				auto army = state.world.regiment_get_army_from_army_membership(s);
-				auto controller = state.world.army_get_controller_from_army_control(army);
-				if(!controller) {
-					auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
-					if(pop_backer) {
-						state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
-					}
-				} else {
-					auto maxr = state.world.nation_get_recruitable_regiments(controller);
-					if(maxr > 0) {
-						auto& wex = state.world.nation_get_war_exhaustion(controller);
-						wex = std::min(wex + 0.5f / float(maxr),
-								state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
-					}
-				}
-				state.world.delete_regiment(s);
-			}
 		}
 	}
 }
@@ -4343,11 +4402,15 @@ void update_naval_battles(sys::state& state) {
 		auto attacker_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
 
 		auto attack_bonus = int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
+		auto attacker_org_bonus =
+				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
 		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
 		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
 
 		auto defence_bonus = int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
+		auto defender_org_bonus =
+				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
 		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + 3, 0, 19)];
 		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + 3, 0, 19)];
@@ -4410,7 +4473,11 @@ void update_naval_battles(sys::state& state) {
 					Damage to strength is (gun-power + torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x attacker-strength x define:NAVAL_COMBAT_DAMAGE_STR_MULT x define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG (if target has no org) / (target-max-hull x target-experience x 0.1 + 1)
 					*/
 
-					float org_damage = (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) * (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult / (ship_target_stats.defence_or_hull + 1.0f);
+					float org_damage =
+							(ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
+							(is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult /
+							((ship_target_stats.defence_or_hull + 1.0f) * (is_attacker ? defender_org_bonus : attacker_org_bonus) *
+									(1.0f + state.world.nation_get_modifier_values(ship_target_owner, sys::national_mod_offsets::naval_organisation)));
 					float str_damage = (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) * (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_str_mult / (ship_target_stats.defence_or_hull + 1.0f);
 
 					
@@ -5005,6 +5072,22 @@ void eject_ships(sys::state& state, dcon::province_id p) {
 			a.get_army().set_location_from_army_location(sea_zone);
 			a.get_army().get_path().clear();
 			a.get_army().set_arrival_time(sys::date{});
+		}
+	}
+}
+
+void increase_dig_in(sys::state& state) {
+	if(state.current_date.value % int32_t(state.defines.dig_in_increase_each_days) == 0) {
+		for(auto ar : state.world.in_army) {
+			if(ar.get_is_retreating() || ar.get_black_flag() || bool(ar.get_battle_from_army_battle_participation()) ||
+					bool(ar.get_navy_from_army_transport()) || bool(ar.get_arrival_time())) {
+
+				continue;
+			}
+			auto& current_dig_in = ar.get_dig_in();
+			if(current_dig_in < int32_t(ar.get_controller_from_army_control().get_modifier_values(sys::national_mod_offsets::dig_in_cap))) {
+				++current_dig_in;
+			}
 		}
 	}
 }

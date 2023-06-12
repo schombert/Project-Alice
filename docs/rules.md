@@ -819,7 +819,7 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 
 ### Supply limit
 
-(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
+(province-supply-limit-modifier + 1) x (2.5 if it is owned and controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
 
 ## Units
 
@@ -827,13 +827,13 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 
 Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
 
-Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit.
+Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit times (0.25 + 0.75 x effective land or naval spending).
 
 Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.
 
 Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
 
-Supplies: Rebel units are always treated as having fully supply. Units not in combat consume supply. Which commodities and how many are consumed in this way depends on the specific type of unit. The supply quantities defined by its type are then multiplied by (2 - national-administrative-efficiency) x (supply-consumption-by-type + national-modifier-to-supply-consumption)^0.01 x (naval-or-land-spending-as-appropriate). The average fraction of that consumption that could be fulfilled times naval or land-spending (as appropriate) for each regiment or ship is then averaged over the army/navy. For armies, that value become their new supply for the army. For navies, this value is further multiplied by (1 - the-fraction-the-nation-is-over-naval-supply) before becoming the new supply value.
+Supplies: Rebel units are always treated as having full supply. Units not in combat consume supply. Which commodities and how many are consumed in this way depends on the specific type of unit. The supply quantities defined by its type are then multiplied by (2 - national-administrative-efficiency) x (supply-consumption-by-type + national-modifier-to-supply-consumption)^0.01 x (naval-or-land-spending-as-appropriate). The average fraction of that consumption that could be fulfilled times naval or land-spending (as appropriate) for each regiment or ship is then averaged over the army/navy. For armies, that value become their new supply for the army. For navies, this value is further multiplied by (1 - the-fraction-the-nation-is-over-naval-supply) before becoming the new supply value.
 
 Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
 

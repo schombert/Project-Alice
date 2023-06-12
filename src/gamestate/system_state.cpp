@@ -2053,7 +2053,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 13, [&](int32_t index) {
+				concurrency::parallel_for(0, 14, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2093,6 +2093,9 @@ void state::game_loop() {
 						break;
 					case 12:
 						military::update_ticking_war_score(*this);
+						break;
+					case 13:
+						military::increase_dig_in(*this);
 						break;
 					}
 				});
@@ -2134,6 +2137,9 @@ void state::game_loop() {
 					rebel::update_movements(*this);
 					rebel::update_factions(*this);
 					break;
+				case 8:
+					military::apply_attrition(*this);
+					break;
 				case 10:
 					province::update_crimes(*this);
 					break;
@@ -2155,6 +2161,8 @@ void state::game_loop() {
 				default:
 					break;
 				}
+
+				military::apply_regiment_damage(*this);
 
 				// yearly update : redo the upper house
 				if(ymd_date.day == 1 && ymd_date.month == 1) {
