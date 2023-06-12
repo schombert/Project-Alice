@@ -1726,6 +1726,8 @@ void state::load_scenario_data() {
 	culture::create_initial_ideology_and_issues_distribution(*this);
 	demographics::regenerate_from_pop_data(*this);
 
+	military::reinforce_regiments(*this);
+
 	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
@@ -2053,7 +2055,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 14, [&](int32_t index) {
+				concurrency::parallel_for(0, 15, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2097,6 +2099,9 @@ void state::game_loop() {
 					case 13:
 						military::increase_dig_in(*this);
 						break;
+					case 14:
+						military::recover_org(*this);
+						break;
 					}
 				});
 
@@ -2133,12 +2138,18 @@ void state::game_loop() {
 				case 3:
 					military::monthly_leaders_update(*this);
 					break;
+				case 4:
+					military::reinforce_regiments(*this);
+					break;
 				case 5:
 					rebel::update_movements(*this);
 					rebel::update_factions(*this);
 					break;
 				case 8:
 					military::apply_attrition(*this);
+					break;
+				case 9:
+					military::repair_ships(*this);
 					break;
 				case 10:
 					province::update_crimes(*this);

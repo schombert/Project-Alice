@@ -340,5 +340,8 @@ void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
+void recover_org(sys::state& state);
+void reinforce_regiments(sys::state& state);
+void repair_ships(sys::state& state);
 
 } // namespace military
