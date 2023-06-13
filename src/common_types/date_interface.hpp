@@ -93,6 +93,9 @@ public:
 	date operator+(int32_t v) const noexcept {
 		return date{uint16_t(value + v - 1)};
 	}
+	date operator-(int32_t v) const noexcept {
+		return date{uint16_t((value - v) - 1)};
+	}
 	date& operator+=(int32_t v) noexcept {
 		value = uint16_t(value + v);
 		return *this;

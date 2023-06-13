@@ -1214,6 +1214,7 @@ The probabilities for province events are calculated in the same way, except tha
 - tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 - number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
 - province nationalism decreases by 0.083 (1/12) per month.
+- Nationalization (can be triggered by an effect): All nations lose their foreign investment in a nation. Each nation with foreign investment gets a random event from `on_my_factories_nationalized` with the country doing the nationalization in the from slot.
 
 ## Tracking changes
 
