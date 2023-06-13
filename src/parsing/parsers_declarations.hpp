@@ -1546,7 +1546,7 @@ struct individual_cb_context {
 };
 
 struct cb_body {
-	void finish(individual_cb_context&) { }
+	void finish(individual_cb_context& context);
 	void is_civil_war(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
 	void months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context);
 	void truce_months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context);

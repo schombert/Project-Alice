@@ -1807,15 +1807,5 @@ Fabrication starts
 
 
 TODO
-Crisis invite with wargoal (+ accept, reject)
-Crisis propose solution (+ accept, reject)
-Crisis back down
-Add CB to war
-Declare war
-Make peace offer (+ accept, reject)
-Assign leader to unit
-Move unit
-Embark/disembark
-Split unit
 Take command of vassal units / give up command
 Set hunt rebels on/off

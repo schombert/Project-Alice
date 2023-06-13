@@ -58,6 +58,9 @@ struct global_scenario_data_s { // this struct holds miscellaneous global proper
 
 struct crisis_member_def {
 	dcon::nation_id id;
+
+	crisis_join_offer joined_with_offer;
+
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };

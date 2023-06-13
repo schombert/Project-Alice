@@ -80,6 +80,12 @@ enum class command_type : uint8_t {
 	designate_split_ships = 71,
 	naval_retreat = 72,
 	land_retreat = 73,
+	start_crisis_peace_offer = 74,
+	invite_to_crisis = 75,
+	add_wargoal_to_crisis_offer = 76,
+	send_crisis_peace_offer = 77,
+	change_admiral = 78,
+	change_general = 79,
 
 	// console cheats
 	switch_nation = 128,
@@ -276,6 +282,15 @@ struct new_war_goal_data {
 	dcon::cb_type_id cb_type;
 };
 
+struct crisis_invitation_data {
+	dcon::nation_id invited;
+	dcon::nation_id target;
+	dcon::state_definition_id cb_state;
+	dcon::national_identity_id cb_tag;
+	dcon::nation_id cb_secondary_nation;
+	dcon::cb_type_id cb_type;
+};
+
 struct new_offer_data {
 	dcon::nation_id target;
 	dcon::war_id war;
@@ -303,6 +318,16 @@ struct merge_army_data {
 struct merge_navy_data {
 	dcon::navy_id a;
 	dcon::navy_id b;
+};
+
+struct new_general_data {
+	dcon::army_id a;
+	dcon::leader_id l;
+};
+
+struct new_admiral_data {
+	dcon::navy_id a;
+	dcon::leader_id l;
 };
 
 struct naval_battle_data {
@@ -370,6 +395,9 @@ struct payload {
 		split_ships_data split_ships;
 		naval_battle_data naval_battle;
 		land_battle_data land_battle;
+		crisis_invitation_data crisis_invitation;
+		new_general_data new_general;
+		new_admiral_data new_admiral;
 
 		dtype() { }
 	} data;
@@ -630,13 +658,26 @@ bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dc
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 
+void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l);
+bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l);
+
+void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l);
+bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l);
+
+void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
+		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
+		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+		dcon::nation_id cb_secondary_nation);
+
 /*
 PEACE OFFER COMMANDS:
 
 IMPORTANT:
 Even though these are separate commands, they should be sent as a single sequence with no intermediate other commands:
-send start_peace_offer, then repeat add_to_peace_offer to populate it, and then send_peace_offer to finish the process
+send start_peace_offer then repeat add_to_peace_offer to populate it, and then send_peace_offer to finish the process
 DO NOT attempt to issue these commands as the player constructs the offer in the ui
+Note that crisis offers are constructed in basically the same way. You cannot have a normal peace offer under construction / in flight while constructing / offering a crisis peace offer
 */
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession);
@@ -648,6 +689,21 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 
 void send_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
+
+// CRISIS PEACE OFFER COMMANDS
+
+void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
+bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
+
+void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target,
+		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+		dcon::nation_id cb_secondary_nation);
+bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
+		dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+		dcon::nation_id cb_secondary_nation);
+
+void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
+bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

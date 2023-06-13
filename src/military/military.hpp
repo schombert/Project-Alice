@@ -117,6 +117,9 @@ struct global_military_state {
 
 	dcon::cb_type_id liberate;
 	dcon::cb_type_id uninstall_communist_gov;
+
+	dcon::cb_type_id crisis_colony;
+	dcon::cb_type_id crisis_liberate;
 };
 
 struct available_cb {
@@ -287,6 +290,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor);
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
 		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
 void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker);
+void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker);
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
@@ -300,6 +304,7 @@ float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nat
 float cb_infamy(sys::state const& state, dcon::cb_type_id t); // the fabrication cost in infamy
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
 		dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
+float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target);
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t);
 bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t);

@@ -659,6 +659,12 @@ void individual_ideology::add_economic_reform(dcon::value_modifier_key value, er
 	context.outer_context.state.world.ideology_set_add_economic_reform(context.id, value);
 }
 
+void cb_body::finish(individual_cb_context& context) {
+	auto bits = context.outer_context.state.world.cb_type_get_type_bits(context.id);
+	if((bits & military::cb_flag::po_transfer_provinces) != 0 && (bits & military::cb_flag::all_allowed_states) == 0)
+		context.outer_context.state.military_definitions.crisis_liberate = context.id;
+}
+
 void cb_body::is_civil_war(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
 	if(value) {
 		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::is_civil_war;
@@ -813,6 +819,7 @@ void cb_body::po_remove_cores(association_type, bool value, error_handler& err, 
 void cb_body::po_colony(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
 	if(value) {
 		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_colony;
+		context.outer_context.state.military_definitions.crisis_colony = context.id;
 	}
 }
 
