@@ -433,7 +433,7 @@ public:
 			return ptr;
 		} else if(name == "delete_factory") {
 			auto ptr = make_element_by_type<factory_delete_button>(state, id);
-			factory_elements.push_back(ptr.get());
+			closed_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "open_close") {
 			auto ptr = make_element_by_type<factory_shutdown_button>(state, id);
