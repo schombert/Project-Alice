@@ -3126,6 +3126,14 @@ object {
 		type{ float }
 	}
 	property {
+		name{ maximum_military_costs }
+		type{ float }
+	}
+	property {
+		name{ subsidies_spending }
+		type{ float }
+	}
+	property {
 		name{ spending_level }
 		type{ float }
 		tag{ save }

@@ -622,6 +622,13 @@ void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id) {
 			}
 		}
 	}
+	if((old_rules & issue_rule::can_subsidise) != 0 && (combined & issue_rule::can_subsidise) == 0) {
+		for(auto p : state.world.nation_get_province_ownership(n_id)) {
+			for(auto f : p.get_province().get_factory_location()) {
+				f.get_factory().set_subsidized(false);
+			}
+		}
+	}
 }
 void update_all_nations_issue_rules(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto n_id) {
