@@ -109,12 +109,14 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		bool has_attrition = false; // TODO: Attrition
-		attr_icon->set_visible(state, has_attrition);
 		bool has_any = false;
 		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { has_any = true; });
 		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { has_any = true; });
-		set_visible(state, has_any);
+		for(const auto& c : children)
+			c->set_visible(state, has_any);
+
+		bool has_attrition = false; // TODO: Attrition
+		attr_icon->set_visible(state, has_attrition);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
