@@ -937,8 +937,6 @@ void update_cbs(sys::state& state) {
 				}
 			}
 
-			// TODO: cb fabrication events
-
 			/*
 			When fabrication progress reaches 100, the CB will remain valid for define:CREATED_CB_VALID_TIME months (so x30 days
 			for us). Note that pending CBs have their target nation fixed, but all other parameters are flexible.

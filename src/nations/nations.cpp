@@ -2225,7 +2225,12 @@ void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::nationa
 }
 
 void perform_nationalization(sys::state& state, dcon::nation_id n) {
-	// TODO
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(n)) {
+		if(rel.get_foreign_investment() > 0.0f) {
+			event::fire_fixed_event(state, state.national_definitions.on_my_factories_nationalized, trigger::to_generic(rel.get_source().id), event::slot_type::nation, rel.get_source(), trigger::to_generic(n), event::slot_type::nation);
+			rel.set_foreign_investment(0.0f);
+		}
+	}
 }
 
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
