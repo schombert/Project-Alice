@@ -57,6 +57,11 @@ struct ship_in_battle {
 	uint16_t flags = 0;
 };
 
+struct mobilization_order {
+	dcon::province_id where;
+	sys::date when;
+};
+
 struct reserve_regiment {
 	static constexpr uint16_t is_attacking = 0x0001;
 
@@ -327,6 +332,10 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 
 void update_ticking_war_score(sys::state& state);
+
+void start_mobilization(sys::state& state, dcon::nation_id n);
+void end_mobilization(sys::state& state, dcon::nation_id n);
+void advance_mobilizations(sys::state& state);
 
 int32_t transport_capacity(sys::state& state, dcon::navy_id n);
 int32_t free_transport_capacity(sys::state& state, dcon::navy_id n);

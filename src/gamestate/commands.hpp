@@ -86,6 +86,7 @@ enum class command_type : uint8_t {
 	send_crisis_peace_offer = 77,
 	change_admiral = 78,
 	change_general = 79,
+	toggle_mobilization = 80,
 
 	// console cheats
 	switch_nation = 128,
@@ -669,6 +670,8 @@ void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation);
+
+void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
 /*
 PEACE OFFER COMMANDS:

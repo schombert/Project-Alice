@@ -3818,6 +3818,22 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	diplomatic_message::post(state, m);
 }
 
+void toggle_mobilization(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_mobilization;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
+	if(state.world.nation_get_is_mobilized(source)) {
+		military::end_mobilization(state, source);
+	} else {
+		military::start_mobilization(state, source);
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -4073,6 +4089,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::change_general:
 			execute_change_general(state, c->source, c->data.new_general.a, c->data.new_general.l);
+			break;
+		case command_type::toggle_mobilization:
+			execute_toggle_mobilization(state, c->source);
 			break;
 
 		// console commands

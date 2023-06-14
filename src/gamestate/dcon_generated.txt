@@ -3054,6 +3054,16 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ mobilization_remaining }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property {
+		name{ mobilization_schedule }
+		type{vector_pool{16000}{military::mobilization_order}}
+		tag{ save }
+	}
+	property {
 		name{ is_bankrupt }
 		type{ bitfield }
 		tag{ save }

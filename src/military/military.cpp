@@ -4000,38 +4000,46 @@ void apply_regiment_damage(sys::state& state) {
 		dcon::regiment_id s{dcon::regiment_id::value_base_t(i)};
 		if(state.world.regiment_is_valid(s)) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
+			auto current_strength = state.world.regiment_get_strength(s);
+
 			if(pending_damage > 0) {
 				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
 				auto tech_nation = tech_nation_for_regiment(state, s);
-				auto current_strength = state.world.regiment_get_strength(s);
 
 				if(backing_pop) {
 					auto& psize = state.world.pop_get_size(backing_pop);
-					psize -= state.defines.pop_size_per_regiment * pending_damage *
-								state.defines.soldier_to_pop_damage / (3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss)));
+					psize -= state.defines.pop_size_per_regiment * pending_damage * state.defines.soldier_to_pop_damage /
+									 (3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
+																			 sys::national_mod_offsets::soldier_to_pop_loss)));
 					if(psize <= 1.0f) {
 						state.world.delete_pop(backing_pop);
 					}
 				}
 				pending_damage = 0.0f;
-				if(current_strength <= 0.0f) {
-					// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
-					auto army = state.world.regiment_get_army_from_army_membership(s);
-					auto controller = state.world.army_get_controller_from_army_control(army);
-					if(!controller) {
+			}
+			if(current_strength <= 0.0f) {
+				// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
+				auto army = state.world.regiment_get_army_from_army_membership(s);
+				auto controller = state.world.army_get_controller_from_army_control(army);
+				if(!controller) {
+					auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
+					if(pop_backer) {
+						state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
+					}
+				} else {
+					auto maxr = state.world.nation_get_recruitable_regiments(controller);
+					if(maxr > 0) {
 						auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
 						if(pop_backer) {
-							state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
-						}
-					} else {
-						auto maxr = state.world.nation_get_recruitable_regiments(controller);
-						if(maxr > 0) {
 							auto& wex = state.world.nation_get_war_exhaustion(controller);
-							wex = std::min(wex + 0.5f / float(maxr),
-									state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
+							wex = std::min(wex + 0.5f / float(maxr), state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
 						}
 					}
-					state.world.delete_regiment(s);
+				}
+				state.world.delete_regiment(s);
+				auto army_regs = state.world.army_get_army_membership(army);
+				if(army_regs.begin() == army_regs.end()) {
+					state.world.delete_army(army);
 				}
 			}
 		}
@@ -5313,6 +5321,141 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 
 			for(auto reg : n.get_navy_membership()) {
 				reg.get_ship().set_strength(std::min(reg.get_ship().get_strength() + repair_val, 1.0f));
+			}
+		}
+	}
+}
+
+void start_mobilization(sys::state& state, dcon::nation_id n) {
+	state.world.nation_set_is_mobilized(n, true);
+	/*
+	At most, national-mobilization-impact-modifier x (define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization).
+	*/
+	auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(n)), int32_t(state.defines.min_mobilize_limit));
+
+	state.world.nation_set_mobilization_remaining(n, uint16_t(real_regs * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact)));
+
+	auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+	schedule_array.clear();
+
+	for(auto pr : state.world.nation_get_province_ownership(n)) {
+		if(pr.get_province().get_is_colonial() == false) {
+			schedule_array.push_back(mobilization_order{pr.get_province().id, sys::date{}});
+		}
+	}
+
+	std::sort(schedule_array.begin(), schedule_array.end(),
+		[&, cap = state.world.nation_get_capital(n)](mobilization_order const& a, mobilization_order const& b) {
+			auto a_dist = province::direct_distance(state, a.where, cap);
+			auto b_dist = province::direct_distance(state, b.where, cap);
+			if(a_dist != b_dist)
+				return a_dist > b_dist;
+			return a.where.value < b.where.value;
+	});
+
+	int32_t delay = 0;
+	
+	for(uint32_t count = schedule_array.size(); count-- > 0;) {
+		/*
+		Province by province, mobilization advances by define:MOBILIZATION_SPEED_BASE x (1 + define:MOBILIZATION_SPEED_RAILS_MULT x average-railroad-level-in-state / 5) until it reaches 1
+		*/
+		auto province_speed =
+				state.defines.mobilization_speed_base * float(1.0f + state.defines.mobilization_speed_rails_mult * (state.world.province_get_railroad_level(schedule_array[count].where)) / 5.0f);
+		auto days = std::max(1, int32_t(1.0f / province_speed));
+		delay += days;
+		schedule_array[count].when = state.current_date + delay;
+	}
+
+	/*
+	Mobilizing increases crisis tension by define:CRISIS_TEMPERATURE_ON_MOBILIZE
+	*/
+	if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+		for(auto& par : state.crisis_participants) {
+			if(!par.id)
+				break;
+			if(par.id == n)
+				state.crisis_temperature += state.defines.crisis_temperature_on_mobilize;
+		}
+	}
+}
+void end_mobilization(sys::state& state, dcon::nation_id n) {
+	state.world.nation_set_is_mobilized(n, false);
+	state.world.nation_set_mobilization_remaining(n, 0);
+	auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+	schedule_array.clear();
+
+	for(auto ar : state.world.nation_get_army_control(n)) {
+		for(auto rg : ar.get_army().get_army_membership()) {
+			auto pop = rg.get_regiment().get_pop_from_regiment_source();
+			if(pop && pop.get_poptype() != state.culture_definitions.soldiers) {
+				rg.get_regiment().set_strength(0.0f);
+				rg.get_regiment().set_pop_from_regiment_source(dcon::pop_id{});
+			}
+		}
+	}
+}
+void advance_mobilizations(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		auto& to_mobilize = n.get_mobilization_remaining();
+		if(to_mobilize > 0) {
+			auto schedule = n.get_mobilization_schedule();
+			auto s_size = schedule.size();
+			if(s_size > 0) {
+				auto back = schedule[s_size - 1];
+				if(state.current_date == back.when) {
+					schedule.pop_back();
+
+					// mobilize the province
+
+					/*
+					In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either
+					the primary culture of the nation or an accepted culture.
+					*/
+					for(auto pop : state.world.province_get_pop_location(back.where)) {
+						
+						if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
+								pop.get_pop().get_poptype() != state.culture_definitions.slaves &&
+								pop.get_pop().get_is_primary_or_accepted_culture() &&
+								pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+
+							/*
+							The number of regiments these pops can provide is determined by pop-size x mobilization-size /
+							define:POP_SIZE_PER_REGIMENT.
+							*/
+
+							auto available = int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+							if(available > 0) {
+								
+								auto a = [&]() {
+									for(auto ar : state.world.province_get_army_location(back.where)) {
+										if(ar.get_army().get_controller_from_army_control() == n)
+											return ar.get_army().id;
+									}
+									auto new_army = fatten(state.world, state.world.create_army());
+									new_army.set_controller_from_army_control(n);
+									military::army_arrives_in_province(state, new_army, back.where, military::crossing_type::none);
+									return new_army.id;
+								}();
+
+								
+
+								while(available > 0 && to_mobilize > 0) {
+									auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.infantry);
+									state.world.try_create_army_membership(new_reg, a);
+									state.world.try_create_regiment_source(new_reg, pop.get_pop());
+
+									--available;
+									--to_mobilize;
+								}
+							}
+						}
+
+						if(to_mobilize == 0)
+							break;
+					}
+				}
+			} else {
+				to_mobilize = 0;
 			}
 		}
 	}
