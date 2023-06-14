@@ -1191,29 +1191,36 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		state.world.delete_wargoal(wg);
 	}
 
+	auto leaders = state.world.nation_get_leader_loyalty(n);
+	while(leaders.begin() != leaders.end()) {
+		state.world.delete_leader((*leaders.begin()).get_leader());
+	}
+
+	auto armies = state.world.nation_get_army_control(n);
+	while(armies.begin() != armies.end()) {
+		military::cleanup_army(state, (*armies.begin()).get_army());
+	}
+
+	auto navies = state.world.nation_get_navy_control(n);
+	while(navies.begin() != navies.end()) {
+		military::cleanup_navy(state, (*navies.begin()).get_navy());
+	}
+
+	auto rebels = state.world.nation_get_rebellion_within(n);
+	while(rebels.begin() != rebels.end()) {
+		rebel::delete_faction(state, (*rebels.begin()).get_rebels());
+	}
+
+	auto movements = state.world.nation_get_movement_within(n);
+	while(movements.begin() != movements.end()) {
+		state.world.delete_movement((*movements.begin()).get_movement());
+	}
+
 	state.world.delete_nation(n);
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
 
-	// cleanup:
-	for(uint32_t i = state.world.leader_size(); i-- > 0;) {
-		dcon::leader_id l{dcon::leader_id::value_base_t(i)};
-		if(!state.world.leader_get_nation_from_leader_loyalty(l)) {
-			state.world.delete_leader(l);
-		}
-	}
-	for(uint32_t i = state.world.army_size(); i-- > 0;) {
-		dcon::army_id l{dcon::army_id::value_base_t(i)};
-		if(!state.world.army_get_controller_from_army_control(l)) { // TODO: handle rebel controlled armies
-			state.world.delete_army(l);
-		}
-	}
-	for(uint32_t i = state.world.navy_size(); i-- > 0;) {
-		dcon::navy_id l{dcon::navy_id::value_base_t(i)};
-		if(!state.world.navy_get_controller_from_navy_control(l)) {
-			state.world.delete_navy(l);
-		}
-	}
+	
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
 			o.set_in_sphere_of(dcon::nation_id{});
@@ -1269,15 +1276,65 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 }
 void release_vassal(sys::state& state, dcon::overlord_id rel) {
 	auto vas = state.world.overlord_get_subject(rel);
-	state.world.nation_set_is_substate(vas, false);
-	politics::update_displayed_identity(state, vas);
-	// TODO: notify player
-	state.world.delete_overlord(rel);
+	auto ol = state.world.overlord_get_ruler(rel);
+	if(ol) {
+		if(state.world.nation_get_is_substate(vas)) {
+			state.world.nation_set_is_substate(vas, false);
+			state.world.nation_get_substates_count(ol)--;
+		}
+		state.world.nation_get_vassals_count(ol)--;
+		politics::update_displayed_identity(state, vas);
+		// TODO: notify player
+		state.world.delete_overlord(rel);
+	}
 }
+
+void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
+	auto current_ruler = state.world.overlord_get_ruler(current_ol);
+
+	if(current_ruler && current_ruler != overlord) {
+		release_vassal(state, current_ol);
+	}
+	if(current_ruler == overlord) {
+		if(state.world.nation_get_is_substate(subject)) {
+			state.world.nation_set_is_substate(subject, false);
+			state.world.nation_get_substates_count(current_ruler)--;
+		}
+	} else {
+		state.world.force_create_overlord(subject, overlord);
+		state.world.nation_get_vassals_count(overlord)++;
+		politics::update_displayed_identity(state, subject);
+	}
+
+}
+void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
+	auto current_ruler = state.world.overlord_get_ruler(current_ol);
+
+	if(current_ruler && current_ruler != overlord) {
+		release_vassal(state, current_ol);
+	}
+	if(current_ruler == overlord) {
+		if(!state.world.nation_get_is_substate(subject)) {
+			state.world.nation_set_is_substate(subject, true);
+			state.world.nation_get_substates_count(current_ruler)++;
+		}
+	} else {
+		state.world.force_create_overlord(subject, overlord);
+		state.world.nation_set_is_substate(subject, true);
+		state.world.nation_get_vassals_count(overlord)++;
+		state.world.nation_get_substates_count(current_ruler)++;
+		politics::update_displayed_identity(state, subject);
+	}
+}
+
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 	if(state.world.diplomatic_relation_get_are_allied(rel)) {
 		// TODO: notify player
 		state.world.diplomatic_relation_set_are_allied(rel, false);
+		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel,0))--;
+		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 1))--;
 	}
 }
 
@@ -1291,7 +1348,11 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	if(!r) {
 		r = state.world.force_create_diplomatic_relation(a, b);
 	}
-	state.world.diplomatic_relation_set_are_allied(r, true);
+	if(!state.world.diplomatic_relation_get_are_allied(r)) {
+		state.world.nation_get_allies_count(a)++;
+		state.world.nation_get_allies_count(b)++;
+		state.world.diplomatic_relation_set_are_allied(r, true);
+	}
 }
 
 bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon::gp_relationship_id rel) {

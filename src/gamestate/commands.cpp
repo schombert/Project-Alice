@@ -2498,11 +2498,10 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 	if(!can_cancel_alliance(state, source, target))
 		return;
 
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
-	state.world.diplomatic_relation_set_are_allied(rel, false);
-
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelalliance_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelalliance_relation_on_accept);
+
+	nations::break_alliance(state, source, target);
 }
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
@@ -3819,6 +3818,22 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	diplomatic_message::post(state, m);
 }
 
+void toggle_mobilization(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_mobilization;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
+	if(state.world.nation_get_is_mobilized(source)) {
+		military::end_mobilization(state, source);
+	} else {
+		military::start_mobilization(state, source);
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -4074,6 +4089,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::change_general:
 			execute_change_general(state, c->source, c->data.new_general.a, c->data.new_general.l);
+			break;
+		case command_type::toggle_mobilization:
+			execute_toggle_mobilization(state, c->source);
 			break;
 
 		// console commands

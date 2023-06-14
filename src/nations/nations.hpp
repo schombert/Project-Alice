@@ -303,6 +303,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n);
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
+void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
+void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);

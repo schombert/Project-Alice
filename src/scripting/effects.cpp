@@ -1926,34 +1926,29 @@ uint32_t ef_create_vassal(EFFECT_PARAMTERS) {
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!holder)
 		return 0;
-	ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
-	ws.world.nation_set_is_substate(holder, false);
+	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_create_vassal_this_nation(EFFECT_PARAMTERS) {
-	ws.world.force_create_overlord(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
-	ws.world.nation_set_is_substate(trigger::to_nation(this_slot), false);
+	nations::make_vassal(ws, trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_create_vassal_this_province(EFFECT_PARAMTERS) {
 	auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
 	if(!holder)
 		return 0;
-	ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
-	ws.world.nation_set_is_substate(holder, false);
+	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_create_vassal_from_nation(EFFECT_PARAMTERS) {
-	ws.world.force_create_overlord(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
-	ws.world.nation_set_is_substate(trigger::to_nation(from_slot), false);
+	nations::make_vassal(ws, trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_create_vassal_from_province(EFFECT_PARAMTERS) {
 	auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot));
 	if(!holder)
 		return 0;
-	ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
-	ws.world.nation_set_is_substate(holder, false);
+	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_end_military_access(EFFECT_PARAMTERS) {
@@ -2093,8 +2088,7 @@ uint32_t ef_release_vassal(EFFECT_PARAMTERS) {
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
-			ws.world.delete_overlord(rel);
-			ws.world.nation_set_is_substate(holder, false);
+			nations::release_vassal(ws, rel);
 		}
 	}
 	return 0;
@@ -2113,8 +2107,7 @@ uint32_t ef_release_vassal_this_nation(EFFECT_PARAMTERS) {
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(trigger::to_nation(this_slot));
 		if(rel) {
-			ws.world.delete_overlord(rel);
-			ws.world.nation_set_is_substate(trigger::to_nation(this_slot), false);
+			nations::release_vassal(ws, rel);
 		}
 	}
 	return 0;
@@ -2136,8 +2129,7 @@ uint32_t ef_release_vassal_this_province(EFFECT_PARAMTERS) {
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
-			ws.world.delete_overlord(rel);
-			ws.world.nation_set_is_substate(holder, false);
+			nations::release_vassal(ws, rel);
 		}
 	}
 	return 0;
@@ -2156,8 +2148,7 @@ uint32_t ef_release_vassal_from_nation(EFFECT_PARAMTERS) {
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(trigger::to_nation(from_slot));
 		if(rel) {
-			ws.world.delete_overlord(rel);
-			ws.world.nation_set_is_substate(trigger::to_nation(from_slot), false);
+			nations::release_vassal(ws, rel);
 		}
 	}
 	return 0;
@@ -2179,8 +2170,7 @@ uint32_t ef_release_vassal_from_province(EFFECT_PARAMTERS) {
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
-			ws.world.delete_overlord(rel);
-			ws.world.nation_set_is_substate(holder, false);
+			nations::release_vassal(ws, rel);
 		}
 	}
 	return 0;
@@ -2202,8 +2192,7 @@ uint32_t ef_release_vassal_reb(EFFECT_PARAMTERS) {
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
-			ws.world.delete_overlord(rel);
-			ws.world.nation_set_is_substate(holder, false);
+			nations::release_vassal(ws, rel);
 		}
 	}
 	return 0;

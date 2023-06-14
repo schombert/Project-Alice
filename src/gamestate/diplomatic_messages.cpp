@@ -220,11 +220,7 @@ void accept(sys::state& state, message const& m) {
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.alliance_relation_on_accept);
-		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(m.from, m.to);
-		if(!rel) {
-			rel = state.world.force_create_diplomatic_relation(m.from, m.to);
-		}
-		state.world.diplomatic_relation_set_are_allied(rel, true);
+		nations::make_alliance(state, m.from, m.to);
 		break;
 	}
 	case type::call_ally_request: {

@@ -2111,6 +2111,7 @@ void state::game_loop() {
 				military::update_siege_progress(*this);
 				military::update_naval_battles(*this);
 				military::update_land_battles(*this);
+				military::advance_mobilizations(*this);
 
 				event::update_events(*this);
 
@@ -2168,6 +2169,9 @@ void state::game_loop() {
 					break;
 				case 25:
 					rebel::execute_province_defections(*this);
+					break;
+				case 28:
+					rebel::rebel_risings_check(*this);
 					break;
 				default:
 					break;

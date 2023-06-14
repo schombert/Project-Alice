@@ -277,8 +277,7 @@ void give_sphere_leader_production(sys::state& state, dcon::nation_id n) {
 
 float effective_tariff_rate(sys::state const& state, dcon::nation_id n) {
 	//- tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency,
-	// limited to
-	// at most 1.0
+	// limited to at most 1.0
 	auto tariff_efficiency =
 			std::clamp(state.defines.base_tariff_efficiency + state.world.nation_get_administrative_efficiency(n) +
 										 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier),
@@ -659,7 +658,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 	}
 }
 
-void update_single_factory_production(sys::state& state, dcon::factory_id f, dcon::nation_id n) {
+void update_single_factory_production(sys::state& state, dcon::factory_id f, dcon::nation_id n, float expected_min_wage) {
 
 	auto production = state.world.factory_get_actual_production(f);
 	if(production > 0) {
@@ -692,8 +691,25 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 		state.world.nation_get_domestic_market_pool(n, fac_type.get_output()) += amount;
 
 		auto money_made = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
-		state.world.factory_set_full_profit(f, money_made);
-		// pay wages ?
+		if(!fac.get_subsidized()) {
+			state.world.factory_set_full_profit(f, money_made);
+		} else {
+			float min_wages = expected_min_wage * fac.get_level() * fac.get_primary_employment() *
+				(factory_per_level_employment / needs_scaling_factor);
+			if(money_made < min_wages) {
+				auto diff = min_wages - money_made;
+				if(state.world.nation_get_stockpiles(n, money) > diff) {
+					state.world.factory_set_full_profit(f, min_wages);
+					state.world.nation_get_stockpiles(n, money) -= diff;
+					state.world.nation_get_subsidies_spending(n) += diff;
+				} else {
+					state.world.factory_set_full_profit(f, std::max(money_made, 0.0f));
+					fac.set_subsidized(false);
+				}
+			} else {
+				state.world.factory_set_full_profit(f, money_made);
+			}
+		}
 	} else {
 	}
 }
@@ -791,8 +807,7 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 			}
 		}
 
-		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) *
-																															throughput_multiplier * output_multiplier * max_production_scale);
+		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale);
 		state.world.province_set_artisan_full_profit(p,
 				(output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * max_production_scale);
 	} else {
@@ -1070,6 +1085,8 @@ float full_spending_cost(sys::state& state, dcon::nation_id n,
 		ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices) {
 
 	float total = 0.0f;
+	float military_total = 0;
+
 	uint32_t total_commodities = state.world.commodity_size();
 	float l_spending = float(state.world.nation_get_land_spending(n)) / 100.0f;
 	float n_spending = float(state.world.nation_get_naval_spending(n)) / 100.0f;
@@ -1077,12 +1094,19 @@ float full_spending_cost(sys::state& state, dcon::nation_id n,
 
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
-		total += state.world.nation_get_army_demand(n, cid) * l_spending * effective_prices.get(cid);
+		auto v = state.world.nation_get_army_demand(n, cid) * l_spending * effective_prices.get(cid);
+		total += v;
+		military_total += v;
 	}
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
-		total += state.world.nation_get_navy_demand(n, cid) * n_spending * effective_prices.get(cid);
+		auto v = state.world.nation_get_navy_demand(n, cid) * n_spending * effective_prices.get(cid);
+		total += v;
+		military_total += v;
 	}
+
+	state.world.nation_set_maximum_military_costs(n, military_total);
+
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
 		total += state.world.nation_get_construction_demand(n, cid) * c_spending * effective_prices.get(cid);
@@ -1597,7 +1621,7 @@ void daily_update(sys::state& state) {
 
 	/* initialization parallel block */
 
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 9, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			populate_army_consumption(state);
@@ -1632,6 +1656,10 @@ void daily_update(sys::state& state) {
 						[&](auto nids) { state.world.nation_set_life_needs_costs(nids, t, ve::fp_vector{}); });
 			});
 			break;
+		case 8:
+			state.world.execute_serial_over_nation([&](auto ids) {
+				state.world.nation_set_subsidies_spending(ids, 0.0f);
+			});
 		}
 	});
 
@@ -2035,7 +2063,7 @@ void daily_update(sys::state& state) {
 				max_sp /= total;
 
 			state.world.nation_set_effective_land_spending(n,
-					nations_commodity_spending * max_sp * float(state.world.nation_get_naval_spending(n)) / 100.0f);
+					nations_commodity_spending * max_sp * float(state.world.nation_get_land_spending(n)) / 100.0f);
 		}
 		{
 			float max_sp = 0.0f;
@@ -2053,7 +2081,7 @@ void daily_update(sys::state& state) {
 				max_sp /= total;
 
 			state.world.nation_set_effective_construction_spending(n,
-					nations_commodity_spending * max_sp * float(state.world.nation_get_naval_spending(n)) / 100.0f);
+					nations_commodity_spending * max_sp * float(state.world.nation_get_construction_spending(n)) / 100.0f);
 		}
 		/*
 		fill stockpiles
@@ -2101,7 +2129,7 @@ void daily_update(sys::state& state) {
 
 			for(auto f : state.world.province_get_factory_location(p.get_province())) {
 				// factory
-				update_single_factory_production(state, f.get_factory(), n);
+				update_single_factory_production(state, f.get_factory(), n, factory_min_wage);
 			}
 
 			// artisan
@@ -2265,9 +2293,7 @@ void daily_update(sys::state& state) {
 		collect taxes
 		*/
 
-		auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency +
-																				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency),
-				0.1f, 1.0f);
+		auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
 
 		float total_poor_tax_base = 0.0f;
 		float total_mid_tax_base = 0.0f;
@@ -2322,8 +2348,6 @@ void daily_update(sys::state& state) {
 			assert(t_total >= 0);
 			state.world.nation_get_stockpiles(n, money) += t_total;
 		}
-
-		// TODO: pay subsidies
 	});
 
 	/*
@@ -2358,6 +2382,35 @@ void daily_update(sys::state& state) {
 
 		state.world.commodity_set_current_price(cid, std::clamp(current_price, base_price * 0.2f, base_price * 5.0f));
 	});
+
+	/*
+	DIPLOMATIC EXPENSES
+	*/
+
+	for(auto n : state.world.in_nation) {
+		for(auto uni : n.get_unilateral_relationship_as_source()) {
+			if(uni.get_war_subsidies()) {
+				auto target_m_costs = uni.get_target().get_maximum_military_costs() * state.defines.warsubsidies_percent;
+				if(target_m_costs <= n.get_stockpiles(money)) {
+					n.get_stockpiles(money) -= target_m_costs;
+					uni.get_target().get_stockpiles(money) += target_m_costs;
+				} else {
+					uni.set_war_subsidies(false);
+					// TODO notify cancellation
+				}
+			}
+			if(uni.get_reparations() && state.current_date < n.get_reparations_until()) {
+				auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + n.get_modifier_values(sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+				auto total_tax_base = n.get_total_rich_income() + n.get_total_middle_income() + n.get_total_poor_income();
+
+				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
+				auto capped_payout = std::min(n.get_stockpiles(money), payout);
+
+				n.get_stockpiles(money) -= capped_payout;
+				uni.get_target().get_stockpiles(money) += capped_payout;
+			}
+		}
+	}
 
 	/*
 	update inflation

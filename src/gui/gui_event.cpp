@@ -407,6 +407,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state,
 					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			req_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
@@ -416,6 +417,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 		{
 			auto ptr =
 					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			odds_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
@@ -588,6 +590,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		{
 			auto ptr =
 					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			odds_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;

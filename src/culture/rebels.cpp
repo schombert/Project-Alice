@@ -665,7 +665,11 @@ void update_pop_rebel_membership(sys::state& state) {
 }
 
 void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
-	// TODO: delete rebel units
+	
+	auto armies = state.world.rebel_faction_get_army_rebel_control(reb);
+	while(armies.begin() != armies.end()) {
+		military::cleanup_army(state, (*armies.begin()).get_army());
+	}
 	state.world.delete_rebel_faction(reb);
 }
 
@@ -722,13 +726,68 @@ void daily_update_rebel_organization(sys::state& state) {
 
 		if(reg_count > 0) {
 			state.world.rebel_faction_set_organization(rf,
-					std::min(1.0f,
-							state.world.rebel_faction_get_organization(rf) +
-									total_change *
-											(1.0f + state.world.nation_get_rebel_org_modifier(within, state.world.rebel_faction_get_type(rf))) *
-											0.001f / (1.0f + state.world.nation_get_administrative_efficiency(within)) / float(reg_count)));
+				std::min(1.0f,
+					state.world.rebel_faction_get_organization(rf) +
+						total_change * (1.0f + state.world.nation_get_rebel_org_modifier(within, state.world.rebel_faction_get_type(rf))) *
+							0.001f / (1.0f + state.world.nation_get_administrative_efficiency(within)) / float(reg_count)));
 		}
 	});
+}
+
+void rebel_risings_check(sys::state& state) {
+	for(auto rf : state.world.in_rebel_faction) {
+		auto revolt_chance = get_faction_revolt_risk(state, rf);
+		auto rval = rng::get_random(state, uint32_t(rf.id.value));
+		float p_val = float(rval & 0xFFFF) / float(0x10000);
+		if(p_val < revolt_chance) {
+			auto const new_to_make = get_faction_brigades_ready(state, rf);
+			auto counter = new_to_make;
+
+			/*
+			- When a rising happens, pops with at least define:MILITANCY_TO_JOIN_RISING will spawn faction-organization x max-possible-supported-regiments, to a minimum of 1 (if any more regiments are possible).
+			*/
+
+			for(auto pop : rf.get_pop_rebellion_membership()) {
+				if(counter == 0)
+					break;
+
+				if(pop.get_pop().get_militancy() >= state.defines.mil_to_join_rising) {
+					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) / state.defines.pop_size_per_regiment);
+					auto cregs = pop.get_pop().get_regiment_source();
+					auto used_count = int32_t(cregs.end() - cregs.begin());
+
+					if(used_count < max_count) {
+						auto pop_location = pop.get_pop().get_province_from_pop_location();
+
+						auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.irregular);
+						auto a = [&]() {
+							for(auto ar : state.world.province_get_army_location(pop_location)) {
+								if(ar.get_army().get_controller_from_army_rebel_control() == rf)
+									return ar.get_army().id;
+							}
+							auto new_army = fatten(state.world, state.world.create_army());
+							new_army.set_controller_from_army_rebel_control(rf);
+							military::army_arrives_in_province(state, new_army, pop_location, military::crossing_type::none);
+							return new_army.id;
+						}();
+						state.world.try_create_army_membership(new_reg, a);
+						state.world.try_create_regiment_source(new_reg, pop.get_pop());
+
+						--counter;
+					}
+				}
+			}
+
+			/*
+			- Faction organization is reduced to 0 after an initial rising (for later contributory risings, it may instead be reduced by a factor of (number-of-additional-regiments x 0.01 + 1))
+			*/
+			rf.set_organization(0);
+
+			if(counter != new_to_make) {
+				// TODO: Notify
+			}
+		}
+	}
 }
 
 bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n) {
@@ -750,8 +809,12 @@ int32_t get_faction_brigades_ready(sys::state& state, dcon::rebel_faction_id r) 
 }
 
 int32_t get_faction_brigades_active(sys::state& state, dcon::rebel_faction_id r) {
-	// TODO
-	return 0;
+	int32_t total = 0;
+	for(auto ar : state.world.rebel_faction_get_army_rebel_control(r)) {
+		auto regs = ar.get_army().get_army_membership();
+		total += int32_t(regs.end() - regs.begin());
+	}
+	return total;
 }
 
 float get_faction_organization(sys::state& state, dcon::rebel_faction_id r) {
@@ -759,8 +822,21 @@ float get_faction_organization(sys::state& state, dcon::rebel_faction_id r) {
 }
 
 float get_faction_revolt_risk(sys::state& state, dcon::rebel_faction_id r) {
-	// TODO
-	return 0.f;
+	/*
+	- Rebels have a chance to rise once per month. The probability the rising will happen is: faction-organization x 0.05 + 0.02 + faction-organization x number-of-regiments-the-rising-could-form / 1v(number-of-regiments-controlled-by-nation x 20)
+	*/
+	auto nation_brigades = std::max(1, int32_t(state.world.nation_get_active_regiments(state.world.rebel_faction_get_ruler_from_rebellion_within(r))));
+
+	auto num_brigades_ready = get_faction_brigades_ready(state, r);
+	auto faction_org = state.world.rebel_faction_get_organization(r);
+
+	if(num_brigades_ready <= 0) {
+		return 0.0f;
+	}
+
+	float chance = std::clamp(
+			faction_org * 0.05f + 0.02f + faction_org * float(num_brigades_ready) / (float(nation_brigades) * 20.0f), 0.0f, 1.0f);
+	return chance;
 }
 
 void execute_province_defections(sys::state& state) {
