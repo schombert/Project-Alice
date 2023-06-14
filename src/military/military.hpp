@@ -120,6 +120,9 @@ struct global_military_state {
 
 	dcon::cb_type_id crisis_colony;
 	dcon::cb_type_id crisis_liberate;
+
+	dcon::unit_type_id irregular;
+	dcon::unit_type_id infantry;
 };
 
 struct available_cb {
@@ -313,6 +316,9 @@ bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id 
 void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_loss);
 enum class war_result { draw, attacker_won, defender_won };
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
+
+void cleanup_army(sys::state& state, dcon::army_id n);
+void cleanup_navy(sys::state& state, dcon::navy_id n);
 
 void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from,
 		dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state,

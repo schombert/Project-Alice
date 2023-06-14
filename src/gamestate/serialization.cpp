@@ -146,6 +146,8 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.crisis_colony);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.crisis_liberate);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.irregular);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.infantry);
 	}
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
@@ -321,6 +323,8 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.crisis_colony);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.crisis_liberate);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.irregular);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.infantry);
 	}
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
@@ -490,6 +494,8 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.uninstall_communist_gov);
 		sz += sizeof(state.military_definitions.crisis_colony);
 		sz += sizeof(state.military_definitions.crisis_liberate);
+		sz += sizeof(state.military_definitions.irregular);
+		sz += sizeof(state.military_definitions.infantry);
 	}
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.flag_variable_names);

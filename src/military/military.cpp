@@ -2234,7 +2234,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
 			nations::release_vassal(state, sub);
 		}
-		state.world.force_create_overlord(target, from);
+		nations::make_vassal(state, target, from);
 		take_from_sphere(state, target, from);
 	}
 

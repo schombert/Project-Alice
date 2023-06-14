@@ -2498,11 +2498,10 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 	if(!can_cancel_alliance(state, source, target))
 		return;
 
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
-	state.world.diplomatic_relation_set_are_allied(rel, false);
-
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelalliance_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelalliance_relation_on_accept);
+
+	nations::break_alliance(state, source, target);
 }
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,

@@ -2169,6 +2169,9 @@ void state::game_loop() {
 				case 25:
 					rebel::execute_province_defections(*this);
 					break;
+				case 28:
+					rebel::rebel_risings_check(*this);
+					break;
 				default:
 					break;
 				}
