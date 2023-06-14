@@ -5407,51 +5407,53 @@ void advance_mobilizations(sys::state& state) {
 
 					// mobilize the province
 
-					/*
-					In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either
-					the primary culture of the nation or an accepted culture.
-					*/
-					for(auto pop : state.world.province_get_pop_location(back.where)) {
-						
-						if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
-								pop.get_pop().get_poptype() != state.culture_definitions.slaves &&
-								pop.get_pop().get_is_primary_or_accepted_culture() &&
-								pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					if(state.world.province_get_nation_from_province_control(back.where) ==
+							state.world.province_get_nation_from_province_ownership(back.where)) { // only if un occupied
+						/*
+						In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is
+						either the primary culture of the nation or an accepted culture.
+						*/
+						for(auto pop : state.world.province_get_pop_location(back.where)) {
 
-							/*
-							The number of regiments these pops can provide is determined by pop-size x mobilization-size /
-							define:POP_SIZE_PER_REGIMENT.
-							*/
+							if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
+									pop.get_pop().get_poptype() != state.culture_definitions.slaves &&
+									pop.get_pop().get_is_primary_or_accepted_culture() &&
+									pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
 
-							auto available = int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
-							if(available > 0) {
-								
-								auto a = [&]() {
-									for(auto ar : state.world.province_get_army_location(back.where)) {
-										if(ar.get_army().get_controller_from_army_control() == n)
-											return ar.get_army().id;
+								/*
+								The number of regiments these pops can provide is determined by pop-size x mobilization-size /
+								define:POP_SIZE_PER_REGIMENT.
+								*/
+
+								auto available =
+										int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+								if(available > 0) {
+
+									auto a = [&]() {
+										for(auto ar : state.world.province_get_army_location(back.where)) {
+											if(ar.get_army().get_controller_from_army_control() == n)
+												return ar.get_army().id;
+										}
+										auto new_army = fatten(state.world, state.world.create_army());
+										new_army.set_controller_from_army_control(n);
+										military::army_arrives_in_province(state, new_army, back.where, military::crossing_type::none);
+										return new_army.id;
+									}();
+
+									while(available > 0 && to_mobilize > 0) {
+										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.infantry);
+										state.world.try_create_army_membership(new_reg, a);
+										state.world.try_create_regiment_source(new_reg, pop.get_pop());
+
+										--available;
+										--to_mobilize;
 									}
-									auto new_army = fatten(state.world, state.world.create_army());
-									new_army.set_controller_from_army_control(n);
-									military::army_arrives_in_province(state, new_army, back.where, military::crossing_type::none);
-									return new_army.id;
-								}();
-
-								
-
-								while(available > 0 && to_mobilize > 0) {
-									auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.infantry);
-									state.world.try_create_army_membership(new_reg, a);
-									state.world.try_create_regiment_source(new_reg, pop.get_pop());
-
-									--available;
-									--to_mobilize;
 								}
 							}
-						}
 
-						if(to_mobilize == 0)
-							break;
+							if(to_mobilize == 0)
+								break;
+						}
 					}
 				}
 			} else {

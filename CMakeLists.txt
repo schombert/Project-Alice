@@ -27,10 +27,18 @@ endforeach()
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
+if(WIN32)
+add_executable(Alice WIN32 "src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map.cpp"
+	"src/alice.rc"
+	${ASSET_FILES})
+else()
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map.cpp"
 	${ASSET_FILES})
+endif()
 
 # Used for storing the local path to the Victoria 2 directory
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
