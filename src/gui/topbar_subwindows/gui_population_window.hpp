@@ -1150,18 +1150,19 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "item_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			if constexpr(std::is_same_v<T, dcon::issue_option_id>)
+			if constexpr(std::is_same_v<T, dcon::issue_option_id>) {
 				ptr->set_text(state, text::produce_simple_string(state, "dominant_issues_disttitle"));
-			else if constexpr(std::is_same_v<T, dcon::culture_id>)
+			} else if constexpr(std::is_same_v<T, dcon::culture_id>) {
 				ptr->set_text(state, text::produce_simple_string(state, "nationality_disttitle"));
-			else if constexpr(std::is_same_v<T, dcon::ideology_id>)
+			} else if constexpr(std::is_same_v<T, dcon::ideology_id>) {
 				ptr->set_text(state, text::produce_simple_string(state, "ideology_disttitle"));
-			else if constexpr(std::is_same_v<T, dcon::religion_id>)
+			} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
 				ptr->set_text(state, text::produce_simple_string(state, "religion_disttitle"));
-			else if constexpr(std::is_same_v<T, dcon::pop_type_id>)
+			} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
 				ptr->set_text(state, text::produce_simple_string(state, "workforce_disttitle"));
-			else if constexpr(std::is_same_v<T, dcon::political_party_id>)
+			} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 				ptr->set_text(state, text::produce_simple_string(state, "electorate_disttitle"));
+			}
 			return ptr;
 		} else if(name == "chart") {
 			return make_element_by_type<pop_distribution_piechart<T, Multiple>>(state, id);

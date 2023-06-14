@@ -26,7 +26,7 @@ enum class outliner_filter : uint8_t {
 
 typedef std::variant< outliner_filter, dcon::army_id, dcon::navy_id, dcon::gp_relationship_id,
 		dcon::state_building_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id,
-		dcon::province_naval_construction_id>
+		dcon::province_naval_construction_id, dcon::state_instance_id>
 		outliner_data;
 
 class outliner_element_button : public generic_settable_element<button_element_base, outliner_data> {
@@ -250,6 +250,35 @@ public:
 				info_text->set_text(state, text::produce_simple_string(state, name));
 				// TODO: Entry displays time left to build building
 				entry_text->set_text(state, "");
+			} else if(std::holds_alternative<dcon::state_instance_id>(content)) {
+				auto siid = std::get<dcon::state_instance_id>(content);
+				auto fat_si = dcon::fatten(state.world, siid);
+				auto fat_nf = dcon::fatten(state.world, siid).get_owner_focus();
+				info_text->set_text(state, text::produce_simple_string(state, fat_nf.get_name()));
+				// TODO: Entry displays time left to build building
+				auto nf_type = fat_nf.get_type();
+				if(nf_type == 1 || nf_type == 2 || nf_type == 3) {		// Railroads, Immigration, and Flashpoint
+					entry_text->set_text(state, text::produce_simple_string(state, fat_si.get_definition().get_name()));
+
+				} else if(nf_type == 4) {	// Promotion
+					//entry_text->set_text(state, "???");
+					entry_text->set_text(state, "Promotion");
+
+				} else if(nf_type == 5) {	// Production
+					entry_text->set_text(state, text::produce_simple_string(state, fat_si.get_definition().get_name()));
+
+				} else if(nf_type == 6) {	// Party Loyalty
+					//entry_text->set_text(state, "Party Loyalty");
+					if(fat_nf.get_loyalty_value() == 0) {
+						entry_text->set_text(state, text::produce_simple_string(state, "party_loyalty_desc_neutral"));
+					} else {
+						entry_text->set_text(state, text::format_float(fat_nf.get_loyalty_value(), 3));
+					}
+
+				} else {
+					entry_text->set_text(state, "???");
+
+				}
 			}
 		}
 	}
@@ -369,10 +398,15 @@ public:
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}
-		// TODO: national_focus,
 		if(get_filter(state, outliner_filter::national_focus)) {
 			row_contents.push_back(outliner_filter::national_focus);
 			auto old_size = row_contents.size();
+			state.world.nation_for_each_state_ownership(state.local_player_nation, [&](dcon::state_ownership_id soid) {
+				auto fat = dcon::fatten(state.world, soid).get_state();
+				if(fat.get_owner_focus().is_valid()) {
+					row_contents.push_back(fat.id);
+				}
+			});
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}

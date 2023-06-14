@@ -457,33 +457,37 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 
 template<bool IsMajor>
 void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
-	if(state.user_settings.use_new_ui) {
+	/*if(state.user_settings.use_new_ui) {
 		odds_icon->set_visible(state, true);
 		req_icon->set_visible(state, true);
 	} else {
 		odds_icon->set_visible(state, false);
 		req_icon->set_visible(state, false);
-	}
-	for(auto e : option_buttons)
+	}*/
+	for(auto e : option_buttons) {
 		e->set_visible(state, true);
+	}
 
 	auto it = std::remove_if(events.begin(), events.end(), [&](auto& e) {
 		sys::date date{};
-		if(std::holds_alternative<event::pending_human_n_event>(e))
+		if(std::holds_alternative<event::pending_human_n_event>(e)) {
 			date = std::get<event::pending_human_n_event>(e).date;
-		else if(std::holds_alternative<event::pending_human_f_n_event>(e))
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(e)) {
 			date = std::get<event::pending_human_f_n_event>(e).date;
+		}
 		return date + event::expiration_in_days <= state.current_date;
 	});
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
 
-	for(auto e : new_elements)
+	for(auto e : new_elements) {
 		e->set_visible(state, state.user_settings.use_new_ui);
+	}
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 
-	if(events.empty())
+	if(events.empty()) {
 		set_visible(state, false);
+	}
 }
 
 template<bool IsMajor>

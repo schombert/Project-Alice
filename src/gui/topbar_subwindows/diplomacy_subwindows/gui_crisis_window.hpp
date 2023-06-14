@@ -16,11 +16,16 @@ public:
 
 class diplomacy_crisis_support_button : public button_element_base {
 public:
+	bool bLeftSide = true;
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = diplomacy_action::crisis_support;
 			parent->impl_get(state, payload);
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		disabled = !(bLeftSide ? command::can_take_sides_in_crisis(state, state.local_player_nation, true) : command::can_take_sides_in_crisis(state, state.local_player_nation, false));
 	}
 };
 
