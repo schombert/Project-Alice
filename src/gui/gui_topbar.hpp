@@ -30,6 +30,16 @@ namespace ui {
 
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, std::string_view("Nation ID: "));
+		text::add_to_layout_box(state, contents, box, std::to_string(state.local_player_nation.value));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_flag_button : public flag_button {

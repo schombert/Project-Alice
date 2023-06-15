@@ -4,7 +4,12 @@
 
 namespace ui {
 
-class leader_listbox_element : public listbox_row_element_base<uint8_t> {
+class leader_listbox_element : public listbox_row_element_base<dcon::leader_id> {
+private:
+	vertical_progress_bar* leaderprestige_bar = nullptr;
+	simple_text_element_base* leadername_text = nullptr;
+	simple_text_element_base* leaderpersonality_text = nullptr;
+	simple_text_element_base* leaderbackground_text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "leader_button") {
@@ -14,27 +19,42 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "leader_prestige_bar") {
-			return make_element_by_type<vertical_progress_bar>(state, id);
+			auto ptr = make_element_by_type<vertical_progress_bar>(state, id);
+			leaderprestige_bar = ptr.get();
+			return ptr;
 
 		} else if(name == "photo") {
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "leader_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			leadername_text = ptr.get();
+			return ptr;
 
 		} else if(name == "unitleader_personality") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			leaderpersonality_text = ptr.get();
+			return ptr;
 
 		} else if(name == "unitleader_background") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			leaderbackground_text = ptr.get();
+			return ptr;
 
 		} else {
 			return nullptr;
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto fat = dcon::fatten(state.world, content);
+		leadername_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
+		leaderpersonality_text->set_text(state, text::produce_simple_string(state, fat.get_personality().get_name()));
+		leaderbackground_text->set_text(state, text::produce_simple_string(state, fat.get_background().get_name()));
+	}
 };
 
-class available_leader_listbox : public listbox_element_base<leader_listbox_element, uint16_t> {
+class available_leader_listbox : public listbox_element_base<leader_listbox_element, dcon::leader_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "leader_entry";
@@ -43,14 +63,20 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(uint16_t i = 0; i < 16; i++) {
-			row_contents.push_back(i);
+		for(auto const ll : state.world.nation_get_leader_loyalty(state.local_player_nation)) {
+			row_contents.push_back(ll.get_leader());
 		}
 		update(state);
 	}
 };
 
+template<class T>
 class leader_selection_window : public window_element_base {
+private:
+	vertical_progress_bar* leaderprestige_bar = nullptr;
+	simple_text_element_base* leadername_text = nullptr;
+	simple_text_element_base* leaderpersonality_text = nullptr;
+	simple_text_element_base* leaderbackground_text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select_leader_bg") {
@@ -60,19 +86,27 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "current_leader_prestige_bar") {
-			return make_element_by_type<vertical_progress_bar>(state, id);
+			auto ptr = make_element_by_type<vertical_progress_bar>(state, id);
+			leaderprestige_bar = ptr.get();
+			return ptr;
 
 		} else if(name == "selected_photo") {
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "selected_leader_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			leadername_text = ptr.get();
+			return ptr;
 
 		} else if(name == "unitleader_personality") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			leaderpersonality_text = ptr.get();
+			return ptr;
 
 		} else if(name == "unitleader_background") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			leaderbackground_text = ptr.get();
+			return ptr;
 
 		} else if(name == "sort_prestige") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -90,7 +124,7 @@ public:
 			return make_element_by_type<button_element_base>(state, id);
 
 		} else if(name == "back_button") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 
 		} else if(name == "noleader_button") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -108,6 +142,19 @@ public:
 			return nullptr;
 		}
 	}
+
+	/*void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<T>(payload);
+			auto fat = dcon::fatten(state.world, military::get_leader_from_navy_or_army(state, content));
+
+			leadername_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
+			leaderpersonality_text->set_text(state, text::produce_simple_string(state, fat.get_personality().get_name()));
+			leaderbackground_text->set_text(state, text::produce_simple_string(state, fat.get_background().get_name()));
+		}
+	}*/
 };
 //======================================================================================================================================
 

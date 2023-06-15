@@ -41,7 +41,6 @@ public:
 	void on_update(sys::state& state) noexcept override {
 			issname->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 			auto value = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)) / state.world.nation_get_demographics(state.local_player_nation, demographics::total);
-			//issvalue->set_text(state, text::format_percentage(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content))));
 			issvalue->set_text(state, text::format_percentage(value));
 	}
 };
