@@ -1641,24 +1641,30 @@ void daily_update(sys::state& state) {
 			break;
 		case 5:
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-				state.world.execute_serial_over_nation(
-						[&](auto nids) { state.world.nation_set_everyday_needs_costs(nids, t, ve::fp_vector{}); });
+				state.world.execute_serial_over_nation([&](auto nids) {
+					state.world.nation_set_everyday_needs_costs(nids, t, ve::fp_vector{});
+				});
 			});
 			break;
 		case 6:
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-				state.world.execute_serial_over_nation(
-						[&](auto nids) { state.world.nation_set_luxury_needs_costs(nids, t, ve::fp_vector{}); });
+				state.world.execute_serial_over_nation([&](auto nids) {
+					state.world.nation_set_luxury_needs_costs(nids, t, ve::fp_vector{});
+				});
 			});
 			break;
 		case 7:
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-				state.world.execute_serial_over_nation(
-						[&](auto nids) { state.world.nation_set_life_needs_costs(nids, t, ve::fp_vector{}); });
+				state.world.execute_serial_over_nation([&](auto nids) {
+					state.world.nation_set_life_needs_costs(nids, t, ve::fp_vector{});
+				});
 			});
 			break;
 		case 8:
-			state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_subsidies_spending(ids, 0.0f); });
+			state.world.execute_serial_over_nation([&](auto ids) {
+				state.world.nation_set_subsidies_spending(ids, 0.0f);
+			});
+			break;
 		}
 	});
 
@@ -2653,8 +2659,7 @@ float nation_total_imports(sys::state& state, dcon::nation_id n) {
 	for(uint32_t k = 1; k < total_commodities; ++k) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(k)};
 		total += std::max(0.0f, state.world.nation_get_real_demand(n, cid) * state.world.nation_get_demand_satisfaction(n, cid) -
-																state.world.nation_get_domestic_market_pool(n, cid)) *
-						 state.world.commodity_get_current_price(cid);
+						state.world.nation_get_domestic_market_pool(n, cid)) * state.world.commodity_get_current_price(cid);
 	}
 
 	return total;
@@ -2766,13 +2771,76 @@ float estimate_loan_payments(sys::state& state, dcon::nation_id n) {
 }
 
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0.f;
+	return state.world.nation_get_subsidies_spending(n);
+}
+
+float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n) {
+	float total = 0.0f;
+
+	for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
+		if(uni.get_war_subsidies()) {
+			total += uni.get_target().get_maximum_military_costs() * state.defines.warsubsidies_percent;
+		}
+	}
+	return total;
+}
+float estimate_reparations_income(sys::state& state, dcon::nation_id n) {
+	float total = 0.0f;
+
+	if(state.current_date < state.world.nation_get_reparations_until(n)) {
+		for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
+			if(uni.get_reparations()) {
+				auto source = uni.get_source();
+				auto const tax_eff =
+					std::clamp(
+					state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(source, sys::national_mod_offsets::tax_efficiency),
+					0.1f, 1.0f);
+				auto total_tax_base = state.world.nation_get_total_rich_income(source) +
+					state.world.nation_get_total_middle_income(source) +
+					state.world.nation_get_total_poor_income(source);
+
+				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
+				total += payout;
+			}
+		}
+	}
+
+	return total;
+}
+
+float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n) {
+	float total = 0.0f;
+
+	for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
+		if(uni.get_war_subsidies()) {
+			total += uni.get_target().get_maximum_military_costs() * state.defines.warsubsidies_percent;
+		}
+	}
+
+	return total;
+}
+
+float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
+	float total = 0.0f;
+
+	if(state.current_date < state.world.nation_get_reparations_until(n)) {
+		for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
+			if(uni.get_reparations()) {
+				auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+				auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
+
+				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
+				total += payout;
+			}
+		}
+	}
+
+	return total;
 }
 
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0.f;
+	return estimate_war_subsidies_income(state, n) + estimate_reparations_income(state, n) - estimate_war_subsidies_spending(state, n) -
+		estimate_reparations_spending(state, n);
 }
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n) {
@@ -2821,7 +2889,7 @@ float estimate_total_spending(sys::state& state, dcon::nation_id n) {
 
 float estimate_war_subsidies(sys::state& state, dcon::nation_id n) {
 	/* total-nation-expenses x defines:WARSUBSIDIES_PERCENT */
-	return estimate_total_spending(state, n) * state.defines.warsubsidies_percent;
+	return state.world.nation_get_maximum_military_costs(n) * state.defines.warsubsidies_percent;
 }
 
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {

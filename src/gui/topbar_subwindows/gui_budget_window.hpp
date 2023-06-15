@@ -16,7 +16,7 @@ namespace dcon {
 class pop_satisfaction_wrapper_id {
 public:
 	using value_base_t = uint8_t;
-	uint8_t value = 0;
+	value_base_t value = 0;
 	pop_satisfaction_wrapper_id() { }
 	pop_satisfaction_wrapper_id(uint8_t v) : value(v) { }
 	value_base_t index() {
@@ -35,8 +35,8 @@ public:
 		switch(value) {
 		case 0: // No needs fulfilled
 		case 1: // Some life needs
-		case 2: // All life needs
-		case 3: // All everyday
+		case 2: // All life needs, some everyday
+		case 3: // All everyday, some luxury
 		case 4: // All luxury
 			return names[value];
 		}
@@ -83,12 +83,10 @@ protected:
 		if(nat_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
 			auto total = 0.f;
-			auto sat_pool = std::vector<float>(5);
-			state.world.for_each_province([&](dcon::province_id province) {
-				if(nat_id != state.world.province_get_nation_from_province_ownership(province))
-					return;
+			std::array<float, 5> sat_pool = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+			for(auto prov : state.world.nation_get_province_ownership(nat_id)) {
 
-				for(auto pop_loc : state.world.province_get_pop_location(province)) {
+				for(auto pop_loc : prov.get_province().get_pop_location()) {
 					auto pop_id = pop_loc.get_pop();
 					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
 					auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
@@ -97,14 +95,14 @@ protected:
 					// OR All life needs
 					// OR Some life needs
 					// OR No needs fulfilled...
-					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.f)			? 4
-									 : (pop_id.get_everyday_needs_satisfaction() > 0.f) ? 3
-									 : (pop_id.get_life_needs_satisfaction() >= 1.f)		? 2
-									 : (pop_id.get_life_needs_satisfaction() > 0.f)			? 1
+					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
+									 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
+									 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
+									 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
 																																			: 0] += pop_size;
 					total += pop_size;
 				}
-			});
+			}
 			if(total <= 0.f) {
 				enabled = false;
 				return distrib;
@@ -119,13 +117,20 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		// Fill-in static information...
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
-				.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-
+		static bool has_run = false;
+		if(!has_run) {
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			has_run = true;
+		}
 		piechart::on_create(state);
 	}
 
@@ -648,14 +653,103 @@ public:
 	}
 };
 
+class tax_list_pop_type_icon : public opaque_element_base {
+public:
+	dcon::pop_type_id type{};
+
+	void set_type(sys::state& state, dcon::pop_type_id t) {
+		type = t;
+		frame = int32_t(state.world.pop_type_get_sprite(t) - 1);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto total = 0.f;
+		std::array<float, 5> sat_pool = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto pop_loc : prov.get_province().get_pop_location()) {
+				auto pop_id = pop_loc.get_pop();
+				if(pop_id.get_poptype() == type) {
+					auto pop_size = state.world.pop_get_size(pop_id);
+					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
+									 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
+									 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
+									 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
+									 : 0] += pop_size;
+					total += pop_size;
+				}
+			}
+		}
+
+		if(total > 0.0f) {
+			{
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+				text::add_line_break_to_layout_box(state, contents, box);
+				text::close_layout_box(contents, box);
+			}
+
+			static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "no_need");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[0] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_no_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "some_life_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[1] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "life_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[2] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "everyday_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[3] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "luxury_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[4] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+};
+
 class budget_pop_list_item : public window_element_base {
 private:
-	fixed_pop_type_icon* pop_type_icon = nullptr;
+	tax_list_pop_type_icon* pop_type_icon = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop") {
-			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
+			auto ptr = make_element_by_type<tax_list_pop_type_icon>(state, id);
 			pop_type_icon = ptr.get();
 			return ptr;
 		} else {
