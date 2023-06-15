@@ -14,7 +14,7 @@ namespace ui {
 	##   ##  ##   ##   ##  ##   ##
 	##   ##  ##   ##   ##  ##   ##
 	 ## ##    ## #### ##    ## ##
-	  ###      ###  ###      ###
+		###      ###  ###      ###
 */
 
 //===============================================================================================================================
@@ -23,6 +23,7 @@ class elecwin_voter_issue_entry : public listbox_row_element_base<dcon::issue_op
 private:
 	simple_text_element_base* issname = nullptr;
 	simple_text_element_base* issvalue = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "issue_name") {
@@ -37,11 +38,12 @@ public:
 			return nullptr;
 		}
 	}
-	
+
 	void on_update(sys::state& state) noexcept override {
-			issname->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
-			auto value = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)) / state.world.nation_get_demographics(state.local_player_nation, demographics::total);
-			issvalue->set_text(state, text::format_percentage(value));
+		issname->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
+		auto value = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)) /
+								 state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+		issvalue->set_text(state, text::format_percentage(value));
 	}
 };
 
@@ -50,6 +52,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "ew_issue_option_window";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -75,6 +78,7 @@ public:
 class elecwin_party_entry : public listbox_row_element_base<dcon::political_party_id> {
 	simple_text_element_base* partyname = nullptr;
 	simple_text_element_base* partyvalue = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "legend_color") {
@@ -89,20 +93,21 @@ public:
 			return ptr;
 		} else if(name == "legend_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);	// Unused ?
+			ptr->set_visible(state, false); // Unused ?
 			return ptr;
 		} else {
 			return nullptr;
 		}
 	}
-	
+
 	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::issue_id{};
 		parent->impl_get(state, payload);
 		auto issid = any_cast<dcon::issue_id>(payload);
 
 		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
-		partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
+		partyvalue->set_text(state,
+				text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -123,6 +128,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "eew_item";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		nations::get_active_political_parties(state, state.local_player_nation).swap(row_contents);
@@ -136,6 +142,7 @@ class elecwin_popularity_entry : public listbox_row_element_base<dcon::political
 public:
 	simple_text_element_base* partyname = nullptr;
 	simple_text_element_base* partyvalue = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "legend_color") {
@@ -146,25 +153,26 @@ public:
 			return ptr;
 		} else if(name == "legend_desc") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			//partyvalue = ptr.get();
+			// partyvalue = ptr.get();
 			return ptr;
 		} else if(name == "legend_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			//ptr->set_visible(state, false);	// Unused ?
+			// ptr->set_visible(state, false);	// Unused ?
 			partyvalue = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
 		}
 	}
-	
+
 	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::issue_id{};
 		parent->impl_get(state, payload);
 		auto issid = any_cast<dcon::issue_id>(payload);
 
 		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
-		//partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
+		// partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world,
+		// content).get_party_issues(issid).get_name()));
 		partyvalue->set_text(state, "UwU");
 	}
 
@@ -186,6 +194,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "eew_item";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		nations::get_active_political_parties(state, state.local_player_nation).swap(row_contents);
@@ -198,6 +207,7 @@ public:
 class election_event_window : public window_element_base {
 private:
 	element_base* elecwin_parties = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -229,7 +239,7 @@ public:
 
 		} else if(name == "perc_of_parlament") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);	// This does not appear to be used in Vic2 ?
+			ptr->set_visible(state, false); // This does not appear to be used in Vic2 ?
 			return ptr;
 
 		} else if(name == "ideology_label") {

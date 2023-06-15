@@ -833,7 +833,9 @@ void update_elections(sys::state& state) {
 				start_election(state, n);
 			} else if(state.current_date < n.get_election_ends()) { // do election event
 				/*
-				While an election is ongoing, random events from the `on_election_tick` category will be fired. These events are picked in the usual way: based on their weights out of those that have their trigger conditions (if any) satisfied. Events occur once every define:CAMPAIGN_EVENT_BASE_TIME / 2 days to define:CAMPAIGN_EVENT_BASE_TIME days (uniformly distributed).
+				While an election is ongoing, random events from the `on_election_tick` category will be fired. These events are picked in
+				the usual way: based on their weights out of those that have their trigger conditions (if any) satisfied. Events occur
+				once every define:CAMPAIGN_EVENT_BASE_TIME / 2 days to define:CAMPAIGN_EVENT_BASE_TIME days (uniformly distributed).
 				*/
 				auto randoms = rng::get_random_pair(state, uint32_t(n.get_election_ends().value), uint32_t(n.id.value));
 				int32_t time_value = int32_t(state.defines.campaign_event_base_time / 2.0f);
@@ -848,7 +850,8 @@ void update_elections(sys::state& state) {
 				if(election_start + first_roll == state.current_date || election_start + second_roll == state.current_date ||
 						election_start + third_roll == state.current_date || election_start + fourth_roll == state.current_date) {
 
-					event::fire_fixed_event(state, state.national_definitions.on_election_tick, trigger::to_generic(n.id), event::slot_type::nation, n, 0, event::slot_type::none);
+					event::fire_fixed_event(state, state.national_definitions.on_election_tick, trigger::to_generic(n.id),
+							event::slot_type::nation, n, 0, event::slot_type::none);
 				}
 			}
 		}

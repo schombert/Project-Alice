@@ -25,7 +25,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = !(bLeftSide ? command::can_take_sides_in_crisis(state, state.local_player_nation, true) : command::can_take_sides_in_crisis(state, state.local_player_nation, false));
+		disabled = !(bLeftSide ? command::can_take_sides_in_crisis(state, state.local_player_nation, true)
+													 : command::can_take_sides_in_crisis(state, state.local_player_nation, false));
 	}
 };
 

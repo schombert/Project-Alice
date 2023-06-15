@@ -57,7 +57,8 @@ void decline(sys::state& state, message const& m) {
 	case type::crisis_peace_offer:
 		// TODO: notify rejected
 		/*
-		Crisis resolution offers function much in the same way as peace offers. Every refused crisis offer increases the temperature of the current crisis by define:CRISIS_TEMPERATURE_ON_OFFER_DECLINE.
+		Crisis resolution offers function much in the same way as peace offers. Every refused crisis offer increases the temperature
+		of the current crisis by define:CRISIS_TEMPERATURE_ON_OFFER_DECLINE.
 		*/
 		state.crisis_temperature += state.defines.crisis_temperature_on_offer_decline;
 		nations::cleanup_crisis_peace_offer(state, m.data.peace);
@@ -85,7 +86,7 @@ bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nati
 			break;
 		}
 	}
-	
+
 	// target must be in crisis
 	for(auto& par : state.crisis_participants) {
 		if(!par.id) {
@@ -103,8 +104,8 @@ bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nati
 		}
 	}
 
-	if(!military::cb_instance_conditions_satisfied(state, to, offer.target, offer.wargoal_type,
-		offer.wargoal_state, offer.wargoal_tag, offer.wargoal_secondary_nation)) {
+	if(!military::cb_instance_conditions_satisfied(state, to, offer.target, offer.wargoal_type, offer.wargoal_state,
+				 offer.wargoal_tag, offer.wargoal_secondary_nation)) {
 
 		return false;
 	}
@@ -126,7 +127,8 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 		}
 	}
 
-	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.wargoal_type, to, offer.target) * state.defines.crisis_wargoal_infamy_mult;
+	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.wargoal_type, to, offer.target) *
+								state.defines.crisis_wargoal_infamy_mult;
 	state.world.nation_get_infamy(from) += infamy;
 }
 
@@ -173,16 +175,17 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 						if(wg.get_wargoal().get_associated_state() == state.crisis_colony &&
 								wg.get_wargoal().get_type() == state.military_definitions.crisis_colony &&
 								((wg.get_wargoal().get_added_by() == col_a && wg.get_wargoal().get_target_nation() == col_b) ||
-								(wg.get_wargoal().get_added_by() == col_b && wg.get_wargoal().get_target_nation() == col_a))) {
+										(wg.get_wargoal().get_added_by() == col_b && wg.get_wargoal().get_target_nation() == col_a))) {
 
 							found = true;
 						}
 					}
 				} else if(state.current_crisis == sys::crisis_type::liberation) {
-					if(wg.get_wargoal().get_associated_tag() == state.crisis_liberation_tag
-						&& wg.get_wargoal().get_associated_state() == state.world.state_instance_get_definition(state.crisis_state)
-						&& wg.get_wargoal().get_type() == state.military_definitions.crisis_liberate
-						&& wg.get_wargoal().get_target_nation() == state.world.state_instance_get_nation_from_state_ownership(state.crisis_state)) {
+					if(wg.get_wargoal().get_associated_tag() == state.crisis_liberation_tag &&
+							wg.get_wargoal().get_associated_state() == state.world.state_instance_get_definition(state.crisis_state) &&
+							wg.get_wargoal().get_type() == state.military_definitions.crisis_liberate &&
+							wg.get_wargoal().get_target_nation() ==
+									state.world.state_instance_get_nation_from_state_ownership(state.crisis_state)) {
 
 						found = true;
 					}

@@ -260,9 +260,11 @@ public:
 		parent->impl_get(state, payload);
 		auto content = any_cast<T>(payload);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			unitlocation_text->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_army_location().get_name()));
+			unitlocation_text->set_text(state,
+					text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_army_location().get_name()));
 		} else {
-			unitlocation_text->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_navy_location().get_name()));
+			unitlocation_text->set_text(state,
+					text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_navy_location().get_name()));
 		}
 		unitname_text->set_text(state, std::string(state.to_string_view(dcon::fatten(state.world, content).get_name())));
 	}
@@ -653,7 +655,8 @@ public:
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+			auto ptr =
+					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
 			ptr->base_data.position.y = -80;
 			add_child_to_front(std::move(ptr));
 		}
@@ -678,11 +681,11 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<unitpanel_action>>()) {
 			auto content = any_cast<element_selection_wrapper<unitpanel_action>>(payload).data;
 			switch(content) {
-				case unitpanel_action::close:
-					set_visible(state, false);
-					break;
-				default:
-					break;
+			case unitpanel_action::close:
+				set_visible(state, false);
+				break;
+			default:
+				break;
 			};
 			return message_result::consumed;
 		}

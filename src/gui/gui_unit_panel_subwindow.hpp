@@ -10,6 +10,7 @@ private:
 	simple_text_element_base* leadername_text = nullptr;
 	simple_text_element_base* leaderpersonality_text = nullptr;
 	simple_text_element_base* leaderbackground_text = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "leader_button") {
@@ -77,6 +78,7 @@ private:
 	simple_text_element_base* leadername_text = nullptr;
 	simple_text_element_base* leaderpersonality_text = nullptr;
 	simple_text_element_base* leaderbackground_text = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select_leader_bg") {

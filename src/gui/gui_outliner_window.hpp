@@ -257,18 +257,18 @@ public:
 				info_text->set_text(state, text::produce_simple_string(state, fat_nf.get_name()));
 				// TODO: Entry displays time left to build building
 				auto nf_type = fat_nf.get_type();
-				if(nf_type == 1 || nf_type == 2 || nf_type == 3) {		// Railroads, Immigration, and Flashpoint
+				if(nf_type == 1 || nf_type == 2 || nf_type == 3) { // Railroads, Immigration, and Flashpoint
 					entry_text->set_text(state, text::produce_simple_string(state, fat_si.get_definition().get_name()));
 
-				} else if(nf_type == 4) {	// Promotion
-					//entry_text->set_text(state, "???");
+				} else if(nf_type == 4) { // Promotion
+					// entry_text->set_text(state, "???");
 					entry_text->set_text(state, "Promotion");
 
-				} else if(nf_type == 5) {	// Production
+				} else if(nf_type == 5) { // Production
 					entry_text->set_text(state, text::produce_simple_string(state, fat_si.get_definition().get_name()));
 
-				} else if(nf_type == 6) {	// Party Loyalty
-					//entry_text->set_text(state, "Party Loyalty");
+				} else if(nf_type == 6) { // Party Loyalty
+					// entry_text->set_text(state, "Party Loyalty");
 					if(fat_nf.get_loyalty_value() == 0) {
 						entry_text->set_text(state, text::produce_simple_string(state, "party_loyalty_desc_neutral"));
 					} else {
@@ -277,7 +277,6 @@ public:
 
 				} else {
 					entry_text->set_text(state, "???");
-
 				}
 			}
 		}

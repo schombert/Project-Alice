@@ -1378,27 +1378,25 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 	// TODO: take care of case where there are partial range limits
 
 	float min_percentage = float(parent_settings.lower_limit - parent_settings.lower_value) /
-										 float(parent_settings.upper_value - parent_settings.lower_value);
+												 float(parent_settings.upper_value - parent_settings.lower_value);
 	auto min_offest =
 			parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * min_percentage);
 
 	float max_percentage = float(parent_settings.upper_limit - parent_settings.lower_value) /
-										 float(parent_settings.upper_value - parent_settings.lower_value);
+												 float(parent_settings.upper_value - parent_settings.lower_value);
 	auto max_offest =
 			parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * max_percentage);
 
 	if(parent_settings.vertical) {
 		base_data.position.y += int16_t(y - oldy);
 		base_data.position.y = int16_t(
-			std::clamp(int32_t(base_data.position.y),
-				parent_settings.using_limits ? min_offest : parent_settings.buttons_size,
-				parent_settings.using_limits ? max_offest : parent_settings.track_size));
+				std::clamp(int32_t(base_data.position.y), parent_settings.using_limits ? min_offest : parent_settings.buttons_size,
+						parent_settings.using_limits ? max_offest : parent_settings.track_size));
 		pos_in_track = base_data.position.y - parent_settings.buttons_size / 2;
 	} else {
 		base_data.position.x += int16_t(x - oldx);
-		base_data.position.x =
-				int16_t(std::clamp(int32_t(base_data.position.x),
-					parent_settings.using_limits ? min_offest : parent_settings.buttons_size,
+		base_data.position.x = int16_t(
+				std::clamp(int32_t(base_data.position.x), parent_settings.using_limits ? min_offest : parent_settings.buttons_size,
 						parent_settings.using_limits ? max_offest : parent_settings.track_size));
 		pos_in_track = base_data.position.x - parent_settings.buttons_size / 2;
 	}
@@ -1412,7 +1410,7 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 
 void scrollbar::update_raw_value(sys::state& state, int32_t v) {
 	stored_value = settings.using_limits ? std::clamp(v, settings.lower_limit, settings.upper_limit)
-		: std::clamp(v, settings.lower_value, settings.upper_value);
+																			 : std::clamp(v, settings.lower_value, settings.upper_value);
 
 	float percentage = float(stored_value - settings.lower_value) / float(settings.upper_value - settings.lower_value);
 	auto offset = settings.buttons_size + int32_t((settings.track_size - settings.buttons_size) * percentage);
@@ -1605,7 +1603,8 @@ message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
 		if(adjustments.move_slider) {
 			update_raw_value(state, stored_value);
 		} else {
-			stored_value = settings.using_limits ? std::clamp(stored_value, settings.lower_limit, settings.upper_limit) : std::clamp(stored_value, settings.lower_value, settings.upper_value);
+			stored_value = settings.using_limits ? std::clamp(stored_value, settings.lower_limit, settings.upper_limit)
+																					 : std::clamp(stored_value, settings.lower_value, settings.upper_value);
 		}
 
 		if(adjustments.move_slider == true && adjustments.is_relative == false && !state.ui_state.drag_target) { // track click
