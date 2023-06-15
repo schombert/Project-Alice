@@ -89,6 +89,7 @@ public:
 			return ptr;
 		} else if(name == "legend_desc") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->base_data.position.x += 4;	// Nudge
 			partyvalue = ptr.get();
 			return ptr;
 		} else if(name == "legend_value") {
@@ -158,6 +159,7 @@ public:
 		} else if(name == "legend_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			// ptr->set_visible(state, false);	// Unused ?
+			ptr->base_data.position.x += 3;	// Nudge
 			partyvalue = ptr.get();
 			return ptr;
 		} else {
@@ -166,14 +168,10 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::issue_id{};
-		parent->impl_get(state, payload);
-		auto issid = any_cast<dcon::issue_id>(payload);
-
+		auto fat = dcon::fatten(state.world, content);
 		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
-		// partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world,
-		// content).get_party_issues(issid).get_name()));
-		partyvalue->set_text(state, "UwU");
+		partyvalue->set_text(state, text::format_percentage(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, fat.get_ideology().id)) 
+															/ state.world.nation_get_demographics(state.local_player_nation, demographics::total), 0));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
