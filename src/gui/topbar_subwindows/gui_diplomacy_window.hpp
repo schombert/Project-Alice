@@ -504,7 +504,7 @@ public:
 				uint32_t size = 0;
 				for(auto const culture_id : fat_id.get_accepted_cultures()) {
 					auto culture = dcon::fatten(state.world, culture_id);
-					if(size < fat_id.get_accepted_cultures().size()-1) {
+					if(size < fat_id.get_accepted_cultures().size() - 1) {
 						text += text::produce_simple_string(state, culture.get_name()) + ", ";
 					} else {
 						text += text::produce_simple_string(state, culture.get_name());

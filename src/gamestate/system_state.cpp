@@ -396,7 +396,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 }
 void state::on_create() {
-	local_player_nation = dcon::nation_id{42};
+	local_player_nation = dcon::nation_id{116};
 	// Clear "center" property so they don't look messed up!
 	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &=
@@ -433,6 +433,10 @@ void state::on_create() {
 	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find("endoflandcombatpopup")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)

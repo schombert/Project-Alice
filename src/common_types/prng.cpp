@@ -33,7 +33,8 @@ random_pair get_random_pair(sys::state const& state, uint32_t value_in) { // eac
 
 	return random_pair{(uint64_t(r[0]) << 32) | uint64_t(r[1]), (uint64_t(r[2]) << 32) | uint64_t(r[3])};
 }
-random_pair get_random_pair(sys::state const& state, uint32_t value_in_hi, uint32_t value_in_lo) { // each call natively generates 128 random bits anyways
+random_pair get_random_pair(sys::state const& state, uint32_t value_in_hi,
+		uint32_t value_in_lo) { // each call natively generates 128 random bits anyways
 
 	r123::Philox4x32 rng;
 	r123::Philox4x32::ctr_type c = {value_in_hi, value_in_lo};

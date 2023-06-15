@@ -1430,7 +1430,7 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 					path_heap.push_back(retreat_province_and_distance{nearest.distance_covered + distance, other_prov});
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);
-				} else { // impossible land province destination
+				} else {																								// impossible land province destination
 					origins_vector.set(other_prov, dcon::province_id{0}); // valid province prevents rechecks
 				}
 			}
@@ -1477,7 +1477,7 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);
 				} else { // is sea province
-					// nothing
+								 // nothing
 				}
 			}
 		}

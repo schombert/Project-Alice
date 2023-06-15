@@ -30,6 +30,16 @@ namespace ui {
 
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, std::string_view("Nation ID: "));
+		text::add_to_layout_box(state, contents, box, std::to_string(state.local_player_nation.value));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_flag_button : public flag_button {
@@ -1021,7 +1031,6 @@ public:
 class topbar_at_peace_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		set_visible(state, state.world.nation_get_is_at_war(nation_id));
 		return text::produce_simple_string(state, "atpeace");
 	}
 };
@@ -1644,6 +1653,7 @@ private:
 	std::vector<topbar_commodity_xport_icon*> import_icons;
 	std::vector<topbar_commodity_xport_icon*> export_icons;
 	std::vector<topbar_commodity_xport_icon*> produced_icons;
+	simple_text_element_base* atpeacetext = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1795,7 +1805,9 @@ public:
 		} else if(name == "population_avg_con_value") {
 			return make_element_by_type<topbar_nation_consciousness_text>(state, id);
 		} else if(name == "diplomacy_status") {
-			return make_element_by_type<topbar_at_peace_text>(state, id);
+			auto ptr = make_element_by_type<topbar_at_peace_text>(state, id);
+			atpeacetext = ptr.get();
+			return ptr;
 		} else if(name == "diplomacy_at_war") {
 			auto ptr = make_element_by_type<topbar_overlapping_enemy_flags>(state, id);
 			ptr->base_data.position.y -= ptr->base_data.position.y / 4;
@@ -1847,6 +1859,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		atpeacetext->set_visible(state, !state.world.nation_get_is_at_war(state.local_player_nation));
 		if(state.local_player_nation != current_nation) {
 			current_nation = state.local_player_nation;
 			Cyto::Any payload = current_nation;

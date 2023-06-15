@@ -666,7 +666,8 @@ void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, 
 bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l);
 
 void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
-		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+		dcon::nation_id cb_secondary_nation);
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation);
@@ -680,7 +681,8 @@ IMPORTANT:
 Even though these are separate commands, they should be sent as a single sequence with no intermediate other commands:
 send start_peace_offer then repeat add_to_peace_offer to populate it, and then send_peace_offer to finish the process
 DO NOT attempt to issue these commands as the player constructs the offer in the ui
-Note that crisis offers are constructed in basically the same way. You cannot have a normal peace offer under construction / in flight while constructing / offering a crisis peace offer
+Note that crisis offers are constructed in basically the same way. You cannot have a normal peace offer under construction / in
+flight while constructing / offering a crisis peace offer
 */
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession);

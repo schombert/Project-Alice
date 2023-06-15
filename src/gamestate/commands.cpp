@@ -2148,8 +2148,7 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
-			event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft},
-			e.opt_choice);
+			event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft}, e.opt_choice);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event{e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
@@ -2798,7 +2797,8 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 	offer.set_nation_from_pending_peace_offer(source);
 
 	if(state.current_crisis == sys::crisis_type::liberation) {
-		if((source == state.primary_crisis_attacker && !is_concession) || (source != state.primary_crisis_attacker && is_concession)) {
+		if((source == state.primary_crisis_attacker && !is_concession) ||
+				(source != state.primary_crisis_attacker && is_concession)) {
 			auto new_wg = fatten(state.world, state.world.create_wargoal());
 			new_wg.set_added_by(state.primary_crisis_attacker);
 			new_wg.set_associated_state(state.world.state_instance_get_definition(state.crisis_state));
@@ -2814,7 +2814,8 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 			auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
 			auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
 
-			if((source == state.primary_crisis_attacker && !is_concession) || (source != state.primary_crisis_attacker && is_concession)) {
+			if((source == state.primary_crisis_attacker && !is_concession) ||
+					(source != state.primary_crisis_attacker && is_concession)) {
 				auto new_wg = fatten(state.world, state.world.create_wargoal());
 				new_wg.set_added_by(attacking_colonizer);
 				new_wg.set_associated_state(state.crisis_colony);
@@ -2852,13 +2853,13 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 
 	if(!war)
 		return false;
-	
+
 	if(wg.get_war_from_wargoals_attached() != war)
 		return false;
 
 	int32_t total = military::cost_of_peace_offer(state, pending);
 	int32_t new_wg_cost = military::peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(),
-				wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+			wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 
 	if(total + new_wg_cost > 100)
 		return false;
@@ -2958,10 +2959,10 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 	}
 
 	return true;
-
 }
 void execute_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, crisis_invitation_data const& data) {
-	if(!can_add_to_crisis_peace_offer(state, source, data.invited, data.target, data.cb_type, data.cb_state, data.cb_tag, data.cb_secondary_nation))
+	if(!can_add_to_crisis_peace_offer(state, source, data.invited, data.target, data.cb_type, data.cb_state, data.cb_tag,
+				 data.cb_secondary_nation))
 		return;
 
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
@@ -3045,7 +3046,7 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 		}
 		return;
 	}
-	
+
 	auto target = state.primary_crisis_attacker == source ? state.primary_crisis_defender : state.primary_crisis_attacker;
 
 	diplomatic_message::message m;
@@ -3462,7 +3463,8 @@ void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) && !bool(state.world.army_get_battle_from_army_battle_participation(a));
+	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
+				 !bool(state.world.army_get_battle_from_army_battle_participation(a));
 }
 void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(!can_split_army(state, source, a))
@@ -3494,7 +3496,6 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 			state.world.delete_army(a);
 		}
 	}
-
 }
 
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
@@ -3565,7 +3566,6 @@ void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_i
 	state.world.delete_army(a);
 }
 
-
 void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -3578,8 +3578,8 @@ void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	auto embarked = state.world.navy_get_army_transport(a);
 	return state.world.navy_get_controller_from_navy_control(a) == source && !state.world.navy_get_is_retreating(a) &&
-				 embarked.begin() == embarked.end() && !bool(state.world.navy_get_battle_from_navy_battle_participation(a))
-				 && province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a));
+				 embarked.begin() == embarked.end() && !bool(state.world.navy_get_battle_from_navy_battle_participation(a)) &&
+				 province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a));
 }
 void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	if(!can_delete_navy(state, source, a))
@@ -3604,8 +3604,8 @@ void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, 
 bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
 	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
 				 !bool(state.world.army_get_battle_from_army_battle_participation(a)) &&
-				 province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a))
-		&& (!l || state.world.leader_get_nation_from_leader_loyalty(l) == source);
+				 province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a)) &&
+				 (!l || state.world.leader_get_nation_from_leader_loyalty(l) == source);
 }
 void execute_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
 	if(!can_change_general(state, source, a, l))
@@ -3649,7 +3649,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, dcon::regiment_id const* regs) {
 	for(uint32_t i = 0; i < num_packed_units; ++i) {
 		if(regs[i]) {
-			if(source == state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(regs[i]))) {
+			if(source ==
+					state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(regs[i]))) {
 				state.world.regiment_set_pending_split(regs[i], !state.world.regiment_get_pending_split(regs[i]));
 			}
 		}
@@ -3667,8 +3668,7 @@ void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<d
 void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon::ship_id const* regs) {
 	for(uint32_t i = 0; i < num_packed_units; ++i) {
 		if(regs[i]) {
-			if(source ==
-					state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(regs[i]))) {
+			if(source == state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(regs[i]))) {
 				state.world.ship_set_pending_split(regs[i], !state.world.ship_get_pending_split(regs[i]));
 			}
 		}
@@ -3700,7 +3700,6 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 	} else if(source == military::get_naval_battle_lead_attacker(state, b)) {
 		military::end_battle(state, b, military::battle_result::attacker_won);
 	}
-
 }
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
@@ -3790,12 +3789,12 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 		}
 	}
 
-	if(!military::cb_instance_conditions_satisfied(state, invitation_to, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)) {
+	if(!military::cb_instance_conditions_satisfied(state, invitation_to, target, primary_cb, cb_state, cb_tag,
+				 cb_secondary_nation)) {
 		return false;
 	}
 
 	return true;
-
 }
 void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_invitation_data const& data) {
 	if(state.world.nation_get_diplomatic_points(source) < 1.0f)

@@ -1220,7 +1220,6 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
 
-	
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
 			o.set_in_sphere_of(dcon::nation_id{});
@@ -1306,7 +1305,6 @@ void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id ove
 		state.world.nation_get_vassals_count(overlord)++;
 		politics::update_displayed_identity(state, subject);
 	}
-
 }
 void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
 	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
@@ -1333,7 +1331,7 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 	if(state.world.diplomatic_relation_get_are_allied(rel)) {
 		// TODO: notify player
 		state.world.diplomatic_relation_set_are_allied(rel, false);
-		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel,0))--;
+		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 0))--;
 		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 1))--;
 	}
 }
@@ -1866,7 +1864,6 @@ void update_crisis(sys::state& state) {
 	if(state.great_nations.size() <= 2)
 		return; // not enough nations obviously
 
-
 	// filter out invalid crises
 	if(state.current_crisis == sys::crisis_type::colonial) {
 		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
@@ -1911,7 +1908,8 @@ void update_crisis(sys::state& state) {
 			}
 		});
 		for(uint32_t i = 0; i < 3 && i < most_likely_states.size(); ++i) {
-			auto chance = uint32_t(state.defines.crisis_base_chance * state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
+			auto chance = uint32_t(state.defines.crisis_base_chance *
+														 state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
 			auto rvalue = rng::get_random(state, uint32_t(most_likely_states[i].index())) % 10000;
 			if(rvalue < chance) {
 				state.crisis_state = most_likely_states[i];
@@ -2035,16 +2033,15 @@ void update_crisis(sys::state& state) {
 			state.crisis_participants[1].merely_interested = false;
 
 			auto crisis_state_continent =
-				state.crisis_state
-					? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
-					: [&]() {
-						if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony);
-							p.begin() != p.end()) {
+					state.crisis_state ? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
+														 : [&]() {
+																 if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony);
+																		 p.begin() != p.end()) {
 
-							return (*p.begin()).get_province().get_continent().id;
-						}
-						return dcon::modifier_id{};
-					}();
+																	 return (*p.begin()).get_province().get_continent().id;
+																 }
+																 return dcon::modifier_id{};
+															 }();
 			auto crisis_defender_continent =
 					state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
 			uint32_t added_count = 2;
@@ -2105,7 +2102,8 @@ void update_crisis(sys::state& state) {
 			if(state.current_crisis == sys::crisis_type::liberation) {
 				war = military::create_war(state, state.primary_crisis_attacker,
 						state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
-						state.military_definitions.crisis_liberate, state.world.state_instance_get_definition(state.crisis_state), state.crisis_liberation_tag, dcon::nation_id{});
+						state.military_definitions.crisis_liberate, state.world.state_instance_get_definition(state.crisis_state),
+						state.crisis_liberation_tag, dcon::nation_id{});
 				military::add_to_war(state, war, state.primary_crisis_defender, false);
 				state.world.war_set_primary_defender(war, state.primary_crisis_defender);
 			} else { // colonial
@@ -2113,10 +2111,9 @@ void update_crisis(sys::state& state) {
 
 				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
 				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
-				
-				war = military::create_war(state, attacking_colonizer, defending_colonizer,
-						state.military_definitions.crisis_colony, state.crisis_colony,
-						dcon::national_identity_id{}, dcon::nation_id{});
+
+				war = military::create_war(state, attacking_colonizer, defending_colonizer, state.military_definitions.crisis_colony,
+						state.crisis_colony, dcon::national_identity_id{}, dcon::nation_id{});
 				military::add_wargoal(state, war, defending_colonizer, attacking_colonizer, state.military_definitions.crisis_colony,
 						state.crisis_colony, dcon::national_identity_id{}, dcon::nation_id{});
 
@@ -2162,7 +2159,7 @@ void update_crisis(sys::state& state) {
 			*/
 
 			float p_factor = state.defines.crisis_did_not_take_side_prestige_factor_base +
-				state.defines.crisis_did_not_take_side_prestige_factor_year * float(state.current_date.value) / float(365);
+											 state.defines.crisis_did_not_take_side_prestige_factor_year * float(state.current_date.value) / float(365);
 
 			for(auto& par : state.crisis_participants) {
 				if(!par.id)
@@ -2174,9 +2171,8 @@ void update_crisis(sys::state& state) {
 				}
 			}
 
-
 			cleanup_crisis(state);
-			
+
 			state.world.war_set_is_crisis_war(war, true);
 
 			if(state.military_definitions.great_wars_enabled) {
@@ -2288,7 +2284,9 @@ void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::nationa
 void perform_nationalization(sys::state& state, dcon::nation_id n) {
 	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(n)) {
 		if(rel.get_foreign_investment() > 0.0f) {
-			event::fire_fixed_event(state, state.national_definitions.on_my_factories_nationalized, trigger::to_generic(rel.get_source().id), event::slot_type::nation, rel.get_source(), trigger::to_generic(n), event::slot_type::nation);
+			event::fire_fixed_event(state, state.national_definitions.on_my_factories_nationalized,
+					trigger::to_generic(rel.get_source().id), event::slot_type::nation, rel.get_source(), trigger::to_generic(n),
+					event::slot_type::nation);
 			rel.set_foreign_investment(0.0f);
 		}
 	}

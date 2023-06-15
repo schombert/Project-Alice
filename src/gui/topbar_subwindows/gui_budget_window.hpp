@@ -188,9 +188,9 @@ public:
 		}
 
 		switch(SliderTarget) {
-		case budget_slider_target::poor_tax:
-		{
-			auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+		case budget_slider_target::poor_tax: {
+			auto min_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
 			auto max_tax =
 					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
 			if(max_tax <= 0)
@@ -204,8 +204,7 @@ public:
 			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
 			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
 			change_settings(state, new_settings);
-		}
-			break;
+		} break;
 		case budget_slider_target::middle_tax: {
 			auto min_tax =
 					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
@@ -222,8 +221,7 @@ public:
 			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
 			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
 			change_settings(state, new_settings);
-		}
-			break;
+		} break;
 		case budget_slider_target::rich_tax: {
 			auto min_tax =
 					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
@@ -240,8 +238,7 @@ public:
 			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
 			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
 			change_settings(state, new_settings);
-		}
-			break;
+		} break;
 		case budget_slider_target::social: {
 			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
 																						sys::national_mod_offsets::min_social_spending));
@@ -258,8 +255,7 @@ public:
 			new_settings.lower_limit = std::clamp(min_spend, 0, 100);
 			new_settings.upper_limit = std::clamp(max_spend, 0, 100);
 			change_settings(state, new_settings);
-		}
-			break;
+		} break;
 		case budget_slider_target::military: {
 			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
 																						sys::national_mod_offsets::min_military_spending));
@@ -276,8 +272,7 @@ public:
 			new_settings.lower_limit = std::clamp(min_spend, 0, 100);
 			new_settings.upper_limit = std::clamp(max_spend, 0, 100);
 			change_settings(state, new_settings);
-		}
-			break;
+		} break;
 		case budget_slider_target::tariffs: {
 			auto min_tariff = int32_t(
 					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tariff));
@@ -292,13 +287,11 @@ public:
 			new_settings.lower_limit = std::clamp(min_tariff, -100, 100);
 			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
 			change_settings(state, new_settings);
-		}
-			break;
+		} break;
 		default:
 			break;
 		}
 
-		
 		if(parent) {
 			float amount = float(v) / 100.f;
 			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};

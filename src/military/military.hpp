@@ -346,7 +346,8 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n);
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 enum class crossing_type { none, river, sea };
-void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing); // only for land provinces
+void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p,
+		crossing_type crossing);																														// only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p); // only for sea provinces
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);

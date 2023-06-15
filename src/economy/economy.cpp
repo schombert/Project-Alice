@@ -695,7 +695,7 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 			state.world.factory_set_full_profit(f, money_made);
 		} else {
 			float min_wages = expected_min_wage * fac.get_level() * fac.get_primary_employment() *
-				(factory_per_level_employment / needs_scaling_factor);
+												(factory_per_level_employment / needs_scaling_factor);
 			if(money_made < min_wages) {
 				auto diff = min_wages - money_made;
 				if(state.world.nation_get_stockpiles(n, money) > diff) {
@@ -807,7 +807,8 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 			}
 		}
 
-		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale);
+		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) *
+																															throughput_multiplier * output_multiplier * max_production_scale);
 		state.world.province_set_artisan_full_profit(p,
 				(output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * max_production_scale);
 	} else {
@@ -1657,9 +1658,7 @@ void daily_update(sys::state& state) {
 			});
 			break;
 		case 8:
-			state.world.execute_serial_over_nation([&](auto ids) {
-				state.world.nation_set_subsidies_spending(ids, 0.0f);
-			});
+			state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_subsidies_spending(ids, 0.0f); });
 		}
 	});
 
@@ -2293,7 +2292,9 @@ void daily_update(sys::state& state) {
 		collect taxes
 		*/
 
-		auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+		auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency +
+																				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency),
+				0.1f, 1.0f);
 
 		float total_poor_tax_base = 0.0f;
 		float total_mid_tax_base = 0.0f;
@@ -2400,7 +2401,9 @@ void daily_update(sys::state& state) {
 				}
 			}
 			if(uni.get_reparations() && state.current_date < n.get_reparations_until()) {
-				auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + n.get_modifier_values(sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+				auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency +
+																						n.get_modifier_values(sys::national_mod_offsets::tax_efficiency),
+						0.1f, 1.0f);
 				auto total_tax_base = n.get_total_rich_income() + n.get_total_middle_income() + n.get_total_poor_income();
 
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;

@@ -7,13 +7,15 @@
 
 namespace ui {
 
-enum class unitpanel_action : uint8_t { close, reorg, split, disband, changeleader };
+enum class unitpanel_action : uint8_t { close, reorg, split, disband, changeleader, temp };
 
 class unit_selection_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent && parent->parent)
-			parent->parent->set_visible(state, false);
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
+			parent->impl_get(state, payload);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -109,6 +111,7 @@ public:
 	}
 };
 
+template<class T>
 class unit_selection_change_leader_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -173,11 +176,14 @@ class unit_selection_panel : public window_element_base {
 private:
 	window_element_base* leader_change_win = nullptr;
 	window_element_base* reorg_window = nullptr;
+	window_element_base* combat_window = nullptr;
+	simple_text_element_base* unitlocation_text = nullptr;
+	simple_text_element_base* unitname_text = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		{
-			auto win1 = make_element_by_type<leader_selection_window>(state,
+			auto win1 = make_element_by_type<leader_selection_window<T>>(state,
 					state.ui_state.defs_by_name.find("leader_selection_panel")->second.definition);
 			win1->set_visible(state, false);
 			leader_change_win = win1.get();
@@ -190,11 +196,12 @@ public:
 			reorg_window = win2.get();
 			add_child_to_front(std::move(win2));
 		}
+		window_element_base::on_create(state);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unitpanel_bg") {
-			return make_element_by_type<draggable_target>(state, id);
+			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leader_prestige_icon") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leader_prestige_bar") {
@@ -202,12 +209,15 @@ public:
 		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "unitname") {
-			return make_element_by_type<unit_selection_unit_name_text>(state, id);
+			auto ptr = make_element_by_type<unit_selection_unit_name_text>(state, id);
+			unitname_text = ptr.get();
+			return ptr;
 		} else if(name == "only_unit_from_selection_button") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "remove_unit_from_selection_button") {
-			// return make_element_by_type<unit_selection_close_button>(state, id);
-			return make_element_by_type<generic_close_button>(state, id);
+			return make_element_by_type<unit_selection_close_button>(state, id);
 		} else if(name == "newunitbutton") {
 			return make_element_by_type<unit_selection_new_unit_button>(state, id);
 		} else if(name == "splitinhalf") {
@@ -227,13 +237,15 @@ public:
 		} else if(name == "unitstrength") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "unitlocation") {
-			return make_element_by_type<unit_selection_unit_location_text>(state, id);
+			auto ptr = make_element_by_type<unit_selection_unit_location_text>(state, id);
+			unitlocation_text = ptr.get();
+			return ptr;
 		} else if(name == "unit_location_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "unitleader") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "leader_button") {
-			return make_element_by_type<unit_selection_change_leader_button>(state, id);
+			return make_element_by_type<unit_selection_change_leader_button<T>>(state, id);
 		} else if(name == "unit_activity") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leader_photo") {
@@ -243,11 +255,27 @@ public:
 		}
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = T{};
+		parent->impl_get(state, payload);
+		auto content = any_cast<T>(payload);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			unitlocation_text->set_text(state,
+					text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_army_location().get_name()));
+		} else {
+			unitlocation_text->set_text(state,
+					text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_navy_location().get_name()));
+		}
+		unitname_text->set_text(state, std::string(state.to_string_view(dcon::fatten(state.world, content).get_name())));
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<unitpanel_action>>()) {
 			auto action = any_cast<element_selection_wrapper<unitpanel_action>>(payload).data;
 			switch(action) {
 			case unitpanel_action::close:
+				// Bucket Carry, we dont handle this, but the parent does
+				parent->impl_get(state, payload);
 				break;
 			case unitpanel_action::reorg:
 				reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
@@ -629,7 +657,7 @@ public:
 		{
 			auto ptr =
 					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
-			ptr->base_data.position.y -= 81;
+			ptr->base_data.position.y = -80;
 			add_child_to_front(std::move(ptr));
 		}
 	}
@@ -649,6 +677,16 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<T>>()) {
 			unit_id = any_cast<element_selection_wrapper<T>>(payload).data;
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<unitpanel_action>>()) {
+			auto content = any_cast<element_selection_wrapper<unitpanel_action>>(payload).data;
+			switch(content) {
+			case unitpanel_action::close:
+				set_visible(state, false);
+				break;
+			default:
+				break;
+			};
 			return message_result::consumed;
 		}
 		return message_result::unseen;

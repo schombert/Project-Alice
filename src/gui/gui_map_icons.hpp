@@ -112,7 +112,7 @@ public:
 		bool has_any = false;
 		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { has_any = true; });
 		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { has_any = true; });
-		for(const auto& c : children)
+		for(auto const& c : children)
 			c->set_visible(state, has_any);
 
 		bool has_attrition = false; // TODO: Attrition
