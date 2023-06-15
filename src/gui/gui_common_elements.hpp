@@ -1396,14 +1396,16 @@ public:
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
 
-			auto fat_id = dcon::fatten(state.world, nation_id);
+			auto fat_id = dcon::fatten(state.world, nation_id).get_national_value();
+			//auto name = fat_id.get_national_value().get_name();
 			auto name = fat_id.get_name();
 			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, std::string_view("Our national value is "));
 				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
-			auto mod_id = fat_id.get_national_value().id;
+			auto mod_id = fat_id.id;
 			if(bool(mod_id)) {
 				modifier_description(state, contents, mod_id);
 			}
