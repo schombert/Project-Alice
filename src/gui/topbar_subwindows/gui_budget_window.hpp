@@ -73,44 +73,40 @@ protected:
 	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
 			sys::state& state) noexcept override {
 		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
-		Cyto::Any nat_id_payload = dcon::nation_id{};
-
+		
 		enabled = true;
 		if(parent == nullptr)
 			return distrib;
 
-		parent->impl_get(state, nat_id_payload);
-		if(nat_id_payload.holds_type<dcon::nation_id>()) {
-			auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
-			auto total = 0.f;
-			std::array<float, 5> sat_pool = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-			for(auto prov : state.world.nation_get_province_ownership(nat_id)) {
+		auto total = 0.f;
+		std::array<float, 5> sat_pool = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
 
-				for(auto pop_loc : prov.get_province().get_pop_location()) {
-					auto pop_id = pop_loc.get_pop();
-					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
-					auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
+			for(auto pop_loc : prov.get_province().get_pop_location()) {
+				auto pop_id = pop_loc.get_pop();
+				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
+				auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
 					// All luxury needs
 					// OR All everyday needs
 					// OR All life needs
 					// OR Some life needs
 					// OR No needs fulfilled...
-					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
-									 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
-									 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
-									 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
-																																			: 0] += pop_size;
-					total += pop_size;
-				}
+				sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
+								 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
+								 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
+								 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
+								 : 0] += pop_size;
+				total += pop_size;
 			}
-			if(total <= 0.f) {
-				enabled = false;
-				return distrib;
-			}
-
-			for(size_t i = 0; i < sat_pool.size(); i++)
-				distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
 		}
+		if(total <= 0.f) {
+			enabled = false;
+			return distrib;
+		}
+
+		for(size_t i = 0; i < sat_pool.size(); i++)
+			distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
+		
 		return distrib;
 	}
 
@@ -691,7 +687,7 @@ public:
 				text::add_line_break_to_layout_box(state, contents, box);
 				text::close_layout_box(contents, box);
 			}
-
+			text::add_line_break_to_layout(state, contents);
 			static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
 			{
 				auto box = text::open_layout_box(contents);

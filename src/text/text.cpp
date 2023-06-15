@@ -874,6 +874,25 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 
 	impl::lb_finish_line(dest, box, line_height);
 }
+void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	auto& font = state.font_collection.fonts[font_index - 1];
+	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto line_height = text_height + dest.fixed_parameters.leading;
+	dest.base_layout.number_of_lines += 1;
+	dest.y_cursor += line_height;
+}
+void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	auto& font = state.font_collection.fonts[font_index - 1];
+	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto line_height = text_height + dest.fixed_parameters.leading;
+	dest.base_layout.number_of_lines += 1;
+	dest.y_cursor += line_height;
+}
+
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,
 		substitution source) {

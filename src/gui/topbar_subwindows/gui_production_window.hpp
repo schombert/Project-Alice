@@ -237,6 +237,22 @@ public:
 
 class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			disabled = (rules & issue_rule::can_subsidise) == 0;
+
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
+			frame = state.world.factory_get_subsidized(fid) ? 1 : 0;
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -248,16 +264,13 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip
-																 // function details this afaik
+			if(fat.get_subsidized()) {
 				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
 					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false);
-					frame = 0;
 				}
 			} else {
 				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), true)) {
 					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), true);
-					frame = 1;
 				}
 			}
 		}
@@ -277,10 +290,9 @@ public:
 			if(dcon::fatten(state.world, fid).get_subsidized()) {
 				text::localised_format_box(state, contents, box, std::string_view("production_cancel_subsidies"));
 			} else {
-				// TODO - check if the ruling party likes subsidising parties, if it does then allow subisdising otherwise dont
-				// text::localised_format_box(state, contents, box,
-				// std::string_view("production_not_allowed_to_subsidise_tooltip"));
-				text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_subsidise_tooltip"));
+				text::localised_format_box(state, contents, box,
+						disabled ? std::string_view("production_not_allowed_to_subsidise_tooltip")
+								: std::string_view("production_allowed_to_subsidise_tooltip"));
 			}
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("production_subsidies_desc"));
@@ -665,9 +677,94 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, std::string_view("OwO *notices you building new factory*"));
-		text::close_layout_box(contents, box);
+		dcon::state_instance_id sid;
+		dcon::nation_id n;
+
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			sid = any_cast<dcon::state_instance_id>(payload);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			n = any_cast<dcon::nation_id>(n_payload);
+		}
+
+		bool non_colonial = state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
+
+		bool is_civilized = state.world.nation_get_is_civilized(n);
+
+		auto rules = state.world.nation_get_combined_issue_rules(n);
+			
+		bool allowed_by_rules = (rules & issue_rule::build_factory) != 0;
+
+		// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
+		int32_t num_factories = 0;
+
+		auto d = state.world.state_instance_get_definition(sid);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == n) {
+				for(auto f : p.get_province().get_factory_location()) {
+					++num_factories;
+				}
+			}
+		}
+		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+			if(p.get_is_upgrade() == false)
+				++num_factories;
+		}
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "production_build_new_factory_tooltip");
+			text::close_layout_box(contents, box);
+		}
+		text::add_line_break_to_layout(state, contents);
+		{
+			auto box = text::open_layout_box(contents);
+			if(is_civilized) {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, "factory_condition_1");
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			if(non_colonial) {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, "factory_condition_2");
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			if(allowed_by_rules) {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, "factory_condition_3");
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			if(num_factories <= int32_t(state.defines.factories_per_state)) {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
+					int64_t(state.defines.factories_per_state));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -771,7 +868,7 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			for(auto const fat_id : state.world.nation_get_state_ownership(n)) {
-				if(show_empty) {
+				if(show_empty && !fat_id.get_state().get_capital().get_is_colonial()) {
 					row_contents.push_back(fat_id.get_state());
 				} else if(economy::has_factory(state, fat_id.get_state().id)) {
 					// Then account for factories **hidden** by the filter from goods...
@@ -1171,26 +1268,11 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<production_action>>()) {
 			auto content = any_cast<element_selection_wrapper<production_action>>(payload).data;
 			switch(content) {
-			case production_action::subsidise_all:
-				break;
-			case production_action::unsubsidise_all:
-				break;
-			case production_action::filter_select_all:
-				for(uint32_t i = 0; i < commodity_filters.size(); i++) {
-					commodity_filters[i] = true;
-				}
-				break;
-			case production_action::filter_deselect_all:
-				for(uint32_t i = 0; i < commodity_filters.size(); i++) {
-					commodity_filters[i] = false;
-				}
-				break;
-			case production_action::open_all:
-				break;
-			case production_action::close_all:
-				break;
 			case production_action::investment_window:
 				project_window->is_visible() ? project_window->set_visible(state, false) : project_window->set_visible(state, true);
+				break;
+			case production_action::foreign_invest_window:
+				foreign_invest_win->is_visible() ? foreign_invest_win->set_visible(state, false)  : foreign_invest_win->set_visible(state, true);
 				break;
 			default:
 				break;

@@ -459,4 +459,8 @@ value_mod_sum;Value $val$ is the sum of:;;;;;;;;;;;;x
 admin_explain_1;Administrative efficiency modifier of $val$
 admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$%
 admin_explain_3;To the required percentage: $val$% (base $x$% + $y$% from reforms)
+factory_condition_1;The nation is civilized
+factory_condition_2;This is not a colonial state
+factory_condition_3;The ruling party allows building factories
+factory_condition_4;There are fewer than $val$ factories in the state
 ;;;;;;;;;;;;;x
