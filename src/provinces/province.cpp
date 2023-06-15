@@ -1256,7 +1256,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0) {
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
 					return path_result;
@@ -1269,7 +1269,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
-						origins_vector.set(other_prov, state.province_definitions.first_sea_province); // exclude it from being checked again
+						origins_vector.set(other_prov, dcon::province_id{0}); // exclude it from being checked again
 					}
 				} else { // is sea
 					if(military::can_embark_onto_sea_tile(state, nation_as, other_prov, a)) {
@@ -1278,7 +1278,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
-						origins_vector.set(other_prov, state.province_definitions.first_sea_province); // exclude it from being checked again
+						origins_vector.set(other_prov, dcon::province_id{0}); // exclude it from being checked again
 					}
 				}
 			}

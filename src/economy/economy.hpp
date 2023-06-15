@@ -117,6 +117,14 @@ float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 float estimate_total_spending(sys::state& state, dcon::nation_id n);
+float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n);
+float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
+float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
+float estimate_reparations_income(sys::state& state, dcon::nation_id n);
+
+
+// NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
+// *not* how much you are paying at the moment
 float estimate_war_subsidies(sys::state& state, dcon::nation_id n);
 
 float estimate_daily_income(sys::state& state, dcon::nation_id n);

@@ -50,6 +50,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
 			game_state->load_scenario_data();
+			game_state->local_player_nation = dcon::nation_id{42};
 			sys::write_scenario_file(*game_state, NATIVE("development_test_file.bin"));
 		} else {
 			game_state->fill_unsaved_data();

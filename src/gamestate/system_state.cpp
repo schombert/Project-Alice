@@ -148,6 +148,9 @@ void state::on_text(char c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
+
+inline constexpr int32_t tooltip_width = 400;
+
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 											 // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
@@ -255,7 +258,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left,
+						text::layout_parameters{16, 16, tooltip_width, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+								text::alignment::left,
 								text::text_color::white},
 						250);
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
@@ -279,7 +283,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(type != ui::tooltip_behavior::no_tooltip) {
 
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left,
+						text::layout_parameters{16, 16, tooltip_width, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+								text::alignment::left,
 								text::text_color::white},
 						250);
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
@@ -298,7 +303,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	} else if(ui_state.last_tooltip &&
 						ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left,
+				text::layout_parameters{16, 16, tooltip_width, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+						text::alignment::left,
 						text::text_color::white},
 				250);
 		ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
@@ -400,7 +406,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 }
 void state::on_create() {
-	local_player_nation = dcon::nation_id{116};
 	// Clear "center" property so they don't look messed up!
 	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &=
@@ -1736,6 +1741,19 @@ void state::load_scenario_data() {
 
 	military::reinforce_regiments(*this);
 
+	// run the economy for three days on scenario creation
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	economy::daily_update(*this);
+
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	economy::daily_update(*this);
+
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	economy::daily_update(*this);
+
 	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
@@ -1816,6 +1834,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	pop_demographics::regenerate_is_primary_or_accepted(*this);
 
+	nations::update_administrative_efficiency(*this);
 	rebel::update_movement_values(*this);
 
 	economy::regenerate_unsaved_values(*this);
@@ -1865,6 +1884,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			}
 		}
 	}
+
+	game_state_updated.store(true, std::memory_order::release);
 }
 
 constexpr inline int32_t game_speed[] = {

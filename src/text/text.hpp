@@ -640,6 +640,9 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
+void add_line_break_to_layout(sys::state& state, columnar_layout& dest);
+void add_line_break_to_layout(sys::state& state, endless_layout& dest);
+
 void close_layout_box(layout_base& dest, layout_box& box);
 
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);

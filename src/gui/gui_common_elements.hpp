@@ -711,6 +711,48 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return text::format_money(economy::estimate_diplomatic_balance(state, nation_id));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto n = any_cast<dcon::nation_id>(payload);
+
+			float w_subsidies_amount =
+					economy::estimate_war_subsidies_income(state, n) - economy::estimate_war_subsidies_spending(state, n);
+			float reparations_amount = economy::estimate_reparations_income(state, n) - economy::estimate_reparations_spending(state, n);
+
+			if(w_subsidies_amount > 0.0f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "warsubsidies_income", m);
+				text::close_layout_box(contents, box);
+			} else if(w_subsidies_amount < 0.0f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "warsubsidies_expense", m);
+				text::close_layout_box(contents, box);
+			}
+
+			if(reparations_amount > 0.0f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "warindemnities_income", m);
+				text::close_layout_box(contents, box);
+			} else if(reparations_amount < 0.0f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "warindemnities_expense", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
 };
 
 class nation_subsidy_spending_text : public standard_nation_text {
@@ -724,6 +766,54 @@ class nation_administrative_efficiency_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto n = any_cast<dcon::nation_id>(payload);
+
+			{
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val,
+						text::fp_percentage{1.0f +
+								state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "admin_explain_1", m);
+				text::close_layout_box(contents, box);
+			}
+			active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier, false);
+			{
+				auto non_colonial = state.world.nation_get_non_colonial_population(n);
+				auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
+
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "admin_explain_2", m);
+				text::close_layout_box(contents, box);
+			}
+			{
+				float issue_sum = 0.0f;
+				for(auto i : state.culture_definitions.social_issues) {
+					issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
+				}
+				auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
+
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val,
+						text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
+				text::add_to_substitution_map(m, text::variable_type::x,
+						text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
+				text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "admin_explain_3", m);
+				text::close_layout_box(contents, box);
+			}
+		}
 	}
 };
 
@@ -1012,14 +1102,8 @@ class nation_daily_research_points_text : public standard_nation_text {
 protected:
 	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
 		auto fat_pop = dcon::fatten(state.world, pop);
-		/*
-		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
-		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
-		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
-		*/
-		float sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) /
-																											state.world.nation_get_demographics(n, demographics::total)) /
-																										 fat_pop.get_research_optimum()));
+
+		float sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) /state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum()));
 		return sum;
 	}
 
@@ -1125,11 +1209,6 @@ public:
 class nation_leadership_points_text : public standard_nation_text {
 private:
 	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		/*
-		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
-		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
-		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
-		*/
 		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) /
 										state.world.nation_get_demographics(n, demographics::total)) /
 								state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
