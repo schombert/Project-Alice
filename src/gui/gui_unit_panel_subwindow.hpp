@@ -145,18 +145,27 @@ public:
 		}
 	}
 
-	/*void on_update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<T>(payload);
-			auto fat = dcon::fatten(state.world, military::get_leader_from_navy_or_army(state, content));
 
-			leadername_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
-			leaderpersonality_text->set_text(state, text::produce_simple_string(state, fat.get_personality().get_name()));
-			leaderbackground_text->set_text(state, text::produce_simple_string(state, fat.get_background().get_name()));
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				auto fat = dcon::fatten(state.world, content).get_general_from_army_leadership();
+				leadername_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
+				leaderpersonality_text->set_text(state, text::produce_simple_string(state, fat.get_personality().get_name()));
+				leaderbackground_text->set_text(state, text::produce_simple_string(state, fat.get_background().get_name()));
+			} else {
+				auto fat = dcon::fatten(state.world, content).get_admiral_from_navy_leadership();
+				leadername_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
+				leaderpersonality_text->set_text(state, text::produce_simple_string(state, fat.get_personality().get_name()));
+				leaderbackground_text->set_text(state, text::produce_simple_string(state, fat.get_background().get_name()));
+			}
+			//auto fat = dcon::fatten(state.world, military::get_leader_from_navy_or_army(state, content));
+
 		}
-	}*/
+	}
 };
 //======================================================================================================================================
 

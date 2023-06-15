@@ -35,8 +35,12 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 	if(ui_state.under_mouse != nullptr) {
 		// TODO: look at return value
-		ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
-				mod);
+		auto r =ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
+			if(r != ui::message_result::consumed) {
+				map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
+			}
+	} else {
+		map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
 	}
 }
 void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {

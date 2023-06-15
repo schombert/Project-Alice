@@ -7,6 +7,8 @@
 
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
+#include "gui_graphics.hpp"
+#include "gui_element_base.hpp"
 
 namespace map {
 
@@ -261,6 +263,39 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 			set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
 		} else {
 			set_selected_province(dcon::province_id{});
+		}
+	} else {
+		set_selected_province(dcon::province_id{});
+	}
+}
+
+void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
+		sys::key_modifiers mod) {
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+	glm::vec2 map_pos;
+	if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
+		return;
+	}
+	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
+	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
+	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
+		sound::play_interface_sound(state, sound::get_click_sound(state),
+				state.user_settings.interface_volume * state.user_settings.master_volume);
+		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+
+		if(state.ui_state.army_status_window != nullptr && state.ui_state.navy_status_window != nullptr) {
+			if(state.ui_state.army_status_window->is_visible() && !state.ui_state.navy_status_window->is_visible()) {
+				Cyto::Any payload = dcon::army_id{};
+				state.ui_state.army_status_window->impl_get(state, payload);
+				auto content = any_cast<dcon::army_id>(payload);
+				command::move_army(state, state.local_player_nation, content, province::from_map_id(map_data.province_id_map[idx]));
+			} else if(!state.ui_state.army_status_window->is_visible() && state.ui_state.navy_status_window->is_visible()) {
+				Cyto::Any payload = dcon::navy_id{};
+				state.ui_state.navy_status_window->impl_get(state, payload);
+				auto content = any_cast<dcon::navy_id>(payload);
+				command::move_navy(state, state.local_player_nation, content, province::from_map_id(map_data.province_id_map[idx]));
+			}
 		}
 	} else {
 		set_selected_province(dcon::province_id{});
