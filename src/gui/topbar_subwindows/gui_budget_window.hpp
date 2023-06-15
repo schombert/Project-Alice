@@ -186,6 +186,119 @@ public:
 			v = get_true_value(state);
 			update_raw_value(state, v);
 		}
+
+		switch(SliderTarget) {
+		case budget_slider_target::poor_tax:
+		{
+			auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			if(max_tax <= 0)
+				max_tax = 100;
+			max_tax = std::max(min_tax, max_tax);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
+			change_settings(state, new_settings);
+		}
+			break;
+		case budget_slider_target::middle_tax: {
+			auto min_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			if(max_tax <= 0)
+				max_tax = 100;
+			max_tax = std::max(min_tax, max_tax);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
+			change_settings(state, new_settings);
+		}
+			break;
+		case budget_slider_target::rich_tax: {
+			auto min_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			if(max_tax <= 0)
+				max_tax = 100;
+			max_tax = std::max(min_tax, max_tax);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
+			change_settings(state, new_settings);
+		}
+			break;
+		case budget_slider_target::social: {
+			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::min_social_spending));
+			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::max_social_spending));
+			if(max_spend <= 0)
+				max_spend = 100;
+			max_spend = std::max(min_spend, max_spend);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_spend, 0, 100);
+			new_settings.upper_limit = std::clamp(max_spend, 0, 100);
+			change_settings(state, new_settings);
+		}
+			break;
+		case budget_slider_target::military: {
+			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::min_military_spending));
+			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::max_military_spending));
+			if(max_spend <= 0)
+				max_spend = 100;
+			max_spend = std::max(min_spend, max_spend);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_spend, 0, 100);
+			new_settings.upper_limit = std::clamp(max_spend, 0, 100);
+			change_settings(state, new_settings);
+		}
+			break;
+		case budget_slider_target::tariffs: {
+			auto min_tariff = int32_t(
+					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tariff));
+			auto max_tariff = int32_t(
+					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tariff));
+			max_tariff = std::max(min_tariff, max_tariff);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = -100;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tariff, -100, 100);
+			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
+			change_settings(state, new_settings);
+		}
+			break;
+		default:
+			break;
+		}
+
+		
 		if(parent) {
 			float amount = float(v) / 100.f;
 			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};

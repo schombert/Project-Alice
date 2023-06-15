@@ -282,7 +282,7 @@ float effective_tariff_rate(sys::state const& state, dcon::nation_id n) {
 			std::clamp(state.defines.base_tariff_efficiency + state.world.nation_get_administrative_efficiency(n) +
 										 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier),
 					0.001f, 1.0f);
-	return tariff_efficiency * float(state.world.nation_get_tariffs(n)) / 100.0f;
+	return std::max(0.0f, tariff_efficiency * float(state.world.nation_get_tariffs(n)) / 100.0f);
 }
 
 float global_market_price_multiplier(sys::state const& state, dcon::nation_id n) {

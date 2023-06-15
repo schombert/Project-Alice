@@ -311,7 +311,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	wcex.lpszMenuName = NULL;
 	wcex.hCursor = nullptr;
 	wcex.hIcon = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), 0);
-	wcex.hIconSm = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0);
+	//wcex.hIconSm = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0);
 	wcex.lpszClassName = L"project_alice_class";
 
 	if(RegisterClassExW(&wcex) == 0) {

@@ -636,9 +636,11 @@ Directed war score is always treated as being in the -100 to 100 range.
 Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
 Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier + technology-mobilization-impact-modifier), to a minimum of zero.
 
-Mobilized regiments come only from unoccupied, non-colonial provinces. In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture. The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT. Pops will provide up to this number of regiments per pop, although regiments they are already providing to rebels or which are already mobilized count against this number. At most, national-mobilization-impact-modifier x define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization.
+Mobilized regiments come only from unoccupied, non-colonial provinces. In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture. The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT. Pops will provide up to this number of regiments per pop, although regiments they are already providing to rebels or which are already mobilized count against this number. At most, national-mobilization-impact-modifier x (define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization).
 
 Mobilization is not instant. Province by province, mobilization advances by define:MOBILIZATION_SPEED_BASE x (1 + define:MOBILIZATION_SPEED_RAILS_MULT x average-railroad-level-in-state / 5) until it reaches 1. Once mobilization has occurred in one province, mobilization in the next province can start. The order this occurs in appears to be determined by the speed of mobilization: the provinces that will mobilize faster go before those that will go slower.
+
+Mobilizing increases crisis tension by define:CRISIS_TEMPERATURE_ON_MOBILIZE
 
 ### Province conquest
 
