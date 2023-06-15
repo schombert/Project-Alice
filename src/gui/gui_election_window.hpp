@@ -234,7 +234,7 @@ public:
 
 		} else if(name == "population_amount") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_text(state, text::prettify(state.world.nation_get_demographics(state.local_player_nation, demographics::total)));
+			ptr->set_text(state, text::prettify(int64_t(state.world.nation_get_demographics(state.local_player_nation, demographics::total))));
 			return ptr;
 
 		} else if(name == "perc_of_parlament") {
