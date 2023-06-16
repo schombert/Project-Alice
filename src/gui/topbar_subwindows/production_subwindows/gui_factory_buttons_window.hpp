@@ -214,6 +214,33 @@ public:
 	}
 };
 
+class factory_name_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::name;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class factory_infrastructure_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::infrastructure;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class factory_count_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::factories;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
 class factory_buttons_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -239,13 +266,13 @@ public:
 			return make_element_by_type<factory_show_empty_states_button>(state, id);
 
 		} else if(name == "sort_by_name") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<factory_name_sort>(state, id);
 
 		} else if(name == "sort_by_factories") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<factory_count_sort>(state, id);
 
 		} else if(name == "sort_by_infra") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<factory_infrastructure_sort>(state, id);
 
 		} else if(name == "filter_bounds") {
 			return make_element_by_type<commodity_filters_window>(state, id);

@@ -283,6 +283,12 @@ namespace culture {
 inline constexpr int32_t max_issue_options = 6;
 }
 
+namespace ui {
+
+enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
+
+}
+
 namespace province {
 namespace border {
 constexpr inline uint8_t state_bit = 0x01;
