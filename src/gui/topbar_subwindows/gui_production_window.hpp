@@ -42,17 +42,25 @@ public:
 		auto fid = any_cast<dcon::factory_id>(payload);
 		auto fat = dcon::fatten(state.world, fid);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("production_factory_employeecount_tooltip"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, std::string_view(" -"));
-		text::localised_format_box(state, contents, box, std::string_view("craftsmen"));
-		text::add_to_layout_box(state, contents, box, int64_t(fat.get_primary_employment()));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, std::string_view(" -"));
-		text::localised_format_box(state, contents, box, std::string_view("clerks"));
-		text::add_to_layout_box(state, contents, box, int64_t(fat.get_secondary_employment()));
-		text::close_layout_box(contents, box);
+		{
+			text::add_line(state, contents, "production_factory_employeecount_tooltip");
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, std::string_view(" -"));
+			text::localised_format_box(state, contents, box, std::string_view("craftsmen"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, int64_t(fat.get_primary_employment()));
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, std::string_view(" -"));
+			text::localised_format_box(state, contents, box, std::string_view("clerks"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, int64_t(fat.get_secondary_employment()));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -64,6 +72,9 @@ public:
 			parent->impl_get(state, payload);
 			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 			frame = economy::factory_priority(state, fid);
+
+			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+			disabled = (rules & issue_rule::factory_priority) == 0;
 		}
 	}
 
@@ -80,16 +91,16 @@ public:
 
 			switch(economy::factory_priority(state, fid)) {
 			case 0:
-				command::change_factory_settings(state, n, fid, 1, fat.get_subsidized());
+				command::change_factory_settings(state, state.local_player_nation, fid, 1, fat.get_subsidized());
 				break;
 			case 1:
-				command::change_factory_settings(state, n, fid, 2, fat.get_subsidized());
+				command::change_factory_settings(state, state.local_player_nation, fid, 2, fat.get_subsidized());
 				break;
 			case 2:
-				command::change_factory_settings(state, n, fid, 3, fat.get_subsidized());
+				command::change_factory_settings(state, state.local_player_nation, fid, 3, fat.get_subsidized());
 				break;
 			case 3:
-				command::change_factory_settings(state, n, fid, 0, fat.get_subsidized());
+				command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
 				break;
 			}
 		}
@@ -100,39 +111,44 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		Cyto::Any n_payload = dcon::nation_id{};
+		parent->impl_get(state, n_payload);
+		dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
 		const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
 
-		auto box = text::open_layout_box(contents, 0);
-		// TODO - check if we can change the priority,
-		// 	- This appears to depend only on if the ruling party is kosher with it
-		text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_change_prio_tooltip"));
-		// Why pdx, why must the diplomacy priority be used instead of having a separate priority for prod. ?
-		// just why
-		switch(economy::factory_priority(state, fid)) {
-		case 0:
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_none"));
-			break;
-		case 1:
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_low"));
-			break;
-		case 2:
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_middle"));
-			break;
-		case 3:
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_high"));
-			break;
-		}
+		if(n != state.local_player_nation)
+			return;
 
-		// text::localised_format_box(state, contents, box, std::string_view("production_not_allowed_to_change_prio_tooltip"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("production_prio_factory_desc_tooltip"));
-		text::close_layout_box(contents, box);
+		if(disabled) {
+			text::add_line(state, contents, "production_not_allowed_to_change_prio_tooltip");
+			text::add_line(state, contents, "cant_prioritize_explanation");
+		} else {
+			text::add_line(state, contents, "production_allowed_to_change_prio_tooltip");
+
+			switch(economy::factory_priority(state, fid)) {
+			case 0:
+				text::add_line(state, contents, "diplomacy_prio_none");
+				break;
+			case 1:
+				text::add_line(state, contents, "diplomacy_prio_low");
+				break;
+			case 2:
+				text::add_line(state, contents, "diplomacy_prio_middle");
+				break;
+			case 3:
+				text::add_line(state, contents, "diplomacy_prio_high");
+				break;
+			}
+		}
+		text::add_line_break_to_layout(state, contents); // TODO: Classic needs this as a divider
+		text::add_line(state, contents, "production_prio_factory_desc_tooltip");
 	}
 };
 
-class factory_upgrade_button : public button_element_base {
+class factory_upgrade_button : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -149,7 +165,29 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			disabled = !command::can_begin_factory_building_construction(state, n, sid, fat.get_building_type().id, true);
+			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid,
+					fat.get_building_type().id, true);
+		}
+	}
+
+	void button_shift_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			for(auto p : state.world.nation_get_province_ownership(n)) {
+				for(auto fac : p.get_province().get_factory_location()) {
+					if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+						if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+									 p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+
+							command::begin_factory_building_construction(state, state.local_player_nation,
+									p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -168,7 +206,7 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			command::begin_factory_building_construction(state, n, sid, fat.get_building_type().id, true);
+			command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
 		}
 	}
 
@@ -177,16 +215,68 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("production_expand_factory_tooltip"));
-		// TODO - check if we can expand the factory
-		// What we need to check:
-		// 	- Ruling party opinion on expanding factories
-		// 	- if we got enough money to expand
-		// 	- if our level is < 99
-		text::localised_format_box(state, contents, box, std::string_view("production_expand_factory_because_tooltip"));
-		// text::localised_format_box(state, contents, box, std::string_view("production_not_expand_factory_because_tooltip"));
-		text::close_layout_box(contents, box);
+
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
+		Cyto::Any payload1 = dcon::state_instance_id{};
+		parent->impl_get(state, payload1);
+		auto sid = any_cast<dcon::state_instance_id>(payload1);
+
+		Cyto::Any n_payload = dcon::nation_id{};
+		parent->impl_get(state, n_payload);
+		dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+		auto type = state.world.factory_get_building_type(fid);
+		
+		text::add_line(state, contents, "production_expand_factory_tooltip");
+
+		text::add_line_break_to_layout(state, contents);
+
+		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_1", is_civ);
+
+		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_2", state_is_not_colonial);
+
+		bool is_activated = state.world.nation_get_active_building(n, type) == true || state.world.factory_type_get_is_available_from_start(type);
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
+
+		if(n != state.local_player_nation) {
+			bool gp_condition = (state.world.nation_get_is_great_power(state.local_player_nation) == true &&
+					state.world.nation_get_is_great_power(n) == false);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", gp_condition);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
+	
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
+					(rules & issue_rule::allow_foreign_investment) != 0);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7",
+					!military::are_at_war(state, state.local_player_nation, n));
+		} else {
+			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
+		}
+
+		// no double upgrade
+		bool is_not_upgrading = true;
+		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+			if(p.get_type() == type)
+				is_not_upgrading = false;
+		}
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
+
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
+	
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_upgrade_shift_explanation");
+
+		// TODO: classic tooltips ???
 	}
 };
 
@@ -208,34 +298,19 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		/*if(parent) {	TODO - We want to open/close the factory if we press this button, depending on if its closed/opened
-		respectively Cyto::Any payload = dcon::factory_id{}; parent->impl_get(state, payload); auto fid =
-		any_cast<dcon::factory_id>(payload); auto fat = dcon::fatten(state.world, fid);
-		}*/
+
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+		return tooltip_behavior::no_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		Cyto::Any payload = dcon::factory_id{};
-		parent->impl_get(state, payload);
-		auto fid = any_cast<dcon::factory_id>(payload);
-		auto fat = dcon::fatten(state.world, fid);
 
-		auto box = text::open_layout_box(contents, 0);
-		if(fat.get_production_scale() < 0.05) {
-			text::localised_format_box(state, contents, box, std::string_view("production_open_factory_tooltip"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("production_close_factory_tooltip"));
-		}
-
-		text::close_layout_box(contents, box);
 	}
 };
 
-class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
+class factory_subsidise_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -265,12 +340,16 @@ public:
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			if(fat.get_subsidized()) {
-				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
-					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false);
+				if(command::can_change_factory_settings(state, state.local_player_nation, fid,
+							 uint8_t(economy::factory_priority(state, fid)), false)) {
+					command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)),
+							false);
 				}
 			} else {
-				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), true)) {
-					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), true);
+				if(command::can_change_factory_settings(state, state.local_player_nation, fid,
+							 uint8_t(economy::factory_priority(state, fid)), true)) {
+					command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)),
+							true);
 				}
 			}
 		}
@@ -286,21 +365,27 @@ public:
 			parent->impl_get(state, payload);
 			auto fid = any_cast<dcon::factory_id>(payload);
 
-			auto box = text::open_layout_box(contents, 0);
-			if(dcon::fatten(state.world, fid).get_subsidized()) {
-				text::localised_format_box(state, contents, box, std::string_view("production_cancel_subsidies"));
-			} else {
-				text::localised_format_box(state, contents, box,
-						disabled ? std::string_view("production_not_allowed_to_subsidise_tooltip")
-								: std::string_view("production_allowed_to_subsidise_tooltip"));
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
+
+			if(n == state.local_player_nation) {
+				if(dcon::fatten(state.world, fid).get_subsidized()) {
+					text::add_line(state, contents, "production_cancel_subsidies");
+				} else {
+					if(disabled) {
+						text::add_line(state, contents, "production_not_allowed_to_subsidise_tooltip");
+						text::add_line(state, contents, "cant_subsidize_explanation");
+					} else {
+						text::add_line(state, contents, "production_allowed_to_subsidise_tooltip");
+					}
+				}
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "production_subsidies_desc");
 			}
-			if(disabled)
-				text::localised_format_box(state, contents, box, std::string_view("cant_subsidize_explanation"));
 
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("production_subsidies_desc"));
-			text::close_layout_box(contents, box);
+			// TODO: classic tooltips ???
 		}
 	}
 };
@@ -317,7 +402,7 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			disabled = !command::can_delete_factory(state, n, fid);
+			disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 		}
 	}
 
@@ -331,7 +416,7 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			command::delete_factory(state, n, fid);
+			command::delete_factory(state, state.local_player_nation, fid);
 		}
 	}
 
@@ -340,8 +425,24 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			if(n == state.local_player_nation) {
+				text::add_line(state, contents, "factory_delete_header");
+				if(disabled) {
+					text::add_line_break_to_layout(state, contents);
+					text::add_line(state, contents, "factory_delete_not_allowed");
+				}
+				// TODO: classic tooltips ?
+			}
+		}
 	}
 };
 
@@ -372,6 +473,101 @@ public:
 	}
 };
 
+class normal_factory_background : public opaque_element_base {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+
+			auto type = state.world.factory_get_building_type(fid);
+
+			auto& inputs = type.get_inputs();
+			auto& einputs = type.get_efficiency_inputs();
+
+			float min_input = 1.0f;
+			float min_efficiency_input = 1.0f;
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(inputs.commodity_type[i]) {
+					min_input = std::min(min_input, state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]));
+				} else {
+					break;
+				}
+			}
+
+			// and for efficiency inputs
+			for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
+				if(einputs.commodity_type[i]) {
+					min_efficiency_input = std::min(min_efficiency_input, state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]));
+				} else {
+					break;
+				}
+			}
+
+			auto amount = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_production_scale(fid);
+
+			text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
+
+			text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
+					text::fp_percentage{state.world.factory_get_production_scale(fid)});
+
+			text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
+					text::fp_one_place{state.world.factory_get_actual_production(fid) }, text::variable_type::x, type.get_output().get_name());
+
+			text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
+					text::fp_currency{state.world.factory_get_full_profit(fid)});
+
+			text::add_line_break_to_layout(state, contents);
+
+			text::add_line(state, contents, "factory_stats_5");
+
+			
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(inputs.commodity_type[i]) {
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(inputs.commodity_type[i]));
+					text::add_to_layout_box(state, contents, box, std::string_view{": "});
+					auto sat = state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]);
+					text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
+							sat >= 0.9f ? text::text_color::green : text::text_color::red);
+					text::close_layout_box(contents, box);
+				} else {
+					break;
+				}
+			}
+
+			text::add_line_break_to_layout(state, contents);
+
+			text::add_line(state, contents, "factory_stats_6");
+
+			for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
+				if(einputs.commodity_type[i]) {
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(einputs.commodity_type[i]));
+					text::add_to_layout_box(state, contents, box, std::string_view{": "});
+					auto sat = state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]);
+					text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
+							sat >= 0.9f ? text::text_color::green : text::text_color::red);
+					text::close_layout_box(contents, box);
+				} else {
+					break;
+				}
+			}
+
+			// TODO: classic tooltips ?
+		}
+	}
+};
+
 class production_factory_info : public window_element_base {
 	image_element_base* output_icon = nullptr;
 	image_element_base* input_icons[economy::commodity_set::set_size] = {nullptr};
@@ -386,7 +582,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "prod_factory_bg") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<normal_factory_background>(state, id);
 		} else if(name == "level") {
 			auto ptr = make_element_by_type<factory_level_text>(state, id);
 			factory_elements.push_back(ptr.get());
@@ -660,7 +856,8 @@ public:
 
 			bool can_build = false;
 			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				can_build = can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
+				can_build =
+						can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
 			});
 			disabled = !can_build;
 		}
@@ -797,9 +994,9 @@ public:
 			parent->impl_get(state, n_payload);
 			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			disabled = true;
+			disabled = n != state.local_player_nation;
 			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, n, content, nfid) ? false : disabled;
+				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
 			});
 			frame = get_icon_frame(state);
 		}
