@@ -293,7 +293,11 @@ public:
 				text::localised_format_box(state, contents, box,
 						disabled ? std::string_view("production_not_allowed_to_subsidise_tooltip")
 								: std::string_view("production_allowed_to_subsidise_tooltip"));
+
 			}
+			if(disabled)
+				text::localised_format_box(state, contents, box, std::string_view("cant_subsidize_explanation"));
+
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("production_subsidies_desc"));
 			text::close_layout_box(contents, box);

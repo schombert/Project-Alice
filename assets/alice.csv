@@ -463,4 +463,6 @@ factory_condition_1;The nation is civilized
 factory_condition_2;This is not a colonial state
 factory_condition_3;The ruling party allows building factories
 factory_condition_4;There are fewer than $val$ factories in the state
+cant_subsidize_explanation;The ruling party does not allow us to subsidize factories
+percent_of_pop_strata;$val$ of the population of their strata
 ;;;;;;;;;;;;;x
