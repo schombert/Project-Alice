@@ -147,7 +147,7 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 
 	virtual void button_action(sys::state& state) noexcept { }
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		if(!disabled) {
 			sound::play_interface_sound(state, sound::get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -155,7 +155,7 @@ public:
 		}
 		return message_result::consumed;
 	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
 			sound::play_interface_sound(state, sound::get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -167,6 +167,34 @@ public:
 	}
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class shift_button_element_base : public button_element_base {
+	virtual void button_shift_action(sys::state& state) noexcept { }
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else
+				button_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else
+				button_action(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
 };
 
 class line_graph : public element_base {
@@ -588,10 +616,11 @@ public:
 	void update_scaled_value(sys::state& state, float v);
 
 	float scaled_value() const;
+	int32_t raw_value() const;
 
 	void change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s);
 
-	void on_create(sys::state& state) noexcept final;
+	void on_create(sys::state& state) noexcept;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
@@ -633,6 +662,7 @@ struct multiline_text_scroll_event {
 
 class autoscaling_scrollbar : public scrollbar {
 public:
+	void on_create(sys::state& state) noexcept override;
 	void scale_to_parent();
 };
 

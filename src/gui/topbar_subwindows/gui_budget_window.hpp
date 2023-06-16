@@ -67,6 +67,68 @@ uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 } // namespace ogl
 
 namespace ui {
+
+
+class nation_administrative_efficiency_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto n = any_cast<dcon::nation_id>(payload);
+
+			if(state.user_settings.use_new_ui) {
+
+				{
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val,
+							text::fp_percentage{1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "admin_explain_1", m);
+					text::close_layout_box(contents, box);
+				}
+				active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier,
+						false);
+				{
+					auto non_colonial = state.world.nation_get_non_colonial_population(n);
+					auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
+
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "admin_explain_2", m);
+					text::close_layout_box(contents, box);
+				}
+				{
+					float issue_sum = 0.0f;
+					for(auto i : state.culture_definitions.social_issues) {
+						issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
+					}
+					auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
+
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val,
+							text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
+					text::add_to_substitution_map(m, text::variable_type::x,
+							text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
+					text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "admin_explain_3", m);
+					text::close_layout_box(contents, box);
+				}
+			} else {
+				// TODO: Classic tooltip
+			}
+		}
+	}
+};
+
 template<culture::pop_strata Strata>
 class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
@@ -662,6 +724,11 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		auto total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, type));
+		disabled = total_pop < 1.0f;
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto total = 0.f;
 		std::array<float, 5> sat_pool = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -680,60 +747,92 @@ public:
 			}
 		}
 
-		if(total > 0.0f) {
-			{
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
-				text::add_line_break_to_layout_box(state, contents, box);
-				text::close_layout_box(contents, box);
+		if(state.user_settings.use_new_ui) {
+			if(total > 0.0f) {
+				auto type_strata = state.world.pop_type_get_strata(type);
+				float total_pop = 0.0f;
+				if(culture::pop_strata(type_strata) == culture::pop_strata::poor) {
+					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::poor_total);
+				} else if(culture::pop_strata(type_strata) == culture::pop_strata::middle) {
+					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::middle_total);
+				} else {
+					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::rich_total);
+				}
+
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_single_sub_box(state, contents, box, std::string_view("percent_of_pop_strata"),
+							text::variable_type::val, text::fp_percentage{total / total_pop});
+					text::close_layout_box(contents, box);
+					//percent_of_pop_strata
+				}
+				text::add_line_break_to_layout(state, contents);
+				static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "no_need");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[0] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_no_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "some_life_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[1] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "life_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[2] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "everyday_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[3] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "luxury_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[4] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+			} else {
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+					text::close_layout_box(contents, box);
+				}
+				text::add_line_break_to_layout(state, contents);
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, std::string_view("no_pops_of_type"));
+					text::close_layout_box(contents, box);
+				}
 			}
-			text::add_line_break_to_layout(state, contents);
-			static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
-			{
-				auto box = text::open_layout_box(contents);
-				auto sub = text::substitution_map{};
-				auto needs_type = text::produce_simple_string(state, "no_need");
-				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[0] * 100.0f / total});
-				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-				text::localised_format_box(state, contents, box, "budget_strata_no_need", sub);
-				text::close_layout_box(contents, box);
-			}
-			{
-				auto box = text::open_layout_box(contents);
-				auto sub = text::substitution_map{};
-				auto needs_type = text::produce_simple_string(state, "some_life_needs");
-				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[1] * 100.0f / total});
-				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-				text::close_layout_box(contents, box);
-			}
-			{
-				auto box = text::open_layout_box(contents);
-				auto sub = text::substitution_map{};
-				auto needs_type = text::produce_simple_string(state, "life_needs");
-				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[2] * 100.0f / total});
-				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-				text::close_layout_box(contents, box);
-			}
-			{
-				auto box = text::open_layout_box(contents);
-				auto sub = text::substitution_map{};
-				auto needs_type = text::produce_simple_string(state, "everyday_needs");
-				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[3] * 100.0f / total});
-				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-				text::close_layout_box(contents, box);
-			}
-			{
-				auto box = text::open_layout_box(contents);
-				auto sub = text::substitution_map{};
-				auto needs_type = text::produce_simple_string(state, "luxury_needs");
-				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[4] * 100.0f / total});
-				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-				text::close_layout_box(contents, box);
-			}
+		} else {
+			// TODO: Classic tooltip
 		}
 	}
 };

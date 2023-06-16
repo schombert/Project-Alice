@@ -1172,8 +1172,76 @@ void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& 
 	}
 }
 
-// Standardised dividers :3
-// Without the Leasion of Post-1.0 Stuff
+void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		add_to_layout_box(state, dest, box, k->second);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+
+	if(state.user_settings.use_new_ui) {
+		if(condition_met) {
+			text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		} else {
+			text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		}
+	} else {
+		if(condition_met) {
+			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
+			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::green);
+			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
+		} else {
+			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
+			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::red);
+			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
+			
+		}
+	}
+
+	text::add_space_to_layout_box(state, dest, box);
+
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		add_to_layout_box(state, dest, box, k->second);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		int32_t indent) {
+
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
+
+		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
+		text::add_to_substitution_map(sub, subkey_b, value_b);
+
+		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+
+
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	text::add_line_break_to_layout_box(state, dest, box);
 	// Why do many thing when one can do one thing.
@@ -1181,4 +1249,5 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 	text::add_to_layout_box(state, dest, box, std::string_view("--------------"));
 	text::add_line_break_to_layout_box(state, dest, box);
 }
+
 } // namespace text

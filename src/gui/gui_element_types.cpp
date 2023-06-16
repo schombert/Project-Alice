@@ -847,6 +847,11 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 	return distrib;
 }
 
+void autoscaling_scrollbar::on_create(sys::state& state) noexcept {
+	base_data.data.scrollbar.flags &= ~ui::scrollbar_data::step_size_mask;
+	scrollbar::on_create(state);
+}
+
 void autoscaling_scrollbar::scale_to_parent() {
 	base_data.size.y = parent->base_data.size.y;
 	base_data.data.scrollbar.border_size = base_data.size;
@@ -858,7 +863,7 @@ void autoscaling_scrollbar::scale_to_parent() {
 	track->base_data.position.y = right->base_data.size.y;
 	track->base_data.position.x = 5;
 	slider->base_data.position.x = 0;
-	settings.track_size = track->base_data.size.y - left->base_data.size.y;
+	settings.track_size = track->base_data.size.y;
 
 	left->step_size = -settings.scaling_factor;
 	right->step_size = -settings.scaling_factor;
@@ -963,7 +968,7 @@ message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, in
 template<class RowWinT, class RowConT>
 void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 	auto content_off_screen = int32_t(row_contents.size() - row_windows.size());
-	int32_t scroll_pos = int32_t(list_scrollbar->scaled_value());
+	int32_t scroll_pos = list_scrollbar->raw_value();
 	if(content_off_screen <= 0) {
 		list_scrollbar->set_visible(state, false);
 		scroll_pos = 0;
@@ -1003,7 +1008,7 @@ template<class RowWinT, class RowConT>
 message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
 		sys::key_modifiers mods) noexcept {
 	if(row_contents.size() > row_windows.size()) {
-		list_scrollbar->update_scaled_value(state, list_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
+		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
 		update(state);
 	}
 	return message_result::consumed;
@@ -1427,6 +1432,9 @@ void scrollbar::update_scaled_value(sys::state& state, float v) {
 }
 float scrollbar::scaled_value() const {
 	return float(stored_value) / float(settings.scaling_factor);
+}
+int32_t scrollbar::raw_value() const {
+	return stored_value;
 }
 
 void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s) {

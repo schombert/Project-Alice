@@ -1361,7 +1361,11 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			// can't move over impassible connections; can't move directly from port to port
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov) &&
+					(other_prov.id.index() >= state.province_definitions.first_sea_province.index() ||
+							nearest.province.index() >= state.province_definitions.first_sea_province.index())) {
+
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
 					return path_result;

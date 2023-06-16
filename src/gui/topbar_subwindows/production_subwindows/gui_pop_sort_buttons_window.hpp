@@ -4,6 +4,33 @@
 
 namespace ui {
 
+class primary_worker_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::primary_workers;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class secondary_worker_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::secondary_workers;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class owner_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::owners;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
 class pop_sort_buttons_window : public window_element_base {
 	xy_pair sort_template_offset{};
 
@@ -15,23 +42,24 @@ public:
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
 		sort_template_offset = base_sort_template_offset;
 
-		auto ptr = make_element_by_type<button_element_base>(state,
+		auto ptr = make_element_by_type<primary_worker_sort>(state,
 				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
 		ptr->set_button_text(state,
-				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
+				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
 		sort_template_offset.x = base_sort_template_offset.x * 0;
 		ptr->base_data.position = sort_template_offset;
 		add_child_to_back(std::move(ptr));
 
-		auto ptr2 = make_element_by_type<button_element_base>(state,
+		auto ptr2 = make_element_by_type<secondary_worker_sort>(state,
 				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
 		ptr2->set_button_text(state,
-				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
+				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
 		sort_template_offset.x = base_sort_template_offset.x * 1;
 		ptr2->base_data.position = sort_template_offset;
 		add_child_to_back(std::move(ptr2));
 
-		auto ptr3 = make_element_by_type<button_element_base>(state,
+		auto ptr3 =
+				make_element_by_type<owner_sort>(state,
 				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
 		ptr3->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)));

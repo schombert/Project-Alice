@@ -343,6 +343,9 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 						return false;
 	}
 
+	if(state.world.nation_get_is_civilized(source) == false)
+		return false;
+
 	if(owner != source) {
 		/*
 		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great
@@ -364,8 +367,6 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		/*
 		The nation must have the rule set to allow building / upgrading if this is a domestic target.
 		*/
-		if(state.world.nation_get_is_civilized(source) == false)
-			return false;
 
 		auto rules = state.world.nation_get_combined_issue_rules(owner);
 		if(is_upgrade) {

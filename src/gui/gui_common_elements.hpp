@@ -762,60 +762,6 @@ public:
 	}
 };
 
-class nation_administrative_efficiency_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
-	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto n = any_cast<dcon::nation_id>(payload);
-
-			{
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val,
-						text::fp_percentage{1.0f +
-								state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "admin_explain_1", m);
-				text::close_layout_box(contents, box);
-			}
-			active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier, false);
-			{
-				auto non_colonial = state.world.nation_get_non_colonial_population(n);
-				auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
-
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "admin_explain_2", m);
-				text::close_layout_box(contents, box);
-			}
-			{
-				float issue_sum = 0.0f;
-				for(auto i : state.culture_definitions.social_issues) {
-					issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
-				}
-				auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
-
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val,
-						text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
-				text::add_to_substitution_map(m, text::variable_type::x,
-						text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
-				text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "admin_explain_3", m);
-				text::close_layout_box(contents, box);
-			}
-		}
-	}
-};
 
 class nation_prestige_text : public standard_nation_text {
 public:
@@ -1376,38 +1322,6 @@ public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto status = nations::get_status(state, nation_id);
 		return std::min(3, int32_t(status));
-	}
-};
-
-class nation_national_value_icon : public standard_nation_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto nat_val = state.world.nation_get_national_value(nation_id);
-		return nat_val.get_icon();
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			auto name = fat_id.get_name();
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
-				text::close_layout_box(contents, box);
-			}
-			auto mod_id = fat_id.get_national_value().id;
-			if(bool(mod_id)) {
-				modifier_description(state, contents, mod_id);
-			}
-		}
 	}
 };
 

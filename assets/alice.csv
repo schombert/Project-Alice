@@ -463,4 +463,26 @@ factory_condition_1;The nation is civilized
 factory_condition_2;This is not a colonial state
 factory_condition_3;The ruling party allows building factories
 factory_condition_4;There are fewer than $val$ factories in the state
+cant_subsidize_explanation;The ruling party does not allow us to subsidize factories
+percent_of_pop_strata;$val$ of the population of their strata
+cant_prioritize_explanation;The ruling party does not allow us to change factory priority
+factory_upgrade_condition_1;The nation is civilized
+factory_upgrade_condition_2;This is not a colonial state
+factory_upgrade_condition_3;The technology requirements to construct the factory are met
+factory_upgrade_condition_4;Your nation is a great power while the target nation is not
+factory_upgrade_condition_5;The investment target is civilized
+factory_upgrade_condition_6;The ruling party of the investment target allows foreign investment
+factory_upgrade_condition_7;The investment target is not at war with you
+factory_upgrade_condition_8;The ruling party allows upgrading factories
+factory_upgrade_condition_9;The factory is not already being upgraded
+factory_upgrade_condition_10;The factory is not at max level
+factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment being upgraded.
+factory_delete_header;Delete factory
+factory_delete_not_allowed;The ruling party does not allow us to delete factories
+factory_stats_1;This factory is currently operating at $val$ capacity
+factory_stats_2;This factory is targeting $val$ capacity
+factory_stats_3;It produced $val$ units of $x$ in the previous day
+factory_stats_4;It made a profit of $val$ in the previous day
+factory_stats_5;Inputs availability:
+factory_stats_6;Efficiency inputs availability:
 ;;;;;;;;;;;;;x
