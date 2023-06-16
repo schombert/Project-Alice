@@ -147,7 +147,7 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 
 	virtual void button_action(sys::state& state) noexcept { }
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		if(!disabled) {
 			sound::play_interface_sound(state, sound::get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -155,7 +155,7 @@ public:
 		}
 		return message_result::consumed;
 	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
 			sound::play_interface_sound(state, sound::get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
