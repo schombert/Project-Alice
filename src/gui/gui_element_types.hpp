@@ -616,10 +616,11 @@ public:
 	void update_scaled_value(sys::state& state, float v);
 
 	float scaled_value() const;
+	int32_t raw_value() const;
 
 	void change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s);
 
-	void on_create(sys::state& state) noexcept final;
+	void on_create(sys::state& state) noexcept;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
@@ -661,6 +662,7 @@ struct multiline_text_scroll_event {
 
 class autoscaling_scrollbar : public scrollbar {
 public:
+	void on_create(sys::state& state) noexcept override;
 	void scale_to_parent();
 };
 
