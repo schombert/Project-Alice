@@ -286,6 +286,7 @@ inline constexpr int32_t max_issue_options = 6;
 namespace ui {
 
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
+enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
 
 }
 

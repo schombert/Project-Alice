@@ -11,11 +11,29 @@ public:
 		return parent->impl_on_scroll(state, x, y, amount, mods);
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = button_press_notification{};
-			parent->impl_get(state, payload);
+	void on_update(sys::state& state) noexcept override {
+		auto for_nation = retrieve<dcon::nation_id>(state, parent);
+
+		auto for_rules = state.world.nation_get_combined_issue_rules(for_nation);
+
+		if(!nations::is_great_power(state, state.local_player_nation)) {
+			disabled = true;
+			return;
 		}
+		if(nations::is_great_power(state, for_nation) || !state.world.nation_get_is_civilized(for_nation)) {
+			disabled = true;
+			return;
+		}
+		if((for_rules & issue_rule::allow_foreign_investment) == 0) {
+			disabled = true;
+			return;
+		}
+		disabled = false;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto for_nation = retrieve<dcon::nation_id>(state, parent);
+		open_foreign_investment(state, for_nation);
 	}
 };
 

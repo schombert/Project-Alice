@@ -12,8 +12,6 @@
 
 namespace ui {
 
-enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
-
 struct production_selection_wrapper {
 	dcon::state_instance_id data{};
 	bool is_build = false;
@@ -1313,6 +1311,50 @@ public:
 	}
 };
 
+class commodity_primary_worker_amount : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::commodity_id>(payload);
+
+			float total = 0.0f;
+
+			for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+				for(auto fac : p.get_province().get_factory_location()) {
+					if(fac.get_factory().get_building_type().get_output() == content) {
+						total += economy::factory_primary_employment(state, fac.get_factory());
+					}
+				}
+			}
+
+			set_text(state, text::prettify(int64_t(total)));
+		}
+	}
+};
+
+class commodity_secondary_worker_amount : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::commodity_id>(payload);
+
+			float total = 0.0f;
+
+			for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+				for(auto fac : p.get_province().get_factory_location()) {
+					if(fac.get_factory().get_building_type().get_output() == content) {
+						total += economy::factory_secondary_employment(state, fac.get_factory());
+					}
+				}
+			}
+
+			set_text(state, text::prettify(int64_t(total)));
+		}
+	}
+};
+
 class production_good_info : public window_element_base {
 	dcon::commodity_id commodity_id{};
 	commodity_player_production_text* good_output_total = nullptr;
@@ -1339,9 +1381,9 @@ public:
 			ptr->frame = int32_t(dcon::fatten(state.world, state.culture_definitions.secondary_factory_worker).get_sprite() - 1);
 			return ptr;
 		} else if(name == "output") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<commodity_primary_worker_amount>(state, id);
 		} else if(name == "output2") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<commodity_secondary_worker_amount>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1371,6 +1413,10 @@ public:
 	}
 };
 
+struct open_investment_nation {
+	dcon::nation_id id;
+};
+
 class production_window : public generic_tabbed_window<production_window_tab> {
 	bool show_empty_states = true;
 	bool* show_output_commodity;
@@ -1379,7 +1425,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	element_base* nf_win = nullptr;
 	element_base* build_win = nullptr;
 	element_base* project_window = nullptr;
-	element_base* foreign_invest_win = nullptr;
+	production_foreign_investment_window* foreign_invest_win = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
@@ -1391,6 +1437,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	std::vector<element_base*> investment_brow_elements;
 	std::vector<element_base*> project_elements;
 	std::vector<element_base*> good_elements;
+	std::vector<element_base*> investment_nation;
 	std::vector<bool> commodity_filters;
 	bool open_foreign_invest = false;
 
@@ -1404,6 +1451,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 		set_visible_vector_elements(state, investment_brow_elements, false);
 		set_visible_vector_elements(state, project_elements, false);
 		set_visible_vector_elements(state, good_elements, false);
+		set_visible_vector_elements(state, investment_nation, false);
 	}
 
 public:
@@ -1416,6 +1464,8 @@ public:
 		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count;
 				curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
 			commodity_offset.x = base_commodity_offset.x;
+
+
 
 			// Place legend for this category...
 			auto ptr = make_element_by_type<production_goods_category_name>(state,
@@ -1432,6 +1482,8 @@ public:
 			// Place infoboxes for each of the goods...
 			state.world.for_each_commodity([&](dcon::commodity_id id) {
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id))
+					return;
+				if(id == economy::money)
 					return;
 
 				auto info_ptr = make_element_by_type<production_good_info>(state,
@@ -1524,7 +1576,7 @@ public:
 		} else if(name == "invest_buttons") {
 			auto ptr = make_element_by_type<production_foreign_investment_window>(state, id);
 			foreign_invest_win = ptr.get();
-			investment_brow_elements.push_back(ptr.get());
+			investment_nation.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "state_listbox") {
@@ -1594,6 +1646,13 @@ public:
 			}
 			active_tab = enum_val;
 			return message_result::consumed;
+		} else if(payload.holds_type<open_investment_nation>()) {
+			hide_sub_windows(state);
+			auto target = any_cast<open_investment_nation>(payload).id;
+			active_tab = production_window_tab::investments;
+			foreign_invest_win->curr_nation = target;
+			set_visible_vector_elements(state, investment_nation, true);
+			return message_result::consumed;
 		} else if(payload.holds_type<production_sort_order>()) {
 			auto sort_type = any_cast<production_sort_order>(payload);
 			state_listbox->sort_order = sort_type;
@@ -1660,5 +1719,30 @@ public:
 		return message_result::unseen;
 	}
 };
+
+void open_foreign_investment(sys::state& state, dcon::nation_id n) {
+	if(state.ui_state.topbar_subwindow->is_visible()) {
+		state.ui_state.topbar_subwindow->set_visible(state, false);
+	}
+	state.ui_state.production_subwindow->set_visible(state, true);
+	state.ui_state.root->move_child_to_front(state.ui_state.production_subwindow);
+	state.ui_state.topbar_subwindow = state.ui_state.production_subwindow;
+
+	send(state, state.ui_state.production_subwindow, open_investment_nation{n});
+}
+
+void open_build_foreign_factory(sys::state& state, dcon::state_instance_id st) {
+	if(state.ui_state.topbar_subwindow->is_visible()) {
+		state.ui_state.topbar_subwindow->set_visible(state, false);
+	}
+	state.ui_state.production_subwindow->set_visible(state, true);
+	state.ui_state.root->move_child_to_front(state.ui_state.production_subwindow);
+	state.ui_state.topbar_subwindow = state.ui_state.production_subwindow;
+
+	send(state, state.ui_state.production_subwindow,
+			open_investment_nation{state.world.state_instance_get_nation_from_state_ownership(st)});
+
+	// TODO: open the build factory window as well
+}
 
 } // namespace ui

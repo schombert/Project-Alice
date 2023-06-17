@@ -389,12 +389,19 @@ float factory_max_employment(sys::state const& state, dcon::factory_id f) {
 	return factory_per_level_employment * state.world.factory_get_level(f);
 }
 
+float factory_primary_employment(sys::state const& state, dcon::factory_id f) {
+	auto primary_employment = state.world.factory_get_primary_employment(f);
+	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment);
+}
+float factory_secondary_employment(sys::state const& state, dcon::factory_id f) {
+	auto secondary_employment = state.world.factory_get_secondary_employment(f);
+	return factory_max_employment(state, f) * ((1 - state.economy_definitions.craftsmen_fraction) * secondary_employment);
+}
 float factory_total_employment(sys::state const& state, dcon::factory_id f) {
 	// TODO: Document this, also is this a stub?
 	auto primary_employment = state.world.factory_get_primary_employment(f);
 	auto secondary_employment = state.world.factory_get_secondary_employment(f);
-	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment +
-																								(1 - state.economy_definitions.craftsmen_fraction) * secondary_employment);
+	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment + (1 -state.economy_definitions.craftsmen_fraction) * secondary_employment);
 }
 
 void update_factory_employment(sys::state& state) {

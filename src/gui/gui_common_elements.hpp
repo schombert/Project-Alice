@@ -59,8 +59,11 @@ enum class country_list_sort : uint8_t {
 	gp_influence = 0x40,
 	gp_investment = 0x80
 };
+
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
 
+void open_build_foreign_factory(sys::state& state, dcon::state_instance_id st);
+void open_foreign_investment(sys::state& state, dcon::nation_id n);
 
 template<country_list_sort Sort>
 class country_sort_button : public button_element_base {
