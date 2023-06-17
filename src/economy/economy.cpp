@@ -32,6 +32,10 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	auto crng = state.world.state_instance_get_state_building_construction(si);
+	if(crng.begin() != crng.end())
+		return true;
+
 	for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 		if(p.get_province().get_nation_from_province_ownership() == owner) {
 			auto rng = p.get_province().get_factory_location();

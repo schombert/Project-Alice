@@ -65,26 +65,21 @@ class factory_priority_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
+			const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+			dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+
 			frame = economy::factory_priority(state, fid);
 
 			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
-			disabled = (rules & issue_rule::factory_priority) == 0;
+			disabled = (rules & issue_rule::factory_priority) == 0 || n != state.local_player_nation;
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
+			const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 			auto fat = dcon::fatten(state.world, fid);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
 			switch(economy::factory_priority(state, fid)) {
 			case 0:
@@ -108,13 +103,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		Cyto::Any n_payload = dcon::nation_id{};
-		parent->impl_get(state, n_payload);
-		dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-
-		Cyto::Any payload = dcon::factory_id{};
-		parent->impl_get(state, payload);
-		const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
 		if(n != state.local_player_nation)
 			return;
@@ -148,60 +138,38 @@ public:
 class factory_upgrade_button : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-			auto fat = dcon::fatten(state.world, fid);
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		auto fat = dcon::fatten(state.world, fid);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 
-			Cyto::Any payload1 = dcon::state_instance_id{};
-			parent->impl_get(state, payload1);
-			auto sid = any_cast<dcon::state_instance_id>(payload1);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-
-			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid,
-					fat.get_building_type().id, true);
-		}
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid,
+			fat.get_building_type().id, true);
+		
 	}
 
 	void button_shift_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-			for(auto p : state.world.nation_get_province_ownership(n)) {
-				for(auto fac : p.get_province().get_factory_location()) {
-					if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
-						if(command::can_begin_factory_building_construction(state, state.local_player_nation,
-									 p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+							 p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 
-							command::begin_factory_building_construction(state, state.local_player_nation,
-									p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
-						}
+						command::begin_factory_building_construction(state, state.local_player_nation,
+							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
 					}
 				}
 			}
 		}
+		
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fid = retrieve<dcon::factory_id>(state, parent);
 			auto fat = dcon::fatten(state.world, fid);
-
-			Cyto::Any payload1 = dcon::state_instance_id{};
-			parent->impl_get(state, payload1);
-			auto sid = any_cast<dcon::state_instance_id>(payload1);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			auto sid = retrieve<dcon::state_instance_id>(state, parent);
 
 			command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
 		}
@@ -213,18 +181,10 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 
-		Cyto::Any payload = dcon::factory_id{};
-		parent->impl_get(state, payload);
-		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
-
-		Cyto::Any payload1 = dcon::state_instance_id{};
-		parent->impl_get(state, payload1);
-		auto sid = any_cast<dcon::state_instance_id>(payload1);
-
-		Cyto::Any n_payload = dcon::nation_id{};
-		parent->impl_get(state, n_payload);
-		dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
 		auto type = state.world.factory_get_building_type(fid);
 		
@@ -298,6 +258,10 @@ public:
 
 	}
 
+	void on_create(sys::state& state) noexcept override {
+		set_visible(state, false);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
 	}
@@ -309,32 +273,21 @@ public:
 
 class factory_subsidise_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
+	void on_update(sys::state& state) noexcept override {	
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-			auto rules = state.world.nation_get_combined_issue_rules(n);
-			disabled = (rules & issue_rule::can_subsidise) == 0;
+		auto rules = state.world.nation_get_combined_issue_rules(n);
+		disabled = (rules & issue_rule::can_subsidise) == 0 || state.local_player_nation != n;
 
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			const dcon::factory_id fid = any_cast<dcon::factory_id>(payload);
-			frame = state.world.factory_get_subsidized(fid) ? 1 : 0;
-		}
+		frame = state.world.factory_get_subsidized(fid) ? 1 : 0;
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fid = retrieve<dcon::factory_id>(state, parent);
+			auto n = retrieve<dcon::nation_id>(state, parent);
 			auto fat = dcon::fatten(state.world, fid);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
 			if(fat.get_subsidized()) {
 				if(command::can_change_factory_settings(state, state.local_player_nation, fid,
@@ -358,14 +311,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-
+			auto fid = retrieve<dcon::factory_id>(state, parent);
+			auto n = retrieve<dcon::nation_id>(state, parent);
 
 			if(n == state.local_player_nation) {
 				if(dcon::fatten(state.world, fid).get_subsidized()) {
@@ -391,13 +338,8 @@ class factory_delete_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			auto fid = retrieve<dcon::factory_id>(state, parent);
+			auto n = retrieve<dcon::nation_id>(state, parent);
 
 			disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 		}
@@ -405,13 +347,8 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			auto fid = retrieve<dcon::factory_id>(state, parent);
+			auto n = retrieve<dcon::nation_id>(state, parent);
 
 			command::delete_factory(state, state.local_player_nation, fid);
 		}
@@ -423,13 +360,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			auto fid = retrieve<dcon::factory_id>(state, parent);
+			auto n = retrieve<dcon::nation_id>(state, parent);
 
 			if(n == state.local_player_nation) {
 				text::add_line(state, contents, "factory_delete_header");
@@ -864,11 +796,8 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto sid = any_cast<dcon::state_instance_id>(payload);
-			Cyto::Any s_payload = production_selection_wrapper{sid, true, xy_pair{0, 0}};
-			parent->impl_get(state, s_payload);
+			dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
+			send(state, parent, production_selection_wrapper{sid, true, xy_pair{0, 0}});
 		}
 	}
 
@@ -877,26 +806,13 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		dcon::state_instance_id sid;
-		dcon::nation_id n;
+		dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			sid = any_cast<dcon::state_instance_id>(payload);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			n = any_cast<dcon::nation_id>(n_payload);
-		}
+		bool non_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
 
-		bool non_colonial = state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-
-		bool is_civilized = state.world.nation_get_is_civilized(n);
-
-		auto rules = state.world.nation_get_combined_issue_rules(n);
-			
-		bool allowed_by_rules = (rules & issue_rule::build_factory) != 0;
+		bool is_civilized = state.world.nation_get_is_civilized(state.local_player_nation);
 
 		// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
 		int32_t num_factories = 0;
@@ -918,7 +834,24 @@ public:
 		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "factory_condition_1", is_civilized);
 		text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
-		text::add_line_with_condition(state, contents, "factory_condition_3", allowed_by_rules);
+
+		if(n == state.local_player_nation) {
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_condition_3", (rules & issue_rule::build_factory) != 0);
+		} else {
+			bool gp_condition = (state.world.nation_get_is_great_power(state.local_player_nation) == true &&
+														 state.world.nation_get_is_great_power(n) == false);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", gp_condition);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
+
+			auto target = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
+					(target & issue_rule::allow_foreign_investment) != 0);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7", !military::are_at_war(state, state.local_player_nation, n));
+		}
+
 		{
 			auto box = text::open_layout_box(contents);
 			if(num_factories <= int32_t(state.defines.factories_per_state)) {
@@ -931,7 +864,6 @@ public:
 					int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
-
 
 		// TODO classic tooltips ?
 	}
@@ -1112,6 +1044,164 @@ public:
 	}
 };
 
+void populate_production_states_list(sys::state& state, std::vector<dcon::state_instance_id>& row_contents, dcon::nation_id n, bool show_empty, production_sort_order sort_order) {
+
+	for(auto const fat_id : state.world.nation_get_state_ownership(n)) {
+		if(show_empty && !fat_id.get_state().get_capital().get_is_colonial()) {
+			row_contents.push_back(fat_id.get_state());
+		} else if(economy::has_factory(state, fat_id.get_state().id)) {
+			// Then account for factories **hidden** by the filter from goods...
+			size_t count = 0;
+			province::for_each_province_in_state_instance(state, fat_id.get_state(), [&](dcon::province_id pid) {
+				auto ffact_id = dcon::fatten(state.world, pid);
+				ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+					auto fid = state.world.factory_location_get_factory(flid);
+					Cyto::Any payload = commodity_filter_query_data{
+							state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
+					state.ui_state.production_subwindow->impl_get(state, payload);
+					auto content = any_cast<commodity_filter_query_data>(payload);
+					count += content.filter ? 1 : 0;
+				});
+			});
+			for(auto construct : fat_id.get_state().get_state_building_construction()) {
+				Cyto::Any payload = commodity_filter_query_data{construct.get_type().get_output().id, false};
+				state.ui_state.production_subwindow->impl_get(state, payload);
+				auto content = any_cast<commodity_filter_query_data>(payload);
+				count += content.filter ? 1 : 0;
+			}
+			
+
+			if(count > 0)
+				row_contents.push_back(fat_id.get_state());
+		}
+	}
+
+	auto sort_by_name = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		auto a_name =
+				text::produce_simple_string(state, state.world.state_definition_get_name(state.world.state_instance_get_definition(a)));
+		auto b_name =
+				text::produce_simple_string(state, state.world.state_definition_get_name(state.world.state_instance_get_definition(b)));
+		return a_name < b_name;
+	};
+	auto sort_by_factories = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		size_t acount = 0;
+		province::for_each_province_in_state_instance(state, a, [&](dcon::province_id pid) {
+			auto ffact_id = dcon::fatten(state.world, pid);
+			ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+				auto fid = state.world.factory_location_get_factory(flid);
+				Cyto::Any payload = commodity_filter_query_data{
+						state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
+				state.ui_state.production_subwindow->impl_get(state, payload);
+				auto content = any_cast<commodity_filter_query_data>(payload);
+				acount += content.filter ? 1 : 0;
+			});
+		});
+
+		size_t bcount = 0;
+		province::for_each_province_in_state_instance(state, b, [&](dcon::province_id pid) {
+			auto ffact_id = dcon::fatten(state.world, pid);
+			ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+				auto fid = state.world.factory_location_get_factory(flid);
+				Cyto::Any payload = commodity_filter_query_data{
+						state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
+				state.ui_state.production_subwindow->impl_get(state, payload);
+				auto content = any_cast<commodity_filter_query_data>(payload);
+				bcount += content.filter ? 1 : 0;
+			});
+		});
+		return acount > bcount;
+	};
+	auto sort_by_primary_workers = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		return state.world.state_instance_get_demographics(a,
+							 demographics::to_key(state, state.culture_definitions.primary_factory_worker)) >
+					 state.world.state_instance_get_demographics(b,
+							 demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+	};
+	auto sort_by_secondary_workers = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		return state.world.state_instance_get_demographics(a,
+							 demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) >
+					 state.world.state_instance_get_demographics(b,
+							 demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+	};
+	auto sort_by_owners = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		auto atotal = state.world.state_instance_get_demographics(a, demographics::total);
+		auto btotal = state.world.state_instance_get_demographics(b, demographics::total);
+		return state.world.state_instance_get_demographics(a, demographics::to_key(state, state.culture_definitions.capitalists)) /
+							 atotal >
+					 state.world.state_instance_get_demographics(b, demographics::to_key(state, state.culture_definitions.capitalists)) /
+							 btotal;
+	};
+	auto sort_by_infrastructure = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		float atotal = 0.0f;
+		float ap_total = 0.0f;
+		province::for_each_province_in_state_instance(state, a, [&](dcon::province_id p) {
+			atotal += float(state.world.province_get_railroad_level(p));
+			ap_total += 1.0f;
+		});
+		float btotal = 0.0f;
+		float bp_total = 0.0f;
+		province::for_each_province_in_state_instance(state, b, [&](dcon::province_id p) {
+			btotal += float(state.world.province_get_railroad_level(p));
+			bp_total += 1.0f;
+		});
+		return atotal / ap_total > btotal / bp_total;
+	};
+
+	switch(sort_order) {
+	case production_sort_order::name:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_name);
+		break;
+	case production_sort_order::factories:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_factories);
+		break;
+	case production_sort_order::primary_workers:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_primary_workers);
+		break;
+	case production_sort_order::secondary_workers:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_secondary_workers);
+		break;
+	case production_sort_order::owners:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_owners);
+		break;
+	case production_sort_order::infrastructure:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_infrastructure);
+		break;
+	}
+}
+
+struct production_foreign_invest_target {
+	dcon::nation_id n;
+};
+
+class production_state_invest_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "state_info";
+	}
+
+public:
+	production_sort_order sort_order = production_sort_order::name;
+
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		if(parent) {
+			auto show_empty = retrieve<bool>(state, parent);
+			dcon::nation_id n = retrieve<production_foreign_invest_target>(state, parent).n;
+
+			populate_production_states_list(state, row_contents, n, show_empty, sort_order);
+		}
+		update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(retrieve<production_foreign_invest_target>(state, parent).n);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -1124,131 +1214,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
-			Cyto::Any payload = bool{};
-			parent->impl_get(state, payload);
-			auto show_empty = any_cast<bool>(payload);
+			auto show_empty = retrieve<bool>(state, parent);
+			dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-
-			for(auto const fat_id : state.world.nation_get_state_ownership(n)) {
-				if(show_empty && !fat_id.get_state().get_capital().get_is_colonial()) {
-					row_contents.push_back(fat_id.get_state());
-				} else if(economy::has_factory(state, fat_id.get_state().id)) {
-					// Then account for factories **hidden** by the filter from goods...
-					size_t count = 0;
-					province::for_each_province_in_state_instance(state, fat_id.get_state(), [&](dcon::province_id pid) {
-						auto ffact_id = dcon::fatten(state.world, pid);
-						ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-							auto fid = state.world.factory_location_get_factory(flid);
-							Cyto::Any payload = commodity_filter_query_data{
-									state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
-							parent->impl_get(state, payload);
-							auto content = any_cast<commodity_filter_query_data>(payload);
-							count += content.filter ? 1 : 0;
-						});
-					});
-
-					if(count > 0)
-						row_contents.push_back(fat_id.get_state());
-				}
-			}
-
-			auto sort_by_name = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				auto a_name = text::produce_simple_string(state,
-						state.world.state_definition_get_name(state.world.state_instance_get_definition(a)));
-				auto b_name = text::produce_simple_string(state,
-						state.world.state_definition_get_name(state.world.state_instance_get_definition(b)));
-				return a_name < b_name;
-			};
-			auto sort_by_factories = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				size_t acount = 0;
-				province::for_each_province_in_state_instance(state, a, [&](dcon::province_id pid) {
-					auto ffact_id = dcon::fatten(state.world, pid);
-					ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-						auto fid = state.world.factory_location_get_factory(flid);
-						Cyto::Any payload = commodity_filter_query_data{
-								state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
-						parent->impl_get(state, payload);
-						auto content = any_cast<commodity_filter_query_data>(payload);
-						acount += content.filter ? 1 : 0;
-					});
-				});
-
-				size_t bcount = 0;
-				province::for_each_province_in_state_instance(state, b, [&](dcon::province_id pid) {
-					auto ffact_id = dcon::fatten(state.world, pid);
-					ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-						auto fid = state.world.factory_location_get_factory(flid);
-						Cyto::Any payload = commodity_filter_query_data{
-								state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
-						parent->impl_get(state, payload);
-						auto content = any_cast<commodity_filter_query_data>(payload);
-						bcount += content.filter ? 1 : 0;
-					});
-				});
-				return acount > bcount;
-			};
-			auto sort_by_primary_workers = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				return state.world.state_instance_get_demographics(a,
-									 demographics::to_key(state, state.culture_definitions.primary_factory_worker)) >
-							 state.world.state_instance_get_demographics(b,
-									 demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-			};
-			auto sort_by_secondary_workers = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				return state.world.state_instance_get_demographics(a,
-									 demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) >
-							 state.world.state_instance_get_demographics(b,
-									 demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			};
-			auto sort_by_owners = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				auto atotal = state.world.state_instance_get_demographics(a, demographics::total);
-				auto btotal = state.world.state_instance_get_demographics(b, demographics::total);
-				return state.world.state_instance_get_demographics(a,
-									 demographics::to_key(state, state.culture_definitions.capitalists)) /
-									 atotal >
-							 state.world.state_instance_get_demographics(b,
-									 demographics::to_key(state, state.culture_definitions.capitalists)) /
-									 btotal;
-			};
-			auto sort_by_infrastructure = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-				float atotal = 0.0f;
-				float ap_total = 0.0f;
-				province::for_each_province_in_state_instance(state, a, [&](dcon::province_id p) {
-					atotal += float(state.world.province_get_railroad_level(p));
-					ap_total += 1.0f;
-				});
-				float btotal = 0.0f;
-				float bp_total = 0.0f;
-				province::for_each_province_in_state_instance(state, b, [&](dcon::province_id p) {
-					btotal += float(state.world.province_get_railroad_level(p));
-					bp_total += 1.0f;
-				});
-				return atotal / ap_total > btotal / bp_total;
-			};
-
-			switch(sort_order) {
-			case production_sort_order::name:
-				std::sort(row_contents.begin(), row_contents.end(), sort_by_name);
-				break;
-			case production_sort_order::factories:
-				std::sort(row_contents.begin(), row_contents.end(), sort_by_factories);
-				break;
-			case production_sort_order::primary_workers:
-				std::sort(row_contents.begin(), row_contents.end(), sort_by_primary_workers);
-				break;
-			case production_sort_order::secondary_workers:
-				std::sort(row_contents.begin(), row_contents.end(), sort_by_secondary_workers);
-				break;
-			case production_sort_order::owners:
-				std::sort(row_contents.begin(), row_contents.end(), sort_by_owners);
-				break;
-			case production_sort_order::infrastructure:
-				std::sort(row_contents.begin(), row_contents.end(), sort_by_infrastructure);
-				break;
-			}
-
+			populate_production_states_list(state, row_contents, n, show_empty, sort_order);
 		}
 		update(state);
 	}
@@ -1422,6 +1391,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	bool* show_output_commodity;
 
 	production_state_listbox* state_listbox = nullptr;
+	production_state_invest_listbox* state_listbox_invest = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* build_win = nullptr;
 	element_base* project_window = nullptr;
@@ -1585,6 +1555,12 @@ public:
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
 			return ptr;
+		} else if(name == "state_listbox_invest") {
+			auto ptr = make_element_by_type<production_state_invest_listbox>(state, id);
+			state_listbox_invest = ptr.get();
+			investment_nation.push_back(ptr.get());
+			ptr->set_visible(state, true);
+			return ptr;
 		} else if(name == "investment_browser") {
 			auto ptr = make_element_by_type<invest_brow_window>(state, id);
 			investment_brow_elements.push_back(ptr.get());
@@ -1646,6 +1622,9 @@ public:
 			}
 			active_tab = enum_val;
 			return message_result::consumed;
+		} else if(payload.holds_type<production_foreign_invest_target>()) {
+			payload.emplace<production_foreign_invest_target>(production_foreign_invest_target{foreign_invest_win->curr_nation});
+			return message_result::consumed;
 		} else if(payload.holds_type<open_investment_nation>()) {
 			hide_sub_windows(state);
 			auto target = any_cast<open_investment_nation>(payload).id;
@@ -1656,7 +1635,11 @@ public:
 		} else if(payload.holds_type<production_sort_order>()) {
 			auto sort_type = any_cast<production_sort_order>(payload);
 			state_listbox->sort_order = sort_type;
-			state_listbox->impl_on_update(state);
+			if(state_listbox->is_visible())
+				state_listbox->impl_on_update(state);
+			state_listbox_invest->sort_order = sort_type;
+			if(state_listbox_invest->is_visible())
+				state_listbox_invest->impl_on_update(state);
 		} else if(payload.holds_type<dcon::state_instance_id>()) {
 			payload.emplace<dcon::state_instance_id>(focus_state);
 			return message_result::consumed;
@@ -1742,7 +1725,7 @@ void open_build_foreign_factory(sys::state& state, dcon::state_instance_id st) {
 	send(state, state.ui_state.production_subwindow,
 			open_investment_nation{state.world.state_instance_get_nation_from_state_ownership(st)});
 
-	// TODO: open the build factory window as well
+	send(state, state.ui_state.production_subwindow, production_selection_wrapper{st, true, xy_pair{0, 0}});
 }
 
 } // namespace ui
