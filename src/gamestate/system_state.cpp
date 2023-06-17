@@ -153,6 +153,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+
+	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
@@ -258,7 +262,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 								text::alignment::left,
 								text::text_color::white},
 						250);
-				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
+				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 				if(container.used_width > 0)
@@ -269,8 +274,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+	
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
@@ -283,7 +287,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 								text::alignment::left,
 								text::text_color::white},
 						250);
-				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
+				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 				if(container.used_width > 0)
@@ -303,7 +308,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 						text::alignment::left,
 						text::text_color::white},
 				250);
-		ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
+		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 		if(container.used_width > 0)
@@ -379,10 +384,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glDepthRange(-1.0, 1.0);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
-	ui_state.scroll_target = ui_state.root
-															 ->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-																	 int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip)
-															 .under_mouse;
+	ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this,
+		int32_t(mouse_x_position / user_settings.ui_scale),
+		int32_t(mouse_y_position / user_settings.ui_scale),
+		ui::mouse_probe_type::tooltip).under_mouse;
 
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 

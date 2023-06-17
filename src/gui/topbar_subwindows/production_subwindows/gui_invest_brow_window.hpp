@@ -35,7 +35,9 @@ public:
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "invest") {
-			return make_element_by_type<nation_player_investment_text>(state, id);
+			auto ptr = make_element_by_type<nation_player_investment_text>(state, id);
+			ptr->base_data.position.x -= 4;
+			return ptr;
 		} else if(name == "factories") {
 			return make_element_by_type<nation_industries_text>(state, id);
 		} else if(name == "country_boss_flag") {
@@ -57,6 +59,7 @@ public:
 		} else if(name.substr(0, 10) == "country_gp") {
 			auto ptr = make_element_by_type<nation_gp_investment_text>(state, id);
 			ptr->rank = uint16_t(std::stoi(std::string{name.substr(10)}));
+			ptr->base_data.position.x -= 4;
 			return ptr;
 		} else {
 			return nullptr;
@@ -86,9 +89,24 @@ protected:
 class production_sort_nation_gp_flag : public nation_gp_flag {
 public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
-			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void button_action(sys::state& state) noexcept override { }
+};
+
+class production_sort_my_nation_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 	void button_action(sys::state& state) noexcept override { }
 };
@@ -130,6 +148,8 @@ public:
 		window_element_base::on_create(state);
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
+
+		country_listbox->list_scrollbar->base_data.position.x += 13;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -139,7 +159,7 @@ public:
 			country_listbox = ptr.get();
 			return ptr;
 		} else if(name == "sort_by_my_flag") {
-			auto ptr = make_element_by_type<nation_player_flag>(state, id);
+			auto ptr = make_element_by_type<production_sort_my_nation_flag>(state, id);
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name == "sort_by_boss") {
@@ -190,6 +210,10 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
 			ptr->target = country_list_filter::sphere;
 			return ptr;
+		} else if(name == "sort_by_invest_factories") {
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::factories>>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			auto const filter_name = name.substr(7);
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
@@ -211,9 +235,11 @@ public:
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name.substr(0, 10) == "sort_by_gp") {
-			auto ptr = make_element_by_type<country_sort_button<country_list_sort::gp_influence>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::gp_investment>>(state, id);
 			ptr->offset = uint8_t(std::stoi(std::string{name.substr(10)}));
 			return ptr;
+		} else if(name == "sort_by_my_invest") {
+			return make_element_by_type<country_sort_by_player_investment>(state, id);
 		} else {
 			return nullptr;
 		}

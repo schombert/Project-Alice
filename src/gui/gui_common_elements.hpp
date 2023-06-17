@@ -53,10 +53,15 @@ enum class country_list_sort : uint8_t {
 	relation,
 	opinion,
 	priority,
+	player_investment,
+	player_influence,
+	factories,
 	gp_influence = 0x40,
 	gp_investment = 0x80
 };
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
+
+
 template<country_list_sort Sort>
 class country_sort_button : public button_element_base {
 public:
@@ -64,6 +69,15 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<country_list_sort>{country_list_sort(uint8_t(Sort) | offset)};
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class country_sort_by_player_investment : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<country_list_sort>{country_list_sort::player_investment};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -669,9 +683,19 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// Only show if there is any overlord
-		set_visible(state, bool(get_current_nation(state)));
 		set_current_nation(state, get_current_nation(state));
+	}
+	void button_action(sys::state& state) noexcept override {
+		if(get_current_nation(state))
+			flag_button::button_action(state);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(get_current_nation(state))
+			flag_button::render(state, x, y);
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(get_current_nation(state))
+			flag_button::update_tooltip(state, x, y, contents);
 	}
 };
 

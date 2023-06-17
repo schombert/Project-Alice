@@ -730,7 +730,7 @@ public:
 
 template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
-private:
+public:
 	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
 
 protected:
