@@ -172,6 +172,23 @@ public:
 			}
 		}
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
+
+			text::substitution_map sub_map;
+			text::add_to_substitution_map(sub_map, text::variable_type::loc, state.world.province_get_name(province_id));
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("pw_open_popscreen"), sub_map);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_terrain_image : public opaque_element_base {
@@ -666,6 +683,38 @@ public:
 	}
 };
 
+class province_country_flag_button : public flag_button {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+};
+
+template<economy::province_building_type Value>
+class province_view_foreign_building_icon : public province_building_icon<Value> {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		switch(Value) {
+		case economy::province_building_type::railroad:
+			text::localised_format_box(state, contents, box, std::string_view("pv_railroad"));
+			break;
+		case economy::province_building_type::fort:
+			text::localised_format_box(state, contents, box, std::string_view("pv_fort"));
+			break;
+		case economy::province_building_type::naval_base:
+			text::localised_format_box(state, contents, box, std::string_view("pv_navalbase"));
+			break;
+		default:
+			break;
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class province_invest_factory_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -696,7 +745,7 @@ public:
 
 class province_view_foreign_details : public window_element_base {
 private:
-	flag_button* country_flag_button = nullptr;
+	province_country_flag_button* country_flag_button = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	ideology_piechart<dcon::province_id>* ideology_chart = nullptr;
 	workforce_piechart<dcon::province_id>* workforce_chart = nullptr;
@@ -706,7 +755,7 @@ public:
 		if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_flag") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
+			auto ptr = make_element_by_type<province_country_flag_button>(state, id);
 			country_flag_button = ptr.get();
 			return ptr;
 		} else if(name == "country_gov") {
@@ -756,11 +805,11 @@ public:
 		} else if(name == "goods_type") {
 			return make_element_by_type<province_rgo>(state, id);
 		} else if(name == "build_icon_fort") {
-			return make_element_by_type<province_building_icon<economy::province_building_type::fort>>(state, id);
+			return make_element_by_type<province_view_foreign_building_icon<economy::province_building_type::fort>>(state, id);
 		} else if(name == "build_icon_navalbase") {
-			return make_element_by_type<province_building_icon<economy::province_building_type::naval_base>>(state, id);
+			return make_element_by_type<province_view_foreign_building_icon<economy::province_building_type::naval_base>>(state, id);
 		} else if(name == "build_icon_infra") {
-			return make_element_by_type<province_building_icon<economy::province_building_type::railroad>>(state, id);
+			return make_element_by_type<province_view_foreign_building_icon<economy::province_building_type::railroad>>(state, id);
 		} else if(name == "infra_progress_win") {
 			auto ptr = make_element_by_type<window_element_base>(state, id);
 			ptr->set_visible(state, false);
@@ -809,6 +858,50 @@ public:
 	}
 };
 
+void province_owner_rgo_draw_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov_id) noexcept;
+
+class province_owner_rgo : public province_rgo {
+public:
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+			province_owner_rgo_draw_tooltip(state, contents, prov_id);
+		}
+	}
+};
+
+class province_owner_income_text : public province_income_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+			province_owner_rgo_draw_tooltip(state, contents, prov_id);
+		}
+	}
+};
+
+class province_owner_goods_produced_text : public province_goods_produced_text {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+			province_owner_rgo_draw_tooltip(state, contents, prov_id);
+		}
+	}
+};
+
 class province_view_statistics : public window_element_base {
 private:
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
@@ -818,7 +911,7 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
-			return make_element_by_type<province_rgo>(state, id);
+			return make_element_by_type<province_owner_rgo>(state, id);
 		} else if(name == "open_popscreen") {
 			return make_element_by_type<province_pop_button>(state, id);
 		} else if(name == "total_population") {
@@ -854,9 +947,9 @@ public:
 		} else if(name == "rgo_percent") {
 			return make_element_by_type<province_rgo_employment_percent_text>(state, id);
 		} else if(name == "produced") {
-			return make_element_by_type<province_goods_produced_text>(state, id);
+			return make_element_by_type<province_owner_goods_produced_text>(state, id);
 		} else if(name == "income") {
-			return make_element_by_type<province_income_text>(state, id);
+			return make_element_by_type<province_owner_income_text>(state, id);
 		} else if(name == "growth") {
 			return make_element_by_type<province_pop_growth_text>(state, id);
 		} else if(name == "migration") {
