@@ -695,7 +695,7 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(parent) {
-			Cyto::Any p_payload = production_factory_slot_data{dcon::factory_id{}, std::monostate{}, index};
+			Cyto::Any p_payload = production_factory_slot_data{{dcon::factory_id{}, std::monostate{}}, index};
 			parent->impl_get(state, p_payload);
 			auto content = any_cast<production_factory_slot_data>(p_payload);
 			if(payload.holds_type<dcon::factory_id>()) {
