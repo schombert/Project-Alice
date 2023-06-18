@@ -1110,23 +1110,22 @@ void close_layout_box(columnar_layout& dest, layout_box& box) {
 	impl::lb_finish_line(dest, box, 0);
 
 	if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
-		++dest.current_column;
+		dest.current_column_x = dest.used_width + dest.column_width;
 		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
 			dest.base_layout.contents[i].y += dest.fixed_parameters.top;
-			dest.base_layout.contents[i].x += float(dest.column_width * dest.current_column);
+			dest.base_layout.contents[i].x += float(dest.current_column_x);
 			dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
 		}
 		dest.y_cursor = box.y_size + dest.fixed_parameters.top;
 	} else { // append to current column
 		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
 			dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
-			dest.base_layout.contents[i].x += float(dest.column_width * dest.current_column);
+			dest.base_layout.contents[i].x += float(dest.current_column_x);
 			dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
 		}
 		dest.y_cursor += box.y_size;
 	}
 	dest.used_height = std::max(dest.used_height, dest.y_cursor);
-	dest.used_width = std::max(dest.used_width, box.x_size + dest.column_width * dest.current_column);
 }
 void close_layout_box(endless_layout& dest, layout_box& box) {
 	impl::lb_finish_line(dest, box, 0);
@@ -1152,7 +1151,7 @@ void endless_layout::internal_close_box(layout_box& box) {
 columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
 	dest.contents.clear();
 	dest.number_of_lines = 0;
-	return columnar_layout(dest, params, 0, 0, params.top, 0, column_width);
+	return columnar_layout(dest, params, 0, 0, params.top, column_width);
 }
 
 // Reduces code repeat

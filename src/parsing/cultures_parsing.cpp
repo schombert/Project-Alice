@@ -241,10 +241,13 @@ void register_rebel_type(std::string_view name, token_generator& gen, error_hand
 	auto name_id = text::find_or_add_key(context.state, std::string(name) + "_name");
 	auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc");
 	auto army_id = text::find_or_add_key(context.state, std::string(name) + "_army");
+	auto title_id = text::find_or_add_key(context.state, std::string(name) + "_title");
 
 	context.state.world.rebel_type_set_name(new_id, name_id);
 	context.state.world.rebel_type_set_description(new_id, desc_id);
 	context.state.world.rebel_type_set_army_name(new_id, army_id);
+	context.state.world.rebel_type_set_title(new_id, title_id);
+
 
 	context.map_of_rebeltypes.insert_or_assign(std::string(name), pending_rebel_type_content{gen, new_id});
 

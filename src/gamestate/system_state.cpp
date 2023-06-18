@@ -258,10 +258,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, tooltip_width, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+						text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
 								text::text_color::white},
-						250);
+						 20);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -283,10 +283,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(type != ui::tooltip_behavior::no_tooltip) {
 
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, tooltip_width, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+						text::layout_parameters{16, 16, tooltip_width,int16_t( ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
 								text::text_color::white},
-						250);
+						 20);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -304,10 +304,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 	} else if(ui_state.last_tooltip &&
 						ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{16, 16, tooltip_width, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0,
+				text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
 						text::alignment::left,
 						text::text_color::white},
-				250);
+				 20);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
@@ -331,7 +331,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+					int16_t(0),
+					int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
