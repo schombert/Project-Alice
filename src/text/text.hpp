@@ -606,7 +606,9 @@ struct columnar_layout : public layout_base {
 	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0,
 			int32_t y_cursor = 0, int32_t column_width = 0)
 			: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
-				current_column_x(fixed_parameters.left), column_width(column_width) { }
+				current_column_x(fixed_parameters.left), column_width(column_width) {
+		layout_base::fixed_parameters.left = 0;
+	}
 
 	void internal_close_box(layout_box& box) final;
 };
