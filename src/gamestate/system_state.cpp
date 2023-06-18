@@ -314,7 +314,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, true);
 		else
 			ui_state.tooltip->set_visible(*this, false);
-	}
+	} 
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip

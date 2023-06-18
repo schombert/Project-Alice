@@ -730,9 +730,6 @@ public:
 
 template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
-private:
-	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
-
 protected:
 	std::vector<RowWinT*> row_windows{};
 
@@ -744,6 +741,7 @@ protected:
 	}
 
 public:
+	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
 	std::vector<RowConT> row_contents{};
 
 	void update(sys::state& state);

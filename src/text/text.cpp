@@ -803,7 +803,22 @@ std::string format_money(float num) {
 	} else {
 		amount = prettify(int32_t(num));
 	}
-	return "\xA4 " + amount;
+	return amount + "\xA4 ";	// Currency is postfixed, NOT prefixed
+}
+
+std::string format_wholenum(int32_t num) {
+	bool bIsNegative = false;	// This is dumb, dont ask
+	(num < 0) ? bIsNegative = true : bIsNegative = false;
+	std::string numstr = std::to_string(uint32_t(num));
+	
+	for(size_t i = numstr.length() / 3; i-->0;) {
+		// This is so dumb, fuck this
+		numstr.insert((numstr.end() - ((i*3) + 3)), ',');
+	}
+
+	if(numstr[0] == ',') {numstr.erase(numstr.begin());}
+	if(bIsNegative) {numstr.insert(0, "-");}
+	return numstr;
 }
 
 std::string format_ratio(int32_t left, int32_t right) {
@@ -817,8 +832,9 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, substituti
 std::string localize_month(sys::state const& state, uint16_t month) {
 	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may", "june", "july", "august",
 			"september", "october", "november", "december"};
-	if(month == 0 || month > 12)
+	if(month == 0 || month > 12) {
 		return text::produce_simple_string(state, "january");
+	}
 	return text::produce_simple_string(state, month_names[month - 1]);
 }
 
@@ -904,10 +920,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	if(state.user_settings.use_new_ui &&
 			(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
 					std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
-		if(color != text_color::black)
+		if(color != text_color::black) {
 			tmp_color = text_color::light_blue;
-		else
+		} else {
 			tmp_color = text_color::dark_blue;
+		}
 	}
 
 	size_t start_position = 0;
@@ -1199,7 +1216,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
 			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::red);
 			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-			
+
 		}
 	}
 
@@ -1248,6 +1265,40 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 	// Vote on it, went 6-3, 6 in favour and 3 against the old vic2 way
 	text::add_to_layout_box(state, dest, box, std::string_view("--------------"));
 	text::add_line_break_to_layout_box(state, dest, box);
+}
+
+std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp) {
+	dcon::text_sequence_id source_text;
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		//add_to_layout_box(state, dest, box, k->second, sub);
+		source_text = k->second;
+	}
+
+	if(!source_text)
+		return "???";
+
+	std::string result;
+
+	auto seq = state.text_sequences[source_text];
+	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
+		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+			std::string_view text = state.to_string_view(tkey);
+			//add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
+			result += text;
+		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
+			auto var_type = std::get<text::variable_type>(state.text_components[i]);
+			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
+				auto txt = impl::lb_resolve_substitution(state, it->second);
+				//add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
+				result += txt;
+			} else {
+				//add_to_layout_box(state, dest, box, std::string_view("???"), current_color, std::monostate{});
+				result += "???";
+			}
+		}
+	}
+	return result;
 }
 
 } // namespace text
