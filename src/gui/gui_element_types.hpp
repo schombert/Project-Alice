@@ -223,9 +223,10 @@ class simple_text_element_base : public element_base {
 protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
+	
+public:
 	bool black_text = true;
 
-public:
 	void set_text(sys::state& state, std::string const& new_text);
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
@@ -370,6 +371,9 @@ public:
 	void on_update(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
@@ -730,7 +734,7 @@ public:
 
 template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
-private:
+public:
 	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
 
 protected:

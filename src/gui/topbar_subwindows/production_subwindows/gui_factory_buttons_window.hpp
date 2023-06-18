@@ -197,14 +197,9 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = bool{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<bool>(payload);
-
-			set_button_text(state,
-					text::produce_simple_string(state, content ? "production_hide_empty_states" : "production_show_empty_states"));
-		}
+		set_button_text(state,
+					text::produce_simple_string(state, retrieve<bool>(state, parent) ? "production_hide_empty_states" : "production_show_empty_states"));
+		
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {

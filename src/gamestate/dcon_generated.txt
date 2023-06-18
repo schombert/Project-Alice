@@ -1090,6 +1090,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ title }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ description }
 		type{ text_sequence_id }
 		tag{ scenario }

@@ -12,39 +12,45 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("production_close_tooltip"));
-		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "production_close_tooltip");
 	}
 };
 
-class factory_build_button : public button_element_base {
+class factory_build_button : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any sidload = dcon::state_instance_id{};
-			parent->impl_get(state, sidload);
-			auto sid = any_cast<dcon::state_instance_id>(sidload);
-
-			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
-			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
-		}
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any sidload = dcon::state_instance_id{};
-			parent->impl_get(state, sidload);
-			auto sid = any_cast<dcon::state_instance_id>(sidload);
+			auto sid = retrieve<dcon::state_instance_id>(state, parent);
+			auto content = retrieve<dcon::factory_type_id>(state, parent);
 
-			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
 			command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+
+			parent->set_visible(state, false);
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "shift_to_hold_open");
+	}
+
+	void button_shift_action(sys::state& state) noexcept override {
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+
+		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+	}
+
+
 };
 
 class factory_build_output_name_text : public simple_text_element_base {
@@ -56,12 +62,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 

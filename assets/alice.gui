@@ -1,4 +1,14 @@
 guiTypes = {
+	instantTextBoxType = { 
+		name = "alice_investment_text"
+		position = { x = 0 y = 0 }
+		font = "vic_18_black"
+		text = "INCOME"	
+		maxWidth = 90
+		maxHeight = 32	
+		format = right
+	}
+
 	windowType = {
 		name = "alice_main_menu"
 		position = { x= -176 y = -216 }
