@@ -627,7 +627,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = production_factory_slot_data{dcon::factory_id{}, std::monostate{}, index};
+			Cyto::Any payload = production_factory_slot_data{{dcon::factory_id{}, std::monostate{}}, index};
 			parent->impl_get(state, payload);
 			auto content = any_cast<production_factory_slot_data>(payload);
 
