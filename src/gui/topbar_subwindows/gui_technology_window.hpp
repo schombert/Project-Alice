@@ -974,9 +974,7 @@ class invention_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
+			auto content = retrieve<dcon::invention_id>(state, parent);
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		}
 	}
@@ -987,18 +985,15 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
+			auto content = retrieve<dcon::invention_id>(state, parent);
 
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 
-			auto invention_fat_id = dcon::fatten(state.world, content);
-			auto mod_id = invention_fat_id.get_modifier().id;
-			if(bool(mod_id))
-				modifier_description(state, contents, mod_id);
+			text::add_line_break_to_layout(state, contents);
+
+			invention_description(state, contents, content, 0);
 		}
 	}
 };
@@ -1006,11 +1001,9 @@ public:
 class invention_chance_percent_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
-
+		if(auto content = retrieve<dcon::invention_id>(state, parent); content) {
+			
+			
 			auto mod_k = state.world.invention_get_chance(content);
 			auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation),
 					trigger::to_generic(state.local_player_nation), 0);
@@ -1023,27 +1016,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
-
+		if(auto content = retrieve<dcon::invention_id>(state, parent); content) {
 			auto mod_k = state.world.invention_get_chance(content);
-			auto mod_d = state.value_modifiers[mod_k];
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub_map;
-			text::add_to_substitution_map(sub_map, text::variable_type::chance, static_cast<int32_t>(mod_d.base_factor));
-			text::localised_format_box(state, contents, box, "base_chance", sub_map);
-			text::close_layout_box(contents, box);
-
-			for(uint32_t i = 0; i < mod_d.segments_count; ++i) {
-				auto seg = state.value_modifier_segments[mod_d.first_segment_offset + i];
-				if(seg.condition) {
-					trigger_description(state, contents, seg.condition, trigger::to_generic(state.local_player_nation),
-							trigger::to_generic(state.local_player_nation), -1);
-				}
-			}
+			additive_value_modifier_description(state, contents, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 		}
 	}
 };
@@ -1108,7 +1083,7 @@ public:
 		if(name == "invention_icon") {
 			return make_element_by_type<technology_selected_invention_image>(state, id);
 		} else if(name == "i_invention_name") {
-			return make_element_by_type<generic_name_text<dcon::invention_id>>(state, id); // needs tooltip
+			return make_element_by_type<invention_name_text>(state, id); 
 		} else {
 			return nullptr;
 		}
@@ -1183,12 +1158,14 @@ public:
 	}
 };
 
-class technology_selected_effect_text : public multiline_text_element_base {
+class technology_selected_effect_text : public scrollable_text {
 public:
 	void on_create(sys::state& state) noexcept override {
-		multiline_text_element_base::on_create(state);
 		base_data.size.y *= 2; // Nudge fix for technology descriptions
 		base_data.size.y -= 24;
+		base_data.size.x -= 10;
+		scrollable_text::on_create(state);
+		
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1197,10 +1174,12 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::technology_id>(payload);
 
-			auto layout = text::create_endless_layout(internal_layout,
-					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0,
-							text::alignment::left, text::text_color::black});
+			auto layout = text::create_endless_layout(delegate->internal_layout,
+					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
+				base_data.data.text.font_handle, 0, text::alignment::left,
+				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white});
 			technology_description(state, layout, content);
+			calibrate_scrollbar(state);
 		}
 	}
 
@@ -1338,22 +1317,13 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			auto name = fat_id.get_name();
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
-				text::close_layout_box(contents, box);
-			}
-			auto mod_id = fat_id.get_tech_school().id;
-			if(bool(mod_id)) {
-				modifier_description(state, contents, mod_id);
-			}
+		auto mod_id = state.world.nation_get_tech_school(state.local_player_nation);
+		if(bool(mod_id)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+			
+			modifier_description(state, contents, mod_id);
 		}
 	}
 };
