@@ -228,10 +228,12 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "button") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else if(name == "button2") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "button2") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->set_button_text(state, "");
 			return ptr;
 		} else if(name == "unit_strip") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);

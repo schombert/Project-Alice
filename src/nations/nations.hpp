@@ -303,6 +303,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n);
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
+void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
+void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
@@ -321,6 +323,8 @@ void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
 void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);
+void cleanup_crisis_peace_offer(sys::state& state, dcon::peace_offer_id peace);
+void accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace);
 void update_crisis(sys::state& state);
 
 void update_pop_acceptance(sys::state& state, dcon::nation_id n);

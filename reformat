@@ -1,4 +1,5 @@
 #!/bin/sh
+cd src
 echo "Deleted 'gamestate/dcon_generated.hpp' to not waste time formatting!"
 sleep 2
 rm gamestate/dcon_generated.hpp

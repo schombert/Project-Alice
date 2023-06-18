@@ -15,6 +15,8 @@ enum class type_t : uint8_t {
 	be_crisis_primary_defender = 4,
 	be_crisis_primary_attacker = 5,
 	peace_offer = 6,
+	take_crisis_side_offer = 7,
+	crisis_peace_offer = 8
 };
 
 struct message {
@@ -24,6 +26,7 @@ struct message {
 	union dtype {
 		dcon::war_id war;
 		dcon::peace_offer_id peace;
+		sys::crisis_join_offer crisis_offer;
 
 		dtype() { }
 	} data;
@@ -33,6 +36,9 @@ struct message {
 };
 
 using type = type_t;
+
+bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, sys::crisis_join_offer const& offer);
+bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace);
 
 void decline(sys::state& state, message const& m);
 void accept(sys::state& state, message const& m);

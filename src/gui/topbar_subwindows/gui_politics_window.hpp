@@ -22,6 +22,39 @@
 
 namespace ui {
 
+class nation_national_value_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto nat_val = state.world.nation_get_national_value(nation_id);
+		return nat_val.get_icon();
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, nation_id);
+			auto name = fat_id.get_national_value().get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_single_sub_box(state, contents, box, "politics_nationalvalue_tooltip", text::variable_type::nationalvalue, name);
+				text::close_layout_box(contents, box);
+			}
+			auto mod_id = fat_id.get_national_value().id;
+			if(bool(mod_id)) {
+				modifier_description(state, contents, mod_id);
+			}
+		}
+	}
+};
+
+
 enum class politics_window_tab : uint8_t { reforms = 0x0, movements = 0x1, decisions = 0x2, releasables = 0x3 };
 
 enum class politics_issue_sort_order : uint8_t { name, popular_support, voter_support };

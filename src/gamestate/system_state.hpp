@@ -58,6 +58,9 @@ struct global_scenario_data_s { // this struct holds miscellaneous global proper
 
 struct crisis_member_def {
 	dcon::nation_id id;
+
+	crisis_join_offer joined_with_offer;
+
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };
@@ -206,6 +209,7 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<diplomatic_message::message> new_requests;
 	rigtorp::SPSCQueue<notification::message> new_messages;
 	rigtorp::SPSCQueue<military::naval_battle_report> naval_battle_reports;
+	rigtorp::SPSCQueue<military::land_battle_report> land_battle_reports;
 
 	// internal game timer / update logic
 	std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
@@ -273,8 +277,8 @@ struct alignas(64) state {
 
 	state()
 			: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024),
-				new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256),
-				new_messages(1024), naval_battle_reports(256) { }
+				new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024),
+				naval_battle_reports(256), land_battle_reports(256) { }
 
 	~state();
 

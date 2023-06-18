@@ -53,10 +53,32 @@ struct ship_in_battle {
 	static constexpr uint16_t type_transport = 0x0000;
 
 	dcon::ship_id ship;
-	uint16_t target_slot;
+	uint16_t target_slot = 0;
 	uint16_t flags = 0;
 };
 
+struct mobilization_order {
+	dcon::province_id where;
+	sys::date when;
+};
+
+struct reserve_regiment {
+	static constexpr uint16_t is_attacking = 0x0001;
+
+	static constexpr uint16_t type_mask = 0x0006;
+	static constexpr uint16_t type_infantry = 0x0000;
+	static constexpr uint16_t type_cavalry = 0x0002;
+	static constexpr uint16_t type_support = 0x0004;
+
+	dcon::regiment_id regiment;
+	uint16_t flags = 0;
+};
+
+constexpr inline uint8_t defender_bonus_crossing_mask = 0xC0;
+constexpr inline uint8_t defender_bonus_crossing_none = 0x00;
+constexpr inline uint8_t defender_bonus_crossing_river = 0x40;
+constexpr inline uint8_t defender_bonus_crossing_sea = 0x80;
+constexpr inline uint8_t defender_bonus_dig_in_mask = 0x3F;
 
 enum class unit_type : uint8_t { support, big_ship, cavalry, transport, light_ship, special, infantry };
 
@@ -100,6 +122,12 @@ struct global_military_state {
 
 	dcon::cb_type_id liberate;
 	dcon::cb_type_id uninstall_communist_gov;
+
+	dcon::cb_type_id crisis_colony;
+	dcon::cb_type_id crisis_liberate;
+
+	dcon::unit_type_id irregular;
+	dcon::unit_type_id infantry;
 };
 
 struct available_cb {
@@ -109,8 +137,8 @@ struct available_cb {
 };
 
 struct naval_battle_report {
-	float warscore_effect;
-	float prestige_effect;
+	float warscore_effect = 0.0f;
+	float prestige_effect = 0.0f;
 
 	uint16_t attacker_big_ships;
 	uint16_t attacker_small_ships;
@@ -139,6 +167,40 @@ struct naval_battle_report {
 	bool attacker_won;
 	bool player_on_winning_side;
 };
+
+struct land_battle_report {
+	float warscore_effect = 0.0f;
+	float prestige_effect = 0.0f;
+
+	uint16_t attacker_infantry;
+	uint16_t attacker_cavalry;
+	uint16_t attacker_support;
+
+	uint16_t attacker_infantry_losses;
+	uint16_t attacker_cavalry_losses;
+	uint16_t attacker_support_losses;
+
+	uint16_t defender_infantry;
+	uint16_t defender_cavalry;
+	uint16_t defender_support;
+
+	uint16_t defender_infantry_losses;
+	uint16_t defender_cavalry_losses;
+	uint16_t defender_support_losses;
+
+	dcon::leader_id attacking_general;
+	dcon::leader_id defending_general;
+
+	dcon::nation_id attacking_nation;
+	dcon::nation_id defending_nation;
+
+	dcon::province_id location;
+
+	bool attacker_won;
+	bool player_on_winning_side;
+};
+
+constexpr inline int32_t days_before_retreat = 11;
 
 enum class battle_result { indecisive, attacker_won, defender_won };
 
@@ -236,6 +298,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor);
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
 		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
 void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker);
+void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker);
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
@@ -249,6 +312,7 @@ float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nat
 float cb_infamy(sys::state const& state, dcon::cb_type_id t); // the fabrication cost in infamy
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
 		dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
+float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target);
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t);
 bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t);
@@ -258,6 +322,9 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 enum class war_result { draw, attacker_won, defender_won };
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
 
+void cleanup_army(sys::state& state, dcon::army_id n);
+void cleanup_navy(sys::state& state, dcon::navy_id n);
+
 void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from,
 		dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state,
 		dcon::national_identity_id wargoal_t);
@@ -265,6 +332,10 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 
 void update_ticking_war_score(sys::state& state);
+
+void start_mobilization(sys::state& state, dcon::nation_id n);
+void end_mobilization(sys::state& state, dcon::nation_id n);
+void advance_mobilizations(sys::state& state);
 
 int32_t transport_capacity(sys::state& state, dcon::navy_id n);
 int32_t free_transport_capacity(sys::state& state, dcon::navy_id n);
@@ -274,14 +345,24 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n);
 
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
-void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p); // only for land provinces
+enum class crossing_type { none, river, sea };
+void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p,
+		crossing_type crossing);																														// only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p); // only for sea provinces
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
+void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 
 void update_blackflag_status(sys::state& state, dcon::province_id p);
 void eject_ships(sys::state& state, dcon::province_id p);
 void update_movement(sys::state& state);
 void update_siege_progress(sys::state& state);
 void update_naval_battles(sys::state& state);
+void update_land_battles(sys::state& state);
+void apply_regiment_damage(sys::state& state);
+void apply_attrition(sys::state& state);
+void increase_dig_in(sys::state& state);
+void recover_org(sys::state& state);
+void reinforce_regiments(sys::state& state);
+void repair_ships(sys::state& state);
 
 } // namespace military

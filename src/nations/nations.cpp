@@ -1191,29 +1191,35 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		state.world.delete_wargoal(wg);
 	}
 
+	auto leaders = state.world.nation_get_leader_loyalty(n);
+	while(leaders.begin() != leaders.end()) {
+		state.world.delete_leader((*leaders.begin()).get_leader());
+	}
+
+	auto armies = state.world.nation_get_army_control(n);
+	while(armies.begin() != armies.end()) {
+		military::cleanup_army(state, (*armies.begin()).get_army());
+	}
+
+	auto navies = state.world.nation_get_navy_control(n);
+	while(navies.begin() != navies.end()) {
+		military::cleanup_navy(state, (*navies.begin()).get_navy());
+	}
+
+	auto rebels = state.world.nation_get_rebellion_within(n);
+	while(rebels.begin() != rebels.end()) {
+		rebel::delete_faction(state, (*rebels.begin()).get_rebels());
+	}
+
+	auto movements = state.world.nation_get_movement_within(n);
+	while(movements.begin() != movements.end()) {
+		state.world.delete_movement((*movements.begin()).get_movement());
+	}
+
 	state.world.delete_nation(n);
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
 
-	// cleanup:
-	for(uint32_t i = state.world.leader_size(); i-- > 0;) {
-		dcon::leader_id l{dcon::leader_id::value_base_t(i)};
-		if(!state.world.leader_get_nation_from_leader_loyalty(l)) {
-			state.world.delete_leader(l);
-		}
-	}
-	for(uint32_t i = state.world.army_size(); i-- > 0;) {
-		dcon::army_id l{dcon::army_id::value_base_t(i)};
-		if(!state.world.army_get_controller_from_army_control(l)) { // TODO: handle rebel controlled armies
-			state.world.delete_army(l);
-		}
-	}
-	for(uint32_t i = state.world.navy_size(); i-- > 0;) {
-		dcon::navy_id l{dcon::navy_id::value_base_t(i)};
-		if(!state.world.navy_get_controller_from_navy_control(l)) {
-			state.world.delete_navy(l);
-		}
-	}
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
 			o.set_in_sphere_of(dcon::nation_id{});
@@ -1269,15 +1275,64 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 }
 void release_vassal(sys::state& state, dcon::overlord_id rel) {
 	auto vas = state.world.overlord_get_subject(rel);
-	state.world.nation_set_is_substate(vas, false);
-	politics::update_displayed_identity(state, vas);
-	// TODO: notify player
-	state.world.delete_overlord(rel);
+	auto ol = state.world.overlord_get_ruler(rel);
+	if(ol) {
+		if(state.world.nation_get_is_substate(vas)) {
+			state.world.nation_set_is_substate(vas, false);
+			state.world.nation_get_substates_count(ol)--;
+		}
+		state.world.nation_get_vassals_count(ol)--;
+		politics::update_displayed_identity(state, vas);
+		// TODO: notify player
+		state.world.delete_overlord(rel);
+	}
 }
+
+void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
+	auto current_ruler = state.world.overlord_get_ruler(current_ol);
+
+	if(current_ruler && current_ruler != overlord) {
+		release_vassal(state, current_ol);
+	}
+	if(current_ruler == overlord) {
+		if(state.world.nation_get_is_substate(subject)) {
+			state.world.nation_set_is_substate(subject, false);
+			state.world.nation_get_substates_count(current_ruler)--;
+		}
+	} else {
+		state.world.force_create_overlord(subject, overlord);
+		state.world.nation_get_vassals_count(overlord)++;
+		politics::update_displayed_identity(state, subject);
+	}
+}
+void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
+	auto current_ruler = state.world.overlord_get_ruler(current_ol);
+
+	if(current_ruler && current_ruler != overlord) {
+		release_vassal(state, current_ol);
+	}
+	if(current_ruler == overlord) {
+		if(!state.world.nation_get_is_substate(subject)) {
+			state.world.nation_set_is_substate(subject, true);
+			state.world.nation_get_substates_count(current_ruler)++;
+		}
+	} else {
+		state.world.force_create_overlord(subject, overlord);
+		state.world.nation_set_is_substate(subject, true);
+		state.world.nation_get_vassals_count(overlord)++;
+		state.world.nation_get_substates_count(current_ruler)++;
+		politics::update_displayed_identity(state, subject);
+	}
+}
+
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 	if(state.world.diplomatic_relation_get_are_allied(rel)) {
 		// TODO: notify player
 		state.world.diplomatic_relation_set_are_allied(rel, false);
+		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 0))--;
+		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 1))--;
 	}
 }
 
@@ -1291,7 +1346,11 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	if(!r) {
 		r = state.world.force_create_diplomatic_relation(a, b);
 	}
-	state.world.diplomatic_relation_set_are_allied(r, true);
+	if(!state.world.diplomatic_relation_get_are_allied(r)) {
+		state.world.nation_get_allies_count(a)++;
+		state.world.nation_get_allies_count(b)++;
+		state.world.diplomatic_relation_set_are_allied(r, true);
+	}
 }
 
 bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon::gp_relationship_id rel) {
@@ -1679,6 +1738,11 @@ void cleanup_crisis(sys::state& state) {
 			par.id = dcon::nation_id{};
 			par.merely_interested = false;
 			par.supports_attacker = false;
+			par.joined_with_offer.target = dcon::nation_id{};
+			par.joined_with_offer.wargoal_secondary_nation = dcon::nation_id{};
+			par.joined_with_offer.wargoal_state = dcon::state_definition_id{};
+			par.joined_with_offer.wargoal_tag = dcon::national_identity_id{};
+			par.joined_with_offer.wargoal_type = dcon::cb_type_id{};
 		} else {
 			break;
 		}
@@ -1751,13 +1815,45 @@ void reject_crisis_participation(sys::state& state) {
 	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
 		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
 			// no defender -- attacker wins
-			// TODO: make crisis win
 			// TODO: notify resolution
+
+			if(state.current_crisis == sys::crisis_type::liberation) {
+				military::implement_war_goal(state, dcon::war_id{}, state.military_definitions.crisis_liberate,
+						state.primary_crisis_attacker, state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
+						dcon::nation_id{}, state.world.state_instance_get_definition(state.crisis_state), state.crisis_liberation_tag);
+			} else { // colonial
+				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+
+				if((colonizers.end() - colonizers.begin()) >= 2) {
+					auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+					auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+
+					military::implement_war_goal(state, dcon::war_id{}, state.military_definitions.crisis_colony, attacking_colonizer,
+							defending_colonizer, dcon::nation_id{}, state.crisis_colony, dcon::national_identity_id{});
+				}
+			}
+
 			cleanup_crisis(state);
 		} else {
 			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		}
 	}
+}
+
+void cleanup_crisis_peace_offer(sys::state& state, dcon::peace_offer_id peace) {
+	auto wg = state.world.peace_offer_get_peace_offer_item(peace);
+	while(wg.begin() != wg.end()) {
+		state.world.delete_wargoal((*wg.begin()).get_wargoal());
+	}
+	state.world.delete_peace_offer(peace);
+}
+
+void accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace) {
+
+	military::implement_peace_offer(state, peace);
+
+	cleanup_crisis_peace_offer(state, peace);
+	cleanup_crisis(state);
 }
 
 void update_crisis(sys::state& state) {
@@ -1768,7 +1864,22 @@ void update_crisis(sys::state& state) {
 	if(state.great_nations.size() <= 2)
 		return; // not enough nations obviously
 
-	if(state.current_crisis == sys::crisis_type::none &&
+	// filter out invalid crises
+	if(state.current_crisis == sys::crisis_type::colonial) {
+		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+		auto num_colonizers = colonizers.end() - colonizers.begin();
+		if(num_colonizers < 2) {
+			cleanup_crisis(state);
+		}
+	} else if(state.current_crisis == sys::crisis_type::liberation) {
+		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+		if(state_owner == state.primary_crisis_attacker ||
+				state.world.nation_get_identity_from_identity_holder(state_owner) == state.crisis_liberation_tag) {
+			cleanup_crisis(state);
+		}
+	}
+
+	if(state.current_crisis == sys::crisis_type::none && !state.crisis_war &&
 			state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date) {
 		// try to start a crisis
 		// determine type if any
@@ -1926,6 +2037,7 @@ void update_crisis(sys::state& state) {
 														 : [&]() {
 																 if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony);
 																		 p.begin() != p.end()) {
+
 																	 return (*p.begin()).get_province().get_continent().id;
 																 }
 																 return dcon::modifier_id{};
@@ -1985,6 +2097,108 @@ void update_crisis(sys::state& state) {
 																float(participants) / float(total);
 
 		// TODO: start crisis war at temperature 100; set mode to none
+		if(state.crisis_temperature >= 100) {
+			dcon::war_id war;
+			if(state.current_crisis == sys::crisis_type::liberation) {
+				war = military::create_war(state, state.primary_crisis_attacker,
+						state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
+						state.military_definitions.crisis_liberate, state.world.state_instance_get_definition(state.crisis_state),
+						state.crisis_liberation_tag, dcon::nation_id{});
+				military::add_to_war(state, war, state.primary_crisis_defender, false);
+				state.world.war_set_primary_defender(war, state.primary_crisis_defender);
+			} else { // colonial
+				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+
+				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+
+				war = military::create_war(state, attacking_colonizer, defending_colonizer, state.military_definitions.crisis_colony,
+						state.crisis_colony, dcon::national_identity_id{}, dcon::nation_id{});
+				military::add_wargoal(state, war, defending_colonizer, attacking_colonizer, state.military_definitions.crisis_colony,
+						state.crisis_colony, dcon::national_identity_id{}, dcon::nation_id{});
+
+				if(state.primary_crisis_defender != attacking_colonizer && state.primary_crisis_defender != defending_colonizer) {
+					military::add_to_war(state, war, state.primary_crisis_defender, false);
+					state.world.war_set_primary_defender(war, state.primary_crisis_defender);
+				}
+				if(state.primary_crisis_attacker != attacking_colonizer && state.primary_crisis_attacker != defending_colonizer) {
+					military::add_to_war(state, war, state.primary_crisis_attacker, true);
+					state.world.war_set_primary_attacker(war, state.primary_crisis_attacker);
+				}
+			}
+
+			for(auto& par : state.crisis_participants) {
+				if(par.id) {
+					if(!par.merely_interested && par.id != state.primary_crisis_attacker && par.id != state.primary_crisis_defender) {
+						military::add_to_war(state, war, par.id, par.supports_attacker);
+					}
+				} else {
+					break;
+				}
+			}
+
+			// add wargoals
+			for(auto& par : state.crisis_participants) {
+				if(par.id) {
+					if(!par.merely_interested && par.id != state.primary_crisis_attacker && par.id != state.primary_crisis_defender) {
+						if(par.joined_with_offer.wargoal_type) {
+							military::add_wargoal(state, war, par.id, par.joined_with_offer.target, par.joined_with_offer.wargoal_type,
+									par.joined_with_offer.wargoal_state, par.joined_with_offer.wargoal_tag,
+									par.joined_with_offer.wargoal_secondary_nation);
+						}
+					}
+				} else {
+					break;
+				}
+			}
+
+			/*
+			If the crisis becomes a war, any interested GP which did not take a side loses
+			(years-after-start-date x define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_YEAR +
+			define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_BASE) as a fraction of their prestige.
+			*/
+
+			float p_factor = state.defines.crisis_did_not_take_side_prestige_factor_base +
+											 state.defines.crisis_did_not_take_side_prestige_factor_year * float(state.current_date.value) / float(365);
+
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+
+				if(par.merely_interested) {
+					nations::adjust_prestige(state, par.id, nations::prestige_score(state, par.id) * p_factor);
+					// TODO: notify
+				}
+			}
+
+			cleanup_crisis(state);
+
+			state.world.war_set_is_crisis_war(war, true);
+
+			if(state.military_definitions.great_wars_enabled) {
+				int32_t gp_attackers = 0;
+				int32_t gp_defenders = 0;
+
+				for(auto par : state.world.war_get_war_participant(war)) {
+					if(nations::is_great_power(state, par.get_nation())) {
+						if(par.get_is_attacker())
+							++gp_attackers;
+						else
+							++gp_defenders;
+					}
+				}
+
+				if(gp_attackers >= 2 && gp_defenders >= 2) {
+					state.world.war_set_is_great(war, true);
+					auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"});
+					if(it != state.key_to_text_sequence.end()) {
+						state.world.war_set_name(war, it->second);
+					}
+				}
+			}
+
+			state.crisis_war = war;
+		}
 	}
 }
 
@@ -2068,7 +2282,14 @@ void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::nationa
 }
 
 void perform_nationalization(sys::state& state, dcon::nation_id n) {
-	// TODO
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(n)) {
+		if(rel.get_foreign_investment() > 0.0f) {
+			event::fire_fixed_event(state, state.national_definitions.on_my_factories_nationalized,
+					trigger::to_generic(rel.get_source().id), event::slot_type::nation, rel.get_source(), trigger::to_generic(n),
+					event::slot_type::nation);
+			rel.set_foreign_investment(0.0f);
+		}
+	}
 }
 
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {

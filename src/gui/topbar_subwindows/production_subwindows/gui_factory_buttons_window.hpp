@@ -9,10 +9,28 @@ namespace ui {
 class factory_prod_subsidise_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::subsidise_all}};
-			parent->impl_get(state, payload);
+		if(!parent)
+			return;
+
+		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(!fac.get_factory().get_subsidized()) {
+					Cyto::Any payload = commodity_filter_query_data{fac.get_factory().get_building_type().get_output(), false};
+					parent->impl_get(state, payload);
+					bool is_set = any_cast<commodity_filter_query_data>(payload).filter;
+
+					if(is_set) {
+						command::change_factory_settings(state, state.local_player_nation, fac.get_factory(),
+								uint8_t(economy::factory_priority(state, fac.get_factory())), true);
+					}
+				}
+			}
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+		disabled = (rules & issue_rule::can_subsidise) == 0;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -29,10 +47,28 @@ public:
 class factory_prod_unsubsidise_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::unsubsidise_all}};
-			parent->impl_get(state, payload);
+		if(!parent)
+			return;
+
+		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_subsidized()) {
+					Cyto::Any payload = commodity_filter_query_data{fac.get_factory().get_building_type().get_output(), false};
+					parent->impl_get(state, payload);
+					bool is_set = any_cast<commodity_filter_query_data>(payload).filter;
+
+					if(is_set) {
+						command::change_factory_settings(state, state.local_player_nation, fac.get_factory(),
+								uint8_t(economy::factory_priority(state, fac.get_factory())), false);
+					}
+				}
+			}
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+		disabled = (rules & issue_rule::can_subsidise) == 0;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -48,11 +84,12 @@ public:
 
 class factory_prod_open_all_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_visible(state, false);
+	}
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::open_all}};
-			parent->impl_get(state, payload);
-		}
+		
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -68,11 +105,11 @@ public:
 
 class factory_prod_close_all_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_visible(state, false);
+	}
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::close_all}};
-			parent->impl_get(state, payload);
-		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -90,8 +127,16 @@ class factory_select_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::filter_select_all}};
-			parent->impl_get(state, payload);
+			for(auto com : state.world.in_commodity) {
+				Cyto::Any payload = commodity_filter_query_data{com.id, false};
+				parent->impl_get(state, payload);
+				bool is_set = any_cast<commodity_filter_query_data>(payload).filter;
+
+				if(!is_set) {
+					Cyto::Any payloadb = commodity_filter_toggle_data{com.id};
+					parent->impl_get(state, payloadb);
+				}
+			}
 		}
 	}
 
@@ -110,8 +155,16 @@ class factory_deselect_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::filter_deselect_all}};
-			parent->impl_get(state, payload);
+			for(auto com : state.world.in_commodity) {
+				Cyto::Any payload = commodity_filter_query_data{com.id, false};
+				parent->impl_get(state, payload);
+				bool is_set = any_cast<commodity_filter_query_data>(payload).filter;
+
+				if(is_set) {
+					Cyto::Any payloadb = commodity_filter_toggle_data{com.id};
+					parent->impl_get(state, payloadb);
+				}
+			}
 		}
 	}
 
@@ -143,10 +196,43 @@ public:
 		return tooltip_behavior::tooltip;
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		set_button_text(state,
+					text::produce_simple_string(state, retrieve<bool>(state, parent) ? "production_hide_empty_states" : "production_show_empty_states"));
+		
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("production_show_empty_tooltip"));
 		text::close_layout_box(contents, box);
+	}
+};
+
+class factory_name_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::name;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class factory_infrastructure_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::infrastructure;
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class factory_count_sort : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = production_sort_order::factories;
+			parent->impl_get(state, payload);
+		}
 	}
 };
 
@@ -175,13 +261,13 @@ public:
 			return make_element_by_type<factory_show_empty_states_button>(state, id);
 
 		} else if(name == "sort_by_name") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<factory_name_sort>(state, id);
 
 		} else if(name == "sort_by_factories") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<factory_count_sort>(state, id);
 
 		} else if(name == "sort_by_infra") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<factory_infrastructure_sort>(state, id);
 
 		} else if(name == "filter_bounds") {
 			return make_element_by_type<commodity_filters_window>(state, id);

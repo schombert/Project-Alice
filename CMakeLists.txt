@@ -27,10 +27,18 @@ endforeach()
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
+if(WIN32)
+add_executable(Alice WIN32 "src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map.cpp"
+	"src/alice.rc"
+	${ASSET_FILES})
+else()
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map.cpp"
 	${ASSET_FILES})
+endif()
 
 # Used for storing the local path to the Victoria 2 directory
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
@@ -79,7 +87,7 @@ if(WIN32)
 else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(Alice PRIVATE
-										-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field
+			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field
 			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()

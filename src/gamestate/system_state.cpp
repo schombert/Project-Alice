@@ -18,6 +18,7 @@
 #include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
+#include "gui_map_tooltip.hpp"
 #include "main_menu/gui_country_selection_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
@@ -35,8 +36,12 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 	if(ui_state.under_mouse != nullptr) {
 		// TODO: look at return value
-		ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
-				mod);
+		auto r =ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
+			if(r != ui::message_result::consumed) {
+				map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
+			}
+	} else {
+		map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
 	}
 }
 void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
@@ -144,18 +149,53 @@ void state::on_text(char c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
+
+inline constexpr int32_t tooltip_width = 400;
+
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 											 // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+
+	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
 			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+		}
+	}
+
+
+	if(!mouse_probe.under_mouse) {
+		if(ui_state.last_tooltip != ui_state.map_tooltip_window) {
+			ui_state.last_tooltip = ui_state.map_tooltip_window;
+		} 
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+			auto type = ui_state.last_tooltip->has_tooltip(*this);
+			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+						text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+								text::alignment::left,
+								text::text_color::white},
+						 20);
+				ui_state.tooltip->base_data.position.x = int16_t(mouse_probe.relative_location.x);
+				ui_state.tooltip->base_data.position.y = int16_t(mouse_probe.relative_location.y);
+				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y,
+						container);
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+				if(container.used_width > 0) {
+					ui_state.tooltip->set_visible(*this, true);
+				} else {
+					ui_state.tooltip->set_visible(*this, false);
+				}
+			}
 		}
 	}
 
@@ -251,10 +291,12 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left,
+						text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+								text::alignment::left,
 								text::text_color::white},
-						250);
-				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
+						 10);
+				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 				if(container.used_width > 0)
@@ -265,8 +307,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+	
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
@@ -275,10 +316,12 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(type != ui::tooltip_behavior::no_tooltip) {
 
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left,
+						text::layout_parameters{16, 16, tooltip_width,int16_t( ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+								text::alignment::left,
 								text::text_color::white},
-						250);
-				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
+						 10);
+				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 				if(container.used_width > 0)
@@ -294,17 +337,18 @@ void state::render() { // called to render the frame may (and should) delay retu
 	} else if(ui_state.last_tooltip &&
 						ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left,
+				text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+						text::alignment::left,
 						text::text_color::white},
-				250);
-		ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
+				 10);
+		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 		if(container.used_width > 0)
 			ui_state.tooltip->set_visible(*this, true);
 		else
 			ui_state.tooltip->set_visible(*this, false);
-	}
+	} 
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
@@ -320,7 +364,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+					int16_t(0),
+					int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
@@ -373,10 +418,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glDepthRange(-1.0, 1.0);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
-	ui_state.scroll_target = ui_state.root
-															 ->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-																	 int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip)
-															 .under_mouse;
+	ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this,
+		int32_t(mouse_x_position / user_settings.ui_scale),
+		int32_t(mouse_y_position / user_settings.ui_scale),
+		ui::mouse_probe_type::tooltip).under_mouse;
 
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 
@@ -396,7 +441,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 }
 void state::on_create() {
-	local_player_nation = dcon::nation_id{42};
 	// Clear "center" property so they don't look messed up!
 	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &=
@@ -433,6 +477,10 @@ void state::on_create() {
 	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition].data.window.flags |=
+			ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find("endoflandcombatpopup")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
@@ -546,6 +594,10 @@ void state::on_create() {
 		auto new_elm = ui::make_element_by_type<ui::country_selection_window>(*this, "country_selection_panel");
 		new_elm->impl_on_update(*this);
 		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::map_tooltip>(*this, "tooltip");
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 
@@ -1726,6 +1778,21 @@ void state::load_scenario_data() {
 	culture::create_initial_ideology_and_issues_distribution(*this);
 	demographics::regenerate_from_pop_data(*this);
 
+	military::reinforce_regiments(*this);
+
+	// run the economy for three days on scenario creation
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	economy::daily_update(*this);
+
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	economy::daily_update(*this);
+
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	economy::daily_update(*this);
+
 	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
@@ -1806,6 +1873,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	pop_demographics::regenerate_is_primary_or_accepted(*this);
 
+	nations::update_administrative_efficiency(*this);
 	rebel::update_movement_values(*this);
 
 	economy::regenerate_unsaved_values(*this);
@@ -1855,6 +1923,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			}
 		}
 	}
+
+	game_state_updated.store(true, std::memory_order::release);
 }
 
 constexpr inline int32_t game_speed[] = {
@@ -2053,7 +2123,7 @@ void state::game_loop() {
 				demographics::regenerate_from_pop_data(*this);
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 13, [&](int32_t index) {
+				concurrency::parallel_for(0, 15, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2094,6 +2164,12 @@ void state::game_loop() {
 					case 12:
 						military::update_ticking_war_score(*this);
 						break;
+					case 13:
+						military::increase_dig_in(*this);
+						break;
+					case 14:
+						military::recover_org(*this);
+						break;
 					}
 				});
 
@@ -2102,6 +2178,8 @@ void state::game_loop() {
 				military::update_movement(*this);
 				military::update_siege_progress(*this);
 				military::update_naval_battles(*this);
+				military::update_land_battles(*this);
+				military::advance_mobilizations(*this);
 
 				event::update_events(*this);
 
@@ -2129,9 +2207,18 @@ void state::game_loop() {
 				case 3:
 					military::monthly_leaders_update(*this);
 					break;
+				case 4:
+					military::reinforce_regiments(*this);
+					break;
 				case 5:
 					rebel::update_movements(*this);
 					rebel::update_factions(*this);
+					break;
+				case 8:
+					military::apply_attrition(*this);
+					break;
+				case 9:
+					military::repair_ships(*this);
 					break;
 				case 10:
 					province::update_crimes(*this);
@@ -2151,9 +2238,14 @@ void state::game_loop() {
 				case 25:
 					rebel::execute_province_defections(*this);
 					break;
+				case 28:
+					rebel::rebel_risings_check(*this);
+					break;
 				default:
 					break;
 				}
+
+				military::apply_regiment_damage(*this);
 
 				// yearly update : redo the upper house
 				if(ymd_date.day == 1 && ymd_date.month == 1) {

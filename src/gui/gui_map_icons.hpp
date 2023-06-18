@@ -58,6 +58,11 @@ public:
 			parent->impl_get(state, payload);
 			dcon::province_id content = any_cast<dcon::province_id>(payload);
 			state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) {
+				// Force the Reorg window to be cleaned up
+				Cyto::Any cpayload = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
+				state.ui_state.army_status_window->impl_get(state, cpayload);
+				state.ui_state.navy_status_window->impl_get(state, cpayload);
+
 				state.ui_state.army_status_window->set_visible(state, true);
 				state.ui_state.navy_status_window->set_visible(state, false);
 
@@ -66,12 +71,36 @@ public:
 				state.ui_state.army_status_window->impl_get(state, d_payload);
 			});
 			state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) {
+				// Force the Reorg window to be cleaned up
+				Cyto::Any cpayload = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
+				state.ui_state.army_status_window->impl_get(state, cpayload);
+				state.ui_state.navy_status_window->impl_get(state, cpayload);
+
 				state.ui_state.army_status_window->set_visible(state, false);
 				state.ui_state.navy_status_window->set_visible(state, true);
 
 				auto nid = state.world.navy_location_get_navy(id);
 				Cyto::Any d_payload = element_selection_wrapper<dcon::navy_id>{nid};
 				state.ui_state.navy_status_window->impl_get(state, d_payload);
+			});
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id content = any_cast<dcon::province_id>(payload);
+			// TODO - hacky, better solution probably exists
+			state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) {
+				if(dcon::fatten(state.world, id).get_army().get_army_control().get_controller().id == state.local_player_nation) {
+					frame = 0;
+				} else {
+					frame = 2;
+				}
+			});
+			state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) {
+				frame = 1;
 			});
 		}
 	}
@@ -109,12 +138,14 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		bool has_attrition = false; // TODO: Attrition
-		attr_icon->set_visible(state, has_attrition);
 		bool has_any = false;
 		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { has_any = true; });
 		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { has_any = true; });
-		set_visible(state, has_any);
+		for(auto const& c : children)
+			c->set_visible(state, has_any);
+
+		bool has_attrition = false; // TODO: Attrition
+		attr_icon->set_visible(state, has_attrition);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

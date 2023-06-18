@@ -636,9 +636,11 @@ Directed war score is always treated as being in the -100 to 100 range.
 Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
 Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier + technology-mobilization-impact-modifier), to a minimum of zero.
 
-Mobilized regiments come only from unoccupied, non-colonial provinces. In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture. The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT. Pops will provide up to this number of regiments per pop, although regiments they are already providing to rebels or which are already mobilized count against this number. At most, national-mobilization-impact-modifier x define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization.
+Mobilized regiments come only from unoccupied, non-colonial provinces. In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture. The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT. Pops will provide up to this number of regiments per pop, although regiments they are already providing to rebels or which are already mobilized count against this number. At most, national-mobilization-impact-modifier x (define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization).
 
 Mobilization is not instant. Province by province, mobilization advances by define:MOBILIZATION_SPEED_BASE x (1 + define:MOBILIZATION_SPEED_RAILS_MULT x average-railroad-level-in-state / 5) until it reaches 1. Once mobilization has occurred in one province, mobilization in the next province can start. The order this occurs in appears to be determined by the speed of mobilization: the provinces that will mobilize faster go before those that will go slower.
+
+Mobilizing increases crisis tension by define:CRISIS_TEMPERATURE_ON_MOBILIZE
 
 ### Province conquest
 
@@ -819,7 +821,7 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 
 ### Supply limit
 
-(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
+(province-supply-limit-modifier + 1) x (2.5 if it is owned and controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
 
 ## Units
 
@@ -827,13 +829,13 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 
 Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
 
-Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit.
+Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit times (0.25 + 0.75 x effective land or naval spending).
 
 Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.
 
 Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
 
-Supplies: Rebel units are always treated as having fully supply. Units not in combat consume supply. Which commodities and how many are consumed in this way depends on the specific type of unit. The supply quantities defined by its type are then multiplied by (2 - national-administrative-efficiency) x (supply-consumption-by-type + national-modifier-to-supply-consumption)^0.01 x (naval-or-land-spending-as-appropriate). The average fraction of that consumption that could be fulfilled times naval or land-spending (as appropriate) for each regiment or ship is then averaged over the army/navy. For armies, that value become their new supply for the army. For navies, this value is further multiplied by (1 - the-fraction-the-nation-is-over-naval-supply) before becoming the new supply value.
+Supplies: Rebel units are always treated as having full supply. Units not in combat consume supply. Which commodities and how many are consumed in this way depends on the specific type of unit. The supply quantities defined by its type are then multiplied by (2 - national-administrative-efficiency) x (supply-consumption-by-type + national-modifier-to-supply-consumption)^0.01 x (naval-or-land-spending-as-appropriate). The average fraction of that consumption that could be fulfilled times naval or land-spending (as appropriate) for each regiment or ship is then averaged over the army/navy. For armies, that value become their new supply for the army. For navies, this value is further multiplied by (1 - the-fraction-the-nation-is-over-naval-supply) before becoming the new supply value.
 
 Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
 
@@ -1214,6 +1216,7 @@ The probabilities for province events are calculated in the same way, except tha
 - tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 - number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
 - province nationalism decreases by 0.083 (1/12) per month.
+- Nationalization (can be triggered by an effect): All nations lose their foreign investment in a nation. Each nation with foreign investment gets a random event from `on_my_factories_nationalized` with the country doing the nationalization in the from slot.
 
 ## Tracking changes
 
@@ -1807,15 +1810,5 @@ Fabrication starts
 
 
 TODO
-Crisis invite with wargoal (+ accept, reject)
-Crisis propose solution (+ accept, reject)
-Crisis back down
-Add CB to war
-Declare war
-Make peace offer (+ accept, reject)
-Assign leader to unit
-Move unit
-Embark/disembark
-Split unit
 Take command of vassal units / give up command
 Set hunt rebels on/off

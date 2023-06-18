@@ -122,7 +122,8 @@ public:
 class statswin_tactics : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::military_tactics) + 1.0f);
+		return text::format_percentage(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::military_tactics) +
+																	 state.defines.base_military_tactics);
 	}
 
 public:

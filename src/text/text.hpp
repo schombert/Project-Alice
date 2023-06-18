@@ -600,13 +600,15 @@ struct columnar_layout : public layout_base {
 	int32_t used_height = 0;
 	int32_t used_width = 0;
 	int32_t y_cursor = 0;
-	int32_t current_column = 0;
+	int32_t current_column_x = 0;
 	int32_t column_width = 0;
 
 	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0,
-			int32_t y_cursor = 0, int32_t current_column = 0, int32_t column_width = 0)
+			int32_t y_cursor = 0, int32_t column_width = 0)
 			: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
-				current_column(current_column), column_width(column_width) { }
+				current_column_x(fixed_parameters.left), column_width(column_width) {
+		layout_base::fixed_parameters.left = 0;
+	}
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -640,6 +642,9 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
+void add_line_break_to_layout(sys::state& state, columnar_layout& dest);
+void add_line_break_to_layout(sys::state& state, endless_layout& dest);
+
 void close_layout_box(layout_base& dest, layout_box& box);
 
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
@@ -656,6 +661,7 @@ std::string date_to_string(sys::state const& state, sys::date date);
 
 std::string prettify(int64_t num);
 std::string format_money(float num);
+std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
@@ -672,7 +678,17 @@ void localised_format_box(sys::state& state, layout_base& dest, layout_box& box,
 		substitution_map const& sub = substitution_map{});
 void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey,
 		substitution value);
+
+void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, int32_t indent = 0);
+void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent = 0);
+
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
+
+std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
 
 #define TEXT_NOTIF_MSG_TITLE(str)                                                                                                \
 	{                                                                                                                              \

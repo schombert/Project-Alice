@@ -803,7 +803,22 @@ std::string format_money(float num) {
 	} else {
 		amount = prettify(int32_t(num));
 	}
-	return "\xA4 " + amount;
+	return amount + "\xA4 ";	// Currency is postfixed, NOT prefixed
+}
+
+std::string format_wholenum(int32_t num) {
+	bool bIsNegative = false;	// This is dumb, dont ask
+	(num < 0) ? bIsNegative = true : bIsNegative = false;
+	std::string numstr = std::to_string(uint32_t(num));
+	
+	for(size_t i = numstr.length() / 3; i-->0;) {
+		// This is so dumb, fuck this
+		numstr.insert((numstr.end() - ((i*3) + 3)), ',');
+	}
+
+	if(numstr[0] == ',') {numstr.erase(numstr.begin());}
+	if(bIsNegative) {numstr.insert(0, "-");}
+	return numstr;
 }
 
 std::string format_ratio(int32_t left, int32_t right) {
@@ -817,8 +832,9 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, substituti
 std::string localize_month(sys::state const& state, uint16_t month) {
 	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may", "june", "july", "august",
 			"september", "october", "november", "december"};
-	if(month == 0 || month > 12)
+	if(month == 0 || month > 12) {
 		return text::produce_simple_string(state, "january");
+	}
 	return text::produce_simple_string(state, month_names[month - 1]);
 }
 
@@ -874,6 +890,25 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 
 	impl::lb_finish_line(dest, box, line_height);
 }
+void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	auto& font = state.font_collection.fonts[font_index - 1];
+	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto line_height = text_height + dest.fixed_parameters.leading;
+	dest.base_layout.number_of_lines += 1;
+	dest.y_cursor += line_height;
+}
+void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	auto& font = state.font_collection.fonts[font_index - 1];
+	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto line_height = text_height + dest.fixed_parameters.leading;
+	dest.base_layout.number_of_lines += 1;
+	dest.y_cursor += line_height;
+}
+
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,
 		substitution source) {
@@ -885,10 +920,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	if(state.user_settings.use_new_ui &&
 			(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
 					std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
-		if(color != text_color::black)
+		if(color != text_color::black) {
 			tmp_color = text_color::light_blue;
-		else
+		} else {
 			tmp_color = text_color::dark_blue;
+		}
 	}
 
 	size_t start_position = 0;
@@ -1091,23 +1127,22 @@ void close_layout_box(columnar_layout& dest, layout_box& box) {
 	impl::lb_finish_line(dest, box, 0);
 
 	if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
-		++dest.current_column;
+		dest.current_column_x = dest.used_width + dest.column_width;
 		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
 			dest.base_layout.contents[i].y += dest.fixed_parameters.top;
-			dest.base_layout.contents[i].x += float(dest.column_width * dest.current_column);
+			dest.base_layout.contents[i].x += float(dest.current_column_x);
 			dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
 		}
 		dest.y_cursor = box.y_size + dest.fixed_parameters.top;
 	} else { // append to current column
 		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
 			dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
-			dest.base_layout.contents[i].x += float(dest.column_width * dest.current_column);
+			dest.base_layout.contents[i].x += float(dest.current_column_x);
 			dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
 		}
 		dest.y_cursor += box.y_size;
 	}
 	dest.used_height = std::max(dest.used_height, dest.y_cursor);
-	dest.used_width = std::max(dest.used_width, box.x_size + dest.column_width * dest.current_column);
 }
 void close_layout_box(endless_layout& dest, layout_box& box) {
 	impl::lb_finish_line(dest, box, 0);
@@ -1133,7 +1168,7 @@ void endless_layout::internal_close_box(layout_box& box) {
 columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
 	dest.contents.clear();
 	dest.number_of_lines = 0;
-	return columnar_layout(dest, params, 0, 0, params.top, 0, column_width);
+	return columnar_layout(dest, params, 0, 0, params.top, column_width);
 }
 
 // Reduces code repeat
@@ -1153,8 +1188,76 @@ void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& 
 	}
 }
 
-// Standardised dividers :3
-// Without the Leasion of Post-1.0 Stuff
+void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		add_to_layout_box(state, dest, box, k->second);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+
+	if(state.user_settings.use_new_ui) {
+		if(condition_met) {
+			text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		} else {
+			text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		}
+	} else {
+		if(condition_met) {
+			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
+			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::green);
+			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
+		} else {
+			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
+			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::red);
+			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
+
+		}
+	}
+
+	text::add_space_to_layout_box(state, dest, box);
+
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		add_to_layout_box(state, dest, box, k->second);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		int32_t indent) {
+
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
+
+		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
+		text::add_to_substitution_map(sub, subkey_b, value_b);
+
+		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
+
+
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	text::add_line_break_to_layout_box(state, dest, box);
 	// Why do many thing when one can do one thing.
@@ -1162,4 +1265,39 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 	text::add_to_layout_box(state, dest, box, std::string_view("--------------"));
 	text::add_line_break_to_layout_box(state, dest, box);
 }
+
+std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp) {
+	dcon::text_sequence_id source_text;
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		//add_to_layout_box(state, dest, box, k->second, sub);
+		source_text = k->second;
+	}
+
+	if(!source_text)
+		return "???";
+
+	std::string result;
+
+	auto seq = state.text_sequences[source_text];
+	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
+		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+			std::string_view text = state.to_string_view(tkey);
+			//add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
+			result += text;
+		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
+			auto var_type = std::get<text::variable_type>(state.text_components[i]);
+			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
+				auto txt = impl::lb_resolve_substitution(state, it->second);
+				//add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
+				result += txt;
+			} else {
+				//add_to_layout_box(state, dest, box, std::string_view("???"), current_color, std::monostate{});
+				result += "???";
+			}
+		}
+	}
+	return result;
+}
+
 } // namespace text

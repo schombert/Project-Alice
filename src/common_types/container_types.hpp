@@ -60,6 +60,15 @@ struct modifier_hash {
 		return ankerl::unordered_dense::hash<int32_t>()(index);
 	}
 };
+
+struct crisis_join_offer {
+	dcon::nation_id target;
+	dcon::cb_type_id wargoal_type;
+	dcon::state_definition_id wargoal_state;
+	dcon::national_identity_id wargoal_tag;
+	dcon::nation_id wargoal_secondary_nation;
+};
+
 } // namespace sys
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

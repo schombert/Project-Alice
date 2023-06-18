@@ -16,7 +16,7 @@ namespace dcon {
 class pop_satisfaction_wrapper_id {
 public:
 	using value_base_t = uint8_t;
-	uint8_t value = 0;
+	value_base_t value = 0;
 	pop_satisfaction_wrapper_id() { }
 	pop_satisfaction_wrapper_id(uint8_t v) : value(v) { }
 	value_base_t index() {
@@ -35,8 +35,8 @@ public:
 		switch(value) {
 		case 0: // No needs fulfilled
 		case 1: // Some life needs
-		case 2: // All life needs
-		case 3: // All everyday
+		case 2: // All life needs, some everyday
+		case 3: // All everyday, some luxury
 		case 4: // All luxury
 			return names[value];
 		}
@@ -67,65 +67,128 @@ uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 } // namespace ogl
 
 namespace ui {
+
+
+class nation_administrative_efficiency_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto n = any_cast<dcon::nation_id>(payload);
+
+			if(state.user_settings.use_new_ui) {
+
+				{
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val,
+							text::fp_percentage{1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "admin_explain_1", m);
+					text::close_layout_box(contents, box);
+				}
+				active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier,
+						false);
+				{
+					auto non_colonial = state.world.nation_get_non_colonial_population(n);
+					auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
+
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "admin_explain_2", m);
+					text::close_layout_box(contents, box);
+				}
+				{
+					float issue_sum = 0.0f;
+					for(auto i : state.culture_definitions.social_issues) {
+						issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
+					}
+					auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
+
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val,
+							text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
+					text::add_to_substitution_map(m, text::variable_type::x,
+							text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
+					text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "admin_explain_3", m);
+					text::close_layout_box(contents, box);
+				}
+			} else {
+				// TODO: Classic tooltip
+			}
+		}
+	}
+};
+
 template<culture::pop_strata Strata>
 class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
 	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
 			sys::state& state) noexcept override {
 		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
-		Cyto::Any nat_id_payload = dcon::nation_id{};
-
+		
 		enabled = true;
 		if(parent == nullptr)
 			return distrib;
 
-		parent->impl_get(state, nat_id_payload);
-		if(nat_id_payload.holds_type<dcon::nation_id>()) {
-			auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
-			auto total = 0.f;
-			auto sat_pool = std::vector<float>(5);
-			state.world.for_each_province([&](dcon::province_id province) {
-				if(nat_id != state.world.province_get_nation_from_province_ownership(province))
-					return;
+		auto total = 0.f;
+		std::array<float, 5> sat_pool = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
 
-				for(auto pop_loc : state.world.province_get_pop_location(province)) {
-					auto pop_id = pop_loc.get_pop();
-					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
-					auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
+			for(auto pop_loc : prov.get_province().get_pop_location()) {
+				auto pop_id = pop_loc.get_pop();
+				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
+				auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
 					// All luxury needs
 					// OR All everyday needs
 					// OR All life needs
 					// OR Some life needs
 					// OR No needs fulfilled...
-					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.f)			? 4
-									 : (pop_id.get_everyday_needs_satisfaction() > 0.f) ? 3
-									 : (pop_id.get_life_needs_satisfaction() >= 1.f)		? 2
-									 : (pop_id.get_life_needs_satisfaction() > 0.f)			? 1
-																																			: 0] += pop_size;
-					total += pop_size;
-				}
-			});
-			if(total <= 0.f) {
-				enabled = false;
-				return distrib;
+				sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
+								 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
+								 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
+								 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
+								 : 0] += pop_size;
+				total += pop_size;
 			}
-
-			for(size_t i = 0; i < sat_pool.size(); i++)
-				distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
 		}
+		if(total <= 0.f) {
+			enabled = false;
+			return distrib;
+		}
+
+		for(size_t i = 0; i < sat_pool.size(); i++)
+			distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
+		
 		return distrib;
 	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		// Fill-in static information...
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
-				.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-
+		static bool has_run = false;
+		if(!has_run) {
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4})
+					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			has_run = true;
+		}
 		piechart::on_create(state);
 	}
 
@@ -186,6 +249,112 @@ public:
 			v = get_true_value(state);
 			update_raw_value(state, v);
 		}
+
+		switch(SliderTarget) {
+		case budget_slider_target::poor_tax: {
+			auto min_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			if(max_tax <= 0)
+				max_tax = 100;
+			max_tax = std::max(min_tax, max_tax);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
+			change_settings(state, new_settings);
+		} break;
+		case budget_slider_target::middle_tax: {
+			auto min_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			if(max_tax <= 0)
+				max_tax = 100;
+			max_tax = std::max(min_tax, max_tax);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
+			change_settings(state, new_settings);
+		} break;
+		case budget_slider_target::rich_tax: {
+			auto min_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax =
+					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			if(max_tax <= 0)
+				max_tax = 100;
+			max_tax = std::max(min_tax, max_tax);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tax, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tax, 0, 100);
+			change_settings(state, new_settings);
+		} break;
+		case budget_slider_target::social: {
+			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::min_social_spending));
+			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::max_social_spending));
+			if(max_spend <= 0)
+				max_spend = 100;
+			max_spend = std::max(min_spend, max_spend);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_spend, 0, 100);
+			new_settings.upper_limit = std::clamp(max_spend, 0, 100);
+			change_settings(state, new_settings);
+		} break;
+		case budget_slider_target::military: {
+			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::min_military_spending));
+			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
+																						sys::national_mod_offsets::max_military_spending));
+			if(max_spend <= 0)
+				max_spend = 100;
+			max_spend = std::max(min_spend, max_spend);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_spend, 0, 100);
+			new_settings.upper_limit = std::clamp(max_spend, 0, 100);
+			change_settings(state, new_settings);
+		} break;
+		case budget_slider_target::tariffs: {
+			auto min_tariff = int32_t(
+					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tariff));
+			auto max_tariff = int32_t(
+					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tariff));
+			max_tariff = std::max(min_tariff, max_tariff);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = -100;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_tariff, -100, 100);
+			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
+			change_settings(state, new_settings);
+		} break;
+		default:
+			break;
+		}
+
 		if(parent) {
 			float amount = float(v) / 100.f;
 			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};
@@ -542,14 +711,140 @@ public:
 	}
 };
 
+class tax_list_pop_type_icon : public opaque_element_base {
+public:
+	dcon::pop_type_id type{};
+
+	void set_type(sys::state& state, dcon::pop_type_id t) {
+		type = t;
+		frame = int32_t(state.world.pop_type_get_sprite(t) - 1);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, type));
+		disabled = total_pop < 1.0f;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto total = 0.f;
+		std::array<float, 5> sat_pool = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto pop_loc : prov.get_province().get_pop_location()) {
+				auto pop_id = pop_loc.get_pop();
+				if(pop_id.get_poptype() == type) {
+					auto pop_size = state.world.pop_get_size(pop_id);
+					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
+									 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
+									 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
+									 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
+									 : 0] += pop_size;
+					total += pop_size;
+				}
+			}
+		}
+
+		if(state.user_settings.use_new_ui) {
+			if(total > 0.0f) {
+				auto type_strata = state.world.pop_type_get_strata(type);
+				float total_pop = 0.0f;
+				if(culture::pop_strata(type_strata) == culture::pop_strata::poor) {
+					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::poor_total);
+				} else if(culture::pop_strata(type_strata) == culture::pop_strata::middle) {
+					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::middle_total);
+				} else {
+					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::rich_total);
+				}
+
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_single_sub_box(state, contents, box, std::string_view("percent_of_pop_strata"),
+							text::variable_type::val, text::fp_percentage{total / total_pop});
+					text::close_layout_box(contents, box);
+					//percent_of_pop_strata
+				}
+				text::add_line_break_to_layout(state, contents);
+				static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "no_need");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[0] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_no_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "some_life_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[1] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "life_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[2] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "everyday_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[3] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					auto sub = text::substitution_map{};
+					auto needs_type = text::produce_simple_string(state, "luxury_needs");
+					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[4] * 100.0f / total});
+					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+					text::close_layout_box(contents, box);
+				}
+			} else {
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+					text::close_layout_box(contents, box);
+				}
+				text::add_line_break_to_layout(state, contents);
+				{
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, std::string_view("no_pops_of_type"));
+					text::close_layout_box(contents, box);
+				}
+			}
+		} else {
+			// TODO: Classic tooltip
+		}
+	}
+};
+
 class budget_pop_list_item : public window_element_base {
 private:
-	fixed_pop_type_icon* pop_type_icon = nullptr;
+	tax_list_pop_type_icon* pop_type_icon = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop") {
-			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
+			auto ptr = make_element_by_type<tax_list_pop_type_icon>(state, id);
 			pop_type_icon = ptr.get();
 			return ptr;
 		} else {

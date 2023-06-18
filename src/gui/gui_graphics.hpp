@@ -373,6 +373,7 @@ struct state {
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
+	element_base* map_tooltip_window = nullptr; 
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;
