@@ -46,6 +46,7 @@ public:
 			sys::key_modifiers mod);
 	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
 			sys::key_modifiers mod);
+	dcon::province_id get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
 
 	dcon::province_id get_selected_province();
 	void set_selected_province(dcon::province_id prov_id);

@@ -302,6 +302,27 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	}
 }
 
+dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y) {
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+	glm::vec2 map_pos;
+	if(!map_state::screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
+		return dcon::province_id{};
+	}
+	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
+	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
+	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
+		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			return province::from_map_id(map_data.province_id_map[idx]);
+		} else {
+			return dcon::province_id{};
+		}
+	} else {
+		return dcon::province_id{};
+	}
+}
+
 bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
 	if(state.user_settings.map_is_globe) {
 		glm::vec3 cartesian_coords;
