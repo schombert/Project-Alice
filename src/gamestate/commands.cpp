@@ -3249,7 +3249,7 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 	if(state.world.navy_get_battle_from_navy_battle_participation(n))
 		return std::vector<dcon::province_id>{};
 
-	if(dest.index() < state.province_definitions.first_sea_province.index()) {
+	if(dest.index() >= state.province_definitions.first_sea_province.index()) {
 		return province::make_naval_path(state, last_province, dest);
 	} else {
 		if(!state.world.province_get_is_coast(dest))

@@ -661,6 +661,7 @@ std::string date_to_string(sys::state const& state, sys::date date);
 
 std::string prettify(int64_t num);
 std::string format_money(float num);
+std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
@@ -686,6 +687,8 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, variab
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent = 0);
 
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
+
+std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
 
 #define TEXT_NOTIF_MSG_TITLE(str)                                                                                                \
 	{                                                                                                                              \

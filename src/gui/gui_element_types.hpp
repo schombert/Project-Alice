@@ -223,7 +223,7 @@ class simple_text_element_base : public element_base {
 protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
-	
+
 public:
 	bool black_text = true;
 
@@ -734,9 +734,6 @@ public:
 
 template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
-public:
-	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
-
 protected:
 	std::vector<RowWinT*> row_windows{};
 
@@ -748,6 +745,7 @@ protected:
 	}
 
 public:
+	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
 	std::vector<RowConT> row_contents{};
 
 	void update(sys::state& state);

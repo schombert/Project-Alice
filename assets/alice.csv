@@ -485,6 +485,7 @@ factory_stats_3;It produced $val$ units of $x$ in the previous day
 factory_stats_4;It made a profit of $val$ in the previous day
 factory_stats_5;Inputs availability:
 factory_stats_6;Efficiency inputs availability:
+speed;$val$ kph;;;;;;;;;;;;x
 shift_to_hold_open;Hold shift to keep this window open
 blank_org_gain;organization gain
 ;;;;;;;;;;;;;x
