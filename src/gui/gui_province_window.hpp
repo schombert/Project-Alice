@@ -666,6 +666,34 @@ public:
 	}
 };
 
+class province_invest_factory_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		if(content) {
+			open_build_foreign_factory(state, state.world.province_get_state_membership(content));
+		}
+			
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		disabled = true;
+
+		if(!content)
+			return;
+
+		for(auto ft : state.world.in_factory_type) {
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+				state.world.province_get_state_membership(content), ft, false)) {
+
+				disabled = false;
+				return;
+			}
+		}
+	}
+};
+
 class province_view_foreign_details : public window_element_base {
 private:
 	flag_button* country_flag_button = nullptr;
@@ -740,9 +768,7 @@ public:
 		} else if(name == "invest_build_infra") {
 			return make_element_by_type<province_invest_railroad_button>(state, id);
 		} else if(name == "invest_factory_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->disabled = true;
-			return ptr;
+			return make_element_by_type<province_invest_factory_button>(state, id);
 		} else if(name == "sphere_targets") {
 			return make_element_by_type<overlapping_sphere_flags>(state, id);
 		} else if(name == "puppet_targets") {

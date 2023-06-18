@@ -22,10 +22,10 @@ namespace ui {
 
 /*
  * NOTE -
- * 	None of the classes in here are "redundent" or "pointless",
- * 	there existance is to prevent tooltip cross contaimination
+ * 	None of the classes in here are "redundant" or "pointless",
+ * 	there existence is to prevent tooltip cross contamination
  * 	DO NOT REMOVE THEM, its was enough of a issue having
- * 	to readd them the last time they got removed.
+ * 	to re-add them the last time they got removed.
  */
 
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
@@ -851,7 +851,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto const override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
-			topbar_subwindow->impl_on_update(state);
 			state.ui_state.root->move_child_to_front(topbar_subwindow);
 			state.ui_state.topbar_subwindow = topbar_subwindow;
 		};

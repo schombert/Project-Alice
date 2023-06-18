@@ -119,4 +119,23 @@ public:
 	friend std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name);
 };
 
+template<typename T>
+inline T retrieve(sys::state& state, element_base* parent) {
+	if(parent) {
+		Cyto::Any payload = T{};
+		parent->impl_get(state, payload);
+		return any_cast<T>(payload);
+	} else {
+		return T{};
+	}
+}
+
+template<typename T>
+inline void send(sys::state& state, element_base* parent, T value) {
+	if(parent) {
+		Cyto::Any payload = value;
+		parent->impl_get(state, payload);
+	}
+}
+
 } // namespace ui

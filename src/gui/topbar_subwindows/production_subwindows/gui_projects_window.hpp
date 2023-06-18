@@ -62,6 +62,9 @@ protected:
 
 class production_project_invest_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		set_visible(state, false);
+	}
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
@@ -131,7 +134,9 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "pop_amount") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "invest_project") {
 			return make_element_by_type<production_project_invest_button>(state, id);
 		} else if(name == "input_goods") {

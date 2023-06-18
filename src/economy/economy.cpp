@@ -32,6 +32,10 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	auto crng = state.world.state_instance_get_state_building_construction(si);
+	if(crng.begin() != crng.end())
+		return true;
+
 	for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 		if(p.get_province().get_nation_from_province_ownership() == owner) {
 			auto rng = p.get_province().get_factory_location();
@@ -389,12 +393,19 @@ float factory_max_employment(sys::state const& state, dcon::factory_id f) {
 	return factory_per_level_employment * state.world.factory_get_level(f);
 }
 
+float factory_primary_employment(sys::state const& state, dcon::factory_id f) {
+	auto primary_employment = state.world.factory_get_primary_employment(f);
+	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment);
+}
+float factory_secondary_employment(sys::state const& state, dcon::factory_id f) {
+	auto secondary_employment = state.world.factory_get_secondary_employment(f);
+	return factory_max_employment(state, f) * ((1 - state.economy_definitions.craftsmen_fraction) * secondary_employment);
+}
 float factory_total_employment(sys::state const& state, dcon::factory_id f) {
 	// TODO: Document this, also is this a stub?
 	auto primary_employment = state.world.factory_get_primary_employment(f);
 	auto secondary_employment = state.world.factory_get_secondary_employment(f);
-	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment +
-																								(1 - state.economy_definitions.craftsmen_fraction) * secondary_employment);
+	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment + (1 -state.economy_definitions.craftsmen_fraction) * secondary_employment);
 }
 
 void update_factory_employment(sys::state& state) {
