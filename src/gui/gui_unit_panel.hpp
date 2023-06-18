@@ -433,13 +433,13 @@ public:
 				for(auto n : fat.get_army_membership()) {
 					dcon::unit_type_id utid = n.get_regiment().get_type();
 					auto result = state.military_definitions.unit_base_definitions[utid].type;
-					if(N == 0 && (result == military::unit_type::infantry)) {
+					if constexpr(N == 0 && (result == military::unit_type::infantry)) {
 						totalunits++;
 						totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-					} else if(N == 1 && result == military::unit_type::cavalry) {
+					} else if constexpr(N == 1 && result == military::unit_type::cavalry) {
 						totalunits++;
 						totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-					} else if(N == 2 && (result == military::unit_type::support || result == military::unit_type::special)) {
+					} else if constexpr(N == 2 && (result == military::unit_type::support || result == military::unit_type::special)) {
 						totalunits++;
 						totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
 					}
@@ -452,11 +452,11 @@ public:
 				for(auto n : fat.get_navy_membership()) {
 					dcon::unit_type_id utid = n.get_ship().get_type();
 					auto result = state.military_definitions.unit_base_definitions[utid].type;
-					if(N == 0 && result == military::unit_type::big_ship) {
+					if constexpr(N == 0 && result == military::unit_type::big_ship) {
 						total++;
-					} else if(N == 1 && result == military::unit_type::light_ship) {
+					} else if constexpr(N == 1 && result == military::unit_type::light_ship) {
 						total++;
-					} else if(N == 2 && result == military::unit_type::transport) {
+					} else if constexpr(N == 2 && result == military::unit_type::transport) {
 						total++;
 					}
 				}

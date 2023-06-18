@@ -184,8 +184,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 								text::alignment::left,
 								text::text_color::white},
 						 20);
-				ui_state.tooltip->base_data.position.x = mouse_x_position;
-				ui_state.tooltip->base_data.position.y = mouse_y_position;
+				ui_state.tooltip->base_data.position.x = int16_t(mouse_probe.relative_location.x);
+				ui_state.tooltip->base_data.position.y = int16_t(mouse_probe.relative_location.y);
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y,
 						container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
