@@ -175,18 +175,46 @@ public:
 		}
 	}
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto type = state.world.factory_get_building_type(fid);
+
+
+		// no double upgrade
+		bool is_not_upgrading = true;
+		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+			if(p.get_type() == type)
+				is_not_upgrading = false;
+		}
+
+		if(is_not_upgrading) {
+			shift_button_element_base::render(state, x, y);
+		}
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
 		auto type = state.world.factory_get_building_type(fid);
+
+		// no double upgrade
+		bool is_not_upgrading = true;
+		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+			if(p.get_type() == type)
+				is_not_upgrading = false;
+		}
+
+		if(!is_not_upgrading) {
+			return;
+		}
 		
 		text::add_line(state, contents, "production_expand_factory_tooltip");
 
@@ -219,12 +247,7 @@ public:
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 		}
 
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
+		
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
@@ -375,8 +398,12 @@ public:
 	}
 };
 
-struct production_factory_slot_data {
-	std::variant<dcon::factory_id, economy::upgraded_factory, economy::new_factory> data;
+struct state_factory_slot {
+	dcon::factory_id id;
+	std::variant<std::monostate, economy::upgraded_factory, economy::new_factory> activity;
+};
+
+struct production_factory_slot_data : public state_factory_slot {
 	size_t index = 0;
 };
 
@@ -580,7 +607,7 @@ public:
 			return ptr;
 		} else if(name == "open_close") {
 			auto ptr = make_element_by_type<factory_shutdown_button>(state, id);
-			factory_elements.push_back(ptr.get());
+			//factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
@@ -600,18 +627,17 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = production_factory_slot_data{dcon::factory_id{}, index};
+			Cyto::Any payload = production_factory_slot_data{dcon::factory_id{}, std::monostate{}, index};
 			parent->impl_get(state, payload);
 			auto content = any_cast<production_factory_slot_data>(payload);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
 			dcon::factory_type_fat_id fat_btid(state.world, dcon::factory_type_id{});
-			if(std::holds_alternative<economy::new_factory>(content.data)) {
+
+			if(std::holds_alternative<economy::new_factory>(content.activity)) {
 				// New factory
-				economy::new_factory nf = std::get<economy::new_factory>(content.data);
+				economy::new_factory nf = std::get<economy::new_factory>(content.activity);
 				fat_btid = dcon::fatten(state.world, nf.type);
 
 				for(auto const& e : factory_elements)
@@ -622,9 +648,9 @@ public:
 					e->set_visible(state, true);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
-			} else if(std::holds_alternative<economy::upgraded_factory>(content.data)) {
+			} else if(std::holds_alternative<economy::upgraded_factory>(content.activity)) {
 				// Upgrade
-				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.data);
+				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.activity);
 				fat_btid = dcon::fatten(state.world, uf.type);
 
 				for(auto const& e : factory_elements)
@@ -635,9 +661,9 @@ public:
 					e->set_visible(state, false);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
-			} else if(std::holds_alternative<dcon::factory_id>(content.data)) {
+			} else {
 				// "Normal" factory, not being upgraded or built
-				dcon::factory_id fid = std::get<dcon::factory_id>(content.data);
+				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
 				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05;
@@ -669,20 +695,19 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(parent) {
-			Cyto::Any p_payload = production_factory_slot_data{dcon::factory_id{}, index};
+			Cyto::Any p_payload = production_factory_slot_data{dcon::factory_id{}, std::monostate{}, index};
 			parent->impl_get(state, p_payload);
 			auto content = any_cast<production_factory_slot_data>(p_payload);
 			if(payload.holds_type<dcon::factory_id>()) {
-				if(std::holds_alternative<dcon::factory_id>(content.data))
-					payload.emplace<dcon::factory_id>(std::get<dcon::factory_id>(content.data));
+				payload.emplace<dcon::factory_id>(content.id);
 				return message_result::consumed;
 			} else if(payload.holds_type<economy::upgraded_factory>()) {
-				if(std::holds_alternative<economy::upgraded_factory>(content.data))
-					payload.emplace<economy::upgraded_factory>(std::get<economy::upgraded_factory>(content.data));
+				if(std::holds_alternative<economy::upgraded_factory>(content.activity))
+					payload.emplace<economy::upgraded_factory>(std::get<economy::upgraded_factory>(content.activity));
 				return message_result::consumed;
 			} else if(payload.holds_type<economy::new_factory>()) {
-				if(std::holds_alternative<economy::new_factory>(content.data))
-					payload.emplace<economy::new_factory>(std::get<economy::new_factory>(content.data));
+				if(std::holds_alternative<economy::new_factory>(content.activity))
+					payload.emplace<economy::new_factory>(std::get<economy::new_factory>(content.activity));
 				return message_result::consumed;
 			}
 		}
@@ -690,9 +715,11 @@ public:
 	}
 };
 
+
+
 class production_factory_info_bounds_window : public window_element_base {
 	std::vector<element_base*> infos;
-	std::vector<std::variant<dcon::factory_id, economy::upgraded_factory, economy::new_factory>> factories;
+	std::vector<state_factory_slot> factories;
 
 	bool get_filter(sys::state& state, dcon::commodity_id cid) {
 		Cyto::Any payload = commodity_filter_query_data{cid, false};
@@ -730,7 +757,8 @@ public:
 		economy::for_each_new_factory(state, state_id, [&](economy::new_factory const& nf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(nf.type).id;
 			if(!visited_types[nf.type.index()] && get_filter(state, cid)) {
-				factories[index] = nf;
+				factories[index].activity = nf;
+				factories[index].id = dcon::factory_id{};
 				visited_types[nf.type.index()] = true;
 				infos[index]->set_visible(state, true);
 				++index;
@@ -740,7 +768,15 @@ public:
 		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const& uf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(uf.type).id;
 			if(!visited_types[uf.type.index()] && get_filter(state, cid)) {
-				factories[index] = uf;
+				factories[index].activity = uf;
+				province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id prov) {
+					for(auto fa : state.world.province_get_factory_location(prov)) {
+						if(fa.get_factory().get_building_type() == uf.type) {
+							factories[index].id = fa.get_factory().id;
+						}
+					}
+				});
+
 				visited_types[uf.type.index()] = true;
 				infos[index]->set_visible(state, true);
 				++index;
@@ -753,7 +789,8 @@ public:
 				dcon::factory_type_id ftid = state.world.factory_get_building_type(fid);
 				dcon::commodity_id cid = state.world.factory_type_get_output(ftid).id;
 				if(!visited_types[ftid.index()] && get_filter(state, cid)) {
-					factories[index] = fid;
+					factories[index].activity = std::monostate{};
+					factories[index].id = fid;
 					visited_types[ftid.index()] = true;
 					infos[index]->set_visible(state, true);
 					++index;
@@ -765,7 +802,9 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<production_factory_slot_data>()) {
 			auto content = any_cast<production_factory_slot_data>(payload);
-			content.data = factories[content.index];
+			auto index = content.index;
+			static_cast<state_factory_slot&>(content) = factories[index];
+			content.index = index;
 			payload.emplace<production_factory_slot_data>(content);
 			return message_result::consumed;
 		}
@@ -1559,7 +1598,7 @@ public:
 			auto ptr = make_element_by_type<production_state_invest_listbox>(state, id);
 			state_listbox_invest = ptr.get();
 			investment_nation.push_back(ptr.get());
-			ptr->set_visible(state, true);
+			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "investment_browser") {
 			auto ptr = make_element_by_type<invest_brow_window>(state, id);
