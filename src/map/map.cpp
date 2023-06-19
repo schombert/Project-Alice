@@ -291,10 +291,13 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	auto get_border_index = [&](uint16_t map_province_id1, uint16_t map_province_id2) -> int32_t {
 		auto province_id1 = province::from_map_id(map_province_id1);
 		auto province_id2 = province::from_map_id(map_province_id2);
-		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2).index();
-		if(border_index == -1)
-			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2).index();
-		return border_index;
+		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2);
+		if(!border_index )
+			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2);
+		if(!province_id1 || !province_id2) {
+			context.state.world.province_adjacency_set_type(border_index, province::border::impassible_bit);
+		}
+		return border_index.index();
 	};
 
 	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
@@ -385,15 +388,56 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		std::fill(current_row.begin(), current_row.end(), BorderDirection{});
 	}
 
+	// identify and filter out lakes
+	// TODO: unfortunately, this isn't enough to remove the michigan lakes, since there are two touching lake tiles there
+
+	for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
+		dcon::province_id p{dcon::province_id::value_base_t(k)};
+		bool any_other_sea = false;
+		for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+			if(other.id.index() >= context.state.province_definitions.first_sea_province.index()) {
+				any_other_sea = true;
+				break;
+			}
+		}
+		if(!any_other_sea) {
+			for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+				auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+				other.set_is_coast(false);
+				adj.get_type() |= province::border::impassible_bit;
+			}
+		}
+	}
+
+	for(auto p : context.state.world.in_province) {
+		auto rng = p.get_province_adjacency();
+		int32_t num_adj = int32_t(rng.end() - rng.begin());
+		auto original_province = context.prov_id_to_original_id_map[p].id;
+		assert(num_adj < 30);
+	}
+
+	/*
+	//  This creates a new special border containing the province to province adjacencies
+	//  It omits any adjacencies that are marked as impassible
+
 	auto& world = context.state.world;
+	auto last = borders_list_vertices.size();
+	borders_list_vertices.emplace_back();
 	world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
 		auto frel = fatten(world, id);
+		if((frel.get_type() & province::border::impassible_bit) != 0)
+			return;
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
+		if(!prov_a || !prov_b)
+			return;
 		auto mid_point_a = world.province_get_mid_point(prov_a.id);
 		auto mid_point_b = world.province_get_mid_point(prov_b.id);
-		add_line(glm::vec2(0), map_size, mid_point_a, mid_point_b, 0, 0, direction::UP_RIGHT, borders_list_vertices[0], current_row, 0.5);
+		add_line(glm::vec2(0), map_size, mid_point_a, mid_point_b, 0, 0, direction::UP_RIGHT, borders_list_vertices[last],
+				current_row, 0.5);
 	});
+	*/
 
 	borders.resize(borders_list_vertices.size());
 	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
@@ -531,9 +575,14 @@ std::vector<border_vertex> create_river_vertices(display_data const& data, parse
 }
 
 void display_data::update_borders(sys::state& state) {
-	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
+	uint32_t border_id = 0;
+	for(; border_id < state.world.province_adjacency_size(); border_id++) {
 		auto& border = borders[border_id];
 		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
+	}
+	for(; border_id < borders.size(); border_id++) {
+		auto& border = borders[border_id];
+		border.type_flag = province::border::test_bit;
 	}
 }
 
@@ -811,40 +860,44 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindVertexArray(border_vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
-	// if(zoom > 8) {
-	//	glUniform1f(4, 0.0013f);
-	//	uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit | province::border::state_bit);
 
-	//	std::vector<GLint> first;
-	//	std::vector<GLsizei> count;
-	//	for(auto& border : borders) {
-	//		if((border.type_flag & visible_borders) == 0) {
-	//			first.push_back(border.start_index);
-	//			count.push_back(border.count);
-	//		}
-	//	}
-	//	glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
-	//}
-
-	{
-		// glUniform1f(4, 0.0018f);
-		glUniform1f(4, 0.0006f);
-		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
+	if(zoom > 8) {
+		glUniform1f(4, 0.0013f);
+		uint8_t visible_borders =
+				(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
+						province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
 		for(auto& border : borders) {
-			first.push_back(border.start_index);
-			count.push_back(border.count);
+			if((border.type_flag & visible_borders) == 0) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
+		}
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	}
+
+	if(zoom > 3.5f) {
+		glUniform1f(4, 0.0018f);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
+				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
+
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if((border.type_flag & visible_borders) == 0 && (border.type_flag & province::border::state_bit) != 0) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
 		}
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
 
 	{
-		// glUniform1f(4, 0.0027f);
-		// uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
-		glUniform1f(4, 0.0012f);
-		uint8_t visible_borders = (province::border::river_crossing_bit);
+		glUniform1f(4, 0.0027f);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
+															 province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -855,9 +908,27 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 			}
 		}
 
-		if(first.size())
-			glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
+
+	/*
+	// SCHOMBERT: enabling this will render any special borders you make with the test bit set
+	{
+		glUniform1f(4, 0.0016f);
+		uint8_t visible_borders = (province::border::test_bit);
+
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if(border.type_flag & visible_borders) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
+		}
+
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	}
+	*/
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -957,12 +1028,18 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 		accumulated_tile_positions[prov_id] += glm::vec2(x, y);
 		tiles_number[prov_id]++;
 	}
-	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+	// schombert: needs to start from +1 here or you don't catch the last province
+	for(int i = context.state.world.province_size() + 1; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+
 		glm::ivec2 tile_pos;
-		if(tiles_number[i] == 0)
+
+		assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
+
+		if(tiles_number[i] == 0) {
 			tile_pos = glm::ivec2(0, 0);
-		else
+		} else {
 			tile_pos = accumulated_tile_positions[i] / tiles_number[i];
+		}
 		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), tile_pos);
 	}
 }
@@ -982,6 +1059,7 @@ void display_data::load_province_data(parsers::scenario_building_context& contex
 		uint8_t* ptr = image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
+			assert(it->second);
 			province_id_map[i] = province::to_map_id(it->second);
 		} else {
 			province_id_map[i] = 0;
