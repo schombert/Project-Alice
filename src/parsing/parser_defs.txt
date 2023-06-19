@@ -382,7 +382,6 @@ modifier_base
 	pop_growth                                value      float            member_fn
 	colonial_life_rating                      value      float            member_fn
 	seperatism                                value      float            member_fn
-	plurality                                 value      float            member_fn
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 
@@ -1592,6 +1591,7 @@ inv_effect
 	factory_goods_throughput group   inv_fac_goods_throughput  member
 	factory_goods_output  group      inv_fac_goods_output   member
 	shared_prestige       value      float                  member_fn
+	plurality             value      float                  member_fn
 	activate_unit         value      text                   member_fn
 	activate_building     value      text                   member_fn
 	enable_crime          value      text                   member_fn

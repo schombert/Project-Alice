@@ -177,9 +177,12 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<T>(payload);
 			auto color = black_text ? text::text_color::black : text::text_color::white;
-			auto container =
-					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y,
-																													 base_data.data.text.font_handle, 0, text::alignment::left, color});
+			auto container = text::create_endless_layout(
+				internal_layout,
+				text::layout_parameters{
+					0, 0, base_data.size.x, base_data.size.y,
+					base_data.data.text.font_handle, 0,
+					text::alignment::left, color});
 			populate_layout(state, container, content);
 		}
 	}
@@ -1192,22 +1195,6 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::leadership_points(state, nation_id);
 		return text::format_float(points, 1);
-	}
-};
-
-class nation_plurality_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto plurality = state.world.nation_get_plurality(nation_id);
-		return std::to_string(int32_t(plurality)) + '%';
-	}
-};
-
-class nation_revanchism_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto revanchism = state.world.nation_get_revanchism(nation_id);
-		return std::to_string(int32_t(revanchism)) + '%';
 	}
 };
 

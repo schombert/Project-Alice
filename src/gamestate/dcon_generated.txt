@@ -643,12 +643,6 @@ object {
 	}
 
 	property{
-		name{ technology_cost }
-		type{ int32_t }
-		tag{ scenario }
-	}
-
-	property{
 		name{ war_exhaustion_effect }
 		type{ float }
 		tag{ scenario }
@@ -2767,6 +2761,11 @@ object {
 	}
 	property{
 		name{ shared_prestige }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ plurality }
 		type{ float }
 		tag{ scenario }
 	}

@@ -77,6 +77,10 @@ public:
 
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
 public:
+	void on_create(sys::state& state) noexcept override {
+		generic_multiline_text<dcon::national_identity_id>::on_create(state);
+		black_text = false;
+	}
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id id) noexcept override {
 		int64_t province_count = 0;
 		std::string provinces = "";
@@ -114,16 +118,6 @@ public:
 			Cyto::Any e_payload = release_emplace_wrapper{state.world.national_identity_get_nation_from_identity_holder(niid)};
 			parent->impl_get(state, e_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, std::string_view("Rewease me"));
-		text::close_layout_box(contents, box);
 	}
 };
 

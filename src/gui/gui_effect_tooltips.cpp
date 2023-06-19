@@ -5067,9 +5067,10 @@ uint32_t ef_scaled_militancy_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5080,9 +5081,10 @@ uint32_t ef_scaled_militancy_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5091,11 +5093,11 @@ uint32_t ef_scaled_militancy_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_militancy_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5105,9 +5107,10 @@ uint32_t ef_scaled_consciousness_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5118,8 +5121,9 @@ uint32_t ef_scaled_consciousness_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
@@ -5129,11 +5133,11 @@ uint32_t ef_scaled_consciousness_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_consciousness_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5143,9 +5147,10 @@ uint32_t ef_scaled_militancy_nation_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5156,9 +5161,10 @@ uint32_t ef_scaled_militancy_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5167,11 +5173,11 @@ uint32_t ef_scaled_militancy_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_militancy_nation_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5181,9 +5187,10 @@ uint32_t ef_scaled_consciousness_nation_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5194,8 +5201,9 @@ uint32_t ef_scaled_consciousness_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
@@ -5205,11 +5213,11 @@ uint32_t ef_scaled_consciousness_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_consciousness_nation_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5219,9 +5227,10 @@ uint32_t ef_scaled_militancy_state_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5232,9 +5241,10 @@ uint32_t ef_scaled_militancy_state_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5243,11 +5253,11 @@ uint32_t ef_scaled_militancy_state_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_militancy_state_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5257,9 +5267,10 @@ uint32_t ef_scaled_consciousness_state_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5270,8 +5281,9 @@ uint32_t ef_scaled_consciousness_state_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
@@ -5281,11 +5293,11 @@ uint32_t ef_scaled_consciousness_state_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_consciousness_state_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5295,9 +5307,10 @@ uint32_t ef_scaled_militancy_province_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5308,9 +5321,10 @@ uint32_t ef_scaled_militancy_province_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5319,11 +5333,11 @@ uint32_t ef_scaled_militancy_province_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_militancy_province_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5333,9 +5347,10 @@ uint32_t ef_scaled_consciousness_province_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5346,8 +5361,9 @@ uint32_t ef_scaled_consciousness_province_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
@@ -5357,11 +5373,11 @@ uint32_t ef_scaled_consciousness_province_ideology(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_scaled_consciousness_province_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 1)});
-		text::localised_format_box(ws, layout, box, "scaled_unemployment", m);
+		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, t);
+		text::localised_format_box(ws, layout, box, "scaled_unemployment");
 		text::close_layout_box(layout, box);
 	}
 	return 0;

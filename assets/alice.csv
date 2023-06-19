@@ -488,4 +488,13 @@ factory_stats_6;Efficiency inputs availability:
 speed;$val$ kph;;;;;;;;;;;;x
 shift_to_hold_open;Hold shift to keep this window open
 blank_org_gain;organization gain
+plurality_change_reason;(based on the average consciousness)
+revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
+allow_reform_cond;Requirements:
+reform_effect_if_desc;When activated, if
+reform_effect_then_desc;Then:
+reform_effect_desc;When activated:
+special_rules;Special rules:
+voting_rules;Voting rules:
+hide_decision;Hide the notification for this decision
 ;;;;;;;;;;;;;x

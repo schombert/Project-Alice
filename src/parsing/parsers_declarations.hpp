@@ -713,7 +713,6 @@ public:
 	MOD_NAT_FUNCTION(pop_growth)
 	MOD_NAT_FUNCTION(colonial_life_rating)
 	MOD_NAT_FUNCTION(seperatism)
-	MOD_NAT_FUNCTION(plurality)
 	MOD_NAT_FUNCTION(colonial_prestige)
 
 	template<typename T>
@@ -1872,6 +1871,7 @@ struct inv_effect : public modifier_base {
 	inv_fac_goods_output factory_goods_output;
 
 	void shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context);
+	void plurality(association_type, float value, error_handler& err, int32_t line, invention_context& context);
 	void enable_crime(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
