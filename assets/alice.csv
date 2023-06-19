@@ -497,4 +497,6 @@ reform_effect_desc;When activated:
 special_rules;Special rules:
 voting_rules;Voting rules:
 hide_decision;Hide the notification for this decision
+sup_point_gain;Monthly suppression point increase: §G+$val$
+sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
 ;;;;;;;;;;;;;x
