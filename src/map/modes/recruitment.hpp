@@ -18,7 +18,7 @@ std::vector<uint32_t> recruitment_map_from(sys::state& state) {
 			if(max_regiments == 0) {
 				// grey
 				color = sys::pack_color(155, 156, 149);
-			} else if(created_regiments < max_regiments) {
+			} else if(created_regiments == max_regiments) {
 				// yellow
 				color = sys::pack_color(212, 214, 62);
 			} else {

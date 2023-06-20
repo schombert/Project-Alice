@@ -28,6 +28,7 @@ struct command_info {
 		unwesternize,
 		elecwin,
 		mainmenu,
+		debug,
 		cb_progress
 	} mode = type::none;
 	std::string_view desc;
@@ -92,6 +93,9 @@ static const std::vector<command_info> possible_commands = {
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"mainmenu", command_info::type::mainmenu, "Shows/Hides Main Menu",
+				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"dbg", command_info::type::debug, "Toggles Debug mode",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text",
@@ -899,6 +903,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 							std::to_string(state.world.decision_size()));
 		}
 	} break;
+	case command_info::type::debug: 
+		state.use_debug_mode = !state.use_debug_mode;
+		break;
 	case command_info::type::colour_guide:
 		log_to_console(state, parent,
 				"\xA7G"

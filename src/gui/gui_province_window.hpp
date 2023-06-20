@@ -1073,6 +1073,7 @@ public:
 			auto content = any_cast<dcon::province_id>(payload);
 
 			command::finish_colonization(state, state.local_player_nation, content);
+			state.ui_state.province_window->set_visible(state, false);
 		}
 	}
 
@@ -1108,12 +1109,6 @@ public:
 	}
 };
 
-class colony_nation_id_pair {
-public:
-	dcon::colonization_id col_id{};
-	dcon::nation_id player_id{};
-};
-
 class colony_invest_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1138,16 +1133,30 @@ public:
 };
 
 class level_entry : public listbox_row_element_base<uint8_t> {
+private:
+	image_element_base* progressicon = nullptr;
+	button_element_base* investbutton = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "progress_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = content;
+			progressicon = ptr.get();
 			return ptr;
 		} else if(name == "progress_button") {
-			return make_element_by_type<colony_invest_button>(state, id);
+			auto ptr = make_element_by_type<colony_invest_button>(state, id);
+			investbutton = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(content != 255) {progressicon->frame = content; } else { progressicon->set_visible(state, false); }
+		if(content == 255) {
+			investbutton->set_visible(state, true);
+		} else {
+			investbutton->set_visible(state, false);
 		}
 	}
 };
@@ -1164,19 +1173,22 @@ public:
 		parent->impl_get(state, payload);
 		auto content = any_cast<dcon::colonization_id>(payload);
 		auto fat_colony = dcon::fatten(state.world, content);
-		for(uint8_t i = 0; i < fat_colony.get_level(); ++i) {
-			row_contents.push_back(i);
+
+		if(province::is_colonizing(state, fat_colony.get_colonizer().id, fat_colony.get_state().id)) {
+			for(uint8_t i = 0; i < fat_colony.get_level(); ++i) {
+				row_contents.push_back(i);
+			}
 		}
 
 		if(row_contents.size() == 0) {
-			row_contents.push_back(1);
+			row_contents.push_back(255);
 		}
 
 		update(state);
 	}
 };
 
-class colonist_entry : public listbox_row_element_base<colony_nation_id_pair> {
+class colonist_entry : public listbox_row_element_base<dcon::colonization_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
@@ -1193,22 +1205,17 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::national_identity_id>()) {
-			if(!bool(content.col_id)) {
-				payload.emplace<dcon::national_identity_id>(
-						dcon::fatten(state.world, content.player_id).get_identity_from_identity_holder().id);
-			} else if(bool(content.col_id)) {
-				payload.emplace<dcon::national_identity_id>(
-						dcon::fatten(state.world, content.col_id).get_colonizer().get_identity_from_identity_holder().id);
-			}
+			payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content).get_colonizer().get_identity_from_identity_holder().id);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::colonization_id>()) {
-			payload.emplace<dcon::colonization_id>(content.col_id);
+			payload.emplace<dcon::colonization_id>(content);
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
 };
 
-class colonist_listbox : public listbox_element_base<colonist_entry, colony_nation_id_pair> {
+class colonist_listbox : public listbox_element_base<colonist_entry, dcon::colonization_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "colonist_item";
@@ -1224,17 +1231,20 @@ public:
 
 			row_contents.clear();
 
+			bool bFoundPlayer = false;
 			for(auto colony : fat_def.get_colonization()) {
-				colony_nation_id_pair test;
-				test.col_id = colony;
-				test.player_id = dcon::nation_id{0};
-				row_contents.push_back(test);
+				if(colony.get_colonizer().id == state.local_player_nation) {
+					bFoundPlayer = true;
+				}
+				row_contents.push_back(colony.id);
 			}
 
-			colony_nation_id_pair aa;
-			aa.col_id = dcon::colonization_id{0};
-			aa.player_id = state.local_player_nation;
-			row_contents.push_back(aa);
+			if(!bFoundPlayer) {
+				dcon::colonization_id player_colonisation;
+				dcon::fatten(state.world, player_colonisation).set_colonizer(state.local_player_nation);
+				dcon::fatten(state.world, player_colonisation).set_level(0);
+				row_contents.push_back(player_colonisation);
+			}
 
 			update(state);
 		}

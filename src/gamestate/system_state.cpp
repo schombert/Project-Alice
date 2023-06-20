@@ -18,7 +18,7 @@
 #include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
-#include "gui_map_tooltip.hpp"
+#include "map_tooltip.hpp"
 #include "main_menu/gui_country_selection_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
@@ -172,32 +172,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 
-	if(!mouse_probe.under_mouse) {
-		if(ui_state.last_tooltip != ui_state.map_tooltip_window) {
-			ui_state.last_tooltip = ui_state.map_tooltip_window;
-		} 
-		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
-								text::alignment::left,
-								text::text_color::white},
-						 20);
-				ui_state.tooltip->base_data.position.x = int16_t(mouse_probe.relative_location.x);
-				ui_state.tooltip->base_data.position.y = int16_t(mouse_probe.relative_location.y);
-				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y,
-						container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if(container.used_width > 0) {
-					ui_state.tooltip->set_visible(*this, true);
-				} else {
-					ui_state.tooltip->set_visible(*this, false);
-				}
-			}
-		}
-	}
+
 
 	if(game_state_was_updated) {
 		this->map_state.map_data.update_borders(*this);
@@ -384,6 +359,29 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
 					int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+		}
+	}
+
+	// Have to have the map tooltip down here, and we must check both of the probes
+	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
+	if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
+		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+				text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+						text::alignment::left,
+						text::text_color::white},
+				 20);
+		ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
+		ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
+
+		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), x_size, y_size);
+		text::populate_map_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale), int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
+
+		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+		if(container.used_width > 0) {
+			ui_state.tooltip->set_visible(*this, true);
+		} else {
+			ui_state.tooltip->set_visible(*this, false);
 		}
 	}
 
@@ -595,10 +593,6 @@ void state::on_create() {
 		auto new_elm = ui::make_element_by_type<ui::country_selection_window>(*this, "country_selection_panel");
 		new_elm->impl_on_update(*this);
 		new_elm->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::map_tooltip>(*this, "tooltip");
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 

@@ -19,11 +19,24 @@ struct evententry {
     dcon::nation_id sender{};
 };
 
+class diplomessage_button : public button_element_base {
+public:
+    tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+        return tooltip_behavior::variable_tooltip;
+    }
+
+    void update_tooltip(sys::state& state, int16_t x, int16_t y, text::columnar_layout& contents) noexcept override {
+        auto box = text::open_layout_box(contents);
+        text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"));
+        text::close_layout_box(contents, box);
+    }
+};
+
 class diplomessage_entry_win : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "diplomessageicon_button") {
-            return make_element_by_type<button_element_base>(state, id);
+            return make_element_by_type<diplomessage_button>(state, id);
         } else if(name == "flag") {
             return make_element_by_type<image_element_base>(state, id);
         } else if(name == "messageicon_bg_overlay") {
