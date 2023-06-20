@@ -511,7 +511,7 @@ reform_effect_desc;When activated:;;;;;;;;;;;;x
 special_rules;Special rules:;;;;;;;;;;;;x
 voting_rules;Voting rules:;;;;;;;;;;;;x
 hide_decision;Hide the notification for this decision;;;;;;;;;;;;x
-sup_point_gain;Monthly suppression point increase: Â§G+$val$;;;;;;;;;;;;x
+sup_point_gain;Monthly suppression point increase: §G+$val$;;;;;;;;;;;;x
 sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain;;;;;;;;;;;;x
-mtt_culture_majorities;The cultures in the Â§Y$PROV$Â§W  are:;;;;;;;;;;;;x
+mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
 ;;;;;;;;;;;;;x
