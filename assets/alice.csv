@@ -48,7 +48,7 @@ core_of;Core of;;;Nucleo de;;;;;;;;;x
 state_of;State of;;;Estado de;;;;;;;;;x
 one_of_the_following;One of the following effects:;;;Uno de los siguientes efectos:;;;;;;;;;x
 chance_of;Chance of:;;;Probablidad de:;;;;;;;;;x
-owner_of;Owner of;;;Due�o de;;;;;;;;;x
+owner_of;Owner of;;;Dueï¿½o de;;;;;;;;;x
 controller_of;Controller of;;;Controlador de;;;;;;;;;x
 location_of_pop;Location of that pop;;;Ubicacion de ese pop;;;;;;;;;x
 nation_of_pop;Nation containing that pop;;;Nacion que contiene ese pop;;;;;;;;;x
@@ -71,8 +71,8 @@ province_in;Province in;;;Provincia en;;;;;;;;;x
 reb_independence_nation;Rebel independence nation;;;Nacion rebelde independiente;;;;;;;;;x
 flashpoint_nation;Flashpoint nation;;;Nacion de punto de quiebre;;;;;;;;;x
 move_capital_to;Move capital to;;;Mover la capital a;;;;;;;;;x
-add_x_core;Add $adj$ core;;;A�adir nucleo $adj$;;;;;;;;;x
-add_core_to;Add core to;;;A�adir nucleo a;;;;;;;;;x
+add_x_core;Add $adj$ core;;;Aï¿½adir nucleo $adj$;;;;;;;;;x
+add_core_to;Add core to;;;Aï¿½adir nucleo a;;;;;;;;;x
 rebel;Rebel;;;Rebelde(s);;;;;;;;;x
 remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
@@ -91,7 +91,7 @@ make_slave_pop;Becomes a slave;;;Se convierte en esclavo;;;;;;;;;x
 research_points;Research points;;;Puntos de tecnologia;;;;;;;;;x
 change_tech_school;Technology school changes to $text$;;;Escuela tecnologica se cambia a $text$;;;;;;;;;x
 change_government_to;Government changes to $text$;;;El gobierno cambia a $text$;;;;;;;;;x
-add_to_treasury;Added to treasury;;;A�adido al tesoro;;;;;;;;;x
+add_to_treasury;Added to treasury;;;Aï¿½adido al tesoro;;;;;;;;;x
 war_exhaustion;War exhaustion;;;Exhaustion de guerra;;;;;;;;;x
 become_blank;Becomes $text$;;;Se convierte en $text$;;;;;;;;;x
 cultural_union_nation;The cultural union nation for its primary culture;;;La nacion de la union cultral para su cultura primaria;;;;;;;;;x
@@ -99,7 +99,7 @@ player_control_change;Player control changes to $text$;;;El control del jugador 
 set_national_flag;$text$ is set for this nation;;;$text$ se establece para esta nacion;;;;;;;;;x
 remove_national_flag;$text$ is unset for this nation;;;$text$ se desestablece para esta nacion;;;;;;;;;x
 infamy;Infamy;;;Infamia;;;;;;;;;x
-change_province_owner;Change province owner to $text$;;;Cambia el due�o de la provincia a $text$;;;;;;;;;x
+change_province_owner;Change province owner to $text$;;;Cambia el dueï¿½o de la provincia a $text$;;;;;;;;;x
 annex_effect;Annex $text$;;;Anexa $text$;;;;;;;;;x
 annexed_by_effect;Is annexed by $text$;;;Es anexado por $text$;;;;;;;;;x
 core_return;$adj$ cores are returned to $text$;;;Los nucleos de $adj$ son devueltos a $text$;;;;;;;;;x
@@ -128,15 +128,15 @@ free_slave_state;Becomes a free state;;;Se convierte en un estado libre;;;;;;;;;
 free_slave_pop;Is freed from slavery;;;Se libera de la esclavitud;;;;;;;;;x
 hold_election;Hold election;;;Se hacen elecciones;;;;;;;;;x
 issue_change;$issue$ changes to $text$;;;$issue$ se cambia a $text$;;;;;;;;;x
-add_relative_income;Times last income added to treasury;;;Multiplicado por el ultimo ingreso y se a�ade al tesoro;;;;;;;;;x
+add_relative_income;Times last income added to treasury;;;Multiplicado por el ultimo ingreso y se aï¿½ade al tesoro;;;;;;;;;x
 make_neutral;All alliances ended and all vassals released;;;Todas las alianzas terminadas y todos los subyugados son liberados;;;;;;;;;x
-pop_size;Pop size;;;Tama�o del pop;;;;;;;;;x
+pop_size;Pop size;;;Tamaï¿½o del pop;;;;;;;;;x
 move_pop_to;Move pop to $text$;;;Mover pop a $text$;;;;;;;;;x
 change_pop_type;Change pop type to $text$;;;Cambiar tipo de pop a $text$;;;;;;;;;x
-years_of_research;Years of research;;;A�os de investigacion;;;;;;;;;x
+years_of_research;Years of research;;;Aï¿½os de investigacion;;;;;;;;;x
 remove_mil_reforms;Remove $value$ military reforms;;;Quitar $value$ reformas militares;;;;;;;;;x
 remove_econ_reforms;Remove $value$ economic reforms;;;Quitar $value$ reformas economicas;;;;;;;;;x
-add_crime;Add crime $text$;;;A�adir crimen $text$;;;;;;;;;x
+add_crime;Add crime $text$;;;Aï¿½adir crimen $text$;;;;;;;;;x
 remove_crime;Remove active crime;;;Quitar crimen activo;;;;;;;;;x
 perform_nationalization;Perform nationalization;;;Hacer la nacionalizacion;;;;;;;;;x
 build_factory_in_capital;Build $text$ in capital state;;;Construir $text$ en el estado capital;;;;;;;;;x
@@ -146,7 +146,7 @@ disable_great_wars;Great wars are no longer possible;;;La gran guerra se desacti
 disable_world_wars;World wars are no longer possible;;;Las guerras mundiales se desactivan;;;;;;;;;x
 assimilate_pop;Change culture to $text$;;;Cambiar cultura a $text$;;;;;;;;;x
 assimilate_province;Change the culture of all pops to $text$;;;Cambiar la cultura de todos los pops a $text$;;;;;;;;;x
-owner_primary_culture;Its owner's primary culture;;;Su due�o de la cultura primaria;;;;;;;;;x
+owner_primary_culture;Its owner's primary culture;;;Su dueï¿½o de la cultura primaria;;;;;;;;;x
 literacy;Literacy;;;Alfabetismo;;;;;;;;;x
 add_crisis_interest;Becomes interested in current crisis;;;Se interesa en la crisis actual;;;;;;;;;x
 crisis_temperature_plain;Crisis temperature;;;Temperatura de la crisis;;;;;;;;;x
@@ -154,7 +154,7 @@ militancy;Militancy;;;Militancia;;;;;;;;;x
 consciousness;Consciousness;;;Conciencia;;;;;;;;;x
 fort_level;Fort level;;;Nivel de la barraca;;;;;;;;;x
 naval_base_level;Naval base level;;;Nivel de la base naval;;;;;;;;;x
-rgo_size;RGO size;;;Tama�o del RGO;;;;;;;;;x
+rgo_size;RGO size;;;Tamaï¿½o del RGO;;;;;;;;;x
 trigger_every_revolt;Trigger a revolt of every rebel faction;;;Desencadena una revuelta de todas las facciones rebeldes;;;;;;;;;x
 where_ideology_is;Where its ideology is $text$;;;Donde su ideologia es $text$;;;;;;;;;x
 where_culture_is;Where its culture is $text$;;;Donde su cultura es $text$;;;;;;;;;x
@@ -186,7 +186,7 @@ scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;
 stockpile_of;To national stockpile of $text$;;;En la reserva nacional de;;;;;;;;;x
 create_general;A new general is created;;;Se crea un nuevo general;;;;;;;;;x
 create_admiral;A new admiral is created;;;Se crea un nuevo admiral;;;;;;;;;x
-add_war_goal;A $text$ war goal is added against $nation$;;;La meta de guerra $text$ se a�ade contra $nation$;;;;;;;;;x
+add_war_goal;A $text$ war goal is added against $nation$;;;La meta de guerra $text$ se aï¿½ade contra $nation$;;;;;;;;;x
 blank_loyalty;$text$ loyalty;;;Lealtad a $text$;;;;;;;;;x
 in_blank;In $text$;;;En $text$;;;;;;;;;x
 railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;;;;;;;;;x
@@ -214,7 +214,7 @@ nation_at_war_against;Nation at war against;;;Nacion en guerra en contra de;;;;;
 core_in;Core in;;;Nucleo en;;;;;;;;;x
 substate_of;Substate of;;;Subestado de;;;;;;;;;x
 nation_in_sphere;Nation in the sphere of;;;Nacion en esfera de;;;;;;;;;x
-year;Year;;;A�o;;;;;;;;;x
+year;Year;;;Aï¿½o;;;;;;;;;x
 month;Month;;;Mes;;;;;;;;;x
 a_port;A port;;;Un puerto;;;;;;;;;x
 national_rank;National rank;;;Ranking nacional;;;;;;;;;x
@@ -258,7 +258,7 @@ from_nation_religion;the national religion of the from nation;;;La religion naci
 province_terrain;Province terrain;;;Terreno de provincia;;;;;;;;;x
 rgo_production;Rgo production;;;Produccion de RGO;;;;;;;;;x
 a_secondary_power;a colonial power;;;Un poder colonial;;;;;;;;;x
-owner;Owner;;;Due�o;;;;;;;;;x
+owner;Owner;;;Dueï¿½o;;;;;;;;;x
 an_active_rebel;an active rebel faction;;;Una faccion activa;;;;;;;;;x
 a_member_of;a member of;;;Un miembro de;;;;;;;;;x
 unclaimed_cores;unclaimed cores;;;Nucleos sin reclamar;;;;;;;;;x
@@ -270,15 +270,15 @@ capitalists_can_build;Capitalists are allowed to build factories;;;Los capitalis
 capitalists_cannot_build;Capitalists are not allowed to build factories;;;Los capitalistas no tienen permitido construir industrias;;;;;;;;;x
 at_war;at war;;;En guerra;;;;;;;;;x
 total_blockade;Total blockade;;;Bloqueada total;;;;;;;;;x
-owns;Owns;;;Es due�o de;;;;;;;;;x
-does_not_own;Does not own;;;No es due�o de;;;;;;;;;x
+owns;Owns;;;Es dueï¿½o de;;;;;;;;;x
+does_not_own;Does not own;;;No es dueï¿½o de;;;;;;;;;x
 controls;Controls;;;Controla;;;;;;;;;x
 does_not_control;Does not control;;;No controla;;;;;;;;;x
 a_core_in;a core in;;;Un nucleo en;;;;;;;;;x
 a_core_of;a core of;;;Un nucleo de;;;;;;;;;x
 percentage_reb_control;Percentage of rebel controlled provinces;;;Porcentaje de provincias controladas por los rebeldes;;;;;;;;;x
 num_of_reb_control;Number of rebel controlled provinces;;;Numero de provincias controladas por los rebeldes;;;;;;;;;x
-num_owned_provinces;Number of owned provinces;;;Numero de provincias de las que sois due�os;;;;;;;;;x
+num_owned_provinces;Number of owned provinces;;;Numero de provincias de las que sois dueï¿½os;;;;;;;;;x
 num_provinces_owned_by;The number of provinces owned by;;;El numero de provincias propiedad de;;;;;;;;;x
 num_of_ports;Number of ports;;;Numero de puertos;;;;;;;;;x
 num_of_allies;Number of allies;;;Numero de aliados;;;;;;;;;x
@@ -494,4 +494,15 @@ mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
 mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
 debug_mtt_gas;Military Gas Tech: ;;;;;;;;;;;;x
+plurality_change_reason;(based on the average consciousness)
+revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
+allow_reform_cond;Requirements:
+reform_effect_if_desc;When activated, if
+reform_effect_then_desc;Then:
+reform_effect_desc;When activated:
+special_rules;Special rules:
+voting_rules;Voting rules:
+hide_decision;Hide the notification for this decision
+sup_point_gain;Monthly suppression point increase: §G+$val$
+sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
 ;;;;;;;;;;;;;x

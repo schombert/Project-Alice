@@ -413,6 +413,9 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 		state.world.nation_set_has_gas_defense(target_nation, true);
 	}
 
+	auto& plur = state.world.nation_get_plurality(target_nation);
+	plur = std::clamp(plur + inv_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(inv_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, true);
@@ -506,6 +509,9 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 	if(inv_id.get_enable_gas_defense()) {
 		state.world.nation_set_has_gas_defense(target_nation, false);
 	}
+
+	auto& plur = state.world.nation_get_plurality(target_nation);
+	plur = std::clamp(plur - inv_id.get_plurality() * 100.0f, 0.0f, 100.0f);
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(inv_id.get_activate_building(id)) {

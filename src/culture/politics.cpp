@@ -12,16 +12,11 @@ float vote_total(sys::state& state, dcon::nation_id nation) {
 		if(nation == state.world.province_get_nation_from_province_ownership(province)) {
 			for(auto pop_loc : state.world.province_get_pop_location(province)) {
 				auto pop_id = pop_loc.get_pop();
-				total += get_weighted_vote_size(state, nation, pop_id.id);
+				total += pop_vote_weight(state, pop_id, nation);
 			}
 		}
 	});
 	return total;
-}
-
-float get_weighted_vote_size(sys::state& state, dcon::nation_id nation, dcon::pop_id pop) {
-	// TODO
-	return 1.f * state.world.pop_get_size(pop);
 }
 
 float get_popular_support(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
@@ -39,16 +34,15 @@ float get_voter_support(sys::state& state, dcon::nation_id nation, dcon::issue_o
 		return 0.f;
 	}
 	auto support = 0.f;
-	state.world.for_each_province([&](dcon::province_id province) {
-		if(nation == state.world.province_get_nation_from_province_ownership(province)) {
-			for(auto pop_loc : state.world.province_get_pop_location(province)) {
-				auto pop_id = pop_loc.get_pop();
-				auto vote_size = get_weighted_vote_size(state, nation, pop_id.id);
-				auto dkey = pop_demographics::to_key(state, issue_option);
-				support += state.world.pop_get_demographics(pop_id.id, dkey);
-			}
+	auto dkey = pop_demographics::to_key(state, issue_option);
+
+	for(auto province : state.world.nation_get_province_ownership(nation)) {
+		for(auto pop_loc : province.get_province().get_pop_location()) {
+			auto pop_id = pop_loc.get_pop();
+			auto vote_size = pop_vote_weight(state, pop_id, nation);
+			support += vote_size * state.world.pop_get_demographics(pop_id.id, dkey);
 		}
-	});
+	}
 	return support / total;
 }
 

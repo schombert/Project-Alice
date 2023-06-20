@@ -424,28 +424,6 @@ public:
 	}
 };
 
-class topbar_nation_suppression_points_text : public nation_suppression_points_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "suppression_points", text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier, false);
-		}
-	}
-};
 
 class topbar_nation_infamy_text : public nation_infamy_text {
 public:
@@ -1784,7 +1762,7 @@ public:
 		} else if(name == "politics_ruling_party") {
 			return make_element_by_type<topbar_nation_ruling_party_text>(state, id);
 		} else if(name == "politics_supressionpoints_value") {
-			return make_element_by_type<topbar_nation_suppression_points_text>(state, id);
+			return make_element_by_type<nation_suppression_points_text>(state, id);
 		} else if(name == "politics_infamy_value") {
 			return make_element_by_type<topbar_nation_infamy_text>(state, id);
 		} else if(name == "alert_can_do_reforms") {

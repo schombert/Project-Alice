@@ -229,7 +229,8 @@ void restore_unsaved_values(sys::state& state) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
 
 		for(auto adj : state.world.province_get_province_adjacency(pid)) {
-			if((state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0) {
+			if((state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0 &&
+					(state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) == 0) {
 				state.world.province_set_is_coast(pid, true);
 				break;
 			}

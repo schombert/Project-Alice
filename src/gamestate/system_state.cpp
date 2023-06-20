@@ -175,6 +175,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 
 	if(game_state_was_updated) {
+		this->map_state.map_data.update_borders(*this);
 		nations::update_ui_rankings(*this);
 		// Processing of (gamestate <=> ui) queues
 		{
@@ -864,17 +865,23 @@ void state::load_scenario_data() {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(128, 65, 97), it->second);
 	}
 
+	/*
+	// DO NOT RESTORE
 	// 1, 222, 200 --> 51, 221, 251 -- randomly misplaced sea
-
+	// Apparently this color is not just found in the corner of the map, but scattered around it as well
+	// thus substituting a valid province color for it causes the sea tile to connect to all sorts of place
+	// (a very undesirable behavior
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(51, 221, 251));
 			it != context.map_color_to_province_id.end() &&
 			context.map_color_to_province_id.find(sys::pack_color(1, 222, 200)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(1, 222, 200), it->second);
 	}
+	*/
 
 	// 94, 53, 41 --> 89, 202, 202 -- random dots in the sea tiles
 	// 247, 248, 245 -- > 89, 202, 202
 
+	
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
 			it != context.map_color_to_province_id.end() &&
 			context.map_color_to_province_id.find(sys::pack_color(94, 53, 41)) == context.map_color_to_province_id.end()) {
@@ -885,6 +892,7 @@ void state::load_scenario_data() {
 			context.map_color_to_province_id.find(sys::pack_color(247, 248, 245)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(247, 248, 245), it->second);
 	}
+	
 
 	std::thread map_loader([&]() { map_state.load_map_data(context); });
 

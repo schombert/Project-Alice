@@ -87,8 +87,6 @@ void map_state::update(sys::state& state) {
 		map_data.set_selected_province(state, selected_province);
 		unhandled_province_selection = false;
 	}
-
-	map_data.update_borders(state);
 }
 
 void map_state::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {

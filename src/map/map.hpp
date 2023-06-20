@@ -76,6 +76,7 @@ public:
 
 	std::vector<border> borders;
 	std::vector<border_vertex> border_vertices;
+	std::vector<border_vertex> river_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 
@@ -88,13 +89,13 @@ private:
 	GLuint land_vbo = 0;
 	GLuint border_vao = 0;
 	GLuint border_vbo = 0;
-	uint32_t water_vertex_count = 0;
+	GLuint river_vao = 0;
+	GLuint river_vbo = 0;
 	uint32_t land_vertex_count = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
 	GLuint terrain_texture_handle = 0;
-	GLuint rivers_texture_handle = 0;
 	GLuint terrainsheet_texture_handle = 0;
 	GLuint water_normal = 0;
 	GLuint colormap_water = 0;
@@ -102,13 +103,13 @@ private:
 	GLuint colormap_political = 0;
 	GLuint overlay = 0;
 	GLuint province_color = 0;
-	GLuint border_texture = 0;
 	GLuint province_highlight = 0;
 	GLuint stripes_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
+	GLuint line_river_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

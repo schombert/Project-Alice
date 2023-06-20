@@ -290,6 +290,18 @@ public:
 			state.ui_state.build_unit_window->impl_set(state, payload);
 		}
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			text::localised_format_box(state, contents, box, std::string_view("military_build_army_tooltip"));
+		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			text::localised_format_box(state, contents, box, std::string_view("military_build_navy_tooltip"));
+		}
+		text::close_layout_box(contents, box);
+	}	
 };
 
 class military_armies_text : public nation_armies_text {
@@ -386,7 +398,7 @@ public:
 				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_navy_label"));
 			}
 			ptr->set_visible(state, true);
-			return ptr;
+			return nullptr;
 
 		} else if(name == "unit_listbox") {
 			return make_element_by_type<military_units_listbox<T>>(state, id);

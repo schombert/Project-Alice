@@ -185,10 +185,9 @@ namespace sys {
 	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::percent, "tech_pop_growth")                                     \
 	MOD_LIST_ELEMENT(115, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating")                      \
 	MOD_LIST_ELEMENT(116, seperatism, true, modifier_display_type::percent, "seperatism_tech")                                     \
-	MOD_LIST_ELEMENT(117, plurality, true, modifier_display_type::percent, "tech_plurality")                                       \
-	MOD_LIST_ELEMENT(118, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
-	MOD_LIST_ELEMENT(119, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech")
-#define MOD_NAT_LIST_COUNT 120
+	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
+	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech")
+#define MOD_NAT_LIST_COUNT 119
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \

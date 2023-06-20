@@ -1256,6 +1256,21 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, variab
 	}
 	text::close_layout_box(dest, box);
 }
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
+		text::add_to_substitution_map(sub, subkey_b, value_b);
+		text::add_to_substitution_map(sub, subkey_c, value_c);
+
+		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
 
 
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {

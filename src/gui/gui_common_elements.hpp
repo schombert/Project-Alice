@@ -177,9 +177,12 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<T>(payload);
 			auto color = black_text ? text::text_color::black : text::text_color::white;
-			auto container =
-					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y,
-																													 base_data.data.text.font_handle, 0, text::alignment::left, color});
+			auto container = text::create_endless_layout(
+				internal_layout,
+				text::layout_parameters{
+					0, 0, base_data.size.x, base_data.size.y,
+					base_data.data.text.font_handle, 0,
+					text::alignment::left, color});
 			populate_layout(state, container, content);
 		}
 	}
@@ -1101,6 +1104,41 @@ public:
 		auto points = nations::suppression_points(state, nation_id);
 		return text::format_float(points, 1);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.user_settings.use_new_ui) {
+			auto n = retrieve<dcon::nation_id>(state, parent);
+			
+
+			auto base = state.defines.suppression_points_gain_base;
+			auto nmod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::suppression_points_modifier) + 1.0f;
+			auto bmod = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.bureaucrat)) /
+							std::max(state.world.nation_get_demographics(n, demographics::total), 1.0f) * state.defines.suppress_bureaucrat_factor;
+
+			text::add_line(state, contents, "sup_point_gain", text::variable_type::val, text::fp_two_places{base * nmod * bmod});
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "sup_point_explain", text::variable_type::x, text::fp_two_places{base},
+					text::variable_type::y, text::fp_three_places{bmod}, text::variable_type::val, text::fp_two_places{nmod});
+			if(nmod != 1.0f) {
+				text::add_line_break_to_layout(state, contents);
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::suppression_points_modifier, true);
+			}
+		} else {
+			auto nation_id = retrieve<dcon::nation_id>(state, parent);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "suppression_points", text::substitution_map{});
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
+			text::close_layout_box(contents, box);
+
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier, false);
+		}
+	}
 };
 
 class nation_focus_allocation_text : public standard_nation_text {
@@ -1192,22 +1230,6 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::leadership_points(state, nation_id);
 		return text::format_float(points, 1);
-	}
-};
-
-class nation_plurality_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto plurality = state.world.nation_get_plurality(nation_id);
-		return std::to_string(int32_t(plurality)) + '%';
-	}
-};
-
-class nation_revanchism_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto revanchism = state.world.nation_get_revanchism(nation_id);
-		return std::to_string(int32_t(revanchism)) + '%';
 	}
 };
 
@@ -1556,7 +1578,7 @@ protected:
 					if(nat_id == state.world.province_get_nation_from_province_ownership(province)) {
 						for(auto pop_loc : state.world.province_get_pop_location(province)) {
 							auto pop_id = pop_loc.get_pop();
-							float vote_size = politics::get_weighted_vote_size(state, nat_id, pop_id.id);
+							float vote_size = politics::pop_vote_weight(state, pop_id, nat_id);
 							state.world.for_each_ideology([&](dcon::ideology_id iid) {
 								auto dkey = pop_demographics::to_key(state, iid);
 								ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;

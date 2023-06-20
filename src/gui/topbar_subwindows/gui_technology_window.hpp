@@ -373,6 +373,19 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 		text::close_layout_box(contents, box);
 		
 	}
+	if(iid.get_plurality() != 0) {
+		auto box = text::open_layout_box(contents, 15);
+		text::localised_format_box(state, contents, box, "tech_plurality");
+		text::add_to_layout_box(state, contents, box, std::string_view{": "});
+		if(iid.get_plurality() < 0) {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{iid.get_plurality()}, text::text_color::red);
+		} else {
+			text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{iid.get_plurality()}, text::text_color::green);
+		}
+		text::close_layout_box(contents, box);
+	}
+
 	auto activate_unit_description = [&](dcon::unit_type_id id) {
 		if(iid.get_activate_unit(id)) {
 			auto unit_type_name = state.military_definitions.unit_base_definitions[id].name;
@@ -643,7 +656,7 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 			if(mod.amount < 0) {
 				text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.amount}, text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::red);
 				text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.amount}, text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
@@ -656,7 +669,7 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 			if(mod.amount < 0) {
 				text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.amount}, text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::red);
 				text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.amount}, text::text_color::red);
 			}
 			text::close_layout_box(contents, box);

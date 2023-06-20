@@ -59,23 +59,46 @@ enum class politics_window_tab : uint8_t { reforms = 0x0, movements = 0x1, decis
 
 enum class politics_issue_sort_order : uint8_t { name, popular_support, voter_support };
 
-class politics_plurality : public nation_plurality_text {
+class nation_plurality_text : public standard_nation_text {
 public:
-	// TODO - fill in plurality tooltip here
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto plurality = state.world.nation_get_plurality(nation_id);
+		return std::to_string(int32_t(plurality)) + '%';
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::plurality, false);
-		}
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "plurality_change");
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+		text::add_to_layout_box(state, contents, box,
+				text::fp_two_places{state.world.nation_get_demographics(state.local_player_nation, demographics::consciousness) * 0.0222f / std::max(state.world.nation_get_demographics(state.local_player_nation, demographics::total), 1.0f)},
+				text::text_color::green);
+		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "plurality_change_reason");
 	}
 };
+
+class nation_revanchism_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto revanchism = state.world.nation_get_revanchism(nation_id);
+		return std::to_string(int32_t(revanchism)) + '%';
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "revanchism_reason");
+	}
+};
+
+
 
 class politics_unciv_overlay : public standard_nation_icon {
 public:
@@ -128,13 +151,27 @@ public:
 	}
 };
 
+class issue_option_text : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto option = retrieve<dcon::issue_option_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, state.world.issue_option_get_name(option)));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto option = retrieve<dcon::issue_option_id>(state, parent);
+		describe_reform(state, contents, option);
+	}
+};
+
 class politics_party_issue_entry : public listbox_row_element_base<dcon::issue_option_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "issue_group") {
 			return make_element_by_type<generic_name_text<dcon::issue_id>>(state, id);
 		} else if(name == "issue_name") {
-			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
+			return make_element_by_type<issue_option_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -171,19 +208,13 @@ public:
 			update(state);
 		}
 	}
-
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
 };
 
 class politics_choose_party_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::political_party_id{};
-			parent->impl_get(state, payload);
-			auto political_party_id = any_cast<dcon::political_party_id>(payload);
+			auto political_party_id = retrieve<dcon::political_party_id>(state, parent);
 			set_button_text(state, text::produce_simple_string(state, state.world.political_party_get_name(political_party_id)));
 
 			disabled = !command::can_appoint_ruling_party(state, state.local_player_nation, political_party_id);
@@ -192,16 +223,35 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::political_party_id{};
-			parent->impl_get(state, payload);
-			auto political_party_id = any_cast<dcon::political_party_id>(payload);
+			auto political_party_id = retrieve<dcon::political_party_id>(state, parent);
 
 			command::appoint_ruling_party(state, state.local_player_nation, political_party_id);
+
+			auto lb = parent->parent;
+			if(!lb)
+				return;
+			auto window = lb->parent;
+			if(!window)
+				return;
+			window->set_visible(state, false);
 		}
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto party = retrieve<dcon::political_party_id>(state, parent);
+		for(auto pi : state.culture_definitions.party_issues) {
+			auto box = text::open_layout_box(contents, 15);
+			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(party, pi).get_name(),
+					text::text_color::yellow);
+			text::close_layout_box(contents, box);
+			text::add_line_break_to_layout(state, contents);
+
+			describe_reform(state, contents, state.world.political_party_get_party_issues(party, pi));
+		}
 	}
 };
 
@@ -225,10 +275,6 @@ public:
 			return message_result::consumed;
 		}
 		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
-	}
-
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
 	}
 };
 
@@ -268,14 +314,8 @@ private:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto party = state.world.nation_get_ruling_party(nation_id);
-			set_button_text(state, text::produce_simple_string(state, state.world.political_party_get_name(party)));
-		}
+		auto party = state.world.nation_get_ruling_party(state.local_player_nation);
+		set_button_text(state, text::produce_simple_string(state, state.world.political_party_get_name(party)));
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -288,6 +328,22 @@ public:
 		}
 		if(all_party_window && all_party_window->is_visible())
 			all_party_window->impl_on_update(state);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto ruling_party = state.world.nation_get_ruling_party(state.local_player_nation);
+		for(auto pi : state.culture_definitions.party_issues) {
+			auto box = text::open_layout_box(contents, 15);
+			text::add_to_layout_box(state, contents, box, ruling_party.get_party_issues(pi).get_name(), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+			text::add_line_break_to_layout(state, contents);
+
+			describe_reform(state, contents, ruling_party.get_party_issues(pi));
+		}
 	}
 };
 
@@ -520,7 +576,7 @@ public:
 		} else if(name == "national_value") {
 			return make_element_by_type<nation_national_value_icon>(state, id);
 		} else if(name == "plurality_value") {
-			return make_element_by_type<politics_plurality>(state, id);
+			return make_element_by_type<nation_plurality_text>(state, id);
 		} else if(name == "revanchism_value") {
 			return make_element_by_type<nation_revanchism_text>(state, id);
 		} else if(name == "can_do_social_reforms") {
@@ -559,8 +615,6 @@ public:
 			auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
 			ptr->order = politics_issue_sort_order::voter_support;
 			return ptr;
-		} else if(name == "hold_election") {
-			return make_element_by_type<politics_hold_election>(state, id);
 		} else {
 			return nullptr;
 		}

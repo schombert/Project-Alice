@@ -8,7 +8,7 @@
 namespace politics {
 
 float vote_total(sys::state& state, dcon::nation_id nation);
-float get_weighted_vote_size(sys::state& state, dcon::nation_id nation, dcon::pop_id pop);
+float pop_vote_weight(sys::state& state, dcon::pop_id p, dcon::nation_id n);
 float get_popular_support(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option);
 float get_voter_support(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option);
 

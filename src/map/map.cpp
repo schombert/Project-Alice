@@ -20,9 +20,66 @@ image load_stb_image(simple_fs::file& file) {
 	int32_t size_x = 0;
 	int32_t size_y = 0;
 	auto content = simple_fs::view_contents(file);
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y,
-			&file_channels, 4);
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y, &file_channels, 4);
 	return image(data, size_x, size_y, 4);
+}
+
+// Used to load the terrain.bmp and the rivers.bmp
+std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, native_string_view name, glm::ivec2 map_size, uint8_t fill) {
+	auto root = simple_fs::get_root(context.state.common_fs);
+	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
+	auto terrain_bmp = open_file(map_dir, name);
+	auto content = simple_fs::view_contents(*terrain_bmp);
+	uint8_t* start = (uint8_t*)(content.data);
+
+	// Data offset is where the pixel data starts
+	uint8_t* ptr = start + 10;
+	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+
+	// The width & height of the image
+	ptr = start + 18;
+	uint32_t size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	ptr = start + 22;
+	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+
+	assert(size_x == uint32_t(map_size.x));
+
+	uint8_t* data = start + data_offset;
+
+	// Calculate how much extra we add at the poles
+	auto free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
+	auto top_free_space = (free_space * 3) / 5;
+
+	// Fill the output with the given data
+	std::vector<uint8_t> output_data(map_size.x * map_size.y, fill);
+
+	// Copy over the bmp data to the middle of the output_data
+	for(int y = top_free_space + size_y - 1; y >= int(top_free_space); --y) {
+		for(int x = 0; x < int(size_x); ++x) {
+			output_data[y * size_x + x] = *data;
+			data++;
+		}
+	}
+	return output_data;
+}
+
+void display_data::load_terrain_data(parsers::scenario_building_context& context) {
+	terrain_id_map = load_bmp(context, NATIVE("terrain.bmp"), glm::ivec2(size_x, size_y), 255);
+
+	// Gets rid of any stray land terrain that has been painted outside the borders
+	for(uint32_t y = 0; y < size_y; ++y) {
+		for(uint32_t x = 0; x < size_x; ++x) {
+			// If there is no province define at that location
+			if(province_id_map[y * size_x + x] == 0)
+				terrain_id_map[y * size_x + x] = uint8_t(255);
+			// If the province defined there is a sea province
+			if(province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province))
+				terrain_id_map[y * size_x + x] = uint8_t(255);
+		}
+	}
+
+	// Load the terrain
+	load_median_terrain_type(context);
 }
 
 GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
@@ -39,9 +96,7 @@ GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t
 
 	return texture_handle;
 }
-GLuint make_gl_texture(image& image) {
-	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
-}
+GLuint make_gl_texture(image& image) { return make_gl_texture(image.data, image.size_x, image.size_y, image.channels); }
 
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
 	glBindTexture(texture_type, texture_handle);
@@ -69,15 +124,13 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 
 		size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
 		size_t p_dy = image.size_y / tiles_y; // Pixels of each tile in y
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA,
-				GL_UNSIGNED_BYTE, NULL);
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.size_x);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, image.size_y);
 
 		for(int32_t x = 0; x < tiles_x; x++)
 			for(int32_t y = 0; y < tiles_y; y++)
-				glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(x * tiles_x + y), GLsizei(p_dx), GLsizei(p_dy), 1, GL_RGBA,
-						GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
+				glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(x * tiles_x + y), GLsizei(p_dx), GLsizei(p_dy), 1, GL_RGBA, GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
 
 		set_gltex_parameters(texture_handle, GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -113,6 +166,116 @@ struct BorderDirection {
 	Information right;
 };
 
+// Create a new vertices to make a line segment
+void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint32_t x, direction dir, std::vector<border_vertex>& line_vertices, std::vector<BorderDirection>& current_row, float offset) {
+
+	glm::vec2 direction = normalize(offset2 - offset1);
+	glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
+
+	// Offset the map position
+	map_pos += glm::vec2(offset);
+	// Get the map coordinates
+	glm::vec2 pos1 = offset1 + map_pos;
+	glm::vec2 pos2 = offset2 + map_pos;
+
+	// Rescale the coordinate to 0-1
+	pos1 /= map_size;
+	pos2 /= map_size;
+
+	int32_t border_index = int32_t(line_vertices.size());
+	// First vertex of the line segment
+	line_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+	line_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
+	line_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
+	// Second vertex of the line segment
+	line_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
+	line_vertices.emplace_back(pos2, normal_direction, -direction, border_id);
+	line_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+
+	BorderDirection::Information direction_information(border_index, border_id);
+	switch(dir) {
+	case direction::UP:
+		current_row[x].up = direction_information;
+		break;
+	case direction::DOWN:
+		current_row[x].down = direction_information;
+		break;
+	case direction::LEFT:
+		current_row[x].left = direction_information;
+		break;
+	case direction::RIGHT:
+		current_row[x].right = direction_information;
+		break;
+	default:
+		break;
+	}
+};
+
+// Will check if there is an border there already and extend if it can
+bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vector<BorderDirection>& last_row, std::vector<BorderDirection>& current_row, glm::vec2 map_size, std::vector<border_vertex>& border_vertices) {
+	if(dir & direction::LEFT)
+		if(x == 0)
+			return false;
+
+	BorderDirection::Information direction_information;
+	switch(dir) {
+	case direction::UP:
+		direction_information = last_row[x].down;
+		break;
+	case direction::DOWN:
+		direction_information = current_row[x].up;
+		break;
+	case direction::LEFT:
+		direction_information = current_row[x - 1].right;
+		break;
+	case direction::RIGHT:
+		direction_information = current_row[x].left;
+		break;
+	default:
+		return false;
+	}
+	if(direction_information.id != border_id)
+		return false;
+
+	auto border_index = direction_information.index;
+	if(border_index == -1)
+		return false;
+
+	switch(dir) {
+	case direction::UP:
+	case direction::DOWN:
+		border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
+		border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
+		border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
+		break;
+	case direction::LEFT:
+	case direction::RIGHT:
+		border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
+		border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
+		border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
+		break;
+	default:
+		break;
+	}
+	switch(dir) {
+	case direction::UP:
+		current_row[x].up = direction_information;
+		break;
+	case direction::DOWN:
+		current_row[x].down = direction_information;
+		break;
+	case direction::LEFT:
+		current_row[x].left = direction_information;
+		break;
+	case direction::RIGHT:
+		current_row[x].right = direction_information;
+		break;
+	default:
+		break;
+	}
+	return true;
+};
+
 void display_data::load_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
@@ -123,132 +286,18 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	// The borders of the current row and last row
 	std::vector<BorderDirection> current_row(size_x);
 	std::vector<BorderDirection> last_row(size_x);
-	// Will check if there is an border there already and extend if it can
-	auto extend_if_possible = [&](uint32_t x, int32_t border_id, direction dir) -> bool {
-		if(dir == direction::LEFT)
-			if(x == 0)
-				return false;
-
-		BorderDirection::Information direction_information;
-		switch(dir) {
-		case direction::UP:
-			direction_information = last_row[x].down;
-			break;
-		case direction::DOWN:
-			direction_information = current_row[x].up;
-			break;
-		case direction::LEFT:
-			direction_information = current_row[x - 1].right;
-			break;
-		case direction::RIGHT:
-			direction_information = current_row[x].left;
-			break;
-		default:
-			return false;
-		}
-		if(direction_information.id != border_id)
-			return false;
-
-		auto border_index = direction_information.index;
-		if(border_index == -1)
-			return false;
-
-		auto& current_border_vertices = borders_list_vertices[border_id];
-
-		switch(dir) {
-		case direction::UP:
-		case direction::DOWN:
-			current_border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
-			current_border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
-			current_border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
-			break;
-		case direction::LEFT:
-		case direction::RIGHT:
-			current_border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
-			current_border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
-			current_border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
-			break;
-		default:
-			break;
-		}
-		switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
-		}
-		return true;
-	};
-
-	// Create a new vertices to make a line segment
-	auto add_line = [&](glm::vec2 map_pos, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint32_t x, direction dir) {
-		glm::vec2 direction = normalize(offset2 - offset1);
-		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
-
-		if(uint32_t(border_id) >= borders_list_vertices.size())
-			borders_list_vertices.resize(border_id + 1);
-		auto& current_border_vertices = borders_list_vertices[border_id];
-
-		// Offset the map position
-		map_pos += glm::vec2(0.5f);
-		// Get the map coordinates
-		glm::vec2 pos1 = offset1 + map_pos;
-		glm::vec2 pos2 = offset2 + map_pos;
-
-		// Rescale the coordinate to 0-1
-		pos1 /= map_size;
-		pos2 /= map_size;
-
-		int32_t border_index = int32_t(current_border_vertices.size());
-		// First vertex of the line segment
-		current_border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
-		current_border_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
-		current_border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
-		// Second vertex of the line segment
-		current_border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
-		current_border_vertices.emplace_back(pos2, normal_direction, -direction, border_id);
-		current_border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
-
-		BorderDirection::Information direction_information(border_index, border_id);
-		switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
-		}
-	};
 
 	// Get the index of the border from the province ids and create a new one if one doesn't exist
 	auto get_border_index = [&](uint16_t map_province_id1, uint16_t map_province_id2) -> int32_t {
 		auto province_id1 = province::from_map_id(map_province_id1);
 		auto province_id2 = province::from_map_id(map_province_id2);
-		if(map_province_id1 == 3087 && map_province_id2 == 3088) {
-			int i = 0;
+		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2);
+		if(!border_index )
+			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2);
+		if(!province_id1 || !province_id2) {
+			context.state.world.province_adjacency_set_type(border_index, province::border::impassible_bit);
 		}
-		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2).index();
-		if(border_index == -1)
-			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2).index();
-		return border_index;
+		return border_index.index();
 	};
 
 	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
@@ -260,9 +309,14 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		glm::vec2 map_pos(x0, y0);
 
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, uint16_t id1, uint16_t id2, direction dir) {
+			if(id1 == 0 || id2 == 0)
+				return;
 			auto border_index = get_border_index(id1, id2);
-			if(!extend_if_possible(x0, border_index, dir))
-				add_line(map_pos, pos1, pos2, border_index, x0, dir);
+			if(uint32_t(border_index) >= borders_list_vertices.size())
+				borders_list_vertices.resize(border_index + 1);
+			auto& current_border_vertices = borders_list_vertices[border_index];
+			if(!extend_if_possible(x0, border_index, dir, last_row, current_row, map_size, current_border_vertices))
+				add_line(map_pos, map_size, pos1, pos2, border_index, x0, dir, current_border_vertices, current_row, 0.5);
 		};
 
 		if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
@@ -334,25 +388,201 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		std::fill(current_row.begin(), current_row.end(), BorderDirection{});
 	}
 
+	// identify and filter out lakes
+	// TODO: unfortunately, this isn't enough to remove the michigan lakes, since there are two touching lake tiles there
+
+	for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
+		dcon::province_id p{dcon::province_id::value_base_t(k)};
+		bool any_other_sea = false;
+		for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+			if(other.id.index() >= context.state.province_definitions.first_sea_province.index()) {
+				any_other_sea = true;
+				break;
+			}
+		}
+		if(!any_other_sea) {
+			for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+				auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+				other.set_is_coast(false);
+				adj.get_type() |= province::border::impassible_bit;
+			}
+		}
+	}
+
+	for(auto p : context.state.world.in_province) {
+		auto rng = p.get_province_adjacency();
+		int32_t num_adj = int32_t(rng.end() - rng.begin());
+		auto original_province = context.prov_id_to_original_id_map[p].id;
+		assert(num_adj < 30);
+	}
+
+	/*
+	//  This creates a new special border containing the province to province adjacencies
+	//  It omits any adjacencies that are marked as impassible
+
+	auto& world = context.state.world;
+	auto last = borders_list_vertices.size();
+	borders_list_vertices.emplace_back();
+	world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
+		auto frel = fatten(world, id);
+		if((frel.get_type() & province::border::impassible_bit) != 0)
+			return;
+		auto prov_a = frel.get_connected_provinces(0);
+		auto prov_b = frel.get_connected_provinces(1);
+		if(!prov_a || !prov_b)
+			return;
+		auto mid_point_a = world.province_get_mid_point(prov_a.id);
+		auto mid_point_b = world.province_get_mid_point(prov_b.id);
+		add_line(glm::vec2(0), map_size, mid_point_a, mid_point_b, 0, 0, direction::UP_RIGHT, borders_list_vertices[last],
+				current_row, 0.5);
+	});
+	*/
+
 	borders.resize(borders_list_vertices.size());
 	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
 		auto& border = borders[border_id];
 		auto& current_border_vertices = borders_list_vertices[border_id];
 		border.start_index = int32_t(border_vertices.size());
 		border.count = int32_t(current_border_vertices.size());
-		border.type_flag = context.state.world.province_adjacency_get_type(
-				dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
+		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 
-		border_vertices.insert(border_vertices.end(), std::make_move_iterator(current_border_vertices.begin()),
-				std::make_move_iterator(current_border_vertices.end()));
+		border_vertices.insert(border_vertices.end(), std::make_move_iterator(current_border_vertices.begin()), std::make_move_iterator(current_border_vertices.end()));
 	}
 }
 
+bool is_river(uint8_t river_data) { return river_data < 16; }
+
+// Set the river crossing bit for the province adjencencies
+// Will march a line between each adjecent province centroid. If it hits a river it will set the bit
+void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> river_data, glm::ivec2 map_size) {
+	auto& world = context.state.world;
+	world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
+		auto frel = fatten(world, id);
+		auto prov_a = frel.get_connected_provinces(0);
+		auto prov_b = frel.get_connected_provinces(1);
+		auto mid_point_a = world.province_get_mid_point(prov_a.id);
+		auto mid_point_b = world.province_get_mid_point(prov_b.id);
+		glm::ivec2 tile_pos_a = glm::round(mid_point_a);
+		glm::ivec2 tile_pos_b = glm::round(mid_point_b);
+		glm::ivec2 diff = glm::abs(tile_pos_a - tile_pos_b);
+
+		bool is_river_crossing = false;
+		if(diff.x > diff.y) {
+			if(tile_pos_a.x > tile_pos_b.x)
+				std::swap(tile_pos_a, tile_pos_b);
+			int x_difference = std::max(tile_pos_b.x - tile_pos_a.x, 1);
+			int y_difference = tile_pos_a.y - tile_pos_b.y;
+			int min_y = std::min(tile_pos_a.y, tile_pos_b.y);
+			int max_y = std::max(tile_pos_a.y, tile_pos_b.y);
+			for(int x = tile_pos_a.x; x <= tile_pos_b.x; x++) {
+				float t = float(x - tile_pos_a.x) / x_difference;
+				for(int k = -2; k <= 2; k++) {
+					int y = tile_pos_b.y + int(y_difference * t) + k;
+					y = std::clamp(y, min_y, max_y);
+					is_river_crossing |= is_river(river_data[x + y * map_size.x]);
+				}
+				if(is_river_crossing)
+					break;
+			}
+		} else {
+			if(tile_pos_a.y > tile_pos_b.y)
+				std::swap(tile_pos_a, tile_pos_b);
+			int y_difference = std::max(tile_pos_b.y - tile_pos_a.y, 1);
+			int x_difference = tile_pos_a.x - tile_pos_b.x;
+			int min_x = std::min(tile_pos_a.x, tile_pos_b.x);
+			int max_x = std::max(tile_pos_a.x, tile_pos_b.x);
+			for(int y = tile_pos_a.y; y <= tile_pos_b.y; y++) {
+				float t = float(y - tile_pos_a.y) / y_difference;
+				for(int k = -2; k <= 2; k++) {
+					int x = tile_pos_b.x + int(x_difference * t) + k;
+					x = std::clamp(x, min_x, max_x);
+					is_river_crossing |= is_river(river_data[x + y * map_size.x]);
+				}
+				if(is_river_crossing)
+					break;
+			}
+		}
+
+		uint8_t& buffer = world.province_adjacency_get_type(id);
+		if(is_river_crossing)
+			buffer |= province::border::river_crossing_bit;
+	});
+}
+
+// Needs to be called after load_province_data for the mid points to set
+// and load_border_data for the province_adjacencies to be set
+std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context) {
+	auto size = glm::ivec2(data.size_x, data.size_y);
+	auto river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
+	load_river_crossings(context, river_data, size);
+
+	std::vector<border_vertex> river_vertices;
+
+	std::vector<BorderDirection> current_row(size.x);
+	std::vector<BorderDirection> last_row(size.x);
+	auto map_size = glm::vec2(data.size_x, data.size_y);
+
+	auto add_river = [&](uint32_t x0, uint32_t y0, bool river_u, bool river_d, bool river_r, bool river_l) {
+		glm::vec2 map_pos(x0, y0);
+
+		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
+			// if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, river_vertices))
+			add_line(map_pos, map_size, pos1, pos2, 0, x0, dir, river_vertices, current_row, 0.0);
+		};
+
+		if(river_l && river_u && !river_r && !river_d) { // Upper left
+			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_LEFT);
+		} else if(river_l && river_d && !river_r && !river_u) { // Lower left
+			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_LEFT);
+		} else if(river_r && river_u && !river_l && !river_d) { // Upper right
+			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_RIGHT);
+		} else if(river_r && river_d && !river_l && !river_u) { // Lower right
+			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_LEFT);
+		} else {
+			if(river_u) {
+				add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), direction::UP);
+			}
+			if(river_d) {
+				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN);
+			}
+			if(river_l) {
+				add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.5f), direction::LEFT);
+			}
+			if(river_r) {
+				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), direction::RIGHT);
+			}
+		}
+	};
+
+	for(int y = 1; y < size.y - 1; y++) {
+		for(int x = 1; x < size.x - 1; x++) {
+			auto river_center = is_river(river_data[(x + 0) + (y + 0) * size.x]);
+			if(river_center) {
+				auto river_u = is_river(river_data[(x + 0) + (y - 1) * size.x]);
+				auto river_d = is_river(river_data[(x + 0) + (y + 1) * size.x]);
+				auto river_r = is_river(river_data[(x + 1) + (y + 0) * size.x]);
+				auto river_l = is_river(river_data[(x - 1) + (y + 0) * size.x]);
+				add_river(x, y, river_u, river_d, river_r, river_l);
+			}
+		}
+
+		// Move the border_direction rows a step down
+		std::swap(last_row, current_row);
+		std::fill(current_row.begin(), current_row.end(), BorderDirection{});
+	}
+	return river_vertices;
+}
+
 void display_data::update_borders(sys::state& state) {
-	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
+	uint32_t border_id = 0;
+	for(; border_id < state.world.province_adjacency_size(); border_id++) {
 		auto& border = borders[border_id];
-		border.type_flag = state.world.province_adjacency_get_type(
-				dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
+		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
+	}
+	for(; border_id < borders.size(); border_id++) {
+		auto& border = borders[border_id];
+		border.type_flag = province::border::test_bit;
 	}
 }
 
@@ -362,18 +592,14 @@ void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribBinding(index, 0);
 }
 
-void display_data::create_border_ogl_objects() {
-	// Create and populate the VBO
-	glGenBuffers(1, &border_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(border_vertex) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
-
-	// Create and bind the VAO
-	glGenVertexArrays(1, &border_vao);
-	glBindVertexArray(border_vao);
+void create_line_vbo(GLuint& vbo, std::vector<border_vertex>& vertices) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(border_vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
 	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, border_vbo, 0, sizeof(border_vertex));
+	glBindVertexBuffer(0, vbo, 0, sizeof(border_vertex));
 
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, position_));
@@ -391,17 +617,30 @@ void display_data::create_border_ogl_objects() {
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
+}
+
+void display_data::create_border_ogl_objects() {
+	// Create and bind the VAO
+	glGenVertexArrays(1, &border_vao);
+	glBindVertexArray(border_vao);
+
+	if(border_vertices.size() != 0)
+		create_line_vbo(border_vbo, border_vertices);
+
+	glGenVertexArrays(1, &river_vao);
+	glBindVertexArray(river_vao);
+
+	if(river_vertices.size() != 0)
+		create_line_vbo(river_vbo, river_vertices);
 
 	glBindVertexArray(0);
 }
 
 void display_data::create_meshes() {
 
-	std::vector<map_vertex> water_vertices;
 	std::vector<map_vertex> land_vertices;
 
-	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0,
-											glm::vec2 pos1) {
+	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0, glm::vec2 pos1) {
 		// Rescale the coordinate to 0-1
 		pos0 /= map_size;
 		pos1 /= map_size;
@@ -436,7 +675,6 @@ void display_data::create_meshes() {
 		last_pos.y = pos.y;
 	}
 
-	water_vertex_count = ((uint32_t)water_vertices.size());
 	land_vertex_count = ((uint32_t)land_vertices.size());
 
 	// Create and populate the VBO
@@ -466,8 +704,6 @@ display_data::~display_data() {
 		glDeleteTextures(1, &provinces_texture_handle);
 	if(terrain_texture_handle)
 		glDeleteTextures(1, &terrain_texture_handle);
-	if(rivers_texture_handle)
-		glDeleteTextures(1, &rivers_texture_handle);
 	if(terrainsheet_texture_handle)
 		glDeleteTextures(1, &terrainsheet_texture_handle);
 	if(water_normal)
@@ -480,8 +716,6 @@ display_data::~display_data() {
 		glDeleteTextures(1, &overlay);
 	if(province_color)
 		glDeleteTextures(1, &province_color);
-	if(border_texture)
-		glDeleteTextures(1, &border_texture);
 	if(stripes_texture)
 		glDeleteTextures(1, &stripes_texture);
 	if(province_highlight)
@@ -496,11 +730,17 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &land_vbo);
 	if(border_vbo)
 		glDeleteBuffers(1, &border_vbo);
+	if(river_vao)
+		glDeleteBuffers(1, &river_vbo);
+	if(river_vbo)
+		glDeleteBuffers(1, &river_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
+	if(line_river_shader)
+		glDeleteProgram(line_river_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -526,14 +766,15 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	terrain_shader = create_program(*map_vshader, *map_fshader);
 
 	// Line shaders
-	auto line_border_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
+	auto line_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
 	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
+	auto line_river_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_f.glsl"));
 
-	line_border_shader = create_program(*line_border_vshader, *line_border_fshader);
+	line_border_shader = create_program(*line_vshader, *line_border_fshader);
+	line_river_shader = create_program(*line_vshader, *line_river_fshader);
 }
 
-void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode,
-		map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
+void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -542,8 +783,6 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, terrain_texture_handle);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, rivers_texture_handle);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, terrainsheet_texture_handle);
 	glActiveTexture(GL_TEXTURE4);
@@ -609,18 +848,24 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindVertexArray(land_vao);
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, border_texture);
+	// Draw the rivers
+	load_shader(line_river_shader);
+	glUniform1f(4, 0.001f);
+	glBindVertexArray(river_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
 
 	// Draw the borders
 	load_shader(line_border_shader);
 	glBindVertexArray(border_vao);
 
+	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
+
 	if(zoom > 8) {
 		glUniform1f(4, 0.0013f);
 		uint8_t visible_borders =
 				(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
-						province::border::impassible_bit | province::border::state_bit);
+						province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -636,7 +881,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	if(zoom > 3.5f) {
 		glUniform1f(4, 0.0018f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-															 province::border::non_adjacent_bit | province::border::impassible_bit);
+				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -665,6 +910,25 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
+
+	/*
+	// SCHOMBERT: enabling this will render any special borders you make with the test bit set
+	{
+		glUniform1f(4, 0.0016f);
+		uint8_t visible_borders = (province::border::test_bit);
+
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if(border.type_flag & visible_borders) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
+		}
+
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	}
+	*/
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -704,8 +968,7 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	} else {
 		// Set the texture data for each layer
 		for(int i = 0; i < layers; i++) {
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, i, width, height / layers, 1, GL_RGBA, GL_UNSIGNED_BYTE,
-					&prov_color[i * (prov_color.size() / layers)]);
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, i, width, height / layers, 1, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[i * (prov_color.size() / layers)]);
 		}
 	}
 
@@ -730,9 +993,7 @@ void display_data::set_selected_province(sys::state& state, dcon::province_id pr
 	gen_prov_color_texture(province_highlight, province_highlights);
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
-	gen_prov_color_texture(province_color, prov_color, 2);
-}
+void display_data::set_province_color(std::vector<uint32_t> const& prov_color) { gen_prov_color_texture(province_color, prov_color, 2); }
 
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
@@ -744,8 +1005,7 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 			terrain_histogram[prov_id][terrain_id] += 1;
 	}
 
-	for(int i = context.state.world.province_size();
-			i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		int max_index = 64;
 		int max = 0;
 		for(int j = max_index; j-- > 0;) {
@@ -758,57 +1018,6 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 	}
 }
 
-void display_data::load_terrain_data(parsers::scenario_building_context& context) {
-	auto root = simple_fs::get_root(context.state.common_fs);
-	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
-	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	auto content = simple_fs::view_contents(*terrain_bmp);
-	uint8_t* start = (uint8_t*)(content.data);
-
-	// Data offset is where the pixel data starts
-	uint8_t* ptr = start + 10;
-	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-	// The width & height of the image
-	ptr = start + 18;
-	uint32_t terrain_size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-	ptr = start + 22;
-	uint32_t terrain_size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-	uint8_t* terrain_data = start + data_offset;
-
-	// Create the terrain_id_map
-	// If it is invalid province (meaning that the color didn't map to anything) or a sea province, it forces the terrain to be
-	// ocean. If it is a land province, it forces the terrain to be plains if it is currently ocean
-
-	auto free_space = std::max(uint32_t(0), size_y - terrain_size_y); // schombert: find out how much water we need to add
-	auto top_free_space = (free_space * 3) / 5;
-	auto bottom_free_space = free_space - top_free_space;
-
-	assert(terrain_size_x == size_x);
-
-	terrain_id_map.resize(size_x * size_y, uint8_t(255));
-
-	for(uint32_t y = 0; y < terrain_size_y; ++y) {
-		for(uint32_t x = 0; x < size_x; ++x) {
-			if(province_id_map[(y + top_free_space) * size_x + x] == 0 ||
-					province_id_map[(y + top_free_space) * size_x + x] >=
-							province::to_map_id(context.state.province_definitions.first_sea_province)) {
-				terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(255);
-			} else {
-				auto value = *(terrain_data + x + (terrain_size_y - (y)-1) * terrain_size_x);
-				if(value < 64)
-					terrain_id_map[(y + top_free_space) * size_x + x] = value;
-				else
-					terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(6);
-			}
-		}
-	}
-
-	// Load the terrain
-	load_median_terrain_type(context);
-}
-
 void display_data::load_provinces_mid_point(parsers::scenario_building_context& context) {
 	std::vector<glm::ivec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::vec2(0));
 	std::vector<int> tiles_number(context.state.world.province_size() + 1, 0);
@@ -819,13 +1028,18 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 		accumulated_tile_positions[prov_id] += glm::vec2(x, y);
 		tiles_number[prov_id]++;
 	}
-	for(int i = context.state.world.province_size();
-			i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+	// schombert: needs to start from +1 here or you don't catch the last province
+	for(int i = context.state.world.province_size() + 1; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+
 		glm::ivec2 tile_pos;
-		if(tiles_number[i] == 0)
+
+		assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
+
+		if(tiles_number[i] == 0) {
 			tile_pos = glm::ivec2(0, 0);
-		else
+		} else {
 			tile_pos = accumulated_tile_positions[i] / tiles_number[i];
+		}
 		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), tile_pos);
 	}
 }
@@ -842,10 +1056,10 @@ void display_data::load_province_data(parsers::scenario_building_context& contex
 	}
 	auto first_actual_map_pixel = top_free_space * size_x; // schombert: where the real data starts
 	for(; i < first_actual_map_pixel + image.size_x * image.size_y; ++i) {
-		uint8_t* ptr =
-				image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
+		uint8_t* ptr = image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
+			assert(it->second);
 			province_id_map[i] = province::to_map_id(it->second);
 		} else {
 			province_id_map[i] = 0;
@@ -872,6 +1086,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	load_province_data(context, provinces_image);
 	load_terrain_data(context);
 	load_border_data(context);
+	river_vertices = create_river_vertices(*this, context);
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
@@ -895,11 +1110,6 @@ void display_data::load_map(sys::state& state) {
 
 	provinces_texture_handle = load_province_map(province_id_map, size_x, size_y);
 
-	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
-	auto rivers_image = load_stb_image(*rivers_bmp);
-	rivers_texture_handle = make_gl_texture(rivers_image);
-	set_gltex_parameters(rivers_texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
-
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
 	terrainsheet_texture_handle = load_texture_array_from_file(*texturesheet, 8, 8);
 
@@ -908,7 +1118,6 @@ void display_data::load_map(sys::state& state) {
 	colormap_terrain = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
-	border_texture = load_dds_texture(map_terrain_dir, NATIVE("borders.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	glBindTexture(GL_TEXTURE_2D, 0);
 

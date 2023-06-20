@@ -1298,7 +1298,9 @@ void option_rules::build_railway(association_type, bool value, error_handler& er
 
 void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line,
 		individual_option_context& context) {
-	context.outer_context.state.world.issue_option_set_technology_cost(context.id, value);
+
+	err.accumulated_errors +=
+			"Only uncivilized nation reforms may have a tech cost (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
 void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line,
@@ -1654,6 +1656,9 @@ void inv_effect::activate_building(association_type, std::string_view value, err
 
 void inv_effect::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_shared_prestige(context.id, value);
+}
+void inv_effect::plurality(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+	context.outer_context.state.world.invention_set_plurality(context.id, value);
 }
 
 void inv_effect::enable_crime(association_type, std::string_view value, error_handler& err, int32_t line,
