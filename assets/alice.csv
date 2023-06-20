@@ -488,4 +488,10 @@ factory_stats_6;Efficiency inputs availability:
 speed;$val$ kph;;;;;;;;;;;;x
 shift_to_hold_open;Hold shift to keep this window open
 blank_org_gain;organization gain
+debug_mtt_nation;Nation: $val$ ($num$ | $country$ );;;;;;;;;;;;x
+debug_mtt_prov;Province: $val$ ($num$);;;;;;;;;;;;x
+mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
+mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
+mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
+debug_mtt_gas;Military Gas Tech: ;;;;;;;;;;;;x
 ;;;;;;;;;;;;;x
