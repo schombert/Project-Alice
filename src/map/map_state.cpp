@@ -313,11 +313,11 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
-		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+		//if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			return province::from_map_id(map_data.province_id_map[idx]);
-		} else {
+		/*} else {
 			return dcon::province_id{};
-		}
+		}*/
 	} else {
 		return dcon::province_id{};
 	}
