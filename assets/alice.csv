@@ -28,48 +28,48 @@ use_classic_fonts;Use Classic Fonts;;;Usar letra clasica;;;;;;;;;x
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
-neighboring_province;Neighboring province;;;Provincia vecina;;;;;;;;;x
-WHERE;Where: ;;;Donde: ;;;;;;;;;x
-neighboring_nation;Neighboring nation;;;Nacion vecina;;;;;;;;;x
-NATION;Nation;;;Nacion;;;;;;;;;x
-continent;Continent;;;Continente;;;;;;;;;x
-same_continent;On the same continent as;;;En el mismo continente que;;;;;;;;;x
+neighboring_province;neighboring province;;;Provincia vecina;;;;;;;;;x
+WHERE;where: ;;;Donde: ;;;;;;;;;x
+neighboring_nation;neighboring nation;;;Nacion vecina;;;;;;;;;x
+NATION;nation;;;Nacion;;;;;;;;;x
+continent;continent;;;Continente;;;;;;;;;x
+same_continent;on the same continent as;;;En el mismo continente que;;;;;;;;;x
 empty_neighboring_province;Empty neighboring province;;;Provincia vecina vacia;;;;;;;;;x
-poor_strata_pop;Poor strata pop;;;Pop de estrato pobre;;;;;;;;;x
-middle_strata_pop;Middle strata pop;;;Pop de estrata media;;;;;;;;;x
-rich_strata_pop;Rich strata pop;;;Pop de estrata rica;;;;;;;;;x
-pop;Pop;;;Pop;;;;;;;;;x
-owned_province;Province belonging to;;;Provincia perteneciente a;;;;;;;;;x
-singular_nation;That nation;;;Esa nacion;;;;;;;;;x
-singular_state;That state;;;Ese estado;;;;;;;;;x
-singular_province;That province;;;Esa provincia;;;;;;;;;x
-singular_pop;That pop;;;Ese pop;;;;;;;;;x
-core_of;Core of;;;Nucleo de;;;;;;;;;x
-state_of;State of;;;Estado de;;;;;;;;;x
-one_of_the_following;One of the following effects:;;;Uno de los siguientes efectos:;;;;;;;;;x
-chance_of;Chance of:;;;Probablidad de:;;;;;;;;;x
-owner_of;Owner of;;;Due�o de;;;;;;;;;x
-controller_of;Controller of;;;Controlador de;;;;;;;;;x
-location_of_pop;Location of that pop;;;Ubicacion de ese pop;;;;;;;;;x
-nation_of_pop;Nation containing that pop;;;Nacion que contiene ese pop;;;;;;;;;x
-capital_of;Capital of;;;Capital de;;;;;;;;;x
-this_nation;This nation;;;Esta nacion;;;;;;;;;x
-this_state;This state;;;Este estado;;;;;;;;;x
-this_province;This province;;;Esta provincia;;;;;;;;;x
-this_pop;This pop;;;Este pop;;;;;;;;;x
-from_nation;From nation;;;De nacion;;;;;;;;;x
-from_state;From state;;;Del estado;;;;;;;;;x
-from_province;From province;;;De la provincia;;;;;;;;;x
-from_pop;From pop;;;Del pop;;;;;;;;;x
-adjacent_sea;Adjacent sea zone;;;Zona de mar adyacente;;;;;;;;;x
-cultural_union_of;Cultural union of;;;Union cultural de;;;;;;;;;x
-overlord_of;Liege of;;;Maestro de titere de;;;;;;;;;x
-sphere_leader_of;Sphere leader of;;;Lider de esfera de;;;;;;;;;x
-crisis_state;Crisis state;;;Estado de crisis;;;;;;;;;x
-containing_state;State containing;;;Estado conteniendo;;;;;;;;;x
-province_in;Province in;;;Provincia en;;;;;;;;;x
-reb_independence_nation;Rebel independence nation;;;Nacion rebelde independiente;;;;;;;;;x
-flashpoint_nation;Flashpoint nation;;;Nacion de punto de quiebre;;;;;;;;;x
+poor_strata_pop;poor strata pop;;;Pop de estrato pobre;;;;;;;;;x
+middle_strata_pop;middle strata pop;;;Pop de estrata media;;;;;;;;;x
+rich_strata_pop;rich strata pop;;;Pop de estrata rica;;;;;;;;;x
+pop;pop;;;Pop;;;;;;;;;x
+owned_province;province belonging to;;;Provincia perteneciente a;;;;;;;;;x
+singular_nation;that nation;;;Esa nacion;;;;;;;;;x
+singular_state;that state;;;Ese estado;;;;;;;;;x
+singular_province;that province;;;Esa provincia;;;;;;;;;x
+singular_pop;that pop;;;Ese pop;;;;;;;;;x
+core_of;core of;;;Nucleo de;;;;;;;;;x
+state_of;state of;;;Estado de;;;;;;;;;x
+one_of_the_following;one of the following effects:;;;Uno de los siguientes efectos:;;;;;;;;;x
+chance_of;chance of:;;;Probablidad de:;;;;;;;;;x
+owner_of;owner of;;;Due�o de;;;;;;;;;x
+controller_of;controller of;;;Controlador de;;;;;;;;;x
+location_of_pop;location of that pop;;;Ubicacion de ese pop;;;;;;;;;x
+nation_of_pop;nation containing that pop;;;Nacion que contiene ese pop;;;;;;;;;x
+capital_of;capital of;;;Capital de;;;;;;;;;x
+this_nation;this nation;;;Esta nacion;;;;;;;;;x
+this_state;this state;;;Este estado;;;;;;;;;x
+this_province;this province;;;Esta provincia;;;;;;;;;x
+this_pop;this pop;;;Este pop;;;;;;;;;x
+from_nation;from nation;;;De nacion;;;;;;;;;x
+from_state;from state;;;Del estado;;;;;;;;;x
+from_province;from province;;;De la provincia;;;;;;;;;x
+from_pop;from pop;;;Del pop;;;;;;;;;x
+adjacent_sea;adjacent sea zone;;;Zona de mar adyacente;;;;;;;;;x
+cultural_union_of;cultural union of;;;Union cultural de;;;;;;;;;x
+overlord_of;overlord of;;;Maestro de titere de;;;;;;;;;x
+sphere_leader_of;sphere leader of;;;Lider de esfera de;;;;;;;;;x
+crisis_state;crisis state;;;Estado de crisis;;;;;;;;;x
+containing_state;state containing;;;Estado conteniendo;;;;;;;;;x
+province_in;province in;;;Provincia en;;;;;;;;;x
+reb_independence_nation;rebel independence nation;;;Nacion rebelde independiente;;;;;;;;;x
+flashpoint_nation;flashpoint nation;;;Nacion de punto de quiebre;;;;;;;;;x
 move_capital_to;Move capital to;;;Mover la capital a;;;;;;;;;x
 add_x_core;Add $adj$ core;;;A�adir nucleo $adj$;;;;;;;;;x
 add_core_to;Add core to;;;A�adir nucleo a;;;;;;;;;x
@@ -146,22 +146,22 @@ disable_great_wars;Great wars are no longer possible;;;La gran guerra se desacti
 disable_world_wars;World wars are no longer possible;;;Las guerras mundiales se desactivan;;;;;;;;;x
 assimilate_pop;Change culture to $text$;;;Cambiar cultura a $text$;;;;;;;;;x
 assimilate_province;Change the culture of all pops to $text$;;;Cambiar la cultura de todos los pops a $text$;;;;;;;;;x
-owner_primary_culture;Its owner's primary culture;;;Su due�o de la cultura primaria;;;;;;;;;x
-literacy;Literacy;;;Alfabetismo;;;;;;;;;x
+owner_primary_culture;its owner's primary culture;;;Su due�o de la cultura primaria;;;;;;;;;x
+literacy;literacy;;;Alfabetismo;;;;;;;;;x
 add_crisis_interest;Becomes interested in current crisis;;;Se interesa en la crisis actual;;;;;;;;;x
-crisis_temperature_plain;Crisis temperature;;;Temperatura de la crisis;;;;;;;;;x
-militancy;Militancy;;;Militancia;;;;;;;;;x
-consciousness;Consciousness;;;Conciencia;;;;;;;;;x
-fort_level;Fort level;;;Nivel de la barraca;;;;;;;;;x
-naval_base_level;Naval base level;;;Nivel de la base naval;;;;;;;;;x
+crisis_temperature_plain;crisis temperature;;;Temperatura de la crisis;;;;;;;;;x
+militancy;militancy;;;Militancia;;;;;;;;;x
+consciousness;consciousness;;;Conciencia;;;;;;;;;x
+fort_level;fort level;;;Nivel de la barraca;;;;;;;;;x
+naval_base_level;naval base level;;;Nivel de la base naval;;;;;;;;;x
 rgo_size;RGO size;;;Tama�o del RGO;;;;;;;;;x
 trigger_every_revolt;Trigger a revolt of every rebel faction;;;Desencadena una revuelta de todas las facciones rebeldes;;;;;;;;;x
 where_ideology_is;Where its ideology is $text$;;;Donde su ideologia es $text$;;;;;;;;;x
 where_culture_is;Where its culture is $text$;;;Donde su cultura es $text$;;;;;;;;;x
 where_religion_is;Where its religion is $text$;;;Donde su religion es $text$;;;;;;;;;x
-of_type;Of type $text$;;;Del tipo $text$;;;;;;;;;x
-diplomatic_influence_with;Diplomatic influence with $text$;;;Influencia diplomatica con $text$;;;;;;;;;x
-relations_with;Relationship with $text$;;;Relacion con $text$;;;;;;;;;x
+of_type;of type $text$;;;Del tipo $text$;;;;;;;;;x
+diplomatic_influence_with;diplomatic influence with $text$;;;Influencia diplomatica con $text$;;;;;;;;;x
+relations_with;relationship with $text$;;;Relacion con $text$;;;;;;;;;x
 add_modifier_until;Gets $text$ until $date$;;;Obtiene $text$ hasta $date$;;;;;;;;;x
 add_modifier;Gets $text$;;;Obtiene $text$;;;;;;;;;x
 add_cb_months;Gets a $name$ casus belli against $text$ for $value$ months;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
@@ -170,7 +170,7 @@ add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in sc
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope;;;$text$ obtiene un cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
 remove_cb_reversed;Loses any $name$ casus bellis against $text$;;;Pierde el cassus belli de $name$ en contra de $text$;;;;;;;;;x
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope;;;$text$ pierde el cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
-no_nation;No nation;;;Ninguna nacion;;;;;;;;;x
+no_nation;no nation;;;Ninguna nacion;;;;;;;;;x
 declare_war_on;Declare war on $text$;;;Declara la guerra a $text$;;;;;;;;;x
 attacker_wg_label;Attacker war goal: $text$;;;Meta de guerra del atacante: $text$;;;;;;;;;x
 defender_wg_label;Defender war goal: $text$;;;Meta de guerra del defendiente: $text$;;;;;;;;;x
@@ -180,15 +180,15 @@ attacker_yes_allies;Attacker's allies will be called in;;;Los aliados del atacan
 event_fires;Event $text$ is triggered;;;Sucede el evento $text$;;;;;;;;;x
 event_fires_in_days;Event $text$ is triggered in $value$ days;;;Sucede el evento $text$;;;;;;;;;x
 support_for_blank;Support for $text$;;;Soporte para $text$;;;;;;;;;x
-up_to;Up to ;;;Hasta;;;;;;;;;x
+up_to;up to ;;;Hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
-stockpile_of;To national stockpile of $text$;;;En la reserva nacional de;;;;;;;;;x
+stockpile_of;to national stockpile of $text$;;;En la reserva nacional de;;;;;;;;;x
 create_general;A new general is created;;;Se crea un nuevo general;;;;;;;;;x
 create_admiral;A new admiral is created;;;Se crea un nuevo admiral;;;;;;;;;x
 add_war_goal;A $text$ war goal is added against $nation$;;;La meta de guerra $text$ se a�ade contra $nation$;;;;;;;;;x
 blank_loyalty;$text$ loyalty;;;Lealtad a $text$;;;;;;;;;x
-in_blank;In $text$;;;En $text$;;;;;;;;;x
+in_blank;in $text$;;;En $text$;;;;;;;;;x
 railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;;;;;;;;;x
 railroad_in_capital_state;+1 railroad level in capital state;;;+1 ferrocarril en el estado capital;;;;;;;;;x
 fort_in_capital;+1 fort level in capital;;;+1 fortaleza en la capital;;;;;;;;;x
@@ -196,69 +196,69 @@ fort_in_capital_state;+1 fort level in capital state;;;+1 fortaleza en el estado
 set_national_variable_to;Set national variable $text$ to ;;;Establece la variable nacional $text$ a;;;;;;;;;x
 increase_national_variable_by;Increase national variable $text$ by ;;;Incrementa la variable nacional $text$ por;;;;;;;;;x
 decrease_national_variable_by;Decrease national variable $text$ by ;;;Decrementa la variable nacional $text$ por;;;;;;;;;x
-cmp_ge;Is at least;;;Es al menos;;;;;;;;;x
-cmp_le;Is at most;;;Es a lo mucho;;;;;;;;;x
-cmp_gt;Is greater than;;;Es mas que;;;;;;;;;x
-cmp_lt;Is less than;;;Es menos que;;;;;;;;;x
-cmp_eq;Is;;;Es;;;;;;;;;x
-cmp_ne;Is not;;;No es;;;;;;;;;x
-cmp_has_eq;Has;;;Tiene;;;;;;;;;x
-cmp_has_ne;Does not have;;;No tiene;;;;;;;;;x
-cmp_has_lt;Has less than;;;Tiene menos que;;;;;;;;;x
-cmp_has_gt;Has greater than;;;Tiene mas que;;;;;;;;;x
-cmp_has_ge;Has at least;;;Tiene al menos;;;;;;;;;x
-cmp_has_le;Has at most;;;Tiene a lo mucho;;;;;;;;;x
+cmp_ge;is at least;;;Es al menos;;;;;;;;;x
+cmp_le;is at most;;;Es a lo mucho;;;;;;;;;x
+cmp_gt;is greater than;;;Es mas que;;;;;;;;;x
+cmp_lt;is less than;;;Es menos que;;;;;;;;;x
+cmp_eq;is;;;Es;;;;;;;;;x
+cmp_ne;is not;;;No es;;;;;;;;;x
+cmp_has_eq;has;;;Tiene;;;;;;;;;x
+cmp_has_ne;does not have;;;No tiene;;;;;;;;;x
+cmp_has_lt;has less than;;;Tiene menos que;;;;;;;;;x
+cmp_has_gt;has more than;;;Tiene mas que;;;;;;;;;x
+cmp_has_ge;has at least;;;Tiene al menos;;;;;;;;;x
+cmp_has_le;has at most;;;Tiene a lo mucho;;;;;;;;;x
 all_of_the_following;All of the following:;;;Todo de lo siguiente:;;;;;;;;;x
 any_of_the_following;Any of the following:;;;Cualquiera de lo siguiente:;;;;;;;;;x
-nation_at_war_against;Nation at war against;;;Nacion en guerra en contra de;;;;;;;;;x
-core_in;Core in;;;Nucleo en;;;;;;;;;x
-substate_of;Substate of;;;Subestado de;;;;;;;;;x
-nation_in_sphere;Nation in the sphere of;;;Nacion en esfera de;;;;;;;;;x
-year;Year;;;A�o;;;;;;;;;x
-month;Month;;;Mes;;;;;;;;;x
-a_port;A port;;;Un puerto;;;;;;;;;x
-national_rank;National rank;;;Ranking nacional;;;;;;;;;x
-technology;Technology;;;Tecnologia;;;;;;;;;x
-strata;Strata;;;Estrata;;;;;;;;;x
-rich;Rich;;;Rico;;;;;;;;;x
-poor;Poor;;;Pobre;;;;;;;;;x
-middle;Middle;;;Media;;;;;;;;;x
-minimum_state_life_raing;Minimum life rating in state;;;Calidad de vida minima en el estado;;;;;;;;;x
+nation_at_war_against;nation at war against;;;Nacion en guerra en contra de;;;;;;;;;x
+core_in;core in;;;Nucleo en;;;;;;;;;x
+substate_of;substate of;;;Subestado de;;;;;;;;;x
+nation_in_sphere;nation in the sphere of;;;Nacion en esfera de;;;;;;;;;x
+year;year;;;A�o;;;;;;;;;x
+month;month;;;Mes;;;;;;;;;x
+a_port;a port;;;Un puerto;;;;;;;;;x
+national_rank;national rank;;;Ranking nacional;;;;;;;;;x
+technology;technology;;;Tecnologia;;;;;;;;;x
+strata;strata;;;Estrata;;;;;;;;;x
+rich;rich;;;Rico;;;;;;;;;x
+poor;poor;;;Pobre;;;;;;;;;x
+middle;middle;;;Media;;;;;;;;;x
+minimum_state_life_raing;minimum life rating in state;;;Calidad de vida minima en el estado;;;;;;;;;x
 an_empy_adj_prov;an empty adjacent province;;;Una provincia vacia adyacente;;;;;;;;;x
-belongs_to_same_state;Belongs to the same state as $text$;;;Perteneciente al mismo estado que $text$;;;;;;;;;x
-does_not_belong_to_same_state;Does not belong to the same state as $text$;;;No pertenece al mismo estado que $text$;;;;;;;;;x
-contains_blank;Contains $text$;;;Contiene $text$;;;;;;;;;x
-does_not_contain_blank;Does not contain $text$;;;No contiene $text$;;;;;;;;;x
+belongs_to_same_state;belongs to the same state as $text$;;;Perteneciente al mismo estado que $text$;;;;;;;;;x
+does_not_belong_to_same_state;does not belong to the same state as $text$;;;No pertenece al mismo estado que $text$;;;;;;;;;x
+contains_blank;contains $text$;;;Contiene $text$;;;;;;;;;x
+does_not_contain_blank;does not contain $text$;;;No contiene $text$;;;;;;;;;x
 times_target_needs_spending;times desired needs spending;;;Multiplicado por el costo de las nescesidades que se desean;;;;;;;;;x
-unemployment;Unemployment;;;Desempleo;;;;;;;;;x
-slavery;Slavery;;;Esclavitud;;;;;;;;;x
+unemployment;unemployment;;;Desempleo;;;;;;;;;x
+slavery;slavery;;;Esclavitud;;;;;;;;;x
 allowed;allowed;;;Permitido;;;;;;;;;x
 a_slave_state;a slave state;;;Un estado esclavo;;;;;;;;;x
 a_slave;a slave;;;Un esclavo;;;;;;;;;x
 an_independent_nation;an independent nation;;;Una nacion independiente;;;;;;;;;x
 non_prim_culture_pops;non primary-culture pops;;;Pops de cultura no primaria;;;;;;;;;x
-government;Government;;;Gobierno;;;;;;;;;x
-capital;Capital;;;Capital;;;;;;;;;x
-technology_school;Technology school;;;Escuela de tecnologia;;;;;;;;;x
-primary_culture;Primary culture;;;Cultura primaria;;;;;;;;;x
+government;government;;;Gobierno;;;;;;;;;x
+capital;capital;;;Capital;;;;;;;;;x
+technology_school;technology school;;;Escuela de tecnologia;;;;;;;;;x
+primary_culture;primary culture;;;Cultura primaria;;;;;;;;;x
 an_accepted_culture;an accepted culture;;;Una cultura aceptada;;;;;;;;;x
-culture;Culture;;;Cultura;;;;;;;;;x
-dominant_culture;Dominant culture;;;Cultura dominante;;;;;;;;;x
+culture;culture;;;Cultura;;;;;;;;;x
+dominant_culture;dominant culture;;;Cultura dominante;;;;;;;;;x
 a_primary_or_accepted;a primary or accepted culture;;;Una cultura primaria o aceptada;;;;;;;;;x
-rebel_culture;Rebel culture;;;Cultura rebelde;;;;;;;;;X
+rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;X
 this_nation_prim_culture;the primary culture or an accepted culture of this nation;;;La cultura primaria o una cultura aceptada de esta nacion;;;;;;;;;x
 from_nation_prim_culture;the primary culture or an accepted culture of the from nation;;;La cultura primaria o una cultura aceptada de esa nacion;;;;;;;;;x
-culture_group;Culture group;;;Grupo de cultura;;;;;;;;;x
-rebel_culture_group;Rebel cultural group;;;Grupo de cultura rebelde;;;;;;;;;x
+culture_group;culture group;;;Grupo de cultura;;;;;;;;;x
+rebel_culture_group;rebel cultural group;;;Grupo de cultura rebelde;;;;;;;;;x
 this_nation_culture_group;the same as the culture group of this nation ;;;Es el mismo grupo que esta nacion;;;;;;;;;x
 from_nation_culture_group;the same as the culture group of the from nation;;;Es el mismo grupo que esa nacion;;;;;;;;;x
 rebel_religion;the rebel religion;;;Religion rebelde;;;;;;;;;x
 this_nation_religion;the national religion of this nation;;;La religion nacional de esta nacion;;;;;;;;;x
 from_nation_religion;the national religion of the from nation;;;La religion nacional de esa nacion;;;;;;;;;x
-province_terrain;Province terrain;;;Terreno de provincia;;;;;;;;;x
+province_terrain;province terrain;;;Terreno de provincia;;;;;;;;;x
 rgo_production;Rgo production;;;Produccion de RGO;;;;;;;;;x
 a_secondary_power;a colonial power;;;Un poder colonial;;;;;;;;;x
-owner;Owner;;;Due�o;;;;;;;;;x
+owner;owner;;;Due�o;;;;;;;;;x
 an_active_rebel;an active rebel faction;;;Una faccion activa;;;;;;;;;x
 a_member_of;a member of;;;Un miembro de;;;;;;;;;x
 unclaimed_cores;unclaimed cores;;;Nucleos sin reclamar;;;;;;;;;x
@@ -266,28 +266,28 @@ a_cultural_union;a cultural union;;;Una union cultural;;;;;;;;;x
 union_for_pop;the cultural union for the pop;;;La union cultural para el pop;;;;;;;;;x
 union_for_nation;the cultural union for the nation;;;La union cultural para la nacion;;;;;;;;;x
 the_rebel_ind_nation;the rebel independence nation;;;La nacion independiente pertinente a los rebeldes;;;;;;;;;x
-capitalists_can_build;Capitalists are allowed to build factories;;;Los capitalistas tienen permitido construir industrias;;;;;;;;;x
-capitalists_cannot_build;Capitalists are not allowed to build factories;;;Los capitalistas no tienen permitido construir industrias;;;;;;;;;x
+capitalists_can_build;capitalists are allowed to build factories;;;Los capitalistas tienen permitido construir industrias;;;;;;;;;x
+capitalists_cannot_build;capitalists are not allowed to build factories;;;Los capitalistas no tienen permitido construir industrias;;;;;;;;;x
 at_war;at war;;;En guerra;;;;;;;;;x
-total_blockade;Total blockade;;;Bloqueada total;;;;;;;;;x
-owns;Owns;;;Es due�o de;;;;;;;;;x
-does_not_own;Does not own;;;No es due�o de;;;;;;;;;x
-controls;Controls;;;Controla;;;;;;;;;x
-does_not_control;Does not control;;;No controla;;;;;;;;;x
+total_blockade;total blockade;;;Bloqueada total;;;;;;;;;x
+owns;owns;;;Es due�o de;;;;;;;;;x
+does_not_own;does not own;;;No es due�o de;;;;;;;;;x
+controls;controls;;;Controla;;;;;;;;;x
+does_not_control;does not control;;;No controla;;;;;;;;;x
 a_core_in;a core in;;;Un nucleo en;;;;;;;;;x
 a_core_of;a core of;;;Un nucleo de;;;;;;;;;x
-percentage_reb_control;Percentage of rebel controlled provinces;;;Porcentaje de provincias controladas por los rebeldes;;;;;;;;;x
-num_of_reb_control;Number of rebel controlled provinces;;;Numero de provincias controladas por los rebeldes;;;;;;;;;x
-num_owned_provinces;Number of owned provinces;;;Numero de provincias de las que sois due�os;;;;;;;;;x
-num_provinces_owned_by;The number of provinces owned by;;;El numero de provincias propiedad de;;;;;;;;;x
-num_of_ports;Number of ports;;;Numero de puertos;;;;;;;;;x
-num_of_allies;Number of allies;;;Numero de aliados;;;;;;;;;x
-num_of_vassals;Number of vassals;;;Numero de subyugados;;;;;;;;;x
+percentage_reb_control;percentage of rebel controlled provinces;;;Porcentaje de provincias controladas por los rebeldes;;;;;;;;;x
+num_of_reb_control;number of rebel controlled provinces;;;Numero de provincias controladas por los rebeldes;;;;;;;;;x
+num_owned_provinces;number of owned provinces;;;Numero de provincias de las que sois due�os;;;;;;;;;x
+num_provinces_owned_by;the number of provinces owned by;;;El numero de provincias propiedad de;;;;;;;;;x
+num_of_ports;number of ports;;;Numero de puertos;;;;;;;;;x
+num_of_allies;number of allies;;;Numero de aliados;;;;;;;;;x
+num_of_vassals;number of vassals;;;Numero de subyugados;;;;;;;;;x
 owned_by;owned by;;;Propiedad de;;;;;;;;;x
-exists;Exists;;;Existe;;;;;;;;;x
-does_not_exist;Does not exist;;;No existe;;;;;;;;;x
+exists;exists;;;Existe;;;;;;;;;x
+does_not_exist;does not exist;;;No existe;;;;;;;;;x
 set;Set;;;Establece;;;;;;;;;x
-in;In;;;En;;;;;;;;;x
+in;in;;;En;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;Un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;Acceso militar con;;;;;;;;;x
 prestige_of;the prestige of;;;El prestigio d;;;;;;;;;x
@@ -306,38 +306,38 @@ units_in_province;units in province;;;;;;;;;;;;x
 at_war_against;at war against;;;;;;;;;;;;x
 num_of_divisions;a number of divisions;;;;;;;;;;;;x
 an_ongoing_battle;an ongoing battle;;;;;;;;;;;;x
-treasury;Treasury;;;;;;;;;;;;x
-percentage_unowned_cores;Percentage of unowned cores;;;;;;;;;;;;x
+treasury;treasury;;;;;;;;;;;;x
+percentage_unowned_cores;percentage of unowned cores;;;;;;;;;;;;x
 a_vassal;a vassal;;;;;;;;;;;;x
-ruling_party_ideology;Ruling party ideology;;;;;;;;;;;;x
-ruling_party;Ruling party;;;;;;;;;;;;x
+ruling_party_ideology;ruling party ideology;;;;;;;;;;;;x
+ruling_party;ruling party;;;;;;;;;;;;x
 enabled;enabled;;;;;;;;;;;;x
-political_reform_desire;Political reform desire;;;;;;;;;;;;x
-social_reform_desire;Social reform desire;;;;;;;;;;;;x
-num_of_ships;Number of ships;;;;;;;;;;;;x
-crime_percent;Percentage of provinces with crime;;;;;;;;;;;;x
-national_religion;The national_religion;;;;;;;;;;;;x
+political_reform_desire;political reform desire;;;;;;;;;;;;x
+social_reform_desire;social reform desire;;;;;;;;;;;;x
+num_of_ships;number of ships;;;;;;;;;;;;x
+crime_percent;percentage of provinces with crime;;;;;;;;;;;;x
+national_religion;the national_religion;;;;;;;;;;;;x
 member_of_nat_religion;a member of the national religion;;;;;;;;;;;;x
-dominant_religion;The dominant religion;;;;;;;;;;;;x
-this_pop_culture;The culture of this pop;;;;;;;;;;;;x
-this_nation_primary_culture;The primary culture of this nation;;;;;;;;;;;;x
-coastal;Coastal;;;;;;;;;;;;x
+dominant_religion;the dominant religion;;;;;;;;;;;;x
+this_pop_culture;the culture of this pop;;;;;;;;;;;;x
+this_nation_primary_culture;the primary culture of this nation;;;;;;;;;;;;x
+coastal;coastal;;;;;;;;;;;;x
 in_sphere_of;in the sphere of;;;;;;;;;;;;x
 a_producer_of;a producer of;;;;;;;;;;;;x
-next_reform;Next reform;;;;;;;;;;;;x
-always;Always;;;;;;;;;;;;x
-never;Never;;;;;;;;;;;;x
-percentage_recruited;Percentage of recruited pops;;;;;;;;;;;;x
+next_reform;next reform;;;;;;;;;;;;x
+always;always;;;;;;;;;;;;x
+never;never;;;;;;;;;;;;x
+percentage_recruited;percentage of recruited pops;;;;;;;;;;;;x
 in_cultural_core_prov;in a province with a core of the same culture;;;;;;;;;;;;x
-nationalism;Nationalism;;;;;;;;;;;;x
+nationalism;nationalism;;;;;;;;;;;;x
 overseas;overseas;;;;;;;;;;;;x
-controlled_by_rebel;Controlled by rebels;;;;;;;;;;;;x
-controlled_by;Controlled by;;;;;;;;;;;;x
-state_capital;State capital;;;;;;;;;;;;x
+controlled_by_rebel;controlled by rebels;;;;;;;;;;;;x
+controlled_by;controlled by;;;;;;;;;;;;x
+state_capital;state capital;;;;;;;;;;;;x
 a_truce_with;a truce with;;;;;;;;;;;;x
-population;Population;;;;;;;;;;;;x
-size;Size;;;;;;;;;;;;x
-pops_of_type;Pops of type;;;;;;;;;;;;x
+population;population;;;;;;;;;;;;x
+size;size;;;;;;;;;;;;x
+pops_of_type;pops of type;;;;;;;;;;;;x
 of_type_plain;of type;;;;;;;;;;;;x
 ai_controlled;AI controlled;;;;;;;;;;;;x
 a_leader_named;a leader named;;;;;;;;;;;;x
@@ -345,112 +345,112 @@ a_possible_vassal;a possible vassal;;;;;;;;;;;;x
 a_vassal_of;a vassal of;;;;;;;;;;;;x
 a_substate_of;a substate of;;;;;;;;;;;;x
 allied_to;allied to;;;;;;;;;;;;x
-has_recently_lost_war;Has recently lost a war;;;;;;;;;;;;x
-has_not_recently_lost_war;Has not recently lost a war;;;;;;;;;;;;x
+has_recently_lost_war;has recently lost a war;;;;;;;;;;;;x
+has_not_recently_lost_war;has not recently lost a war;;;;;;;;;;;;x
 mobilized;mobilized;;;;;;;;;;;;x
-mobilization_size;Mobilization size;;;;;;;;;;;;x
-admin_spending;Administration spending;;;;;;;;;;;;x
+mobilization_size;mobilization size;;;;;;;;;;;;x
+admin_spending;administration spending;;;;;;;;;;;;x
 greater_than_edu_spending;greater than education spending;;;;;;;;;;;;x
-support_for_rp;Support for ruling party;;;;;;;;;;;;x
+support_for_rp;support for ruling party;;;;;;;;;;;;x
 colonial;colonial;;;;;;;;;;;;x
 in_default_to;in default to;;;;;;;;;;;;x
-num_of_ports_connected;Number of ports connected to capital;;;;;;;;;;;;x
+num_of_ports_connected;number of ports connected to capital;;;;;;;;;;;;x
 holding_an_election;holding an election;;;;;;;;;;;;x
 set_globally;set globally;;;;;;;;;;;;x
-national_value;National value;;;;;;;;;;;;x
-industrial_score;Industrial score;;;;;;;;;;;;x
-industrial_score_of;The industrial score of;;;;;;;;;;;;x
-military_score;Military score;;;;;;;;;;;;x
-military_score_of;The military score of;;;;;;;;;;;;x
-civilized;Civilized;;;;;;;;;;;;x
-percent_occupied;Percentage of occupied provinces;;;;;;;;;;;;x
-rich_tax;Rich tax;;;;;;;;;;;;x
-middle_tax;Middle tax;;;;;;;;;;;;x
-poor_tax;Poor tax;;;;;;;;;;;;x
-soc_spending;Social spending;;;;;;;;;;;;x
-edu_spending;Education spending;;;;;;;;;;;;x
-mil_spending;Military spending;;;;;;;;;;;;x
-colonies;Colonies;;;;;;;;;;;;x
-dominant_ideology;Dominant ideology;;;;;;;;;;;;x
-dominant_issue;Dominant issue;;;;;;;;;;;;x
-poor_militancy;Poor strata militancy;;;;;;;;;;;;x
-middle_militancy;Middle strata militancy;;;;;;;;;;;;x
-rich_militancy;Rich strata militancy;;;;;;;;;;;;x
+national_value;national value;;;;;;;;;;;;x
+industrial_score;industrial score;;;;;;;;;;;;x
+industrial_score_of;the industrial score of;;;;;;;;;;;;x
+military_score;military score;;;;;;;;;;;;x
+military_score_of;the military score of;;;;;;;;;;;;x
+civilized;civilized;;;;;;;;;;;;x
+percent_occupied;percentage of occupied provinces;;;;;;;;;;;;x
+rich_tax;rich tax;;;;;;;;;;;;x
+middle_tax;middle tax;;;;;;;;;;;;x
+poor_tax;poor tax;;;;;;;;;;;;x
+soc_spending;social spending;;;;;;;;;;;;x
+edu_spending;education spending;;;;;;;;;;;;x
+mil_spending;military spending;;;;;;;;;;;;x
+colonies;colonies;;;;;;;;;;;;x
+dominant_ideology;dominant ideology;;;;;;;;;;;;x
+dominant_issue;dominant issue;;;;;;;;;;;;x
+poor_militancy;poor strata militancy;;;;;;;;;;;;x
+middle_militancy;middle strata militancy;;;;;;;;;;;;x
+rich_militancy;rich strata militancy;;;;;;;;;;;;x
 gt_poor_tax;greater than poor tax;;;;;;;;;;;;x
-cultural_union;Cultural union;;;;;;;;;;;;x
+cultural_union;cultural union;;;;;;;;;;;;x
 same_cultural_union;the same as the cultural union of;;;;;;;;;;;;x
 non_accepted_pops;non accepted pops;;;;;;;;;;;;x
-crime;Crime;;;;;;;;;;;;x
-num_substates;Number of substates;;;;;;;;;;;;x
-num_vassals_no_substates;Number of non-substate vassals;;;;;;;;;;;;x
-num_regiments;Number of regiments;;;;;;;;;;;;x
-num_regiments_of;The number of regiments belonging to;;;;;;;;;;;;x
+crime;crime;;;;;;;;;;;;x
+num_substates;number of substates;;;;;;;;;;;;x
+num_vassals_no_substates;number of non-substate vassals;;;;;;;;;;;;x
+num_regiments;number of regiments;;;;;;;;;;;;x
+num_regiments_of;the number of regiments belonging to;;;;;;;;;;;;x
 fabricating_on;fabricating a casus belli on;;;;;;;;;;;;x
-cb_discovered;Casus belli fabrication has been discovered;;;;;;;;;;;;x
-cb_not_discovered;Casus belli fabrication has not been discovered;;;;;;;;;;;;x
-cb_progress;Casus belli fabrication progress;;;;;;;;;;;;x
-civ_progress;Civilization progress;;;;;;;;;;;;x
+cb_discovered;casus belli fabrication has been discovered;;;;;;;;;;;;x
+cb_not_discovered;casus belli fabrication has not been discovered;;;;;;;;;;;;x
+cb_progress;casus belli fabrication progress;;;;;;;;;;;;x
+civ_progress;civilization progress;;;;;;;;;;;;x
 constructing_a;fabricating a;;;;;;;;;;;;x
-casus_belli;Casus belli;;;;;;;;;;;;x
-nation_in_scope;The nation in scope;;;;;;;;;;;;x
+casus_belli;casus belli;;;;;;;;;;;;x
+nation_in_scope;the nation in scope;;;;;;;;;;;;x
 a_substate;a substate;;;;;;;;;;;;x
-gw_enabled;Great wars are enabled;;;;;;;;;;;;x
-gw_not_enabled;Great wars are not enabled;;;;;;;;;;;;x
-ww_enabled;World wars are enabled;;;;;;;;;;;;x
-ww_not_enabled;World wars are not enabled;;;;;;;;;;;;x
-can_perform_nationalization;Can perform nationalization;;;;;;;;;;;;x
-cannot_perform_nationalization;Cannot perform nationalization;;;;;;;;;;;;x
+gw_enabled;great wars are enabled;;;;;;;;;;;;x
+gw_not_enabled;great wars are not enabled;;;;;;;;;;;;x
+ww_enabled;world wars are enabled;;;;;;;;;;;;x
+ww_not_enabled;world wars are not enabled;;;;;;;;;;;;x
+can_perform_nationalization;can perform nationalization;;;;;;;;;;;;x
+cannot_perform_nationalization;cannot perform nationalization;;;;;;;;;;;;x
 in_sphere;in a sphere of influence;;;;;;;;;;;;x
-num_states;Number of states;;;;;;;;;;;;x
+num_states;number of states;;;;;;;;;;;;x
 a_releasable_vassal;a releasable vassal;;;;;;;;;;;;x
-recent_immigration;Recent immigration;;;;;;;;;;;;x
-num_control_days;Number of days under current control;;;;;;;;;;;;x
+recent_immigration;recent immigration;;;;;;;;;;;;x
+num_control_days;number of days under current control;;;;;;;;;;;;x
 disarmed;disarmed;;;;;;;;;;;;x
-social_mov_support;Social movement support;;;;;;;;;;;;x
-political_mov_support;Political movement support;;;;;;;;;;;;x
+social_mov_support;social movement support;;;;;;;;;;;;x
+political_mov_support;political movement support;;;;;;;;;;;;x
 a_member_of_social_mov;a member of a social movement;;;;;;;;;;;;x
 a_member_of_political_mov;a member of a political movement;;;;;;;;;;;;x
 cultural_sphere_members;sphere members in the same cultural group;;;;;;;;;;;;x
-pops;Pops;;;;;;;;;;;;x
-this_pop_religion;The religion of this pop;;;;;;;;;;;;x
+pops;pops;;;;;;;;;;;;x
+this_pop_religion;the religion of this pop;;;;;;;;;;;;x
 pops_with;pops with;;;;;;;;;;;;x
-life_needs_satisfaction;Life-needs satisfaction;;;;;;;;;;;;x
-everyday_needs_satisfaction;Everyday-needs satisfaction;;;;;;;;;;;;x
-luxury_needs_satisfaction;Luxury-needs satisfaction;;;;;;;;;;;;x
+life_needs_satisfaction;life-needs satisfaction;;;;;;;;;;;;x
+everyday_needs_satisfaction;everyday-needs satisfaction;;;;;;;;;;;;x
+luxury_needs_satisfaction;luxury-needs satisfaction;;;;;;;;;;;;x
 present_in_state;present in state;;;;;;;;;;;;x
 flashpoint;Flashpoint;;;;;;;;;;;;x
 an_ongoing_crisis;an ongoing crisis;;;;;;;;;;;;x
 there;There;;;;;;;;;;;;x
-current_crisis;Current crisis;;;;;;;;;;;;x
+current_crisis;current crisis;;;;;;;;;;;;x
 liberation_crisis;a liberation crisis;;;;;;;;;;;;x
 claim_crisis;a claim crisis;;;;;;;;;;;;x
 involved_in_crisis;involved in crisis;;;;;;;;;;;;x
-poor_life_needs_satisfaction;Poor-strata life-needs satisfaction;;;;;;;;;;;;x
-poor_everyday_needs_satisfaction;Poor-strata everyday-needs satisfaction;;;;;;;;;;;;x
-poor_luxury_needs_satisfaction;Poor-strata luxury-needs satisfaction;;;;;;;;;;;;x
-middle_life_needs_satisfaction;Middle-strata life-needs satisfaction;;;;;;;;;;;;x
-middle_everyday_needs_satisfaction;Middle-strata everyday-needs satisfaction;;;;;;;;;;;;x
-middle_luxury_needs_satisfaction;Middle-strata luxury-needs satisfaction;;;;;;;;;;;;x
-rich_life_needs_satisfaction;Rich-strata life-needs satisfaction;;;;;;;;;;;;x
-rich_everyday_needs_satisfaction;Rich-strata everyday-needs satisfaction;;;;;;;;;;;;x
-rich_luxury_needs_satisfaction;Rich-strata luxury-needs satisfaction;;;;;;;;;;;;x
-dip_influence_over;Diplomatic influence over;;;;;;;;;;;;x
-relationship_with;Relationship with;;;;;;;;;;;;x
-this_pop_type;This pop type;;;;;;;;;;;;x
-nat_variable;National variable;;;;;;;;;;;;x
-support_in_uh;Support in upper house;;;;;;;;;;;;x
-support_in;Loyalty in;;;;;;;;;;;;x
-scope_province;Province in scope;;;;;;;;;;;;x
+poor_life_needs_satisfaction;poor-strata life-needs satisfaction;;;;;;;;;;;;x
+poor_everyday_needs_satisfaction;poor-strata everyday-needs satisfaction;;;;;;;;;;;;x
+poor_luxury_needs_satisfaction;poor-strata luxury-needs satisfaction;;;;;;;;;;;;x
+middle_life_needs_satisfaction;middle-strata life-needs satisfaction;;;;;;;;;;;;x
+middle_everyday_needs_satisfaction;middle-strata everyday-needs satisfaction;;;;;;;;;;;;x
+middle_luxury_needs_satisfaction;middle-strata luxury-needs satisfaction;;;;;;;;;;;;x
+rich_life_needs_satisfaction;rich-strata life-needs satisfaction;;;;;;;;;;;;x
+rich_everyday_needs_satisfaction;rich-strata everyday-needs satisfaction;;;;;;;;;;;;x
+rich_luxury_needs_satisfaction;rich-strata luxury-needs satisfaction;;;;;;;;;;;;x
+dip_influence_over;diplomatic influence over;;;;;;;;;;;;x
+relationship_with;relationship with;;;;;;;;;;;;x
+this_pop_type;this pop type;;;;;;;;;;;;x
+nat_variable;national variable;;;;;;;;;;;;x
+support_in_uh;support in upper house;;;;;;;;;;;;x
+support_in;loyalty in;;;;;;;;;;;;x
+scope_province;province in scope;;;;;;;;;;;;x
 able_build_rr;able to build a railroad in this province;;;;;;;;;;;;x
 able_build_fort;able to build a fort in this province;;;;;;;;;;;;x
 able_build_naval_base;able to build a naval base in this province;;;;;;;;;;;;x
-work;Work;;;Trabajo;;;;;;;;;x
+work;work;;;Trabajo;;;;;;;;;x
 available_for;available for:;;;Disponible para;;;;;;;;;x
-support;Support;;;Soporte;;;;;;;;;x
-percentage;Percentage;;;Porcentaje;;;;;;;;;x
-stockpile;Stockpile;;;Almacen;;;;;;;;;x
-this_nat_religion;The national religion of this country;;;La religion nacional de este pais;;;;;;;;;x
-from_nat_religion;The national religion of the from country;;;La religion nacional de ese pais;;;;;;;;;x
+support;support;;;Soporte;;;;;;;;;x
+percentage;percentage;;;Porcentaje;;;;;;;;;x
+stockpile;stockpile;;;Almacen;;;;;;;;;x
+this_nat_religion;the national religion of this country;;;La religion nacional de este pais;;;;;;;;;x
+from_nat_religion;the national religion of the from country;;;La religion nacional de ese pais;;;;;;;;;x
 event_show_requirements;Requirements for the event;;;Requerimientos para el evento;;;;;;;;;x
 event_only_other_requirements;This event is only triggered by other events;;;Este evento solamente se realiza por otros eventos;;;;;;;;;x
 event_show_odds;Odds of the event;;;Probabilidades del evento;;;;;;;;;x

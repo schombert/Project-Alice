@@ -180,7 +180,7 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, pop_increase);
+			text::add_to_layout_box(state, contents, box, int16_t(pop_increase));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -766,7 +766,8 @@ public:
 	}
 };
 
-typedef std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id> pop_left_side_data;
+using pop_left_side_data = std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id>;
+
 template<typename T>
 class pop_left_side_button : public button_element_base {
 public:
@@ -813,7 +814,9 @@ public:
 		}
 	}
 };
-typedef std::variant< std::monostate, dcon::state_instance_id, bool> pop_left_side_expand_action;
+
+using pop_left_side_expand_action =  std::variant< std::monostate, dcon::state_instance_id, bool> ;
+
 class pop_left_side_expand_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1101,6 +1104,7 @@ public:
 		piechart<T>::on_update(state);
 	}
 };
+
 template<typename T>
 class pop_distribution_item : public listbox_row_element_base<std::pair<T, float>> {
 	element_base* title_text = nullptr;
@@ -1135,6 +1139,7 @@ public:
 		return listbox_row_element_base<std::pair<T, float>>::get(state, payload);
 	}
 };
+
 template<typename T>
 class pop_distribution_listbox : public listbox_element_base<pop_distribution_item<T>, std::pair<T, float>> {
 public:
@@ -1142,6 +1147,7 @@ public:
 		return "pop_legend_item";
 	}
 };
+
 template<typename T, bool Multiple>
 class pop_distribution_window : public window_element_base {
 	pop_distribution_listbox<T>* distrib_listbox;
@@ -1271,6 +1277,7 @@ public:
 		return message_result::unseen;
 	}
 };
+
 template<size_t N>
 class pop_details_promotion_window : public window_element_base {
 	dcon::pop_type_id content{};
@@ -1311,7 +1318,8 @@ public:
 	}
 };
 
-typedef std::pair< dcon::commodity_id, float> pop_details_needs_data;
+using pop_details_needs_data = std::pair< dcon::commodity_id, float> ;
+
 class pop_details_needs_item : public listbox_row_element_base<pop_details_needs_data> {
 	commodity_factory_image* commodity_icon = nullptr;
 	simple_text_element_base* value_text = nullptr;
@@ -1350,7 +1358,8 @@ public:
 	}
 };
 
-typedef std::variant< std::monostate, dcon::pop_id> pop_details_data;
+using pop_details_data = std::variant< std::monostate, dcon::pop_id>;
+
 class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
@@ -1553,7 +1562,7 @@ public:
 	}
 };
 
-class pop_details_icon : public button_element_base {
+class pop_details_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -1563,17 +1572,6 @@ public:
 
 			auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
 			frame = int32_t(fat_id.get_sprite() - 1);
-		}
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
-			Cyto::Any dt_payload = pop_details_data(content);
-			state.ui_state.population_subwindow->impl_set(state, dt_payload);
 		}
 	}
 
@@ -1597,10 +1595,23 @@ public:
 	}
 };
 
+class show_pop_detail_button : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			auto content = retrieve<dcon::pop_id>(state, parent);
+
+			Cyto::Any dt_payload = pop_details_data(content);
+			state.ui_state.population_subwindow->impl_set(state, dt_payload);
+		}
+	}
+};
+
 class pop_item : public listbox_row_element_base<dcon::pop_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "pop_size") {
+		if(name == "pops_pop_entry_bg") {
+			return make_element_by_type<show_pop_detail_button>(state, id);
+		} else if(name == "pop_size") {
 			return make_element_by_type<pop_size_text>(state, id);
 		} else if(name == "pop_nation") {
 			return make_element_by_type<pop_culture_text>(state, id);

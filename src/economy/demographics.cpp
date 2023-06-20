@@ -714,11 +714,11 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
 				(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
 						state.defines.mil_non_accepted);
-		auto ln_mod = ve::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5), 0.0f) * state.defines.mil_no_life_need;
+		auto ln_mod = ve::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 		auto en_mod_a =
-				ve::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5)) * state.defines.mil_lack_everyday_need;
+				ve::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
 		auto en_mod_b =
-				ve::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5)) * state.defines.mil_has_everyday_need;
+				ve::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
 
 		auto old_mil = state.world.pop_get_militancy(ids);
 
@@ -727,6 +727,54 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 																	(sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a)), 0.0f)),
 						10.0f));
 	});
+}
+
+float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
+	auto const conservatism_key = pop_demographics::to_key(state, state.culture_definitions.conservative);
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(loc);
+	auto ruling_party = state.world.nation_get_ruling_party(owner);
+	auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
+
+	auto lx_mod = std::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
+	auto con_sup = (state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology);
+	auto ruling_sup = ruling_ideology
+		? state.world.pop_get_demographics(ids, pop_demographics::to_key(state, ruling_ideology)) * state.defines.mil_ruling_party
+		: 0.0f;
+	auto ref_mod = state.world.province_get_is_colonial(loc) ? 0.0f :
+			(state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
+					state.defines.mil_require_reform;
+
+	auto sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
+
+	auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_militancy_modifier);
+	auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_militancy_modifier);
+	auto cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
+			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::core_pop_militancy_modifier));
+
+	auto local_mod = (pmod + omod) + cmod;
+
+	auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
+			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
+					state.defines.mil_non_accepted);
+	auto ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
+	auto en_mod_a =
+			std::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
+	auto en_mod_b =
+			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
+
+	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a));
+}
+
+float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
+	float sum = 0.0f;
+	for(auto prov : dcon::fatten(state.world, n).get_province_ownership()) {
+		for(auto pop : prov.get_province().get_pop_location()) {
+			sum += pop.get_pop().get_size() * get_estimated_mil_change(state, pop.get_pop());
+		}
+	}
+	return sum / state.world.nation_get_demographics(n, demographics::total);
 }
 
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions) {
@@ -779,6 +827,49 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 	});
 }
 
+float get_estimated_con_change(sys::state& state, dcon::pop_id ids) {
+	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(loc);
+	auto cfrac =
+			state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
+	auto types = state.world.pop_get_poptype(ids);
+
+	auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
+	auto cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
+														state.defines.con_poor_clergy, state.defines.con_midrich_clergy);
+	auto lit_mod = (state.world.nation_get_plurality(owner) / 10000.0f) *
+								 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
+								 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
+								 ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f);
+
+	auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
+	auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
+	auto cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
+			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::core_pop_consciousness_modifier));
+
+	auto local_mod = (pmod + omod) + cmod;
+
+	auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
+			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier));
+
+	auto old_con = state.world.pop_get_consciousness(ids);
+
+	return (lx_mod + (cl_mod + lit_mod)) + (local_mod + sep_mod);
+}
+
+float get_estimated_con_change(sys::state& state, dcon::nation_id n) {
+	float sum = 0.0f;
+	for(auto prov : dcon::fatten(state.world, n).get_province_ownership()) {
+		for(auto pop : prov.get_province().get_pop_location()) {
+			sum += pop.get_pop().get_size() * get_estimated_con_change(state, pop.get_pop());
+		}
+	}
+	return sum / state.world.nation_get_demographics(n, demographics::total);
+}
+
+
 void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	/*
 	the literacy of each pop changes by:
@@ -814,36 +905,31 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
+float get_estimated_literacy_change(sys::state& state, dcon::pop_id ids) {
+	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(loc);
+	auto cfrac =
+			state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
+
+	auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
+	auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+	auto espending =
+			(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
+	auto cmod = std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) / (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy));
+
+	return (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod));
+}
+
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {
-	// TODO - We want this to return the estimated monthly change for literacy, note the returned value is already divided by 30
 	float sum = 0.0f;
-	auto fat_id = dcon::fatten(state.world, n);
-	// Algorithm:
-	// sum = 0.01 * define:LITERACY_CHANGE_SPEED * education_spending * ((total-province-clergy / total-province-population -
-	// define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))
-	// ^1*(national-modifier-to-education-efficiency + 1.0) * (tech-education-effiency + 1.0)
-	for(auto prov_control : fat_id.get_province_control()) {
-		auto prov = prov_control.get_province();
-		sum += (0.01f * state.defines.literacy_change_speed * state.world.nation_get_education_spending(n) *
-						((prov.get_demographics(demographics::to_key(state, state.culture_definitions.clergy)) /
-										 prov.get_demographics(demographics::total) -
-								 state.defines.base_clergy_for_literacy) /
-								(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)) *
-						((state.world.nation_get_modifier_values(n, sys::national_mod_offsets::education_efficiency) + 1.0f) *
-								(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f)));
+	for(auto prov : dcon::fatten(state.world, n).get_province_ownership()) {
+		for(auto pop : prov.get_province().get_pop_location()) {
+			sum += pop.get_pop().get_size() * get_estimated_literacy_change(state, pop.get_pop());
+		}
 	}
-	return sum;
-}
-
-float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
-	// TODO - We want this to return the estimated monthly change for militancy, note the returned value is already divided by 30
-	return 0.0001f;
-}
-
-float get_estimated_con_change(sys::state& state, dcon::nation_id n) {
-	// TODO - We want this to return the estimated monthly change for conciousness, note the returned value is already divided by
-	// 30
-	return 0.0001f;
+	return sum / state.world.nation_get_demographics(n, demographics::total);
 }
 
 inline constexpr float ideology_change_rate = 0.10f;
@@ -1058,6 +1144,58 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
+float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
+	auto type = state.world.pop_get_poptype(ids);
+	if(type == state.culture_definitions.slaves)
+		return 0.0f;
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(loc);
+
+	auto base_life_rating = float(state.world.province_get_life_rating(loc));
+	auto mod_life_rating = std::min(
+			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
+	auto lr_factor =
+			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+	auto province_factor = lr_factor + state.defines.base_popgrowth;
+
+	auto ln_factor = state.world.pop_get_life_needs_satisfaction(ids) - state.defines.life_need_starvation_limit;
+	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) +
+								 state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+
+	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum;
+	auto old_size = state.world.pop_get_size(ids);
+
+	return old_size * total_factor;
+}
+int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
+	float t = 0.0f;
+	for(auto prov : state.world.nation_get_province_ownership(n)) {
+		for(auto pop : prov.get_province().get_pop_location()) {
+			t += get_monthly_pop_increase(state, pop.get_pop());
+		}
+	}
+	return int64_t(t);
+}
+
+int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n) {
+	float t = 0.0f;
+	province::for_each_province_in_state_instance(state, n, [&](dcon::province_id prov) {
+		for(auto pop : state.world.province_get_pop_location(prov)) {
+			t += get_monthly_pop_increase(state, pop.get_pop());
+		}
+	});
+	return int64_t(t);
+}
+
+int64_t get_monthly_pop_increase(sys::state& state, dcon::province_id n) {
+	float t = 0.0f;
+	for(auto pop : state.world.province_get_pop_location(n)) {
+		t += get_monthly_pop_increase(state, pop.get_pop());
+	}
+	return int64_t(t);
+}
+
 void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
@@ -1215,6 +1353,43 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 	});
 }
 
+float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
+	auto owner = nations::owner_of_pop(state, ids);
+	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto si = state.world.province_get_state_membership(loc);
+	auto nf = state.world.state_instance_get_owner_focus(si);
+	auto promoted_type = state.world.national_focus_get_promotion_type(nf);
+	auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
+	auto ptype = state.world.pop_get_poptype(ids);
+	auto strata = state.world.pop_type_get_strata(ptype);
+
+	if(promoted_type) {
+		if(promoted_type == ptype) {
+			promotion_chance = 0.0f;
+		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
+			promotion_chance += promotion_bonus;
+		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+			demotion_chance += promotion_bonus;
+		}
+	}
+
+	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+		return 0.0f; // skip this pop
+
+	float current_size = state.world.pop_get_size(ids);
+
+	bool promoting = promotion_chance >= demotion_chance;
+	return std::min(current_size, promoting
+			? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) *
+				state.defines.promotion_scale * current_size))
+			: (std::ceil(promotion_chance * state.defines.promotion_scale * current_size)));
+}
+
 void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
@@ -1304,6 +1479,72 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 				},
 				ids, loc, owners, assimilation_chances);
 	});
+}
+
+float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
+	auto location = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(location);
+	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance,
+		trigger::to_generic(ids), trigger::to_generic(owner), 0), 0.0f);
+
+	// slaves do not assimilate
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves)
+		return 0.0f; // early exit
+
+	// pops of an accepted culture do not assimilate
+	if(state.world.pop_get_is_primary_or_accepted_culture(ids))
+		return 0.0f; // early exit
+
+	// pops in an overseas and colonial province do not assimilate
+	if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
+		return 0.0f; // early exit
+
+	float current_size = state.world.pop_get_size(ids);
+	float base_amount =
+		state.defines.assimilation_scale *
+		(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) *
+		(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) *
+			assimilation_chances * current_size;
+
+	/*
+	In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a
+	factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture
+	group are reduced by a factor of 10.
+	*/
+
+	auto pc = state.world.pop_get_culture(ids);
+	if(state.world.province_get_is_colonial(location)) {
+		if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+			base_amount /= 100.0f;
+		}
+	} else {
+		if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+			base_amount /= 10.0f;
+		}
+	}
+
+	/*
+	All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary
+	culture.
+	*/
+
+	for(auto core : state.world.province_get_core(location)) {
+		if(core.get_identity().get_primary_culture() == pc) {
+			base_amount /= 100.0f;
+		}
+	}
+
+	/*
+	If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation.
+	*/
+
+	if(current_size < 100.0f && base_amount >= 0.001f) {
+		return current_size;
+	} else if(base_amount >= 0.001f) {
+		return std::min(current_size, std::ceil(base_amount));
+	} else {
+		return 0.0f;
+	}
 }
 
 namespace impl {
@@ -1513,6 +1754,28 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 	});
 }
 
+float get_estimated_internal_migration(sys::state& state, dcon::pop_id ids) {
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+
+	if(state.world.province_get_is_colonial(loc))
+		return 0.0f; // early exit
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves)
+		return 0.0f; // early exit
+
+	auto owners = state.world.province_get_nation_from_province_ownership(loc);
+	auto pop_sizes = state.world.pop_get_size(ids);
+	auto amount = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance,
+		 trigger::to_generic(ids), trigger::to_generic(owners), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) * state.defines.immigration_scale;
+
+	
+	if(amount <= 0.0f)
+		return 0.0f; // early exit
+
+	auto pop_size = state.world.pop_get_size(ids);
+	return std::min(pop_size, std::ceil(amount));
+}
+
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
@@ -1566,6 +1829,33 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 	});
 }
 
+float get_estimated_colonial_migration(sys::state& state, dcon::pop_id ids) {
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(loc);
+
+	if(state.world.nation_get_is_colonial_nation(owner) == false)
+		return 0.0f; // early exit
+	auto pt = state.world.pop_get_poptype(ids);
+	if(state.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
+		return 0.0f; // early exit
+	if(state.world.province_get_is_colonial(loc))
+		return 0.0f; // early exit
+	if(pt == state.culture_definitions.slaves || pt == state.culture_definitions.primary_factory_worker ||
+			pt == state.culture_definitions.secondary_factory_worker)
+		return 0.0f; // early exit
+
+	
+	auto pop_sizes = state.world.pop_get_size(ids);
+	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *  (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f) * state.defines.immigration_scale;
+
+	if(amounts <= 0.0f)
+		return 0.0f; // early exit
+				
+	auto pop_size = state.world.pop_get_size(ids);
+	return std::min(pop_size, std::ceil(amounts));
+}
+
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
@@ -1616,6 +1906,32 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 				},
 				ids, loc, owners, amounts);
 	});
+}
+
+float get_estimated_emmigration(sys::state& state, dcon::pop_id ids) {
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owners = state.world.province_get_nation_from_province_ownership(loc);
+
+	if(state.world.nation_get_is_civilized(owners) == false)
+		return 0.0f; // early exit
+	if(state.world.province_get_is_colonial(loc))
+		return 0.0f; // early exit
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves)
+		return 0.0f; // early exit
+	if(state.world.culture_group_get_is_overseas(
+				 state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(ids))) == false) {
+		return 0.0f; // early exit
+	}
+
+	auto pop_sizes = state.world.pop_get_size(ids);
+	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
+	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,  trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f) * pop_sizes * impush * std::max(impush, 1.0f) * state.defines.immigration_scale;
+
+	if(amounts <= 0.0f)
+		return 0.0f; // early exit
+
+	return std::min(pop_sizes, std::ceil(amounts));
 }
 
 namespace impl {
@@ -1831,24 +2147,5 @@ void remove_size_zero_pops(sys::state& state) {
 	}
 }
 
-int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id) {
-	/* TODO -
-	 * This should return the monthly increase of a pop.
-	 * im not sure if it would be better for this to be a daily function? given the monthly may be too obvious/behind...
-	 * the return value is divided by 30 for now, and will need to be changed if it becomes daily.
-	 */
-	return 0;
-}
-int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n) {
-	/* TODO -
-	 * This should return the monthly increase of a states pops. the return value is divided by 30
-	 */
-	return 0;
-}
-int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
-	/* TODO -
-	 * This should return the monthly increase of a states pops. the return value is divided by 30
-	 */
-	return 0;
-}
+
 } // namespace demographics

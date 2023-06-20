@@ -1053,6 +1053,10 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 		char buffer[200] = {0};
 		snprintf(buffer, 200, "%.0f%%", std::get<fp_percentage>(sub).value * 100.0f);
 		return std::string(buffer);
+	} else if(std::holds_alternative<fp_percentage_one_place>(sub)) {
+		char buffer[200] = {0};
+		snprintf(buffer, 200, "%.1f%%", std::get<fp_percentage_one_place>(sub).value * 100.0f);
+		return std::string(buffer);
 	} else if(std::holds_alternative<dp_percentage>(sub)) {
 		char buffer[200] = {0};
 		snprintf(buffer, 200, "%.0f%%", std::get<dp_percentage>(sub).value * 100.0f);

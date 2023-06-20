@@ -3232,7 +3232,7 @@ void tf_is_primary_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_is_accepted_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"), text::produce_simple_string(ws, "an_accepted"), ws,
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"), text::produce_simple_string(ws, "an_accepted_culture"), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -3240,7 +3240,7 @@ void tf_is_accepted_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
-			text::produce_simple_string(ws, "an_accepted"), ws, layout, box);
+			text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_accepted_culture_state(TRIGGER_DISPLAY_PARAMS) {
@@ -6569,7 +6569,7 @@ void tf_variable_pop_type_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
+			text::fp_percentage_one_place{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_pop_type_name_state(TRIGGER_DISPLAY_PARAMS) {
@@ -6578,7 +6578,7 @@ void tf_variable_pop_type_name_state(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
+			text::fp_percentage_one_place{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_pop_type_name_province(TRIGGER_DISPLAY_PARAMS) {
@@ -6587,7 +6587,7 @@ void tf_variable_pop_type_name_province(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
+			text::fp_percentage_one_place{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_pop_type_name_pop(TRIGGER_DISPLAY_PARAMS) {
@@ -6596,7 +6596,7 @@ void tf_variable_pop_type_name_pop(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "province_percentage"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
+			text::fp_percentage_one_place{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_good_name(TRIGGER_DISPLAY_PARAMS) {

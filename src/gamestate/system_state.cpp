@@ -422,7 +422,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale),
-		ui::mouse_probe_type::tooltip).under_mouse;
+		ui::mouse_probe_type::scroll).under_mouse;
 
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 

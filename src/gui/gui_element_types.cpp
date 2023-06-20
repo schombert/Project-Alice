@@ -941,12 +941,6 @@ message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::A
 }
 
 template<class RowConT>
-message_result listbox_row_element_base<RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
-	return parent->impl_on_scroll(state, x, y, amount, mods);
-}
-
-template<class RowConT>
 message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
@@ -957,12 +951,6 @@ message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::An
 		return message_result::consumed;
 	}
 	return message_result::unseen;
-}
-
-template<class RowConT>
-message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
-	return parent->impl_on_scroll(state, x, y, amount, mods);
 }
 
 template<class RowWinT, class RowConT>
