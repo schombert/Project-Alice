@@ -1073,6 +1073,7 @@ public:
 			auto content = any_cast<dcon::province_id>(payload);
 
 			command::finish_colonization(state, state.local_player_nation, content);
+			state.ui_state.province_window->set_visible(state, false);
 		}
 	}
 
@@ -1108,12 +1109,6 @@ public:
 	}
 };
 
-class colony_nation_id_pair {
-public:
-	dcon::colonization_id col_id{};
-	dcon::nation_id player_id{};
-};
-
 class colony_invest_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1138,16 +1133,30 @@ public:
 };
 
 class level_entry : public listbox_row_element_base<uint8_t> {
+private:
+	image_element_base* progressicon = nullptr;
+	button_element_base* investbutton = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "progress_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = content;
+			progressicon = ptr.get();
 			return ptr;
 		} else if(name == "progress_button") {
-			return make_element_by_type<colony_invest_button>(state, id);
+			auto ptr = make_element_by_type<colony_invest_button>(state, id);
+			investbutton = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(content != 255) {progressicon->frame = content; } else { progressicon->set_visible(state, false); }
+		if(content == 255) {
+			investbutton->set_visible(state, true);
+		} else {
+			investbutton->set_visible(state, false);
 		}
 	}
 };
@@ -1164,12 +1173,15 @@ public:
 		parent->impl_get(state, payload);
 		auto content = any_cast<dcon::colonization_id>(payload);
 		auto fat_colony = dcon::fatten(state.world, content);
-		for(uint8_t i = 0; i < fat_colony.get_level(); ++i) {
-			row_contents.push_back(i);
+
+		if(province::is_colonizing(state, fat_colony.get_colonizer().id, fat_colony.get_state().id)) {
+			for(uint8_t i = 0; i < fat_colony.get_level(); ++i) {
+				row_contents.push_back(i);
+			}
 		}
 
 		if(row_contents.size() == 0) {
-			row_contents.push_back(1);
+			row_contents.push_back(255);
 		}
 
 		update(state);
