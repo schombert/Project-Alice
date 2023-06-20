@@ -47,9 +47,9 @@ struct user_settings_s {
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
 	bool map_is_globe = false;
-	bool fake_graphs = false;
-	bool use_new_ui = true;
-	bool use_classic_fonts = false;
+	bool fake_graphs = true;
+	bool use_new_ui = false;
+	bool use_classic_fonts = true;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };
 
@@ -85,6 +85,7 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 };
 
 struct alignas(64) state {
+	bool use_debug_mode = true;
 	// the state struct will eventually include (at least pointers to)
 	// the state of the sound system, the state of the windowing system,
 	// and the game data / state itself

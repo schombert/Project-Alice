@@ -488,21 +488,19 @@ factory_stats_6;Efficiency inputs availability:
 speed;$val$ kph;;;;;;;;;;;;x
 shift_to_hold_open;Hold shift to keep this window open
 blank_org_gain;organization gain
-debug_mtt_nation;Nation: $val$ ($num$ | $country$ );;;;;;;;;;;;x
-debug_mtt_prov;Province: $val$ ($num$);;;;;;;;;;;;x
 mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
 mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
-debug_mtt_gas;Military Gas Tech: ;;;;;;;;;;;;x
-plurality_change_reason;(based on the average consciousness)
-revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
-allow_reform_cond;Requirements:
-reform_effect_if_desc;When activated, if
-reform_effect_then_desc;Then:
-reform_effect_desc;When activated:
-special_rules;Special rules:
-voting_rules;Voting rules:
-hide_decision;Hide the notification for this decision
-sup_point_gain;Monthly suppression point increase: §G+$val$
-sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
+plurality_change_reason;(based on the average consciousness);;;;;;;;;;;;x
+revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more);;;;;;;;;;;;x
+allow_reform_cond;Requirements:;;;;;;;;;;;;x
+reform_effect_if_desc;When activated, if;;;;;;;;;;;;x
+reform_effect_then_desc;Then:;;;;;;;;;;;;x
+reform_effect_desc;When activated:;;;;;;;;;;;;x
+special_rules;Special rules:;;;;;;;;;;;;x
+voting_rules;Voting rules:;;;;;;;;;;;;x
+hide_decision;Hide the notification for this decision;;;;;;;;;;;;x
+sup_point_gain;Monthly suppression point increase: §G+$val$;;;;;;;;;;;;x
+sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain;;;;;;;;;;;;x
+mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
 ;;;;;;;;;;;;;x
