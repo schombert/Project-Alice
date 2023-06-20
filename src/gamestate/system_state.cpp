@@ -362,6 +362,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
+	// Have to have the map tooltip down here, and we must check both of the probes
+	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
 	if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 				text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
