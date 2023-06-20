@@ -300,7 +300,7 @@ void population_map_tt_box(sys::state& state, int16_t x, int16_t y, text::column
         ": " +
         text::format_float(fat.get_demographics(demographics::total), 0) +
         " (" +
-        text::prettify(fat.get_demographics(demographics::total)) +
+        text::prettify(int64_t(fat.get_demographics(demographics::total))) +
         ")"
         ));
         text::close_layout_box(contents, box);
@@ -384,7 +384,7 @@ void supply_map_tt_box(sys::state& state, int16_t x, int16_t y, text::columnar_l
 	if(prov.value < state.province_definitions.first_sea_province.value) {
         auto box = text::open_layout_box(contents);
         text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "provinceview_supply_limit") + " ");
-        text::add_to_layout_box(state, contents, box, text::format_float(military::supply_limit_in_province(state, fat.get_nation_from_province_ownership().id, prov), 2), text::text_color::yellow);
+        text::add_to_layout_box(state, contents, box, military::supply_limit_in_province(state, fat.get_nation_from_province_ownership().id, prov), text::text_color::yellow);
         text::add_line_break_to_layout_box(state, contents, box);
         text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "base"), text::text_color::white);
         text::add_space_to_layout_box(state, contents, box);

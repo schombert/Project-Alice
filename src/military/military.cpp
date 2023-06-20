@@ -806,13 +806,13 @@ uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov,
 	} else {
 		for(auto c : dcon::fatten(state.world, prov).get_core()) {
 			if(c.get_identity().get_nation_from_identity_holder().id == nation && province::has_access_to_province(state, nation, prov)) {
-				return state.defines.naval_base_supply_score_empty;
+				return uint32_t(state.defines.naval_base_supply_score_empty);
 			}
 		}
 		if(!province::has_access_to_province(state, nation, prov)) {
-			return state.defines.naval_base_supply_score_empty * state.defines.naval_base_non_core_supply_score;
+			return uint32_t(state.defines.naval_base_supply_score_empty * state.defines.naval_base_non_core_supply_score);
 		} else {
-			return state.defines.naval_base_supply_score_empty;
+			return uint32_t(state.defines.naval_base_supply_score_empty);
 		}
 	}
 }

@@ -373,8 +373,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
 		ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
 
-		dcon::province_id prov = map_state.get_province_under_mouse(*this, (mouse_x_position / user_settings.ui_scale), (mouse_y_position / user_settings.ui_scale), x_size, y_size);
-		text::populate_map_tooltip(*this, (mouse_x_position / user_settings.ui_scale), (mouse_y_position / user_settings.ui_scale), container, prov);
+		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), x_size, y_size);
+		text::populate_map_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale), int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
 
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
