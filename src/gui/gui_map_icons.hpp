@@ -9,6 +9,9 @@
 #include <variant>
 
 namespace ui {
+
+struct update_position { };
+
 class unit_icon_color : public image_element_base {
 	int32_t get_frame(sys::state& state) noexcept {
 		if(parent) {
@@ -148,7 +151,7 @@ public:
 		attr_icon->set_visible(state, has_attrition);
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size =
@@ -158,7 +161,7 @@ public:
 			return;
 		auto new_position = xy_pair{int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 40)};
 		window_element_base::base_data.position = new_position;
-		window_element_base::render(state, new_position.x, new_position.y);
+		window_element_base::impl_render(state, new_position.x, new_position.y);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -203,7 +206,7 @@ public:
 class rgo_icon : public image_element_base {
 public:
 	dcon::province_id content{};
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size =
@@ -213,7 +216,7 @@ public:
 			return;
 		auto new_position = xy_pair{int16_t(screen_pos.x - base_data.size.x / 2), int16_t(screen_pos.y - base_data.size.y / 2)};
 		image_element_base::base_data.position = new_position;
-		image_element_base::render(state, new_position.x, new_position.y);
+		image_element_base::impl_render(state, new_position.x, new_position.y);
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto cid = state.world.province_get_rgo(content).id;
