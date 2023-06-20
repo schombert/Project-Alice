@@ -1268,6 +1268,13 @@ public:
 			text::close_layout_box(contents, box);
 		}
 	}
+
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.politics_subwindow->set_visible(state, true);
+		Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::reforms);
+		state.ui_state.politics_subwindow->impl_get(state, defs);
+	}
+
 };
 
 class topbar_available_decisions_icon : public standard_nation_button {
@@ -1311,6 +1318,13 @@ public:
 			text::close_layout_box(contents, box);
 		}
 	}
+
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.politics_subwindow->set_visible(state, true);
+		Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::decisions);
+		state.ui_state.politics_subwindow->impl_get(state, defs);
+	}
+
 };
 
 class topbar_ongoing_election_icon : public standard_nation_icon {
@@ -1392,6 +1406,13 @@ public:
 			text::close_layout_box(contents, box);
 		}
 	}
+
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.politics_subwindow->set_visible(state, true);
+		Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::movements);
+		state.ui_state.politics_subwindow->impl_get(state, defs);
+	}
+
 };
 
 class topbar_colony_icon : public standard_nation_button {
