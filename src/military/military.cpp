@@ -799,6 +799,24 @@ int32_t naval_supply_points_used(sys::state& state, dcon::nation_id n) {
 	return int32_t(state.world.nation_get_used_naval_supply_points(n));
 }
 
+uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+	uint32_t supply = uint32_t(state.defines.naval_base_supply_score_base * (std::pow(2, (dcon::fatten(state.world, prov).get_naval_base_level() -1))));
+	if(dcon::fatten(state.world, prov).get_naval_base_level() != 0) { 
+		return supply; 
+	} else {
+		for(auto c : dcon::fatten(state.world, prov).get_core()) {
+			if(c.get_identity().get_nation_from_identity_holder().id == nation && province::has_access_to_province(state, nation, prov)) {
+				return uint32_t(state.defines.naval_base_supply_score_empty);
+			}
+		}
+		if(!province::has_access_to_province(state, nation, prov)) {
+			return uint32_t(state.defines.naval_base_supply_score_empty * state.defines.naval_base_non_core_supply_score);
+		} else {
+			return uint32_t(state.defines.naval_base_supply_score_empty);
+		}
+	}
+}
+
 void update_naval_supply_points(sys::state& state) {
 	/*
 	- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or

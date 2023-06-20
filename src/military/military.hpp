@@ -274,6 +274,7 @@ int32_t naval_supply_points_used(sys::state& state, dcon::nation_id n);
 float mobilization_size(sys::state const& state, dcon::nation_id n);
 float mobilization_impact(sys::state const& state, dcon::nation_id n);
 
+uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
 void monthly_leaders_update(sys::state& state);

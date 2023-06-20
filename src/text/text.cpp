@@ -810,7 +810,7 @@ std::string format_wholenum(int32_t num) {
 	bool bIsNegative = false;	// This is dumb, dont ask
 	(num < 0) ? bIsNegative = true : bIsNegative = false;
 	std::string numstr = std::to_string(uint32_t(num));
-	
+
 	for(size_t i = numstr.length() / 3; i-->0;) {
 		// This is so dumb, fuck this
 		numstr.insert((numstr.end() - ((i*3) + 3)), ',');

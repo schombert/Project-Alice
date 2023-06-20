@@ -29,7 +29,6 @@ std::vector<uint32_t> party_loyalty_map_from(sys::state& state) {
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
-		if(province::has_an_owner(state, prov_id)) {
 			auto parties_info = get_sorted_parties_info(state, prov_id);
 
 			auto i = province::to_map_id(prov_id);
@@ -57,7 +56,6 @@ std::vector<uint32_t> party_loyalty_map_from(sys::state& state) {
 					prov_color[i + texture_size] = a.color;
 				}
 			}
-		}
 	});
 
 	return prov_color;
