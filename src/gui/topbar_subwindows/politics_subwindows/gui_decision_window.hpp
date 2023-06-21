@@ -18,22 +18,13 @@ public:
 		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, id);
-			auto name = fat_id.get_name();
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
-				text::close_layout_box(contents, box);
-			}
-
-			auto ef = fat_id.get_effect();
-			if(bool(ef))
-				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
-						trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-						uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
+			auto condition = state.world.decision_get_allow(id);
+			if(condition)
+				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation),
+						trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
+	
 };
 
 class make_decision : public button_element_base {
@@ -72,12 +63,23 @@ public:
 		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
-			auto condition = state.world.decision_get_allow(id);
-			if(condition)
-				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation),
-						trigger::to_generic(state.local_player_nation), -1);
+
+			auto fat_id = dcon::fatten(state.world, id);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+
+			auto ef = fat_id.get_effect();
+			if(bool(ef))
+				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
+						trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
+						uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 		}
 	}
+
 };
 
 // -------------
