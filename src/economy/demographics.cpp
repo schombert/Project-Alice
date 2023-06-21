@@ -737,31 +737,31 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 	auto ruling_party = state.world.nation_get_ruling_party(owner);
 	auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
 
-	auto lx_mod = std::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
-	auto con_sup = (state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology);
-	auto ruling_sup = ruling_ideology
+	float lx_mod = std::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
+	float con_sup = (state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology);
+	float ruling_sup = ruling_ideology
 		? state.world.pop_get_demographics(ids, pop_demographics::to_key(state, ruling_ideology)) * state.defines.mil_ruling_party
 		: 0.0f;
-	auto ref_mod = state.world.province_get_is_colonial(loc) ? 0.0f :
+	float ref_mod = state.world.province_get_is_colonial(loc) ? 0.0f :
 			(state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
 					state.defines.mil_require_reform;
 
-	auto sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
+	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
-	auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_militancy_modifier);
-	auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_militancy_modifier);
-	auto cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
+	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_militancy_modifier);
+	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_militancy_modifier);
+	float cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::core_pop_militancy_modifier));
 
-	auto local_mod = (pmod + omod) + cmod;
+	float local_mod = (pmod + omod) + cmod;
 
-	auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
+	float sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
 			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
 					state.defines.mil_non_accepted);
-	auto ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
-	auto en_mod_a =
+	float ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
+	float en_mod_a =
 			std::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
-	auto en_mod_b =
+	float en_mod_b =
 			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
 
 	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a));
@@ -802,7 +802,7 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 		auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
 		auto cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
 															ve::fp_vector{state.defines.con_poor_clergy}, ve::fp_vector{state.defines.con_midrich_clergy});
-		auto lit_mod = (state.world.nation_get_plurality(owner) / 10000.0f) *
+		auto lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
 									 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 									 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
 									 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f);
@@ -832,29 +832,27 @@ float get_estimated_con_change(sys::state& state, dcon::pop_id ids) {
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
-	auto cfrac =
+	float cfrac =
 			state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
 	auto types = state.world.pop_get_poptype(ids);
 
-	auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
-	auto cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
+	float lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
+	float cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
 														state.defines.con_poor_clergy, state.defines.con_midrich_clergy);
-	auto lit_mod = (state.world.nation_get_plurality(owner) / 10000.0f) *
+	float lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
 								 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 								 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
 								 ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f);
 
-	auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
-	auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
-	auto cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
+	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
+	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
+	float cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::core_pop_consciousness_modifier));
 
-	auto local_mod = (pmod + omod) + cmod;
+	float local_mod = (pmod + omod) + cmod;
 
-	auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
+	float sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier));
-
-	auto old_con = state.world.pop_get_consciousness(ids);
 
 	return (lx_mod + (cl_mod + lit_mod)) + (local_mod + sep_mod);
 }
@@ -894,8 +892,8 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 		auto espending =
 				(ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
-		auto cmod = ve::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
-																	(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy));
+		auto cmod = ve::max(0.0f, ve::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
+																	(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
 
 		auto old_lit = state.world.pop_get_literacy(ids);
 		auto new_lit = ve::min(
@@ -917,7 +915,7 @@ float get_estimated_literacy_change(sys::state& state, dcon::pop_id ids) {
 	auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 	auto espending =
 			(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
-	auto cmod = std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) / (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy));
+	auto cmod = std::max(0.0f, std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) / (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
 
 	return (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod));
 }
@@ -1260,7 +1258,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					float amount = std::min(current_size,
 							promoting ? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) *
 																		 state.defines.promotion_scale * current_size))
-												: (std::ceil(promotion_chance * state.defines.promotion_scale * current_size)));
+												: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
 					pbuf.amounts.set(p, amount);
 
 					tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
@@ -1387,7 +1385,80 @@ float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
 	return std::min(current_size, promoting
 			? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) *
 				state.defines.promotion_scale * current_size))
-			: (std::ceil(promotion_chance * state.defines.promotion_scale * current_size)));
+			: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
+}
+
+
+float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
+	auto owner = nations::owner_of_pop(state, ids);
+	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto si = state.world.province_get_state_membership(loc);
+	auto nf = state.world.state_instance_get_owner_focus(si);
+	auto promoted_type = state.world.national_focus_get_promotion_type(nf);
+	auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
+	auto ptype = state.world.pop_get_poptype(ids);
+	auto strata = state.world.pop_type_get_strata(ptype);
+
+	if(promoted_type) {
+		if(promoted_type == ptype) {
+			promotion_chance = 0.0f;
+		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
+			promotion_chance += promotion_bonus;
+		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+			demotion_chance += promotion_bonus;
+		}
+	}
+
+	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+		return 0.0f; // skip this pop
+
+	float current_size = state.world.pop_get_size(ids);
+
+	bool promoting = promotion_chance >= demotion_chance;
+	return std::min(current_size, promoting
+			? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) *
+				state.defines.promotion_scale * current_size))
+			: 0.0f);
+}
+float get_estimated_demotion(sys::state& state, dcon::pop_id ids) {
+	auto owner = nations::owner_of_pop(state, ids);
+	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
+			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto si = state.world.province_get_state_membership(loc);
+	auto nf = state.world.state_instance_get_owner_focus(si);
+	auto promoted_type = state.world.national_focus_get_promotion_type(nf);
+	auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
+	auto ptype = state.world.pop_get_poptype(ids);
+	auto strata = state.world.pop_type_get_strata(ptype);
+
+	if(promoted_type) {
+		if(promoted_type == ptype) {
+			promotion_chance = 0.0f;
+		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
+			promotion_chance += promotion_bonus;
+		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+			demotion_chance += promotion_bonus;
+		}
+	}
+
+	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+		return 0.0f; // skip this pop
+
+	float current_size = state.world.pop_get_size(ids);
+
+	bool promoting = promotion_chance >= demotion_chance;
+	return std::min(current_size, promoting
+			? 0.0f
+			: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
 }
 
 void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
@@ -1908,7 +1979,7 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 	});
 }
 
-float get_estimated_emmigration(sys::state& state, dcon::pop_id ids) {
+float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owners = state.world.province_get_nation_from_province_ownership(loc);

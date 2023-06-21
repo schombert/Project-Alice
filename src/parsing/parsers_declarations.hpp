@@ -569,7 +569,7 @@ public:
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
-			constructed_definition_n.values[next_to_add_n] = v * 0.1f;
+			constructed_definition_n.values[next_to_add_n] = v * 1.0f;
 			++next_to_add_n;
 		}
 	}
@@ -710,7 +710,16 @@ public:
 	MOD_NAT_FUNCTION(soldier_to_pop_loss)
 	MOD_NAT_FUNCTION(naval_attrition)
 	MOD_NAT_FUNCTION(land_attrition)
-	MOD_NAT_FUNCTION(pop_growth)
+	template<typename T>
+	void pop_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+		} else {
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
+			constructed_definition_n.values[next_to_add_n] = v * 10.0f;
+			++next_to_add_n;
+		}
+	}
 	MOD_NAT_FUNCTION(colonial_life_rating)
 	MOD_NAT_FUNCTION(seperatism)
 	MOD_NAT_FUNCTION(colonial_prestige)

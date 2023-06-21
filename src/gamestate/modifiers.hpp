@@ -131,17 +131,17 @@ namespace sys {
 	MOD_LIST_ELEMENT(68, influence_modifier, true, modifier_display_type::percent, "modifier_greatpower_influence_gain")           \
 	MOD_LIST_ELEMENT(69, diplomatic_points_modifier, true, modifier_display_type::percent, "modifier_diplopoints_gain")            \
 	MOD_LIST_ELEMENT(70, mobilization_size, true, modifier_display_type::percent, "modifier_mobilisation_size")                    \
-	MOD_LIST_ELEMENT(71, global_pop_militancy_modifier, false, modifier_display_type::percent,                                     \
+	MOD_LIST_ELEMENT(71, global_pop_militancy_modifier, true, modifier_display_type::fp_two_places, \
 			"modifier_global_pop_militancy_modifier")                                                                                  \
-	MOD_LIST_ELEMENT(72, global_pop_consciousness_modifier, false, modifier_display_type::percent,                                 \
+	MOD_LIST_ELEMENT(72, global_pop_consciousness_modifier, false, modifier_display_type::fp_two_places, \
 			"modifier_global_pop_consciousness_modifier")                                                                              \
-	MOD_LIST_ELEMENT(73, core_pop_militancy_modifier, false, modifier_display_type::percent,                                       \
+	MOD_LIST_ELEMENT(73, core_pop_militancy_modifier, true, modifier_display_type::fp_two_places,                                       \
 			"modifier_core_pop_militancy_modifier")                                                                                    \
-	MOD_LIST_ELEMENT(74, core_pop_consciousness_modifier, false, modifier_display_type::percent,                                   \
+	MOD_LIST_ELEMENT(74, core_pop_consciousness_modifier, false, modifier_display_type::fp_two_places, \
 			"modifier_core_pop_consciousness_modifier")                                                                                \
-	MOD_LIST_ELEMENT(75, non_accepted_pop_militancy_modifier, false, modifier_display_type::percent,                               \
+	MOD_LIST_ELEMENT(75, non_accepted_pop_militancy_modifier, true, modifier_display_type::fp_two_places, \
 			"modifier_non_accepted_pop_militancy_modifier")                                                                            \
-	MOD_LIST_ELEMENT(76, non_accepted_pop_consciousness_modifier, false, modifier_display_type::percent,                           \
+	MOD_LIST_ELEMENT(76, non_accepted_pop_consciousness_modifier, false, modifier_display_type::fp_two_places, \
 			"modifier_non_accepted_pop_consciousness_modifier")                                                                        \
 	MOD_LIST_ELEMENT(77, cb_generation_speed_modifier, true, modifier_display_type::percent, "cb_manufacture_tech")                \
 	MOD_LIST_ELEMENT(78, mobilization_impact, false, modifier_display_type::percent, "modifier_mobilization_impact")               \
@@ -182,7 +182,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
 	MOD_LIST_ELEMENT(112, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech")                           \
 	MOD_LIST_ELEMENT(113, land_attrition, true, modifier_display_type::percent, "land_attrition_tech")                             \
-	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::percent, "tech_pop_growth")                                     \
+	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
 	MOD_LIST_ELEMENT(115, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating")                      \
 	MOD_LIST_ELEMENT(116, seperatism, true, modifier_display_type::percent, "seperatism_tech")                                     \
 	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \

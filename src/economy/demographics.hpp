@@ -179,9 +179,11 @@ float get_estimated_literacy_change(sys::state& state, dcon::pop_id n);
 float get_estimated_mil_change(sys::state& state, dcon::pop_id n);
 float get_estimated_con_change(sys::state& state, dcon::pop_id n);
 float get_estimated_type_change(sys::state& state, dcon::pop_id n);
+float get_estimated_promotion(sys::state& state, dcon::pop_id n);
+float get_estimated_demotion(sys::state& state, dcon::pop_id n);
 float get_estimated_assimilation(sys::state& state, dcon::pop_id n);
 float get_estimated_internal_migration(sys::state& state, dcon::pop_id n);
 float get_estimated_colonial_migration(sys::state& state, dcon::pop_id n);
-float get_estimated_emmigration(sys::state& state, dcon::pop_id n);
+float get_estimated_emigration(sys::state& state, dcon::pop_id n);
 
 } // namespace demographics

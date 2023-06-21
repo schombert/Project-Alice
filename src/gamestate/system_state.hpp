@@ -46,7 +46,7 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	bool map_is_globe = false;
+	bool map_is_globe = true;
 	bool fake_graphs = false;
 	bool use_new_ui = true;
 	bool use_classic_fonts = false;

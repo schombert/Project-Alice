@@ -40,6 +40,8 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
 		dcon::national_modifier_value nmid, bool header);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
+		dcon::provincial_modifier_value nmid, bool have_header);
 void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
 		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
@@ -1123,10 +1125,10 @@ public:
 			text::add_line_break_to_layout(state, contents);
 			text::add_line(state, contents, "sup_point_explain", text::variable_type::x, text::fp_two_places{base},
 					text::variable_type::y, text::fp_three_places{bmod}, text::variable_type::val, text::fp_two_places{nmod});
-			if(nmod != 1.0f) {
-				text::add_line_break_to_layout(state, contents);
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::suppression_points_modifier, true);
-			}
+
+			text::add_line_break_to_layout(state, contents);
+			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::suppression_points_modifier, true);
+			
 		} else {
 			auto nation_id = retrieve<dcon::nation_id>(state, parent);
 

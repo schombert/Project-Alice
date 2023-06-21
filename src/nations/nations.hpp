@@ -225,6 +225,7 @@ auto nation_accepts_culture(sys::state const& state, T ids, U c);
 
 template<typename T>
 auto primary_culture_group(sys::state const& state, T ids);
+dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids);
 template<typename T>
 auto owner_of_pop(sys::state const& state, T pop_ids);
 template<typename T>

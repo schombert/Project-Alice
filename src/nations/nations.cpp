@@ -62,6 +62,10 @@ auto primary_culture_group(sys::state const& state, T ids) {
 	return state.world.culture_get_group_from_culture_group_membership(cultures);
 }
 
+dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids) {
+	auto location = state.world.pop_get_province_from_pop_location(pop_ids);
+	return state.world.province_get_nation_from_province_ownership(location);
+}
 template<typename T>
 auto owner_of_pop(sys::state const& state, T pop_ids) {
 	auto location = state.world.pop_get_province_from_pop_location(pop_ids);

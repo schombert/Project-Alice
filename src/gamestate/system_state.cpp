@@ -365,21 +365,47 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// Have to have the map tooltip down here, and we must check both of the probes
 	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
 	if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
-		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
-						text::alignment::left,
-						text::text_color::white},
-				 20);
-		ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
-		ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
+		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
 
-		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), x_size, y_size);
-		text::populate_map_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale), int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
+		if(user_settings.use_new_ui && map_state.get_zoom() <= 5)
+			prov = dcon::province_id{};
 
-		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-		if(container.used_width > 0) {
-			ui_state.tooltip->set_visible(*this, true);
+		if(prov) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+					text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+							text::alignment::left, text::text_color::white},
+					20);
+
+			if(!user_settings.use_new_ui) {
+				ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
+				ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
+			}
+
+			text::populate_map_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale),
+					int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
+
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0) {
+				if(user_settings.use_new_ui) {
+					auto mid_point = world.province_get_mid_point(prov);
+					auto map_pos = map_state.normalize_map_coord(mid_point);
+					auto screen_size =
+							glm::vec2{float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale)};
+					glm::vec2 screen_pos;
+					if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+						ui_state.tooltip->set_visible(*this, false);
+					} else {
+						ui_state.tooltip->base_data.position =
+								ui::xy_pair{int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * map_state.get_zoom())};
+						ui_state.tooltip->set_visible(*this, true);
+					}
+				} else {
+					ui_state.tooltip->set_visible(*this, true);
+				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
 		} else {
 			ui_state.tooltip->set_visible(*this, false);
 		}

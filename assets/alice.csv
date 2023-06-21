@@ -514,4 +514,86 @@ hide_decision;Hide the notification for this decision;;;;;;;;;;;;x
 sup_point_gain;Monthly suppression point increase: §G+$val$;;;;;;;;;;;;x
 sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain;;;;;;;;;;;;x
 mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
+pop_size_1;In the coming month the size of this pop is expected to change by: ;
+pop_size_2;From growth: ;
+pop_size_3;From promotion and demotion: ;
+pop_size_4;From assimilation: ;
+pop_size_5;From internal migration: ;
+pop_size_6;From colonial migration: ;
+pop_size_7;From emigration: ;
+pop_l_migration_header;§YMigration away: $val$;
+pop_l_c_migration_header;§YColonial migration away: $val$;
+pop_l_emigration_header;§YEmigration away: $val$;
+pop_mig_1;There is no internal migration from colonial provinces
+pop_mig_2;Slaves do not migrate internally
+pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$)
+pop_mig_4;§YMigration factor:
+pop_cmig_1;The nation does not have any colonies
+pop_cmig_2;There is no colonial migration from colonial provinces
+pop_cmig_3;Slaves do not migrate colonially
+pop_cmig_4;Rich-strata pops do not migrate colonially
+pop_cmig_5;Factory workers do not migrate colonially
+pop_cmig_6;The number of people that will migrate colonially is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the province's colonial-migration modifier ($num$) times the colonial migration factor ($val$)
+pop_cmig_7;§YColonial migration factor:
+pop_emg_1;Pops can only emigrate from civilized nations
+pop_emg_2;There is no emigration from colonial provinces
+pop_emg_3;Slaves do not emigrate
+pop_emg_4;Pops without an "overseas" culture do not emigrate
+pop_emg_5;The number of people that will emigrate is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$, squared if it is greater than 100%) times the emigration factor ($val$)
+pop_emg_6;§YEmigration factor:
+pop_prom_1;§YPromotion factor:
+pop_prom_2;From national focus: §G$val$
+pop_prom_3;0 (because of national focus)
+pop_prom_4;§YDemotion factor:
+pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
+pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
+pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
+pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
+pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
+pop_con_1;Monthly consciousness change: ;
+pop_con_2;Is the sum of:;
+pop_con_3;From luxury needs satisfaction: §G+$x$
+pop_con_4;From the local clergymen percentage ($val$): §R$x$
+pop_con_5;The plurality and literacy factor: §G+$x$§!, which is the product of:
+pop_con_6;Plurality: $x$
+pop_con_7;The national modifier to literacy-on-consciousness impact: $x$
+pop_con_8;The literacy impact factor: $x$
+pop_con_9;The pop's literacy: $x$
+pop_con_10;The colonial consciousness factor: $x$
+pop_con_11;and 0.1
+pop_con_12;Local pop consciousness modifier: ;
+pop_con_13;National pop consciousness modifier: ;
+pop_con_14;National non-colonial pop consciousness modifier: ;
+pop_con_15;National non-accepted pop consciousness modifier: ;
+pop_mil_1;Monthly militancy change: ;
+pop_mil_2;Is the sum of:;
+pop_mil_3;From life-needs satisfaction: §R+$x$
+pop_mil_4;From everyday-needs satisfaction: ;
+pop_mil_5;From luxury-needs satisfaction: §G$x$
+pop_mil_6;From conservatism support: §G$x$
+pop_mil_7;From ruling party support: §G$x$
+pop_mil_8;From reform desire: §R+$x$
+pop_mil_9;Local pop militancy modifier: ;
+pop_mil_10;National pop militancy modifier: ;
+pop_mil_11;National non-colonial pop militancy modifier: ;
+pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;
+pop_lit_1;Monthly literacy change: ;
+pop_lit_2;Is the product of:
+pop_lit_3;From the local clergymen percentage ($val$): $x$
+pop_lit_4;Effective education spending: $x$
+pop_lit_5;The national education-efficiency modifier: $x$
+pop_lit_6;The modifier to the national education-efficiency modifier: $x$
+pop_lit_7;The base literacy change rate: $x$
+pop_lit_8;And 0.01
+pop_growth_1;Monthly pop growth: ;
+pop_growth_2;Slaves do not grow;
+pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;
+pop_growth_4;The quality-of-life factor $x$, which is the product of:
+pop_growth_5;The province factor $x$, which is itself the sum of:
+pop_growth_6;The life rating of the province $x$ minus the minimum life rating $y$, all times $val$
+pop_growth_7;And the base pop growth value $x$
+pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the starvation limit $val$)
+pop_growth_9;And 4
+pop_growth_10;The local population-growth modifier $x$
+pop_growth_11;The national population-growth modifier $x$
 ;;;;;;;;;;;;;x

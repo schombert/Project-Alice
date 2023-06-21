@@ -690,6 +690,9 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, variab
 		variable_type subkey_b, substitution value_b, int32_t indent = 0);
 void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
 		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
+		substitution value_d, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent = 0);
 
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
