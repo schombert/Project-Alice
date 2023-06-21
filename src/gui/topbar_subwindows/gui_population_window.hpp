@@ -402,7 +402,7 @@ public:
 };
 class pop_size_text : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::pop_id>(state, parent);
 
 		auto const fat_id = dcon::fatten(state.world, content);
