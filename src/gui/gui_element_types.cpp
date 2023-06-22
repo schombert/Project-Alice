@@ -963,6 +963,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 	} else {
 		list_scrollbar->change_settings(state, mutable_scrollbar_settings{0, content_off_screen, 0, 0, false});
 		list_scrollbar->set_visible(state, true);
+		scroll_pos = std::min(scroll_pos, content_off_screen);
 	}
 
 	if(is_reversed()) {

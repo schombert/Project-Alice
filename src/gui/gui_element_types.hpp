@@ -290,8 +290,15 @@ public:
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
+class main_window_element_base : public window_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
+	}
+};
+
 template<class TabT>
-class generic_tabbed_window : public window_element_base {
+class generic_tabbed_window : public main_window_element_base {
 public:
 	TabT active_tab = TabT();
 };

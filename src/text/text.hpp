@@ -698,6 +698,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
 std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
+std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id key, substitution_map const& mp);
 
 #define TEXT_NOTIF_MSG_TITLE(str)                                                                                                \
 	{                                                                                                                              \

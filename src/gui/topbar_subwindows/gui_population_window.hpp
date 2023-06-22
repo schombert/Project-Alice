@@ -47,30 +47,20 @@ public:
 	}
 };
 
-class nation_growth_indicator : public opaque_element_base {
-public:
-	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			// 0 == going up
-			// 1 == stay same
-			// 2 == going down
-			auto result = nations::get_monthly_pop_increase_of_nation(state, content);
-			if(result > 0) {
-				return 0;
-			} else if(result < 0) {
-				return 2;
-			} else {
-				return 1;
-			}
-		}
-		return 0;
-	}
 
+
+class province_growth_indicator : public opaque_element_base {
+public:
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
+		auto content = retrieve<dcon::province_id>(state, parent);
+		auto result = demographics::get_monthly_pop_increase(state, content);
+		if(result > 0) {
+			frame = 0;
+		} else if(result < 0) {
+			frame = 2;
+		} else {
+			frame = 1;
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -78,45 +68,36 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		if(state.user_settings.use_new_ui) {
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "pop_growth_1");
+			auto content = retrieve<dcon::province_id>(state, parent);
+			auto result = demographics::get_monthly_pop_increase(state, content);
 
-			auto pop_increase = nations::get_monthly_pop_increase_of_nation(state, content);
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, pop_increase);
+			if(result >= 0) {
+				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
+			}
 			text::close_layout_box(contents, box);
+		} else {
 		}
 	}
 };
 
 class state_growth_indicator : public opaque_element_base {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			// 0 == Going up
-			// 1 == Staying same
-			// 2 == Going down
-			auto result = demographics::get_monthly_pop_increase(state, content);
-			if(result > 0) {
-				return 0;
-			} else if(result < 0) {
-				return 2;
-			} else {
-				return 1;
-			}
-		}
-		return 0;
-	}
-
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto result = demographics::get_monthly_pop_increase(state, content);
+		if(result > 0) {
+			frame = 0;
+		} else if(result < 0) {
+			frame = 2;
+		} else {
+			frame = 1;
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -124,23 +105,65 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
+		if(state.user_settings.use_new_ui) {
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "pop_growth_1");
+			auto content = retrieve<dcon::state_instance_id>(state, parent);
+			auto result = demographics::get_monthly_pop_increase(state, content);
 
-			auto pop_increase = demographics::get_monthly_pop_increase(state, content);
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, pop_increase);
+			if(result >= 0) {
+				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
+			}
 			text::close_layout_box(contents, box);
+		} else {
+		}
+	}
+};
+
+class nation_growth_indicator : public opaque_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		auto result = demographics::get_monthly_pop_increase(state, content);
+		if(result > 0) {
+			frame = 0;
+		} else if(result < 0) {
+			frame = 2;
+		} else {
+			frame = 1;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.user_settings.use_new_ui) {
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "pop_growth_1");
+			auto content = retrieve<dcon::nation_id>(state, parent);
+			auto result = demographics::get_monthly_pop_increase(state, content);
+
+			if(result >= 0) {
+				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
+			}
+			text::close_layout_box(contents, box);
+		} else {
 		}
 	}
 };
 
 class pop_revolt_faction : public opaque_element_base {
 public:
+	bool show = false;
+
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -150,11 +173,11 @@ public:
 			auto fat_id = dcon::fatten(state.world, content);
 			auto rebel_fact = fat_id.get_pop_rebellion_membership().get_rebel_faction().get_type();
 			if(rebel_fact) {
-				set_visible(state, true);
+				show = true;
 				auto icon = rebel_fact.get_icon();
 				return int32_t(icon - 1);
 			} else {
-				set_visible(state, false);
+				show = false;
 				return int32_t(0);
 			}
 		}
@@ -165,12 +188,17 @@ public:
 		frame = get_icon_frame(state);
 	}
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			opaque_element_base::render(state, x, y);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(show && parent) {
 			Cyto::Any payload = dcon::pop_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
@@ -190,6 +218,8 @@ public:
 
 class pop_movement_social : public opaque_element_base {
 public:
+
+	bool show = false;
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -199,12 +229,20 @@ public:
 			auto fat_id = dcon::fatten(state.world, content);
 			auto movement_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_issue_option();
 			if(movement_fact) {
-				set_visible(state, true);
-				// auto icon = rebel_fact.get_icon();
-				// return int32_t(icon - 1);
-				return int32_t(0);
+				auto parent_issue = movement_fact.get_parent_issue();
+				if(parent_issue.get_issue_type() != uint8_t(culture::issue_category::social)) {
+					show = false;
+				} else {
+					int32_t count = 0;
+					for(; count < int32_t(state.culture_definitions.social_issues.size()); ++count) {
+						if(state.culture_definitions.social_issues[count] == parent_issue)
+							break;
+					}
+					show = true;
+					return count;
+				}
 			} else {
-				set_visible(state, false);
+				show = false;
 				return int32_t(0);
 			}
 		}
@@ -216,11 +254,11 @@ public:
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(parent && show) {
 			Cyto::Any payload = dcon::pop_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
@@ -234,11 +272,18 @@ public:
 			}
 			text::close_layout_box(contents, box);
 		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			opaque_element_base::render(state, x, y);
 	}
 };
 
 class pop_movement_political : public opaque_element_base {
 public:
+	bool show = false;
+
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -248,12 +293,20 @@ public:
 			auto fat_id = dcon::fatten(state.world, content);
 			auto movement_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_issue_option();
 			if(movement_fact) {
-				set_visible(state, true);
-				// auto icon = rebel_fact.get_icon();
-				// return int32_t(icon - 1);
-				return int32_t(0);
+				auto parent_issue = movement_fact.get_parent_issue();
+				if(parent_issue.get_issue_type() != uint8_t(culture::issue_category::political)) {
+					show = false;
+				} else {
+					int32_t count = 0;
+					for(; count < int32_t(state.culture_definitions.political_issues.size()); ++count) {
+						if(state.culture_definitions.political_issues[count] == parent_issue)
+							break;
+					}
+					show = true;
+					return count;
+				}
 			} else {
-				set_visible(state, false);
+				show = false;
 				return int32_t(0);
 			}
 		}
@@ -265,11 +318,11 @@ public:
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(parent && show) {
 			Cyto::Any payload = dcon::pop_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
@@ -284,59 +337,48 @@ public:
 			text::close_layout_box(contents, box);
 		}
 	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			opaque_element_base::render(state, x, y);
+	}
 };
 
-class pop_movement_flag : public opaque_element_base {
+class pop_movement_flag : public flag_button {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+	bool show = false;
 
-			auto fat_id = dcon::fatten(state.world, content);
-			auto independence_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_independence();
-			if(independence_fact) {
-				set_visible(state, true);
-				// auto icon = independence_fact.get_nation_from_identity_holder().;
-				// return int32_t(icon - 1);
-
-				// TODO - We want to display the independence movements flag here -breizh
-				return int32_t(0);
-			} else {
-				set_visible(state, false);
-				return int32_t(0);
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto pop = retrieve<dcon::pop_id>(state, parent);
+		auto movement = state.world.pop_get_movement_from_pop_movement_membership(pop);
+		auto rebel_fac = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop);
+		if(movement) {
+			if(auto id = state.world.movement_get_associated_independence(movement); id) {
+				show = true;
+				return id;
 			}
 		}
-		return 0;
-	}
+		show = false;
+		// TODO: check if independence factions need the flag instead
 
-	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
+		return dcon::national_identity_id{};
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+		return show ? flag_button::has_tooltip(state) : tooltip_behavior::no_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, content);
-
-			// auto rebel_fact = fat_id.get_pop_rebellion_membership().get_rebel_faction().get_type();
-			auto independence_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_independence();
-
-			auto box = text::open_layout_box(contents, 0);
-			if(independence_fact) {
-				text::add_to_layout_box(state, contents, box, independence_fact.get_name());
-			}
-			text::close_layout_box(contents, box);
-		}
+		if(show)
+			flag_button::update_tooltip(state, x, y, contents);
 	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			flag_button::render(state, x, y);
+	}
+
+	void button_action(sys::state&) noexcept override { }
 };
 
 class pop_cash_reserve_text : public simple_text_element_base {
@@ -375,29 +417,6 @@ public:
 					text::fp_currency{1984});
 			text::close_layout_box(contents, box);
 		}
-	}
-};
-class pop_culture_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
-			auto const fat_id = dcon::fatten(state.world, content);
-			auto const cfat_id = dcon::fatten(state.world, fat_id.get_culture());
-			set_text(state, text::produce_simple_string(state, cfat_id.get_name()));
-		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::close_layout_box(contents, box);
 	}
 };
 class pop_size_text : public simple_text_element_base {
@@ -1003,6 +1022,95 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::pop_growth, false);
 }
 
+void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
+	float total = 0.0f;
+	auto location = state.world.pop_get_province_from_pop_location(ids);
+	auto owner = state.world.province_get_nation_from_province_ownership(location);
+	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(owner), 0), 0.0f);
+
+	float base_amount =
+			state.defines.assimilation_scale *
+			(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) *
+			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) *
+			assimilation_chances;
+
+	/*
+	In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a
+	factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture
+	group are reduced by a factor of 10.
+	*/
+
+	auto pc = state.world.pop_get_culture(ids);
+	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+		base_amount /= 10.0f;
+	}
+	
+
+	/*
+	All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary
+	culture.
+	*/
+	for(auto core : state.world.province_get_core(location)) {
+		if(core.get_identity().get_primary_culture() == pc) {
+			base_amount /= 100.0f;
+		}
+	}
+
+	// slaves do not assimilate
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves)
+		base_amount = 0.0f;
+
+	// pops of an accepted culture do not assimilate
+	if(state.world.pop_get_is_primary_or_accepted_culture(ids))
+		base_amount = 0.0f;
+
+	// pops in an overseas and colonial province do not assimilate
+	if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
+		base_amount = 0.0f;
+
+	text::add_line(state, contents, "pop_assim_1", text::variable_type::x, int64_t(base_amount));
+	text::add_line_break_to_layout(state, contents);
+
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves) {
+		text::add_line(state, contents, "pop_assim_2");
+		return;
+	}
+	if(state.world.pop_get_is_primary_or_accepted_culture(ids)) {
+		text::add_line(state, contents, "pop_assim_3");
+		return;
+	}
+	if(state.world.province_get_is_colonial(location)) {
+		text::add_line(state, contents, "pop_assim_4");
+		return;
+	}
+	if(province::is_overseas(state, location)) {
+		text::add_line(state, contents, "pop_assim_5");
+		return;
+	}
+	text::add_line(state, contents, "pop_assim_6");
+	text::add_line(state, contents, "pop_assim_7", text::variable_type::x, text::fp_two_places{state.defines.assimilation_scale});
+	text::add_line(state, contents, "pop_assim_8", text::variable_type::x, text::fp_two_places{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f});
+	active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_assimilation_rate, false);
+	text::add_line(state, contents, "pop_assim_9", text::variable_type::x, text::fp_two_places{state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f});
+	active_modifiers_description(state, contents, location, 15, sys::provincial_mod_offsets::assimilation_rate, false);
+
+	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+		text::add_line(state, contents, "pop_assim_10");
+	}
+	float core_factor = 1.0f;
+	for(auto core : state.world.province_get_core(location)) {
+		if(core.get_identity().get_primary_culture() == pc) {
+			core_factor /= 100.0f;
+		}
+	}
+	if(core_factor < 1.0f) {
+		text::add_line(state, contents, "pop_assim_11", text::variable_type::x, text::fp_four_places{core_factor});
+	}
+	text::add_line(state, contents, "pop_assim_12", text::variable_type::x, text::fp_two_places{assimilation_chances});
+	additive_value_modifier_description(state, contents, state.culture_definitions.assimilation_chance, trigger::to_generic(ids),
+			trigger::to_generic(owner), 0);
+}
+
 class pop_location_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept {
@@ -1084,7 +1192,23 @@ public:
 		}
 	}
 };
+class pop_culture_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_culture().get_name()));
+	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.user_settings.use_new_ui) {
+			describe_assimilation(state, contents, retrieve<dcon::pop_id>(state, parent));
+		}
+	}
+};
 
 class pop_growth_indicator : public opaque_element_base {
 public:
@@ -1131,12 +1255,13 @@ public:
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
 				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, int16_t(pop_increase));
+				text::add_to_layout_box(state, contents, box, int64_t(pop_increase));
 				text::close_layout_box(contents, box);
 			}
 		}
 	}
 };
+
 
 enum class pop_list_sort : uint8_t {
 	size,
@@ -1526,7 +1651,7 @@ public:
 		} else if(name == "poplist_numpops") {
 			return make_element_by_type<province_population_text>(state, id);
 		} else if(name == "growth_indicator") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<province_growth_indicator>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1824,6 +1949,294 @@ public:
 	}
 };
 
+class issue_with_explanation : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto issue = retrieve<dcon::issue_option_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, state.world.issue_option_get_name(issue)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.user_settings.use_new_ui) {
+			auto issue = retrieve<dcon::issue_option_id>(state, parent);
+
+			
+
+			auto opt = fatten(state.world, issue);
+			auto allow = opt.get_allow();
+			auto parent_issue = opt.get_parent_issue();
+			auto const i_key = pop_demographics::to_key(state, issue);
+			auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
+			auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
+			auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
+			auto has_modifier = is_social_issue || is_political_issue;
+
+			auto modifier_key = is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
+
+
+			auto ids = retrieve<dcon::pop_id>(state, parent);
+			auto owner = nations::owner_of_pop(state, ids);
+			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue).id;
+			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || is_party_issue) &&
+				(allow ? trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : true) && (current_issue_setting != issue || is_party_issue) && (!state.world.issue_get_is_next_step_only(parent_issue) || (current_issue_setting.index() == issue.index() - 1) || (current_issue_setting.index() == issue.index() + 1));
+			auto owner_modifier = has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : 1.0f;
+			auto pop_type = state.world.pop_get_poptype(ids);
+
+			if(!allowed_by_owner) {
+				text::add_line(state, contents, "pop_issue_attraction_1", text::variable_type::x, int64_t(0));
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "pop_issue_attraction_2");
+				return;
+			}
+
+			auto attraction_factor =  [&]() {
+				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
+					return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+				} else {
+					return 0.0f;
+				}
+			}();
+
+			
+			text::add_line(state, contents, "pop_issue_attraction_1", text::variable_type::x, text::fp_two_places{attraction_factor * owner_modifier});
+			text::add_line_break_to_layout(state, contents);
+			if(has_modifier) {
+				text::add_line(state, contents, "pop_issue_attraction_3");
+				text::add_line(state, contents, "pop_issue_attraction_4", text::variable_type::x, text::fp_percentage{owner_modifier});
+				if(is_social_issue) {
+					active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::social_reform_desire, false);
+				} else {
+					active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::political_reform_desire, false);
+				}
+				text::add_line(state, contents, "pop_issue_attraction_5", text::variable_type::x, text::fp_two_places{attraction_factor});
+				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
+					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+				}
+			} else {
+				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
+					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+				} 
+			}
+		}
+	}
+};
+
+class pop_detailed_issue_distribution_item : public listbox_row_element_base<std::pair<dcon::issue_option_id, float>> {
+	element_base* title_text = nullptr;
+	simple_text_element_base* value_text = nullptr;
+
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_color") {
+			return make_element_by_type<pop_distribution_plupp<dcon::issue_option_id>>(state, id);
+		} else if(name == "legend_title") {
+			return make_element_by_type<issue_with_explanation>(state, id);
+		} else if(name == "legend_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			value_text = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		value_text->set_text(state, text::format_percentage(listbox_row_element_base<std::pair<dcon::issue_option_id, float>>::content.second, 1));
+		for(auto& c : listbox_row_element_base<std::pair<dcon::issue_option_id, float>>::children)
+			c->impl_on_update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			payload.emplace<dcon::issue_option_id>(listbox_row_element_base<std::pair<dcon::issue_option_id, float>>::content.first);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<std::pair<dcon::issue_option_id, float>>::get(state, payload);
+	}
+};
+
+class pop_detailed_issue_distribution_listbox : public listbox_element_base<pop_detailed_issue_distribution_item, std::pair<dcon::issue_option_id, float>> {
+public:
+	std::string_view get_row_element_name() override {
+		return "pop_legend_item";
+	}
+};
+
+class pop_detailed_issue_distribution : public window_element_base {
+	pop_detailed_issue_distribution_listbox* distrib_listbox;
+
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "dominant_issues_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<pop_distribution_piechart<dcon::issue_option_id, false>>(state, id);
+		} else if(name == "member_names") {
+			auto ptr = make_element_by_type<pop_detailed_issue_distribution_listbox>(state, id);
+			distrib_listbox = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			auto pop = retrieve<dcon::pop_id>(state, parent);
+
+			std::vector<dcon::issue_option_id> distrib;
+			for(auto io : state.world.in_issue_option) {
+				distrib.push_back(io.id);
+			}
+
+			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
+				return state.world.pop_get_demographics(pop, pop_demographics::to_key(state, a)) > state.world.pop_get_demographics(pop, pop_demographics::to_key(state, b));
+			});
+
+			distrib_listbox->row_contents.clear();
+
+			for(auto const& e : distrib)
+				distrib_listbox->row_contents.emplace_back(e, state.world.pop_get_demographics(pop, pop_demographics::to_key(state, e)));
+			distrib_listbox->update(state);
+		}
+	}
+};
+
+class ideology_with_explanation : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto issue = retrieve<dcon::ideology_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, state.world.ideology_get_name(issue)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.user_settings.use_new_ui) {
+			auto i = retrieve<dcon::ideology_id>(state, parent);
+			auto ids = retrieve<dcon::pop_id>(state, parent);
+			auto type = state.world.pop_get_poptype(ids);
+
+			if(state.world.ideology_get_enabled(i)) {
+				if(state.world.ideology_get_is_civilized_only(i)) {
+					if(state.world.nation_get_is_civilized(nations::owner_of_pop(state, ids))) {
+						auto ptrigger = state.world.pop_type_get_ideology(type, i);
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
+								trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+
+						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{amount});
+						text::add_line_break_to_layout(state, contents);
+						multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+					} else {
+						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, int64_t(0));
+						text::add_line_break_to_layout(state, contents);
+						text::add_line(state, contents, "pop_ideology_attraction_2");
+					}
+				} else {
+					auto ptrigger = state.world.pop_type_get_ideology(type, i);
+					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
+							trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+
+					text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{amount});
+					text::add_line_break_to_layout(state, contents);
+					multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+				}
+			} else {
+				text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, int64_t(0));
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "pop_ideology_attraction_2");
+			}
+		}
+	}
+};
+
+class pop_detailed_ideology_distribution_item : public listbox_row_element_base<std::pair<dcon::ideology_id, float>> {
+	element_base* title_text = nullptr;
+	simple_text_element_base* value_text = nullptr;
+
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_color") {
+			return make_element_by_type<pop_distribution_plupp<dcon::ideology_id>>(state, id);
+		} else if(name == "legend_title") {
+			return make_element_by_type<ideology_with_explanation>(state, id);
+		} else if(name == "legend_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			value_text = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		value_text->set_text(state, text::format_percentage(listbox_row_element_base<std::pair<dcon::ideology_id, float>>::content.second, 1));
+		for(auto& c : listbox_row_element_base<std::pair<dcon::ideology_id, float>>::children)
+			c->impl_on_update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::ideology_id>()) {
+			payload.emplace<dcon::ideology_id>(listbox_row_element_base<std::pair<dcon::ideology_id, float>>::content.first);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<std::pair<dcon::ideology_id, float>>::get(state, payload);
+	}
+};
+
+class pop_detailed_ideology_distribution_listbox : public listbox_element_base<pop_detailed_ideology_distribution_item, std::pair<dcon::ideology_id, float>> {
+public:
+	std::string_view get_row_element_name() override {
+		return "pop_legend_item";
+	}
+};
+
+class pop_detailed_ideology_distribution : public window_element_base {
+	pop_detailed_ideology_distribution_listbox* distrib_listbox;
+
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "ideology_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<pop_distribution_piechart<dcon::ideology_id, false>>(state, id);
+		} else if(name == "member_names") {
+			auto ptr = make_element_by_type<pop_detailed_ideology_distribution_listbox>(state, id);
+			distrib_listbox = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			auto pop = retrieve<dcon::pop_id>(state, parent);
+
+			std::vector<dcon::ideology_id> distrib;
+			for(auto io : state.world.in_ideology) {
+				distrib.push_back(io.id);
+			}
+
+			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
+				return state.world.pop_get_demographics(pop, pop_demographics::to_key(state, a)) > state.world.pop_get_demographics(pop, pop_demographics::to_key(state, b));
+			});
+
+			distrib_listbox->row_contents.clear();
+
+			for(auto const& e : distrib)
+				distrib_listbox->row_contents.emplace_back(e, state.world.pop_get_demographics(pop, pop_demographics::to_key(state, e)));
+			distrib_listbox->update(state);
+		}
+	}
+};
+
 class pop_details_promotion_percent_text : public button_element_base {
 	dcon::value_modifier_key mod_key{};
 	dcon::pop_location_id pop_loc{};
@@ -2065,7 +2478,75 @@ public:
 
 using pop_details_data = std::variant< std::monostate, dcon::pop_id>;
 
-class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
+class generic_rebel_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto pop = retrieve<dcon::pop_id>(state, parent);
+		auto movement = state.world.pop_get_movement_from_pop_movement_membership(pop);
+		if(movement) {
+			if(auto issue = state.world.movement_get_associated_issue_option(movement); issue) {
+				set_text(state, text::produce_simple_string(state, issue.get_movement_name()));
+			} else if(auto independence_target = state.world.movement_get_associated_independence(movement); independence_target) {
+				if(state.world.national_identity_get_cultural_union_of(independence_target)) {
+					text::substitution_map sub;
+					std::string movementAdj = text::get_adjective_as_string(state, independence_target);
+					text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movementAdj));
+					set_text(state, text::resolve_string_substitution(state, "nationalist_union_movement", sub));
+				} else {
+					text::substitution_map sub;
+					std::string movementAdj = text::get_adjective_as_string(state, independence_target);
+					text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movementAdj));
+					set_text(state, text::resolve_string_substitution(state, "nationalist_liberation_movement", sub));
+				}
+			}
+			return;
+		}
+
+		auto faction = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop);
+		if(faction) {
+			text::substitution_map sub;
+
+			auto nation = state.world.rebel_faction_get_ruler_from_rebellion_within(faction);
+			text::add_to_substitution_map(sub, text::variable_type::country, state.world.nation_get_adjective(nation));
+			auto culture = state.world.rebel_faction_get_primary_culture(faction);
+			auto defection_target = state.world.rebel_faction_get_defection_target(faction);
+			if(culture) {
+				// auto rebelName = text::get_name_as_string(state, culture);
+				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
+			}
+			if(defection_target) {
+				auto adjective = state.world.national_identity_get_adjective(defection_target);
+				text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
+				text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);
+			}
+			set_text(state, text::resolve_string_substitution(state, state.world.rebel_type_get_name(state.world.rebel_faction_get_type(faction)), sub));
+			return;
+		}
+
+		set_text(state, "");
+	}
+};
+
+class pop_rebels_details : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "rebel_faction") {
+			return make_element_by_type<generic_rebel_name_text>(state, id);
+		} else if(name == "rebel_faction_icon") {
+			return make_element_by_type<pop_revolt_faction>(state, id);
+		} else if(name == "pop_movement_icon") {
+			return make_element_by_type<pop_movement_flag>(state, id);
+		} else if(name == "pop_movement_social_icon") {
+			return make_element_by_type<pop_movement_social>(state, id);
+		} else if(name == "pop_movement_political_icon") {
+			return make_element_by_type<pop_movement_political>(state, id);
+		}
+
+		return nullptr;
+	}
+};
+
+class pop_details_window : public generic_settable_element<main_window_element_base, pop_details_data> {
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
@@ -2090,25 +2571,24 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 				...);
 	}
 
-	template<typename T, typename... Targs>
-	void generate_distribution_windows(sys::state& state) {
-		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win.get());
-		add_child_to_front(std::move(win));
-
-		if constexpr(sizeof...(Targs))
-			generate_distribution_windows<Targs...>(state);
-	}
-
 public:
 	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
+		main_window_element_base::on_create(state);
 		set_visible(state, false);
 
 		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
 
-		generate_distribution_windows< pop_distribution_window<dcon::ideology_id, false>,
-				pop_distribution_window<dcon::issue_option_id, false>>(state);
+
+		{
+			auto win = make_element_by_type<pop_detailed_ideology_distribution>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win.get());
+			add_child_to_front(std::move(win));
+		}
+		{
+			auto win = make_element_by_type<pop_detailed_issue_distribution>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win.get());
+			add_child_to_front(std::move(win));
+		}
 
 		// It should be proper to reposition the windows now
 		const xy_pair cell_offset =
@@ -2129,6 +2609,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "rebel_win") {
+			return make_element_by_type<pop_rebels_details>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "pop_type_icon") {
@@ -2598,21 +3080,21 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_size() < b_fat_id.get_size();
+				return a_fat_id.get_size() > b_fat_id.get_size();
 			};
 			break;
 		case pop_list_sort::con:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_consciousness() < b_fat_id.get_consciousness();
+				return a_fat_id.get_consciousness() > b_fat_id.get_consciousness();
 			};
 			break;
 		case pop_list_sort::mil:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_militancy() < b_fat_id.get_militancy();
+				return a_fat_id.get_militancy() > b_fat_id.get_militancy();
 			};
 			break;
 		case pop_list_sort::religion:
@@ -2640,7 +3122,7 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_savings() < b_fat_id.get_savings();
+				return a_fat_id.get_savings() > b_fat_id.get_savings();
 			};
 			break;
 		case pop_list_sort::unemployment:
@@ -2668,28 +3150,28 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_life_needs_satisfaction() < b_fat_id.get_life_needs_satisfaction();
+				return a_fat_id.get_life_needs_satisfaction() > b_fat_id.get_life_needs_satisfaction();
 			};
 			break;
 		case pop_list_sort::everyday_needs:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_everyday_needs_satisfaction() < b_fat_id.get_everyday_needs_satisfaction();
+				return a_fat_id.get_everyday_needs_satisfaction() > b_fat_id.get_everyday_needs_satisfaction();
 			};
 			break;
 		case pop_list_sort::luxury_needs:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_luxury_needs_satisfaction() < b_fat_id.get_luxury_needs_satisfaction();
+				return a_fat_id.get_luxury_needs_satisfaction() > b_fat_id.get_luxury_needs_satisfaction();
 			};
 			break;
 		case pop_list_sort::literacy:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_literacy() < b_fat_id.get_literacy();
+				return a_fat_id.get_literacy() > b_fat_id.get_literacy();
 			};
 			break;
 		// TODO: Implement revoltrisk and growth sorts
@@ -2704,9 +3186,11 @@ private:
 		}
 		std::stable_sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(),
 				[&](dcon::pop_id a, dcon::pop_id b) {
-					bool r = fn(a, b);
-					return sort_ascend ? r : !r;
+					return fn(a, b);
 				});
+		if(!sort_ascend) {
+			std::reverse(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end());
+		}
 	}
 
 	void populate_left_side_list(sys::state& state) {

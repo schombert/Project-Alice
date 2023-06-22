@@ -596,4 +596,24 @@ pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the 
 pop_growth_9;And 4
 pop_growth_10;The local population-growth modifier $x$
 pop_growth_11;The national population-growth modifier $x$
+pop_assim_1;Monthly pop assimilation: $x$
+pop_assim_2;Slaves do not assimilate
+pop_assim_3;Pops of an accepted culture do not assimilate
+pop_assim_4;Pops in colonial provinces do not assimilate
+pop_assim_5;Pops in overseas provinces do not assimilate
+pop_assim_6;Assimilation is proportional to the size of the pop times the product of:;
+pop_assim_7;The base assimilation scale: $x$
+pop_assim_8;The national assimilation-rate modifier: $x$
+pop_assim_9;The local assimilation-rate modifier: $x$
+pop_assim_10;0.1 for not having an overseas culture
+pop_assim_11;$x$ from cores present in the province
+pop_assim_12;The assimilation factor: $x$
+pop_issue_attraction_1;Issue attraction: $x$
+pop_issue_attraction_2;This reform is not currently possible
+pop_issue_attraction_3;Issue attraction is the product of:
+pop_issue_attraction_4;The national modifier to social reform desire: $x$
+pop_issue_attraction_5;The national modifier to political reform desire: $x$
+pop_issue_attraction_6;And the issue attraction factor: $x$
+pop_ideology_attraction_1;Ideology attraction: $x$
+pop_ideology_attraction_2;This ideology is not currently available
 ;;;;;;;;;;;;;x

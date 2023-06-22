@@ -16,6 +16,13 @@ auto is_overseas(sys::state const& state, T ids) {
 				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
 }
 
+bool is_overseas(sys::state const& state, dcon::province_id ids) {
+	auto owners = state.world.province_get_nation_from_province_ownership(ids);
+	auto owner_cap = state.world.nation_get_capital(owners);
+	return (state.world.province_get_continent(ids) != state.world.province_get_continent(owner_cap)) &&
+				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
+}
+
 template<typename F>
 void for_each_land_province(sys::state& state, F const& func) {
 	int32_t last = state.province_definitions.first_sea_province.index();

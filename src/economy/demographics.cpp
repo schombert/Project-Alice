@@ -1516,14 +1516,9 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					*/
 
 					auto pc = state.world.pop_get_culture(p);
-					if(state.world.province_get_is_colonial(location)) {
-						if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
-							base_amount /= 100.0f;
-						}
-					} else {
-						if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
-							base_amount /= 10.0f;
-						}
+					
+					if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+						base_amount /= 10.0f;
 					}
 
 					/*
@@ -1584,15 +1579,10 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	*/
 
 	auto pc = state.world.pop_get_culture(ids);
-	if(state.world.province_get_is_colonial(location)) {
-		if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
-			base_amount /= 100.0f;
-		}
-	} else {
-		if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
-			base_amount /= 10.0f;
-		}
+	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+		base_amount /= 10.0f;
 	}
+	
 
 	/*
 	All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary
