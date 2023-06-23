@@ -554,7 +554,7 @@ public:
 			factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "output") {
-			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+			auto ptr = make_element_by_type<commodity_image>(state, id);
 			output_icon = ptr.get();
 			return ptr;
 		} else if(name == "closed_overlay") {
@@ -616,7 +616,7 @@ public:
 				input_lack_icons[input_index] = ptr.get();
 				return ptr;
 			} else {
-				auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+				auto ptr = make_element_by_type<commodity_image>(state, id);
 				input_icons[input_index] = ptr.get();
 				return ptr;
 			}
@@ -1363,6 +1363,17 @@ class commodity_secondary_worker_amount : public simple_text_element_base {
 	}
 };
 
+class commodity_player_production_text : public generic_simple_text<dcon::commodity_id> {
+public:
+	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
+		if(commodity_id) {
+			return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
+		} else {
+			return "";
+		}
+	}
+};
+
 class production_good_info : public window_element_base {
 	dcon::commodity_id commodity_id{};
 	commodity_player_production_text* good_output_total = nullptr;
@@ -1371,7 +1382,7 @@ class production_good_info : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "output_factory") {
-			return make_element_by_type<commodity_factory_image>(state, id);
+			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "output_total") {
 			auto ptr = make_element_by_type<commodity_player_production_text>(state, id);
 			good_output_total = ptr.get();

@@ -27,7 +27,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
-			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+			auto ptr = make_element_by_type<commodity_image>(state, id);
 			commodity_icon = ptr.get();
 			return ptr;
 		} else if(name == "goods_amount") {

@@ -2318,13 +2318,13 @@ public:
 using pop_details_needs_data = std::pair< dcon::commodity_id, float> ;
 
 class pop_details_needs_item : public listbox_row_element_base<pop_details_needs_data> {
-	commodity_factory_image* commodity_icon = nullptr;
+	commodity_image* commodity_icon = nullptr;
 	simple_text_element_base* value_text = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
-			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+			auto ptr = make_element_by_type<commodity_image>(state, id);
 			commodity_icon = ptr.get();
 			return ptr;
 		} else if(name == "value") {

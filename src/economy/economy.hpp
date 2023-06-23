@@ -162,5 +162,6 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
 int32_t most_recent_price_record_index(sys::state& state);
+int32_t previous_price_record_index(sys::state& state);
 
 } // namespace economy

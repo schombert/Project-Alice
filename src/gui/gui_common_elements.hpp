@@ -234,69 +234,8 @@ public:
 	}
 };
 
-class standard_province_progress_bar : public progress_bar {
-public:
-	virtual float get_progress(sys::state& state, dcon::province_id prov_id) noexcept {
-		return 0.f;
-	}
 
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			progress = get_progress(state, prov_id);
-		}
-	}
-};
 
-class province_liferating_progress_bar : public standard_province_progress_bar {
-public:
-	float get_progress(sys::state& state, dcon::province_id prov_id) noexcept override {
-		return state.world.province_get_life_rating(prov_id) / 100.f;
-	}
-};
-
-class standard_province_icon : public opaque_element_base {
-public:
-	virtual int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept {
-		return 0;
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-
-			frame = get_icon_frame(state, prov_id);
-		}
-	}
-};
-
-class province_rgo_employment_progress_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
-		return int32_t(10.f * employment_ratio);
-	}
-};
-
-class province_rgo_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_rgo().get_icon();
-	}
-};
-
-class province_crime_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_crime().index();
-	}
-};
 
 class standard_movement_text : public simple_text_element_base {
 public:
@@ -393,227 +332,6 @@ public:
 			auto content = any_cast<dcon::rebel_faction_id>(payload);
 			set_text(state, get_text(state, content));
 		}
-	}
-};
-
-class standard_province_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::province_id province_id) noexcept {
-		return "";
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			set_text(state, get_text(state, content));
-		}
-	}
-};
-
-class province_population_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
-		return text::prettify(int32_t(total_pop));
-	}
-};
-
-class province_militancy_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
-		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
-		return text::format_float(militancy / total_pop);
-	}
-};
-
-class province_consciousness_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto consciousness = state.world.province_get_demographics(province_id, demographics::consciousness);
-		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
-		return text::format_float(consciousness / total_pop);
-	}
-};
-
-class province_literacy_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto literacy = state.world.province_get_demographics(province_id, demographics::literacy);
-		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
-		return text::format_percentage(literacy / total_pop, 1);
-	}
-};
-
-class province_dominant_culture_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		dcon::culture_id last_culture{};
-		float last_culture_amount = 0.f;
-		state.world.for_each_culture([&](dcon::culture_id id) {
-			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
-			if(amount > last_culture_amount) {
-				last_culture_amount = amount;
-				last_culture = id;
-			}
-		});
-		return text::get_name_as_string(state, dcon::fatten(state.world, last_culture));
-	}
-};
-class province_dominant_religion_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		dcon::religion_id last_religion{};
-		float last_religion_amount = 0.f;
-		state.world.for_each_religion([&](dcon::religion_id id) {
-			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
-			if(amount > last_religion_amount) {
-				last_religion_amount = amount;
-				last_religion = id;
-			}
-		});
-		return text::get_name_as_string(state, dcon::fatten(state.world, last_religion));
-	}
-};
-class province_dominant_issue_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		dcon::issue_option_id last_issue{};
-		float last_issue_amount = 0.f;
-		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
-			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
-			if(amount > last_issue_amount) {
-				last_issue_amount = amount;
-				last_issue = id;
-			}
-		});
-		return text::get_name_as_string(state, dcon::fatten(state.world, last_issue));
-	}
-};
-class province_dominant_ideology_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		dcon::ideology_id last_ideology{};
-		float last_ideology_amount = 0.f;
-		state.world.for_each_ideology([&](dcon::ideology_id id) {
-			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
-			if(amount > last_ideology_amount) {
-				last_ideology_amount = amount;
-				last_ideology = id;
-			}
-		});
-		return text::get_name_as_string(state, dcon::fatten(state.world, last_ideology));
-	}
-};
-
-class province_supply_limit_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto supply = military::supply_limit_in_province(state, state.local_player_nation, province_id);
-		return std::to_string(supply);
-	}
-};
-
-class province_crime_name_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, province_id);
-		auto crime_id = fat_id.get_crime();
-		if(crime_id) {
-			return text::produce_simple_string(state, state.culture_definitions.crimes[crime_id].name);
-		} else {
-			return "";
-		}
-	}
-};
-
-class province_crime_fighting_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
-	}
-};
-
-class province_rebel_percent_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_float(province::revolt_risk(state, province_id), 2);
-	}
-};
-
-class province_rgo_workers_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::prettify(int32_t(province::rgo_employment(state, province_id)));
-	}
-};
-
-class province_rgo_employment_percent_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
-	}
-};
-
-class province_rgo_name_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::get_name_as_string(state, state.world.province_get_rgo(province_id));
-	}
-};
-
-class province_player_rgo_size_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_float(economy::rgo_effective_size(state, state.local_player_nation, province_id), 2);
-	}
-};
-
-class province_goods_produced_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_float(province::rgo_production_quantity(state, province_id), 3);
-	}
-};
-
-class province_income_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_money(province::rgo_income(state, province_id));
-	}
-};
-
-class province_migration_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
-		auto external = province::monthly_net_pop_external_migration(state, province_id);
-		return text::prettify(int32_t(internal + external));
-	}
-};
-
-class province_pop_growth_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
-	}
-};
-
-class province_army_size_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto built = military::regiments_created_from_province(state, province_id);
-		auto max_possible = military::regiments_max_possible_from_province(state, province_id);
-		return text::format_ratio(built, max_possible);
-	}
-};
-
-class province_state_name_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::get_province_state_name(state, province_id);
 	}
 };
 
@@ -1597,123 +1315,159 @@ protected:
 	}
 };
 
-class commodity_factory_image : public image_element_base {
+
+class standard_province_text : public simple_text_element_base {
 public:
+	virtual std::string get_text(sys::state& state, dcon::province_id province_id) noexcept {
+		return "";
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
+			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::commodity_id>(payload);
-			frame = int32_t(state.world.commodity_get_icon(content));
+			auto content = any_cast<dcon::province_id>(payload);
+			set_text(state, get_text(state, content));
 		}
 	}
 };
 
-class commodity_price_text : public generic_simple_text<dcon::commodity_id> {
+class province_population_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		return text::format_money(state.world.commodity_get_current_price(commodity_id));
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::prettify(int32_t(total_pop));
 	}
 };
 
-class commodity_player_availability_text : public generic_simple_text<dcon::commodity_id> {
+class province_militancy_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			return text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
-		} else {
-			return "";
-		}
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_float(militancy / total_pop);
 	}
 };
 
-class commodity_player_real_demand_text : public generic_simple_text<dcon::commodity_id> {
+class province_consciousness_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
-		} else {
-			return "";
-		}
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto consciousness = state.world.province_get_demographics(province_id, demographics::consciousness);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_float(consciousness / total_pop);
 	}
 };
 
-class commodity_player_production_text : public generic_simple_text<dcon::commodity_id> {
+class province_literacy_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
-		} else {
-			return "";
-		}
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto literacy = state.world.province_get_demographics(province_id, demographics::literacy);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_percentage(literacy / total_pop, 1);
 	}
 };
 
-class commodity_national_player_stockpile_text : public generic_simple_text<dcon::commodity_id> {
+
+class province_dominant_culture_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
-			return text::format_float(stockpile, 2);
-		} else {
-			return "";
-		}
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		dcon::culture_id last_culture{};
+		float last_culture_amount = 0.f;
+		state.world.for_each_culture([&](dcon::culture_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_culture_amount) {
+				last_culture_amount = amount;
+				last_culture = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_culture));
+	}
+};
+class province_dominant_religion_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		dcon::religion_id last_religion{};
+		float last_religion_amount = 0.f;
+		state.world.for_each_religion([&](dcon::religion_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_religion_amount) {
+				last_religion_amount = amount;
+				last_religion = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_religion));
+	}
+};
+class province_dominant_issue_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		dcon::issue_option_id last_issue{};
+		float last_issue_amount = 0.f;
+		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_issue_amount) {
+				last_issue_amount = amount;
+				last_issue = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_issue));
+	}
+};
+class province_dominant_ideology_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		dcon::ideology_id last_ideology{};
+		float last_ideology_amount = 0.f;
+		state.world.for_each_ideology([&](dcon::ideology_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_ideology_amount) {
+				last_ideology_amount = amount;
+				last_ideology = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_ideology));
 	}
 };
 
-class commodity_player_stockpile_increase_text : public generic_simple_text<dcon::commodity_id> {
+class province_state_name_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = economy::stockpile_commodity_daily_increase(state, commodity_id, state.local_player_nation);
-		return std::string(amount >= 0.f ? "+" : "") + text::format_float(amount, 2);
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::get_province_state_name(state, province_id);
 	}
 };
 
-class commodity_market_increase_text : public generic_simple_text<dcon::commodity_id> {
+class province_rgo_name_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = economy::global_market_commodity_daily_increase(state, commodity_id);
-		return std::string("(") + text::format_float(amount, 0) + ")";
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::get_name_as_string(state, state.world.province_get_rgo(province_id));
 	}
 };
 
-class commodity_global_market_text : public generic_simple_text<dcon::commodity_id> {
+class province_goods_produced_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = state.world.commodity_get_global_market_pool(commodity_id);
-		return text::format_float(amount, 2);
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_float(province::rgo_production_quantity(state, province_id), 3);
 	}
 };
 
-class commodity_player_domestic_market_text : public generic_simple_text<dcon::commodity_id> {
+class province_income_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 1);
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_money(province::rgo_income(state, province_id));
 	}
 };
 
-class commodity_player_factory_needs_text : public generic_simple_text<dcon::commodity_id> {
+class province_rgo_workers_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 3);
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::prettify(int32_t(province::rgo_employment(state, province_id)));
 	}
 };
 
-class commodity_player_pop_needs_text : public generic_simple_text<dcon::commodity_id> {
+class province_rgo_size_text : public standard_province_text {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 3);
-	}
-};
-
-class commodity_player_government_needs_text : public generic_simple_text<dcon::commodity_id> {
-public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 3);
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_float(economy::rgo_effective_size(state, state.world.province_get_nation_from_province_ownership(province_id), province_id), 2);
 	}
 };
 
@@ -1808,6 +1562,21 @@ public:
 			auto content = any_cast<dcon::factory_id>(payload);
 			frame = economy::factory_priority(state, content);
 		}
+	}
+};
+
+class commodity_image : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		frame = int32_t(state.world.commodity_get_icon(retrieve<dcon::commodity_id>(state, parent)));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto com = retrieve<dcon::commodity_id>(state, parent);
+		text::add_line(state, contents, state.world.commodity_get_name(com));
 	}
 };
 

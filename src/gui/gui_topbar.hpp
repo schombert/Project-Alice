@@ -311,12 +311,11 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		std::vector<float> datapoints(size_t(32));
 		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
-			datapoints[i] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + i) % 32] -
-											state.player_data_cache.treasury_record[(state.current_date.value + 0 + i) % 32];
-		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.current_date.value + 1 + 31) % 32] -
-																				state.player_data_cache.treasury_record[(state.current_date.value + 0 + 31) % 32];
-		datapoints[0] = datapoints[1]; // stability trick -- this compesates for the fact that the day changes early in the
-																	 // update, and you could see the line chart "shift" before the day actually updates
+			datapoints[i] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + i) % 32] -
+				state.player_data_cache.treasury_record[(state.ui_date.value + 0 + i) % 32];
+		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + 31) % 32] -
+																				state.player_data_cache.treasury_record[(state.ui_date.value + 0 + 31) % 32];
+		datapoints[0] = datapoints[1]; // otherwise you will store the difference between two non-consecutive days here
 
 		set_data_points(state, datapoints);
 	}

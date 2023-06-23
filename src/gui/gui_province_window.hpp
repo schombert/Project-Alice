@@ -14,8 +14,14 @@
 
 namespace ui {
 
-class province_liferating : public province_liferating_progress_bar {
+class province_liferating : public progress_bar {
 public:
+
+	void on_update(sys::state& state) noexcept override {
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		progress = state.world.province_get_life_rating(prov_id) / 100.f;
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -49,59 +55,6 @@ public:
 	}
 };
 
-class province_supplylimit : public province_supply_limit_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		// TODO - needs to display the base supply limit + modifiers
-		text::add_to_layout_box(state, contents, box, std::string_view("UwU"));
-		text::close_layout_box(contents, box);
-	}
-};
-
-class province_crimefighting : public province_crime_fighting_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_crimefight"),
-					text::variable_type::value, text::fp_one_place{province::crime_fighting_efficiency(state, content) * 100});
-			text::close_layout_box(contents, box);
-		}
-	}
-};
-
-class province_rebelpercent : public province_rebel_percent_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
-			// substitute.
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value,
-					text::fp_one_place{province::revolt_risk(state, content) * 100});
-			text::close_layout_box(contents, box);
-		}
-	}
-};
 
 class province_rgoworkers : public province_rgo_workers_text {
 public:
@@ -122,8 +75,14 @@ public:
 	}
 };
 
-class province_rgo : public province_rgo_icon {
+class province_rgo : public image_element_base {
 public:
+
+	void on_update(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, retrieve<dcon::province_id>(state, parent));
+		frame = fat_id.get_rgo().get_icon();
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -232,17 +191,14 @@ public:
 	}
 };
 
-class province_flashpoint_indicator : public standard_province_icon {
+class province_flashpoint_indicator : public image_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		standard_province_icon::on_update(state);
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
-			auto fat_id = dcon::fatten(state.world, province_id);
-			auto tension = fat_id.get_state_membership().get_flashpoint_tension();
-			set_visible(state, tension > 0.f);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(state.world.state_instance_get_flashpoint_tag(state.world.province_get_state_membership(prov))) {
+			image_element_base::render(state, x, y);
+		} else {
+			// no flashpoint
 		}
 	}
 };
@@ -251,25 +207,14 @@ class province_controller_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
+			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 
 			auto fat_id = dcon::fatten(state.world, province_id);
 			auto controller_id = fat_id.get_province_control_as_province().get_nation();
 			return controller_id.get_identity_from_identity_holder().id;
 		}
+		// TODO: must handle rebel control
 		return dcon::national_identity_id{};
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		flag_button::on_update(state);
-
-		auto nation = get_current_nation(state);
-		if(bool(nation)) {
-			flag_button::set_current_nation(state, get_current_nation(state));
-		}
-		set_visible(state, bool(nation));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -278,9 +223,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto province_id = any_cast<dcon::province_id>(payload);
+			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 
 			auto prov_fat = dcon::fatten(state.world, province_id);
 			auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
@@ -289,6 +232,8 @@ public:
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, controller_name);
 			text::close_layout_box(contents, box);
+
+			// TODO: must handle rebel control
 		}
 	}
 };
@@ -517,24 +462,24 @@ public:
 };
 
 template<economy::province_building_type Value>
-class province_building_icon : public standard_province_icon {
+class province_building_icon : public image_element_base {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		switch(Value) {
 		case economy::province_building_type::railroad: {
 			auto fat_id = dcon::fatten(state.world, prov_id);
-			return fat_id.get_railroad_level();
+			frame = fat_id.get_railroad_level();
 		}
 		case economy::province_building_type::fort: {
 			auto fat_id = dcon::fatten(state.world, prov_id);
-			return fat_id.get_fort_level();
+			frame = fat_id.get_fort_level();
 		}
 		case economy::province_building_type::naval_base: {
 			auto fat_id = dcon::fatten(state.world, prov_id);
-			return fat_id.get_naval_base_level();
+			frame = fat_id.get_naval_base_level();
 		}
 		}
-		return 0;
 	}
 };
 template<economy::province_building_type Value>
@@ -743,6 +688,16 @@ public:
 	}
 };
 
+class province_supply_limit_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto supply = military::supply_limit_in_province(state, state.local_player_nation, province_id);
+		return std::to_string(supply);
+	}
+
+	// TODO: needs an explanation of where the value comes from
+};
+
 class province_view_foreign_details : public window_element_base {
 private:
 	province_country_flag_button* country_flag_button = nullptr;
@@ -831,7 +786,7 @@ public:
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
-			return make_element_by_type<province_supplylimit>(state, id);
+			return make_element_by_type<province_supply_limit_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -902,6 +857,143 @@ public:
 	}
 };
 
+class province_rgo_employment_progress_icon : public opaque_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province = retrieve<dcon::province_id>(state, parent);
+		auto employment_ratio = state.world.province_get_rgo_employment(province);
+		frame = int32_t(10.f * employment_ratio);
+	}
+};
+
+class province_crime_icon : public image_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		frame = fat_id.get_crime().index() + 1;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto province = retrieve<dcon::province_id>(state, parent);
+		auto crime = state.world.province_get_crime(province);
+		if(crime) {
+			modifier_description(state, contents, state.culture_definitions.crimes[crime].modifier);
+		}
+	}
+};
+
+class province_crime_name_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto fat_id = dcon::fatten(state.world, province_id);
+		auto crime_id = fat_id.get_crime();
+		if(crime_id) {
+			return text::produce_simple_string(state, state.culture_definitions.crimes[crime_id].name);
+		} else {
+			return "";
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto province = retrieve<dcon::province_id>(state, parent);
+		auto crime = state.world.province_get_crime(province);
+		if(crime) {
+			modifier_description(state, contents, state.culture_definitions.crimes[crime].modifier);
+		}
+	}
+};
+
+class province_crime_fighting_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
+	}
+
+	/*
+	// TODO: explain where the value comes from
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_crimefight"),
+					text::variable_type::value, text::fp_one_place{province::crime_fighting_efficiency(state, content) * 100});
+			text::close_layout_box(contents, box);
+		}
+	}
+	*/
+};
+
+class province_rebel_percent_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_float(province::revolt_risk(state, province_id), 2);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
+			// substitute.
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value,
+					text::fp_one_place{province::revolt_risk(state, content) * 100});
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class province_rgo_employment_percent_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
+	}
+};
+
+class province_migration_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
+		auto external = province::monthly_net_pop_external_migration(state, province_id);
+		return text::prettify(int32_t(internal + external));
+	}
+};
+
+class province_pop_growth_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
+	}
+};
+
+class province_army_size_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+		auto built = military::regiments_created_from_province(state, province_id);
+		auto max_possible = military::regiments_max_possible_from_province(state, province_id);
+		return text::format_ratio(built, max_possible);
+	}
+};
+
+
+
 class province_view_statistics : public window_element_base {
 private:
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
@@ -931,7 +1023,7 @@ public:
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
-			return make_element_by_type<province_supplylimit>(state, id);
+			return make_element_by_type<province_supply_limit_text>(state, id);
 		} else if(name == "crime_icon") {
 			return make_element_by_type<province_crime_icon>(state, id);
 		} else if(name == "crime_name") {
@@ -939,7 +1031,7 @@ public:
 		} else if(name == "crimefight_percent") {
 			return make_element_by_type<province_crime_fighting_text>(state, id);
 		} else if(name == "rebel_percent") {
-			return make_element_by_type<province_rebelpercent>(state, id);
+			return make_element_by_type<province_rebel_percent_text>(state, id);
 		} else if(name == "employment_ratio") {
 			return make_element_by_type<province_rgo_employment_progress_icon>(state, id);
 		} else if(name == "rgo_population") {

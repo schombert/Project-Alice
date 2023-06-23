@@ -186,6 +186,7 @@ struct alignas(64) state {
 
 	dcon::nation_id local_player_nation;
 	sys::date current_date = sys::date{0};
+	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
 	float inflation = 1.0f;
 	player_data player_data_cache{};

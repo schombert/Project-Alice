@@ -62,7 +62,7 @@ public:
 		} else if(name == "filter_enabled") {
 			return make_element_by_type<commodity_filter_enabled_image>(state, id);
 		} else if(name == "goods_type") {
-			return make_element_by_type<commodity_factory_image>(state, id);
+			return make_element_by_type<commodity_image>(state, id);
 		} else {
 			return nullptr;
 		}

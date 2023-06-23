@@ -8,6 +8,9 @@ namespace economy {
 int32_t most_recent_price_record_index(sys::state& state) {
 	return (state.current_date.value >> 4) % 32;
 }
+int32_t previous_price_record_index(sys::state& state) {
+	return ((state.current_date.value >> 4) - 1) % 32;
+}
 
 float full_spending_cost(sys::state& state, dcon::nation_id n,
 		ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices);
@@ -133,9 +136,9 @@ void initialize(sys::state& state) {
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto fc = fatten(state.world, c);
 		fc.set_current_price(fc.get_cost());
-		fc.set_total_consumption(1.0f);
-		fc.set_total_production(1.0f);
-		fc.set_total_real_demand(1.0f);
+		fc.set_total_consumption(0.0f);
+		fc.set_total_production(0.0f);
+		fc.set_total_real_demand(0.0f);
 
 		for(int32_t i = 0; i < 32; ++i) {
 			fc.set_price_record(i, fc.get_cost());
@@ -784,28 +787,26 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 		}
 	}
 
-	float output_total = state.world.commodity_get_artisan_output_amount(artisan_prod_type) *
-											 state.world.commodity_get_current_price(artisan_prod_type);
+	float output_total = state.world.commodity_get_artisan_output_amount(artisan_prod_type) * state.world.commodity_get_current_price(artisan_prod_type);
 
 	float artisan_pop =
 			std::max(0.01f, state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.artisans)));
 
-	float input_multiplier = 1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_input) +
-													 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_input);
-	float throughput_multiplier =
-			1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_throughput) +
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_throughput);
-	float output_multiplier = 1.0f +
-														state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_output) +
-														state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_output);
+	float input_multiplier = 1.0f
+		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_input)
+		+  state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_input);
+	float throughput_multiplier = 1.0f
+		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_throughput)
+		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_throughput);
+	float output_multiplier = 1.0f
+		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_output)
+		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_output);
 
 	float max_production_scale = artisan_pop / 10'000.0f * (occupied ? 0.0f : 1.0f) * std::max(0.0f, mobilization_impact);
 
 	// note: we add min available to try to anticipate how availability will limit profits
 	// note scaled minimum wage to aim at 0.6 ln satisfaction
-	bool profitable = (output_total * output_multiplier * throughput_multiplier * min_available -
-												0.6f * expected_min_wage * (10'000.0f / needs_scaling_factor) -
-												input_multiplier * input_total * throughput_multiplier * min_available) >= 0.0f;
+	bool profitable = (output_total * output_multiplier * throughput_multiplier * min_available - 0.6f * expected_min_wage * (10'000.0f / needs_scaling_factor) - input_multiplier * input_total * throughput_multiplier * min_available) >= 0.0f;
 
 	if(profitable) {
 		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -818,10 +819,8 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 			}
 		}
 
-		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) *
-																															throughput_multiplier * output_multiplier * max_production_scale);
-		state.world.province_set_artisan_full_profit(p,
-				(output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * max_production_scale);
+		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale);
+		state.world.province_set_artisan_full_profit(p, (output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * max_production_scale);
 	} else {
 		// switch production type
 		randomly_assign_artisan_production(state, p);
@@ -1342,11 +1341,9 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, dcon::province
 				state.world.nation_get_real_demand(n, cid) +=
 						state.world.pop_type_get_life_needs(t, cid) * ln_demand_vector.get(t) * base_demand * ln_mul[strata];
 
-				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_everyday_needs(t, cid) * en_demand_vector.get(t) *
-																											base_demand * invention_factor * en_mul[strata];
+				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_everyday_needs(t, cid) * en_demand_vector.get(t) * base_demand * invention_factor * en_mul[strata];
 
-				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_luxury_needs(t, cid) * lx_demand_vector.get(t) *
-																											base_demand * invention_factor * lx_mul[strata];
+				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_luxury_needs(t, cid) * lx_demand_vector.get(t) * base_demand * invention_factor * lx_mul[strata];
 
 				assert(std::isfinite(state.world.nation_get_real_demand(n, cid)));
 			}

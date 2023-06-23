@@ -616,4 +616,15 @@ pop_issue_attraction_5;The national modifier to political reform desire: $x$
 pop_issue_attraction_6;And the issue attraction factor: $x$
 pop_ideology_attraction_1;Ideology attraction: $x$
 pop_ideology_attraction_2;This ideology is not currently available
+trade_setting_drawing;Drawing on stockpiles
+trade_setting_filling;Filling stockpiles
+trade_setting_stable;No stockpile activity
+trade_commodity_report_1;Current global demand: $x$
+trade_commodity_report_2;Current global production: $x$
+trade_commodity_report_3;Current global consumption: $x$
+trade_commodity_report_4;Amount on world market: $x$
+trade_fill;Fill;
+trade_use;Draw upon;
+trade_stockpile_target;Stockpile target amount:
+trade_stockpile_current;Current stockpile: ;
 ;;;;;;;;;;;;;x

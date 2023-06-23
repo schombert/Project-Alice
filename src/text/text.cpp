@@ -1192,6 +1192,55 @@ void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& 
 	}
 }
 
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	add_to_layout_box(state, dest, box, txt);
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+		int32_t indent) {
+
+	auto box = text::open_layout_box(dest, indent);
+	text::substitution_map sub;
+	text::add_to_substitution_map(sub, subkey, value);
+	add_to_layout_box(state, dest, box, txt, sub);
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, int32_t indent) {
+
+	auto box = text::open_layout_box(dest, indent);
+	text::substitution_map sub;
+	text::add_to_substitution_map(sub, subkey, value);
+	text::add_to_substitution_map(sub, subkey_b, value_b);
+	add_to_layout_box(state, dest, box, txt, sub);
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent) {
+
+	auto box = text::open_layout_box(dest, indent);
+	text::substitution_map sub;
+	text::add_to_substitution_map(sub, subkey, value);
+	text::add_to_substitution_map(sub, subkey_b, value_b);
+	text::add_to_substitution_map(sub, subkey_c, value_c);
+	add_to_layout_box(state, dest, box, txt, sub);
+	text::close_layout_box(dest, box);
+}
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
+		substitution value_d, int32_t indent) {
+
+	auto box = text::open_layout_box(dest, indent);
+	text::substitution_map sub;
+	text::add_to_substitution_map(sub, subkey, value);
+	text::add_to_substitution_map(sub, subkey_b, value_b);
+	text::add_to_substitution_map(sub, subkey_c, value_c);
+	text::add_to_substitution_map(sub, subkey_d, value_d);
+	add_to_layout_box(state, dest, box, txt, sub);
+	text::close_layout_box(dest, box);
+}
+
 void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {

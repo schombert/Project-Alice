@@ -569,7 +569,7 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 					float(x + text_offset), float(y + base_data.data.text.border_size.y),
 					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.button.font_handle);
 		} else {
-			auto linesz = state.font_collection.line_height(state, base_data.data.text.font_handle);
+			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 			auto ycentered = (base_data.size.y - linesz) / 2;
 
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,

@@ -1951,6 +1951,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			}
 		}
 	}
+	ui_date = current_date;
 
 	game_state_updated.store(true, std::memory_order::release);
 }
@@ -2293,6 +2294,8 @@ void state::game_loop() {
 						c.set_price_record(index, c.get_current_price());
 					}
 				}
+
+				ui_date = current_date;
 
 				game_state_updated.store(true, std::memory_order::release);
 			} else {

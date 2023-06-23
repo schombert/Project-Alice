@@ -148,7 +148,7 @@ public:
 			return ptr;
 
 		} else if(name == "output") {
-			return make_element_by_type<commodity_factory_image>(state, id);
+			return make_element_by_type<commodity_image>(state, id);
 
 		} else if(name == "name") {
 			return make_element_by_type<factory_build_output_name_text>(state, id);
@@ -320,7 +320,7 @@ public:
 			// input_2_amount
 			// input_3_amount
 			if(name == "output") {
-				return make_element_by_type<commodity_factory_image>(state, id);
+				return make_element_by_type<commodity_image>(state, id);
 
 			} else if(name == "building_name") {
 				return make_element_by_type<factory_title>(state, id);
