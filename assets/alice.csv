@@ -627,4 +627,23 @@ trade_fill;Fill;
 trade_use;Draw upon;
 trade_stockpile_target;Stockpile target amount:
 trade_stockpile_current;Current stockpile: ;
+diplomacy_wx_1;Monthly war exhaustion: ;
+influence_explain_1;We are currently banned and accumulate no influence with this nation
+influence_explain_2;We have a truce with this nation and accumulate no influence with it
+influence_explain_3;We are at war with this nation and accumulate no influence with it
+influence_explain_4;We accumulate, with all nations, a total of $x$ influence daily.
+influence_explain_5;This is the product of the base influence gain rate ($x$) times our national influence modifier ($y$) times our influence modifier from technology ($val$)
+influence_explain_6;National influence modifier: $x$
+influence_explain_7;Influence modifier from technology: $x$
+influence_explain_8;This is divided among the nations we are influencing, resulting in a base daily gain of: $x$
+influence_explain_9;which is further multiplied by 1 plus the sum of the following factors:
+influence_explain_10;$x$ from being discredited
+influence_explain_11;$x$ from being neighbors
+influence_explain_12;$x$ from having one or more of our sphere members as a neighbor
+influence_explain_13;$x$ from not having its capital on the same continent as ours
+influence_explain_14;$x$ from being our subject
+influence_explain_15;$x$ from our relationship
+influence_explain_16;$x$ from our investment in the nation
+influence_explain_17;$x$ from the size of the target nation
+influence_explain_18;$x$ from our relative score
 ;;;;;;;;;;;;;x

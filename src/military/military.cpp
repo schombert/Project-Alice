@@ -6,6 +6,18 @@
 
 namespace military {
 
+int32_t total_regiments(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_active_regiments(n);
+}
+int32_t total_ships(sys::state& state, dcon::nation_id n) {
+	int32_t total = 0;
+	for(auto v : state.world.nation_get_navy_control(n)) {
+		auto srange = v.get_navy().get_navy_membership();
+		total += int32_t(srange.end() - srange.begin());
+	}
+	return total;
+}
+
 void reset_unit_stats(sys::state& state) {
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)};

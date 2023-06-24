@@ -766,14 +766,6 @@ public:
 	}
 };
 
-class nation_war_exhaustion_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		return text::format_float(fat_id.get_war_exhaustion(), 2);
-	}
-};
-
 class nation_population_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
@@ -909,43 +901,21 @@ public:
 	}
 };
 
-class nation_armies_text : public standard_nation_text {
-protected:
-	int32_t get_num_armies(sys::state& state, dcon::nation_id n) {
-		int32_t count = 0;
-		state.world.nation_for_each_army_control_as_controller(n, [&](dcon::army_control_id) { ++count; });
-		return count;
-	}
-
+class nation_num_regiments : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return std::to_string(get_num_armies(state, nation_id));
+		return text::prettify(military::total_regiments(state, nation_id));
 	}
 };
 
-class nation_navies_text : public standard_nation_text {
-protected:
-	int32_t get_num_navies(sys::state& state, dcon::nation_id n) {
-		int32_t count = 0;
-		state.world.nation_for_each_navy_control_as_controller(n, [&](dcon::navy_control_id) { ++count; });
-		return count;
-	}
-
+class nation_num_ships : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return std::to_string(get_num_navies(state, nation_id));
+		return text::prettify(military::total_ships(state, nation_id));
 	}
 };
 
 class nation_leadership_points_text : public standard_nation_text {
-private:
-	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) /
-										state.world.nation_get_demographics(n, demographics::total)) /
-								state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
-		return sum;
-	}
-
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::leadership_points(state, nation_id);
@@ -985,7 +955,7 @@ public:
 	}
 };
 
-class nation_technology_admin_type_text : public standard_nation_text {
+class national_tech_school : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto mod_id = state.world.nation_get_tech_school(nation_id);
@@ -993,6 +963,20 @@ public:
 			return text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
 		} else {
 			return text::produce_simple_string(state, "traditional_academic");
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mod_id = state.world.nation_get_tech_school(retrieve<dcon::nation_id>(state, parent));
+		if(bool(mod_id)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+
+			modifier_description(state, contents, mod_id);
 		}
 	}
 };
@@ -1125,15 +1109,10 @@ public:
 class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
 public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-			auto ruling_party = state.world.nation_get_ruling_party(nation_id);
-			auto ideology = state.world.political_party_get_ideology(ruling_party);
-			return state.world.ideology_get_color(ideology);
-		}
-		return 0;
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
+		auto ideology = state.world.political_party_get_ideology(ruling_party);
+		return state.world.ideology_get_color(ideology);
 	}
 };
 

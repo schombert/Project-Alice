@@ -258,6 +258,9 @@ dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture);
 uint8_t make_dice_rolls(sys::state& state, uint32_t seed);
 
+int32_t total_regiments(sys::state& state, dcon::nation_id n);
+int32_t total_ships(sys::state& state, dcon::nation_id n);
+
 dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
 dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
 

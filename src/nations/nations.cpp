@@ -1485,9 +1485,8 @@ void update_influence(sys::state& state) {
 					float puppet_factor = rel.get_influence_target().get_overlord_as_subject().get_ruler() == n
 																		? state.defines.puppet_bonus_influence_percent
 																		: 0.0f;
-					float relationship_factor = state.world.diplomatic_relation_get_value(
-																					state.world.get_diplomatic_relation_by_diplomatic_pair(n, rel.get_influence_target())) /
-																			state.defines.relation_influence_modifier;
+					float relationship_factor = state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, rel.get_influence_target())) / state.defines.relation_influence_modifier;
+
 					float investment_factor = total_fi > 0.0f ? state.defines.investment_influence_defense * gp_invest / total_fi : 0.0f;
 					float pop_factor =
 							rel.get_influence_target().get_demographics(demographics::total) > state.defines.large_population_limit
@@ -1495,15 +1494,11 @@ void update_influence(sys::state& state) {
 												rel.get_influence_target().get_demographics(demographics::total) /
 												state.defines.large_population_influence_penalty_chunk
 									: 0.0f;
-					float score_factor = gp_score > 0.0f ? std::max(1.0f - (rel.get_influence_target().get_industrial_score() +
-																																		 rel.get_influence_target().get_military_score() +
-																																		 prestige_score(state, rel.get_influence_target())) /
-																																		 gp_score,
-																										 0.0f)
-																							 : 0.0f;
+					float score_factor = gp_score > 0.0f
+						? std::max(1.0f - (rel.get_influence_target().get_industrial_score() + rel.get_influence_target().get_military_score() + prestige_score(state, rel.get_influence_target())) / gp_score,  0.0f)
+						: 0.0f;
 
-					float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor +
-																	 puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
+					float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
 
 					auto gain_amount = base_shares * total_multiplier;
 
@@ -1512,7 +1507,7 @@ void update_influence(sys::state& state) {
 					the great power with the most influence (other than the influencing nation).
 					*/
 
-					rel.get_influence() += gain_amount;
+					rel.get_influence() += std::max(0.0f, gain_amount);
 					if(rel.get_influence() > state.defines.max_influence) {
 						auto overflow = rel.get_influence() - state.defines.max_influence;
 						rel.get_influence() = state.defines.max_influence;

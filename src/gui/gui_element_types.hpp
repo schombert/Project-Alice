@@ -164,6 +164,17 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
+class right_click_button_element_base : public button_element_base {
+	virtual void button_right_action(sys::state& state) noexcept { }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			button_right_action(state);
+		}
+		return message_result::consumed;
+	}
+};
+
 class shift_button_element_base : public button_element_base {
 	virtual void button_shift_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
@@ -229,14 +240,6 @@ public:
 		return stored_text;
 	}
 
-	/*
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	*/
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;

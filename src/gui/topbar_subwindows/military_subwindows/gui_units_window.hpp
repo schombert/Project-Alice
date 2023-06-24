@@ -304,30 +304,39 @@ public:
 	}	
 };
 
-class military_armies_text : public nation_armies_text {
+class military_armies_text : public simple_text_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
+	void on_update(sys::state& state) noexcept override {
+		auto rng = state.world.nation_get_army_control(state.local_player_nation);
+		set_text(state, text::prettify(int64_t(rng.end() - rng.begin())));
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
+		auto rng = state.world.nation_get_army_control(state.local_player_nation);
 		text::localised_single_sub_box(state, contents, box, std::string_view("military_army_count_tooltip"),
-				text::variable_type::value, get_num_armies(state, state.local_player_nation));
+				text::variable_type::value, int64_t(rng.end() - rng.begin()));
 		text::close_layout_box(contents, box);
 	}
 };
 
-class military_navies_text : public nation_navies_text {
+class military_navies_text : public simple_text_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-
+	void on_update(sys::state& state) noexcept override {
+		auto rng = state.world.nation_get_navy_control(state.local_player_nation);
+		set_text(state, text::prettify(int64_t(rng.end() - rng.begin())));
+	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
+		auto rng = state.world.nation_get_navy_control(state.local_player_nation);
 		text::localised_single_sub_box(state, contents, box, std::string_view("military_navy_count_tooltip"),
-				text::variable_type::value, get_num_navies(state, state.local_player_nation));
+				text::variable_type::value, int64_t(rng.end() - rng.begin()));
 		text::close_layout_box(contents, box);
 	}
 };

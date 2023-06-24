@@ -92,7 +92,7 @@ public:
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_attacker_flag>(state, id);
 
-		} else if(name == "sponsored_flag") { // Brought to you BY no one, fuck companies >w<
+		} else if(name == "sponsored_flag") { 
 			return make_element_by_type<diplomacy_crisis_sponsor_attacker_flag>(state, id);
 
 		} else if(name == "country_name") {
@@ -186,7 +186,7 @@ public:
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_defender_flag>(state, id);
 
-		} else if(name == "sponsored_flag") { // Brought to you BY no one, fuck companies >w<
+		} else if(name == "sponsored_flag") {
 			return make_element_by_type<diplomacy_crisis_sponsor_defender_flag>(state, id);
 
 		} else if(name == "country_name") {
@@ -224,7 +224,7 @@ public:
 		} else if(state.current_crisis == sys::crisis_type::liberation || state.current_crisis == sys::crisis_type::influence) {
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
 		} else {
-			set_text(state, "Pwease gib me Crisis UwU");
+			
 		}
 	}
 };
@@ -234,7 +234,6 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis) {
 		case sys::crisis_type::none:
-			set_text(state, "Im having a mental crisis >w<");
 			break;
 		case sys::crisis_type::claim:
 			set_text(state, text::produce_simple_string(state, "crisis_description_reclaim"));
