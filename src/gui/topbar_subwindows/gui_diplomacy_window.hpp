@@ -1102,8 +1102,131 @@ public:
 	}
 };
 
+class war_name_text : public generic_multiline_text<dcon::war_id> {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::war_id id) noexcept override {
+		contents.fixed_parameters.suppress_hyperlinks = true;
+
+		auto war = dcon::fatten(state.world, id);
+		dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+		dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+
+		for(auto wg : state.world.war_get_wargoals_attached(war)) {
+			if(wg.get_wargoal().get_added_by() == primary_attacker && wg.get_wargoal().get_target_nation() == primary_defender) {
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				auto pa_adj = state.world.nation_get_adjective(primary_attacker);
+				text::add_to_substitution_map(sub, text::variable_type::first, pa_adj);
+				auto sdef = wg.get_wargoal().get_associated_state();
+				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
+				if(dcon::fatten(state.world, sdef).is_valid()) {
+					text::add_to_substitution_map(sub, text::variable_type::second, sdef);
+				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) !=
+									0) {
+					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
+				} else if((bits & (military::cb_flag::po_transfer_provinces)) != 0) {
+					auto niid = wg.get_wargoal().get_associated_tag();
+					auto adj = state.world.national_identity_get_adjective(niid);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				} else {
+					auto adj = state.world.nation_get_adjective(primary_defender);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				}
+
+				// TODO: ordinal numbering, 1st, 2nd, 3rd, 4th, etc...
+				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+
+				text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
+
+				text::close_layout_box(contents, box);
+				break;
+			}
+		}
+	}
+};
+
+class war_score_progress_bar : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		if(war) {
+			auto ws = military::primary_warscore(state, war);
+			progress = ws / 200.0f + 0.5f;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		text::add_line(state, contents, "war_score_1", text::variable_type::x, text::fp_one_place{military::primary_warscore_from_occupation(state, war)});
+		text::add_line(state, contents, "war_score_2", text::variable_type::x, text::fp_one_place{military::primary_warscore_from_battles(state, war)});
+		text::add_line(state, contents, "war_score_3", text::variable_type::x, text::fp_one_place{military::primary_warscore_from_war_goals(state, war)});
+	}
+};
+
+struct war_bar_position {
+	ui::xy_pair bottom_left = ui::xy_pair{0,0};
+	int16_t width = 0;
+};
+
+class attacker_peace_goal : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto bar_pos = retrieve<war_bar_position>(state, parent);
+		auto war = retrieve<dcon::war_id>(state, parent);
+
+		auto attacker_cost = std::min(military::attacker_peace_cost(state, war), 100);
+		auto x_pos = int16_t((float(attacker_cost) / 200.0f + 0.5f) * float(bar_pos.width));
+
+		base_data.position.x = int16_t(x_pos + bar_pos.bottom_left.x - base_data.size.x / 2);
+		base_data.position.y = bar_pos.bottom_left.y;
+	}
+};
+
+class defender_peace_goal : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto bar_pos = retrieve<war_bar_position>(state, parent);
+		auto war = retrieve<dcon::war_id>(state, parent);
+
+		auto defender_cost = std::min(military::defender_peace_cost(state, war), 100);
+		auto x_pos = int16_t((float(-defender_cost) / 200.0f + 0.5f) * float(bar_pos.width));
+
+		base_data.position.x = int16_t(x_pos + bar_pos.bottom_left.x - base_data.size.x / 2);
+		base_data.position.y = bar_pos.bottom_left.y;
+	}
+};
+
+class war_bg : public image_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		if(state.world.war_get_is_great(war)) {
+			frame = 2;
+		} else if(state.world.war_get_is_crisis_war(war)) {
+			frame = 1;
+		} else {
+			frame = 0;
+		}
+	}
+};
+
+class war_score_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		if(war) {
+			auto ws = military::primary_warscore(state, war) / 100.0f;
+			set_text(state, text::format_percentage(ws, 0));
+		}
+	}
+};
+
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
 public:
+	war_bar_position bar_position;
+
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		base_data.position.x = base_data.position.y = 0;
@@ -1111,10 +1234,10 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "diplo_war_entrybg") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<war_bg>(state, id);
 		} else if(name == "war_name") {
 			auto ptr = make_element_by_type<war_name_text>(state, id);
-			ptr->base_data.position.x += 90; // Nudge
+			//ptr->base_data.position.x += 90; // Nudge
 			return ptr;
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
@@ -1125,15 +1248,18 @@ public:
 			ptr->base_data.position.y -= 4; // Nudge
 			return ptr;
 		} else if(name == "warscore") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "diplo_war_progress_overlay") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "diplo_warscore_marker1") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<war_score_progress_bar>(state, id);
+			bar_position.width = ptr->base_data.size.x;
+			bar_position.bottom_left = ui::xy_pair{ptr->base_data.position.x, int16_t(ptr->base_data.position.y + ptr->base_data.size.y)};
+			return ptr;
+		} if(name == "diplo_warscore_marker1") {
+			return make_element_by_type<attacker_peace_goal>(state, id);
 		} else if(name == "diplo_warscore_marker2") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<defender_peace_goal>(state, id);
 		} else if(name == "warscore_text") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<war_score_text>(state, id);
+			ptr->base_data.position.y -= 2;
+			return ptr;
 		} else if(name == "attackers") {
 			auto ptr = make_element_by_type<overlapping_attacker_flags>(state, id);
 			ptr->base_data.position.y -= 8 - 2;
@@ -1153,6 +1279,14 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<war_bar_position>()) {
+			payload.emplace<war_bar_position>(bar_position);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<dcon::war_id>::get(state, payload);
 	}
 };
 

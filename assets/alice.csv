@@ -675,4 +675,7 @@ war_goal_4;Secondary target: $x$
 war_goal_5;Ticking war score: $x$
 utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
 utt_noleader;no leader;;;
+war_score_1;From occupation: $x$
+war_score_2;From battles: $x$
+war_score_3;From war goals: $x$
 ;;;;;;;;;;;;;x

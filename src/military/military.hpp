@@ -226,6 +226,9 @@ bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n);
 
 // war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
 float primary_warscore(sys::state& state, dcon::war_id w);
+float primary_warscore_from_occupation(sys::state& state, dcon::war_id w);
+float primary_warscore_from_battles(sys::state& state, dcon::war_id w);
+float primary_warscore_from_war_goals(sys::state& state, dcon::war_id w);
 
 // war score from the perspective of the primary nation offering peace to the secondary nation; 0 to 100
 // DO NOT use this when calculating the overall score of the war or when looking at a peace deal between primary attacker and
@@ -313,6 +316,9 @@ float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type);
 int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
 		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer);
+
+int32_t attacker_peace_cost(sys::state& state, dcon::war_id war);
+int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
 float cb_infamy(sys::state const& state, dcon::cb_type_id t); // the fabrication cost in infamy

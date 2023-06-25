@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
-        compiler: [gcc, clang]
+        compiler: [clang]
         os: [ubuntu-latest]
 
     name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})

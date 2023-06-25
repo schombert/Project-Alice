@@ -1568,6 +1568,29 @@ int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	return total;
 }
 
+int32_t attacker_peace_cost(sys::state& state, dcon::war_id war) {
+	int32_t total = 0;
+	for(auto wg : state.world.war_get_wargoals_attached(war)) {
+		if(is_attacker(state, war, wg.get_wargoal().get_added_by())) {
+			total += peace_cost(state, war, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(),
+					wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(),
+					wg.get_wargoal().get_associated_tag());
+		}
+	}
+	return total;
+}
+int32_t defender_peace_cost(sys::state& state, dcon::war_id war) {
+	int32_t total = 0;
+	for(auto wg : state.world.war_get_wargoals_attached(war)) {
+		if(!is_attacker(state, war, wg.get_wargoal().get_added_by())) {
+			total += peace_cost(state, war, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(),
+					wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(),
+					wg.get_wargoal().get_associated_tag());
+		}
+	}
+	return total;
+}
+
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id t, dcon::nation_id actor) {
 	float total = 0.0f;
 	auto bits = state.world.cb_type_get_type_bits(t);
@@ -3078,6 +3101,13 @@ void update_ticking_war_score(sys::state& state) {
 }
 
 float primary_warscore(sys::state& state, dcon::war_id w) {
+	return std::clamp(
+		primary_warscore_from_occupation(state, w)
+		+ primary_warscore_from_battles(state, w)
+		+ primary_warscore_from_war_goals(state, w), -100.0f, 100.0f);
+}
+
+float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	float total = 0.0f;
 
 	auto pattacker = state.world.war_get_primary_attacker(w);
@@ -3106,6 +3136,15 @@ float primary_warscore(sys::state& state, dcon::war_id w) {
 	if(sum_attacker_prov_values > 0)
 		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
 
+	return total;
+}
+float primary_warscore_from_battles(sys::state& state, dcon::war_id w) {
+	return std::clamp(state.world.war_get_attacker_battle_score(w) - state.world.war_get_defender_battle_score(w),
+			-state.defines.max_warscore_from_battles, state.defines.max_warscore_from_battles);
+}
+float primary_warscore_from_war_goals(sys::state& state, dcon::war_id w) {
+	float total = 0.0f;
+
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		if(is_attacker(state, w, wg.get_wargoal().get_added_by())) {
 			total += wg.get_wargoal().get_ticking_war_score();
@@ -3114,10 +3153,7 @@ float primary_warscore(sys::state& state, dcon::war_id w) {
 		}
 	}
 
-	total += std::clamp(state.world.war_get_attacker_battle_score(w) - state.world.war_get_defender_battle_score(w),
-			-state.defines.max_warscore_from_battles, state.defines.max_warscore_from_battles);
-
-	return std::clamp(total, -100.0f, 100.0f);
+	return total;
 }
 
 float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary) {
