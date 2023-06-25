@@ -18,7 +18,10 @@
 #include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
+#include "gui_naval_combat.hpp"
+#include "gui_land_combat.hpp"
 #include "map_tooltip.hpp"
+#include "unit_tooltip.hpp"
 #include "main_menu/gui_country_selection_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
@@ -162,6 +165,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
+	auto unit_tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
@@ -237,6 +243,20 @@ void state::render() { // called to render the frame may (and should) delay retu
 				new_messages.pop();
 				c6 = new_messages.front();
 			}
+			// Naval Combat Reports
+			auto* c7 = naval_battle_reports.front();
+			while(c7) {
+				if(ui_state.endof_navalcombat_windows.size() == 0) {
+					ui_state.endof_navalcombat_windows.push_back(ui::make_element_by_type<ui::naval_combat_end_popup>(*this,
+								ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition));
+				}
+				//static_cast<ui::naval_combat_window*>(ui_state.navalcombat_windows.back().get())->messages.push_back(*c7);
+				static_cast<ui::naval_combat_end_popup*>(ui_state.endof_navalcombat_windows.back().get())->report = *c7;
+				ui_state.root->add_child_to_front(std::move(ui_state.endof_navalcombat_windows.back()));
+				ui_state.endof_navalcombat_windows.pop_back();
+				naval_battle_reports.pop();
+				c7 = naval_battle_reports.front();
+			}
 		}
 		if(!static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.empty()) {
 			ui_state.major_event_window->set_visible(*this, true);
@@ -283,7 +303,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	
+
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
@@ -324,7 +344,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, true);
 		else
 			ui_state.tooltip->set_visible(*this, false);
-	} 
+	}
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
@@ -403,6 +423,31 @@ void state::render() { // called to render the frame may (and should) delay retu
 				} else {
 					ui_state.tooltip->set_visible(*this, true);
 				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
+		} else {
+			ui_state.tooltip->set_visible(*this, false);
+		}
+	}
+
+	//if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse && unit_tooltip_probe.under_mouse) {
+	if(unit_tooltip_probe.under_mouse) {
+		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
+		if(prov) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+					text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.units_root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+							text::alignment::left, text::text_color::white},
+					20);
+			ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
+			ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
+
+			text::populate_unit_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale), int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
+
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0) {
+				ui_state.tooltip->set_visible(*this, true);
 			} else {
 				ui_state.tooltip->set_visible(*this, false);
 			}
@@ -618,6 +663,26 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::country_selection_window>(*this, "country_selection_panel");
 		new_elm->impl_on_update(*this);
+		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_end_popup>(*this, "endofnavalcombatpopup");
+		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::land_combat_end_popup>(*this, "endoflandcombatpopup");
+		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "naval_combat");
+		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "land_combat");
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
@@ -909,7 +974,7 @@ void state::load_scenario_data() {
 	// 94, 53, 41 --> 89, 202, 202 -- random dots in the sea tiles
 	// 247, 248, 245 -- > 89, 202, 202
 
-	
+
 	if(auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
 			it != context.map_color_to_province_id.end() &&
 			context.map_color_to_province_id.find(sys::pack_color(94, 53, 41)) == context.map_color_to_province_id.end()) {
@@ -920,7 +985,7 @@ void state::load_scenario_data() {
 			context.map_color_to_province_id.find(sys::pack_color(247, 248, 245)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(247, 248, 245), it->second);
 	}
-	
+
 
 	std::thread map_loader([&]() { map_state.load_map_data(context); });
 

@@ -435,6 +435,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_3_0)
 		CT_STRING_ENUM(terrain)
 		CT_STRING_ENUM(wargoal)
+		CT_STRING_ENUM(special)
 	} else if(v.length() == 8) {
 		if(false) { }
 		CT_STRING_ENUM(agressor)
@@ -473,6 +474,8 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(theirnum)
 		CT_STRING_ENUM(totalemi)
 		CT_STRING_ENUM(totalimm)
+		CT_STRING_ENUM(infantry)
+		CT_STRING_ENUM(cavalry)
 	} else if(v.length() == 9) {
 		if(false) { }
 		CT_STRING_ENUM(army_name)
@@ -1063,6 +1066,8 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 		return std::string(buffer);
 	} else if(std::holds_alternative<int_percentage>(sub)) {
 		return std::to_string(std::get<int_percentage>(sub).value) + "%";
+	} else if(std::holds_alternative<int_wholenum>(sub)) {
+		return text::format_wholenum(std::get<int_wholenum>(sub).value);
 	} else if(std::holds_alternative<dcon::text_sequence_id>(sub)) {
 		return produce_simple_string(state, std::get<dcon::text_sequence_id>(sub));
 	} else if(std::holds_alternative<dcon::state_definition_id>(sub)) {

@@ -74,10 +74,17 @@ From here compiling is straightforward
 6. add the following lines:
     ```cpp
         #ifndef GAME_DIR
+        #define NORMAL_MAP      true/false
+        #define NORMAL_GRAPH    true/false
+        #define CLASSIC_FONT    true/false
+        #define CLASSIC_UI      true/false
         #define GAME_DIR "[insert file path here]"
         #endif
+
     ```
-    substitute the value otherwise Alice wont work, if you downloaded it on steam then you can just right click Victoria 2 and browse local files
+    substitute the values as needed, for the booleans, you should set them all to true if you want to have a authentic experience, these settings can be changed in the future from ingame, so dont worry if you misset a settings
+    as for GAME_DIR, you should set this to the folder which contains your Vic2 files, if you had downloaded the game on steam then you can right click Vic2 > Browse Local Files, and that'll give you the correct path
+    on linux its noteworthy that you dont need to put \ before spaces, so if your Linux file path is /home/user/Victoria\ 2/, then you write /home/user/Victoria 2/ in the GAME_DIR (surronded by quotes of course)
     copy the file path and replace [insert file path here] with it, then save.
 7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
 8. `cmake --build . -j$(nproc)`
@@ -101,11 +108,16 @@ Because the project in its current state needs to use the existing game files (a
 That file should contain the following four lines (the last one is an empty line):
 ```cpp
 #ifndef GAME_DIR
+#define NORMAL_MAP      true/false
+#define NORMAL_GRAPH    true/false
+#define CLASSIC_FONT    true/false
+#define CLASSIC_UI      true/false
 #define GAME_DIR "C:\\Your\\Victoria2\\Files"
 #endif
 
 ```
 except replacing that path with your own installation location.
+the booleans can be replaced as wished, for a experience most similar to Vic2, they should all be set to true, the settings can be changed in the future from ingame, this is not permenant
 
 Note that on Windows you need to write `\\` instead of just `\` for each path separator. (Linux does not have this issue, and you can write a single `/`)
 Second note: on Windows, BrickPi has made a change such that, if you have Victoria 2 installed, you may be able to bypass creating `local_user_settings.hpp` completely. You may want to try that first.
