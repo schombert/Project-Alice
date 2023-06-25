@@ -378,6 +378,12 @@ struct state {
 	element_base* national_event_window = nullptr;
 	element_base* provincial_event_window = nullptr;
 
+	element_base* naval_combat_window = nullptr;
+	element_base* army_combat_window = nullptr;
+
+	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
+	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
+
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
 
 	uint16_t tooltip_font = 0;

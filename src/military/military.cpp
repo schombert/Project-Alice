@@ -5698,4 +5698,9 @@ void advance_mobilizations(sys::state& state) {
 	}
 }
 
+bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation) {
+	return (state.world.naval_battle_get_start_date(battle) + days_before_retreat < state.current_date);
+}
+
+
 } // namespace military

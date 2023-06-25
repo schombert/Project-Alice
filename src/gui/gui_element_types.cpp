@@ -461,7 +461,7 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 		}
 	}
 
-	if(state.user_settings.fake_graphs) {
+	if(state.user_settings.normal_graphs) {
 		std::vector<float> fudged_scaled_datapoints = std::vector<float>(count);
 		for(size_t i = 0; i < count / 4; i++) {
 			fudged_scaled_datapoints[i * 4 + 0] = scaled_datapoints[i];

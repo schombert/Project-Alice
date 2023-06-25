@@ -105,6 +105,33 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<message_settings_category>()) {
+			auto content = any_cast<message_settings_category>(payload);
+			active_tab = content;
+			switch(content) {
+				case message_settings_category::all:
+					break;
+				case message_settings_category::combat:
+					break;
+				case message_settings_category::diplomacy:
+					break;
+				case message_settings_category::units:
+					break;
+				case message_settings_category::provinces:
+					break;
+				case message_settings_category::events:
+					break;
+				case message_settings_category::others:
+					break;
+				default:
+					break;
+			};
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 class message_log_text : public multiline_button_element_base {

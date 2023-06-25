@@ -148,21 +148,21 @@ void fonts_mode_display::on_update(sys::state& state) noexcept {
 }
 
 void linegraph_mode_left::button_action(sys::state& state) noexcept {
-	state.user_settings.fake_graphs = !state.user_settings.fake_graphs;
+	state.user_settings.normal_graphs = !state.user_settings.normal_graphs;
 	Cyto::Any payload = notify_setting_update{};
 	if(parent)
 		parent->impl_get(state, payload);
 }
 void linegraph_mode_left::on_update(sys::state& state) noexcept { }
 void linegraph_mode_right::button_action(sys::state& state) noexcept {
-	state.user_settings.fake_graphs = !state.user_settings.fake_graphs;
+	state.user_settings.normal_graphs = !state.user_settings.normal_graphs;
 	Cyto::Any payload = notify_setting_update{};
 	if(parent)
 		parent->impl_get(state, payload);
 }
 void linegraph_mode_right::on_update(sys::state& state) noexcept { }
 void linegraph_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.key_to_text_sequence.find(state.user_settings.fake_graphs ? std::string_view("linegraph_mode_aesthetic")
+	auto it = state.key_to_text_sequence.find(state.user_settings.normal_graphs ? std::string_view("linegraph_mode_aesthetic")
 																																						: std::string_view("linegraph_mode_accurate"));
 	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);

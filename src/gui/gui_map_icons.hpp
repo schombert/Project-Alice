@@ -82,9 +82,19 @@ public:
 				state.ui_state.army_status_window->set_visible(state, false);
 				state.ui_state.navy_status_window->set_visible(state, true);
 
+				state.ui_state.army_combat_window->set_visible(state, false);
+				state.ui_state.naval_combat_window->set_visible(state, true);
+
 				auto nid = state.world.navy_location_get_navy(id);
 				Cyto::Any d_payload = element_selection_wrapper<dcon::navy_id>{nid};
 				state.ui_state.navy_status_window->impl_get(state, d_payload);
+				auto fat = dcon::fatten(state.world, any_cast<element_selection_wrapper<dcon::navy_id>>(d_payload).data);
+				if(!fat.get_battle_from_navy_battle_participation().is_valid()) {
+					state.ui_state.naval_combat_window->set_visible(state, false);
+				} else {
+					state.ui_state.naval_combat_window->impl_get(state, d_payload);
+					state.ui_state.naval_combat_window->impl_on_update(state);
+				}
 			});
 		}
 	}
