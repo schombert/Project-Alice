@@ -1291,7 +1291,7 @@ public:
 					float(report.defender_big_ships + report.defender_small_ships + report.defender_transport_ships), 0));
 		right_total_lost_text->set_text(state, text::format_float(
 					float(report.defender_big_losses + report.defender_small_losses + report.defender_transport_losses), 0));
-		right_total_left_text->set_text(state, text::format_float((
+		right_total_left_text->set_text(state, text::format_float(float(
 					(report.defender_big_ships - report.defender_big_losses) +
 					(report.defender_small_ships - report.defender_small_losses) +
 					(report.defender_transport_ships - report.defender_transport_losses)
