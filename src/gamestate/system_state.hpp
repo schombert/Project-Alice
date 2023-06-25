@@ -31,10 +31,21 @@
 #include "notifications.hpp"
 
 //#include "local_user_settings.hpp"
+#ifndef _WIN64
+
+#define NORMAL_MAP false
+#define NORMAL_GRAPH false
+#define CLASSIC_UI false
+#define CLASSIC_FONT false
+
+#else
+
 #define NORMAL_MAP true
 #define NORMAL_GRAPH true
 #define CLASSIC_UI true
 #define CLASSIC_FONT true
+
+#endif
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
