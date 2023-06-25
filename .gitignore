@@ -12,7 +12,6 @@ mod[s]/
 
 # Generated parsers
 *_generated.hpp
-*/local_user_settings.hpp
 
 DartConfiguration.tcl
 
@@ -26,7 +25,7 @@ DartConfiguration.tcl
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
- 
+
 # Mono auto generated files
 mono_crash.*
 
