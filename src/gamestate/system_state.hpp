@@ -30,21 +30,20 @@
 #include "events.hpp"
 #include "notifications.hpp"
 
-//#include "local_user_settings.hpp"
-#ifndef _WIN64
+#ifndef GLOBE_MAP
+#define GLOBE_MAP true
+#endif
 
-#define NORMAL_MAP false
-#define NORMAL_GRAPH false
-#define CLASSIC_UI false
-#define CLASSIC_FONT false
-
-#else
-
-#define NORMAL_MAP true
+#ifndef NORMAL_GRAPH
 #define NORMAL_GRAPH true
-#define CLASSIC_UI true
-#define CLASSIC_FONT true
+#endif
 
+#ifndef ENHANCED_UI
+#define ENHANCED_UI true
+#endif
+
+#ifndef CLASSIC_FONT
+#define CLASSIC_FONT false
 #endif
 
 // this header will eventually contain the highest-level objects
@@ -64,12 +63,17 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	bool map_is_globe = !NORMAL_MAP;
+	bool map_is_globe = GLOBE_MAP;
 	bool normal_graphs = NORMAL_GRAPH;
-	bool use_new_ui = !CLASSIC_UI;
+	bool use_new_ui = ENHANCED_UI;
 	bool use_classic_fonts = CLASSIC_FONT;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };
+
+#undef GLOBE_MAP
+#undef NORMAL_GRAPH
+#undef ENHANCED_UI
+#undef CLASSIC_FONT
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
 };

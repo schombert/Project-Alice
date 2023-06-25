@@ -137,7 +137,7 @@ int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t bt
 	int bmp_x = x - btmap_x_off;
 	int bmp_y = y - btmap_y_off;
 
-	if((bmp_x < 0) | (bmp_x >= (int32_t)width) | (bmp_y < 0) | (bmp_y >= (int32_t)height))
+	if((bmp_x < 0) || (bmp_x >= (int32_t)width) || (bmp_y < 0) || (bmp_y >= (int32_t)height))
 		return -1;
 	else
 		return bmp_x + bmp_y * (int32_t)pitch;
@@ -346,6 +346,8 @@ void font::make_glyph(char ch_in) {
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		} else {
 			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
 		}
@@ -358,6 +360,7 @@ void font::make_glyph(char ch_in) {
 		auto sub_index = (uint8_t(ch_in) & 63);
 
 		uint8_t pixel_buffer[64 * 64];
+		memset(pixel_buffer, 0, 64 * 64);
 
 		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
@@ -368,7 +371,7 @@ void font::make_glyph(char ch_in) {
 				(-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
 
 		bool in_map[dr_size * dr_size] = {false};
-		float distance_map[dr_size * dr_size];
+		float distance_map[dr_size * dr_size] = {0.0f};
 
 		init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, (uint32_t)bitmap.pitch);
 		dead_reckoning(distance_map, in_map);
@@ -377,9 +380,7 @@ void font::make_glyph(char ch_in) {
 			for(int x = 0; x < 64; ++x) {
 
 				const size_t index = static_cast<size_t>(x + y * 64);
-				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) +
-																									(y * magnification_factor + magnification_factor / 2) * dr_size] /
-																		 static_cast<float>(magnification_factor * 64);
+				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) + (y * magnification_factor + magnification_factor / 2) * dr_size] / static_cast<float>(magnification_factor * 64);
 				int const int_value = static_cast<int>(distance_value * -255.0f + 128.0f);
 				const uint8_t small_value = static_cast<uint8_t>(std::min(255, std::max(0, int_value)));
 
