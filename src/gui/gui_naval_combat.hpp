@@ -451,11 +451,15 @@ public:
 			row_contents.clear();
 
 			for(auto s : fat.get_slots()) {
-				if(attacker == true && (s.flags bitand military::ship_in_battle::is_attacking) != 0) {
-					row_contents.push_back(s);
+				if constexpr(attacker == true) {
+					if(attacker == true && (s.flags bitand military::ship_in_battle::is_attacking) != 0) {
+						row_contents.push_back(s);
+					}
 				} else
-				if(attacker == false && (s.flags bitand military::ship_in_battle::is_attacking) == 0) {
-					row_contents.push_back(s);
+				if constexpr(attacker == false) {
+					if(attacker == false && (s.flags bitand military::ship_in_battle::is_attacking) == 0) {
+						row_contents.push_back(s);
+					}
 				}
 			}
 
@@ -660,9 +664,9 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
-			Cyto::Any payload = dcon::naval_battle_id{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<dcon::naval_battle_id>(payload));
+			Cyto::Any d_payload = dcon::naval_battle_id{};
+			parent->impl_get(state, d_payload);
+			auto fat = dcon::fatten(state.world, any_cast<dcon::naval_battle_id>(d_payload));
 
 			payload.emplace<dcon::nation_id>(fat.get_admiral_from_attacking_admiral().get_nation_from_leader_loyalty().id);
 			return message_result::consumed;
@@ -822,9 +826,9 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
-			Cyto::Any payload = dcon::naval_battle_id{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<dcon::naval_battle_id>(payload));
+			Cyto::Any d_payload = dcon::naval_battle_id{};
+			parent->impl_get(state, d_payload);
+			auto fat = dcon::fatten(state.world, any_cast<dcon::naval_battle_id>(d_payload));
 
 			payload.emplace<dcon::nation_id>(fat.get_admiral_from_defending_admiral().get_nation_from_leader_loyalty().id);
 			return message_result::consumed;
@@ -1264,29 +1268,29 @@ public:
 
 		//============================================================================================
 
-		left_bigship_survivors_text->set_text(state, text::format_float((report.attacker_big_ships - report.attacker_big_losses), 0));
-		left_smallship_survivors_text->set_text(state, text::format_float((report.attacker_small_ships - report.attacker_small_losses), 0));
-		left_transship_survivors_text->set_text(state, text::format_float((report.attacker_transport_ships - report.attacker_transport_losses), 0));
+		left_bigship_survivors_text->set_text(state, text::format_float(float(report.attacker_big_ships - report.attacker_big_losses), 0));
+		left_smallship_survivors_text->set_text(state, text::format_float(float(report.attacker_small_ships - report.attacker_small_losses), 0));
+		left_transship_survivors_text->set_text(state, text::format_float(float(report.attacker_transport_ships - report.attacker_transport_losses), 0));
 
-		right_bigship_survivors_text->set_text(state, text::format_float((report.defender_big_ships - report.defender_big_losses), 0));
-		right_smallship_survivors_text->set_text(state, text::format_float((report.defender_small_ships - report.defender_small_losses), 0));
-		right_transship_survivors_text->set_text(state, text::format_float((report.defender_transport_ships - report.defender_transport_losses), 0));
+		right_bigship_survivors_text->set_text(state, text::format_float(float(report.defender_big_ships - report.defender_big_losses), 0));
+		right_smallship_survivors_text->set_text(state, text::format_float(float(report.defender_small_ships - report.defender_small_losses), 0));
+		right_transship_survivors_text->set_text(state, text::format_float(float(report.defender_transport_ships - report.defender_transport_losses), 0));
 
 		//============================================================================================
 
 		left_total_initial_text->set_text(state, text::format_float(
-					(report.attacker_big_ships + report.attacker_small_ships + report.attacker_transport_ships), 0));
+					float(report.attacker_big_ships + report.attacker_small_ships + report.attacker_transport_ships), 0));
 		left_total_lost_text->set_text(state, text::format_float(
-					(report.attacker_big_losses + report.attacker_small_losses + report.attacker_transport_losses), 0));
-		left_total_left_text->set_text(state, text::format_float((
+					float(report.attacker_big_losses + report.attacker_small_losses + report.attacker_transport_losses), 0));
+		left_total_left_text->set_text(state, text::format_float(float(
 					(report.attacker_big_ships - report.attacker_big_losses) +
 					(report.attacker_small_ships - report.attacker_small_losses) +
 					(report.attacker_transport_ships - report.attacker_transport_losses)
 					), 0));
 		right_total_initial_text->set_text(state, text::format_float(
-					(report.defender_big_ships + report.defender_small_ships + report.defender_transport_ships), 0));
+					float(report.defender_big_ships + report.defender_small_ships + report.defender_transport_ships), 0));
 		right_total_lost_text->set_text(state, text::format_float(
-					(report.defender_big_losses + report.defender_small_losses + report.defender_transport_losses), 0));
+					float(report.defender_big_losses + report.defender_small_losses + report.defender_transport_losses), 0));
 		right_total_left_text->set_text(state, text::format_float((
 					(report.defender_big_ships - report.defender_big_losses) +
 					(report.defender_small_ships - report.defender_small_losses) +
