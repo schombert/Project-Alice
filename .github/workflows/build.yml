@@ -27,13 +27,13 @@ jobs:
 
     - name: Add dummy local_user_settings.hpp
       run: |
-        echo "#ifndef GAME_DIR\n
-                #define CLASSIC_FONT true\n
-                #define CLASSIC_UI true\n
-                #define NORMAL_MAP true\n
-                #define NORMAL_GRAPH true\n
-                #define GAME_DIR ""\n
-                #endif\n" >> src/local_user_settings.hpp
+        echo "#ifndef GAME_DIR \n
+                #define CLASSIC_FONT true \n
+                #define CLASSIC_UI true \n
+                #define NORMAL_MAP true \n
+                #define NORMAL_GRAPH true \n
+                #define GAME_DIR "" \n
+                #endif \n" >> src/local_user_settings.hpp
 
     - name: Set compiler
       run: |
@@ -61,13 +61,13 @@ jobs:
 
     - name: Add dummy local_user_settings.hpp
       run: |
-        echo "#ifndef GAME_DIR\n
-                #define CLASSIC_FONT true\n
-                #define CLASSIC_UI true\n
-                #define NORMAL_MAP true\n
-                #define NORMAL_GRAPH true\n
-                #define GAME_DIR ""\n
-                #endif\n" >> src/local_user_settings.hpp
+        echo "#ifndef GAME_DIR \r\n
+                #define CLASSIC_FONT true \r\n
+                #define CLASSIC_UI true \r\n
+                #define NORMAL_MAP true \r\n
+                #define NORMAL_GRAPH true \r\n
+                #define GAME_DIR "" \r\n
+                #endif \r\n" >> src/local_user_settings.hpp
 
     - name: Configure Build Files
       run: |
