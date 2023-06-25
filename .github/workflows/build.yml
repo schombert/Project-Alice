@@ -27,8 +27,7 @@ jobs:
 
     - name: Add dummy local_user_settings.hpp
       run: |
-        touch src/local_user_settings.hpp
-        && echo "#ifndef GAME_DIR\n
+        echo "#ifndef GAME_DIR\n
                 #define CLASSIC_FONT true\n
                 #define CLASSIC_UI true\n
                 #define NORMAL_MAP true\n
