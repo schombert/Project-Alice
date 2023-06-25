@@ -32,8 +32,8 @@ jobs:
                 #define CLASSIC_UI true\n
                 #define NORMAL_MAP true\n
                 #define NORMAL_GRAPH true\n
-                #define GAME_DIR ""
-                #endif" >> src/local_user_settings.hpp
+                #define GAME_DIR ""\n
+                #endif\n" >> src/local_user_settings.hpp
 
     - name: Set compiler
       run: |
@@ -66,8 +66,8 @@ jobs:
                 #define CLASSIC_UI true\n
                 #define NORMAL_MAP true\n
                 #define NORMAL_GRAPH true\n
-                #define GAME_DIR ""
-                #endif" >> src/local_user_settings.hpp
+                #define GAME_DIR ""\n
+                #endif\n" >> src/local_user_settings.hpp
 
     - name: Configure Build Files
       run: |
