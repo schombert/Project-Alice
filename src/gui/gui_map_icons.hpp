@@ -159,7 +159,7 @@ public:
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;
-		auto new_position = xy_pair{int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 40)};
+		auto new_position = xy_pair{int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 20)};
 		window_element_base::base_data.position = new_position;
 		window_element_base::impl_render(state, new_position.x, new_position.y);
 	}

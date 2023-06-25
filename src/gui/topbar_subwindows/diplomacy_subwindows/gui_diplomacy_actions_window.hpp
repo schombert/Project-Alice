@@ -1264,7 +1264,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto contents = text::create_endless_layout(internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white});
+						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false});
 		auto box = text::open_layout_box(contents);
 		text::localised_format_box(state, contents, box, get_title_key(content));
 		text::close_layout_box(contents, box);

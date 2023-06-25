@@ -222,6 +222,7 @@ bool is_civil_war(sys::state const& state, dcon::war_id w);
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
 bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w);
 bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::war_id w);
+bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n);
 
 // war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
 float primary_warscore(sys::state& state, dcon::war_id w);

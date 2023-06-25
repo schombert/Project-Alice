@@ -432,7 +432,7 @@ public:
 				uint32_t totalpops = 0;
 				for(auto n : fat.get_army_membership()) {
 					dcon::unit_type_id utid = n.get_regiment().get_type();
-					auto result = state.military_definitions.unit_base_definitions[utid].type;
+					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
 					if constexpr(N == 0) {
 						if(result == military::unit_type::infantry) {
 							totalunits++;
@@ -457,7 +457,7 @@ public:
 				uint16_t total = 0;
 				for(auto n : fat.get_navy_membership()) {
 					dcon::unit_type_id utid = n.get_ship().get_type();
-					auto result = state.military_definitions.unit_base_definitions[utid].type;
+					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
 					if constexpr(N == 0) {
 						if(result == military::unit_type::big_ship) {
 							total++;
@@ -501,7 +501,10 @@ public:
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
 			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
-			set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			if(utid)
+				set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			else
+				set_text(state, "");
 		}
 	}
 };
@@ -515,7 +518,8 @@ public:
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
 			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
-			frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+			if(utid)
+				frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
 		}
 	}
 };

@@ -141,8 +141,7 @@ public:
 			auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
 			auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
 					text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
-							multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
-							text::alignment::left, color});
+							multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, color, false});
 			auto fat_id = dcon::fatten(state.world, content);
 			auto box = text::open_layout_box(container);
 			text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
@@ -184,7 +183,7 @@ public:
 				text::layout_parameters{
 					0, 0, base_data.size.x, base_data.size.y,
 					base_data.data.text.font_handle, 0,
-					text::alignment::left, color});
+					text::alignment::left, color, false});
 			populate_layout(state, container, content);
 		}
 	}
@@ -289,8 +288,7 @@ public:
 
 			auto color = black_text ? text::text_color::black : text::text_color::white;
 			auto container =
-					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y,
-																													 base_data.data.text.font_handle, 0, text::alignment::left, color});
+					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
 			populate_layout(state, container, content);
 		}
 	}
@@ -1524,7 +1522,7 @@ public:
 			// Create colour
 			auto contents = text::create_endless_layout(internal_layout,
 					text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-							base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+							base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true});
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, text,
 					is_positive ? text::text_color::dark_green : text::text_color::dark_red);

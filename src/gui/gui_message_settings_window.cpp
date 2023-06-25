@@ -12,7 +12,7 @@ void message_log_text::on_update(sys::state& state) noexcept {
 			auto m = messages[index];
 			auto container = text::create_endless_layout(internal_layout,
 					text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0,
-							text::alignment::left, text::text_color::white});
+							text::alignment::left, text::text_color::white, false});
 			m.title(state, container);
 		}
 	}

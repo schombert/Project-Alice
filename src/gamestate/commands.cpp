@@ -3700,7 +3700,7 @@ void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::
 	auto discard = state.incoming_commands.try_push(p);
 }
 bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	if(state.world.naval_battle_get_start_date(b) + military::days_before_retreat < state.current_date)
+	if(state.current_date < state.world.naval_battle_get_start_date(b) + military::days_before_retreat)
 		return false;
 	if(source != military::get_naval_battle_lead_attacker(state, b) && source != military::get_naval_battle_lead_defender(state, b))
 		return false;
@@ -3708,7 +3708,7 @@ bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dc
 	return true;
 }
 void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	if(state.world.naval_battle_get_start_date(b) + military::days_before_retreat < state.current_date)
+	if(state.current_date < state.world.naval_battle_get_start_date(b) + military::days_before_retreat)
 		return;
 
 	if(source == military::get_naval_battle_lead_attacker(state, b)) {

@@ -21,7 +21,7 @@ class player_investement_text : public multiline_text_element_base {
 		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
 				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
 						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
-						text::alignment::left, text::text_color::black});
+						text::alignment::left, text::text_color::black, true});
 
 		text::add_line(state, container, "production_our_invest", text::variable_type::amount, text::pretty_integer{int64_t(player_investment)}, text::variable_type::percentage, text::fp_one_place{total_investment > 0 ? 100.0f * player_investment / total_investment : 0.0f});
 	}

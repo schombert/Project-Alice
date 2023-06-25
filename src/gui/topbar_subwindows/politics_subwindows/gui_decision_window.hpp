@@ -146,7 +146,7 @@ public:
 		}
 		auto container = text::create_endless_layout(delegate->internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}

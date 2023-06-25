@@ -571,6 +571,7 @@ struct layout_parameters {
 	int16_t leading = 0;
 	alignment align = alignment::left;
 	text_color color = text_color::white;
+	bool suppress_hyperlinks = false;
 };
 struct layout {
 	std::vector<text_chunk> contents;

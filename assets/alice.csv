@@ -655,7 +655,7 @@ intervene_1;Intervene in war
 intervene_2;Intervene in great war
 intervene_3;Is a great power
 intervene_4;Is not involved in a crisis
-intervene_5;Is has been at least $x$ month(s) since the war started
+intervene_5;It has been at least $x$ month(s) since the war started
 intervene_6;Joining the war would not place you at war against the same nation twice or both fighting with and against the same nation
 intervene_7;Is not a crisis war
 intervene_8;Joining would break a truce
@@ -668,4 +668,11 @@ intervene_14;None of your sphere members are on the opposing side
 intervene_15;None of your allies are on the opposing side
 intervene_16;None of your armies are located in provinces owned by the opposing side
 intervene_17;Primary defender has a friendly opinion of you
+war_goal_1;Added by: $x$
+war_goal_2;Targeting: $x$
+war_goal_3;For state: $x$
+war_goal_4;Secondary target: $x$
+war_goal_5;Ticking war score: $x$
+utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
+utt_noleader;no leader;;;
 ;;;;;;;;;;;;;x

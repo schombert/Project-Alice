@@ -178,11 +178,11 @@ public:
 
 			auto title_container = text::create_endless_layout(title_text->internal_layout,
 					text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y,
-							title_text->base_data.data.text.font_handle, -6, text::alignment::center, text::text_color::black});
+							title_text->base_data.data.text.font_handle, -6, text::alignment::center, text::text_color::black, false});
 			m.title(state, title_container);
 			auto desc_container = text::create_endless_layout(desc_text->delegate->internal_layout,
 					text::layout_parameters{0, 0, desc_text->base_data.size.x, desc_text->base_data.size.y,
-							desc_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white});
+							desc_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white, false});
 			m.body(state, desc_container);
 		}
 	}

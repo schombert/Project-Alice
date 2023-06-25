@@ -917,7 +917,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	auto tmp_color = color;
 
-	if(state.user_settings.use_new_ui &&
+	if(state.user_settings.use_new_ui && !dest.fixed_parameters.suppress_hyperlinks &&
 			(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
 					std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
 		if(color != text_color::black) {
@@ -949,7 +949,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.x_position + extent >= dest.fixed_parameters.right) {
 			// the current word is too long for the text box, just let it overflow
 			dest.base_layout.contents.push_back(
-					text_chunk{std::string(segment), box.x_position, state.user_settings.use_new_ui ? source : std::monostate{},
+					text_chunk{std::string(segment), box.x_position, (state.user_settings.use_new_ui && !dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 							int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -965,7 +965,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				float prev_extent = state.font_collection.text_extent(state, txt.data() + start_position,
 						uint32_t(end_position - start_position), dest.fixed_parameters.font_id);
 				dest.base_layout.contents.push_back(
-						text_chunk{std::string(section), box.x_position, state.user_settings.use_new_ui ? source : std::monostate{},
+						text_chunk{std::string(section), box.x_position, (state.user_settings.use_new_ui  && !dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 								int16_t(box.y_position), int16_t(prev_extent), int16_t(text_height), tmp_color});
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -984,7 +984,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					state.font_collection.text_extent(state, remainder.data(), uint32_t(remainder.length()), dest.fixed_parameters.font_id);
 
 			dest.base_layout.contents.push_back(
-					text_chunk{std::string(remainder), box.x_position, state.user_settings.use_new_ui ? source : std::monostate{},
+					text_chunk{std::string(remainder), box.x_position, (state.user_settings.use_new_ui && !dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 							int16_t(box.y_position), int16_t(rem_extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);

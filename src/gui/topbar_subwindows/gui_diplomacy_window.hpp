@@ -519,7 +519,7 @@ protected:
 	}
 };
 
-class wargoal_icon : public image_element_base {
+class cb_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<military::available_cb>(state, parent);
@@ -540,18 +540,18 @@ public:
 	}
 };
 
-class overlapping_wargoal_icon : public listbox_row_element_base<military::available_cb> {
+class overlapping_cb_icon : public listbox_row_element_base<military::available_cb> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {
-			return make_element_by_type<wargoal_icon>(state, id);
+			return make_element_by_type<cb_icon>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 };
 
-class overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, military::available_cb> {
+class overlapping_wargoals : public overlapping_listbox_element_base<overlapping_cb_icon, military::available_cb> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal";
@@ -1035,8 +1035,52 @@ public:
 	}
 };
 
+class wargoal_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto wg = retrieve<dcon::wargoal_id>(state, parent);
+		frame = state.world.cb_type_get_sprite_index(state.world.wargoal_get_type(wg)) - 1;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto wg = retrieve<dcon::wargoal_id>(state, parent);
+		auto cb = state.world.wargoal_get_type(wg);
+		text::add_line(state, contents, state.world.cb_type_get_name(cb));
+
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "war_goal_1", text::variable_type::x, state.world.wargoal_get_added_by(wg));
+		text::add_line(state, contents, "war_goal_2", text::variable_type::x, state.world.wargoal_get_target_nation(wg));
+		if(state.world.wargoal_get_associated_state(wg)) {
+			text::add_line(state, contents, "war_goal_3", text::variable_type::x, state.world.wargoal_get_associated_state(wg));
+		}
+		if(state.world.wargoal_get_associated_tag(wg)) {
+			text::add_line(state, contents, "war_goal_4", text::variable_type::x, state.world.wargoal_get_associated_tag(wg));
+		} else if(state.world.wargoal_get_secondary_nation(wg)) {
+			text::add_line(state, contents, "war_goal_4", text::variable_type::x, state.world.wargoal_get_secondary_nation(wg));
+		}
+		if(state.world.wargoal_get_ticking_war_score(wg) != 0) {
+			text::add_line(state, contents, "war_goal_5", text::variable_type::x, text::fp_one_place{state.world.wargoal_get_ticking_war_score(wg)});
+		}
+	}
+};
+
+class overlapping_wargoal_icon : public listbox_row_element_base<dcon::wargoal_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<wargoal_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 template<bool B>
-class diplomacy_war_overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::cb_type_id> {
+class diplomacy_war_overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::wargoal_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal";
@@ -1045,15 +1089,13 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			dcon::war_id content = any_cast<dcon::war_id>(payload);
-			for(auto wg : state.world.war_get_wargoals_attached(content))
-				for(auto o : dcon::fatten(state.world, content).get_war_participant())
-					if(wg.get_wargoal().get_added_by() == o.get_nation() && o.get_is_attacker() == B)
-						row_contents.push_back(wg.get_wargoal().get_type());
+
+		dcon::war_id content = retrieve<dcon::war_id>(state, parent);
+		for(auto wg : state.world.war_get_wargoals_attached(content)) {
+			if(military::is_attacker(state, content, wg.get_wargoal().get_added_by()) == B)
+				row_contents.push_back(wg.get_wargoal().id);
 		}
+
 		update(state);
 	}
 };

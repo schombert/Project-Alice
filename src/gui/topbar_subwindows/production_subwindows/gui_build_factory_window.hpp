@@ -278,8 +278,7 @@ public:
 			auto fat = dcon::fatten(state.world, content);
 
 			auto layout = text::create_endless_layout(internal_layout,
-					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0,
-							text::alignment::left, text::text_color::black});
+					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 			auto box = text::open_layout_box(layout, 0);
 			text::add_to_layout_box(state, layout, box, fat.get_description());
 			text::close_layout_box(layout, box);
