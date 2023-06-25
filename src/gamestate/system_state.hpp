@@ -30,7 +30,11 @@
 #include "events.hpp"
 #include "notifications.hpp"
 
-#include "local_user_settings.hpp"
+//#include "local_user_settings.hpp"
+#define NORMAL_MAP true
+#define NORMAL_GRAPH true
+#define CLASSIC_UI true
+#define CLASSIC_FONT true
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
