@@ -435,6 +435,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_3_0)
 		CT_STRING_ENUM(terrain)
 		CT_STRING_ENUM(wargoal)
+		CT_STRING_ENUM(cavalry)
 		CT_STRING_ENUM(special)
 	} else if(v.length() == 8) {
 		if(false) { }
@@ -475,7 +476,6 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(totalemi)
 		CT_STRING_ENUM(totalimm)
 		CT_STRING_ENUM(infantry)
-		CT_STRING_ENUM(cavalry)
 	} else if(v.length() == 9) {
 		if(false) { }
 		CT_STRING_ENUM(army_name)
