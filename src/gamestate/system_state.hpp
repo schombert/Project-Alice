@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 
+
 #include "window.hpp"
 #include "constants.hpp"
 #include "dcon_generated.hpp"
@@ -29,6 +30,23 @@
 #include "events.hpp"
 #include "notifications.hpp"
 
+//#include "local_user_settings.hpp"
+#ifndef _WIN64
+
+#define NORMAL_MAP false
+#define NORMAL_GRAPH false
+#define CLASSIC_UI false
+#define CLASSIC_FONT false
+
+#else
+
+#define NORMAL_MAP true
+#define NORMAL_GRAPH true
+#define CLASSIC_UI true
+#define CLASSIC_FONT true
+
+#endif
+
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
 // it will also include the game state itself eventually as a member
@@ -46,10 +64,10 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	bool map_is_globe = true;
-	bool fake_graphs = false;
-	bool use_new_ui = true;
-	bool use_classic_fonts = false;
+	bool map_is_globe = !NORMAL_MAP;
+	bool normal_graphs = NORMAL_GRAPH;
+	bool use_new_ui = !CLASSIC_UI;
+	bool use_classic_fonts = CLASSIC_FONT;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };
 

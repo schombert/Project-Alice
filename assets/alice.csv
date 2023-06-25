@@ -668,4 +668,5 @@ intervene_14;None of your sphere members are on the opposing side
 intervene_15;None of your allies are on the opposing side
 intervene_16;None of your armies are located in provinces owned by the opposing side
 intervene_17;Primary defender has a friendly opinion of you
-;;;;;;;;;;;;;x
+utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
+utt_noleader;no leader;;;

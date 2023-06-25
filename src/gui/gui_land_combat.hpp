@@ -104,6 +104,11 @@ class land_combat_window : public window_element_base {
 	image_element_base* land_combat_may_retreat = nullptr;
 
 public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		state.ui_state.army_combat_window = this;
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "combat_bg") {
 			return make_element_by_type<image_element_base>(state, id);

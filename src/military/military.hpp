@@ -370,4 +370,6 @@ void recover_org(sys::state& state);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
 
+bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation);
+
 } // namespace military

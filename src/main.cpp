@@ -49,6 +49,7 @@
 #include "diplomatic_messages.cpp"
 #include "notifications.cpp"
 #include "map_tooltip.cpp"
+#include "unit_tooltip.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
