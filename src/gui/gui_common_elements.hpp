@@ -194,9 +194,15 @@ public:
 			auto container = text::create_endless_layout(
 				internal_layout,
 				text::layout_parameters{
-					border.x, border.y, base_data.size.x - border.x * 2, base_data.size.y - border.y * 2,
-					base_data.data.text.font_handle, 0,
-					align, color, false});
+					border.x,
+					border.y,
+					int16_t(base_data.size.x - border.x * 2),
+					int16_t(base_data.size.y - border.y * 2),
+					base_data.data.text.font_handle,
+					0,
+					align,
+					color,
+					false});
 			populate_layout(state, container, content);
 		}
 	}
