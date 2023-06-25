@@ -74,13 +74,18 @@ From here compiling is straightforward
 6. add the following lines:
     ```cpp
         #ifndef GAME_DIR
-        #define NORMAL_MAP      true/false
-        #define NORMAL_GRAPH    true/false
-        #define CLASSIC_FONT    true/false
-        #define CLASSIC_UI      true/false
         #define GAME_DIR "[insert file path here]"
         #endif
 
+    ```
+    And for src/special_define.hpp
+    ```cpp
+    #ifndef CLASSIC_UI
+    #define NORMAL_MAP      true/false
+    #define NORMAL_GRAPH    true/false
+    #define CLASSIC_FONT    true/false
+    #define CLASSIC_UI      true/false
+    #endif
     ```
     substitute the values as needed, for the booleans, you should set them all to true if you want to have a authentic experience, these settings can be changed in the future from ingame, so dont worry if you misset a settings
     as for GAME_DIR, you should set this to the folder which contains your Vic2 files, if you had downloaded the game on steam then you can right click Vic2 > Browse Local Files, and that'll give you the correct path
@@ -108,13 +113,18 @@ Because the project in its current state needs to use the existing game files (a
 That file should contain the following four lines (the last one is an empty line):
 ```cpp
 #ifndef GAME_DIR
+#define GAME_DIR "C:\\Your\\Victoria2\\Files"
+#endif
+
+```
+And for src/special_define.hpp
+```cpp
+#ifndef CLASSIC_UI
 #define NORMAL_MAP      true/false
 #define NORMAL_GRAPH    true/false
 #define CLASSIC_FONT    true/false
 #define CLASSIC_UI      true/false
-#define GAME_DIR "C:\\Your\\Victoria2\\Files"
 #endif
-
 ```
 except replacing that path with your own installation location.
 the booleans can be replaced as wished, for a experience most similar to Vic2, they should all be set to true, the settings can be changed in the future from ingame, this is not permenant
