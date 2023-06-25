@@ -30,7 +30,7 @@
 #include "events.hpp"
 #include "notifications.hpp"
 
-#include "special_define.hpp"
+#include "local_user_settings.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program

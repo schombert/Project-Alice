@@ -25,6 +25,17 @@ jobs:
         packages: libgl1-mesa-dev xorg-dev
         version: 1.0
 
+    - name: Add dummy local_user_settings.hpp
+      run: |
+        touch src/local_user_settings.hpp
+        && echo "#ifndef GAME_DIR\n
+                #define CLASSIC_FONT true\n
+                #define CLASSIC_UI true\n
+                #define NORMAL_MAP true\n
+                #define NORMAL_GRAPH true\n
+                #define GAME_DIR ""
+                #endif" >> src/local_user_settings.hpp
+
     - name: Set compiler
       run: |
         echo "CC=${{ matrix.compiler == 'gcc' && 'gcc' || 'clang'   }}" >> $GITHUB_ENV
@@ -48,6 +59,16 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
+
+    - name: Add dummy local_user_settings.hpp
+      run: |
+        echo "#ifndef GAME_DIR\n
+                #define CLASSIC_FONT true\n
+                #define CLASSIC_UI true\n
+                #define NORMAL_MAP true\n
+                #define NORMAL_GRAPH true\n
+                #define GAME_DIR ""
+                #endif" >> src/local_user_settings.hpp
 
     - name: Configure Build Files
       run: |
