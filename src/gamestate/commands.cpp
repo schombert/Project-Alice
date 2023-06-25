@@ -1610,6 +1610,13 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 			return false;
 		if(military::defenders_have_non_status_quo_wargoal(state, w))
 			return false;
+
+		auto defender = state.world.war_get_primary_defender(w);
+		auto rel_w_defender = state.world.get_gp_relationship_by_gp_influence_pair(defender, source);
+		auto inf = state.world.gp_relationship_get_status(rel_w_defender) & nations::influence::level_mask;
+		if(inf != nations::influence::level_friendly)
+			return false;
+
 		if(military::primary_warscore(state, w) < -state.defines.min_warscore_to_intervene)
 			return false;
 	} else {
@@ -1647,7 +1654,7 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 			}
 		}
 	}
-	return false;
+	return true;
 }
 void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
 	if(!can_intervene_in_war(state, source, w, for_attacker))
@@ -2641,6 +2648,14 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 
 	if(!target_in_war)
 		return false;
+
+	// prevent duplicate war goals
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if(wg.get_wargoal().get_added_by() == source && wg.get_wargoal().get_type() == cb_type && wg.get_wargoal().get_associated_state() == cb_state && wg.get_wargoal().get_associated_tag() == cb_tag && wg.get_wargoal().get_secondary_nation() == cb_secondary_nation && wg.get_wargoal().get_target_nation() == target) {
+
+			return false;
+		}
+	}
 
 	if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
 		bool cb_fabbed = false;

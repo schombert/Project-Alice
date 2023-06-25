@@ -1167,19 +1167,33 @@ void overlapping_enemy_flags::populate_flags(sys::state& state) {
 	}
 }
 
-void overlapping_truce_flags::populate_flags(sys::state& state) {
-	if(bool(current_nation)) {
-		row_contents.clear();
-		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
-			if(rel.get_truce_until()) {
-				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
-				auto fat_id = dcon::fatten(state.world, nat_id);
-				row_contents.push_back(fat_id.get_identity_from_identity_holder().id);
-			}
-		}
-		update(state);
-	}
+
+std::string_view overlapping_truce_flags::get_row_element_name() {
+	return "flag_list_flag";
 }
+
+void overlapping_truce_flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, "trucewith", text::variable_type::list, n);
+	text::add_line(state, contents, "until_date", text::variable_type::x, until);
+}
+
+void overlapping_truce_flags::update_subwindow(sys::state& state, overlapping_truce_flag_button& subwindow, truce_pair content) {
+	subwindow.upate_truce(state, content.n, content.until);
+}
+
+void overlapping_truce_flags::on_update(sys::state& state) noexcept {
+	current_nation = retrieve<dcon::nation_id>(state, parent);
+
+	row_contents.clear();
+	for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+		if(rel.get_truce_until() && rel.get_truce_until() <= state.current_date) {
+			auto other = rel.get_related_nations(0) != current_nation ? rel.get_related_nations(0) : rel.get_related_nations(1);
+			row_contents.push_back(truce_pair{other, rel.get_truce_until()});
+		}
+	}
+	update(state);
+}
+
 
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
 	if(parent) {

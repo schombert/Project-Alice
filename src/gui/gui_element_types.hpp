@@ -361,6 +361,7 @@ protected:
 	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) {
 		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
 		subwindow.impl_get(state, payload);
+		subwindow.impl_on_update(state);
 	}
 
 public:
@@ -434,9 +435,33 @@ protected:
 	void populate_flags(sys::state& state) override;
 };
 
-class overlapping_truce_flags : public overlapping_flags_box {
-protected:
-	void populate_flags(sys::state& state) override;
+
+class overlapping_truce_flag_button : public flag_button {
+public:
+	dcon::nation_id n;
+	sys::date until;
+
+	void upate_truce(sys::state& state, dcon::nation_id i, sys::date u) {
+		n = i;
+		until = u;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+
+struct truce_pair {
+	dcon::nation_id n;
+	sys::date until;
+};
+
+class overlapping_truce_flags : public overlapping_listbox_element_base<overlapping_truce_flag_button, truce_pair> {
+public:
+	dcon::nation_id current_nation{};
+	std::string_view get_row_element_name() override;
+	void update_subwindow(sys::state& state, overlapping_truce_flag_button& subwindow, truce_pair content) override;
+	void on_update(sys::state& state) noexcept override;
 };
 
 template<class TabT>

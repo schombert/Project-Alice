@@ -646,4 +646,26 @@ influence_explain_15;$x$ from our relationship
 influence_explain_16;$x$ from our investment in the nation
 influence_explain_17;$x$ from the size of the target nation
 influence_explain_18;$x$ from our relative score
+until_date;Until $x$
+add_wg_1;Cannot add a war goal against yourself
+add_wg_2;Must be at war to add an additional war goal
+add_wg_3;Must have at least $x$ diplomatic point(s) to add a war goal
+add_wg_4;Current jingoism support ($x$) is less than the support required to add a war goal ($y$)
+intervene_1;Intervene in war
+intervene_2;Intervene in great war
+intervene_3;Is a great power
+intervene_4;Is not involved in a crisis
+intervene_5;Is has been at least $x$ month(s) since the war started
+intervene_6;Joining the war would not place you at war against the same nation twice or both fighting with and against the same nation
+intervene_7;Is not a crisis war
+intervene_8;Joining would break a truce
+intervene_9;Is supporting the defender
+intervene_10;Defenders have no war goals other than status quo
+intervene_11;Attacker's war score is at least $x$
+intervene_12;War exhaustion is less than $x$
+intervene_13;Relations with the war leader are at least $x$
+intervene_14;None of your sphere members are on the opposing side
+intervene_15;None of your allies are on the opposing side
+intervene_16;None of your armies are located in provinces owned by the opposing side
+intervene_17;Primary defender has a friendly opinion of you
 ;;;;;;;;;;;;;x
