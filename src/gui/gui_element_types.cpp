@@ -1098,23 +1098,39 @@ void overlapping_flags_box::on_update(sys::state& state) noexcept {
 	}
 }
 
+void overlapping_friendly_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		row_contents.clear();
+		for(auto it : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
+			if((it.get_status() & nations::influence::level_mask) == nations::influence::level_friendly) {
+				row_contents.push_back(it.get_influence_target().get_identity_from_identity_holder());
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_cordial_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		row_contents.clear();
+		for(auto it : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
+			if((it.get_status() & nations::influence::level_mask) == nations::influence::level_cordial) {
+				row_contents.push_back(it.get_influence_target().get_identity_from_identity_holder());
+			}
+		}
+		update(state);
+	}
+}
+
 void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
 		row_contents.clear();
-		int32_t sphereling_count =
-				0; // this is a hack that's only getting used because checking if a nation is a GP doesn't work yet.
-		state.world.for_each_nation([&](dcon::nation_id other) {
-			auto other_fat = dcon::fatten(state.world, other);
-			if(other_fat.get_in_sphere_of().id == current_nation) {
-				row_contents.push_back(other_fat.get_identity_from_identity_holder().id);
-				sphereling_count++;
-			}
-		});
-		if(sphereling_count <= 0) {
-			auto fat_id = dcon::fatten(state.world, current_nation);
-			auto sphere_lord = fat_id.get_in_sphere_of();
-			if(sphere_lord.id) {
-				row_contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
+		if(state.world.nation_get_in_sphere_of(current_nation)) {
+			row_contents.push_back(state.world.nation_get_in_sphere_of(current_nation).get_identity_from_identity_holder());
+		}
+		for(auto it : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
+			if((it.get_status() & nations::influence::level_mask) == nations::influence::level_in_sphere) {
+				row_contents.push_back(it.get_influence_target().get_identity_from_identity_holder());
 			}
 		}
 		update(state);

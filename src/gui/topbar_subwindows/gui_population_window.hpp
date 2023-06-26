@@ -3410,8 +3410,6 @@ public:
 			populate_left_side_list(state);
 			left_side_listbox->update(state);
 		}
-		for(auto& e : dist_windows)
-			e->impl_on_update(state);
 		window_element_base::on_update(state);
 	}
 

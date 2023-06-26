@@ -136,6 +136,13 @@ struct available_cb {
 	dcon::cb_type_id cb_type;
 };
 
+struct wg_summary {
+	dcon::nation_id secondary_nation;
+	dcon::national_identity_id wg_tag;
+	dcon::state_definition_id state;
+	dcon::cb_type_id cb;
+};
+
 struct naval_battle_report {
 	float warscore_effect = 0.0f;
 	float prestige_effect = 0.0f;

@@ -678,4 +678,6 @@ utt_noleader;no leader;;;
 war_score_1;From occupation: $x$
 war_score_2;From battles: $x$
 war_score_3;From war goals: $x$
+dp_inf_tooltip_ban;Embassy banned until $x$
+dp_inf_tooltip_discredit;Discredited until $x$
 ;;;;;;;;;;;;;x

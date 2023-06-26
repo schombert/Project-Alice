@@ -420,6 +420,16 @@ protected:
 	void populate_flags(sys::state& state) override;
 };
 
+class overlapping_friendly_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
+};
+
+class overlapping_cordial_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
+};
+
 class overlapping_puppet_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override;
