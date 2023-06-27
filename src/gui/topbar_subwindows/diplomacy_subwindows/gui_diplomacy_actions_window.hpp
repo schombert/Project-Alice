@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "military.hpp"
 
 namespace ui {
 
@@ -530,35 +531,54 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		auto content = retrieve<dcon::nation_id>(state, parent);
 
-			disabled = true;
-			auto fat = dcon::fatten(state.world, content);
-			for(auto war_par : fat.get_war_participant()) {
-				if(command::can_call_to_arms(state, state.local_player_nation, content,
-							 dcon::fatten(state.world, war_par).get_war().id)) {
+		disabled = true;
+		auto fat = dcon::fatten(state.world, content);
+		for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
+			if(command::can_call_to_arms(state, state.local_player_nation, content, war_par.get_war())) {
+
+				if(!state.world.nation_get_is_player_controlled(content)) {
+					diplomatic_message::message m;
+					m.type = diplomatic_message::type::call_ally_request;
+					m.from = state.local_player_nation;
+					m.to = content;
+					m.data.war = war_par.get_war();
+					if(diplomatic_message::ai_will_accept(state, m)) {
+						disabled = false;
+						break;
+					}
+				} else {
 					disabled = false;
 					break;
 				}
 			}
-
-			// TODO: Conditions for enabling/disabling
-			/*
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
-			else {
-				auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, content);
-				disabled = !state.world.diplomatic_relation_get_are_allied(drid);
-			}*/
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			auto asker = state.local_player_nation;
+			auto target = retrieve<dcon::nation_id>(state, parent);
+
+			for(auto war_par : state.world.nation_get_war_participant(asker)) {
+				if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
+
+					if(!state.world.nation_get_is_player_controlled(target)) {
+						diplomatic_message::message m;
+						m.type = diplomatic_message::type::call_ally_request;
+						m.from = state.local_player_nation;
+						m.to = target;
+						m.data.war = war_par.get_war();
+						if(diplomatic_message::ai_will_accept(state, m)) {
+							command::call_to_arms(state, asker, target, war_par.get_war());
+						}
+					} else {
+						command::call_to_arms(state, asker, target, war_par.get_war());
+					}
+				}
+			}
+		} else if(parent) {
 			Cyto::Any payload = diplomacy_action::call_ally;
 			parent->impl_get(state, payload);
 		}
@@ -569,7 +589,44 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			auto asker = state.local_player_nation;
+			auto target = retrieve<dcon::nation_id>(state, parent);
+
+			text::add_line(state, contents, "remove_callally_desc");
+			text::add_line_break_to_layout(state, contents);
+
+			if(state.defines.callally_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "call_ally_explain_2", state.world.nation_get_diplomatic_points(asker) >= state.defines.callally_diplomatic_cost, text::variable_type::x, int64_t(state.defines.callally_diplomatic_cost));
+			}
+			text::add_line_with_condition(state, contents, "call_ally_explain_1", nations::are_allied(state, asker, target));
+			text::add_line_with_condition(state, contents, "call_ally_explain_3", state.world.nation_get_is_at_war(asker));
+
+			bool possible_war = false;
+			bool that_ai_will_accept = false;
+
+			for(auto war_par : state.world.nation_get_war_participant(asker)) {
+				if(!military::is_civil_war(state, war_par.get_war())
+					&& military::standard_war_joining_is_possible(state, war_par.get_war(), target, military::is_attacker(state, war_par.get_war(), asker))
+					&& (!war_par.get_war().get_is_crisis_war() || state.military_definitions.great_wars_enabled)) {
+
+					possible_war = true;
+					if(!state.world.nation_get_is_player_controlled(target)) {
+						diplomatic_message::message m;
+						m.type = diplomatic_message::type::call_ally_request;
+						m.from = state.local_player_nation;
+						m.to = target;
+						m.data.war = war_par.get_war();
+						if(diplomatic_message::ai_will_accept(state, m)) {
+							that_ai_will_accept = true;
+						}
+					}
+				}
+			}
+			text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
+			text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
+
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
@@ -603,37 +660,53 @@ public:
 };
 
 class diplomacy_action_military_access_button : public button_element_base {
-	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
-		return urid && state.world.unilateral_relationship_get_military_access(urid);
-	}
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
-			set_button_text(state, text::produce_simple_string(state,
-																 can_cancel(state, content) ? "cancelaskmilitaryaccess_button" : "askmilitaryaccess_button"));
-
-			// TODO: Conditions for enabling/disabling
-			if(can_cancel(state, content))
-				disabled = !command::can_cancel_military_access(state, state.local_player_nation, content);
-			else
-				disabled = !command::can_ask_for_access(state, state.local_player_nation, content);
+		if(state.world.unilateral_relationship_get_military_access(urid)) {
+			disabled = !command::can_cancel_military_access(state, state.local_player_nation, target);
+			set_button_text(state, text::produce_simple_string(state, "cancelaskmilitaryaccess_button"));
+		} else {
+			if(command::can_ask_for_access(state, state.local_player_nation, target)) {
+				if(!state.world.nation_get_is_player_controlled(target)) {
+					diplomatic_message::message m;
+					m.type = diplomatic_message::type::access_request;
+					m.from = state.local_player_nation;
+					m.to = target;
+					if(diplomatic_message::ai_will_accept(state, m)) {
+						disabled = false;
+					} else {
+						disabled = true;
+					}
+				} else {
+					disabled = false;
+				}
+			} else {
+				disabled = true;
+			}
+			set_button_text(state, text::produce_simple_string(state, "askmilitaryaccess_button"));
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
+
+		if(state.user_settings.use_new_ui) {
+			if(state.world.unilateral_relationship_get_military_access(urid)) {
+				command::cancel_military_access(state, state.local_player_nation, target);
+			} else {
+				command::ask_for_military_access(state, state.local_player_nation, target);
+			}
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			Cyto::Any ac_payload =
-					can_cancel(state, content) ? diplomacy_action::cancel_military_access : diplomacy_action::military_access;
+				state.world.unilateral_relationship_get_military_access(urid) ? diplomacy_action::cancel_military_access : diplomacy_action::military_access;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -643,13 +716,43 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
+
+		if(state.user_settings.use_new_ui) {
+			if(state.world.unilateral_relationship_get_military_access(urid)) {
+				text::add_line(state, contents, "cancelaskmilitaryaccess_desc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(state.defines.cancelaskmilaccess_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "cancel_access_explain_1", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelaskmilaccess_diplomatic_cost, text::variable_type::x, int64_t(state.defines.cancelaskmilaccess_diplomatic_cost));
+				}
+			} else {
+				text::add_line(state, contents, "askmilitaryaccess_desc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(target == state.local_player_nation) {
+					text::add_line_with_condition(state, contents, "ask_access_explain_1", false);
+				}
+				if(state.defines.askmilaccess_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "ask_access_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.askmilaccess_diplomatic_cost, text::variable_type::x, int64_t(state.defines.askmilaccess_diplomatic_cost));
+				}
+				if(!state.world.nation_get_is_player_controlled(target)) {
+					diplomatic_message::message m;
+					m.type = diplomatic_message::type::access_request;
+					m.from = state.local_player_nation;
+					m.to = target;
+					text::add_line_with_condition(state, contents, "ask_access_explain_3", diplomatic_message::ai_will_accept(state, m));
+				}
+				text::add_line_with_condition(state, contents, "ask_access_explain_4", !military::are_at_war(state, state.local_player_nation, target));
+			}
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			can_cancel(state, content)
+			state.world.unilateral_relationship_get_military_access(urid)
 					? text::localised_format_box(state, contents, box, std::string_view("cancelaskmilitaryaccess_desc"))
 					: text::localised_format_box(state, contents, box, std::string_view("askmilitaryaccess_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
@@ -660,11 +763,11 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
 						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-						text::fp_two_places{!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost
+						text::fp_two_places{!state.world.unilateral_relationship_get_military_access(urid) ? state.defines.askmilaccess_diplomatic_cost
 																														: state.defines.cancelaskmilaccess_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
 						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-																		 (!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost
+																		 (!state.world.unilateral_relationship_get_military_access(urid) ? state.defines.askmilaccess_diplomatic_cost
 																																	: state.defines.cancelaskmilaccess_diplomatic_cost)
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
@@ -677,37 +780,37 @@ public:
 };
 
 class diplomacy_action_give_military_access_button : public button_element_base {
-	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
-		return urid && state.world.unilateral_relationship_get_military_access(urid);
-	}
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
-			set_button_text(state, text::produce_simple_string(state,
-																 can_cancel(state, content) ? "cancelgivemilitaryaccess_button" : "givemilitaryaccess_button"));
-
-			// TODO: Conditions for enabling/disabling
-			if(can_cancel(state, content))
-				disabled = !command::can_cancel_given_military_access(state, state.local_player_nation, content);
-			else
-				disabled = true;
+		if(state.world.unilateral_relationship_get_military_access(urid)) {
+			set_button_text(state, text::produce_simple_string(state, "cancelgivemilitaryaccess_button"));
+			disabled = !command::can_cancel_given_military_access(state, state.local_player_nation, target);
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "givemilitaryaccess_button"));
+			disabled = !command::can_give_military_access(state, state.local_player_nation, target);
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+
+		if(state.user_settings.use_new_ui) {
+			if(state.world.unilateral_relationship_get_military_access(urid)) {
+				command::cancel_given_military_access(state, state.local_player_nation, target);
+			} else {
+				command::give_military_access(state, state.local_player_nation, target);
+			}
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			Cyto::Any ac_payload =
-					can_cancel(state, content) ? diplomacy_action::cancel_give_military_access : diplomacy_action::give_military_access;
+				state.world.unilateral_relationship_get_military_access(urid) ? diplomacy_action::cancel_give_military_access : diplomacy_action::give_military_access;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -717,13 +820,36 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+
+		if(state.user_settings.use_new_ui) {
+			if(state.world.unilateral_relationship_get_military_access(urid)) {
+				text::add_line(state, contents, "cancelgivemilitaryaccess_desc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(state.defines.cancelgivemilaccess_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "cancel_given_access_explain_1", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelgivemilaccess_diplomatic_cost, text::variable_type::x, int64_t(state.defines.cancelgivemilaccess_diplomatic_cost));
+				}
+			} else {
+				text::add_line(state, contents, "givemilitaryaccess_desc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(target == state.local_player_nation) {
+					text::add_line_with_condition(state, contents, "give_access_explain_1", false);
+				}
+				if(state.defines.givemilaccess_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "give_access_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.givemilaccess_diplomatic_cost, text::variable_type::x, int64_t(state.defines.givemilaccess_diplomatic_cost));
+				}
+				text::add_line_with_condition(state, contents, "give_access_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			}
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			can_cancel(state, content)
+			state.world.unilateral_relationship_get_military_access(urid)
 					? text::localised_format_box(state, contents, box, std::string_view("cancelgivemilitaryaccess_desc"))
 					: text::localised_format_box(state, contents, box, std::string_view("givemilitaryaccess_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
@@ -734,11 +860,11 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
 						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-						text::fp_two_places{!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost
+						text::fp_two_places{!state.world.unilateral_relationship_get_military_access(urid) ? state.defines.givemilaccess_diplomatic_cost
 																														: state.defines.cancelgivemilaccess_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
 						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-																		 (!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost
+																		 (!state.world.unilateral_relationship_get_military_access(urid) ? state.defines.givemilaccess_diplomatic_cost
 																																	: state.defines.cancelgivemilaccess_diplomatic_cost)
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),

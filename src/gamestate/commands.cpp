@@ -2291,6 +2291,43 @@ void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nati
 	diplomatic_message::post(state, m);
 }
 
+void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::give_military_access;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(asker == target)
+		return false;
+
+	if(state.world.nation_get_diplomatic_points(asker) < state.defines.givemilaccess_diplomatic_cost)
+		return false;
+
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+	if(state.world.unilateral_relationship_get_military_access(rel))
+		return false;
+
+	if(military::are_at_war(state, asker, target))
+		return false;
+
+	return true;
+}
+void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!can_give_military_access(state, asker, target))
+		return;
+
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.givemilaccess_diplomatic_cost;
+
+	auto urel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+	if(!urel) {
+		urel = state.world.force_create_unilateral_relationship(asker, target);
+	}
+	state.world.unilateral_relationship_set_military_access(urel, true);
+}
+
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2360,10 +2397,13 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(!ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
+	if(!nations::are_allied(state, asker, target))
+		return false;
+
 	if(military::is_civil_war(state, w))
 		return false;
 
-	if(!military::standard_war_joining_is_possible(state, w, target, military::is_attacker(state, w, target)))
+	if(!military::standard_war_joining_is_possible(state, w, target, military::is_attacker(state, w, asker)))
 		return false;
 
 	if(state.world.war_get_is_crisis_war(w) && !state.military_definitions.great_wars_enabled)
@@ -4111,6 +4151,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::toggle_mobilization:
 			execute_toggle_mobilization(state, c->source);
+			break;
+		case command_type::give_military_access:
+			execute_give_military_access(state, c->source, c->data.diplo_action.target);
 			break;
 
 		// console commands

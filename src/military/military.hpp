@@ -226,6 +226,7 @@ bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nat
 		bool as_attacker); // tests whether joining the war would violate the constraint that you can't both be in a war with and
 											 // fighting against the same nation or fighting against them twice
 bool is_civil_war(sys::state const& state, dcon::war_id w);
+bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon::nation_id n, bool as_attacker);
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
 bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w);
 bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::war_id w);

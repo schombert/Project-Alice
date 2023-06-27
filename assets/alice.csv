@@ -709,4 +709,18 @@ ally_explain_4;You are not both great powers while a crisis is ongoing
 ally_explain_5;You are not a vassal of a nation other than the target
 ally_explain_6;You are not currently at war with the target
 ally_explain_7;The AI will accept
+call_ally_explain_1;You have an alliance with this nation
+call_ally_explain_2;You have at least $x$ diplomatic point(s)
+call_ally_explain_3;You are at war
+call_ally_explain_4;There is a war this nation can be called into
+call_ally_explain_5;The AI will accept
+cancel_access_explain_1;You have at least $x$ diplomatic point(s)
+ask_access_explain_1;You cannot get military access from yourself
+ask_access_explain_2;You have at least $x$ diplomatic point(s)
+ask_access_explain_3;The AI will accept
+ask_access_explain_4;You are not currently at war with the target
+cancel_given_access_explain_1;You have at least $x$ diplomatic point(s)
+give_access_explain_1;You cannot give military access to yourself
+give_access_explain_2;You have at least $x$ diplomatic point(s)
+give_access_explain_3;You are not currently at war with the target
 ;;;;;;;;;;;;;x

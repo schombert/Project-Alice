@@ -87,6 +87,7 @@ enum class command_type : uint8_t {
 	change_admiral = 78,
 	change_general = 79,
 	toggle_mobilization = 80,
+	give_military_access = 81,
 
 	// console cheats
 	switch_nation = 128,
@@ -579,6 +580,9 @@ bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 
 void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
 bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+
+void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
