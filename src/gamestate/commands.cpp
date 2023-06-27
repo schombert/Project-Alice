@@ -1063,7 +1063,7 @@ bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id 
 		return false;
 
 	auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
-	if(clevel != nations::influence::level_friendly || clevel != nations::influence::level_in_sphere)
+	if(clevel != nations::influence::level_friendly && clevel != nations::influence::level_in_sphere)
 		return false;
 
 	return nations::influence::is_influence_level_greater_or_equal(clevel,

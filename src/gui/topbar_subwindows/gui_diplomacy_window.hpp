@@ -910,7 +910,7 @@ public:
 		auto gp = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
 		auto target = retrieve<dcon::nation_id>(state, parent);
 
-		set_text(state, std::to_string(int32_t(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(target, gp)))));
+		set_text(state, text::format_float(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(target, gp)), 1));
 	}
 };
 class great_power_investment_detail : public simple_text_element_base {
@@ -1214,11 +1214,11 @@ public:
 			war_elements[17] = ptr.get();
 			return ptr;
 		} else if(name == "brigade_text") {
-			auto ptr = make_element_by_type<diplomacy_nation_navies_text>(state, id);
+			auto ptr = make_element_by_type<diplomacy_nation_armies_text>(state, id);
 			war_elements[18] = ptr.get();
 			return ptr;
 		} else if(name == "ships_text") {
-			auto ptr = make_element_by_type<diplomacy_nation_armies_text>(state, id);
+			auto ptr = make_element_by_type<diplomacy_nation_navies_text>(state, id);
 			war_elements[19] = ptr.get();
 			return ptr;
 		} else if(name == "add_wargoal") {
@@ -2266,6 +2266,20 @@ public:
 			facts_nation_id = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;
+		} else if(payload.holds_type<trigger_gp_choice>()) {
+			auto action = any_cast<trigger_gp_choice>(payload).action;
+
+			action_dialog_win->set_visible(state, false);
+			declare_war_win->set_visible(state, false);
+			setup_peace_win->set_visible(state, false);
+			make_cb_win->set_visible(state, false);
+			crisis_backdown_win->set_visible(state, false);
+
+			gp_action_dialog_win->set_visible(state, false);
+			gp_action_dialog_win->action_target = facts_nation_id;
+			gp_action_dialog_win->current_action = action;
+			gp_action_dialog_win->set_visible(state, true); // this will also force an update
+
 		} else if(payload.holds_type<diplomacy_action>()) {
 			auto v = any_cast<diplomacy_action>(payload);
 			gp_action_dialog_win->set_visible(state, false);
@@ -2316,10 +2330,6 @@ public:
 							dcon::fatten(state.world, war_par).get_war().id);
 				}
 				break;
-			case diplomacy_action::discredit:
-			case diplomacy_action::expel_advisors:
-			case diplomacy_action::ban_embassy:
-			case diplomacy_action::decrease_opinion:
 			case diplomacy_action::remove_from_sphere:
 				gp_action_dialog_win->set_visible(state, true);
 				gp_action_dialog_win->impl_set(state, new_payload);

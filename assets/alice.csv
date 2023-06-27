@@ -680,4 +680,21 @@ war_score_2;From battles: $x$
 war_score_3;From war goals: $x$
 dp_inf_tooltip_ban;Embassy banned until $x$
 dp_inf_tooltip_discredit;Discredited until $x$
+discredit_explain_1;You cannot discredit yourself
+discredit_explain_2;The target's opinion of you is better than hostile
+discredit_explain_3;The great power is not already banned
+iaction_explain_1;You have at least $x$ influence with the target
+iaction_explain_2;Your embassy is not banned
+iaction_explain_3;You are not at war with the target
+iaction_explain_4;The target's opinion of the great power is at most equal to their opinion of you
+expel_explain_1;You cannot expel your own advisors
+expel_explain_2;The target's opinion of you is at least neutral
+ban_explain_1;You cannot ban your own embassy
+ban_explain_2;The target's opinion of you is at least friendly
+dec_op_explain_1;You cannot decrease a nation's opinion of you
+dec_op_explain_2;You cannot decrease a nation's opinion of their sphere leader
+dec_op_explain_3;The target's opinion of you is better than hostile
+dec_op_explain_4;The target's opinion of a great power cannot be made worse than hostile
+iaction_explain_5;You are a great power
+iaction_explain_6;The target is not a great power
 ;;;;;;;;;;;;;x
