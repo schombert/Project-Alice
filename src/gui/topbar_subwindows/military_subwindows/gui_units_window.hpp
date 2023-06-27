@@ -407,7 +407,7 @@ public:
 				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_navy_label"));
 			}
 			ptr->set_visible(state, true);
-			return nullptr;
+			return ptr;
 
 		} else if(name == "unit_listbox") {
 			return make_element_by_type<military_units_listbox<T>>(state, id);

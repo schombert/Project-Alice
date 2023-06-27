@@ -56,9 +56,49 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(is_navy) {
-			text::localised_format_box(state, contents, box, std::string_view("military_build_navy_tooltip"));
+			Cyto::Any payload = dcon::unit_type_id{};
+			parent->impl_get(state, payload);
+			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
+			Cyto::Any p_payload = dcon::province_id{};
+			parent->impl_get(state, p_payload);
+			dcon::province_id p = Cyto::any_cast<dcon::province_id>(p_payload);
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name);
+			text::add_to_substitution_map(m, text::variable_type::loc, state.world.province_get_name(p));
+			text::localised_format_box(state, contents, box, std::string_view("military_build_unit_tooltip"), m);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("maximum_speed"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed).substr(0, 4) + " "), text::text_color::green);
+			text::localised_format_box(state, contents, box, std::string_view("kph"));
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("attack"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power).substr(0, 4)), text::text_color::green);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("hull"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull).substr(0, 4)), text::text_color::green);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("fire_range"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range * 100).substr(0, 2)), text::text_color::green);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("supply_consumption"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption).substr(0, 2)), text::text_color::green);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("supply_load"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.military_definitions.unit_base_definitions[utid].supply_consumption_score).substr(0, 2)), text::text_color::green);
 		} else {
-			text::localised_format_box(state, contents, box, std::string_view("military_build_army_tooltip"));
+			Cyto::Any payload = dcon::unit_type_id{};
+			parent->impl_get(state, payload);
+			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
+			Cyto::Any p_payload = dcon::province_id{};
+			parent->impl_get(state, p_payload);
+			dcon::province_id p = Cyto::any_cast<dcon::province_id>(p_payload);
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name);
+			text::add_to_substitution_map(m, text::variable_type::loc, state.world.province_get_name(p));
+			text::localised_format_box(state, contents, box, std::string_view("military_build_unit_tooltip"), m);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("attack"));
+			text::add_to_layout_box(state, contents, box, std::string_view(" " + std::to_string(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power).substr(0, 4) + " "), text::text_color::green);
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -114,7 +154,8 @@ public:
 			unit_icon = ptr.get();
 			return ptr;
 		} else if(name == "province") {
-			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
+			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
+			return ptr;
 		} else {
 			return nullptr;
 		}
