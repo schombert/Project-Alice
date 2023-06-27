@@ -884,16 +884,14 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			disabled = !command::can_increase_relations(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_increase_relations(state, state.local_player_nation, content);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			command::increase_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+		} else if(parent) {
 			Cyto::Any payload = diplomacy_action::increase_relations;
 			parent->impl_get(state, payload);
 		}
@@ -904,7 +902,23 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			auto target = retrieve<dcon::nation_id>(state, parent);
+
+			text::add_line(state, contents, "increase_rel_explain_1", text::variable_type::x, int64_t(state.defines.increaserelation_relation_on_accept));
+			text::add_line_break_to_layout(state, contents);
+
+			if(target == state.local_player_nation) {
+				text::add_line_with_condition(state, contents, "increase_rel_explain_2", false);
+			}
+
+			text::add_line_with_condition(state, contents, "increase_rel_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.increaserelation_diplomatic_cost, text::variable_type::x, int64_t(state.defines.increaserelation_diplomatic_cost));
+
+			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, target);
+			text::add_line_with_condition(state, contents, "increase_rel_explain_4", state.world.diplomatic_relation_get_value(rel) < 200.0f);
+
+			text::add_line_with_condition(state, contents, "increase_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
@@ -941,16 +955,14 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			disabled = !command::can_decrease_relations(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_decrease_relations(state, state.local_player_nation, content);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			command::decrease_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+		} else if(parent) {
 			Cyto::Any payload = diplomacy_action::decrease_relations;
 			parent->impl_get(state, payload);
 		}
@@ -961,7 +973,23 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			auto target = retrieve<dcon::nation_id>(state, parent);
+
+			text::add_line(state, contents, "decrease_rel_explain_1", text::variable_type::x, int64_t(state.defines.decreaserelation_relation_on_accept));
+			text::add_line_break_to_layout(state, contents);
+
+			if(target == state.local_player_nation) {
+				text::add_line_with_condition(state, contents, "decrease_rel_explain_2", false);
+			}
+
+			text::add_line_with_condition(state, contents, "decrease_rel_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.decreaserelation_diplomatic_cost, text::variable_type::x, int64_t(state.defines.decreaserelation_diplomatic_cost));
+
+			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, target);
+			text::add_line_with_condition(state, contents, "decrease_rel_explain_4", state.world.diplomatic_relation_get_value(rel) > -200.0f);
+
+			text::add_line_with_condition(state, contents, "decrease_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
@@ -991,34 +1019,34 @@ public:
 };
 
 class diplomacy_action_war_subisides_button : public button_element_base {
-	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
-		return rel && state.world.unilateral_relationship_get_war_subsidies(rel);
-	}
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 
-			set_button_text(state,
-					text::produce_simple_string(state, can_cancel(state, content) ? "cancel_warsubsidies_button" : "warsubsidies_button"));
+		set_button_text(state, text::produce_simple_string(state, subsidies ? "cancel_warsubsidies_button" : "warsubsidies_button"));
 
-			disabled = can_cancel(state, content) ? !command::can_cancel_war_subsidies(state, state.local_player_nation, content)
-																						: !command::can_give_war_subsidies(state, state.local_player_nation, content);
-		}
+		disabled = subsidies
+			? !command::can_cancel_war_subsidies(state, state.local_player_nation, target)
+			: !command::can_give_war_subsidies(state, state.local_player_nation, target);
+		
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 
+		if(state.user_settings.use_new_ui) {
+			if(subsidies) {
+				command::cancel_war_subsidies(state, state.local_player_nation, target);
+			} else {
+				command::give_war_subsidies(state, state.local_player_nation, target);
+			}
+		} else if(parent) {
 			Cyto::Any ac_payload =
-					can_cancel(state, content) ? diplomacy_action::cancel_war_subsidies : diplomacy_action::war_subsidies;
+				subsidies ? diplomacy_action::cancel_war_subsidies : diplomacy_action::war_subsidies;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -1028,7 +1056,30 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
+
+		if(state.user_settings.use_new_ui) {
+			if(subsidies) {
+				text::add_line(state, contents, "cancel_w_sub_explain_1", text::variable_type::x, text::fp_currency{economy::estimate_war_subsidies(state, target)});
+				if(state.defines.cancelwarsubsidy_diplomatic_cost > 0) {
+					text::add_line_break_to_layout(state, contents);
+					text::add_line_with_condition(state, contents, "cancel_w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelwarsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.cancelwarsubsidy_diplomatic_cost));
+				}
+			} else {
+				text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_currency{economy::estimate_war_subsidies(state, target)});
+				text::add_line_break_to_layout(state, contents);
+
+				if(state.local_player_nation == target) {
+					text::add_line_with_condition(state, contents, "w_sub_explain_1", false);
+				}
+				if(state.defines.warsubsidy_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.warsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.warsubsidy_diplomatic_cost));
+				}
+				text::add_line_with_condition(state, contents, "w_sub_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			}
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
@@ -1038,7 +1089,7 @@ public:
 			text::add_to_substitution_map(ws_map, text::variable_type::money,
 					text::fp_currency{economy::estimate_war_subsidies(state, content)});
 			text::localised_format_box(state, contents, box,
-					std::string_view(can_cancel(state, content) ? "cancel_warsubsidies_desc" : "warsubsidies_desc"), ws_map);
+					std::string_view(subsidies ? "cancel_warsubsidies_desc" : "warsubsidies_desc"), ws_map);
 
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
@@ -1048,11 +1099,11 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
 						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-						text::fp_two_places{!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost
+						text::fp_two_places{!subsidies ? state.defines.warsubsidy_diplomatic_cost
 																														: state.defines.cancelwarsubsidy_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
 						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-																		 (!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost
+																		 (!subsidies ? state.defines.warsubsidy_diplomatic_cost
 																																	: state.defines.cancelwarsubsidy_diplomatic_cost)
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),

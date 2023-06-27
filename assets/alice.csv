@@ -723,4 +723,19 @@ cancel_given_access_explain_1;You have at least $x$ diplomatic point(s)
 give_access_explain_1;You cannot give military access to yourself
 give_access_explain_2;You have at least $x$ diplomatic point(s)
 give_access_explain_3;You are not currently at war with the target
+increase_rel_explain_1;Improves our relations by §G+$x$
+increase_rel_explain_2;You cannot increase your relationship with yourself
+increase_rel_explain_3;You have at least $x$ diplomatic point(s)
+increase_rel_explain_4;Current relations are less than 200
+increase_rel_explain_5;You are not currently at war with the target
+decrease_rel_explain_1;Worsens our relations by §R$x$
+decrease_rel_explain_2;You cannot decrease your relationship with yourself
+decrease_rel_explain_3;You have at least $x$ diplomatic point(s)
+decrease_rel_explain_4;Current relations are greater than -200
+decrease_rel_explain_5;You are not currently at war with the target
+cancel_w_sub_explain_1;Currently we are subsidizing this nation §Y$x$§! per day
+cancel_w_sub_explain_2;You have at least $x$ diplomatic point(s)
+w_sub_explain_1;You cannot offer war subsidies to yourself
+w_sub_explain_2;You have at least $x$ diplomatic point(s)
+w_sub_explain_3;You are not currently at war with the target
 ;;;;;;;;;;;;;x

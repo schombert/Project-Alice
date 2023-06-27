@@ -198,17 +198,20 @@ void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has
+	/* Can only perform if, the nations are not at war, the relation value isn't maxed out at 200, and has
 	 * defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender. */
+
 	if(source == target)
 		return false; // Can't negotiate with self
+
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
+
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
-	if(rel && state.world.diplomatic_relation_get_value(rel) >= 200.f)
-		return false; // Maxxed out
-	return state.world.nation_get_diplomatic_points(source) >=
-				 state.defines.increaserelation_diplomatic_cost; // Enough diplomatic points
+	if(state.world.diplomatic_relation_get_value(rel) >= 200.f)
+		return false; // Maxed out
+
+	return state.world.nation_get_diplomatic_points(source) >= state.defines.increaserelation_diplomatic_cost; // Enough diplomatic points
 }
 void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_increase_relations(state, source, target))

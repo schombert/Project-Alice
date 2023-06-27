@@ -2036,6 +2036,18 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	for(auto dep : state.world.nation_get_overlord_as_ruler(n)) {
 		add_to_war(state, w, dep.get_subject(), as_attacker);
 	}
+
+	for(auto ul : state.world.nation_get_unilateral_relationship_as_source(n)) {
+		if(ul.get_war_subsidies()) {
+			auto role = get_role(state, w, ul.get_target());
+			if(role != war_role::none) {
+				if((as_attacker && role == war_role::defender) || (!as_attacker && role == war_role::attacker)) {
+					ul.set_war_subsidies(false);
+					// TODO: notify
+				}
+			}
+		}
+	}
 }
 
 bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n) {
