@@ -206,7 +206,7 @@ void accept(sys::state& state, message const& m) {
 		std::abort();
 		break;
 	case type::access_request: {
-		if(!command::can_ask_for_access(state, m.from, m.to))
+		if(!command::can_ask_for_access(state, m.from, m.to, true))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
@@ -219,7 +219,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	}
 	case type::alliance_request: {
-		if(!command::can_ask_for_alliance(state, m.from, m.to))
+		if(!command::can_ask_for_alliance(state, m.from, m.to, true))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.alliance_relation_on_accept);
@@ -227,7 +227,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	}
 	case type::call_ally_request: {
-		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
+		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
 			return;
 
 		military::join_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
@@ -259,39 +259,41 @@ void accept(sys::state& state, message const& m) {
 	}
 }
 
-void post(sys::state& state, message const& m) {
-	if(state.world.nation_get_is_player_controlled(m.to) == false) {
-		// TODO : call AI logic to decide responses to requests
+bool ai_will_accept(sys::state& state, message const& m) {
+	// TODO : call AI logic to decide responses to requests
 
-		switch(m.type) {
+	switch(m.type) {
 		case type::none:
 			std::abort();
-			return;
+			break;
 		case type::access_request:
-			accept(state, m);
-			return;
+			return true;
 		case type::alliance_request:
-			accept(state, m);
-			return;
+			return true;
 		case type::call_ally_request:
-			accept(state, m);
-			return;
+			return true;
 		case type::be_crisis_primary_defender:
-			nations::add_as_primary_crisis_defender(state, m.to);
-			return;
+			return true;
 		case type::be_crisis_primary_attacker:
-			nations::add_as_primary_crisis_attacker(state, m.to);
-			return;
+			return true;
 		case type::peace_offer:
-			accept(state, m);
-			return;
+			return true;
 		case type::take_crisis_side_offer:
-			accept(state, m);
-			return;
+			return true;
 		case type::crisis_peace_offer:
+			return true;
+	}
+	return false;
+}
+
+void post(sys::state& state, message const& m) {
+	if(state.world.nation_get_is_player_controlled(m.to) == false) {
+		if(ai_will_accept(state, m)) {
 			accept(state, m);
-			return;
+		} else {
+			decline(state, m);
 		}
+		return;
 	}
 
 	for(auto& i : state.pending_messages) {

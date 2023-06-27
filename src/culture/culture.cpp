@@ -774,7 +774,7 @@ float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::
 				 (1.0f - std::max(0.0f, float(current_year - availability_year) / state.defines.tech_year_span));
 }
 
-void update_reasearch(sys::state& state, uint32_t current_year) {
+void update_research(sys::state& state, uint32_t current_year) {
 	for(auto n : state.world.in_nation) {
 		if(n.get_owned_province_count() != 0 && n.get_current_research()) {
 			if(n.get_active_technologies(n.get_current_research())) {

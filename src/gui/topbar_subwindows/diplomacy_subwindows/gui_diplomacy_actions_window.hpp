@@ -400,35 +400,36 @@ public:
 
 
 class diplomacy_action_ally_button : public button_element_base {
-	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, nation_id);
-		return drid && state.world.diplomatic_relation_get_are_allied(drid);
-	}
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		auto content = retrieve<dcon::nation_id>(state, parent);
 
-			set_button_text(state,
-					text::produce_simple_string(state, can_cancel(state, content) ? "cancelalliance_button" : "alliance_button"));
+		if(nations::are_allied(state, content, state.local_player_nation)) {
+			set_button_text(state, text::produce_simple_string(state, "cancelalliance_button"));
+			disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "alliance_button"));
 
-			if(can_cancel(state, content))
-				disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
-			else
-				disabled = !command::can_ask_for_alliance(state, state.local_player_nation, content);
+			diplomatic_message::message m;
+			m.type = diplomatic_message::type::alliance_request;
+			m.from = state.local_player_nation;
+			m.to = content;
+			disabled = !command::can_ask_for_alliance(state, state.local_player_nation, content) || (!state.world.nation_get_is_player_controlled(content)  && !diplomatic_message::ai_will_accept(state, m));
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
+		if(state.user_settings.use_new_ui) {
+			auto content = retrieve<dcon::nation_id>(state, parent);
+			if(nations::are_allied(state, content, state.local_player_nation)) {
+				command::cancel_alliance(state, state.local_player_nation, content);
+			} else {
+				command::ask_for_alliance(state, state.local_player_nation, content);
+			}
+		} else if(parent) {
+			auto content = retrieve<dcon::nation_id>(state, parent);
 
-			Cyto::Any ac_payload = can_cancel(state, content) ? diplomacy_action::cancel_ally : diplomacy_action::ally;
+			Cyto::Any ac_payload = nations::are_allied(state, content, state.local_player_nation) ? diplomacy_action::cancel_ally : diplomacy_action::ally;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -438,13 +439,62 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			auto content = retrieve<dcon::nation_id>(state, parent);
+			if(nations::are_allied(state, content, state.local_player_nation)) {
+				text::add_line(state, contents, "cancelalliance_desc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(state.local_player_nation == content) {
+					text::add_line_with_condition(state, contents, "cancel_ally_explain_1", false);
+				}
+				if(state.defines.cancelalliance_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "cancel_ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelalliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.cancelalliance_diplomatic_cost));
+				}
+
+				auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
+				text::add_line_with_condition(state, contents, "cancel_ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel));
+				text::add_line_with_condition(state, contents, "cancel_ally_explain_4", !military::are_allied_in_war(state, state.local_player_nation, content));
+
+				auto ol = state.world.nation_get_overlord_as_subject(state.local_player_nation);
+				text::add_line_with_condition(state, contents, "cancel_ally_explain_5", state.world.overlord_get_ruler(ol) != content);
+			} else {
+				auto asker = state.local_player_nation;
+				auto target = content;
+
+				text::add_line(state, contents, "alliance_desc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(asker == target)
+					text::add_line_with_condition(state, contents, "ally_explain_1", false);
+
+				if(state.defines.alliance_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.alliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.alliance_diplomatic_cost));
+				}
+				auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
+				text::add_line_with_condition(state, contents, "ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel) == false);
+				text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis == sys::crisis_type::none);
+
+				auto ol = state.world.nation_get_overlord_as_subject(asker);
+				text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol) == target);
+				text::add_line_with_condition(state, contents, "ally_explain_6", !military::are_at_war(state, asker, target));
+
+				if(!state.world.nation_get_is_player_controlled(content)) {
+					diplomatic_message::message m;
+					m.type = diplomatic_message::type::alliance_request;
+					m.from = state.local_player_nation;
+					m.to = content;
+
+					text::add_line_with_condition(state, contents, "ally_explain_7", diplomatic_message::ai_will_accept(state, m));
+				}
+			}
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			can_cancel(state, content) ? text::localised_format_box(state, contents, box, std::string_view("cancelalliance_desc"))
+			nations::are_allied(state, content, state.local_player_nation) ? text::localised_format_box(state, contents, box, std::string_view("cancelalliance_desc"))
 																 : text::localised_format_box(state, contents, box, std::string_view("alliance_desc"));
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
@@ -454,12 +504,9 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::current,
 						text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed,
-						text::fp_two_places{!can_cancel(state, content) ? state.defines.alliance_diplomatic_cost
-																														: state.defines.cancelalliance_diplomatic_cost});
+						text::fp_two_places{!nations::are_allied(state, content, state.local_player_nation) ? state.defines.alliance_diplomatic_cost : state.defines.cancelalliance_diplomatic_cost});
 				text::localised_format_box(state, contents, box,
-						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >=
-																		 (!can_cancel(state, content) ? state.defines.alliance_diplomatic_cost
-																																	: state.defines.cancelalliance_diplomatic_cost)
+						std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= (!nations::are_allied(state, content, state.local_player_nation) ? state.defines.alliance_diplomatic_cost : state.defines.cancelalliance_diplomatic_cost)
 																 ? "dip_enough_diplo"
 																 : "dip_no_diplo"),
 						dp_map);
@@ -468,8 +515,7 @@ public:
 				text::substitution_map ai_map{};
 				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"),
-						ai_map); // Always return 0, that way leafs ai ambititions will be stunted :3
-										 // leaf: Of course this will never occur because the AI would absolutely obliterate the player in 1v1
+						ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}

@@ -165,9 +165,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
-	auto unit_tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
@@ -175,10 +172,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 		}
+		if(!tooltip_probe.under_mouse) {
+			tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+		}
 	}
-
-
-
 
 	if(game_state_was_updated) {
 		this->map_state.map_data.update_borders(*this);
@@ -281,7 +279,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		ui_state.root->impl_on_update(*this);
 		map_mode::update_map_mode(*this);
-		// TODO also need to update any tooltips (which probably exist outside the root container)
 
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
@@ -400,8 +397,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
 			}
 
-			text::populate_map_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale),
-					int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
+			ui::populate_map_tooltip(*this, container, prov);
 
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
@@ -422,31 +418,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 				} else {
 					ui_state.tooltip->set_visible(*this, true);
 				}
-			} else {
-				ui_state.tooltip->set_visible(*this, false);
-			}
-		} else {
-			ui_state.tooltip->set_visible(*this, false);
-		}
-	}
-
-	//if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse && unit_tooltip_probe.under_mouse) {
-	if(unit_tooltip_probe.under_mouse) {
-		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-		if(prov) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.units_root->base_data.size.y - 20), ui_state.tooltip_font, 0,
-							text::alignment::left, text::text_color::white},
-					20);
-			ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
-			ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
-
-			text::populate_unit_tooltip(*this, int16_t(mouse_x_position / user_settings.ui_scale), int16_t(mouse_y_position / user_settings.ui_scale), container, prov);
-
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-			if(container.used_width > 0) {
-				ui_state.tooltip->set_visible(*this, true);
 			} else {
 				ui_state.tooltip->set_visible(*this, false);
 			}
@@ -2276,7 +2247,7 @@ void state::game_loop() {
 
 				event::update_events(*this);
 
-				culture::update_reasearch(*this, uint32_t(ymd_date.year));
+				culture::update_research(*this, uint32_t(ymd_date.year));
 
 				nations::update_military_scores(*this); // depends on ship score, land unit average
 				nations::update_rankings(*this);				// depends on industrial score, military scores

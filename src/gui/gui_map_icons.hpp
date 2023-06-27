@@ -5,8 +5,7 @@
 #include "gui_graphics.hpp"
 #include "province.hpp"
 #include "text.hpp"
-#include <algorithm>
-#include <variant>
+#include "unit_tooltip.hpp"
 
 namespace ui {
 
@@ -117,13 +116,24 @@ public:
 			});
 		}
 	}
+
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		populate_unit_tooltip(state, contents, retrieve<dcon::province_id>(state, parent));
+	}
 };
 
 class unit_icon_window : public window_element_base {
 	unit_strength_text* strength_text = nullptr;
 	image_element_base* attr_icon = nullptr;
-
 public:
+	bool visible = true;
+	bool province_is_populated = false;
+
 	dcon::province_id content{};
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -151,24 +161,28 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		bool has_any = false;
-		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { has_any = true; });
-		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { has_any = true; });
-		for(auto const& c : children)
-			c->set_visible(state, has_any);
+	 province_is_populated = false;
+		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { province_is_populated = true; });
+		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { province_is_populated = true; });
 
 		bool has_attrition = false; // TODO: Attrition
 		attr_icon->set_visible(state, has_attrition);
 	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(!province_is_populated)
+			return;
+
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size =
 				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+			visible = false;
 			return;
+		}
+		visible = true;
 		auto new_position = xy_pair{int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 20)};
 		window_element_base::base_data.position = new_position;
 		window_element_base::impl_render(state, new_position.x, new_position.y);
@@ -211,6 +225,15 @@ public:
 		}
 		return message_result::unseen;
 	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y,
+			mouse_probe_type type) noexcept override {
+		if(visible && province_is_populated)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+	}
+
 };
 
 class rgo_icon : public image_element_base {

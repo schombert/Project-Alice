@@ -186,7 +186,7 @@ void set_default_issue_and_reform_options(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
 float effective_technology_cost(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
-void update_reasearch(sys::state& state, uint32_t current_year);
+void update_research(sys::state& state, uint32_t current_year);
 void discover_inventions(sys::state& state);
 
 void replace_cores(sys::state& state, dcon::national_identity_id old_tag, dcon::national_identity_id new_tag);

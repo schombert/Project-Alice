@@ -2256,7 +2256,7 @@ void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nat
 	p.data.diplo_action.target = target;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have
 	military access.
@@ -2264,7 +2264,7 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
@@ -2299,7 +2299,7 @@ void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	p.data.diplo_action.target = target;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	/*
 	Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points.
 	Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with
@@ -2308,7 +2308,7 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_diplomatic_points(asker) < state.defines.alliance_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.alliance_diplomatic_cost)
 		return false;
 
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, asker);
@@ -2353,11 +2353,11 @@ void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id targ
 	p.data.call_to_arms.war = w;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost) {
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
 	if(military::is_civil_war(state, w))
@@ -2497,6 +2497,10 @@ bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation
 		return false;
 
 	if(military::are_allied_in_war(state, source, target))
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(source);
+	if(state.world.overlord_get_ruler(ol) == target)
 		return false;
 
 	return true;

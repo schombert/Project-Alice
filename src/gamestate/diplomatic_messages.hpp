@@ -40,6 +40,8 @@ using type = type_t;
 bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, sys::crisis_join_offer const& offer);
 bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace);
 
+bool ai_will_accept(sys::state& state, message const& m);
+
 void decline(sys::state& state, message const& m);
 void accept(sys::state& state, message const& m);
 

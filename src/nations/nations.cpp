@@ -215,6 +215,11 @@ bool identity_has_holder(sys::state const& state, dcon::national_identity_id ide
 	return bool(fat_ident.get_nation_from_identity_holder().id);
 }
 
+bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+	return state.world.diplomatic_relation_get_are_allied(rel);
+}
+
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
 	auto fat_id = dcon::fatten(state.world, rel_id);
 	return fat_id.get_related_nations(0) == query ? fat_id.get_related_nations(1) : fat_id.get_related_nations(0);

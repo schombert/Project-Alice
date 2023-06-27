@@ -682,7 +682,7 @@ dp_inf_tooltip_ban;Embassy banned until $x$
 dp_inf_tooltip_discredit;Discredited until $x$
 discredit_explain_1;You cannot discredit yourself
 discredit_explain_2;The target's opinion of you is better than hostile
-discredit_explain_3;The great power is not already banned
+discredit_explain_3;The great power is not banned
 iaction_explain_1;You have at least $x$ influence with the target
 iaction_explain_2;Your embassy is not banned
 iaction_explain_3;You are not at war with the target
@@ -697,4 +697,16 @@ dec_op_explain_3;The target's opinion of you is better than hostile
 dec_op_explain_4;The target's opinion of a great power cannot be made worse than hostile
 iaction_explain_5;You are a great power
 iaction_explain_6;The target is not a great power
+cancel_ally_explain_1;You cannot cancel an alliance with yourself
+cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
+cancel_ally_explain_3;You are currently allied
+cancel_ally_explain_4;You are not currently in a war together
+cancel_ally_explain_5;You are not a vassal of the target nation
+ally_explain_1;You cannot form an alliance with yourself
+ally_explain_2;You have at least $x$ diplomatic point(s)
+ally_explain_3;You are not currently allied
+ally_explain_4;You are not both great powers while a crisis is ongoing
+ally_explain_5;You are not a vassal of a nation other than the target
+ally_explain_6;You are not currently at war with the target
+ally_explain_7;The AI will accept
 ;;;;;;;;;;;;;x

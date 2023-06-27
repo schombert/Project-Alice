@@ -2,7 +2,7 @@
 
 #include "system_state.hpp"
 
-namespace text {
+namespace ui {
 
 struct unitamounts {
 	uint16_t type1 = 0;
@@ -15,6 +15,6 @@ struct unitamounts {
 	uint32_t type3_pop = 0;
 };
 
-void populate_unit_tooltip(sys::state& state, int16_t x, int16_t y, text::columnar_layout& contents, dcon::province_id prov);
+void populate_unit_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov);
 
 }
