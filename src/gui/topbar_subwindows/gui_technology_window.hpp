@@ -1079,14 +1079,30 @@ public:
 
 			frame = 0; // inactive
 			if(state.world.nation_get_active_inventions(state.local_player_nation, content))
-				frame = 2; // This invention's been discovered
+				frame = 1; // This invention's been discovered
 			else {
 				Cyto::Any tech_payload = dcon::technology_id{};
 				parent->impl_get(state, tech_payload);
 				auto tech_id = any_cast<dcon::technology_id>(tech_payload);
 				if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
-					frame = 1; // Active technology but not invention
+					frame = 2; // Active technology but not invention
 			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto inv = retrieve<dcon::invention_id>(state, parent);
+		auto tech_id = retrieve<dcon::technology_id>(state, parent);
+		if(state.world.nation_get_active_inventions(state.local_player_nation, inv)) {
+			text::add_line(state, contents, "invention_bulb_3");
+		} else if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
+			text::add_line(state, contents, "invention_bulb_2");
+		} else {
+			text::add_line(state, contents, "invention_bulb_1");
 		}
 	}
 };

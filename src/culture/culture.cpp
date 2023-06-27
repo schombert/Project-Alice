@@ -237,7 +237,8 @@ void repopulate_invention_effects(sys::state& state) {
 		for(auto& umod : inv_id.get_modified_units()) {
 			state.world.for_each_nation([&](dcon::nation_id nid) {
 				if(state.world.nation_get_active_inventions(nid, i_id)) {
-					state.world.nation_get_unit_stats(nid, umod.type) += umod;
+					auto& existing_stats = state.world.nation_get_unit_stats(nid, umod.type);
+					existing_stats += umod;
 				}
 			});
 		}
