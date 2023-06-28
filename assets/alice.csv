@@ -741,4 +741,13 @@ w_sub_explain_3;You are not currently at war with the target
 invention_bulb_1;This invention cannot currently be discovered
 invention_bulb_2;It is possible to discover this invention
 invention_bulb_3;This invention has been discovered
+not_implemented;This feature is not currently implemented
+inc_op_explain_1;The nation's opinion of you is less than friendly
+add_sphere_explain_1;The nation has a friendly opinion of you
+add_sphere_explain_2;The nation is not currently sphered by another great power
+rem_sphere_explain_1;The nation is currently sphered by a great power
+rem_sphere_explain_2;The nation has a friendly opinion of you
+rem_sphere_explain_3;The nation is in your sphere of influence
+rem_sphere_explain_4;Removing a nation from your own sphere of influence will increase your infamy by §R$x$
+rem_sphere_explain_5;Removing a nation from your own sphere of influence will reduce your prestige by §R$x$
 ;;;;;;;;;;;;;x

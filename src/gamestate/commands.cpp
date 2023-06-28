@@ -1124,7 +1124,7 @@ bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 		return false;
 
 	auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
-	if(clevel == nations::influence::level_friendly)
+	if(clevel == nations::influence::level_friendly || clevel == nations::influence::level_in_sphere)
 		return false;
 
 	return true;
