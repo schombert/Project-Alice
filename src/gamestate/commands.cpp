@@ -2215,7 +2215,8 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	must be able to fabricate cb
 	*/
 
-	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0)
+	auto bits = state.world.cb_type_get_type_bits(type);
+	if((bits & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0)
 		return false;
 
 	if(!military::cb_conditions_satisfied(state, source, target, type))

@@ -750,4 +750,10 @@ rem_sphere_explain_2;The nation has a friendly opinion of you
 rem_sphere_explain_3;The nation is in your sphere of influence
 rem_sphere_explain_4;Removing a nation from your own sphere of influence will increase your infamy by §R$x$
 rem_sphere_explain_5;Removing a nation from your own sphere of influence will reduce your prestige by §R$x$
+fab_explain_1;You cannot justify war against yourself
+fab_explain_2;You have at least $x$ diplomatic point(s)
+fab_explain_3;You are not currently fabricating a casus belli
+fab_explain_4;You are an independent nation or the target is your overlord
+fab_explain_5;The target is not in your sphere of influence
+fab_explain_6;You are not currently at war with the target
 ;;;;;;;;;;;;;x

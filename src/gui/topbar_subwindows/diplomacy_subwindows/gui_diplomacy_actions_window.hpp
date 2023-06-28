@@ -1495,14 +1495,29 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			disabled = !(!military::are_at_war(state, state.local_player_nation, content) &&
-									 state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost &&
-									 state.local_player_nation != content);
-		}
+		auto source = state.local_player_nation;
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		disabled = false;
+
+		if(source == target)
+			disabled = true;
+
+		if(state.world.nation_get_constructing_cb_type(source))
+			disabled = true;
+
+		auto ol = state.world.nation_get_overlord_as_subject(source);
+		if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
+			disabled = true;
+
+		if(state.world.nation_get_in_sphere_of(target) == source)
+			disabled = true;
+
+		if(state.world.nation_get_diplomatic_points(source) < state.defines.make_cb_diplomatic_cost)
+			disabled = true;
+
+		if(military::are_at_war(state, target, source))
+			disabled = true;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -1517,7 +1532,31 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
+		if(state.user_settings.use_new_ui) {
+			auto source = state.local_player_nation;
+			auto target = retrieve<dcon::nation_id>(state, parent);
+
+			text::add_line(state, contents, "make_cb_desc");
+			text::add_line_break_to_layout(state, contents);
+
+			if(source == target) {
+				text::add_line_with_condition(state, contents, "fab_explain_1", false);
+			}
+
+			if(state.defines.make_cb_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "fab_explain_2", state.world.nation_get_diplomatic_points(source) >= state.defines.make_cb_diplomatic_cost, text::variable_type::x, int16_t(state.defines.make_cb_diplomatic_cost));
+			}
+
+			text::add_line_with_condition(state, contents, "fab_explain_3", !state.world.nation_get_constructing_cb_type(source));
+
+			auto ol = state.world.nation_get_overlord_as_subject(source);
+			text::add_line_with_condition(state, contents, "fab_explain_4", !state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol) == target);
+
+			text::add_line_with_condition(state, contents, "fab_explain_5", state.world.nation_get_in_sphere_of(target) != source);
+
+			text::add_line_with_condition(state, contents, "fab_explain_6", !military::are_at_war(state, target, source));
+	
+		} else if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);

@@ -233,8 +233,8 @@ void government_type::any_value(std::string_view text, association_type, bool va
 }
 
 void cb_list::free_value(std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
-	dcon::cb_type_id new_id = context.state.world.create_cb_type();
-	context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{token_generator{}, new_id});
+	//dcon::cb_type_id new_id = context.state.world.create_cb_type();
+	//context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{token_generator{}, new_id});
 }
 
 void trait::organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context) {

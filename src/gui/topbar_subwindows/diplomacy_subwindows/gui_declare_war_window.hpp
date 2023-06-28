@@ -952,6 +952,9 @@ public:
 			parent->impl_get(state, payload);
 			const dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
 			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
+
+			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
+			disabled = selected == content;
 		}
 	}
 
@@ -1033,22 +1036,63 @@ public:
 	}
 };
 
-class diplomacy_make_cb_desc : public generic_multiline_text<dcon::cb_type_id> {
+class diplomacy_make_cb_desc : public multiline_text_element_base {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept override {
-		auto fat_cb = dcon::fatten(state.world, id);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.user_settings.use_classic_fonts) {
+			multiline_text_element_base::render(state, x, y);
+		} else {
+			auto old_handle = base_data.data.text.font_handle;
+			base_data.data.text.font_handle &= ~(0x01 << 7);
+			multiline_text_element_base::render(state, x, y);
+			base_data.data.text.font_handle = old_handle;
+		}
+	}
 
-		auto box = text::open_layout_box(contents);
+	void on_update(sys::state& state) noexcept override {
+		text::alignment align = text::alignment::left;
+		switch(base_data.data.text.get_alignment()) {
+			case ui::alignment::right:
+				align = text::alignment::right;
+				break;
+			case ui::alignment::centered:
+				align = text::alignment::center;
+				break;
+			default:
+				break;
+		}
+		auto border = base_data.data.text.border_size;
+
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{
+				border.x,
+				border.y,
+				int16_t(base_data.size.x - border.x * 2),
+				int16_t(base_data.size.y - border.y * 2),
+				state.user_settings.use_classic_fonts ? base_data.data.text.font_handle : uint16_t(base_data.data.text.font_handle & ~(0x01 << 7)),
+				0,
+				align,
+				color,
+				false});
+
+		auto fat_cb = dcon::fatten(state.world, retrieve<dcon::cb_type_id>(state, parent));
+
+		auto box = text::open_layout_box(container);
+
+		auto fab_time = std::ceil(100.0f / (state.defines.cb_generation_base_speed * fat_cb.get_construction_speed() * (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f)));
 
 		if(fat_cb.is_valid()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::type, fat_cb.get_name());
-			text::add_to_substitution_map(sub, text::variable_type::days, (fat_cb.get_months() * 30));
-			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{fat_cb.get_badboy_factor()});
-			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"), sub);
+			text::add_to_substitution_map(sub, text::variable_type::days, int64_t(fab_time));
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb)});
+			text::localised_format_box(state, container, box, std::string_view("cb_creation_detail"), sub);
 		}
 
-		text::close_layout_box(contents, box);
+		text::close_layout_box(container, box);
 	}
 };
 

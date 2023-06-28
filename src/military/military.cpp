@@ -1103,9 +1103,7 @@ void update_cbs(sys::state& state) {
 			(national-cb-construction-speed-modifiers + technology-cb-construction-speed-modifier + 1).
 			*/
 
-			n.get_constructing_cb_progress() += state.defines.cb_generation_base_speed *
-																					n.get_constructing_cb_type().get_construction_speed() *
-																					(n.get_modifier_values(sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+			n.get_constructing_cb_progress() += state.defines.cb_generation_base_speed * n.get_constructing_cb_type().get_construction_speed() * (n.get_modifier_values(sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
 
 			/*
 			Each day, a fabricating CB has a define:CB_DETECTION_CHANCE_BASE out of 1000 chance to be detected. If discovered, the
