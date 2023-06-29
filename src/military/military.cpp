@@ -3195,7 +3195,7 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
 				sum_attacker_occupied_values += v;
 		} else {
-			if(prv.get_province().get_nation_from_province_control() == primary)
+			if(prv.get_province().get_nation_from_province_control() == secondary)
 				sum_attacker_occupied_values += v;
 		}
 	}
@@ -3224,11 +3224,21 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
 
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
-		if((wg.get_wargoal().get_added_by() == primary || is_pattacker || is_pdefender) &&
-				wg.get_wargoal().get_target_nation() == secondary) {
+		if((wg.get_wargoal().get_added_by() == primary || is_pattacker || is_pdefender)
+			&& wg.get_wargoal().get_target_nation() == secondary) {
+
 			total += wg.get_wargoal().get_ticking_war_score();
-		} else if(wg.get_wargoal().get_added_by() == secondary &&
-							(wg.get_wargoal().get_target_nation() == primary || is_tpattacker || is_tpdefender)) {
+		} else if(wg.get_wargoal().get_added_by() == secondary
+			&& (wg.get_wargoal().get_target_nation() == primary || is_pattacker || is_pdefender)) {
+
+			total -= wg.get_wargoal().get_ticking_war_score();
+		} else if(wg.get_wargoal().get_added_by() == primary
+			&& (wg.get_wargoal().get_target_nation() == secondary || is_tpattacker || is_tpdefender)) {
+
+			total += wg.get_wargoal().get_ticking_war_score();
+		} else if((wg.get_wargoal().get_added_by() == secondary || is_tpattacker || is_tpdefender)
+			&& (wg.get_wargoal().get_target_nation() == primary)) {
+
 			total -= wg.get_wargoal().get_ticking_war_score();
 		}
 	}

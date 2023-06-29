@@ -2324,6 +2324,7 @@ public:
 				
 				break;
 			case diplomacy_action::make_peace:
+				setup_peace_win->open_window(state);
 				setup_peace_win->set_visible(state, true);
 				setup_peace_win->impl_set(state, new_payload);
 				setup_peace_win->impl_set(state, payload);

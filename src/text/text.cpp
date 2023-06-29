@@ -1392,22 +1392,24 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id source_text, substitution_map const& mp) {
 	std::string result;
 
-	auto seq = state.text_sequences[source_text];
-	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
-			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
-			std::string_view text = state.to_string_view(tkey);
-			// add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
-			result += text;
-		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
-			auto var_type = std::get<text::variable_type>(state.text_components[i]);
-			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
-				auto txt = impl::lb_resolve_substitution(state, it->second);
-				// add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
-				result += txt;
-			} else {
-				// add_to_layout_box(state, dest, box, std::string_view("???"), current_color, std::monostate{});
-				result += "???";
+	if(source_text) {
+		auto seq = state.text_sequences[source_text];
+		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
+			if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+				auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+				std::string_view text = state.to_string_view(tkey);
+				// add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
+				result += text;
+			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
+				auto var_type = std::get<text::variable_type>(state.text_components[i]);
+				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
+					auto txt = impl::lb_resolve_substitution(state, it->second);
+					// add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
+					result += txt;
+				} else {
+					// add_to_layout_box(state, dest, box, std::string_view("???"), current_color, std::monostate{});
+					result += "???";
+				}
 			}
 		}
 	}

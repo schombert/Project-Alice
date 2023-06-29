@@ -782,6 +782,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ shortest_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ long_desc }
 		type{ text_sequence_id }
 		tag{ scenario }

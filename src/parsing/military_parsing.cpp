@@ -19,9 +19,11 @@ void register_cb_type(std::string_view name, token_generator& gen, error_handler
 	auto name_id = text::find_or_add_key(context.state, name);
 	auto name_desc = std::string(name) + "_desc";
 	auto name_setup = std::string(name) + "_setup";
+	auto name_cond = std::string(name) + "_short";
 	context.state.world.cb_type_set_name(id, name_id);
 	context.state.world.cb_type_set_short_desc(id, text::find_or_add_key(context.state, name_desc));
 	context.state.world.cb_type_set_long_desc(id, text::find_or_add_key(context.state, name_setup));
+	context.state.world.cb_type_set_shortest_desc(id, text::find_or_add_key(context.state, name_cond));
 	context.state.world.cb_type_set_construction_speed(id, 1.0f);
 
 	uint32_t special_flags = 0;

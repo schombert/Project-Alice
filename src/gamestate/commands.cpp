@@ -2925,12 +2925,11 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 	if(wg.get_war_from_wargoals_attached() != war)
 		return false;
 
-	int32_t total = military::cost_of_peace_offer(state, pending);
-	int32_t new_wg_cost = military::peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(),
-			wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+	//int32_t total = military::cost_of_peace_offer(state, pending);
+	//int32_t new_wg_cost = military::peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 
-	if(total + new_wg_cost > 100)
-		return false;
+	//if(total + new_wg_cost > 100)
+	//	return false;
 
 	if(state.world.war_get_primary_attacker(war) == source && state.world.war_get_primary_defender(war) == target) {
 		return true;
@@ -2942,6 +2941,8 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 	if(state.world.peace_offer_get_is_concession(pending)) {
 		if(state.world.war_get_primary_attacker(war) == source || state.world.war_get_primary_defender(war) == source) {
 			if(wg.get_added_by() == target)
+				return true;
+			if(wg.get_added_by().get_overlord_as_subject().get_ruler() == target)
 				return true;
 			return false;
 		} else {
@@ -2960,6 +2961,8 @@ bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::war
 			return false;
 		} else {
 			if(wg.get_added_by() == target)
+				return true;
+			if(wg.get_added_by().get_overlord_as_subject().get_ruler() == target)
 				return true;
 			return false;
 		}
