@@ -833,7 +833,7 @@ int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon:
 				for(auto si : state.world.in_state_instance) {
 					if(si.get_definition() == state_def) {
 						auto wr = military::get_role(state, war, si.get_nation_from_state_ownership());
-						if((is_attacker && wr == military::war_role::defender) || !is_attacker && wr == military::war_role::attacker) {
+						if((is_attacker && wr == military::war_role::defender) || (!is_attacker && wr == military::war_role::attacker)) {
 							if(military::cb_requires_selection_of_a_liberatable_tag(state, id)) {
 								cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, second_nation);
 							} else if(military::cb_requires_selection_of_a_valid_nation(state, id)) {
