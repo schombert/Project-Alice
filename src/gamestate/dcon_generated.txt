@@ -2247,6 +2247,16 @@ object {
 		type{ text_sequence_id }
 		tag{ save }
 	}
+	property{
+		name{ over_state }
+		type{ state_definition_id }
+		tag{ save }
+	}
+	property{
+		name{ over_tag }
+		type{ national_identity_id }
+		tag{ save }
+	}
 	property {
 		name{ is_great }
 		type{ bitfield }

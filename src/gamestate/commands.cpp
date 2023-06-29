@@ -2401,7 +2401,7 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(!ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
-	if(!nations::are_allied(state, asker, target))
+	if(!nations::are_allied(state, asker, target) && !(state.world.war_get_primary_defender(w) == asker && state.world.nation_get_in_sphere_of(asker) == target))
 		return false;
 
 	if(military::is_civil_war(state, w))
@@ -2560,7 +2560,7 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 }
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
 
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2571,6 +2571,7 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 	p.data.new_war.cb_state = cb_state;
 	p.data.new_war.cb_tag = cb_tag;
 	p.data.new_war.cb_secondary_nation = cb_secondary_nation;
+	p.data.new_war.call_attacker_allies = call_attacker_allies;
 	auto b = state.incoming_commands.try_push(p);
 }
 
@@ -2610,7 +2611,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 }
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
 
 	if(!can_declare_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)) {
 		return;
@@ -2652,6 +2653,9 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 
 	auto war = military::create_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation);
 	military::call_defender_allies(state, war);
+	if(call_attacker_allies) {
+		military::call_attacker_allies(state, war);
+	}
 }
 
 void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type,
@@ -4080,7 +4084,7 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::declare_war:
 			execute_declare_war(state, c->source, c->data.new_war.target, c->data.new_war.primary_cb, c->data.new_war.cb_state,
-					c->data.new_war.cb_tag, c->data.new_war.cb_secondary_nation);
+					c->data.new_war.cb_tag, c->data.new_war.cb_secondary_nation, c->data.new_war.call_attacker_allies);
 			break;
 		case command_type::add_war_goal:
 			execute_add_war_goal(state, c->source, c->data.new_war_goal.war, c->data.new_war_goal.target, c->data.new_war_goal.cb_type,

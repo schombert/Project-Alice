@@ -1536,7 +1536,7 @@ int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal
 			} else {
 				for(auto tprov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
 					if(tprov.get_province().get_nation_from_province_ownership() == target)
-						total += 2.8f * float(province_point_cost(state, tprov.get_province(), target)) / float(sum_target_prov_values);
+						total += 280.0f * float(province_point_cost(state, tprov.get_province(), target)) / float(sum_target_prov_values);
 				}
 			}
 		}
@@ -2083,6 +2083,11 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	new_war.set_primary_attacker(primary_attacker);
 	new_war.set_primary_defender(real_target);
 	new_war.set_start_date(state.current_date);
+	new_war.set_over_state(primary_wargoal_state);
+	new_war.set_over_tag(primary_wargoal_tag);
+	if(primary_wargoal_secondary) {
+		new_war.set_over_tag(state.world.nation_get_identity_from_identity_holder(primary_wargoal_secondary));
+	}
 
 	add_to_war(state, new_war, primary_attacker, true);
 	add_to_war(state, new_war, real_target, false);
@@ -2297,9 +2302,7 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 		if(wg.get_wargoal().get_added_by() == n) {
 			rem_wargoals.push_back(wg.get_wargoal().id);
 
-			float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
-																state.defines.war_failed_goal_prestige * nations::prestige_score(state, n)) *
-														wg.get_wargoal().get_type().get_penalty_factor();
+			float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base, state.defines.war_failed_goal_prestige * nations::prestige_score(state, n)) * wg.get_wargoal().get_type().get_penalty_factor();
 			nations::adjust_prestige(state, n, prestige_loss);
 
 			pop_militancy += state.defines.war_failed_goal_militancy * wg.get_wargoal().get_type().get_penalty_factor();
@@ -2705,11 +2708,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	float prestige_gain = successful_cb_prestige(state, wargoal, from) * (war ? 1.0f : state.defines.crisis_wargoal_prestige_mult);
 	nations::adjust_prestige(state, from, prestige_gain);
 	nations::adjust_prestige(state, target, -prestige_gain);
-
-	/*
-	A war goal added in this way will result in a status quo war goal on that side being removed.
-	*/
 }
+
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	dcon::nation_id from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
 	dcon::nation_id target = state.world.peace_offer_get_target(offer);

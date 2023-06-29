@@ -273,6 +273,7 @@ struct new_war_data {
 	dcon::national_identity_id cb_tag;
 	dcon::nation_id cb_secondary_nation;
 	dcon::cb_type_id primary_cb;
+	bool call_attacker_allies;
 };
 
 struct new_war_goal_data {
@@ -604,7 +605,7 @@ void cancel_given_military_access(sys::state& state, dcon::nation_id source,
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies);
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 

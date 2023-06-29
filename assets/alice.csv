@@ -756,4 +756,16 @@ fab_explain_3;You are not currently fabricating a casus belli
 fab_explain_4;You are an independent nation or the target is your overlord
 fab_explain_5;The target is not in your sphere of influence
 fab_explain_6;You are not currently at war with the target
+peace_description;Make a peace offer to end hostilities between you and this nation
+peace_explain_1;Is not a subject nation
+peace_explain_2;The target is not a subject nation
+peace_explain_3;At least one of the negotiating parties is the war leader for their side
+peace_explain_4;Both the parties are war leaders (crisis war)
+peace_explain_5;You have no other peace offer in progress
+war_explain_1;You cannot declare war upon yourself
+war_explain_2;You have a casus belli to use against this nation
+war_explain_3;You have at least $x$ diplomatic point(s)
+wg_result_1;On adding this war goal:
+wg_result_2;On achieving this war goal:
+wg_result_3;On failing to achieve this war goal:
 ;;;;;;;;;;;;;x

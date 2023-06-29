@@ -1525,37 +1525,17 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 		dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
 		dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
 
-		for(auto wg : state.world.war_get_wargoals_attached(war)) {
-			if(wg.get_wargoal().get_added_by() == primary_attacker && wg.get_wargoal().get_target_nation() == primary_defender) {
-				auto box = text::open_layout_box(contents);
-				text::substitution_map sub{};
-				auto pa_adj = state.world.nation_get_adjective(primary_attacker);
-				text::add_to_substitution_map(sub, text::variable_type::first, pa_adj);
-				auto sdef = wg.get_wargoal().get_associated_state();
-				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
-				if(dcon::fatten(state.world, sdef).is_valid()) {
-					text::add_to_substitution_map(sub, text::variable_type::second, sdef);
-				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) !=
-									0) {
-					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
-				} else if((bits & (military::cb_flag::po_transfer_provinces)) != 0) {
-					auto niid = wg.get_wargoal().get_associated_tag();
-					auto adj = state.world.national_identity_get_adjective(niid);
-					text::add_to_substitution_map(sub, text::variable_type::second, adj);
-				} else {
-					auto adj = state.world.nation_get_adjective(primary_defender);
-					text::add_to_substitution_map(sub, text::variable_type::second, adj);
-				}
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+		text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
+		text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
+		text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
+		text::add_to_substitution_map(sub, text::variable_type::third, war.get_over_tag());
+		text::add_to_substitution_map(sub, text::variable_type::state, war.get_over_state());
 
-				// TODO: ordinal numbering, 1st, 2nd, 3rd, 4th, etc...
-				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-
-				text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
-
-				text::close_layout_box(contents, box);
-				break;
-			}
-		}
+		text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -2338,10 +2318,10 @@ public:
 				break;
 			case diplomacy_action::declare_war:
 			case diplomacy_action::add_wargoal:
+				declare_war_win->set_visible(state, false);
+				declare_war_win->reset_window();
 				declare_war_win->set_visible(state, true);
-				declare_war_win->impl_set(state, new_payload);
-				declare_war_win->impl_set(state, payload);
-				declare_war_win->impl_on_update(state);
+				
 				break;
 			case diplomacy_action::make_peace:
 				setup_peace_win->set_visible(state, true);
@@ -2350,10 +2330,9 @@ public:
 				setup_peace_win->impl_on_update(state);
 				break;
 			case diplomacy_action::justify_war:
-				make_cb_win->set_visible(state, true);
 				make_cb_win->impl_set(state, new_payload);
 				make_cb_win->impl_set(state, payload);
-				make_cb_win->impl_on_update(state);
+				make_cb_win->set_visible(state, true);
 				break;
 			case diplomacy_action::crisis_backdown:
 				crisis_backdown_win->set_visible(state, true);

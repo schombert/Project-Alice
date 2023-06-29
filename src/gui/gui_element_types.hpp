@@ -247,6 +247,20 @@ public:
 	}
 };
 
+class color_text_element : public simple_text_element_base {
+public:
+	text::text_color color = text::text_color::black;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class simple_body_text : public simple_text_element_base {
+public:
+	void on_create(sys::state& state) noexcept override;
+	void set_text(sys::state& state, std::string const& new_text);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void on_reset_text(sys::state& state) noexcept override;
+};
+
 class edit_box_element_base : public simple_text_element_base {
 protected:
 	int32_t edit_index = 0;

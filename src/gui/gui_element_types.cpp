@@ -579,6 +579,73 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 	}
 }
 
+void simple_body_text::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+	} else if(base_data.get_element_type() == element_type::text) {
+		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
+		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+	}
+}
+void simple_body_text::set_text(sys::state& state, std::string const& new_text) {
+	if(!state.user_settings.use_classic_fonts) {
+		auto old_handle = base_data.data.text_common.font_handle;
+		base_data.data.text_common.font_handle &= ~(0x01 << 7);
+		auto old_value = base_data.data.text_common.font_handle & 0x3F;
+		base_data.data.text_common.font_handle &= ~(0x003F);
+		base_data.data.text_common.font_handle |= (old_value - 2);
+
+		simple_text_element_base::set_text(state, new_text);
+		base_data.data.text_common.font_handle = old_handle;
+	} else {
+		simple_text_element_base::set_text(state, new_text);
+	}
+}
+void simple_body_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(!state.user_settings.use_classic_fonts) {
+		auto old_handle = base_data.data.text_common.font_handle;
+		base_data.data.text_common.font_handle &= ~(0x01 << 7);
+		auto old_value = base_data.data.text_common.font_handle & 0x3F;
+		base_data.data.text_common.font_handle &= ~(0x003F);
+		base_data.data.text_common.font_handle |= (old_value - 2);
+
+		simple_text_element_base::render(state, x, y);
+		base_data.data.text_common.font_handle = old_handle;
+	} else {
+		simple_text_element_base::render(state, x, y);
+	}
+}
+void simple_body_text::on_reset_text(sys::state& state) noexcept {
+	if(!state.user_settings.use_classic_fonts) {
+		auto old_handle = base_data.data.text_common.font_handle;
+		base_data.data.text_common.font_handle &= ~(0x01 << 7);
+		auto old_value = base_data.data.text_common.font_handle & 0x3F;
+		base_data.data.text_common.font_handle &= ~(0x003F);
+		base_data.data.text_common.font_handle |= (old_value - 2);
+
+		simple_text_element_base::on_reset_text(state);
+		base_data.data.text_common.font_handle = old_handle;
+	} else {
+		simple_text_element_base::on_reset_text(state);
+	}
+}
+
+void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(stored_text.length() > 0) {
+		if(base_data.get_element_type() == element_type::text) {
+			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
+				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(color), base_data.data.button.font_handle);
+		} else {
+			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+			auto ycentered = (base_data.size.y - linesz) / 2;
+
+			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
+				float(x + text_offset), float(y + ycentered), get_text_color(color), base_data.data.text.font_handle);
+		}
+	}
+}
+
 void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
