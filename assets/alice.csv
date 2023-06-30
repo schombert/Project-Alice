@@ -768,4 +768,5 @@ war_explain_3;You have at least $x$ diplomatic point(s)
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
+wg_not_ready;You must finish choosing a war goal
 ;;;;;;;;;;;;;x

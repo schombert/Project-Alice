@@ -675,7 +675,7 @@ public:
 		}
 
 		for(auto cb_type : state.world.in_cb_type) {
-			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
+			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
 				bool cb_fabbed = false;
 				for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
 					if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
@@ -684,17 +684,19 @@ public:
 					}
 				}
 				if(!cb_fabbed) {
-					if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) == 0)
+					if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
 						continue; // can only add a constructable cb this way
 
+					auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+					auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+
 					if(state.world.war_get_is_great(w)) {
-						if(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) >=
-								state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
+						if(jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
 							disabled = false;
 							return;
 						}
 					} else {
-						if(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) >= state.defines.wargoal_jingoism_requirement) {
+						if(jingoism_perc >= state.defines.wargoal_jingoism_requirement) {
 							disabled = false;
 							return;
 						}
@@ -705,7 +707,7 @@ public:
 				}
 			} else { // this is an always CB
 				// prevent duplicate war goals
-				if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
+				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type) && military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
 					disabled = false;
 					return;
 				}
@@ -744,33 +746,36 @@ public:
 			}
 
 			for(auto cb_type : state.world.in_cb_type) {
-				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
-					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
-						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
+				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
+					if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
+						for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+							if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
+								return;
+							}
+						}
+					} else { // this is an always CB
+						// prevent duplicate war goals
+						if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
 							return;
 						}
-					}
-				} else { // this is an always CB
-					// prevent duplicate war goals
-					if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
-						return;
 					}
 				}
 			}
 
 			// if we hit this, it means no existing cb is ready to be applied
+			auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+			auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
 			if(state.world.war_get_is_great(w)) {
-				if(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) <
-						state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
+				if(jingoism_perc < state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
 
-					text::add_line(state, contents, "add_wg_4", text::variable_type::x, text::fp_percentage_one_place{state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism))}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
+					text::add_line_with_condition(state, contents, "add_wg_4", false, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
 
 					return;
 				}
 			} else {
-				if(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) < state.defines.wargoal_jingoism_requirement) {
+				if(jingoism_perc < state.defines.wargoal_jingoism_requirement) {
 
-					text::add_line(state, contents, "add_wg_4", text::variable_type::x, text::fp_percentage_one_place{state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism))}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
+					text::add_line_with_condition(state, contents, "add_wg_4", false, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
 
 					return;
 				}

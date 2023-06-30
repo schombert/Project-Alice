@@ -2215,6 +2215,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
 		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target),
 				uint32_t(state.current_date.value), uint32_t((added_by.index() << 7) ^ target.index() ^ (type.index() << 3)));
+		demographics::regenerate_from_pop_data(state);
 	}
 
 	if((state.world.cb_type_get_type_bits(type) & cb_flag::always) == 0) {

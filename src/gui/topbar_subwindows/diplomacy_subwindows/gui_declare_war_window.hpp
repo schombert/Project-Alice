@@ -91,7 +91,7 @@ public:
 
 		if(w) { // war is ongoing
 			for(auto cb_type : state.world.in_cb_type) {
-				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
+				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
 					bool cb_fabbed = false;
 					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
 						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
@@ -100,18 +100,20 @@ public:
 						}
 					}
 					if(!cb_fabbed) {
-						if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) == 0)
+						if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
 							continue; // can only add a constructable cb this way
 
+						auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+						auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+
 						if(state.world.war_get_is_great(w)) {
-							if(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) >=
-									state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
+							if(jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
 
 								row_contents.push_back(cb_type);
 								continue;
 							}
 						} else {
-							if(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) >= state.defines.wargoal_jingoism_requirement) {
+							if(jingoism_perc >= state.defines.wargoal_jingoism_requirement) {
 
 								row_contents.push_back(cb_type);
 								continue;
@@ -123,7 +125,7 @@ public:
 					}
 				} else { // this is an always CB
 					// prevent duplicate war goals
-					if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
+					if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type) && military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
 						row_contents.push_back(cb_type);
 						continue;
 					}
@@ -707,15 +709,28 @@ public:
 
 class diplomacy_declare_war_title : public simple_text_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		simple_text_element_base::on_create(state);
-		set_text(state, text::produce_simple_string(state, "wartitle"));
+	void on_update(sys::state& state) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		if(!war) {
+			set_text(state, text::produce_simple_string(state, "wartitle"));
+		} else {
+			set_text(state, text::produce_simple_string(state, "wargoaltitle"));
+		}
 	}
+};
+
+struct check_wg_completion {
+	bool done = false;
 };
 
 class diplomacy_declare_war_agree_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		auto wg_ready = retrieve<check_wg_completion>(state, parent).done;
+		if(!wg_ready) {
+			disabled = true;
+			return;
+		}
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
@@ -773,6 +788,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto wg_ready = retrieve<check_wg_completion>(state, parent).done;
+		if(!wg_ready) {
+			text::add_line_with_condition(state, contents, "wg_not_ready", false);
+			return;
+		}
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
@@ -939,6 +959,8 @@ public:
 
 class diplomacy_declare_war_call_allies_checkbox : public button_element_base {
 public:
+	bool show = true;
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = bool{};
@@ -956,6 +978,20 @@ public:
 			bool content = any_cast<bool>(payload);
 			frame = content ? 1 : 0;
 		}
+		auto war = retrieve<dcon::war_id>(state, parent);
+		show = bool(war);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			button_element_base::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!show)
+			return;
 	}
 };
 
@@ -1033,7 +1069,15 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
+		if(payload.holds_type<dcon::war_id>()) {
+			const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+			const dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
+			payload.emplace<dcon::war_id>(w);
+			return message_result::consumed;
+		} else if(payload.holds_type< check_wg_completion>()) {
+			payload.emplace<check_wg_completion>(check_wg_completion{ wargoal_decided_upon });
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			cb_to_use = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
 			if(!cb_to_use) {
 				wargoal_decided_upon = false;
@@ -1049,6 +1093,7 @@ public:
 				wargoal_setup_win->set_visible(state, true);
 				wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, false);
+				wargoal_decided_upon = true;
 			}
 			impl_on_update(state);
 			return message_result::consumed;

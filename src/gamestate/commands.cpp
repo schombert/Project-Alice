@@ -2718,16 +2718,17 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 			}
 		}
 		if(!cb_fabbed) {
-			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) == 0)
+			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
 				return false; // can only add a constructable cb this way
 
+			auto totalpop = state.world.nation_get_demographics(source, demographics::total);
+			auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(source, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+
 			if(state.world.war_get_is_great(w)) {
-				if(state.world.nation_get_demographics(source, demographics::to_key(state, state.culture_definitions.jingoism)) <
-						state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod)
+				if(jingoism_perc < state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod)
 					return false;
 			} else {
-				if(state.world.nation_get_demographics(source, demographics::to_key(state, state.culture_definitions.jingoism)) <
-						state.defines.wargoal_jingoism_requirement)
+				if(jingoism_perc < state.defines.wargoal_jingoism_requirement)
 					return false;
 			}
 		}
