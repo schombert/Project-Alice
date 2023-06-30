@@ -512,10 +512,51 @@ public:
 	}
 };
 
+struct country_filter_setting {
+	country_list_filter general_category = country_list_filter::all;
+	dcon::modifier_id continent;
+};
+struct country_sort_setting {
+	country_list_sort sort = country_list_sort::country;
+	bool sort_ascend = true;
+};
+
 class diplomacy_country_listbox : public listbox_element_base<diplomacy_country_info, dcon::nation_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "diplomacy_country_info";
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto current_filter = retrieve< country_filter_setting>(state, parent);
+		auto current_sort = retrieve<country_sort_setting>(state, parent);
+
+		row_contents.clear();
+		state.world.for_each_nation([&](dcon::nation_id id) {
+			if(state.world.nation_get_owned_province_count(id) != 0) {
+				bool passes_filter = [&]() {
+					switch(current_filter.general_category) {
+						case country_list_filter::all:
+							return true;
+						case country_list_filter::allies:
+							return nations::are_allied(state, id, state.local_player_nation);
+						case country_list_filter::enemies:
+							return military::are_at_war(state, state.local_player_nation, id);
+						case country_list_filter::sphere:
+							return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
+						case country_list_filter::neighbors:
+							return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
+					}
+					return true;
+				}();
+				bool right_continent = !current_filter.continent || state.world.nation_get_capital(id).get_continent() == current_filter.continent;
+
+				if(passes_filter && right_continent)
+					row_contents.push_back(id);
+			}
+				
+		});
+		sort_countries(state, row_contents, current_sort.sort, current_sort.sort_ascend);
+		update(state);
 	}
 };
 
@@ -936,6 +977,10 @@ public:
 	}
 };
 
+struct dip_tab_request {
+	ui::diplomacy_window_tab tab = ui::diplomacy_window_tab::great_powers;
+};
+
 class great_power_inf_detail : public window_element_base {
 public:
 	int32_t gp_num = 0;
@@ -1236,46 +1281,45 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			auto fat_id = dcon::fatten(state.world, content);
-			country_relation->set_visible(state, content != state.local_player_nation);
-			country_relation_icon->set_visible(state, content != state.local_player_nation);
+		
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		country_relation->set_visible(state, content != state.local_player_nation);
+		country_relation_icon->set_visible(state, content != state.local_player_nation);
+		auto active_tab = retrieve<dip_tab_request>(state, parent).tab;
 
-			if(military::find_war_between(state, state.local_player_nation, content)) {
-				for(auto p : gp_elements) {
-					p->set_visible(state, false);
-				}
-				for(auto p : non_gp_elements) {
-					p->set_visible(state, false);
-				}
-				for(auto p : war_elements) {
-					p->set_visible(state, true);
-				}
-			} else if(nations::is_great_power(state, content)) {
-				for(auto p : gp_elements) {
-					p->set_visible(state, true);
-				}
-				for(auto p : non_gp_elements) {
-					p->set_visible(state, false);
-				}
-				for(auto p : war_elements) {
-					p->set_visible(state, false);
-				}
-			} else {
-				for(auto p : gp_elements) {
-					p->set_visible(state, false);
-				}
-				for(auto p : non_gp_elements) {
-					p->set_visible(state, true);
-				}
-				for(auto p : war_elements) {
-					p->set_visible(state, false);
-				}
+		if(active_tab != diplomacy_window_tab::great_powers) {
+			for(auto p : gp_elements) {
+				p->set_visible(state, false);
+			}
+			for(auto p : non_gp_elements) {
+				p->set_visible(state, false);
+			}
+			for(auto p : war_elements) {
+				p->set_visible(state, true);
+			}
+		} else if(nations::is_great_power(state, content)) {
+			for(auto p : gp_elements) {
+				p->set_visible(state, true);
+			}
+			for(auto p : non_gp_elements) {
+				p->set_visible(state, false);
+			}
+			for(auto p : war_elements) {
+				p->set_visible(state, false);
+			}
+		} else {
+			for(auto p : gp_elements) {
+				p->set_visible(state, false);
+			}
+			for(auto p : non_gp_elements) {
+				p->set_visible(state, true);
+			}
+			for(auto p : war_elements) {
+				p->set_visible(state, false);
 			}
 		}
+		
 	}
 };
 
@@ -1897,6 +1941,65 @@ public:
 	void button_action(sys::state& state) noexcept override { }
 };
 
+class crisis_tab_button : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept final {
+		return parent && static_cast<generic_tabbed_window<diplomacy_window_tab>*>(parent)->active_tab == diplomacy_window_tab::crisis;
+	}
+
+	void button_action(sys::state& state) noexcept final {
+		diplomacy_window_tab target = diplomacy_window_tab::crisis;
+		send(state, parent, target);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		checkbox_button::on_update(state);
+		disabled = state.current_crisis == sys::crisis_type::none;
+	}
+};
+
+class gp_tab_text : public simple_text_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		simple_text_element_base::on_create(state);
+		set_text(state, text::produce_simple_string(state, "tut_8c_3"));
+	}
+};
+
+template<country_list_filter category>
+class category_filter_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept final {
+		send(state, parent, category);
+		if constexpr(category == country_list_filter::all) {
+			send(state, parent, dcon::modifier_id{});
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto filter_settings = retrieve<country_filter_setting>(state, parent);
+		disabled = filter_settings.general_category != category;
+		button_element_base::render(state, x, y);
+		disabled = false;
+	}
+};
+
+class continent_filter_button : public button_element_base {
+public:
+	dcon::modifier_id continent;
+
+	void button_action(sys::state& state) noexcept final {
+		send(state, parent, continent);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto filter_settings = retrieve<country_filter_setting>(state, parent);
+		disabled = filter_settings.continent != continent;
+		button_element_base::render(state, x, y);
+		disabled = false;
+	}
+};
+
 class diplomacy_window : public generic_tabbed_window<diplomacy_window_tab> {
 private:
 	diplomacy_country_listbox* country_listbox = nullptr;
@@ -1915,29 +2018,11 @@ private:
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
 	std::vector<element_base*> action_buttons{};
 
-	country_list_sort sort = country_list_sort::country;
-	bool sort_ascend = true;
+	
 	dcon::nation_id facts_nation_id{};
 
-	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
-		if(country_listbox) {
-			country_listbox->row_contents.clear();
-			state.world.for_each_nation([&](dcon::nation_id id) {
-				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id))
-					country_listbox->row_contents.push_back(id);
-			});
-			sort_countries(state, country_listbox->row_contents, sort, sort_ascend);
-			country_listbox->update(state);
-		}
-	}
-
-	void filter_by_continent(sys::state& state, dcon::modifier_id mod_id) {
-		filter_countries(state, [&](dcon::nation_id id) -> bool {
-			dcon::nation_fat_id fat_id = dcon::fatten(state.world, id);
-			auto cont_id = fat_id.get_capital().get_continent().id;
-			return mod_id == cont_id;
-		});
-	}
+	country_filter_setting filter = country_filter_setting{};
+	country_sort_setting sort = country_sort_setting{};
 
 	template<typename T>
 	void add_action_button(sys::state& state, xy_pair offset) noexcept {
@@ -1951,7 +2036,6 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 		set_visible(state, false);
-		filter_countries(state, [](dcon::nation_id) { return true; });
 		state.ui_state.diplomacy_subwindow = this;
 
 		xy_pair base_gp_info_offset =
@@ -2059,6 +2143,8 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<diplomacy_window_tab>>(state, id);
 			ptr->target = diplomacy_window_tab::great_powers;
 			return ptr;
+		} else if(name == "gp_info_text") {
+			return make_element_by_type<gp_tab_text>(state, id);
 		} else if(name == "war_info") {
 			auto ptr = make_element_by_type<generic_tab_button<diplomacy_window_tab>>(state, id);
 			ptr->target = diplomacy_window_tab::wars;
@@ -2068,28 +2154,21 @@ public:
 			ptr->target = diplomacy_window_tab::casus_belli;
 			return ptr;
 		} else if(name == "crisis_info") {
-			auto ptr = make_element_by_type<generic_tab_button<diplomacy_window_tab>>(state, id);
-			ptr->target = diplomacy_window_tab::crisis;
-			return ptr;
+			return make_element_by_type<crisis_tab_button>(state, id);
 		} else if(name == "filter_all") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::all;
+			auto ptr = make_element_by_type<category_filter_button<country_list_filter::all>>(state, id);
 			return ptr;
 		} else if(name == "filter_enemies") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::enemies;
+			auto ptr = make_element_by_type<category_filter_button<country_list_filter::enemies>>(state, id);
 			return ptr;
 		} else if(name == "filter_allies") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::allies;
+			auto ptr = make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
 			return ptr;
 		} else if(name == "filter_neighbours") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::neighbors;
+			auto ptr = make_element_by_type<category_filter_button<country_list_filter::neighbors>>(state, id);
 			return ptr;
 		} else if(name == "filter_sphere") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::sphere;
+			auto ptr = make_element_by_type<category_filter_button<country_list_filter::sphere>>(state, id);
 			return ptr;
 		} else if(name == "cb_info_win") {
 			auto ptr = make_element_by_type<diplomacy_casus_belli_window>(state, id);
@@ -2155,18 +2234,17 @@ public:
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			auto const filter_name = name.substr(7);
-			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
-			ptr->target = ([&]() {
-				dcon::modifier_id filter_mod_id{0};
-				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
-				if(it != state.key_to_text_sequence.end())
-					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
-						auto fat_id = dcon::fatten(state.world, mod_id);
-						if(it->second == fat_id.get_name())
-							filter_mod_id = mod_id;
-					});
-				return filter_mod_id;
-			})();
+			auto ptr = make_element_by_type<continent_filter_button>(state, id);
+			
+			if(auto it = state.key_to_text_sequence.find(filter_name); it != state.key_to_text_sequence.end()) {
+				for(auto m : state.world.in_modifier) {
+					if(m.get_name() == it->second) {
+						ptr->continent = m;
+						break;
+					}
+				}
+			}
+			
 			return ptr;
 		} else {
 			return nullptr;
@@ -2186,63 +2264,47 @@ public:
 			auto enum_val = any_cast<diplomacy_window_tab>(payload);
 			hide_tabs(state);
 			switch(enum_val) {
-			case diplomacy_window_tab::great_powers:
-				for(auto e : gp_infos)
-					e->set_visible(state, true);
-				break;
-			case diplomacy_window_tab::wars:
-				war_listbox->set_visible(state, true);
-				break;
-			case diplomacy_window_tab::casus_belli:
-				casus_belli_window->set_visible(state, true);
-				break;
-			case diplomacy_window_tab::crisis:
-				crisis_window->set_visible(state, true);
-				break;
+				case diplomacy_window_tab::great_powers:
+					for(auto e : gp_infos)
+						e->set_visible(state, true);
+					break;
+				case diplomacy_window_tab::wars:
+					war_listbox->set_visible(state, true);
+					break;
+				case diplomacy_window_tab::casus_belli:
+					casus_belli_window->set_visible(state, true);
+					break;
+				case diplomacy_window_tab::crisis:
+					crisis_window->set_visible(state, true);
+					break;
 			}
 			active_tab = enum_val;
+			country_facts->impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dip_tab_request>()) {
+			payload.emplace<dip_tab_request>(dip_tab_request{ active_tab });
+			return message_result::consumed;
+		} else if(payload.holds_type<country_sort_setting>()) {
+			payload.emplace<country_sort_setting>(sort);
+			return message_result::consumed;
+		} else if(payload.holds_type< country_filter_setting>()) {
+			payload.emplace<country_filter_setting>(filter);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<country_list_sort>>()) {
 			auto new_sort = any_cast<element_selection_wrapper<country_list_sort>>(payload).data;
-			sort_ascend = (new_sort == sort) ? !sort_ascend : true;
-			sort = new_sort;
-			sort_countries(state, country_listbox->row_contents, sort, sort_ascend);
-			country_listbox->update(state);
+			sort.sort_ascend = (new_sort == sort.sort) ? !sort.sort_ascend : true;
+			sort.sort = new_sort;
+			country_listbox->impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<country_list_filter>()) {
-			auto filter = any_cast<country_list_filter>(payload);
-			switch(filter) {
-			case country_list_filter::all:
-				filter_countries(state, [&](dcon::nation_id) { return true; });
-				break;
-			case country_list_filter::allies:
-				filter_countries(state, [&](dcon::nation_id id) {
-					if(id == state.local_player_nation)
-						return false;
-					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
-					return state.world.diplomatic_relation_get_are_allied(rel) ||
-								 military::are_allied_in_war(state, state.local_player_nation, id);
-				});
-				break;
-			case country_list_filter::enemies:
-				filter_countries(state, [&](dcon::nation_id id) { return military::are_at_war(state, state.local_player_nation, id); });
-				break;
-			case country_list_filter::sphere:
-				filter_countries(state,
-						[&](dcon::nation_id id) { return state.world.nation_get_in_sphere_of(id) == state.local_player_nation; });
-				break;
-			case country_list_filter::neighbors:
-				filter_countries(state, [&](dcon::nation_id id) {
-					return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
-				});
-				break;
-			default:
-				break;
-			}
+			auto temp = any_cast<country_list_filter>(payload);
+			filter.general_category = filter.general_category != temp ? temp : country_list_filter::all;
+			country_listbox->impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::modifier_id>()) {
-			auto mod_id = any_cast<dcon::modifier_id>(payload);
-			filter_by_continent(state, mod_id);
+			auto temp_c = any_cast<dcon::modifier_id>(payload);
+			filter.continent = filter.continent == temp_c ? dcon::modifier_id{} : temp_c;
+			country_listbox->impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(facts_nation_id);
