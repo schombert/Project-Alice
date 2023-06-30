@@ -4,32 +4,6 @@
 
 namespace ui {
 
-class diplomacy_crisis_backdown_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = diplomacy_action::crisis_backdown;
-			parent->impl_get(state, payload);
-		}
-	}
-};
-
-class diplomacy_crisis_support_button : public button_element_base {
-public:
-	bool bLeftSide = true;
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = diplomacy_action::crisis_support;
-			parent->impl_get(state, payload);
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		disabled = !(bLeftSide ? command::can_take_sides_in_crisis(state, state.local_player_nation, true)
-													 : command::can_take_sides_in_crisis(state, state.local_player_nation, false));
-	}
-};
-
 class diplomacy_crisis_attacker_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
@@ -42,7 +16,7 @@ public:
 	bool show = false;
 
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis == sys::crisis_type::colonial) { 
+		if(state.current_crisis == sys::crisis_type::colonial) {
 			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
 			if(colonizers.begin() != colonizers.end()) {
 				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
@@ -89,18 +63,145 @@ public:
 	}
 };
 
+class support_defender_button : public button_element_base {
+	bool show = true;
+
+	void on_update(sys::state& state) noexcept override {
+		show = !nations::is_involved_in_crisis(state, state.local_player_nation);
+		disabled = !command::can_take_sides_in_crisis(state, state.local_player_nation, false);
+	}
+	void button_action(sys::state& state) noexcept override {
+		if(show)
+			command::take_sides_in_crisis(state, state.local_player_nation, false);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			button_element_base::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(!show)
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+		else
+			return button_element_base::impl_probe_mouse(state, x, y, type);
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!show)
+			return;
+
+		text::add_line_with_condition(state, contents, "crisis_back_explain_2", state.current_crisis_mode == sys::crisis_mode::heating_up);
+
+		for(auto& i : state.crisis_participants) {
+			if(i.id == state.local_player_nation) {
+				text::add_line_with_condition(state, contents, "crisis_back_explain_1", i.merely_interested == true);
+				return;
+			}
+			if(!i.id) {
+				text::add_line_with_condition(state, contents, "crisis_back_explain_1", false);
+				return;
+			}
+		}
+	}
+};
+
+class support_attacker_button : public button_element_base {
+	bool show = true;
+
+	void on_update(sys::state& state) noexcept override {
+		show = !nations::is_involved_in_crisis(state, state.local_player_nation);
+		disabled = !command::can_take_sides_in_crisis(state, state.local_player_nation, true);
+	}
+	void button_action(sys::state& state) noexcept override {
+		if(show)
+			command::take_sides_in_crisis(state, state.local_player_nation, true);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			button_element_base::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(!show)
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+		else
+			return button_element_base::impl_probe_mouse(state, x, y, type);
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!show)
+			return;
+
+		text::add_line_with_condition(state, contents, "crisis_back_explain_2", state.current_crisis_mode == sys::crisis_mode::heating_up);
+
+		for(auto& i : state.crisis_participants) {
+			if(i.id == state.local_player_nation) {
+				text::add_line_with_condition(state, contents, "crisis_back_explain_1", i.merely_interested == true);
+				return;
+			}
+			if(!i.id) {
+				text::add_line_with_condition(state, contents, "crisis_back_explain_1", false);
+				return;
+			}
+		}
+	}
+};
+
+
+class propose_attacker_solution_button : public button_element_base {
+	bool show = true;
+
+	void on_update(sys::state& state) noexcept override {
+		show = state.local_player_nation == state.primary_crisis_attacker;
+	}
+	void button_action(sys::state& state) noexcept override {
+		//if(show)
+		//TODO
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			button_element_base::render(state, x, y);
+	}
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(!show)
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+		else
+			return button_element_base::impl_probe_mouse(state, x, y, type);
+	}
+};
+
+class propose_defender_solution_button : public button_element_base {
+	bool show = true;
+
+	void on_update(sys::state& state) noexcept override {
+		show = state.local_player_nation == state.primary_crisis_defender;
+	}
+	void button_action(sys::state& state) noexcept override {
+		//if(show)
+		//TODO
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			button_element_base::render(state, x, y);
+	}
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(!show)
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+		else
+			return button_element_base::impl_probe_mouse(state, x, y, type);
+	}
+};
+
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.current_crisis == sys::crisis_type::colonial) {
-			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-			if(colonizers.begin() != colonizers.end()) {
-				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
-				set_text(state, text::produce_simple_string(state, state.world.nation_get_name(attacking_colonizer)));
-			}
-		} else if(state.current_crisis == sys::crisis_type::liberation) {
-			set_text(state, text::produce_simple_string(state, state.world.national_identity_get_name(state.crisis_liberation_tag)));
-		}
+		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.primary_crisis_attacker)));
 	}
 };
 
@@ -113,7 +214,7 @@ protected:
 				if(!state.crisis_participants[i].id)
 					break;
 
-				if(state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested) {
+				if(state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested && state.crisis_participants[i].id != state.primary_crisis_attacker) {
 					auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
 					row_contents.push_back(content.get_identity_from_identity_holder().id);
 				}
@@ -143,16 +244,13 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 
 		} else if(name == "backers") {
-			return make_element_by_type<diplomacy_crisis_attacker_backers>(state, id);
-
-		} else if(name == "support_side") {
-			auto ptr = make_element_by_type<diplomacy_crisis_support_button>(state, id);
-			ptr->set_visible(state, false);
+			auto ptr = make_element_by_type<diplomacy_crisis_attacker_backers>(state, id);
+			ptr->base_data.position.y -= 6;
 			return ptr;
-
+		} else if(name == "support_side") {
+			return make_element_by_type<support_attacker_button>(state, id);
 		} else if(name == "back_down") {
-			return make_element_by_type<diplomacy_crisis_backdown_button>(state, id);
-
+			return make_element_by_type<propose_defender_solution_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -221,15 +319,7 @@ public:
 class diplomacy_crisis_defender_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.current_crisis == sys::crisis_type::colonial) {
-			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-			if(colonizers.end() - colonizers.begin() >= 2) {
-				auto def_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
-				set_text(state, text::produce_simple_string(state, state.world.nation_get_name(def_colonizer)));
-			}
-		} else if(state.current_crisis == sys::crisis_type::liberation) {
-			set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.world.state_instance_get_nation_from_state_ownership(state.crisis_state))));
-		}
+		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.primary_crisis_defender)));
 	}
 };
 
@@ -242,7 +332,7 @@ protected:
 				if(!state.crisis_participants[i].id)
 					break;
 
-				if(!state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested) {
+				if(!state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested && state.crisis_participants[i].id != state.primary_crisis_defender) {
 					auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
 					row_contents.push_back(content.get_identity_from_identity_holder().id);
 				}
@@ -272,15 +362,13 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 
 		} else if(name == "backers") {
-			return make_element_by_type<diplomacy_crisis_defender_backers>(state, id);
-
-		} else if(name == "support_side") {
-			return make_element_by_type<diplomacy_crisis_support_button>(state, id);
-
-		} else if(name == "back_down") {
-			auto ptr = make_element_by_type<diplomacy_crisis_backdown_button>(state, id);
-			ptr->set_visible(state, false);
+			auto ptr = make_element_by_type<diplomacy_crisis_defender_backers>(state, id);
+			ptr->base_data.position.y -= 6;
 			return ptr;
+		} else if(name == "support_side") {
+			return make_element_by_type<support_defender_button>(state, id);
+		} else if(name == "back_down") {
+			return make_element_by_type<propose_attacker_solution_button>(state, id);
 
 		} else {
 			return nullptr;
@@ -291,10 +379,10 @@ public:
 class diplomacy_crisis_title_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.current_crisis == sys::crisis_type::colonial || state.current_crisis == sys::crisis_type::claim) {
+		if(state.current_crisis == sys::crisis_type::colonial) {
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_colony).get_name()));
-		} else if(state.current_crisis == sys::crisis_type::liberation || state.current_crisis == sys::crisis_type::influence) {
-			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_state).get_definition().get_name()));
 		} else {
 			
 		}
@@ -308,16 +396,24 @@ public:
 		case sys::crisis_type::none:
 			break;
 		case sys::crisis_type::claim:
-			set_text(state, text::produce_simple_string(state, "crisis_description_reclaim"));
+			//set_text(state, text::produce_simple_string(state, "crisis_description_reclaim"));
 			break;
 		case sys::crisis_type::liberation:
-			set_text(state, text::produce_simple_string(state, "crisis_description_liberation"));
+		{
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::country, state.crisis_liberation_tag);
+			if(state.world.nation_get_owned_province_count(state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag)) > 0) {
+				set_text(state, text::resolve_string_substitution(state, "crisis_description_reclaim", m));
+			} else {
+				set_text(state, text::resolve_string_substitution(state, "crisis_description_liberation", m));
+			}
+		}
 			break;
 		case sys::crisis_type::colonial:
 			set_text(state, text::produce_simple_string(state, "crisis_description_colonize"));
 			break;
 		case sys::crisis_type::influence:
-			set_text(state, text::produce_simple_string(state, "crisis_description_influence"));
+			//set_text(state, text::produce_simple_string(state, "crisis_description_influence"));
 			break;
 		};
 	}
@@ -326,7 +422,16 @@ public:
 class diplomacy_crisis_temperature_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		progress = state.crisis_temperature;
+		progress = state.current_crisis_mode == sys::crisis_mode::heating_up ? state.crisis_temperature / 100.0f : 0.0f;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return state.current_crisis_mode == sys::crisis_mode::heating_up ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+			return;
+		text::add_line(state, contents, "crisis_temperature", text::variable_type::value, int64_t(state.crisis_temperature));
 	}
 };
 
@@ -344,7 +449,7 @@ public:
 			set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
 			break;
 		case sys::crisis_mode::heating_up:
-			set_text(state, text::produce_simple_string(state, "has_crisis")); // TODO - find the correct CSV Key for this...
+			set_text(state, text::produce_simple_string(state, "")); // TODO - find the correct CSV Key for this...
 			break;
 		}
 	}

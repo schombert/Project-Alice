@@ -769,4 +769,6 @@ wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
 wg_not_ready;You must finish choosing a war goal
+crisis_back_explain_1;You are interested in the crisis (on the fence)
+crisis_back_explain_2;The crisis has attracted its initial backers
 ;;;;;;;;;;;;;x
