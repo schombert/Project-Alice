@@ -1575,44 +1575,43 @@ void monthly_flashpoint_update(sys::state& state) {
 	its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
 	*/
 	for(auto si : state.world.in_state_instance) {
-		[&]() {
-			auto owner = si.get_nation_from_state_ownership();
-			auto owner_tag = owner.get_identity_from_identity_holder();
+		auto owner = si.get_nation_from_state_ownership();
+		auto owner_tag = owner.get_identity_from_identity_holder();
 
-			auto owner_accepts_culture = [&](dcon::culture_id c) {
-				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
-			};
+		auto owner_accepts_culture = [&](dcon::culture_id c) {
+			return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
+		};
 
-			if(auto fp_focus_nation = si.get_nation_from_flashpoint_focus(); fp_focus_nation) {
-				if(can_put_flashpoint_focus_in_state(state, si, fp_focus_nation)) {
-					si.set_flashpoint_tag(fp_focus_nation.get_identity_from_identity_holder());
-					return; // done, skip remainder
-				} else {
-					// remove focus
-					si.set_nation_from_flashpoint_focus(dcon::nation_id{});
-				}
+		if(auto fp_focus_nation = si.get_nation_from_flashpoint_focus(); fp_focus_nation) {
+			if(can_put_flashpoint_focus_in_state(state, si, fp_focus_nation)) {
+				si.set_flashpoint_tag(fp_focus_nation.get_identity_from_identity_holder());
+				continue; // done, skip remainder
+			} else {
+				// remove focus
+				si.set_nation_from_flashpoint_focus(dcon::nation_id{});
 			}
+		}
 
-			dcon::national_identity_id qualifying_tag;
+		dcon::national_identity_id qualifying_tag;
 
-			auto d = si.get_definition();
-			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == owner) {
-					for(auto cores : p.get_province().get_core()) {
-						if(!cores.get_identity().get_is_not_releasable() &&
-								!owner_accepts_culture(cores.get_identity().get_primary_culture()) &&
-								si.get_demographics(demographics::to_key(state, cores.get_identity().get_primary_culture())) >
-										si.get_demographics(
-												demographics::to_key(state, state.world.national_identity_get_primary_culture(qualifying_tag)))) {
+		auto d = si.get_definition();
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == owner) {
+				for(auto cores : p.get_province().get_core()) {
+					if(!cores.get_identity().get_is_not_releasable()
+						&& !owner_accepts_culture(cores.get_identity().get_primary_culture())
+						&& (!qualifying_tag
+							|| si.get_demographics(demographics::to_key(state, cores.get_identity().get_primary_culture())) >
+							si.get_demographics(demographics::to_key(state, state.world.national_identity_get_primary_culture(qualifying_tag))))) {
 
-							qualifying_tag = cores.get_identity();
-						}
+						qualifying_tag = cores.get_identity();
 					}
 				}
 			}
+		}
 
-			si.set_flashpoint_tag(qualifying_tag);
-		}();
+		si.set_flashpoint_tag(qualifying_tag);
+
 	}
 
 	// set which nations contain such states
@@ -1883,8 +1882,8 @@ void update_crisis(sys::state& state) {
 		}
 	}
 
-	if(state.current_crisis == sys::crisis_type::none && !state.crisis_war &&
-			state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date) {
+	if(state.current_crisis == sys::crisis_type::none && !state.crisis_war && (!state.last_crisis_end_date ||
+			state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date)) {
 		// try to start a crisis
 		// determine type if any
 
@@ -1896,6 +1895,11 @@ void update_crisis(sys::state& state) {
 		*/
 		std::vector<dcon::state_instance_id> most_likely_states;
 		for(auto si : state.world.in_state_instance) {
+			auto owner_war = si.get_nation_from_state_ownership().get_is_at_war();
+			auto ft = si.get_flashpoint_tag();
+			auto ften = si.get_flashpoint_tension();
+			auto ihold_at_war = si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war();
+
 			if(si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag() &&
 					si.get_flashpoint_tension() > 50.0f &&
 					si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {

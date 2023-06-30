@@ -98,6 +98,7 @@ enum class command_type : uint8_t {
 	c_change_research_points = 133,
 	c_change_cb_progress = 134,
 	c_change_infamy = 135,
+	c_force_crisis = 136,
 };
 
 struct national_focus_data {
@@ -725,7 +726,7 @@ void c_unwesternize(sys::state& state, dcon::nation_id source);
 void c_change_research_points(sys::state& state, dcon::nation_id source, float value);
 void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value);
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
-
+void c_force_crisis(sys::state& state, dcon::nation_id source);
 void execute_pending_commands(sys::state& state);
 
 } // namespace command

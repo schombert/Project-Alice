@@ -57,8 +57,7 @@ public:
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
-	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y,
-			mouse_probe_type type) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
+	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
 	virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
@@ -76,8 +75,7 @@ protected:
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
 
-	virtual focus_result on_get_focus(
-			sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
+	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
 		return focus_result::ignored;
 	}
 	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away

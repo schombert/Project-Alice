@@ -33,39 +33,73 @@ public:
 class diplomacy_crisis_attacker_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
-			return state.crisis_liberation_tag;
-		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::fatten(state.world, state.primary_crisis_attacker).get_identity_from_identity_holder();
-		}
-
-		return dcon::national_identity_id{0};
+		return state.world.nation_get_identity_from_identity_holder(state.primary_crisis_attacker);
 	}
 };
 
-class diplomacy_crisis_sponsor_attacker_flag : public flag_button {
+class diplomacy_crisis_sponsored_attacker_flag : public flag_button {
 public:
+	bool show = false;
+
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
-			auto fat_id = dcon::fatten(state.world, state.primary_crisis_attacker);
-			return fat_id.get_identity_from_identity_holder();
-		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::national_identity_id{
-					0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+		if(state.current_crisis == sys::crisis_type::colonial) { 
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.begin() != colonizers.end()) {
+				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+				return state.world.nation_get_identity_from_identity_holder(attacking_colonizer);
+			}
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			return state.crisis_liberation_tag;
 		}
-		return dcon::national_identity_id{0};
+		return dcon::national_identity_id{};
+	}
+	void on_update(sys::state& state) noexcept override {
+		flag_button::on_update(state);
+
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.begin() != colonizers.end()) {
+				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+				show = attacking_colonizer != state.primary_crisis_attacker;
+			} else {
+				show = false;
+			}
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			show = state.crisis_liberation_tag != state.world.nation_get_identity_from_identity_holder(state.primary_crisis_attacker);
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			flag_button::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(!show)
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+		else
+			return flag_button::impl_probe_mouse(state, x, y, type);
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!show)
+			return;
+		flag_button::update_tooltip(state, x, y, contents);
 	}
 };
 
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
-			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
-			return;
-		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.primary_crisis_attacker).get_name()));
-			return;
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.begin() != colonizers.end()) {
+				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+				set_text(state, text::produce_simple_string(state, state.world.nation_get_name(attacking_colonizer)));
+			}
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			set_text(state, text::produce_simple_string(state, state.world.national_identity_get_name(state.crisis_liberation_tag)));
 		}
 	}
 };
@@ -76,7 +110,10 @@ protected:
 		if(bool(current_nation)) {
 			row_contents.clear();
 			for(uint32_t i = 0; i < state.crisis_participants.size(); i++) {
-				if(state.crisis_participants[i].supports_attacker) {
+				if(!state.crisis_participants[i].id)
+					break;
+
+				if(state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested) {
 					auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
 					row_contents.push_back(content.get_identity_from_identity_holder().id);
 				}
@@ -93,7 +130,7 @@ public:
 			return make_element_by_type<diplomacy_crisis_attacker_flag>(state, id);
 
 		} else if(name == "sponsored_flag") { 
-			return make_element_by_type<diplomacy_crisis_sponsor_attacker_flag>(state, id);
+			return make_element_by_type<diplomacy_crisis_sponsored_attacker_flag>(state, id);
 
 		} else if(name == "country_name") {
 			return make_element_by_type<diplomacy_crisis_attacker_name>(state, id);
@@ -125,42 +162,74 @@ public:
 class diplomacy_crisis_defender_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
-			if(nations::is_great_power(state, state.primary_crisis_defender)) {
-				return state.crisis_liberation_tag;
-			} else {
-				return dcon::fatten(state.world, state.crisis_state)
-						.get_nation_from_state_ownership()
-						.get_identity_from_identity_holder()
-						.id;
-			}
-		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::fatten(state.world, state.primary_crisis_defender).get_identity_from_identity_holder();
-		}
-
-		return dcon::national_identity_id{0};
+		return state.world.nation_get_identity_from_identity_holder(state.primary_crisis_defender);
 	}
 };
 
-class diplomacy_crisis_sponsor_defender_flag : public flag_button {
+class diplomacy_crisis_sponsored_defender_flag : public flag_button {
 public:
+	bool show = false;
+
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
-			auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
-			return fat_id.get_identity_from_identity_holder();
-		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
-			return dcon::national_identity_id{
-					0}; // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				auto def_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+				return state.world.nation_get_identity_from_identity_holder(def_colonizer);
+			}
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			return state.world.nation_get_identity_from_identity_holder(state.world.state_instance_get_nation_from_state_ownership(state.crisis_state));
 		}
-		return dcon::national_identity_id{0};
+		return dcon::national_identity_id{};
+	}
+	void on_update(sys::state& state) noexcept override {
+		flag_button::on_update(state);
+
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				auto def_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+				show = def_colonizer != state.primary_crisis_defender;
+			} else {
+				show = false;
+			}
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			show = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state) != state.primary_crisis_defender;
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			flag_button::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(!show)
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+		else
+			return flag_button::impl_probe_mouse(state, x, y, type);
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!show)
+			return;
+		flag_button::update_tooltip(state, x, y, contents);
 	}
 };
 
 class diplomacy_crisis_defender_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
-		set_text(state, text::produce_simple_string(state, fat_id.get_name()));
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				auto def_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+				set_text(state, text::produce_simple_string(state, state.world.nation_get_name(def_colonizer)));
+			}
+		} else if(state.current_crisis == sys::crisis_type::liberation) {
+			set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.world.state_instance_get_nation_from_state_ownership(state.crisis_state))));
+		}
 	}
 };
 
@@ -170,7 +239,10 @@ protected:
 		if(bool(current_nation)) {
 			row_contents.clear();
 			for(uint32_t i = 0; i < state.crisis_participants.size(); i++) {
-				if(!state.crisis_participants[i].supports_attacker) {
+				if(!state.crisis_participants[i].id)
+					break;
+
+				if(!state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested) {
 					auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
 					row_contents.push_back(content.get_identity_from_identity_holder().id);
 				}
@@ -187,7 +259,7 @@ public:
 			return make_element_by_type<diplomacy_crisis_defender_flag>(state, id);
 
 		} else if(name == "sponsored_flag") {
-			return make_element_by_type<diplomacy_crisis_sponsor_defender_flag>(state, id);
+			return make_element_by_type<diplomacy_crisis_sponsored_defender_flag>(state, id);
 
 		} else if(name == "country_name") {
 			return make_element_by_type<diplomacy_crisis_defender_name>(state, id);

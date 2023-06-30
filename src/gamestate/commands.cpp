@@ -3206,6 +3206,39 @@ void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 	state.world.nation_get_infamy(source) += value;
 }
+void c_force_crisis(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_force_crisis;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_force_crisis(sys::state& state, dcon::nation_id source) {
+	if(state.current_crisis == sys::crisis_type::none) {
+		state.last_crisis_end_date = sys::date{};
+		nations::monthly_flashpoint_update(state);
+		nations::daily_update_flashpoint_tension(state);
+		float max_tension = 0.0f;
+		dcon::state_instance_id max_state;
+		for(auto si : state.world.in_state_instance) {
+			if(si.get_flashpoint_tension() > max_tension && si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
+				max_tension = si.get_flashpoint_tension();
+				max_state = si;
+			}
+		}
+		if(!max_state) {
+			for(auto si : state.world.in_state_instance) {
+				if(si.get_flashpoint_tag() && !si.get_nation_from_state_ownership().get_is_great_power() && si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
+					max_state = si;
+					break;
+				}
+			}
+		}
+		assert(max_state);
+		state.world.state_instance_set_flashpoint_tension(max_state, 10000.0f / state.defines.crisis_base_chance);
+		nations::update_crisis(state);
+	}
+}
 
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
 	payload p;
@@ -4193,6 +4226,8 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::c_change_infamy:
 			execute_c_change_infamy(state, c->source, c->data.cheat.value);
 			break;
+		case command_type::c_force_crisis:
+			execute_c_force_crisis(state, c->source);
 		}
 
 		state.incoming_commands.pop();

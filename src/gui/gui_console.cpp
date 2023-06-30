@@ -29,7 +29,8 @@ struct command_info {
 		elecwin,
 		mainmenu,
 		debug,
-		cb_progress
+		cb_progress,
+		crisis
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -46,7 +47,7 @@ static const std::vector<command_info> possible_commands = {
 		command_info{"reload", command_info::type::reload, "Reloads Alice",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"abort", command_info::type::abort, "Abnormaly terminates execution",
+		command_info{"abort", command_info::type::abort, "Abnormally terminates execution",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"clr_log", command_info::type::clear_log, "Clears console logs",
@@ -65,7 +66,7 @@ static const std::vector<command_info> possible_commands = {
 				{command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"cheat", command_info::type::cheat,
-				"Finishes all cassus bellis, adds 99 diplo points, instant research and westernizes (if not already)",
+				"Finishes all casus belli, adds 99 diplo points, instant research and westernizes (if not already)",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"dp", command_info::type::diplomacy_points, "Adds the specified number of diplo points",
@@ -77,7 +78,7 @@ static const std::vector<command_info> possible_commands = {
 		command_info{"inf", command_info::type::infamy, "Adds the specified number of infamy",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
-		command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabritcation",
+		command_info{"cbp", command_info::type::cb_progress, "Adds the specified % of progress towards CB fabrication",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"money", command_info::type::money, "Adds the specified amount of money to the national treasury",
@@ -98,9 +99,13 @@ static const std::vector<command_info> possible_commands = {
 		command_info{"dbg", command_info::type::debug, "Toggles Debug mode",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"colour", command_info::type::colour_guide, "An overview of available colours for complex text",
+		command_info{"colour", command_info::type::colour_guide, "An overview of available colors for complex text",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}}};
+						command_info::argument_info{}}},
+		command_info{"crisis", command_info::type::crisis, "Force a crisis to occur",
+				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+	};
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 	// NOTE: Change parameters as you wish - but these work fine for the majority of mods
@@ -967,7 +972,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::cheat:
 		log_to_console(state, parent, "You cheater >:(");
 		break;
-	// State changing events
+	case command_info::type::crisis:
+		command::c_force_crisis(state, state.local_player_nation);
+		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
 		break;
