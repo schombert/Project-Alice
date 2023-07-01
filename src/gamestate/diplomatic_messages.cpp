@@ -104,6 +104,10 @@ bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nati
 		}
 	}
 
+	auto cb_type = state.world.cb_type_get_type_bits(offer.wargoal_type);
+	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
+		return false;
+
 	if(!military::cb_instance_conditions_satisfied(state, to, offer.target, offer.wargoal_type, offer.wargoal_state,
 				 offer.wargoal_tag, offer.wargoal_secondary_nation)) {
 

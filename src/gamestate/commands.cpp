@@ -3894,6 +3894,10 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 		}
 	}
 
+	auto cb_type = state.world.cb_type_get_type_bits(primary_cb);
+	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
+		return false;
+
 	if(!military::cb_instance_conditions_satisfied(state, invitation_to, target, primary_cb, cb_state, cb_tag,
 				 cb_secondary_nation)) {
 		return false;

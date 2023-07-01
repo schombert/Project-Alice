@@ -554,14 +554,23 @@ public:
 	}
 };
 
+struct open_offer_window {
+	dcon::nation_id to;
+};
+
 class make_offer_button : public button_element_base {
 public:
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.local_player_nation != state.primary_crisis_attacker && state.local_player_nation != state.primary_crisis_defender) || (state.current_crisis_mode != sys::crisis_mode::heating_up);
+		disabled = state.world.nation_get_diplomatic_points(state.local_player_nation) < 1.0f || (state.local_player_nation != state.primary_crisis_attacker && state.local_player_nation != state.primary_crisis_defender) || (state.current_crisis_mode != sys::crisis_mode::heating_up);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(n)
+			send(state, parent, open_offer_window{ n });
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "crisis_offer_button");
@@ -587,6 +596,7 @@ public:
 		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "crisis_add_interest_button_ex_1", state.world.nation_get_is_great_power(state.local_player_nation));
 		text::add_line_with_condition(state, contents, "crisis_add_interest_button_ex_2", state.current_crisis_mode == sys::crisis_mode::heating_up);
+		text::add_line_with_condition(state, contents, "crisis_add_interest_button_ex_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= 1.0f);
 	}
 };
 

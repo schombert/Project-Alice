@@ -9,7 +9,8 @@
 #include <functional>
 
 #include "gui_diplomacy_actions_window.hpp"
-#include "gui_declare_war_window.hpp"
+#include "gui_pick_wargoal_window.hpp"
+#include "gui_peace_window.hpp"
 #include "gui_crisis_window.hpp"
 
 namespace ui {
@@ -1970,6 +1971,7 @@ private:
 	diplomacy_action_dialog_window* action_dialog_win = nullptr;
 	diplomacy_gp_action_dialog_window* gp_action_dialog_win = nullptr;
 	diplomacy_declare_war_dialog* declare_war_win = nullptr;
+	offer_war_goal_dialog* offer_goal_win = nullptr;
 	diplomacy_setup_peace_dialog* setup_peace_win = nullptr;
 	diplomacy_make_cb_window* make_cb_win = nullptr;
 	diplomacy_crisis_backdown_window* crisis_backdown_win = nullptr;
@@ -2076,6 +2078,14 @@ public:
 		new_win3->set_visible(state, false);
 		declare_war_win = new_win3.get();
 		add_child_to_front(std::move(new_win3));
+
+		{
+			auto new_winc = make_element_by_type<offer_war_goal_dialog>(state,
+				state.ui_state.defs_by_name.find("declarewardialog")->second.definition);
+			new_winc->set_visible(state, false);
+			offer_goal_win = new_winc.get();
+			add_child_to_front(std::move(new_winc));
+		}
 
 		auto new_win4 = make_element_by_type<diplomacy_setup_peace_dialog>(state,
 				state.ui_state.defs_by_name.find("setuppeacedialog")->second.definition);
@@ -2275,6 +2285,13 @@ public:
 			facts_nation_id = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;
+		} else if(payload.holds_type<open_offer_window>()) {
+			auto offer_to = any_cast<open_offer_window>(payload).to;
+
+			offer_goal_win->set_visible(state, false);
+			offer_goal_win->reset_window(state, offer_to);
+			offer_goal_win->set_visible(state, true);
+
 		} else if(payload.holds_type<trigger_gp_choice>()) {
 			auto action = any_cast<trigger_gp_choice>(payload).action;
 
