@@ -3099,7 +3099,7 @@ bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending || state.world.peace_offer_get_war_from_war_settlement(pending))
 		return false;
-	if(source != state.primary_crisis_attacker || source != state.primary_crisis_defender)
+	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
 		return false;
 	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
 		return false;

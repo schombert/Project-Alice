@@ -1,9 +1,7 @@
 #pragma once
-#include <stdint.h>
-#include <vector>
-#include <string>
-#include "culture.hpp"
 #include "dcon_generated.hpp"
+#include "culture.hpp"
+#include "military.hpp"
 
 namespace nations {
 inline uint32_t tag_to_int(char first, char second, char third) {
@@ -292,6 +290,10 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+
+bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index);
+military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index);
+int32_t num_crisis_wargoals(sys::state& state);
 
 std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 

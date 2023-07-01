@@ -2227,6 +2227,150 @@ void update_crisis(sys::state& state) {
 	}
 }
 
+int32_t num_crisis_wargoals(sys::state& state) {
+	int32_t total = 0;
+
+	for(auto& par : state.crisis_participants) {
+		if(!par.id)
+			break;
+		if(par.joined_with_offer.wargoal_type) {
+			++total;
+		}
+	}
+
+	if(state.current_crisis == sys::crisis_type::liberation) {
+		return total + 1;
+	} else if(state.current_crisis == sys::crisis_type::colonial) {
+		return total + 2;
+	}
+	return 0;
+}
+
+bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index) {
+	if(state.current_crisis == sys::crisis_type::liberation) {
+		if(index == 0) {
+			return true;
+		} else {
+			int32_t count = 1;
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+				if(par.joined_with_offer.wargoal_type) {
+					if(count == index) {
+						return par.supports_attacker;
+					}
+					++count;
+				}
+			}
+		}
+	} else if(state.current_crisis == sys::crisis_type::colonial) {
+		if(index == 0) {
+			return true;
+		} else if(index == 1) {
+			return false;
+		} else {
+			int32_t count = 2;
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+				if(par.joined_with_offer.wargoal_type) {
+					if(count == index) {
+						return par.supports_attacker;
+					}
+					++count;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index) {
+	if(state.current_crisis == sys::crisis_type::liberation) {
+		if(index == 0) {
+			return military::full_wg{
+				state.primary_crisis_attacker,
+					state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
+					dcon::nation_id{},
+					state.crisis_liberation_tag,
+					state.world.state_instance_get_definition(state.crisis_state),
+					state.military_definitions.crisis_liberate
+			};
+		} else {
+			int32_t count = 1;
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+				if(par.joined_with_offer.wargoal_type) {
+					if(count == index) {
+						return military::full_wg{
+							par.id,
+								par.joined_with_offer.target,
+								par.joined_with_offer.wargoal_secondary_nation,
+								par.joined_with_offer.wargoal_tag,
+								par.joined_with_offer.wargoal_state,
+								par.joined_with_offer.wargoal_type
+						};
+					}
+					++count;
+				}
+			}
+		}
+	} else if(state.current_crisis == sys::crisis_type::colonial) {
+		if(index == 0) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+
+				return military::full_wg{
+					attacking_colonizer,
+						defending_colonizer,
+						dcon::nation_id{},
+						dcon::national_identity_id{},
+						state.crisis_colony,
+						state.military_definitions.crisis_colony
+				};
+			}
+		} else if(index == 1) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+
+				return military::full_wg{
+					defending_colonizer,
+						attacking_colonizer,
+						dcon::nation_id{},
+						dcon::national_identity_id{},
+						state.crisis_colony,
+						state.military_definitions.crisis_colony
+				};
+			}
+		} else {
+			int32_t count = 2;
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+				if(par.joined_with_offer.wargoal_type) {
+					if(count == index) {
+						return military::full_wg{
+							par.id,
+								par.joined_with_offer.target,
+								par.joined_with_offer.wargoal_secondary_nation,
+								par.joined_with_offer.wargoal_tag,
+								par.joined_with_offer.wargoal_state,
+								par.joined_with_offer.wargoal_type
+						};
+					}
+					++count;
+				}
+			}
+		}
+	}
+	return military::full_wg{};
+}
+
 void update_pop_acceptance(sys::state& state, dcon::nation_id n) {
 	auto pc = state.world.nation_get_primary_culture(n);
 	auto accepted = state.world.nation_get_accepted_cultures(n);

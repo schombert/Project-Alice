@@ -15,6 +15,185 @@
 
 namespace ui {
 
+
+class cb_wargoal_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			const dcon::cb_type_id cbt = any_cast<dcon::cb_type_id>(payload);
+			frame = state.world.cb_type_get_sprite_index(cbt) - 1;
+		}
+	}
+};
+
+class cb_wargoal_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			const dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
+			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
+
+			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
+			disabled = selected == content;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			const dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
+			Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{ content };
+			parent->impl_get(state, newpayload);
+		}
+	}
+};
+
+class diplomacy_make_cb_type : public listbox_row_element_base<dcon::cb_type_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<cb_wargoal_icon>(state, id);
+		} else if(name == "select_cb") {
+			return make_element_by_type<cb_wargoal_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class diplomacy_make_cb_listbox : public listbox_element_base<diplomacy_make_cb_type, dcon::cb_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "cb_type_item";
+	}
+
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+			state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
+				if(command::can_fabricate_cb(state, state.local_player_nation, content, cb))
+					row_contents.push_back(cb);
+			});
+		}
+		update(state);
+	}
+};
+
+class diplomacy_make_cb_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+
+			Cyto::Any newpayload = dcon::nation_id{};
+			parent->impl_get(state, newpayload);
+			auto target_nation = any_cast<dcon::nation_id>(newpayload);
+
+			command::fabricate_cb(state, state.local_player_nation, target_nation, content);
+			parent->set_visible(state, false);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+
+			Cyto::Any newpayload = dcon::nation_id{};
+			parent->impl_get(state, newpayload);
+			auto target_nation = any_cast<dcon::nation_id>(newpayload);
+
+			disabled = !command::can_fabricate_cb(state, state.local_player_nation, target_nation, content);
+		}
+	}
+};
+
+class diplomacy_make_cb_desc : public simple_multiline_body_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+
+		auto fat_cb = dcon::fatten(state.world, retrieve<dcon::cb_type_id>(state, parent));
+
+		auto box = text::open_layout_box(contents);
+
+		auto fab_time = std::ceil(100.0f / (state.defines.cb_generation_base_speed * fat_cb.get_construction_speed() * (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f)));
+
+		if(fat_cb.is_valid()) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::type, fat_cb.get_name());
+			text::add_to_substitution_map(sub, text::variable_type::days, int64_t(fab_time));
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb)});
+			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"), sub);
+		}
+
+		text::close_layout_box(contents, box);
+	}
+};
+
+class make_cb_title : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, "make_cbtitle"));
+	}
+};
+
+class diplomacy_make_cb_window : public window_element_base { // eu3dialogtype
+private:
+	dcon::cb_type_id root_cb{};
+
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge size for proper sizing
+			return ptr;
+		} else if(name == "diplo_makecb_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "title") {
+			return make_element_by_type<make_cb_title>(state, id);
+		} else if(name == "description") {
+			return make_element_by_type<diplomacy_make_cb_desc>(state, id);
+		} else if(name == "leftshield") {
+			return make_element_by_type<nation_player_flag>(state, id);
+		} else if(name == "rightshield") {
+			return make_element_by_type<flag_button>(state, id);
+		} else if(name == "agreebutton") {
+			return make_element_by_type<diplomacy_make_cb_button>(state, id);
+		} else if(name == "declinebutton") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "cb_list") {
+			return make_element_by_type<diplomacy_make_cb_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
+			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::cb_type_id>()) {
+			payload.emplace<dcon::cb_type_id>(root_cb);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+
 enum class diplomacy_window_tab : uint8_t { great_powers = 0x0, wars = 0x1, casus_belli = 0x2, crisis = 0x3 };
 
 class diplomacy_nation_navies_text : public nation_num_ships {
@@ -1974,7 +2153,7 @@ private:
 	offer_war_goal_dialog* offer_goal_win = nullptr;
 	diplomacy_setup_peace_dialog* setup_peace_win = nullptr;
 	diplomacy_make_cb_window* make_cb_win = nullptr;
-	diplomacy_crisis_backdown_window* crisis_backdown_win = nullptr;
+	crisis_resolution_dialog* crisis_backdown_win = nullptr;
 	diplomacy_casus_belli_window* casus_belli_window = nullptr;
 	// element_base* casus_belli_window = nullptr;
 	diplomacy_crisis_info_window* crisis_window = nullptr;
@@ -2099,13 +2278,19 @@ public:
 		make_cb_win = new_win5.get();
 		add_child_to_front(std::move(new_win5));
 
-		auto new_win6 = make_element_by_type<diplomacy_crisis_backdown_window>(state,
-				state.ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition);
+		auto new_win6 = make_element_by_type<crisis_resolution_dialog>(state,
+				state.ui_state.defs_by_name.find("setuppeacedialog")->second.definition);
 		new_win6->set_visible(state, false);
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
 
 		facts_nation_id = state.local_player_nation;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis == sys::crisis_type::none) {
+			send(state, this, diplomacy_window_tab::great_powers);
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -2382,9 +2567,8 @@ public:
 				make_cb_win->set_visible(state, true);
 				break;
 			case diplomacy_action::crisis_backdown:
+				crisis_backdown_win->open_window(state);
 				crisis_backdown_win->set_visible(state, true);
-				crisis_backdown_win->impl_set(state, new_payload);
-				crisis_backdown_win->impl_set(state, payload);
 				crisis_backdown_win->impl_on_update(state);
 				break;
 			case diplomacy_action::crisis_support:

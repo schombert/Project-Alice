@@ -159,8 +159,8 @@ class propose_attacker_solution_button : public button_element_base {
 		show = state.local_player_nation == state.primary_crisis_attacker;
 	}
 	void button_action(sys::state& state) noexcept override {
-		//if(show)
-		//TODO
+		if(show)
+			send(state, parent, diplomacy_action::crisis_backdown);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -182,8 +182,8 @@ class propose_defender_solution_button : public button_element_base {
 		show = state.local_player_nation == state.primary_crisis_defender;
 	}
 	void button_action(sys::state& state) noexcept override {
-		//if(show)
-		//TODO
+		if(show)
+			send(state, parent, diplomacy_action::crisis_backdown);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
