@@ -250,8 +250,6 @@ public:
 				});
 			}
 		} else if(state.current_crisis == sys::crisis_type::liberation) {
-			state.crisis_liberation_tag != state.world.nation_get_identity_from_identity_holder(state.primary_crisis_attacker);
-
 			row_contents.push_back(military::full_wg{
 				state.primary_crisis_attacker,
 				state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
