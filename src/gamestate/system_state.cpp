@@ -1843,6 +1843,24 @@ void state::load_scenario_data() {
 
 	military::reinforce_regiments(*this);
 
+	nations::update_administrative_efficiency(*this);
+	military::regenerate_land_unit_average(*this);
+	military::regenerate_ship_scores(*this);
+	nations::update_industrial_scores(*this);
+	military::update_naval_supply_points(*this);
+	economy::update_rgo_employment(*this);
+	economy::update_factory_employment(*this);
+	nations::update_military_scores(*this); // depends on ship score, land unit average
+	nations::update_rankings(*this);				// depends on industrial score, military scores
+
+	assert(great_nations.size() == 0);
+	for(uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
+		if(nations_by_rank[i]) {
+			great_nations.push_back(great_nation{ sys::date{0}, nations_by_rank[i] });
+			world.nation_set_is_great_power(nations_by_rank[i], true);
+		}
+	}
+
 	// run the economy for three days on scenario creation
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
@@ -1947,13 +1965,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations::update_military_scores(*this);
 	nations::update_rankings(*this);
 	nations::update_ui_rankings(*this);
-
-	for(uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
-		if(nations_by_rank[i]) {
-			great_nations.push_back(great_nation{current_date, nations_by_rank[i]});
-			world.nation_set_is_great_power(nations_by_rank[i], true);
-		}
-	}
 
 	nations::monthly_flashpoint_update(*this);
 

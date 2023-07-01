@@ -142,6 +142,14 @@ struct wg_summary {
 	dcon::state_definition_id state;
 	dcon::cb_type_id cb;
 };
+struct full_wg {
+	dcon::nation_id added_by;
+	dcon::nation_id target_nation;
+	dcon::nation_id secondary_nation;
+	dcon::national_identity_id wg_tag;
+	dcon::state_definition_id state;
+	dcon::cb_type_id cb;
+};
 
 struct naval_battle_report {
 	float warscore_effect = 0.0f;

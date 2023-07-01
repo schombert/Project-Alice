@@ -1839,4 +1839,82 @@ public:
 	}
 };
 
+class wg_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<military::wg_summary>(state, parent).cb;
+		frame = state.world.cb_type_get_sprite_index(content) - 1;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto wg = retrieve<military::wg_summary>(state, parent);
+		text::add_line(state, contents, state.world.cb_type_get_name(wg.cb));
+
+		text::add_line_break_to_layout(state, contents);
+		if(wg.state) {
+			text::add_line(state, contents, "war_goal_3", text::variable_type::x, wg.state);
+		}
+		if(wg.wg_tag) {
+			text::add_line(state, contents, "war_goal_4", text::variable_type::x, wg.wg_tag);
+		} else if(wg.secondary_nation) {
+			text::add_line(state, contents, "war_goal_4", text::variable_type::x, wg.secondary_nation);
+		}
+	}
+};
+
+class overlapping_wg_icon : public listbox_row_element_base<military::wg_summary> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<wg_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class full_wg_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<military::full_wg>(state, parent).cb;
+		frame = state.world.cb_type_get_sprite_index(content) - 1;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto wg = retrieve<military::full_wg>(state, parent);
+		text::add_line(state, contents, state.world.cb_type_get_name(wg.cb));
+
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "war_goal_1", text::variable_type::x, wg.added_by);
+		text::add_line(state, contents, "war_goal_2", text::variable_type::x, wg.target_nation);
+		if(wg.state) {
+			text::add_line(state, contents, "war_goal_3", text::variable_type::x, wg.state);
+		}
+		if(wg.wg_tag) {
+			text::add_line(state, contents, "war_goal_4", text::variable_type::x, wg.wg_tag);
+		} else if(wg.secondary_nation) {
+			text::add_line(state, contents, "war_goal_4", text::variable_type::x, wg.secondary_nation);
+		}
+	}
+};
+
+class overlapping_full_wg_icon : public listbox_row_element_base<military::full_wg> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<full_wg_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 } // namespace ui

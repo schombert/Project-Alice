@@ -771,4 +771,10 @@ wg_result_3;On failing to achieve this war goal:
 wg_not_ready;You must finish choosing a war goal
 crisis_back_explain_1;You are interested in the crisis (on the fence)
 crisis_back_explain_2;The crisis has attracted its initial backers
+crisis_add_interest_button;Take an interest in this crisis
+crisis_add_interest_button_ex_1;You are a great power
+crisis_add_interest_button_ex_2;The crisis has attracted its initial backers
+crisis_offer_button;Make an offer to this nation to join your side of the crisis
+crisis_offer_button_ex_1;You are the leader of one of the crisis sides
+crisis_offer_button_ex_2;The crisis has attracted its initial backers
 ;;;;;;;;;;;;;x

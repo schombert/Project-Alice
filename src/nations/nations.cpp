@@ -1045,11 +1045,26 @@ bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
 		return true;
 	if(n == state.primary_crisis_defender)
 		return true;
-	for(size_t i = state.crisis_participants.size(); i-- > 0;) {
-		if(state.crisis_participants[i].id == n)
+	for(auto& par : state.crisis_participants) {
+		if(!par.id)
+			return false;
+		if(par.id == n)
 			return true;
 	}
 
+	return false;
+}
+bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
+	if(n == state.primary_crisis_attacker)
+		return true;
+	if(n == state.primary_crisis_defender)
+		return true;
+	for(auto& par : state.crisis_participants) {
+		if(!par.id)
+			return false;
+		if(par.id == n)
+			return !par.merely_interested;
+	}
 	return false;
 }
 
@@ -2040,16 +2055,15 @@ void update_crisis(sys::state& state) {
 			state.crisis_participants[1].supports_attacker = false;
 			state.crisis_participants[1].merely_interested = false;
 
-			auto crisis_state_continent =
-					state.crisis_state ? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
-														 : [&]() {
-																 if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony);
-																		 p.begin() != p.end()) {
+			auto crisis_state_continent = state.crisis_state
+				? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
+				: [&]() {
+					if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony); p.begin() != p.end()) {
+						return (*p.begin()).get_province().get_continent().id;
+					}
+					return dcon::modifier_id{};
+				}();
 
-																	 return (*p.begin()).get_province().get_continent().id;
-																 }
-																 return dcon::modifier_id{};
-															 }();
 			auto crisis_defender_continent =
 					state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
 			uint32_t added_count = 2;
@@ -2070,10 +2084,13 @@ void update_crisis(sys::state& state) {
 							(cap_con == state.province_definitions.south_america &&
 									crisis_defender_continent == state.province_definitions.north_america)) {
 
+						/*
+						// apparently the event takes care of adding people
 						state.crisis_participants[added_count].id = gp.nation;
 						state.crisis_participants[added_count].supports_attacker = false;
 						state.crisis_participants[added_count].merely_interested = true;
 						++added_count;
+						*/
 
 						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation),
 								event::slot_type::nation, gp.nation, -1, event::slot_type::none);
