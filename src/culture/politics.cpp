@@ -559,7 +559,7 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 				for(auto i : state.world.in_ideology) {
 					auto frac = state.world.nation_get_upper_house(state.local_player_nation, i);
 					if(frac > 0) {
-						text::add_line(state, contents, "msg_upper_house_2", text::variable_type::x, text::fp_one_place(frac), text::variable_type::y, i.get_name());
+						text::add_line(state, contents, "msg_upper_house_2", text::variable_type::x, text::fp_one_place{frac}, text::variable_type::y, i.get_name());
 					}
 				}
 			},
