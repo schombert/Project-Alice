@@ -135,4 +135,20 @@ inline void send(sys::state& state, element_base* parent, T value) {
 	}
 }
 
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
+		int32_t this_slot = -1, int32_t from_slot = -1);
+void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
+		int32_t primary, int32_t this_slot, int32_t from_slot);
+void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
+		int32_t primary, int32_t this_slot, int32_t from_slot);
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
+		dcon::national_modifier_value nmid, bool header);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
+		dcon::provincial_modifier_value nmid, bool have_header);
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
+		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
+void invention_description(sys::state& state, text::layout_base& contents, dcon::invention_id inv_id, int32_t indent) noexcept;
+void technology_description(sys::state& state, text::layout_base& contents, dcon::technology_id tech_id) noexcept;
+
 } // namespace ui

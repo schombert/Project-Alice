@@ -15,35 +15,9 @@
 #include <unordered_map>
 #include <vector>
 
-/*
- * DO NOT INTRODUCE TOOLTIPS INTO THIS FILE FOR ANY NON-SPECIFIC CLASSES
- * Adding tooltips into this file means that the tooltips will be the
- * same for any instance of the element, THIS IS NOT A FEATURE BUT A BUG
- * if you wish for two elements to have the same tooltips, and thats how Vic2
- * does it, then just copy the already existant tooltip code from that element
- * instead of putting it in here.
- * for adding tooltips to elements defined in this file, simply inherit from them
- * and add the tooltips to the inherited version, you can see a example of this
- * in gui/gui_topbar.hpp,	BUT NEVER UNDER ANY CIRCUMSTANCE ADD TOOLTIPS HERE.
- */
-
 namespace ui {
 
 typedef std::variant< std::monostate, dcon::nation_id, dcon::state_instance_id, dcon::province_id> pop_list_filter;
-
-void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
-		int32_t this_slot = -1, int32_t from_slot = -1);
-void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
-void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
-void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
-		dcon::national_modifier_value nmid, bool header);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
-		dcon::provincial_modifier_value nmid, bool have_header);
-void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
-		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
 enum class country_list_sort : uint8_t {
 	country,

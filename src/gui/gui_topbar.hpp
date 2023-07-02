@@ -899,7 +899,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = state.internally_paused;
+		disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
 	}
 };
 
@@ -963,7 +963,7 @@ public:
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.internally_paused) {
+		if(state.internally_paused || state.ui_pause.load(std::memory_order::acquire)) {
 			frame = 0;
 		} else {
 			frame = state.actual_game_speed;

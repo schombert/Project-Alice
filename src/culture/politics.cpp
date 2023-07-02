@@ -553,22 +553,20 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 	}
 
 	if(n == state.local_player_nation) {
-		notification::message m;
-		m.type = sys::message_setting_type::upperhouse;
-		m.primary = n;
-		m.title = [=](sys::state& state, text::layout_base& layout) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-					state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-			TEXT_NOTIF_MSG_TITLE(upperhouse);
-		};
-		m.body = [=](sys::state& state, text::layout_base& layout) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-					state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-			TEXT_NOTIF_MSG_BODY(upperhouse);
-		};
-		notification::post(state, std::move(m));
+		notification::post(state, notification::message{
+			[](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_upper_house_1");
+				for(auto i : state.world.in_ideology) {
+					auto frac = state.world.nation_get_upper_house(state.local_player_nation, i);
+					if(frac > 0) {
+						text::add_line(state, contents, "msg_upper_house_2", text::variable_type::x, text::fp_one_place(frac), text::variable_type::y, i.get_name());
+					}
+				}
+			},
+			"msg_upper_house_title",
+			n,
+			sys::message_setting_type::upperhouse
+		});
 	}
 }
 
@@ -621,25 +619,18 @@ void start_election(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_election_ends(n) < state.current_date) {
 		state.world.nation_set_election_ends(n, state.current_date + int32_t(state.defines.campaign_duration) * 30);
 
-		notification::message m;
-		m.type = sys::message_setting_type::electionstart;
-		m.primary = n;
-		m.title = [=](sys::state& state, text::layout_base& layout) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-					state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-			text::add_to_substitution_map(sub, text::variable_type::country, n);
-			TEXT_NOTIF_MSG_TITLE(electionstart);
-		};
-		m.body = [=](sys::state& state, text::layout_base& layout) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-					state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-			text::add_to_substitution_map(sub, text::variable_type::country, n);
-			text::add_to_substitution_map(sub, text::variable_type::details, state.world.nation_get_election_ends(n));
-			TEXT_NOTIF_MSG_BODY(electionstart);
-		};
-		notification::post(state, std::move(m));
+		if(n == state.local_player_nation) {
+			auto end_date = state.world.nation_get_election_ends(n);
+
+			notification::post(state, notification::message{
+				[end_date](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_election_start_1", text::variable_type::x, end_date);
+				},
+			"msg_election_start_title",
+			n,
+			sys::message_setting_type::electionstart
+			});
+		}
 	}
 }
 

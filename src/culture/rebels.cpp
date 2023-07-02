@@ -780,6 +780,16 @@ void rebel_risings_check(sys::state& state) {
 				}
 			}
 
+			if(counter != new_to_make) {
+				notification::post(state, notification::message{
+					[reb = rf.id](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, state.world.rebel_faction_get_type(reb).get_title());
+					},
+					"msg_revolt_title",
+					rf.get_ruler_from_rebellion_within(),
+					sys::message_setting_type::revolt });
+			}
+
 			/*
 			- Faction organization is reduced to 0 after an initial rising (for later contributory risings, it may instead be reduced by
 			a factor of (number-of-additional-regiments x 0.01 + 1))

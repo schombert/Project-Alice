@@ -235,9 +235,38 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Log messages
 			auto* c6 = new_messages.front();
 			while(c6) {
-				// TODO: Configure as you wish >:), i.e do not show messages marked to not be shown on le popups
-				static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
-				static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+				if(c6->about == local_player_nation) {
+					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::log) {
+						static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
+					}
+					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::popup) {
+						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) {
+							ui_pause.store(true, std::memory_order_release);
+						}
+					}
+				} else if(notification::nation_is_interesting(*this, c6->about)) {
+					if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::log) {
+						static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
+					}
+					if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::popup) {
+						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::pause) {
+							ui_pause.store(true, std::memory_order_release);
+						}
+					}
+				} else {
+					if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::log) {
+						static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
+					}
+					if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::popup) {
+						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::pause) {
+							ui_pause.store(true, std::memory_order_release);
+						}
+					}
+					
+				}
 				new_messages.pop();
 				c6 = new_messages.front();
 			}
@@ -2013,7 +2042,8 @@ constexpr inline int32_t game_speed[] = {
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		auto speed = actual_game_speed.load(std::memory_order::acquire);
-		if(speed <= 0 || internally_paused == true) {
+		auto upause = ui_pause.load(std::memory_order::acquire);
+		if(speed <= 0 || upause || internally_paused) {
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {

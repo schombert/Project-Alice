@@ -13,7 +13,12 @@ void message_log_text::on_update(sys::state& state) noexcept {
 			auto container = text::create_endless_layout(internal_layout,
 					text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0,
 							text::alignment::left, text::text_color::white, false});
-			m.title(state, container);
+
+			auto box = text::open_layout_box(container);
+			text::add_to_layout_box(state, container, box, m.about);
+			text::add_to_layout_box(state, container, box, std::string_view{": "});
+			text::localised_format_box(state, container, box, m.title);
+			text::close_layout_box(container, box);
 		}
 	}
 }

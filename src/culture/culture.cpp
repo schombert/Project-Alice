@@ -3,6 +3,7 @@
 #include "system_state.hpp"
 #include "triggers.hpp"
 #include "prng.hpp"
+#include "gui_element_base.hpp"
 
 namespace culture {
 
@@ -786,27 +787,15 @@ void update_research(sys::state& state, uint32_t current_year) {
 					n.get_research_points() -= cost;
 					apply_technology(state, n, n.get_current_research());
 
-					if(n == state.local_player_nation) {
-						dcon::technology_id t = n.get_current_research();
-						notification::message m;
-						m.type = sys::message_setting_type::tech;
-						m.primary = n;
-						m.title = [=](sys::state& state, text::layout_base& layout) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-									state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-							text::add_to_substitution_map(sub, text::variable_type::type, state.world.technology_get_name(t));
-							TEXT_NOTIF_MSG_TITLE(tech_once);
-						};
-						m.body = [=](sys::state& state, text::layout_base& layout) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-									state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-							text::add_to_substitution_map(sub, text::variable_type::type, state.world.technology_get_name(t));
-							TEXT_NOTIF_MSG_BODY(tech_once);
-						};
-						notification::post(state, std::move(m));
-					}
+					notification::post(state, notification::message{
+						[t = n.get_current_research()](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_tech_1", text::variable_type::x, state.world.technology_get_name(t));
+							ui::technology_description(state, contents, t);
+						},
+						"msg_tech_title",
+						n,
+						sys::message_setting_type::tech
+					});
 
 					n.set_current_research(dcon::technology_id{});
 				}
@@ -841,26 +830,15 @@ void discover_inventions(sys::state& state) {
 									if(int32_t(random % 100) < int32_t(chance)) {
 										apply_invention(state, n, inv);
 
-										if(n == state.local_player_nation) {
-											notification::message m;
-											m.type = sys::message_setting_type::invention;
-											m.primary = n;
-											m.title = [=](sys::state& state, text::layout_base& layout) {
-												text::substitution_map sub{};
-												text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-														state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-												text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
-												TEXT_NOTIF_MSG_TITLE(invention);
-											};
-											m.body = [=](sys::state& state, text::layout_base& layout) {
-												text::substitution_map sub{};
-												text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-														state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-												text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
-												TEXT_NOTIF_MSG_BODY(invention);
-											};
-											notification::post(state, std::move(m));
-										}
+										notification::post(state, notification::message{
+											[inv](sys::state& state, text::layout_base& contents) {
+												text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
+												ui::invention_description(state, contents, inv, 0);
+											},
+											"msg_inv_title",
+											n,
+											sys::message_setting_type::invention
+										});
 									}
 								}
 							},
@@ -881,26 +859,15 @@ void discover_inventions(sys::state& state) {
 									if(int32_t(random % 100) < int32_t(chance)) {
 										apply_invention(state, n, inv);
 
-										if(n == state.local_player_nation) {
-											notification::message m;
-											m.type = sys::message_setting_type::invention;
-											m.primary = n;
-											m.title = [=](sys::state& state, text::layout_base& layout) {
-												text::substitution_map sub{};
-												text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-														state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-												text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
-												TEXT_NOTIF_MSG_TITLE(invention);
-											};
-											m.body = [=](sys::state& state, text::layout_base& layout) {
-												text::substitution_map sub{};
-												text::add_to_substitution_map(sub, text::variable_type::monarchtitle,
-														state.culture_definitions.governments[state.world.nation_get_government_type(n)].ruler_name);
-												text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
-												TEXT_NOTIF_MSG_BODY(invention);
-											};
-											notification::post(state, std::move(m));
-										}
+										notification::post(state, notification::message{
+											[inv](sys::state& state, text::layout_base& contents) {
+												text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
+												ui::invention_description(state, contents, inv, 0);
+											},
+												"msg_inv_title",
+												n,
+												sys::message_setting_type::invention
+										});
 									}
 								}
 							},

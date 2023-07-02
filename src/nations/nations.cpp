@@ -1944,20 +1944,16 @@ void update_crisis(sys::state& state) {
 					state.primary_crisis_defender = owner;
 				}
 
-				notification::message m;
-				m.type = sys::message_setting_type::crisis_started;
-				m.primary = state.primary_crisis_attacker ? state.primary_crisis_attacker : state.primary_crisis_defender;
-				m.title = [=](sys::state& state, text::layout_base& layout) {
-					text::substitution_map sub{};
-					text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_state);
-					TEXT_NOTIF_MSG_TITLE(crisis_started);
-				};
-				m.body = [=](sys::state& state, text::layout_base& layout) {
-					text::substitution_map sub{};
-					text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_state);
-					TEXT_NOTIF_MSG_BODY(crisis_started);
-				};
-				notification::post(state, std::move(m));
+
+				notification::post(state, notification::message{
+					[st = state.crisis_state](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_new_crisis_1", text::variable_type::x, st);
+					},
+					"msg_new_crisis_title",
+					state.local_player_nation,
+					sys::message_setting_type::crisis_starts
+				});
+
 				break;
 			}
 		}
@@ -1986,20 +1982,14 @@ void update_crisis(sys::state& state) {
 								state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
 						}
 
-						notification::message m;
-						m.type = sys::message_setting_type::crisis_started;
-						m.primary = state.primary_crisis_attacker ? state.primary_crisis_attacker : state.primary_crisis_defender;
-						m.title = [=](sys::state& state, text::layout_base& layout) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_colony);
-							TEXT_NOTIF_MSG_TITLE(crisis_started);
-						};
-						m.body = [=](sys::state& state, text::layout_base& layout) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.crisis_colony);
-							TEXT_NOTIF_MSG_BODY(crisis_started);
-						};
-						notification::post(state, std::move(m));
+						notification::post(state, notification::message{
+							[st = state.crisis_colony](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "msg_new_crisis_2", text::variable_type::x, st);
+							},
+							"msg_new_crisis_title",
+							state.local_player_nation,
+							sys::message_setting_type::crisis_starts
+						});
 						break;
 					}
 				}

@@ -1400,6 +1400,14 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{
+		name{ former_controller }
+		type{ dcon::nation_id }
+	}
+	property{
+		name{ former_rebel_controller }
+		type{ dcon::rebel_faction_id }
+	}
 }
 
 relationship{

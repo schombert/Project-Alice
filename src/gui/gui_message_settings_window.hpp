@@ -8,11 +8,6 @@ namespace ui {
 
 static std::string get_setting_text_key(sys::message_setting_type type) {
 	switch(type) {
-#define MSG_SETTING_ITEM(name, locale_name)                                                                                      \
-	case sys::message_setting_type::name:                                                                                          \
-		return locale_name "_setup";
-		MSG_SETTING_LIST
-#undef MSG_SETTING_ITEM
 	default:
 		return "???";
 	}
