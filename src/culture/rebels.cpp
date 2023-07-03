@@ -1022,8 +1022,8 @@ void execute_rebel_victories(sys::state& state) {
 			a government type change from a wargoal or other cause).
 			*/
 
-			auto new_gov =
-					state.world.rebel_faction_get_type(reb).get_government_change(state.world.nation_get_government_type(within));
+			auto old_gov = state.world.nation_get_government_type(within);
+			auto new_gov = state.world.rebel_faction_get_type(reb).get_government_change(old_gov);
 			if(new_gov) {
 				politics::change_government_type(state, within, new_gov);
 			}
@@ -1044,8 +1044,32 @@ void execute_rebel_victories(sys::state& state) {
 			The nation loses prestige equal to define:PRESTIGE_HIT_ON_BREAK_COUNTRY x (nation's current prestige + permanent
 			prestige), which is multiplied by the nation's prestige modifier from technology + 1 as usual (!).
 			*/
-			nations::adjust_prestige(state, within,
-					state.defines.prestige_hit_on_break_country * nations::prestige_score(state, within));
+			auto ploss = state.defines.prestige_hit_on_break_country * nations::prestige_score(state, within);
+			nations::adjust_prestige(state, within, ploss);
+
+			notification::post(state, notification::message{
+				[type = state.world.rebel_faction_get_type(reb).id, ploss, new_gov, within, when = state.current_date, i = reb.index()](sys::state& state, text::layout_base& contents) {
+
+					text::add_line(state, contents, "msg_rebels_win_1", text::variable_type::x, state.world.rebel_type_get_title(type));
+					text::add_line(state, contents, "msg_rebels_win_2", text::variable_type::x, text::fp_one_place{ploss});
+					if(new_gov) {
+						text::add_line(state, contents, "msg_rebels_win_3", text::variable_type::x, state.culture_definitions.governments[new_gov].name);
+					}
+					if(auto iid = state.world.rebel_type_get_ideology(type); iid) {
+						text::add_line(state, contents, "msg_rebels_win_4", text::variable_type::x, state.world.ideology_get_name(iid));
+					}
+					if(state.world.rebel_type_get_break_alliance_on_win(type)) {
+						text::add_line(state, contents, "msg_rebels_win_5");
+					}
+					if(auto k = state.world.rebel_type_get_demands_enforced_effect(type); k) {
+						text::add_line(state, contents, "msg_rebels_win_6");
+						ui::effect_description(state, contents, k, trigger::to_generic(within), trigger::to_generic(within), -1, uint32_t(when.value), uint32_t(within.index() ^ (i << 4)));
+					}
+				},
+				"msg_rebels_win_title",
+				within,
+				sys::message_setting_type::breakcountry
+			});
 
 			/*
 			Any units for the faction that exist are destroyed (or transferred if it is one of the special rebel types).

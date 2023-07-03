@@ -2411,7 +2411,23 @@ void daily_update(sys::state& state) {
 					uni.get_target().get_stockpiles(money) += target_m_costs;
 				} else {
 					uni.set_war_subsidies(false);
-					// TODO notify cancellation
+
+					notification::post(state, notification::message{
+						[source = n.id, target = uni.get_target().id](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
+						},
+						"msg_wsub_end_title",
+						n.id,
+						sys::message_setting_type::war_subsidies_end_by_nation
+					});
+					notification::post(state, notification::message{
+						[source = n.id, target = uni.get_target().id](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
+						},
+						"msg_wsub_end_title",
+						uni.get_target().id,
+						sys::message_setting_type::war_subsidies_end_on_nation
+					});
 				}
 			}
 			if(uni.get_reparations() && state.current_date < n.get_reparations_until()) {

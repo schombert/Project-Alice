@@ -15,12 +15,46 @@ void decline(sys::state& state, message const& m) {
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_decline);
+
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_access_refused_1", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_access_refused_title",
+			m.to,
+			sys::message_setting_type::mil_access_declined_by_nation
+		});
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_access_refused_1", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_access_refused_title",
+			m.from,
+			sys::message_setting_type::mil_access_declined_on_nation
+		});
 		break;
 	case type::alliance_request:
 		if(!command::can_ask_for_alliance(state, m.from, m.to))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.alliance_relation_on_decline);
+
+		notification::post(state, notification::message{
+			[from = m.from, to = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_alliance_declined_1", text::variable_type::x, to, text::variable_type::y, from);
+			},
+			"msg_alliance_declined_title",
+			m.to,
+			sys::message_setting_type::alliance_declined_by_nation
+		});
+		notification::post(state, notification::message{
+			[from = m.from, to = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_alliance_declined_1", text::variable_type::x, to, text::variable_type::y, from);
+			},
+			"msg_alliance_declined_title",
+			m.from,
+			sys::message_setting_type::alliance_declined_on_nation
+		});
 		break;
 	case type::call_ally_request: {
 		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
@@ -38,8 +72,45 @@ void decline(sys::state& state, message const& m) {
 			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(m.from, m.to);
 			if(rel) {
 				state.world.diplomatic_relation_set_are_allied(rel, false);
+
+				notification::post(state, notification::message{
+					[from = m.from, to = m.to](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
+					},
+					"msg_alliance_ends_title",
+					m.from,
+					sys::message_setting_type::alliance_ends
+				});
+
+				notification::post(state, notification::message{
+					[from = m.from, to = m.to](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
+					},
+					"msg_alliance_ends_title",
+					m.to,
+					sys::message_setting_type::alliance_ends
+				});
 			}
 		}
+
+		notification::post(state, notification::message{
+			[from = m.from, to = m.to, pa = state.world.war_get_primary_attacker(m.data.war), pd = state.world.war_get_primary_defender(m.data.war), name = state.world.war_get_name(m.data.war), tag = state.world.war_get_over_tag(m.data.war), st = state.world.war_get_over_state(m.data.war)](sys::state& state, text::layout_base& contents) {
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+				text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
+				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+				text::add_to_substitution_map(sub, text::variable_type::third, tag);
+				text::add_to_substitution_map(sub, text::variable_type::state, st);
+
+				std::string resolved_war_name = text::resolve_string_substitution(state, name, sub);
+				text::add_line(state, contents, "msg_ally_call_decline_1", text::variable_type::x, to, text::variable_type::y, from, text::variable_type::val, std::string_view{resolved_war_name});
+			},
+			"msg_ally_call_declined_title",
+			m.from,
+			sys::message_setting_type::ally_called_declined_by_nation
+		});
+
 		break;
 	}
 	case type::be_crisis_primary_attacker:
@@ -52,7 +123,24 @@ void decline(sys::state& state, message const& m) {
 		military::reject_peace_offer(state, m.data.peace);
 		break;
 	case type::take_crisis_side_offer:
-		// TODO: notify offer rejected
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_crisis_joffer_reject_1", text::variable_type::x, target, text::variable_type::y, target);
+
+			},
+			"msg_crisis_joffer_rejected",
+			m.to,
+			sys::message_setting_type::crisis_join_offer_declined_by_nation
+		});
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_crisis_joffer_reject_1", text::variable_type::x, target, text::variable_type::y, target);
+
+			},
+			"msg_crisis_joffer_rejected",
+			m.from,
+			sys::message_setting_type::crisis_join_offer_declined_from_nation
+		});
 		break;
 	case type::crisis_peace_offer:
 		// TODO: notify rejected
@@ -62,6 +150,17 @@ void decline(sys::state& state, message const& m) {
 		*/
 		state.crisis_temperature += state.defines.crisis_temperature_on_offer_decline;
 		nations::cleanup_crisis_peace_offer(state, m.data.peace);
+
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_crisis_not_settled_1", text::variable_type::x, target, text::variable_type::y, target);
+
+			},
+			"msg_crisis_not_settled_title",
+			m.from,
+			sys::message_setting_type::crisis_resolution_declined_from_nation
+		});
+
 		break;
 	}
 }
@@ -220,6 +319,23 @@ void accept(sys::state& state, message const& m) {
 		}
 		state.world.unilateral_relationship_set_military_access(rel, true);
 
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_access_granted_1", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_access_granted_title",
+			m.to,
+			sys::message_setting_type::mil_access_start_by_nation
+		});
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_access_granted_1", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_access_granted_title",
+			m.from,
+			sys::message_setting_type::mil_access_start_on_nation
+		});
+
 		break;
 	}
 	case type::alliance_request: {
@@ -237,6 +353,25 @@ void accept(sys::state& state, message const& m) {
 		military::join_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_accept);
+
+		notification::post(state, notification::message{
+			[from = m.from, to = m.to, pa = state.world.war_get_primary_attacker(m.data.war), pd = state.world.war_get_primary_defender(m.data.war), name = state.world.war_get_name(m.data.war), tag = state.world.war_get_over_tag(m.data.war), st = state.world.war_get_over_state(m.data.war)](sys::state& state, text::layout_base& contents) {
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+				text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
+				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+				text::add_to_substitution_map(sub, text::variable_type::third, tag);
+				text::add_to_substitution_map(sub, text::variable_type::state, st);
+
+				std::string resolved_war_name = text::resolve_string_substitution(state, name, sub);
+				text::add_line(state, contents, "msg_ally_call_accepted_1", text::variable_type::x, to, text::variable_type::y, from, text::variable_type::val, std::string_view{resolved_war_name});
+			},
+			"msg_ally_call_accepted_title",
+			m.from,
+			sys::message_setting_type::ally_called_accepted_by_nation
+		});
+
 		break;
 	}
 	case type::be_crisis_primary_attacker:
@@ -251,13 +386,40 @@ void accept(sys::state& state, message const& m) {
 	case type::take_crisis_side_offer:
 		if(can_accept_crisis_offer(state, m.from, m.to, m.data.crisis_offer)) {
 			add_to_crisis_with_offer(state, m.from, m.to, m.data.crisis_offer);
-			// TODO : notify offer accepted
+
+			notification::post(state, notification::message{
+				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, target);
+					
+				},
+				"msg_crisis_joffer_accepted",
+					m.to,
+				sys::message_setting_type::crisis_join_offer_accepted_by_nation
+			});
+			notification::post(state, notification::message{
+				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, target);
+					
+				},
+				"msg_crisis_joffer_accepted",
+				m.from,
+				sys::message_setting_type::crisis_join_offer_accepted_from_nation
+			});
 		}
 		break;
 	case type::crisis_peace_offer:
 		if(can_accept_crisis_peace_offer(state, m.from, m.to, m.data.peace)) {
 			nations::accept_crisis_peace_offer(state, m.from, m.to, m.data.peace);
-			// TODO: notify
+
+			notification::post(state, notification::message{
+				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_crisis_settled_1", text::variable_type::x, target, text::variable_type::y, target);
+
+				},
+				"msg_crisis_settled_title",
+				state.local_player_nation,
+				sys::message_setting_type::crisis_resolution_accepted
+			});
 		}
 		break;
 	}

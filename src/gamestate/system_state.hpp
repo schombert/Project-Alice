@@ -67,8 +67,8 @@ struct user_settings_s {
 	bool use_classic_fonts = CLASSIC_FONT;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
-		message_response::standard_popup,//revolt = 0,
-		message_response::standard_popup,//war_on_nation = 1,
+		message_response::standard_pause,//revolt = 0,
+		message_response::standard_pause,//war_on_nation = 1,
 		message_response::ignore,//war_by_nation = 2,
 		message_response::standard_popup,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
@@ -91,9 +91,9 @@ struct user_settings_s {
 		message_response::log,//rr_complete = 21,
 		message_response::log,//fort_complete = 22,
 		message_response::log,//naval_base_complete = 23,
-		message_response::standard_pause,//province_event = 24,
-		message_response::standard_pause,//national_event = 25,
-		message_response::standard_pause,//major_event = 26,
+		message_response::log,//province_event = 24,
+		message_response::log,//national_event = 25,
+		message_response::log,//major_event = 26,
 		message_response::standard_popup,//invention = 27,
 		message_response::standard_popup,//tech = 28,
 		message_response::log,//leader_dies = 29,
@@ -107,7 +107,7 @@ struct user_settings_s {
 		message_response::standard_popup,//become_great_power = 37,
 		message_response::ignore,//war_subsidies_start_by_nation = 38,
 		message_response::standard_popup,//war_subsidies_start_on_nation = 39,
-		message_response::ignore,//war_subsidies_end_by_nation = 40,
+		message_response::standard_popup,//war_subsidies_end_by_nation = 40,
 		message_response::standard_popup,//war_subsidies_end_on_nation = 41,
 		message_response::ignore,//reparations_start_by_nation = 42,
 		message_response::ignore,//reparations_start_on_nation = 43,
@@ -157,13 +157,14 @@ struct user_settings_s {
 		message_response::standard_popup,//crisis_becomes_war = 87,
 		message_response::standard_popup,//crisis_resolution_declined_from_nation = 88,
 		message_response::standard_popup,//crisis_starts = 89,
-		message_response::standard_popup,//crisis_attacker_backer = 90,
-		message_response::standard_popup,//crisis_defender_backer = 91,
+		message_response::ignore,//crisis_attacker_backer = 90,
+		message_response::ignore,//crisis_defender_backer = 91,
 		message_response::standard_popup,//crisis_fizzle = 92,
 		message_response::ignore,//war_join_by = 93,
 		message_response::standard_popup,//war_join_on = 94,
 		message_response::standard_popup,//cb_fab_finished = 95,
 		message_response::standard_popup,//cb_fab_cancelled = 96,
+		message_response::ignore,//crisis_voluntary_joi_on = 97,
 	};
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::log,//revolt = 0,
@@ -256,13 +257,14 @@ struct user_settings_s {
 		message_response::ignore,//crisis_becomes_war = 87,
 		message_response::ignore,//crisis_resolution_declined_from_nation = 88,
 		message_response::ignore,//crisis_starts = 89,
-		message_response::ignore,//crisis_attacker_backer = 90,
-		message_response::ignore,//crisis_defender_backer = 91,
+		message_response::standard_popup,//crisis_attacker_backer = 90,
+		message_response::standard_popup,//crisis_defender_backer = 91,
 		message_response::ignore,//crisis_fizzle = 92,
 		message_response::log,//war_join_by = 93,
 		message_response::ignore,//war_join_on = 94,
 		message_response::ignore,//cb_fab_finished = 95,
 		message_response::ignore,//cb_fab_cancelled = 96,
+		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 	};
 	uint8_t other_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::ignore,//revolt = 0,
@@ -355,13 +357,14 @@ struct user_settings_s {
 		message_response::ignore,//crisis_becomes_war = 87,
 		message_response::ignore,//crisis_resolution_declined_from_nation = 88,
 		message_response::ignore,//crisis_starts = 89,
-		message_response::ignore,//crisis_attacker_backer = 90,
-		message_response::ignore, //crisis_defender_backer = 91,
+		message_response::standard_popup,//crisis_attacker_backer = 90,
+		message_response::standard_popup, //crisis_defender_backer = 91,
 		message_response::ignore, //crisis_fizzle = 92,
 		message_response::ignore, //war_join_by = 93,
 		message_response::ignore,//war_join_on = 94,
 		message_response::ignore,//cb_fab_finished = 95,
 		message_response::ignore,//cb_fab_cancelled = 96,
+		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 	};
 };
 

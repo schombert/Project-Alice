@@ -818,4 +818,86 @@ msg_peace_offer_rejected_1;$x$ has rejected a peace offer from $y$ as part of th
 msg_upper_house_title;Upper House Formed
 msg_upper_house_1;A new upper house has been assembled with the following composition:
 msg_upper_house_2;$x$%: $y$
+msg_election_start_title;Elections Starting
+msg_election_start_1;The election will finish on $x$.
+msg_dec_rel_title;Relations Worsened
+msg_dec_rel_1;$x$ has decreased their relations with $y$.
+msg_inc_rel_title;Relations Improved
+msg_inc_rel_1;$x$ has improved their relations with $y$.
+msg_add_sphere_title;Nation Sphered
+msg_add_sphere_1;$x$ has added $y$ to their sphere of influence.
+msg_rem_sphere_title;Nation Removed from Sphere
+msg_rem_sphere_1;$x$ has removed $y$ from their sphere of influence.
+msg_rem_sphere_2;$x$ has removed $y$ from the sphere of influence of $val$.
+msg_op_dec_title;Opinion Decreased
+msg_op_dec_1;$x$ has decreased $y$'s opinion of $val$.
+msg_op_inc_title;Opinion Increased
+msg_op_inc_1;$x$ has increased $y$'s opinion of them.
+msg_expel_title;Advisors Expelled
+msg_expel_1;$x$ has expelled $val$'s advisors to $y$.
+msg_ban_title;Embassy Banned
+msg_ban_1;$x$ has caused $val$'s embassy to $y$ to be banned.
+msg_ban_2;This will last until $x$.
+msg_discredit_title;Nation Discredited
+msg_discredit_1;$x$ has caused $val$ to be discredited with $y$.
+msg_discredit_2;This will last until $x$.
+msg_ally_call_accepted_title;Alliance Honored
+msg_ally_call_accepted_1;$x$ has honored their alliance with $y$ and joined the $val$.
+msg_ally_call_declined_title;Alliance Dishonored
+msg_ally_call_decline_1;$x$ has refused to honor their alliance with $y$ and join the $val$.
+msg_alliance_declined_title;Alliance Refused
+msg_alliance_declined_1;$x$ has refused $y$'s offer to form an alliance.
+msg_alliance_starts_title;Alliance Formed
+msg_alliance_starts_1;$x$ and $y$ have formed an alliance.
+msg_alliance_ends_title;Alliance Broken
+msg_alliance_ends_1;The alliance between $x$ and $y$ has ended.
+msg_access_refused_title;Access Refused
+msg_access_refused_1;$x$ has refused to give $y$ military access to their nation.
+msg_access_granted_title;Access Granted
+msg_access_granted_1;$x$ has given $y$ military access to their nation.
+msg_access_canceled_a_title;Access Revoked
+msg_access_canceled_a_1;$x$ has ended the military access they formerly granted to $y$.
+msg_access_canceled_b_title;Access Canceled
+msg_access_canceled_b_1;$x$ no longer requires military access to $y$.
+msg_wsub_start_title;War Subsidies Start
+msg_wsub_start_1;$x$ has begun subsidizing $y$'s current wars.
+msg_wsub_end_title;War Subsidies End
+msg_wsub_end_1;$x$ has stopped subsidizing $y$'s current wars.
+msg_new_gp_title;New Great Power
+msg_new_gp_1;$x$ is now a great power.
+msg_lost_gp_title;Lost Great Power
+msg_lost_gp_1;$x$ is no longer considered to be a great power.
+msg_decision_title;Decision Made
+msg_decision_1;$x$ has taken the $y$ decision
+msg_decision_2;Effect:
+msg_rebels_win_title;Rebel victory
+msg_rebels_win_1;$x$ rebels have won.
+msg_rebels_win_2;§R$x$§! prestige lost
+msg_rebels_win_3;Government changes to $x$
+msg_rebels_win_4;Government ideology changed to $x$
+msg_rebels_win_5;All diplomatic relationships are ended
+msg_rebels_win_6;Effect:
+msg_election_end_title;Election Finished
+msg_election_end_1;$x$ is the new ruling party, receiving $y$ of the vote.
+msg_election_end_2;$x$ is the new ruling party, as part of a coalition government, receiving $y$ of the vote.
+msg_crisis_joffer_accepted;Nation Takes a Side
+msg_crisis_joffer_accepted_1;$x$ has accepted an offer by $y$ to take their side in the current crisis.
+msg_crisis_joffer_rejected;Nation Remains Neutral
+msg_crisis_joffer_reject_1;$x$ has rejected an offer by $y$ to take their side in the current crisis.
+msg_crisis_settled_title;Crisis Resolved
+msg_crisis_settled_1;$x$ has accepted an offer by $y$ to resolve the current crisis.
+msg_crisis_not_settled_title;Crisis Resolution Rejected
+msg_crisis_not_settled_1;$x$ has rejected an offer by $y$ to resolve the current crisis.
+msg_crisis_escalates_title;Crisis Escalates
+msg_crisis_escalates_1;The current crisis has escalated into the $x$.
+msg_crisis_fizzle_title;Crisis Adverted
+msg_crisis_fizzle_1;The brewing crisis has failed to attract international attention.
+msg_crisis_fizzle_2;The brewing crisis failed to attract a defender; the attacking side wins automatically.
+msg_crisis_attacker_title;Crisis Backer
+msg_crisis_attacker_1;$x$ has become involved in the current crisis, backing the attacker.
+msg_crisis_defender_title;Crisis Backer
+msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the defender.
+msg_crisis_vol_join_title;Nation Takes a Side
+msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
+msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
 ;;;;;;;;;;;;;x

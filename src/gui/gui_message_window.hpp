@@ -120,7 +120,7 @@ message_result message_body_text::get(sys::state& state, Cyto::Any& payload) noe
 	}
 }
 
-class message_flag_button : public nation_player_flag {
+class message_flag_button : public flag_button {
 public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.position.y -= 6;

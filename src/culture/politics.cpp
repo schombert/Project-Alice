@@ -782,6 +782,7 @@ void update_elections(sys::state& state) {
 					}
 					dcon::ideology_group_id winner;
 					float winner_amount = -1.0f;
+					float total = 0.0f;
 					for(auto ig : state.world.in_ideology_group) {
 						if(per_group.get(ig) > winner_amount) {
 							winner_amount = per_group.get(ig);
@@ -792,6 +793,7 @@ void update_elections(sys::state& state) {
 					uint32_t winner_b = 0;
 					float winner_amount_b = -1.0f;
 					for(uint32_t i = 0; i < party_votes.size(); ++i) {
+						total += party_votes[i].vote;
 						if(state.world.ideology_get_ideology_group_from_ideology_group_membership(
 									 state.world.political_party_get_ideology(party_votes[i].par)) == winner &&
 								party_votes[i].vote > winner_amount_b) {
@@ -801,10 +803,21 @@ void update_elections(sys::state& state) {
 					}
 
 					set_ruling_party(state, n, party_votes[winner_b].par);
+
+					notification::post(state, notification::message{
+						[rp = party_votes[winner_b].par, frac = winner_amount_b / total](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_election_end_2", text::variable_type::x, state.world.political_party_get_name(rp), text::variable_type::y, text::fp_percentage{frac});
+						},
+						"msg_election_end_title",
+						n,
+						sys::message_setting_type::electiondone
+					});
 				} else {
 					uint32_t winner = 0;
 					float winner_amount = party_votes[0].vote;
+					float total = 0.0f;
 					for(uint32_t i = 1; i < party_votes.size(); ++i) {
+						total += party_votes[i].vote;
 						if(party_votes[i].vote > winner_amount) {
 							winner = i;
 							winner_amount = party_votes[i].vote;
@@ -812,6 +825,15 @@ void update_elections(sys::state& state) {
 					}
 
 					set_ruling_party(state, n, party_votes[winner].par);
+
+					notification::post(state, notification::message{
+						[rp = party_votes[winner].par, frac = winner_amount / total](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_election_end_1", text::variable_type::x, state.world.political_party_get_name(rp), text::variable_type::y, text::fp_percentage{frac});
+						},
+						"msg_election_end_title",
+						n,
+						sys::message_setting_type::electiondone
+					});
 				}
 
 			} else if(next_election_date(state, n) <= state.current_date) {

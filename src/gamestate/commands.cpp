@@ -127,7 +127,7 @@ void execute_make_leader(sys::state& state, dcon::nation_id source, bool general
 	military::make_new_leader(state, source, general);
 }
 
-// -----------------------------------------------------------------------------
+
 void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -155,9 +155,26 @@ void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon:
 	state.world.nation_get_diplomatic_points(source) -= state.defines.warsubsidy_diplomatic_cost;
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	state.world.unilateral_relationship_set_war_subsidies(rel, true);
+
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_wsub_start_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_wsub_start_title",
+		source,
+		sys::message_setting_type::war_subsidies_start_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_wsub_start_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_wsub_start_title",
+		target,
+		sys::message_setting_type::war_subsidies_start_on_nation
+	});
 }
 
-// -----------------------------------------------------------------------------
+
 void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -186,9 +203,28 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelwarsubsidy_diplomatic_cost;
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	state.world.unilateral_relationship_set_war_subsidies(rel, false);
+
+	if(source != state.local_player_nation) {
+		notification::post(state, notification::message{
+			[source, target](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
+			},
+			"msg_wsub_end_title",
+			source,
+			sys::message_setting_type::war_subsidies_end_by_nation
+		});
+		notification::post(state, notification::message{
+			[source, target](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
+			},
+			"msg_wsub_end_title",
+			target,
+			sys::message_setting_type::war_subsidies_end_on_nation
+		});
+	}
 }
 
-// -----------------------------------------------------------------------------
+
 void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -218,9 +254,25 @@ void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon:
 		return;
 	nations::adjust_relationship(state, source, target, state.defines.increaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.increaserelation_diplomatic_cost;
+
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_inc_rel_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_inc_rel_title",
+		source,
+		sys::message_setting_type::increase_relation_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_inc_rel_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_inc_rel_title",
+		target,
+		sys::message_setting_type::increase_relation_on_nation
+	});
 }
 
-// -----------------------------------------------------------------------------
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -248,9 +300,25 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 
 	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
+
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_dec_rel_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_dec_rel_title",
+		source,
+		sys::message_setting_type::decrease_relation_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_dec_rel_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_dec_rel_title",
+		target,
+		sys::message_setting_type::decrease_relation_on_nation
+	});
 }
 
-// -----------------------------------------------------------------------------
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov,
 		economy::province_building_type type) {
 	payload p;
@@ -960,6 +1028,25 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 	nations::adjust_relationship(state, source, affected_gp, state.defines.discredit_relation_on_accept);
 	state.world.gp_relationship_get_status(orel) |= nations::influence::is_discredited;
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.discredit_days));
+
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp, enddate = state.current_date + int32_t(state.defines.discredit_days)](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_discredit_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+			text::add_line(state, contents, "msg_discredit_2", text::variable_type::x, enddate);
+		},
+		"msg_discredit_title",
+		source,
+		sys::message_setting_type::expell_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp, enddate = state.current_date + int32_t(state.defines.discredit_days)](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_discredit_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+			text::add_line(state, contents, "msg_discredit_2", text::variable_type::x, enddate);
+		},
+		"msg_discredit_title",
+		affected_gp,
+		sys::message_setting_type::expell_on_nation
+	});
 }
 
 void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
@@ -1026,6 +1113,23 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 		state.world.gp_relationship_set_influence(orel, 0.0f);
 		state.world.gp_relationship_get_status(orel) &= ~nations::influence::is_discredited;
 	}
+
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_expel_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_expel_title",
+		source,
+		sys::message_setting_type::expell_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_expel_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_expel_title",
+		affected_gp,
+		sys::message_setting_type::expell_on_nation
+	});
 }
 
 void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
@@ -1091,6 +1195,25 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 	nations::adjust_relationship(state, source, affected_gp, state.defines.banembassy_relation_on_accept);
 	state.world.gp_relationship_get_status(orel) |= nations::influence::is_banned;
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.banembassy_days));
+
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp, enddate = state.current_date + int32_t(state.defines.banembassy_days)](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_ban_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+			text::add_line(state, contents, "msg_ban_2", text::variable_type::x, enddate);
+		},
+		"msg_ban_title",
+		source,
+		sys::message_setting_type::ban_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp, enddate = state.current_date + int32_t(state.defines.banembassy_days)](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_ban_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+			text::add_line(state, contents, "msg_ban_2", text::variable_type::x, enddate);
+		},
+		"msg_ban_title",
+		affected_gp,
+		sys::message_setting_type::ban_on_nation
+	});
 }
 
 void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
@@ -1142,6 +1265,15 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	state.world.gp_relationship_get_influence(rel) -= state.defines.increaseopinion_influence_cost;
 	auto& l = state.world.gp_relationship_get_status(rel);
 	l = nations::influence::increase_level(l);
+
+	notification::post(state, notification::message{
+		[source, influence_target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_op_inc_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+		},
+		"msg_op_inc_title",
+		source,
+		sys::message_setting_type::increase_opinion
+	});
 }
 
 void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
@@ -1218,6 +1350,23 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 
 	auto& l = state.world.gp_relationship_get_status(orel);
 	l = nations::influence::decrease_level(l);
+
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_op_dec_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_op_dec_title",
+		source,
+		sys::message_setting_type::decrease_opinion_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_op_dec_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_op_dec_title",
+		affected_gp,
+		sys::message_setting_type::decrease_opinion_on_nation
+	});
 }
 
 void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
@@ -1271,6 +1420,23 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 	l = nations::influence::increase_level(l);
 
 	state.world.nation_set_in_sphere_of(influence_target, source);
+
+	notification::post(state, notification::message{
+		[source, influence_target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+		},
+		"msg_add_sphere_title",
+		source,
+		sys::message_setting_type::add_sphere
+	});
+	notification::post(state, notification::message{
+		[source, influence_target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+		},
+		"msg_add_sphere_title",
+		influence_target,
+		sys::message_setting_type::added_to_sphere
+	});
 }
 
 void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
@@ -1344,6 +1510,40 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 		state.world.nation_get_infamy(source) += state.defines.removefromsphere_infamy_cost;
 		nations::adjust_prestige(state, source, -state.defines.removefromsphere_prestige_cost);
 	}
+
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			if(source == affected_gp)
+				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+			else
+				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_rem_sphere_title",
+		source,
+		sys::message_setting_type::rem_sphere_by_nation
+	});
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			if(source == affected_gp)
+				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+			else
+				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_rem_sphere_title",
+		affected_gp,
+		sys::message_setting_type::rem_sphere_on_nation
+	});
+	notification::post(state, notification::message{
+		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
+			if(source == affected_gp)
+				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+			else
+				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+		},
+		"msg_rem_sphere_title",
+		influence_target,
+		sys::message_setting_type::removed_from_sphere
+	});
 }
 
 void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
@@ -2041,6 +2241,16 @@ void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, boo
 		if(i.id == source) {
 			i.merely_interested = false;
 			i.supports_attacker = join_attacker;
+
+			notification::post(state, notification::message{
+				[source, join_attacker](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, join_attacker ? "msg_crisis_vol_join_1" : "msg_crisis_vol_join_2", text::variable_type::x, source);
+				},
+				"msg_crisis_vol_join_title",
+				source,
+				sys::message_setting_type::crisis_voluntary_join
+			});
+
 			return;
 		}
 		if(!i.id)
@@ -2099,6 +2309,20 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 	if(auto e = state.world.decision_get_effect(d); e)
 		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
 				uint32_t(source.index() << 4 ^ d.index()));
+
+	notification::post(state, notification::message{
+		[source, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_decision_1", text::variable_type::x, source, text::variable_type::y, state.world.decision_get_name(d));
+			if(auto e = state.world.decision_get_effect(d); e) {
+				text::add_line(state, contents, "msg_decision_2");
+				ui::effect_description(state, contents, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(when.value),
+					uint32_t(source.index() << 4 ^ d.index()));
+			}
+		},
+		"msg_decision_title",
+		source,
+		sys::message_setting_type::decision
+	});
 }
 
 void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id) {
@@ -2489,6 +2713,23 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelaskmilaccess_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelaskmilaccess_relation_on_accept);
+
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_access_canceled_a_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_access_canceled_a_title",
+		target,
+		sys::message_setting_type::mil_access_end_on_nation
+	});
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_access_canceled_a_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_access_canceled_a_title",
+		source,
+		sys::message_setting_type::mil_access_end_by_nation
+	});
 }
 
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -2519,6 +2760,25 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelgivemilaccess_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelgivemilaccess_relation_on_accept);
+
+	if(source != state.local_player_nation) {
+		notification::post(state, notification::message{
+			[source, target](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_access_canceled_b_1", text::variable_type::x, source, text::variable_type::y, target);
+			},
+			"msg_access_canceled_b_title",
+			source,
+			sys::message_setting_type::mil_access_end_by_nation
+		});
+	}
+	notification::post(state, notification::message{
+		[source, target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_access_canceled_b_1", text::variable_type::x, source, text::variable_type::y, target);
+		},
+		"msg_access_canceled_b_title",
+		target,
+		sys::message_setting_type::mil_access_end_on_nation
+	});
 }
 
 void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {

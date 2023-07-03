@@ -530,6 +530,15 @@ void update_great_powers(sys::state& state) {
 			while(rels.begin() != rels.end()) {
 				state.world.delete_gp_relationship(*(rels.begin()));
 			}
+
+			notification::post(state, notification::message{
+				[n](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_lost_gp_1", text::variable_type::x, n);
+				},
+				"msg_lost_gp_title",
+				n,
+				sys::message_setting_type::lose_great_power
+			});
 		}
 	}
 	bool at_least_one_added = false;
@@ -549,6 +558,15 @@ void update_great_powers(sys::state& state) {
 
 				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n),
 						event::slot_type::nation, n, -1, event::slot_type::none);
+
+				notification::post(state, notification::message{
+					[n](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_new_gp_1", text::variable_type::x, n);
+					},
+					"msg_new_gp_title",
+					n,
+					sys::message_setting_type::become_great_power
+				});
 			}
 		}
 	}
@@ -1353,7 +1371,6 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 	if(state.world.diplomatic_relation_get_are_allied(rel)) {
-		// TODO: notify player
 		state.world.diplomatic_relation_set_are_allied(rel, false);
 		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 0))--;
 		state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(rel, 1))--;
@@ -1363,6 +1380,24 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	if(auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b); r) {
 		break_alliance(state, r);
+		if(a != state.local_player_nation) {
+			notification::post(state, notification::message{
+				[from = a, to = b](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
+				},
+				"msg_alliance_ends_title",
+				a,
+				sys::message_setting_type::alliance_ends
+			});
+			notification::post(state, notification::message{
+				[from = a, to = b](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
+				},
+				"msg_alliance_ends_title",
+				b,
+				sys::message_setting_type::alliance_ends
+			});
+		}
 	}
 }
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
@@ -1374,6 +1409,25 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 		state.world.nation_get_allies_count(a)++;
 		state.world.nation_get_allies_count(b)++;
 		state.world.diplomatic_relation_set_are_allied(r, true);
+	}
+
+	if(a != state.local_player_nation && b != state.local_player_nation) {
+		notification::post(state, notification::message{
+			[from = a, to = b](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_alliance_starts_1", text::variable_type::x, to, text::variable_type::y, from);
+			},
+			"msg_alliance_starts_title",
+			a,
+			sys::message_setting_type::alliance_starts
+		});
+		notification::post(state, notification::message{
+			[from = a, to = b](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_alliance_starts_1", text::variable_type::x, to, text::variable_type::y, from);
+			},
+			"msg_alliance_starts_title",
+			b,
+			sys::message_setting_type::alliance_starts
+		});
 	}
 }
 
@@ -1777,12 +1831,30 @@ void cleanup_crisis(sys::state& state) {
 
 void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
 	state.primary_crisis_defender = n;
-	// TODO: notify
+
+	notification::post(state, notification::message{
+		[n](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_crisis_defender_1", text::variable_type::x, n);
+
+		},
+		"msg_crisis_defender_title",
+		n,
+		sys::message_setting_type::crisis_defender_backer
+	});
 }
 
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 	state.primary_crisis_attacker = n;
-	// TODO: notify
+
+	notification::post(state, notification::message{
+		[n](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_crisis_attacker_1", text::variable_type::x, n);
+
+		},
+		"msg_crisis_attacker_title",
+		n,
+		sys::message_setting_type::crisis_attacker_backer
+	});
 }
 
 void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
@@ -1825,7 +1897,16 @@ void reject_crisis_participation(sys::state& state) {
 	if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
 		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
 			// no attacker -- fizzle
-			// TODO: notify fizzle
+
+			notification::post(state, notification::message{
+				[](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_crisis_fizzle_1");
+				},
+				"msg_crisis_fizzle_title",
+				state.local_player_nation,
+				sys::message_setting_type::crisis_fizzle
+			});
+
 			cleanup_crisis(state);
 		} else {
 			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
@@ -1834,6 +1915,15 @@ void reject_crisis_participation(sys::state& state) {
 		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
 			// no defender -- attacker wins
 			// TODO: notify resolution
+
+			notification::post(state, notification::message{
+				[](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_crisis_fizzle_2");
+				},
+				"msg_crisis_fizzle_title",
+				state.local_player_nation,
+				sys::message_setting_type::crisis_fizzle
+			});
 
 			if(state.current_crisis == sys::crisis_type::liberation) {
 				military::implement_war_goal(state, dcon::war_id{}, state.military_definitions.crisis_liberate,
@@ -2213,6 +2303,24 @@ void update_crisis(sys::state& state) {
 			}
 
 			state.crisis_war = war;
+
+			notification::post(state, notification::message{
+				[pa = state.world.war_get_primary_attacker(war), pd = state.world.war_get_primary_defender(war), name = state.world.war_get_name(war), tag = state.world.war_get_over_tag(war), st = state.world.war_get_over_state(war)](sys::state& state, text::layout_base& contents) {
+					text::substitution_map sub;
+					text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+					text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+					text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
+					text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+					text::add_to_substitution_map(sub, text::variable_type::third, tag);
+					text::add_to_substitution_map(sub, text::variable_type::state, st);
+
+					std::string resolved_war_name = text::resolve_string_substitution(state, name, sub);
+					text::add_line(state, contents, "msg_crisis_escalates_1", text::variable_type::x, std::string_view{resolved_war_name});
+				},
+				"msg_crisis_escalates_title",
+				state.local_player_nation,
+				sys::message_setting_type::crisis_becomes_war
+			});
 		}
 	}
 }
