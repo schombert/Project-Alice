@@ -125,7 +125,7 @@ void decline(sys::state& state, message const& m) {
 	case type::take_crisis_side_offer:
 		notification::post(state, notification::message{
 			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_crisis_joffer_reject_1", text::variable_type::x, target, text::variable_type::y, target);
+				text::add_line(state, contents, "msg_crisis_joffer_reject_1", text::variable_type::x, target, text::variable_type::y, source);
 
 			},
 			"msg_crisis_joffer_rejected",
@@ -134,7 +134,7 @@ void decline(sys::state& state, message const& m) {
 		});
 		notification::post(state, notification::message{
 			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_crisis_joffer_reject_1", text::variable_type::x, target, text::variable_type::y, target);
+				text::add_line(state, contents, "msg_crisis_joffer_reject_1", text::variable_type::x, target, text::variable_type::y, source);
 
 			},
 			"msg_crisis_joffer_rejected",
@@ -153,7 +153,7 @@ void decline(sys::state& state, message const& m) {
 
 		notification::post(state, notification::message{
 			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_crisis_not_settled_1", text::variable_type::x, target, text::variable_type::y, target);
+				text::add_line(state, contents, "msg_crisis_not_settled_1", text::variable_type::x, target, text::variable_type::y, source);
 
 			},
 			"msg_crisis_not_settled_title",
@@ -389,7 +389,7 @@ void accept(sys::state& state, message const& m) {
 
 			notification::post(state, notification::message{
 				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, target);
+					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, source);
 					
 				},
 				"msg_crisis_joffer_accepted",
@@ -398,7 +398,7 @@ void accept(sys::state& state, message const& m) {
 			});
 			notification::post(state, notification::message{
 				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, target);
+					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, source);
 					
 				},
 				"msg_crisis_joffer_accepted",
@@ -413,7 +413,7 @@ void accept(sys::state& state, message const& m) {
 
 			notification::post(state, notification::message{
 				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_settled_1", text::variable_type::x, target, text::variable_type::y, target);
+					text::add_line(state, contents, "msg_crisis_settled_1", text::variable_type::x, target, text::variable_type::y, source);
 
 				},
 				"msg_crisis_settled_title",
