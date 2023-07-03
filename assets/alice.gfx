@@ -20,4 +20,74 @@ spriteTypes = {
 		name = "GFX_icon_merchant"
 		texturefile = "gfx\\test\\factions.dds"
 	}
+	
+	spriteType = {
+		name = "GFX_alice_unit_frames"
+		texturefile = "assets\\unitframes.png"
+		noOfFrames = 5
+	}
+	
+	spriteType = {
+		name = "GFX_alice_unit_left_edge"
+		texturefile = "assets\\unitleftedges.png"
+		noOfFrames = 5
+	}
+	spriteType = {
+		name = "GFX_alice_unit_right_edge"
+		texturefile = "assets\\unitrightedge.png"
+		noOfFrames = 1
+	}
+	spriteType = {
+		name = "GFX_alice_dig_in"
+		texturefile = "assets\\diginpips.png"
+		noOfFrames = 7
+	}
+	progressbartype = {
+		name = "GFX_alice_org_bar"
+		textureFile1 = "assets\\orgbar_top.png"
+		textureFile2 = "assets\\orgbar_bottom.png"
+		size = { x = 51 y = 4 }
+	}
+	spriteType = {
+		name = "GFX_alice_unit_status"
+		texturefile = "assets\\unitstatus.png"
+		noOfFrames = 5
+	}
+	spriteType = {
+		name = "GFX_alice_siege_frame"
+		texturefile = "assets\\siegeframe.png"
+		noOfFrames = 1
+	}
+	progressbartype = {
+		name = "GFX_alice_siege_bar"
+		textureFile1 = "assets\\siege_top.png"
+		textureFile2 = "assets\\siege_bottom.png"
+		size = { x = 64 y = 11 }
+	}
+	spriteType = {
+		name = "GFX_alice_battle_caps"
+		texturefile = "assets\\battle_ends.png"
+		noOfFrames = 2
+	}
+	progressbartype = {
+		name = "GFX_alice_battle_bar"
+		textureFile1 = "assets\\battle_red.png"
+		textureFile2 = "assets\\battle_blue.png"
+		size = { x = 86 y = 15 }
+	}
+	spriteType = {
+		name = "GFX_alice_expanded_port"
+		texturefile = "assets\\port_ex.png"
+		noOfFrames = 5
+	}
+	spriteType = {
+		name = "GFX_alice_port_levels"
+		texturefile = "assets\\port_bars.png"
+		noOfFrames = 5
+	}
+	spriteType = {
+		name = "GFX_alice_port"
+		texturefile = "assets\\port_empty.png"
+		noOfFrames = 5
+	}
 }
