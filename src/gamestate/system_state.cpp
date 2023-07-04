@@ -309,6 +309,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 		ui_state.root->impl_on_update(*this);
 		map_mode::update_map_mode(*this);
 
+		
+		ui_state.rgos_root->impl_on_update(*this);
+		ui_state.units_root->impl_on_update(*this);
+			
+
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
@@ -496,10 +501,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
-			ui_state.rgos_root->impl_on_update(*this);
 			ui_state.rgos_root->impl_render(*this, 0, 0);
 		} else {
-			ui_state.units_root->impl_on_update(*this);
 			ui_state.units_root->impl_render(*this, 0, 0);
 		}
 	}
@@ -556,9 +559,16 @@ void state::on_create() {
 	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
 	world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
-		static_cast<ui::unit_icon_window*>(ptr.get())->content = id;
-		ui_state.units_root->add_child_to_front(std::move(ptr));
+		{
+			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
+			static_cast<ui::unit_icon_window*>(ptr.get())->content = id;
+			ui_state.units_root->add_child_to_front(std::move(ptr));
+		}
+		if(world.province_get_port_to(id)) {
+			auto ptr = ui::make_element_by_type<ui::port_window>(*this, "alice_port_icon");
+			static_cast<ui::port_window*>(ptr.get())->set_province(*this, id);
+			ui_state.units_root->add_child_to_front(std::move(ptr));
+		}
 	});
 	world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
@@ -1861,6 +1871,18 @@ void state::load_scenario_data() {
 		dcon::province_id id{dcon::province_id ::value_base_t(i)};
 		world.province_set_terrain(id, context.ocean_terrain);
 	}
+
+	// make ports
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		for(auto adj : world.province_get_province_adjacency(p)) {
+			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+			auto bits = adj.get_type();
+			if((bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
+				world.province_set_port_to(p, other.id);
+				return;
+			}
+		}
+	});
 
 	fill_unsaved_data(); // we need this to run triggers
 

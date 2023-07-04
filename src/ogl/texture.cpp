@@ -402,6 +402,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 
 		return asset_texture.texture_handle;
 	}
+	asset_texture.loaded = true; // because we tried to load it (and failed) and trying again will be wasteful
 	return 0;
 }
 

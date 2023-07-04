@@ -90,4 +90,10 @@ spriteTypes = {
 		texturefile = "assets\\port_empty.png"
 		noOfFrames = 5
 	}
+	corneredTileSpriteType = {
+		name = "GFX_alice_panel_bg"
+		size= {x=32 y=32 }
+		texturefile = "assets\\new_panel_bg.png"
+		borderSize = { x=8 y=8 }
+	}
 }

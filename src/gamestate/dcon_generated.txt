@@ -1285,6 +1285,12 @@ object {
 	}
 
 	property{
+		name{ port_to }
+		type{ dcon::province_id }
+		tag{ scenario }
+	}
+
+	property{
 		name{ party_loyalty }
 		type{array{ideology_id}{float}}
 		tag{ save }

@@ -648,4 +648,71 @@ guiTypes = {
 		fullScreen = no
 		orientation = "UPPER_LEFT"
 	}
+	
+	windowType = {
+		name = "alice_port_icon"
+		position = { x= 0 y = 0 }
+		size = { x=1 y = 1 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+		
+		iconType = {
+			name ="port_minimized"
+			spriteType = "GFX_alice_port"
+			position = { x=-16 y=-16 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="port_expanded"
+			spriteType = "GFX_alice_expanded_port"
+			position = { x=-16 y=-16 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType={
+			position = {x = 11 y = -7 }
+			name = "ship_count"
+			font = "Arial16"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 53
+			maxHeight = 17
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+		iconType = {
+			name ="level1"
+			spriteType = "GFX_alice_port_levels"
+			position = { x=-21 y=-7 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="level2"
+			spriteType = "GFX_alice_port_levels"
+			position = { x=-26 y=-7 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="level3"
+			spriteType = "GFX_alice_port_levels"
+			position = { x=-31 y=-7 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="level4"
+			spriteType = "GFX_alice_port_levels"
+			position = { x=-36 y=-7 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="level5"
+			spriteType = "GFX_alice_port_levels"
+			position = { x=-41 y=-7 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="level6"
+			spriteType = "GFX_alice_port_levels"
+			position = { x=-46 y=-7 }
+			Orientation = "UPPER_LEFT"
+		}
+	}
 }

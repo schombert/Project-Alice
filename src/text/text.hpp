@@ -28,6 +28,7 @@ enum class text_color : uint8_t {
 	light_grey,
 	dark_red,
 	dark_green,
+	gold,
 	reset
 };
 enum class alignment : uint8_t { left, right, center };

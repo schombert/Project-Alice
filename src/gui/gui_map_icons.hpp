@@ -9,6 +9,225 @@
 
 namespace ui {
 
+enum class outline_color {
+	gray = 0, gold = 1, blue = 2, cyan = 3, red = 4
+};
+
+class port_ex_bg : public button_element_base {
+	bool visible = false;
+
+	void on_update(sys::state& state) noexcept override {
+		visible = retrieve<int32_t>(state, parent) > 0;
+		frame = int32_t(retrieve<outline_color>(state, parent));
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
+	}
+};
+
+class port_sm_bg : public image_element_base {
+	bool visible = false;
+
+	void on_update(sys::state& state) noexcept override {
+		visible = retrieve<int32_t>(state, parent) == 0;
+		frame = int32_t(retrieve<outline_color>(state, parent));
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+};
+
+class port_level_bar : public image_element_base {
+public:
+	bool visible = false;
+	int32_t level = 1;
+
+	void on_update(sys::state& state) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto port_level = state.world.province_get_naval_base_level(prov);
+
+		visible = port_level >= level;
+		frame = int32_t(retrieve<outline_color>(state, parent));
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+};
+
+class port_ship_count : public color_text_element {
+public:
+	void on_update(sys::state& state) noexcept override {
+		int32_t count = retrieve<int32_t>(state, parent);
+		color = text::text_color::gold;
+		if(count <= 0) {
+			set_text(state, "");
+		} else {
+			set_text(state, std::to_string(count));
+		}
+	}
+};
+
+class port_window : public window_element_base {
+public:
+	bool visible = true;
+	bool populated = false;
+	float map_x = 0;
+	float map_y = 0;
+	dcon::province_id port_for;
+	outline_color color = outline_color::gray;
+	int32_t displayed_count = 0;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "level1") {
+			auto ptr = make_element_by_type<port_level_bar>(state, id);
+			ptr->level = 1;
+			return ptr;
+		} else if(name == "level2") {
+			auto ptr = make_element_by_type<port_level_bar>(state, id);
+			ptr->level = 2;
+			return ptr;
+		} else if(name == "level3") {
+			auto ptr = make_element_by_type<port_level_bar>(state, id);
+			ptr->level = 3;
+			return ptr;
+		} else if(name == "level4") {
+			auto ptr = make_element_by_type<port_level_bar>(state, id);
+			ptr->level = 4;
+			return ptr;
+		} else if(name == "level5") {
+			auto ptr = make_element_by_type<port_level_bar>(state, id);
+			ptr->level = 5;
+			return ptr;
+		} else if(name == "level6") {
+			auto ptr = make_element_by_type<port_level_bar>(state, id);
+			ptr->level = 6;
+			return ptr;
+		} else if(name == "ship_count") {
+			return make_element_by_type<port_ship_count>(state, id);
+		} else if(name == "port_minimized") {
+			return make_element_by_type<port_sm_bg>(state, id);
+		} else if(name == "port_expanded") {
+			return make_element_by_type<port_ex_bg>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void set_province(sys::state& state, dcon::province_id p) {
+		port_for = p;
+
+		auto adj = state.world.get_province_adjacency_by_province_pair(p, state.world.province_get_port_to(p));
+		assert(adj);
+		auto id = adj.index();
+		auto& border = state.map_state.map_data.borders[id];
+		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 2];
+
+		map_x = vertex.position_.x;
+		map_y = vertex.position_.y;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+
+		auto navies = state.world.province_get_navy_location(port_for);
+		if(state.world.province_get_naval_base_level(port_for) == 0 && navies.begin() == navies.end()) {
+			populated = false;
+			return;
+		}
+
+		populated = true;
+		displayed_count = 0;
+
+		if(navies.begin() == navies.end()) {
+			auto controller = state.world.province_get_nation_from_province_control(port_for);
+			if(controller == state.local_player_nation) {
+				color = outline_color::blue;
+			} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
+				color = outline_color::red;
+			} else if(military::are_allied_in_war(state, controller, state.local_player_nation)) {
+				color = outline_color::cyan;
+			} else {
+				color = outline_color::gray;
+			}
+		} else {
+			bool player_navy = false;
+			bool allied_navy = false;
+			bool enemy_navy = false;
+			// bool selected_navy = false;
+			for(auto n : navies) {
+				auto controller = n.get_navy().get_controller_from_navy_control();
+				if(controller == state.local_player_nation) {
+					player_navy = true;
+				} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
+					enemy_navy = true;
+				} else if(military::are_allied_in_war(state, controller, state.local_player_nation)) {
+					allied_navy = true;;
+				}
+
+				auto srange = n.get_navy().get_navy_membership();
+				int32_t num_ships = int32_t(srange.end() - srange.begin());
+				displayed_count += num_ships;
+			}
+
+			if(player_navy) {
+				color = outline_color::blue;
+			} else if(enemy_navy) {
+				color = outline_color::red;
+			} else if(allied_navy) {
+				color = outline_color::cyan;
+			} else {
+				color = outline_color::gray;
+			}
+		}
+
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(populated) {
+			glm::vec2 map_pos(map_x, 1.0f - map_y);
+			auto screen_size =
+				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+			glm::vec2 screen_pos;
+			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+				visible = false;
+				return;
+			}
+			visible = true;
+		
+			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+			window_element_base::base_data.position = new_position;
+			window_element_base::impl_render(state, new_position.x, new_position.y);
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			payload.emplace<dcon::province_id>(port_for);
+			return message_result::consumed;
+		} else if(payload.holds_type<outline_color>()) {
+			payload.emplace<outline_color>(color);
+			return message_result::consumed;
+		} else if(payload.holds_type<int32_t>()) {
+			payload.emplace<int32_t>(displayed_count);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y,
+			mouse_probe_type type) noexcept override {
+		if(visible)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return mouse_probe{ nullptr, ui::xy_pair{} };
+	}
+
+};
+
 struct update_position { };
 
 class unit_icon_color : public image_element_base {

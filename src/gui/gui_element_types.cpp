@@ -286,7 +286,8 @@ ogl::color3f get_text_color(text::text_color text_color) {
 
 	case text::text_color::dark_green:
 		return ogl::color3f{0.f, 0.5f, 0.f};
-
+	case text::text_color::gold:
+		return ogl::color3f{232.0f / 255.0f, 210.0f / 255.0f, 124.0f / 255.0f};
 	default:
 		return ogl::color3f{0.f, 0.f, 0.f};
 	}
