@@ -55,12 +55,12 @@ message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_
 	return greater_result(res, element_base::impl_on_key_down(state, key, mods));
 }
 void container_base::impl_on_update(sys::state& state) noexcept {
+	on_update(state);
 	for(auto& c : children) {
 		if(c->is_visible()) {
 			c->impl_on_update(state);
 		}
 	}
-	on_update(state);
 }
 void container_base::impl_on_reset_text(sys::state& state) noexcept {
 	for(auto& c : children) {

@@ -309,8 +309,6 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		glm::vec2 map_pos(x0, y0);
 
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, uint16_t id1, uint16_t id2, direction dir) {
-			if(id1 == 0 || id2 == 0)
-				return;
 			auto border_index = get_border_index(id1, id2);
 			if(uint32_t(border_index) >= borders_list_vertices.size())
 				borders_list_vertices.resize(border_index + 1);
@@ -389,7 +387,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	}
 
 	// identify and filter out lakes
-	// TODO: unfortunately, this isn't enough to remove the michigan lakes, since there are two touching lake tiles there
+	// TODO: unfortunately, this isn't enough to remove the Michigan lakes, since there are two touching lake tiles there
 
 	for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
 		dcon::province_id p{dcon::province_id::value_base_t(k)};

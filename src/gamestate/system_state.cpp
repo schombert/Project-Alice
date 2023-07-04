@@ -703,6 +703,9 @@ void state::on_create() {
 	} else {
 		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	}
+
+	ui_state.rgos_root->impl_on_update(*this);
+	ui_state.units_root->impl_on_update(*this);
 }
 //
 // string pool functions
