@@ -324,7 +324,7 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
 	if(state.user_settings.map_is_globe) {
 		glm::vec3 cartesian_coords;
-		float section = float(map_data.size_x / 256);
+		float section = 200;
 		float pi = glm::pi<float>();
 		float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
 		float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
