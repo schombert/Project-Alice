@@ -93,6 +93,15 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 	} else {
 		map_state.on_mouse_move(x, y, x_size, y_size, mod);
 	}
+	if(ui_state.mouse_sensitive_target) {
+		auto mx = int32_t(x / user_settings.ui_scale);
+		auto my = int32_t(y / user_settings.ui_scale);
+		if(mx < ui_state.target_ul_bounds.x || mx > ui_state.target_lr_bounds.x || my < ui_state.target_ul_bounds.y || my > ui_state.target_lr_bounds.y) {
+
+			ui_state.mouse_sensitive_target->set_visible(*this, false);
+			ui_state.mouse_sensitive_target = nullptr;
+		}
+	}
 }
 void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
 	is_dragging = true;

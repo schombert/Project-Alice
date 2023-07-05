@@ -511,18 +511,18 @@ struct alignas(64) state {
 	float inflation = 1.0f;
 	player_data player_data_cache{};
 
-	simple_fs::file_system common_fs;														 // file system for looking up graphics assets, etc
-	std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
-	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;			 // platform-dependent sound information
-	ui::state ui_state;																					 // transient information for the state of the ui
+	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
+	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
+	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;          // platform-dependent sound information
+	ui::state ui_state;                                              // transient information for the state of the ui
 	text::font_manager font_collection;
 
 	// synchronization data (between main update logic and ui thread)
-	std::atomic<bool> game_state_updated = false;						// game state -> ui signal
-	std::atomic<bool> quit_signaled = false;								// ui -> game state signal
-	std::atomic<int32_t> actual_game_speed = 0;							// ui -> game state message
-	rigtorp::SPSCQueue<command::payload> incoming_commands; // ui or network -> local gamestate
-	std::atomic<bool> ui_pause = false;
+	std::atomic<bool> game_state_updated = false;                    // game state -> ui signal
+	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
+	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
+	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
+	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 
 	// synchronization: notifications from the gamestate to ui
 	rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;

@@ -650,6 +650,89 @@ guiTypes = {
 	}
 	
 	windowType = {
+		name = "alice_base_unit_icon"
+		position = { x= 0 y = 0 }
+		size = { x=1 y = 1 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+		
+		iconType = {
+			name ="frame_bg"
+			spriteType = "GFX_alice_unit_frames"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name = "org_bar"
+			spriteType = "GFX_alice_org_bar"
+			position = { x = 5 y = 33 }
+		}
+		iconType = {
+			name = "status"
+			spriteType = "GFX_alice_unit_status"
+			position = { x = 46 y = 5 }
+		}
+		iconType = {
+			name = "dig_in"
+			spriteType = "GFX_alice_dig_in"
+			position = { x = 46 y = 16 }
+		}
+		instantTextBoxType={
+			position = {x = 4 y = 39 }
+			name = "strength"
+			font = "Arial16"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 53
+			maxHeight = 17
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+		
+		iconType = {
+			name = "unit_2"
+			spriteType = "GFX_unit_strip"
+			position = { x = 12 y = 2 }
+		}
+		iconType = {
+			name = "unit_1"
+			spriteType = "GFX_unit_strip"
+			position = { x = 1 y = 2 }
+		}
+	}
+	
+	windowType = {
+		name = "alice_grid_row"
+		position = { x= 0 y = 0 }
+		size = { x = 268 y = 66 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+	}
+	
+	windowType = {
+		name = "alice_grid_panel"
+		position = { x = 0 y = 0 }
+		size = { x = 290 y = 138 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+		
+		iconType = {
+			name = "grid_bg"
+			spriteType = "GFX_alice_panel_bg"
+			position = { x = 0 y = 0 }
+			size = { x = 290 y = 138 }
+		}
+		
+		listboxType = 	{
+			name ="grid_listbox"
+			position = { x = 3 y = 3 }
+			size = { x = 268 y = 132 }
+			Orientation = "UPPER_LEFT"
+			spacing = 0
+			scrollbartype = "standardlistbox_slider"
+			borderSize = { x = 0 y = 0 }
+		}
+	}
+	
+	windowType = {
 		name = "alice_port_icon"
 		position = { x= 0 y = 0 }
 		size = { x=1 y = 1 }
@@ -669,7 +752,7 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = 11 y = -9 }
+			position = {x = 11 y = -8 }
 			name = "ship_count"
 			font = "Arial16"
 			borderSize = {x = 0 y = 0}

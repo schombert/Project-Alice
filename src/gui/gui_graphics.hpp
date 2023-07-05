@@ -338,6 +338,9 @@ struct state {
 	element_base* drag_target = nullptr;
 	element_base* edit_target = nullptr;
 	element_base* last_tooltip = nullptr;
+	element_base* mouse_sensitive_target = nullptr;
+	xy_pair target_ul_bounds = xy_pair{ 0, 0 };
+	xy_pair target_lr_bounds = xy_pair{ 0, 0 };
 
 	xy_pair relative_mouse_location = xy_pair{0, 0};
 	std::unique_ptr<element_base> units_root;
