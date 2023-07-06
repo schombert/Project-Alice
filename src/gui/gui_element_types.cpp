@@ -516,13 +516,10 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(),
-																						uint32_t(stored_text.length()), base_data.data.button.font_handle)) /
-										2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(),
-																						uint32_t(stored_text.length()), base_data.data.button.font_handle));
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle));
 			break;
 		case alignment::left:
 			text_offset = 0.0f;
@@ -532,17 +529,10 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
-			text_offset = (base_data.size.x -
-												state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-														base_data.data.text.font_handle) -
-												base_data.data.text.border_size.x) /
-										2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x -
-										 state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-												 base_data.data.text.font_handle) -
-										 base_data.data.text.border_size.x);
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) -  base_data.data.text.border_size.x);
 			break;
 		case alignment::left:
 			text_offset = base_data.data.text.border_size.x;
@@ -869,8 +859,8 @@ void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, tex
 }
 
 template<class SrcT, class DemoT>
-std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(
-		sys::state& state) noexcept {
+std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
+
 	std::unordered_map<typename DemoT::value_base_t, float> distrib;
 	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
@@ -969,8 +959,7 @@ void scrollable_text::calibrate_scrollbar(sys::state& state) noexcept {
 	}
 }
 
-message_result scrollable_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
+message_result scrollable_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		delegate->current_line = int32_t(text_scrollbar->scaled_value());
@@ -1062,8 +1051,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 }
 
 template<class RowWinT, class RowConT>
-message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
+message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(row_contents.size() > row_windows.size()) {
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
 		update(state);
@@ -1339,9 +1327,11 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-					float(x) + float(base_data.size.x - mask_tex.size_x) * 0.5f,
-					float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f, float(mask_tex.size_x), float(mask_tex.size_y),
-					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
+				float(x) + float(base_data.size.x - mask_tex.size_x) * 0.5f,
+				float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
+				float(mask_tex.size_x),
+				float(mask_tex.size_y),
+				flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
 		} else {
 			ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 					float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
@@ -1440,8 +1430,8 @@ message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, i
 	state.ui_state.drag_target = this;
 	return message_result::consumed;
 }
-void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y,
-		sys::key_modifiers mods) noexcept {
+void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+
 	if(!parent)
 		return;
 
@@ -1469,27 +1459,23 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 
 	// TODO: take care of case where there are partial range limits
 
-	float min_percentage = float(parent_settings.lower_limit - parent_settings.lower_value) /
-												 float(parent_settings.upper_value - parent_settings.lower_value);
+	float min_percentage = float(parent_settings.lower_limit - parent_settings.lower_value) / float(parent_settings.upper_value - parent_settings.lower_value);
 	auto min_offest =
 			parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * min_percentage);
 
-	float max_percentage = float(parent_settings.upper_limit - parent_settings.lower_value) /
-												 float(parent_settings.upper_value - parent_settings.lower_value);
+	float max_percentage = float(parent_settings.upper_limit - parent_settings.lower_value) /  float(parent_settings.upper_value - parent_settings.lower_value);
 	auto max_offest =
 			parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * max_percentage);
 
 	if(parent_settings.vertical) {
 		base_data.position.y += int16_t(y - oldy);
 		base_data.position.y = int16_t(
-				std::clamp(int32_t(base_data.position.y), parent_settings.using_limits ? min_offest : parent_settings.buttons_size,
-						parent_settings.using_limits ? max_offest : parent_settings.track_size));
+				std::clamp(int32_t(base_data.position.y), parent_settings.using_limits ? min_offest : parent_settings.buttons_size, parent_settings.using_limits ? max_offest : parent_settings.track_size));
 		pos_in_track = base_data.position.y - parent_settings.buttons_size / 2;
 	} else {
 		base_data.position.x += int16_t(x - oldx);
 		base_data.position.x = int16_t(
-				std::clamp(int32_t(base_data.position.x), parent_settings.using_limits ? min_offest : parent_settings.buttons_size,
-						parent_settings.using_limits ? max_offest : parent_settings.track_size));
+				std::clamp(int32_t(base_data.position.x), parent_settings.using_limits ? min_offest : parent_settings.buttons_size, parent_settings.using_limits ? max_offest : parent_settings.track_size));
 		pos_in_track = base_data.position.x - parent_settings.buttons_size / 2;
 	}
 	float fp_pos =
@@ -1501,8 +1487,7 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 }
 
 void scrollbar::update_raw_value(sys::state& state, int32_t v) {
-	stored_value = settings.using_limits ? std::clamp(v, settings.lower_limit, settings.upper_limit)
-																			 : std::clamp(v, settings.lower_value, settings.upper_value);
+	stored_value = settings.using_limits ? std::clamp(v, settings.lower_limit, settings.upper_limit) : std::clamp(v, settings.lower_value, settings.upper_value);
 
 	float percentage = float(stored_value - settings.lower_value) / float(settings.upper_value - settings.lower_value);
 	auto offset = settings.buttons_size + int32_t((settings.track_size - settings.buttons_size) * percentage);

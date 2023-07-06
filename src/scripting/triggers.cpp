@@ -3112,14 +3112,13 @@ TRIGGER_FUNCTION(tf_always) {
 }
 TRIGGER_FUNCTION(tf_election) {
 	return compare_to_true(tval[0], ve::apply(
-																			[&ws](dcon::nation_id n) {
-																				auto d = ws.world.nation_get_election_ends(n);
-																				return bool(d) && d > ws.current_date;
-																			},
-																			to_nation(primary_slot)));
+		[&ws](dcon::nation_id n) {
+			auto d = ws.world.nation_get_election_ends(n);
+			return bool(d) && d > ws.current_date;
+		}, to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_has_global_flag) {
-	return compare_to_true(tval[0], ws.national_definitions.is_global_flag_variable_set(payload(tval[2]).glob_id));
+	return compare_to_true(tval[0], ws.national_definitions.is_global_flag_variable_set(payload(tval[1]).glob_id));
 }
 TRIGGER_FUNCTION(tf_is_capital) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));

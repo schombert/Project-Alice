@@ -697,6 +697,11 @@ guiTypes = {
 			spriteType = "GFX_unit_strip"
 			position = { x = 1 y = 2 }
 		}
+		iconType = {
+			name = "controller_flag"
+			spriteType = "GFX_alice_unit_flag"
+			position = { x = 7 y = 6 }
+		}
 	}
 	
 	windowType = {

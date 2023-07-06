@@ -96,4 +96,9 @@ spriteTypes = {
 		texturefile = "assets\\new_panel_bg.png"
 		borderSize = { x=8 y=8 }
 	}
+	maskedShieldType = {
+		name = "GFX_alice_unit_flag"
+		textureFile1 = "assets\\unit_flag_overlay.png"
+		textureFile2 = "assets\\unit_flag_mask.png"
+	}
 }

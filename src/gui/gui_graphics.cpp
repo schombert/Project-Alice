@@ -133,12 +133,16 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 			}
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];
 			auto mask_handle = gfx_def.type_dependent;
-			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle &&
-					get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle)) {
+			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle && get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) > uint8_t(64)) {
 				probe_result.under_mouse = this;
 			} else if(gfx_def.get_object_type() == ui::object_type::flag_mask && mask_handle && gfx_def.primary_texture_handle) {
 				ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
-				if(get_pixel_opacity(state, x, y, dcon::texture_id(mask_handle - 1))) {
+
+				auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+				auto x_off = float(base_data.size.x - mask_tex.size_x) * 0.5f;
+				auto y_off = float(base_data.size.y - mask_tex.size_y) * 0.5f;
+		
+				if(get_pixel_opacity(state, int32_t(x - x_off), int32_t(y - y_off), dcon::texture_id(mask_handle - 1)) > uint8_t(64) || get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) > uint8_t(64)) {
 					probe_result.under_mouse = this;
 				}
 			} else {

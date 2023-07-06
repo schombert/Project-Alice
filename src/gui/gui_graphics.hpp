@@ -331,6 +331,7 @@ struct element_target {
 };
 
 class tool_tip;
+class grid_box;
 
 struct state {
 	element_base* under_mouse = nullptr;
@@ -347,6 +348,7 @@ struct state {
 	std::unique_ptr<element_base> rgos_root;
 	std::unique_ptr<element_base> root;
 	std::unique_ptr<tool_tip> tooltip;
+	std::unique_ptr<grid_box> unit_details_box;
 	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 	// elements we are keeping track of

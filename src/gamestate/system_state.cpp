@@ -170,9 +170,21 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-
 	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
+	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.unit_details_box->is_visible()) {
+		mouse_probe = ui_state.units_root->impl_probe_mouse(*this,
+			int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
+			int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
+			ui::mouse_probe_type::click);
+		if(!tooltip_probe.under_mouse) {
+			mouse_probe = ui_state.units_root->impl_probe_mouse(*this,
+				int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
+				int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
+				ui::mouse_probe_type::tooltip);
+		}
+	}
 
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
@@ -514,8 +526,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {
 			ui_state.units_root->impl_render(*this, 0, 0);
 		}
+		if(ui_state.unit_details_box->is_visible()) {
+			ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
+		}
 	}
-
 	ui_state.root->impl_render(*this, 0, 0);
 	if(ui_state.tooltip->is_visible()) {
 		ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
@@ -566,6 +580,9 @@ void state::on_create() {
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
+
+	ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(*this, ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
+	ui_state.unit_details_box->set_visible(*this, false);
 
 	world.for_each_province([&](dcon::province_id id) {
 		{
