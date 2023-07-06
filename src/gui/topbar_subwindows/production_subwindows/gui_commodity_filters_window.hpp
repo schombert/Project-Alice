@@ -84,19 +84,14 @@ public:
 
 		int16_t index = 0;
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
-			if(state.user_settings.use_new_ui) {
-				// New - Excludes not-important commodities to clutter less the commodity filters
+			
 				bool can_be_produced = false;
 				state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
 					can_be_produced = can_be_produced || state.world.factory_type_get_output(ftid) == cid;
 				});
 				if(!can_be_produced)
 					return;
-			} else {
-				// Classic - All but money
-				if(cid.index() == 0)
-					return; // Exclude money
-			}
+			
 
 			auto ptr = make_element_by_type<commodity_filter_item>(state, "goods_filter_template");
 			static_cast<commodity_filter_item*>(ptr.get())->content = cid;

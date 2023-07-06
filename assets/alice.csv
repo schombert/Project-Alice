@@ -900,4 +900,5 @@ msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the
 msg_crisis_vol_join_title;Nation Takes a Side
 msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
+multiunit_header;$x$ Units Selected
 ;;;;;;;;;;;;;x

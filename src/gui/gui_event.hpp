@@ -72,10 +72,7 @@ public:
 template<bool IsMajor>
 class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
-	std::vector<element_base*> new_elements;
 	simple_text_element_base* count_text = nullptr;
-	image_element_base* odds_icon = nullptr;
-	image_element_base* req_icon = nullptr;
 	int32_t index = 0;
 
 public:
@@ -92,11 +89,8 @@ public:
 //
 class provincial_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
-	std::vector<element_base*> new_elements;
 	simple_text_element_base* count_text = nullptr;
 	image_element_base* divider_image = nullptr;
-	image_element_base* odds_icon = nullptr;
-	image_element_base* req_icon = nullptr;
 	int32_t index = 0;
 
 public:

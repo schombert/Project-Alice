@@ -908,9 +908,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 							std::to_string(state.world.decision_size()));
 		}
 	} break;
-	case command_info::type::debug: 
-		state.use_debug_mode = !state.use_debug_mode;
-		break;
 	case command_info::type::colour_guide:
 		log_to_console(state, parent,
 				"\xA7G"

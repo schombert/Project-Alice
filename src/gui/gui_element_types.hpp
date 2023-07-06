@@ -823,13 +823,49 @@ enum class outline_color {
 
 using unit_var = std::variant<std::monostate, dcon::army_id, dcon::navy_id>;
 
-class unit_frame_bg : public button_element_base {
+class unit_frame_bg : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		frame = int32_t(retrieve<outline_color>(state, parent));
 	}
-
-	// TODO: select unit
+	void button_action(sys::state& state) noexcept override {
+		auto u = retrieve< unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(u)) {
+			auto a = std::get<dcon::army_id>(u);
+			if(state.world.army_get_controller_from_army_control(a) == state.local_player_nation) {
+				state.selected_armies.clear();
+				state.selected_navies.clear();
+				state.select(a);
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(u)) {
+			auto a = std::get<dcon::navy_id>(u);
+			if(state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation) {
+				state.selected_armies.clear();
+				state.selected_navies.clear();
+				state.select(a);
+			}
+		}
+	}
+	void button_shift_action(sys::state& state) noexcept override {
+		auto u = retrieve< unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(u)) {
+			auto a = std::get<dcon::army_id>(u);
+			if(state.world.army_get_controller_from_army_control(a) == state.local_player_nation) {
+				if(!state.is_selected(a))
+					state.select(a);
+				else
+					state.deselect(a);
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(u)) {
+			auto a = std::get<dcon::navy_id>(u);
+			if(state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation) {
+				if(!state.is_selected(a))
+					state.select(a);
+				else
+					state.deselect(a);
+			}
+		}
+	}
 };
 
 class unit_org_bar : public progress_bar {
@@ -1169,16 +1205,20 @@ public:
 
 outline_color to_color(sys::state& state, unit_var display_unit) {
 	dcon::nation_id controller;
+	bool selected = false;
 	if(std::holds_alternative<dcon::army_id>(display_unit)) {
 		controller = state.world.army_get_controller_from_army_control(std::get<dcon::army_id>(display_unit));
+		selected = state.is_selected(std::get<dcon::army_id>(display_unit));
 	} else if(std::holds_alternative<dcon::navy_id>(display_unit)) {
 		controller = state.world.navy_get_controller_from_navy_control(std::get<dcon::navy_id>(display_unit));
+		selected = state.is_selected(std::get<dcon::navy_id>(display_unit));
 	} else {
 		return outline_color::gray;
 	}
 
-	// TODO: selected case
-	if(controller == state.local_player_nation) {
+	if(selected) {
+		return outline_color::gold;
+	} else if(controller == state.local_player_nation) {
 		return outline_color::blue;
 	} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
 		return outline_color::red;
@@ -1356,7 +1396,7 @@ public:
 
 
 class unit_grid_lb : public listbox_element_base<unit_grid_row, grid_row> {
-protected:
+public:
 	std::string_view get_row_element_name() override {
 		return "alice_grid_row";
 	}

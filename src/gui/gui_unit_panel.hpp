@@ -1018,4 +1018,396 @@ public:
 	}
 };
 
+class units_selected_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::x, int64_t(state.selected_armies.size() + state.selected_navies.size()));
+		set_text(state, text::resolve_string_substitution(state, "multiunit_header", m));
+	}
+};
+
+class merge_all_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(state.selected_armies.size() > 0) {
+			auto first = state.selected_armies[0];
+			for(uint32_t i = 1; i < state.selected_armies.size(); ++i) {
+				command::merge_armies(state, state.local_player_nation, first, state.selected_armies[i]);
+			}
+		}
+		if(state.selected_navies.size() > 0) {
+			auto first = state.selected_navies[0];
+			for(uint32_t i = 1; i < state.selected_navies.size(); ++i) {
+				command::merge_navies(state, state.local_player_nation, first, state.selected_navies[i]);
+			}
+		}
+	}
+};
+
+class deselect_all_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.selected_armies.clear();
+		state.selected_navies.clear();
+		state.game_state_updated.store(true, std::memory_order_release);
+	}
+};
+
+class disband_all_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		for(auto a : state.selected_armies) {
+			command::delete_army(state, state.local_player_nation, a);
+		}
+		for(auto a : state.selected_navies) {
+			command::delete_navy(state, state.local_player_nation, a);
+		}
+		
+	}
+};
+
+class whole_panel_button : public shift_button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			state.selected_armies.clear();
+			state.selected_navies.clear();
+			state.select(std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			state.selected_armies.clear();
+			state.selected_navies.clear();
+			state.select(std::get<dcon::navy_id>(foru));
+		}
+	}
+	void button_shift_action(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			state.deselect(std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			state.deselect(std::get<dcon::navy_id>(foru));
+		}
+	}
+};
+
+class u_row_strength : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		float total = 0.0f;
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			for(auto r : state.world.army_get_army_membership(a)) {
+				total += r.get_regiment().get_strength() * state.defines.pop_size_per_regiment;
+			}
+			set_text(state, text::format_wholenum(int32_t(total)));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			for(auto r : state.world.navy_get_navy_membership(a)) {
+				total += r.get_ship().get_strength();
+			}
+			set_text(state, text::format_float(total, 1));
+		}
+	}
+};
+
+class u_row_attrit_icon : public image_element_base {
+	bool visible = false;
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			visible = military::will_recieve_attrition(state, a);
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			visible = military::will_recieve_attrition(state, a);
+		} else {
+			visible = false;
+		}
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+};
+
+class u_row_org_bar : public vertical_progress_bar {
+	void on_update(sys::state& state) noexcept override {
+		float current = 0.0f;
+		float total = 0.0f;
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			for(auto r : state.world.army_get_army_membership(a)) {
+				current += r.get_regiment().get_org();
+				total += 1.0f;
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			for(auto r : state.world.navy_get_navy_membership(a)) {
+				current += r.get_ship().get_org();
+				total += 1.0f;
+			}
+		}
+		progress = total > 0.0f ? current / total : 0.0f;
+	}
+};
+
+class u_row_str_bar : public vertical_progress_bar {
+	void on_update(sys::state& state) noexcept override {
+		float current = 0.0f;
+		float total = 0.0f;
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			for(auto r : state.world.army_get_army_membership(a)) {
+				current += r.get_regiment().get_strength();
+				total += 1.0f;
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			for(auto r : state.world.navy_get_navy_membership(a)) {
+				current += r.get_ship().get_strength();
+				total += 1.0f;
+			}
+		}
+		progress = total > 0.0f ? current / total : 0.0f;
+	}
+};
+
+class u_row_disband : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			disabled = !command::can_delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			disabled = !command::can_delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			command::delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+		}
+	}
+};
+
+class u_row_split : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		// TODO
+	}
+};
+
+class u_row_new : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		// TODO
+	}
+};
+
+class u_row_inf : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			frame = 0;
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			frame = 3;
+		}
+	}
+};
+
+class u_row_cav : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			frame = 1;
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			frame = 4;
+		}
+	}
+};
+
+class u_row_art : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			frame = 2;
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			frame = 5;
+		}
+	}
+};
+
+class u_row_inf_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		int32_t total = 0;
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			for(auto r : state.world.army_get_army_membership(a)) {
+				if(state.military_definitions.unit_base_definitions[r.get_regiment().get_type()].type == military::unit_type::infantry) {
+					++total;
+				}
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			for(auto r : state.world.navy_get_navy_membership(a)) {
+				if(state.military_definitions.unit_base_definitions[r.get_ship().get_type()].type == military::unit_type::big_ship) {
+					++total;
+				}
+			}
+		}
+
+		set_text(state, std::to_string(total));
+	}
+};
+
+class u_row_cav_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		int32_t total = 0;
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			for(auto r : state.world.army_get_army_membership(a)) {
+				if(state.military_definitions.unit_base_definitions[r.get_regiment().get_type()].type == military::unit_type::cavalry) {
+					++total;
+				}
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			for(auto r : state.world.navy_get_navy_membership(a)) {
+				if(state.military_definitions.unit_base_definitions[r.get_ship().get_type()].type == military::unit_type::light_ship) {
+					++total;
+				}
+			}
+		}
+
+		set_text(state, std::to_string(total));
+	}
+};
+
+class u_row_art_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		int32_t total = 0;
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			for(auto r : state.world.army_get_army_membership(a)) {
+				if(state.military_definitions.unit_base_definitions[r.get_regiment().get_type()].type == military::unit_type::support || state.military_definitions.unit_base_definitions[r.get_regiment().get_type()].type == military::unit_type::special) {
+					++total;
+				}
+			}
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			for(auto r : state.world.navy_get_navy_membership(a)) {
+				if(state.military_definitions.unit_base_definitions[r.get_ship().get_type()].type == military::unit_type::transport) {
+					++total;
+				}
+			}
+		}
+
+		set_text(state, std::to_string(total));
+	}
+};
+
+class u_row_location : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		dcon::province_id loc;
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			loc = state.world.army_get_location_from_army_location(a);
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto a = std::get<dcon::navy_id>(foru);
+			loc = state.world.navy_get_location_from_navy_location(a);
+		}
+
+		set_text(state, text::produce_simple_string(state, state.world.province_get_name(loc)));
+	}
+};
+
+class selected_unit_item : public listbox_row_element_base<unit_var> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "unitpanel_bg") {
+			return make_element_by_type<whole_panel_button>(state, id);
+		} else if(name == "unitstrength") {
+			return make_element_by_type <u_row_strength> (state, id);
+		} else if(name == "unitattrition_icon") {
+			return make_element_by_type<u_row_attrit_icon>(state, id);
+		} else if(name == "org_bar") {
+			return make_element_by_type<u_row_org_bar>(state, id);
+		} else if(name == "str_bar") {
+			return make_element_by_type<u_row_str_bar>(state, id);
+		} else if(name == "disbandbutton") {
+			return make_element_by_type<u_row_disband>(state, id);
+		} else if(name == "splitinhalf") {
+			return make_element_by_type<u_row_split>(state, id);
+		} else if(name == "newunitbutton") {
+			return make_element_by_type<u_row_new>(state, id);
+		} else if(name == "unit_inf") {
+			return make_element_by_type<u_row_inf>(state, id);
+		} else if(name == "unit_inf_count") {
+			return make_element_by_type<u_row_inf_count>(state, id);
+		} else if(name == "unit_cav") {
+			return make_element_by_type<u_row_cav>(state, id);
+		} else if(name == "unit_cav_count") {
+			return make_element_by_type<u_row_cav_count>(state, id);
+		} else if(name == "unit_art") {
+			return make_element_by_type<u_row_art>(state, id);
+		} else if(name == "unit_art_count") {
+			return make_element_by_type<u_row_art_count>(state, id);
+		} else if(name == "location") {
+			return make_element_by_type<u_row_location>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class selected_unit_list : public listbox_element_base<selected_unit_item, unit_var> {
+public:
+	std::string_view get_row_element_name() override {
+		return "alice_unit_row";
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		for(auto i : state.selected_armies)
+			row_contents.push_back(i);
+		for(auto i : state.selected_navies)
+			row_contents.push_back(i);
+		update(state);
+	}
+};
+
+class mulit_unit_selection_panel : public main_window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "desc") {
+			return make_element_by_type<units_selected_text>(state, id);
+		} else if(name == "mergebutton") {
+			return make_element_by_type<merge_all_button>(state, id);
+		} else if(name == "close_multiunit") {
+			return make_element_by_type<deselect_all_button> (state, id);
+		} else if(name == "disband_multiunit") {
+			return make_element_by_type<disband_all_button>(state, id);
+		} else if(name == "unit_listbox") {
+			return make_element_by_type<selected_unit_list>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 } // namespace ui

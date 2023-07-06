@@ -165,7 +165,7 @@ void state::on_text(char c) { // c is win1250 codepage value
 inline constexpr int32_t tooltip_width = 400;
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
-											 // waiting for vsync
+                       // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
@@ -174,12 +174,12 @@ void state::render() { // called to render the frame may (and should) delay retu
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.unit_details_box->is_visible()) {
-		mouse_probe = ui_state.units_root->impl_probe_mouse(*this,
+		mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 			int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
 			int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 			ui::mouse_probe_type::click);
 		if(!tooltip_probe.under_mouse) {
-			mouse_probe = ui_state.units_root->impl_probe_mouse(*this,
+			mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 				int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
 				int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 				ui::mouse_probe_type::tooltip);
@@ -333,7 +333,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 		
 		ui_state.rgos_root->impl_on_update(*this);
 		ui_state.units_root->impl_on_update(*this);
-			
+
+		ui_state.multi_unit_selection_window->set_visible(*this, selected_armies.size() + selected_navies.size() > 1);
+
 
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
@@ -439,7 +441,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
 
-		if(user_settings.use_new_ui && map_state.get_zoom() <= 5)
+		if(map_state.get_zoom() <= 5)
 			prov = dcon::province_id{};
 
 		if(prov) {
@@ -447,17 +449,18 @@ void state::render() { // called to render the frame may (and should) delay retu
 					text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true},
 					20);
 
-			if(!user_settings.use_new_ui) {
-				ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
-				ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
-			}
+			// Enable this and tooltip will follow the cursor
+			// ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
+			// ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
+			
 
 			ui::populate_map_tooltip(*this, container, prov);
 
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 			if(container.used_width > 0) {
-				if(user_settings.use_new_ui) {
+				// This block positions the tooltip somewhat under the province centroid
+
 					auto mid_point = world.province_get_mid_point(prov);
 					auto map_pos = map_state.normalize_map_coord(mid_point);
 					auto screen_size =
@@ -470,9 +473,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 								ui::xy_pair{int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * map_state.get_zoom())};
 						ui_state.tooltip->set_visible(*this, true);
 					}
-				} else {
-					ui_state.tooltip->set_visible(*this, true);
-				}
+
+				// Alternatively: just make it visible
+				// ui_state.tooltip->set_visible(*this, true);
+				//
 			} else {
 				ui_state.tooltip->set_visible(*this, false);
 			}
@@ -658,6 +662,12 @@ void state::on_create() {
 		ui_state.navy_status_window = new_elm_navy.get();
 		new_elm_navy->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm_navy));
+	}
+	{
+		auto mselection = ui::make_element_by_type<ui::mulit_unit_selection_panel>(*this, "alice_multi_unitpanel");
+		ui_state.multi_unit_selection_window = mselection.get();
+		mselection->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(mselection));
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::election_event_window>(*this, "event_election_window");

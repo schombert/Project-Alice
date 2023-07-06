@@ -923,7 +923,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto n = retrieve<dcon::nation_id>(state, parent);
 			
 
@@ -940,17 +940,7 @@ public:
 			text::add_line_break_to_layout(state, contents);
 			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::suppression_points_modifier, true);
 			
-		} else {
-			auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "suppression_points", text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier, false);
-		}
+		
 	}
 };
 

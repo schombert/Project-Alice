@@ -83,7 +83,7 @@ public:
 			parent->impl_get(state, payload);
 			auto n = any_cast<dcon::nation_id>(payload);
 
-			if(state.user_settings.use_new_ui) {
+			
 
 				{
 					text::substitution_map m;
@@ -122,9 +122,7 @@ public:
 					text::localised_format_box(state, contents, box, "admin_explain_3", m);
 					text::close_layout_box(contents, box);
 				}
-			} else {
-				// TODO: Classic tooltip
-			}
+			
 		}
 	}
 };
@@ -747,7 +745,7 @@ public:
 			}
 		}
 
-		if(state.user_settings.use_new_ui) {
+	
 			if(total > 0.0f) {
 				auto type_strata = state.world.pop_type_get_strata(type);
 				float total_pop = 0.0f;
@@ -831,9 +829,7 @@ public:
 					text::close_layout_box(contents, box);
 				}
 			}
-		} else {
-			// TODO: Classic tooltip
-		}
+		
 	}
 };
 

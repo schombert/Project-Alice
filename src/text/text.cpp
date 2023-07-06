@@ -810,18 +810,34 @@ std::string format_money(float num) {
 }
 
 std::string format_wholenum(int32_t num) {
-	bool bIsNegative = false;	// This is dumb, dont ask
-	(num < 0) ? bIsNegative = true : bIsNegative = false;
-	std::string numstr = std::to_string(uint32_t(num));
+	std::string result;
 
-	for(size_t i = numstr.length() / 3; i-->0;) {
-		// This is so dumb, fuck this
-		numstr.insert((numstr.end() - ((i*3) + 3)), ',');
+	if(num == 0) {
+		result = "0";
+		return result;
 	}
 
-	if(numstr[0] == ',') {numstr.erase(numstr.begin());}
-	if(bIsNegative) {numstr.insert(0, "-");}
-	return numstr;
+	auto abs_value = num >= 0 ? num : -num;
+
+	int32_t pcount = 0;
+	while(abs_value > 0) {
+		if(pcount == 3) {
+			result.push_back(',');
+		}
+		auto last = abs_value % 10;
+		abs_value /= 10;
+
+		result.push_back(char('0' + last));
+
+		++pcount;
+	}
+
+	if(num < 0)
+		result.push_back('-');
+
+	std::reverse(result.begin(), result.end());
+
+	return result;
 }
 
 std::string format_ratio(int32_t left, int32_t right) {
@@ -920,7 +936,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	auto tmp_color = color;
 
-	if(state.user_settings.use_new_ui && !dest.fixed_parameters.suppress_hyperlinks &&
+	if(!dest.fixed_parameters.suppress_hyperlinks &&
 			(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
 					std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
 		if(color != text_color::black) {
@@ -952,7 +968,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.x_position + extent >= dest.fixed_parameters.right) {
 			// the current word is too long for the text box, just let it overflow
 			dest.base_layout.contents.push_back(
-					text_chunk{std::string(segment), box.x_position, (state.user_settings.use_new_ui && !dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+					text_chunk{std::string(segment), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 							int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -968,7 +984,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				float prev_extent = state.font_collection.text_extent(state, txt.data() + start_position,
 						uint32_t(end_position - start_position), dest.fixed_parameters.font_id);
 				dest.base_layout.contents.push_back(
-						text_chunk{std::string(section), box.x_position, (state.user_settings.use_new_ui  && !dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+						text_chunk{std::string(section), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 								int16_t(box.y_position), int16_t(prev_extent), int16_t(text_height), tmp_color});
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -987,7 +1003,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					state.font_collection.text_extent(state, remainder.data(), uint32_t(remainder.length()), dest.fixed_parameters.font_id);
 
 			dest.base_layout.contents.push_back(
-					text_chunk{std::string(remainder), box.x_position, (state.user_settings.use_new_ui && !dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+					text_chunk{std::string(remainder), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 							int16_t(box.y_position), int16_t(rem_extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -1258,24 +1274,13 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	if(state.user_settings.use_new_ui) {
-		if(condition_met) {
-			text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
-		} else {
-			text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
-		}
+	
+	if(condition_met) {
+		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
 	} else {
-		if(condition_met) {
-			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::green);
-			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-		} else {
-			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::red);
-			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-
-		}
+		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
 	}
+	
 
 	text::add_space_to_layout_box(state, dest, box);
 
@@ -1289,24 +1294,13 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	if(state.user_settings.use_new_ui) {
-		if(condition_met) {
-			text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
-		} else {
-			text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
-		}
+	
+	if(condition_met) {
+		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
 	} else {
-		if(condition_met) {
-			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::green);
-			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-		} else {
-			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::red);
-			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-		}
+		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
 	}
-
+	
 	text::add_space_to_layout_box(state, dest, box);
 
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
@@ -1321,24 +1315,13 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	if(state.user_settings.use_new_ui) {
-		if(condition_met) {
-			text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
-		} else {
-			text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
-		}
+	
+	if(condition_met) {
+		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
 	} else {
-		if(condition_met) {
-			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::green);
-			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-		} else {
-			text::add_to_layout_box(state, dest, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, dest, box, std::string_view("*"), text::text_color::red);
-			text::add_to_layout_box(state, dest, box, std::string_view(")"), text::text_color::white);
-		}
+		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
 	}
-
+	
 	text::add_space_to_layout_box(state, dest, box);
 
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
@@ -1415,10 +1398,7 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, variab
 
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	text::add_line_break_to_layout_box(state, dest, box);
-	if(state.user_settings.use_new_ui)
-		text::add_to_layout_box(state, dest, box, std::string_view(" "));
-	else
-		text::add_to_layout_box(state, dest, box, std::string_view("--------------"));
+	text::add_to_layout_box(state, dest, box, std::string_view(" "));
 	text::add_line_break_to_layout_box(state, dest, box);
 }
 

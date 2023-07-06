@@ -118,24 +118,6 @@ void diplomatic_map_tt_box(sys::state& state, text::columnar_layout& contents, d
             text::add_line_break_to_layout_box(state, contents, box);
         }
         
-
-        if(state.use_debug_mode) {
-            text::add_line_break_to_layout_box(state, contents, box);
-            if(fat.get_province_rebel_control().is_valid()) {
-                text::add_to_layout_box(state, contents, box, std::string_view("Province is Controlled by: "));
-                text::add_to_layout_box(state, contents, box, fat.get_rebel_faction_from_province_rebel_control().get_type().get_name(), text::text_color::yellow);
-                text::add_line_break_to_layout_box(state, contents, box);
-            }
-            if(fat.get_nation_from_province_control() != fat.get_nation_from_province_ownership()) {
-                text::add_to_layout_box(state, contents, box, fat.id, text::text_color::yellow);
-                text::add_to_layout_box(state, contents, box, std::string_view(" is currently controlled by "));
-                text::add_to_layout_box(state, contents, box, fat.get_nation_from_province_control().id, text::text_color::yellow);
-                text::add_line_break_to_layout_box(state, contents, box);
-            }
-            text::add_to_layout_box(state, contents, box, fat.id, text::text_color::yellow);
-            text::add_to_layout_box(state, contents, box, std::string_view(" is owned by "));
-            text::add_to_layout_box(state, contents, box, fat.get_nation_from_province_ownership().id, text::text_color::yellow);
-        }
         text::close_layout_box(contents, box);
     }
 }
@@ -313,11 +295,9 @@ void nationality_map_tt_box(sys::state& state, text::columnar_layout& contents, 
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
         auto box = text::open_layout_box(contents);
-        if(state.user_settings.use_new_ui) {
-            text::localised_single_sub_box(state, contents, box, std::string_view("mtt_culture_majorities"), text::variable_type::prov, prov);
-        } else {
-            text::localised_single_sub_box(state, contents, box, std::string_view("nationality_majority_at_province"), text::variable_type::prov, prov);
-        }
+      
+        text::localised_single_sub_box(state, contents, box, std::string_view("mtt_culture_majorities"), text::variable_type::prov, prov);
+        
         std::vector<dcon::culture_fat_id> cultures;
         for(auto pop : fat.get_pop_location()) {
             if(std::find(cultures.begin(), cultures.end(), pop.get_pop().get_culture()) == cultures.end()) {
@@ -661,45 +641,6 @@ void naval_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
     }
 }
 
-void debug_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
-    auto fat = dcon::fatten(state.world, prov);
-
-    auto box = text::open_layout_box(contents);
-    text::add_divider_to_layout_box(state, contents, box);
-    {
-        text::add_to_layout_box(state, contents, box, std::string_view("Nation: "));
-        text::add_to_layout_box(state, contents, box, fat.get_nation_from_province_ownership(), text::text_color::yellow);
-        text::add_to_layout_box(state, contents, box, std::string_view(" ("));
-        text::add_to_layout_box(state, contents, box, fat.get_nation_from_province_ownership().id.value - 1);
-        text::add_to_layout_box(state, contents, box, std::string_view(" | "));
-        text::add_to_layout_box(state, contents, box, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(fat.get_nation_from_province_ownership().get_identity_from_identity_holder().id))));
-        text::add_to_layout_box(state, contents, box, std::string_view(")"));
-    }
-    text::add_line_break_to_layout_box(state, contents, box);
-    {
-        text::add_to_layout_box(state, contents, box, prov, text::text_color::yellow);
-        text::add_to_layout_box(state, contents, box, std::string_view(" ("));
-        text::add_to_layout_box(state, contents, box, prov.value);
-        text::add_to_layout_box(state, contents, box, std::string_view(")"));
-    }
-    text::add_line_break_to_layout_box(state, contents, box);
-    if(fat.get_nation_from_province_ownership().is_valid()) {
-        text::add_to_layout_box(state, contents, box, std::string_view("Military Gas Tech: "));
-        if(fat.get_nation_from_province_ownership().get_has_gas_attack()) {
-            text::add_to_layout_box(state, contents, box, std::string_view("ATK"), text::text_color::green);
-        } else {
-            text::add_to_layout_box(state, contents, box, std::string_view("ATK"), text::text_color::red);
-        }
-        text::add_to_layout_box(state, contents, box, std::string_view("/"), text::text_color::white);
-        if(fat.get_nation_from_province_ownership().get_has_gas_defense()) {
-            text::add_to_layout_box(state, contents, box, std::string_view("DEF"), text::text_color::green);
-        } else {
-            text::add_to_layout_box(state, contents, box, std::string_view("DEF"), text::text_color::red);
-        }
-    }
-    text::close_layout_box(contents, box);
-}
-
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
     switch(state.map_state.active_map_mode) {
         case map_mode::mode::terrain:
@@ -771,9 +712,6 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
         default:
             break;
     };
-    if(state.use_debug_mode) {
-        debug_map_tt_box(state, contents, prov);
-    }
 }
 
 }

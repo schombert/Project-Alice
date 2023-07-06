@@ -304,7 +304,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto com = retrieve<dcon::commodity_id>(state, parent);
 			text::add_line(state, contents, state.world.commodity_get_name(com));
 			text::add_line_break_to_layout(state, contents);
@@ -312,7 +312,7 @@ public:
 			text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_three_places{state.world.commodity_get_total_production(com)});
 			text::add_line(state, contents, "trade_commodity_report_3", text::variable_type::x, text::fp_three_places{state.world.commodity_get_total_consumption(com)});
 			text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_three_places{state.world.commodity_get_global_market_pool(com)});
-		}
+		
 	}
 };
 

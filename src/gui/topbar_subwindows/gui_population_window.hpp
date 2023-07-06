@@ -68,7 +68,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "pop_growth_1");
 			auto content = retrieve<dcon::province_id>(state, parent);
@@ -81,8 +81,7 @@ public:
 				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
-		} else {
-		}
+		
 	}
 };
 
@@ -105,7 +104,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "pop_growth_1");
 			auto content = retrieve<dcon::state_instance_id>(state, parent);
@@ -118,8 +117,7 @@ public:
 				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
-		} else {
-		}
+		
 	}
 };
 
@@ -142,7 +140,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "pop_growth_1");
 			auto content = retrieve<dcon::nation_id>(state, parent);
@@ -155,8 +153,7 @@ public:
 				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
-		} else {
-		}
+		
 	}
 };
 
@@ -1131,16 +1128,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
-			describe_mil(state, contents, retrieve<dcon::pop_id>(state, parent));
-		} else {
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("pop_mil_total"), text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box,
-					text::dp_percentage{demographics::get_estimated_mil_change(state, state.local_player_nation)});
-			text::close_layout_box(contents, box);
-		}
+		describe_mil(state, contents, retrieve<dcon::pop_id>(state, parent));
 	}
 };
 class pop_con_text : public simple_text_element_base {
@@ -1154,16 +1142,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
-			describe_con(state, contents, retrieve<dcon::pop_id>(state, parent));
-		} else {
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("pop_con_total"), text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box,
-					text::dp_percentage{demographics::get_estimated_con_change(state, state.local_player_nation)});
-			text::close_layout_box(contents, box);
-		}
+		describe_con(state, contents, retrieve<dcon::pop_id>(state, parent));
 	}
 };
 class pop_literacy_text : public simple_text_element_base {
@@ -1179,17 +1158,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
-			describe_lit(state, contents, retrieve<dcon::pop_id>(state, parent));
-		} else {
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("pop_con_total"),
-					text::substitution_map{}); // There is no POP_LIT_TOTAL in the CSV files soo...
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box,
-					text::dp_percentage{demographics::get_estimated_literacy_change(state, state.local_player_nation)});
-			text::close_layout_box(contents, box);
-		}
+		describe_lit(state, contents, retrieve<dcon::pop_id>(state, parent));
 	}
 };
 class pop_culture_text : public simple_text_element_base {
@@ -1204,9 +1173,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
-			describe_assimilation(state, contents, retrieve<dcon::pop_id>(state, parent));
-		}
+		describe_assimilation(state, contents, retrieve<dcon::pop_id>(state, parent));
 	}
 };
 
@@ -1242,23 +1209,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
-			describe_growth(state, contents, retrieve<dcon::pop_id>(state, parent));
-		} else {
-
-			if(parent) {
-				Cyto::Any payload = dcon::pop_id{};
-				parent->impl_get(state, payload);
-				auto content = any_cast<dcon::pop_id>(payload);
-
-				auto pop_increase = demographics::get_monthly_pop_increase(state, content);
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
-				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, int64_t(pop_increase));
-				text::close_layout_box(contents, box);
-			}
-		}
+		describe_growth(state, contents, retrieve<dcon::pop_id>(state, parent));
 	}
 };
 
@@ -1960,7 +1911,7 @@ class issue_with_explanation : public simple_text_element_base {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto issue = retrieve<dcon::issue_option_id>(state, parent);
 
 			
@@ -2020,7 +1971,7 @@ class issue_with_explanation : public simple_text_element_base {
 					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
 				} 
 			}
-		}
+		
 	}
 };
 
@@ -2117,7 +2068,7 @@ class ideology_with_explanation : public simple_text_element_base {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto i = retrieve<dcon::ideology_id>(state, parent);
 			auto ids = retrieve<dcon::pop_id>(state, parent);
 			auto type = state.world.pop_get_poptype(ids);
@@ -2151,7 +2102,7 @@ class ideology_with_explanation : public simple_text_element_base {
 				text::add_line_break_to_layout(state, contents);
 				text::add_line(state, contents, "pop_ideology_attraction_2");
 			}
-		}
+		
 	}
 };
 

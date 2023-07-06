@@ -384,7 +384,6 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -393,7 +392,6 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -401,27 +399,22 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state,
 					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
-			req_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr =
 					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
-			odds_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		return bg_ptr;
@@ -459,13 +452,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 
 template<bool IsMajor>
 void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
-	/*if(state.user_settings.use_new_ui) {
-		odds_icon->set_visible(state, true);
-		req_icon->set_visible(state, true);
-	} else {
-		odds_icon->set_visible(state, false);
-		req_icon->set_visible(state, false);
-	}*/
+	
 	for(auto e : option_buttons) {
 		e->set_visible(state, true);
 	}
@@ -482,9 +469,6 @@ void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
 
-	for(auto e : new_elements) {
-		e->set_visible(state, state.user_settings.use_new_ui);
-	}
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 
 	if(events.empty()) {
@@ -557,7 +541,6 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -566,7 +549,6 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
@@ -574,27 +556,22 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state,
 					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
-			req_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr =
 					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
-			odds_icon = ptr.get();
 			ptr->base_data.position = bg_ptr->base_data.position;
 			ptr->base_data.position.y = cur_pos.y;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
-			new_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 		return bg_ptr;
@@ -617,13 +594,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 	}
 }
 void provincial_event_window::on_update(sys::state& state) noexcept {
-	if(state.user_settings.use_new_ui) {
-		odds_icon->set_visible(state, true);
-		req_icon->set_visible(state, true);
-	} else {
-		odds_icon->set_visible(state, false);
-		req_icon->set_visible(state, false);
-	}
+	
 	for(auto e : option_buttons)
 		e->set_visible(state, true);
 
@@ -638,8 +609,6 @@ void provincial_event_window::on_update(sys::state& state) noexcept {
 	auto r = std::distance(it, events.end());
 	events.erase(it, events.end());
 
-	for(auto e : new_elements)
-		e->set_visible(state, state.user_settings.use_new_ui);
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 
 	if(events.empty())

@@ -30,22 +30,6 @@
 #include "events.hpp"
 #include "notifications.hpp"
 
-#ifndef GLOBE_MAP
-#define GLOBE_MAP true
-#endif
-
-#ifndef NORMAL_GRAPH
-#define NORMAL_GRAPH true
-#endif
-
-#ifndef ENHANCED_UI
-#define ENHANCED_UI true
-#endif
-
-#ifndef CLASSIC_FONT
-#define CLASSIC_FONT false
-#endif
-
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
 // it will also include the game state itself eventually as a member
@@ -61,10 +45,10 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	bool map_is_globe = GLOBE_MAP;
-	bool normal_graphs = NORMAL_GRAPH;
-	bool use_new_ui = ENHANCED_UI;
-	bool use_classic_fonts = CLASSIC_FONT;
+	bool map_is_globe = true;
+	bool dummy_1 = true;
+	bool dummy_2 = true;
+	bool use_classic_fonts = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_pause,//revolt = 0,
@@ -368,11 +352,6 @@ struct user_settings_s {
 	};
 };
 
-#undef GLOBE_MAP
-#undef NORMAL_GRAPH
-#undef ENHANCED_UI
-#undef CLASSIC_FONT
-
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
 };
 
@@ -404,19 +383,15 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
 };
 
+// the state struct will eventually include (at least pointers to)
+// the state of the sound system, the state of the windowing system,
+// and the game data / state itself
+
+// ultimately it is the system struct that gets passed around everywhere
+// so that bits of the ui, for example, can control the overall state of
+// the game
+
 struct alignas(64) state {
-	bool use_debug_mode = true;
-	// the state struct will eventually include (at least pointers to)
-	// the state of the sound system, the state of the windowing system,
-	// and the game data / state itself
-
-	// ultimately it is the system struct that gets passed around everywhere
-	// so that bits of the ui, for example, can control the overall state of
-	// the game
-
-	// implementation dependent data that needs to be stored for the window
-	// subsystem
-
 	dcon::data_container world;
 
 	// scenario data
@@ -486,30 +461,36 @@ struct alignas(64) state {
 	std::vector<event::pending_human_f_p_event> pending_f_p_event;
 
 	std::vector<int32_t> unit_names_indices; // indices for the names
-	std::vector<char>
-			unit_names; // a second text buffer, this time for just the unit names
-									// why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
-									// ordinary game text, partly because I envision the possibility that we may stick dynamic names into
-									// this We also may push this into the save game if we handle unit renaming using this
+	std::vector<char> unit_names;
+	// a second text buffer, this time for just the unit names
+	// why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
+	// ordinary game text, partly because I envision the possibility that we may stick dynamic names into
+	// this We also may push this into the save game if we handle unit renaming using this
 
 	ui::definitions ui_defs; // definitions for graphics and ui
 
-	std::vector<uint8_t> flag_type_map;					// flag_type remapper for saving space while also allowing
-																							// mods to add flags not present in vanilla
+	std::vector<uint8_t> flag_type_map;   // flag_type remapper for saving space while also allowing
+	                                      // mods to add flags not present in vanilla
 	std::vector<culture::flag_type> flag_types; // List of unique flag types
 
+	//
 	// persistent user settings
+	//
 
 	user_settings_s user_settings;
 
+	//
 	// current program / ui state
+	//
 
 	dcon::nation_id local_player_nation;
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
 	float inflation = 1.0f;
-	player_data player_data_cache{};
+	player_data player_data_cache;
+	std::vector<dcon::army_id> selected_armies;
+	std::vector<dcon::navy_id> selected_navies;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
@@ -563,18 +544,16 @@ struct alignas(64) state {
 	void on_lbutton_up(int32_t x, int32_t y, key_modifiers mod);
 	void on_mouse_move(int32_t x, int32_t y, key_modifiers mod);
 	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
-	void on_drag_finished(int32_t x, int32_t y,
-			key_modifiers mod); // called when the left button is released after one or more drag events
+	void on_drag_finished(int32_t x, int32_t y, key_modifiers mod); // called when the left button is released after one or more drag events
 	void on_resize(int32_t x, int32_t y, window::window_state win_state);
 	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
-	void on_text(char c); // c is win1250 codepage value
+	void on_text(char c); // c is a win1250 codepage value
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
-								 // for vsync
+	               // for vsync
 
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
-
 	void game_loop();
 
 	// the following function are for interacting with the string pool
@@ -592,16 +571,13 @@ struct alignas(64) state {
 	// the text has already been added. Searching *all* the text may not be cheap
 	dcon::text_key add_unique_to_pool(std::string const& text);
 
-	dcon::unit_name_id add_unit_name(std::string_view text);			 // returns the newly added text
+	dcon::unit_name_id add_unit_name(std::string_view text);       // returns the newly added text
 	std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
 
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state()
-			: key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024),
-				new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024),
-				naval_battle_reports(256), land_battle_reports(256) { }
+	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024), naval_battle_reports(256), land_battle_reports(256) { }
 
 	~state();
 
@@ -609,18 +585,50 @@ struct alignas(64) state {
 	void load_user_settings();
 	void update_ui_scale(float new_scale);
 
-	void load_scenario_data(); // loads all scenario files other than map data
-	void fill_unsaved_data();	 // reconstructs derived values that are not directly saved after a save has been loaded
+	void load_scenario_data();   // loads all scenario files other than map data
+	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 
-	/**
-	 * Method for logging to console.
-	 * @param base Element base to get name of invoking element.
-	 * @param message Message to log.
-	 * @param open_console Open console upon log?
-	 * @result base_name: message. Example: `pop_window: 43`
-	 */
 	void console_log(ui::element_base* base, std::string message, bool open_console = true);
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
+
+	bool is_selected(dcon::army_id a) {
+		return std::find(selected_armies.begin(), selected_armies.end(), a) != selected_armies.end();
+	}
+	bool is_selected(dcon::navy_id a) {
+		return std::find(selected_navies.begin(), selected_navies.end(), a) != selected_navies.end();
+	}
+	void select(dcon::army_id a) {
+		if(!is_selected(a)) {
+			selected_armies.push_back(a);
+			game_state_updated.store(true, std::memory_order_release);
+		}
+	}
+	void select(dcon::navy_id a) {
+		if(!is_selected(a)) {
+			selected_navies.push_back(a);
+			game_state_updated.store(true, std::memory_order_release);
+		}
+	}
+	void deselect(dcon::army_id a) {
+		for(size_t i = selected_armies.size(); i-- > 0;) {
+			if(selected_armies[i] == a) {
+				selected_armies[i] = selected_armies.back();
+				selected_armies.pop_back();
+				game_state_updated.store(true, std::memory_order_release);
+				return;
+			}
+		}
+	}
+	void deselect(dcon::navy_id a) {
+		for(size_t i = selected_navies.size(); i-- > 0;) {
+			if(selected_navies[i] == a) {
+				selected_navies[i] = selected_navies.back();
+				selected_navies.pop_back();
+				game_state_updated.store(true, std::memory_order_release);
+				return;
+			}
+		}
+	}
 };
 } // namespace sys

@@ -10,9 +10,11 @@
 namespace ui {
 
 
-struct toggle_unit_grid { };
+struct toggle_unit_grid {
+	bool with_shift;
+};
 
-class port_ex_bg : public button_element_base {
+class port_ex_bg : public shift_button_element_base {
 	bool visible = false;
 
 	void on_update(sys::state& state) noexcept override {
@@ -30,9 +32,13 @@ class port_ex_bg : public button_element_base {
 		else
 			return mouse_probe{ nullptr, ui::xy_pair{} };
 	}
+	void button_shift_action(sys::state& state) noexcept override {
+		if(visible)
+			send(state, parent, toggle_unit_grid{ true });
+	}
 	void button_action(sys::state& state) noexcept override {
 		if(visible)
-			send(state, parent, toggle_unit_grid{});
+			send(state, parent, toggle_unit_grid{ false });
 	}
 };
 
@@ -166,10 +172,12 @@ public:
 			bool player_navy = false;
 			bool allied_navy = false;
 			bool enemy_navy = false;
-			// bool selected_navy = false;
+			bool selected_navy = false;
 			for(auto n : navies) {
 				auto controller = n.get_navy().get_controller_from_navy_control();
-				if(controller == state.local_player_nation) {
+				if(state.is_selected(n.get_navy())) {
+					selected_navy = true;
+				} else if(controller == state.local_player_nation) {
 					player_navy = true;
 				} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
 					enemy_navy = true;
@@ -182,7 +190,9 @@ public:
 				displayed_count += num_ships;
 			}
 
-			if(player_navy) {
+			if(selected_navy) {
+				color = outline_color::gold;
+			} else if(player_navy) {
 				color = outline_color::blue;
 			} else if(enemy_navy) {
 				color = outline_color::red;
@@ -224,10 +234,28 @@ public:
 			payload.emplace<int32_t>(displayed_count);
 			return message_result::consumed;
 		} else if(payload.holds_type< toggle_unit_grid>()) {
+			auto with_shift = any_cast<toggle_unit_grid>(payload).with_shift;
+
 			if(state.ui_state.unit_details_box->for_province == port_for && state.ui_state.unit_details_box->is_visible() == true) {
 				state.ui_state.unit_details_box->set_visible(state, false);
+				if(!with_shift) {
+					state.selected_armies.clear();
+					state.selected_navies.clear();
+				} else {
+					for(auto n : state.world.province_get_navy_location(port_for)) {
+						state.deselect(n.get_navy().id);
+					}
+				}
 			} else {
-				// TODO: select all
+				if(!with_shift) {
+					state.selected_armies.clear();
+					state.selected_navies.clear();
+				}
+
+				for(auto n : state.world.province_get_navy_location(port_for)) {
+					state.select(n.get_navy().id);
+				}
+
 				auto location = get_absolute_location(*this);
 				location.x -= 18;
 				location.y -= 18;

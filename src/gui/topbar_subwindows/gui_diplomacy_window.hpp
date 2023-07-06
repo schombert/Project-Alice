@@ -204,7 +204,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			if(state.user_settings.use_new_ui) {
+			
 				auto n = retrieve<dcon::nation_id>(state, parent);
 				text::add_line(state, contents, "diplomacy_ships", text::variable_type::value, military::total_ships(state, n));
 				text::add_line_break_to_layout(state, contents);
@@ -221,18 +221,7 @@ public:
 				});
 
 				text::add_line(state, contents, "navy_technology_levels", text::variable_type::val, discovered, text::variable_type::max, total);
-			} else {
-				Cyto::Any payload = dcon::nation_id{};
-				parent->impl_get(state, payload);
-				auto nation_id = any_cast<dcon::nation_id>(payload);
-
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value,
-						military::total_ships(state, nation_id));
-				text::add_divider_to_layout_box(state, contents, box);
-				text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
-				text::close_layout_box(contents, box);
-			}
+			
 		}
 	}
 };
@@ -244,8 +233,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			if(state.user_settings.use_new_ui) {
+		
 				auto n = retrieve<dcon::nation_id>(state, parent);
 				text::add_line(state, contents, "diplomacy_brigades", text::variable_type::value, military::total_regiments(state, n));
 				text::add_line_break_to_layout(state, contents);
@@ -262,22 +250,8 @@ public:
 				});
 
 				text::add_line(state, contents, "army_technology_levels", text::variable_type::val, discovered, text::variable_type::max, total);
-			} else {
-				Cyto::Any payload = dcon::nation_id{};
-				parent->impl_get(state, payload);
-				auto nation_id = any_cast<dcon::nation_id>(payload);
-
-				auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value,
-						num);
-				text::add_divider_to_layout_box(state, contents, box);
-				text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
-				text::add_line_break_to_layout_box(state, contents, box);
-				text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
-				text::close_layout_box(contents, box);
-			}
-		}
+			
+		
 	}
 };
 
@@ -294,7 +268,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {	
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.user_settings.use_new_ui) {
+		
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "diplomacy_wx_1");
 			auto mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::war_exhaustion);
@@ -309,16 +283,7 @@ public:
 			text::close_layout_box(contents, box);
 
 			active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::war_exhaustion, false);
-		} else {
-			auto num = dcon::fatten(state.world, n).get_war_exhaustion();
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"),
-					text::variable_type::value, text::fp_percentage{num});
-			// TODO - check if the nation is at peace, if it is then we display stuff
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::war_exhaustion, false);
-		}
+		
 	}
 };
 
@@ -616,35 +581,18 @@ public:
 			} else if(nations::is_great_power(state, nation_id)) {
 				text::add_line(state, contents, "diplomacy_cannot_set_prio_gp");
 			} else {
-				if(state.user_settings.use_new_ui) {
+				
 					explain_influence(state, nation_id, contents);
-				} else {
-					auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
-					uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
-
-					// DIPLOMACY_SET_PRIO;Current influence priority is §Y$VALUE$§W.;
-					// DIPLOMACY_DAILYINFLULENCE_GAIN;We gain §Y$NUM$§W influence in §Y$COUNTRY$§W each day. Our base influence gain is §Y$BASE$§W
-
-					auto box = text::open_layout_box(contents, 0);
-					text::substitution_map sub{};
-					if(auto k = state.key_to_text_sequence.find(get_prio_key(rel_flags)); k != state.key_to_text_sequence.end()) {
-						text::add_to_substitution_map(sub, text::variable_type::value, k->second);
-					}
-					text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio"), sub);
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::add_to_substitution_map(sub, text::variable_type::country, nation_id);
-					text::localised_format_box(state, contents, box, std::string_view("diplomacy_dailyinflulence_gain"));
-					text::close_layout_box(contents, box);
-				}
+				
 			}
 
-			if(!state.user_settings.use_new_ui) {
+			
 				auto box = text::open_layout_box(contents, 0);
 				text::add_divider_to_layout_box(state, contents, box);
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio_desc"));
 				text::close_layout_box(contents, box);
 				active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::influence, false);
-			}
+			
 		}
 	}
 };
@@ -910,7 +858,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			auto content = retrieve<dcon::nation_id>(state, parent);
 			if(content == state.local_player_nation) {
 				text::add_line(state, contents, "add_wg_1");
@@ -963,31 +911,6 @@ public:
 					return;
 				}
 			}
-		} else {
-			if(parent) {
-				auto content = retrieve<dcon::nation_id>(state, parent);
-
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, std::string_view("act_wardesc"));
-				text::add_divider_to_layout_box(state, contents, box);
-				if(content == state.local_player_nation) {
-					text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-				} else {
-					text::substitution_map dp_map{};
-					text::add_to_substitution_map(dp_map, text::variable_type::current,
-							text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-					text::add_to_substitution_map(dp_map, text::variable_type::needed,
-							text::fp_two_places{state.defines.addwargoal_diplomatic_cost});
-					text::localised_format_box(state, contents, box,
-							std::string_view(
-									state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost
-											? "dip_enough_diplo"
-											: "dip_no_diplo"),
-							dp_map);
-				}
-				text::close_layout_box(contents, box);
-			}
-		}
 	}
 };
 
@@ -1571,7 +1494,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.user_settings.use_new_ui) {
+		
 			dcon::nation_id nation_id = retrieve<dcon::nation_id>(state, parent);
 			dcon::war_id w = retrieve<dcon::war_id>(state, parent);
 
@@ -1639,7 +1562,7 @@ public:
 				text::add_line_with_condition(state, contents, "intervene_16", !any_armies);
 			}
 
-		}
+		
 	}
 };
 

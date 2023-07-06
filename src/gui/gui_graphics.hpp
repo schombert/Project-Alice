@@ -375,6 +375,7 @@ struct state {
 	element_base* request_window = nullptr;
 	element_base* army_status_window = nullptr;
 	element_base* navy_status_window = nullptr;
+	element_base* multi_unit_selection_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu

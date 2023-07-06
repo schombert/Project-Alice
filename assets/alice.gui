@@ -247,69 +247,6 @@ guiTypes = {
 				quadTextureSprite = "option_next"
 			}
 
-			instantTextBoxType={
-				position = {x = 58 y = 330 }
-				name = "linegraph_mode_label"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "linegraph_mode"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			instantTextBoxType={
-				position = {x = 58 y = 348 }
-				name = "linegraph_mode_value"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			guiButtonType = {
-				name = "linegraph_mode_left"
-				position = { x = 51 y = 341 }
-				quadTextureSprite = "option_prev"
-			}
-			guiButtonType = {
-				name = "linegraph_mode_right"
-				position = { x = 269 y = 341 }
-				quadTextureSprite = "option_next"
-			}
-
-			instantTextBoxType={
-				position = {x = 58 y = 390 }
-				name = "gui_mode"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "gui_mode"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			instantTextBoxType={
-				position = {x = 58 y = 408 }
-				name = "guimode_value"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			guiButtonType = {
-				name = "guimode_left"
-				position = { x = 51 y = 401 }
-				quadTextureSprite = "option_prev"
-			}
-			guiButtonType = {
-				name = "guimode_right"
-				position = { x = 269 y = 401 }
-				quadTextureSprite = "option_next"
-			}
 		}
 
 		windowType = {
@@ -801,6 +738,219 @@ guiTypes = {
 			spriteType = "GFX_alice_port_levels"
 			position = { x=-48 y=-7 }
 			Orientation = "UPPER_LEFT"
+		}
+	}
+	
+	windowType = {
+		name = "alice_unit_row"
+		backGround=""
+		position = { x=0 y=0 }	
+		size = { x=332 y=64 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no	
+
+		
+		iconType =
+		{
+			name ="unitpanel_bg"
+			spriteType = "GFX_unit_toppanel_bg"
+			position = { x= -1 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType =	{
+			name ="leader_photo"
+			spriteType = "GFX_leader_generic0"
+			position = { x = 18 y = 6 }
+			Orientation = "UPPER_LEFT"
+		}
+
+
+		instantTextBoxType = {
+			name = "unitstrength"
+			position = { x = 201 y = 28 }
+			textureFile = ""
+			font = "Arial14_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 100
+			maxHeight = 17	
+			format = right
+		}
+		
+		iconType = {
+			name ="unitattrition_icon"
+			spriteType = "GFX_unit_attr"
+			position = { x = 245  y = 42 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name ="org_bar"
+			spriteType = "GFX_morale_progress"
+			position = { x= 312 y = 52 }
+			Orientation = "UPPER_LEFT"
+			rotation = 1.5708
+		}
+			
+		iconType = {
+			name ="str_bar"
+			spriteType = "GFX_strength_progress"
+			position = { x= 320 y = 52 }
+			Orientation = "UPPER_LEFT"
+			rotation = 1.5708
+		}
+		
+		guiButtonType = {
+			name = "disbandbutton"
+			position = { x = 235 y = 6 }
+			quadTextureSprite ="GFX_unit_disband"
+		}	
+
+		guiButtonType = {
+			name = "splitinhalf"
+			position = { x = 254 y = 6 }
+			quadTextureSprite ="GFX_unit_splitinhalf"
+			shortcut = "s"
+		}		
+
+		guiButtonType = {
+			name = "newunitbutton"
+			position = { x = 279 y = 6 }
+			quadTextureSprite ="GFX_unit_reorg"
+			shortcut = "r"
+		}
+		
+		iconType = {
+			name = "unit_inf"
+			spriteType = "GFX_unit_strip"
+			position = { x = 49 y = 24 }
+		}
+		
+		instantTextBoxType={
+			position = {x = 87 y = 35 }
+			name = "unit_inf_count"
+			font = "Arial16_black"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 29
+			maxHeight = 17
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "unit_cav"
+			spriteType = "GFX_unit_strip"
+			position = { x = 114 y = 24 }
+		}
+		
+		instantTextBoxType={
+			position = {x = 152 y = 35 }
+			name = "unit_cav_count"
+			font = "Arial16_black"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 29
+			maxHeight = 17
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "unit_art"
+			spriteType = "GFX_unit_strip"
+			position = { x = 179 y = 24 }
+		}
+		
+		instantTextBoxType={
+			position = {x = 217 y = 35 }
+			name = "unit_art_count"
+			font = "Arial16_black"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 29
+			maxHeight = 17
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType = {
+			position = { x = 45 y = 5 }
+			name = "location"
+			font = "Arial14"
+			borderSize = {x = 8 y = 4}	
+			size = { x=180 y=24}
+			text = ""	
+			orientation = "UPPER_LEFT"
+		}
+	}
+	
+	windowType = {
+		name = "alice_multi_unitpanel"
+		backGround=""
+		position = { x=-1 y=152 }	
+		size = { x=332 y=436 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no	
+
+
+
+		iconType =
+		{
+			name ="multiselect_bg"
+			spriteType = "GFX_unit_multiunit_bg"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+
+
+		instantTextBoxType = {
+			name = "desc"
+			position = { x = 10	 y = 6 }
+			textureFile = ""
+			font = "Arial14_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 300
+			maxHeight = 32	
+		}
+
+		guiButtonType = {
+			name = "mergebutton"
+			position = { x = 275 y = 4 }
+			quadTextureSprite ="GFX_unit_multiunit_merge"
+			tooltip = ""
+			tooltipText =""
+			delayedTooltipText = ""
+			buttonText = "  "
+			buttonFont = "Arial12"
+			shortcut = "g"
+		}
+			
+		guiButtonType = {
+			name = "close_multiunit"
+			position = { x = 305 y = 4 }
+			quadTextureSprite ="GFX_unit_multiunit_close"
+		}
+
+		guiButtonType = {
+			name = "disband_multiunit"
+			position = { x = 215 y = 4 }
+			quadTextureSprite ="GFX_unit_disband"
+		}
+		
+		listboxType = 	{
+			name ="unit_listbox"
+			position = { x = 0 y = 28 }
+			size = { x = 332 y = 408 }
+			Orientation = "UPPER_LEFT"
+			spacing = 0
+			scrollbartype = "standardlistbox_slider"
+			borderSize = { x = 0 y = 0 }
 		}
 	}
 }
