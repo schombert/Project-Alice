@@ -2,26 +2,19 @@
 
 Help that I am currently looking for:
 
-#### Programming (all in C++):
-
-Priority 1: We could use more programmers to help finish the UI. There are a lot of complicated tool tips and other detail work that more programmers, even relative novices, could make meaningful contributions to. The major work on the UI is currently wrapping up, so this may soon disappear as an on-ramp for new contributors.
-Priority 2: Making a cooler map. I am basically satisfied with the map as it currently stands, but maybe someone with the right combination of OpenGL experience and artistic talent could do something really cool with it.
-Priority 3: AI work. We aren't actually to the AI-writing stage quite yet, but we are getting close to it (currently scheduled to start in July), and anyone with experience with that sort of work would be welcome to help with preparation and planning for it.
-Priority 4: General bug fixing and polish. We need people who are able to run the game to find bugs, both of the program-crashing variety and simply places where the rules of the game have been implemented incorrectly, and who are then able to find the causes of those issues and, ideally, fix them.
-
 #### Art:
 
 I would like to find someone who could essentially redo all of the existing Victoria 2 UI assets in a new artistic style to give the game its own distinctive visual identity. Yes, I know that this is no trivial thing.
 
+#### Maps:
+
+Currently, we make a somewhat ugly compromise to stretch the existing game maps over the globe. I would love to be able to ship a proper map that covers the globe. Working on the map requires basic image-editing skills and a whole mountain of patience.
+
 #### Testers:
 
-We are looking for people who can build a C++ project and run it, but who don't want to (or aren't comfortable) contributing code. Testers are expected to build the project and poke at it on a semi-regular basis to find bugs, especially those that don't appear for the software/hardware combinations that we are developing on. Speak to our project coordinator if you are interested in being a tester.
+I am looking for people who can build a C++ project and run it, but who don't want to (or aren't comfortable) contributing code. Testers are expected to build the project and poke at it on a semi-regular basis to find bugs, especially those that don't appear for the software/hardware combinations that I am not developing on. Speak to our project coordinator if you are interested in being a tester.
 
-#### Other:
-
-If you have some other skill or contribution that you think you can make, I am open to suggestions
-
-### Free agents
+#### Free agents
 
 Since this is an open-source project, you don't have to be an official member of the team to contribute. Anyone can make a PR through github and contribute in an *ad hoc* manner that way.
 
@@ -81,29 +74,9 @@ From here compiling is straightforward
   you should set GAME_DIR to the folder which contains your Vic2 files, if you had downloaded the game on steam then you can right click Vic2 > Browse Local Files, and that'll give you the correct path on linux its noteworthy that you dont need to put \ before spaces, so if your Linux file path is /home/user/Victoria\ 2/, then you write /home/user/Victoria 2/ in the GAME_DIR (surronded by quotes of course)
     copy the file path and replace [insert file path here] with it, then save.
 
-You may also optionally include any or all of the following defines:
-```
-#define GLOBE_MAP true/false
-#define NORMAL_GRAPH true/false
-#define ENHANCED_UI true/false
-#define CLASSIC_FONT true/false
-```
-These will determine the default settings for those four ui options (i.e. the options you get when running the game for the first time before you go into the options menu). Regardless of what you set for those defines, you will still be able to change and save your preferences after launching the game.
-
 7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
 8. `cmake --build . -j$(nproc)`
 
-#### Note on Non-x86 Platforms
-
-PA Does not support non-x86 platforms, as it relies on some optimizations which are specific to x86
-
-##### Do I have an x86 platform?
-
-Chances are you do, examples of non-x86 platform that is somewhat more common nowadays
-Apple M1 and onwards are not (This is present in their newer iMacs)
-Raspberry Pi are not (All of them, these all don't use x86)
-
-Other platforms (ppc, mips, sparc etc) are likewise unsupported.
 
 #### Final touches
 

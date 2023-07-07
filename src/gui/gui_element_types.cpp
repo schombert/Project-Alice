@@ -1301,7 +1301,6 @@ void flag_button::on_update(sys::state& state) noexcept {
 
 void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
-	on_update(state);
 }
 
 void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {

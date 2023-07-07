@@ -589,16 +589,16 @@ void state::on_create() {
 	ui_state.unit_details_box->set_visible(*this, false);
 
 	world.for_each_province([&](dcon::province_id id) {
-		{
-			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
-			static_cast<ui::unit_icon_window*>(ptr.get())->content = id;
-			ui_state.units_root->add_child_to_front(std::move(ptr));
-		}
 		if(world.province_get_port_to(id)) {
 			auto ptr = ui::make_element_by_type<ui::port_window>(*this, "alice_port_icon");
 			static_cast<ui::port_window*>(ptr.get())->set_province(*this, id);
 			ui_state.units_root->add_child_to_front(std::move(ptr));
 		}
+	});
+	world.for_each_province([&](dcon::province_id id) {
+		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(*this, "alice_map_unit");
+		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
+		ui_state.units_root->add_child_to_front(std::move(ptr));	
 	});
 	world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
@@ -1941,7 +1941,7 @@ void state::load_scenario_data() {
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
-	nations::update_rankings(*this);				// depends on industrial score, military scores
+	nations::update_rankings(*this);		// depends on industrial score, military scores
 
 	assert(great_nations.size() == 0);
 	for(uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
@@ -1963,6 +1963,8 @@ void state::load_scenario_data() {
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
 	economy::daily_update(*this);
+
+	military::recover_org(*this);
 
 	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);

@@ -817,7 +817,7 @@ struct element_selection_wrapper {
 
 
 
-enum class outline_color {
+enum class outline_color : uint8_t {
 	gray = 0, gold = 1, blue = 2, cyan = 3, red = 4
 };
 
@@ -900,71 +900,70 @@ public:
 	}
 };
 
+int32_t status_frame(sys::state& state, dcon::army_id a) {
+	auto is_understr = [&]() {
+		for(auto m : state.world.army_get_army_membership(a)) {
+			if(m.get_regiment().get_strength() < 1.0f)
+				return true;
+		}
+		return false;
+	};
+	if(state.world.army_get_black_flag(a)) {
+		return 1;
+	} else if(state.world.army_get_is_retreating(a)) {
+		return 2;
+	} else if(state.world.army_get_battle_from_army_battle_participation(a)) {
+		return 6;
+	} else if(state.world.army_get_navy_from_army_transport(a)) {
+		return 5;
+	} else if(military::will_recieve_attrition(state, a)) {
+		return 3;
+	} else if(is_understr()) {
+		return 4;
+	} else {
+		return 0;
+	}
+}
+int32_t status_frame(sys::state& state, dcon::navy_id a) {
+	auto trange = state.world.navy_get_army_transport(a);
+
+	auto is_understr = [&]() {
+		for(auto m : state.world.navy_get_navy_membership(a)) {
+			if(m.get_ship().get_strength() < 1.0f)
+				return true;
+		}
+		return false;
+	};
+
+	auto nb_level = state.world.province_get_naval_base_level(state.world.navy_get_location_from_navy_location(a));
+
+	if(state.world.navy_get_is_retreating(a)) {
+		return 2;
+	} else if(state.world.navy_get_battle_from_navy_battle_participation(a)) {
+		return 6;
+	} else if(military::will_recieve_attrition(state, a)) {
+		return 3;
+	} else if(trange.begin() != trange.end()) {
+		return 5;
+	} else if(!(state.world.navy_get_arrival_time(a)) && nb_level > 0 && is_understr()) {
+		return 4;
+	} else {
+		return 0;
+	}
+}
+
 class unit_status_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto u = retrieve< unit_var>(state, parent);
 
-
-
 		if(std::holds_alternative<dcon::army_id>(u)) {
 			auto a = std::get<dcon::army_id>(u);
-
-			auto is_understr = [&]() {
-				for(auto m : state.world.army_get_army_membership(a)) {
-					if(m.get_regiment().get_strength() < 1.0f)
-						return true;
-				}
-				return false;
-			};
-			if(state.world.army_get_black_flag(a)) {
-				frame = 1;
-			} else if(state.world.army_get_is_retreating(a)) {
-				frame = 2;
-			} else if(state.world.army_get_battle_from_army_battle_participation(a)) {
-				frame = 6;
-			} else if(state.world.army_get_navy_from_army_transport(a)) {
-				frame = 5;
-			} else if(military::will_recieve_attrition(state, a)) {
-				frame = 3;
-			} else if(is_understr()) {
-				frame = 4;
-			} else {
-				frame = 0;
-			}
-
+			frame = status_frame(state, a);
 		} else if(std::holds_alternative<dcon::navy_id>(u)) {
-
 			auto a = std::get<dcon::navy_id>(u);
-			auto trange = state.world.navy_get_army_transport(a);
-
-			auto is_understr = [&]() {
-				for(auto m : state.world.navy_get_navy_membership(a)) {
-					if(m.get_ship().get_strength() < 1.0f)
-						return true;
-				}
-				return false;
-			};
-
-			auto nb_level = state.world.province_get_naval_base_level(state.world.navy_get_location_from_navy_location(a));
-
-
-			if(state.world.navy_get_is_retreating(a)) {
-				frame = 2;
-			} else if(state.world.navy_get_battle_from_navy_battle_participation(a)) {
-				frame = 6;
-			} else if(military::will_recieve_attrition(state, a)) {
-				frame = 3;
-			} else if(trange.begin() != trange.end()) {
-				frame = 5;
-			} else if(!(state.world.navy_get_arrival_time(a)) && nb_level > 0 && is_understr()) {
-				frame = 4;
-			} else {
-				frame = 0;
-			}
-
+			frame = status_frame(state, a);
 		}
-
 	}
 };
 

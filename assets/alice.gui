@@ -953,4 +953,193 @@ guiTypes = {
 			borderSize = { x = 0 y = 0 }
 		}
 	}
+	
+	windowType={
+		name = "alice_map_unit"
+		position = { x= 0 y = 0 }
+		size = { x=1 y = 1 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+			
+		windowType = {
+			name = "top_unit_icon"
+			position = { x= -30 y = -30 }
+			size = { x=1 y = 1 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+			
+			iconType = {
+				name ="frame_bg"
+				spriteType = "GFX_alice_unit_frames"
+				position = { x=4 y=0 }
+			}
+			iconType = {
+				name ="edge1"
+				spriteType = "GFX_alice_unit_left_edge"
+				position = { x=0 y=0 }
+			}
+			iconType = {
+				name ="edge2"
+				spriteType = "GFX_alice_unit_left_edge"
+				position = { x=-8 y=0 }
+			}
+			iconType = {
+				name ="edge3"
+				spriteType = "GFX_alice_unit_left_edge"
+				position = { x=-16 y=0 }
+			}
+			iconType = {
+				name ="edge4"
+				spriteType = "GFX_alice_unit_left_edge"
+				position = { x=-24 y=0 }
+			}
+			iconType = {
+				name = "org_bar"
+				spriteType = "GFX_alice_org_bar"
+				position = { x = 9 y = 33 }
+			}
+			iconType = {
+				name = "status"
+				spriteType = "GFX_alice_unit_status"
+				position = { x = 50 y = 5 }
+			}
+			iconType = {
+				name = "dig_in"
+				spriteType = "GFX_alice_dig_in"
+				position = { x = 50 y = 16 }
+			}
+			instantTextBoxType={
+				position = {x = 8 y = 39 }
+				name = "strength"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 53
+				maxHeight = 17
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			
+			iconType = {
+				name = "unit_2"
+				spriteType = "GFX_unit_strip"
+				position = { x = 16 y = 2 }
+			}
+			iconType = {
+				name = "unit_1"
+				spriteType = "GFX_unit_strip"
+				position = { x = 5 y = 2 }
+			}
+			iconType = {
+				name = "controller_flag"
+				spriteType = "GFX_alice_unit_flag"
+				position = { x = 12 y = 6 }
+			}
+		}
+		
+		windowType = {
+			name = "top_right_unit_icon"
+			position = { x= 2 y = -30 }
+			size = { x=1 y = 1 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+			
+			iconType = {
+				name ="frame_bg"
+				spriteType = "GFX_alice_unit_frames"
+				position = { x=0 y=0 }
+			}
+			iconType = {
+				name ="edge1"
+				spriteType = "GFX_alice_unit_right_edge"
+				position = { x=61 y=0 }
+			}
+			iconType = {
+				name ="edge2"
+				spriteType = "GFX_alice_unit_right_edge"
+				position = { x=69 y=0 }
+			}
+			iconType = {
+				name ="edge3"
+				spriteType = "GFX_alice_unit_right_edge"
+				position = { x=77 y=0 }
+			}
+			iconType = {
+				name ="edge4"
+				spriteType = "GFX_alice_unit_right_edge"
+				position = { x=85 y=0 }
+			}
+			iconType = {
+				name = "org_bar"
+				spriteType = "GFX_alice_org_bar"
+				position = { x = 5 y = 33 }
+			}
+			iconType = {
+				name = "status"
+				spriteType = "GFX_alice_unit_status"
+				position = { x = 46 y = 5 }
+			}
+			iconType = {
+				name = "dig_in"
+				spriteType = "GFX_alice_dig_in"
+				position = { x = 46 y = 16 }
+			}
+			instantTextBoxType={
+				position = {x = 4 y = 39 }
+				name = "strength"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 53
+				maxHeight = 17
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			iconType = {
+				name = "controller_flag"
+				spriteType = "GFX_alice_unit_flag"
+				position = { x = 8 y = 6 }
+			}
+		}
+		
+		windowType = {
+			name = "siege"
+			position = { x= -49 y = 34 }
+			size = { x = 97 y = 18 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+			
+			iconType = {
+				name ="progress"
+				spriteType = "GFX_alice_siege_bar"
+				position = { x=31 y=4 }
+			}
+			iconType = {
+				name = "overlay"
+				spriteType = "GFX_alice_siege_frame"
+				position = { x = 0 y = 0 }
+			}
+		}
+		windowType = {
+			name = "battle"
+			position = { x= -49 y = 34 }
+			size = { x = 97 y = 18 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+				
+			iconType = {
+				name ="progress"
+				spriteType = "GFX_alice_battle_bar"
+				position = { x=18 y=0 }
+			}
+			iconType = {
+				name = "overlay_left"
+				spriteType = "GFX_alice_battle_caps"
+				position = { x = 0 y = 0 }
+			}
+			iconType = {
+				name = "overlay_right"
+				spriteType = "GFX_alice_battle_caps"
+				position = { x = 92 y = 0 }
+			}
+		}
+	}
 }
