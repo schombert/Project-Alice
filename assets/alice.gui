@@ -960,7 +960,63 @@ guiTypes = {
 		size = { x=1 y = 1 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
-			
+		
+		windowType = {
+			name = "small_top_unit_icon"
+			position = { x = -30 y = -10 }
+			size = { x= 60 y = 19 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+		
+			guiButtonType = {
+				name ="controller_flag"
+				quadTextureSprite = "GFX_mapicon_flag"
+				position = { x = 1 y = 1 }
+			}
+			iconType = {
+				name ="frame_bg"
+				spriteType = "GFX_alice_small_unit_frames"
+				position = { x=0 y=0 }
+			}
+			instantTextBoxType={
+				position = {x = 26 y = 3 }
+				name = "strength"
+				font = "Arial12"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 32
+				maxHeight = 13
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+		}
+		windowType = {
+			name = "small_top_right_unit_icon"
+			position = { x = 1 y = -10 }
+			size = { x= 60 y = 19 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+		
+			guiButtonType = {
+				name ="controller_flag"
+				quadTextureSprite = "GFX_mapicon_flag"
+				position = { x = 1 y = 1 }
+			}
+			iconType = {
+				name ="frame_bg"
+				spriteType = "GFX_alice_small_unit_frames"
+				position = { x=0 y=0 }
+			}
+			instantTextBoxType={
+				position = {x = 26 y = 3 }
+				name = "strength"
+				font = "Arial12"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 32
+				maxHeight = 13
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+		}
 		windowType = {
 			name = "top_unit_icon"
 			position = { x= -30 y = -30 }

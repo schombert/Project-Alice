@@ -275,6 +275,8 @@ public:
 	}
 };
 
+inline constexpr float big_counter_cutoff = 12.0f;
+
 struct top_display_parameters {
 	float top_left_value = 0.0f;
 	float top_right_value = 0.0f;
@@ -310,6 +312,19 @@ public:
 			return nullptr;
 		}
 	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return window_element_base::impl_probe_mouse(state, x, y + 23, type);
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			window_element_base::impl_render(state, x, y);
+		else
+			window_element_base::impl_render(state, x, y - 23);
+	}
 };
 
 class prov_map_battle_bar : public progress_bar {
@@ -328,6 +343,19 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return window_element_base::impl_probe_mouse(state, x, y + 23, type);
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			window_element_base::impl_render(state, x, y);
+		else
+			window_element_base::impl_render(state, x, y - 23);
 	}
 };
 
@@ -442,6 +470,43 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			window_element_base::impl_render(state, x, y);
+	}
+};
+
+class small_top_right_unit_icon : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "controller_flag") {
+			return make_element_by_type<tr_controller_flag>(state, id);
+		} else if(name == "strength") {
+			return make_element_by_type<tr_strength>(state, id);
+		} else if(name == "frame_bg") {
+			return make_element_by_type<tr_frame_bg>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(state.map_state.get_zoom() < big_counter_cutoff)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return mouse_probe{ nullptr, ui::xy_pair{0,0}};
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.map_state.get_zoom() < big_counter_cutoff)
+			window_element_base::impl_render(state, x, y);
 	}
 };
 
@@ -596,6 +661,17 @@ public:
 	}
 };
 
+class tl_sm_controller_flag : public flag_button {
+public:
+
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
+		if(params)
+			return state.world.nation_get_identity_from_identity_holder(params->top_left_nation);
+		return dcon::national_identity_id{};
+	}
+};
+
 class top_unit_icon : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
@@ -634,6 +710,42 @@ class top_unit_icon : public window_element_base {
 			return nullptr;
 		}
 	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.map_state.get_zoom() >= big_counter_cutoff)
+			window_element_base::impl_render(state, x, y);
+	}
+};
+
+class small_top_unit_icon : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "controller_flag") {
+			return make_element_by_type<tl_sm_controller_flag>(state, id);
+		} else if(name == "strength") {
+			return make_element_by_type<tl_strength>(state, id);
+		} else if(name == "frame_bg") {
+			return make_element_by_type<tl_frame_bg>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(state.map_state.get_zoom() < big_counter_cutoff)
+			return window_element_base::impl_probe_mouse(state, x, y, type);
+		else
+			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.map_state.get_zoom() < big_counter_cutoff)
+			window_element_base::impl_render(state, x, y);
+	}
 };
 
 class unit_counter_window : public window_element_base {
@@ -644,6 +756,8 @@ public:
 	dcon::province_id prov;
 	element_base* top_icon = nullptr;
 	element_base* top_right_icon = nullptr;
+	element_base* small_top_icon = nullptr;
+	element_base* small_top_right_icon = nullptr;
 	element_base* siege = nullptr;
 	element_base* battle = nullptr;
 
@@ -657,6 +771,14 @@ public:
 		} else if(name == "top_right_unit_icon") {
 			auto ptr = make_element_by_type<top_right_unit_icon>(state, id);
 			top_right_icon = ptr.get();
+			return ptr;
+		} else if(name == "small_top_unit_icon") {
+			auto ptr = make_element_by_type<small_top_unit_icon>(state, id);
+			small_top_icon = ptr.get();
+			return ptr;
+		} else if(name == "small_top_right_unit_icon") {
+			auto ptr = make_element_by_type<small_top_right_unit_icon>(state, id);
+			small_top_right_icon = ptr.get();
 			return ptr;
 		} else if(name == "siege") {
 			auto ptr = make_element_by_type<map_siege>(state, id);
@@ -903,6 +1025,8 @@ public:
 			siege->set_visible(state, false);
 			top_icon->base_data.position.x = -67;
 			top_right_icon->set_visible(state, true);
+			small_top_icon->base_data.position.x = -61;
+			small_top_right_icon->set_visible(state, true);
 		} else if(nbattle) {
 			float max_str = 0.0f;
 			float max_opp_str = 0.0f;
@@ -993,6 +1117,8 @@ public:
 			siege->set_visible(state, false);
 			top_icon->base_data.position.x = -67;
 			top_right_icon->set_visible(state, true);
+			small_top_icon->base_data.position.x = -61;
+			small_top_right_icon->set_visible(state, true);
 		} else if(prov.index() < state.province_definitions.first_sea_province.index()) {
 			std::function<bool(dcon::army_id)> filter;
 
@@ -1075,6 +1201,8 @@ public:
 			siege->set_visible(state, state.world.province_get_siege_progress(prov) > 0);
 			top_icon->base_data.position.x = -30;
 			top_right_icon->set_visible(state, false);
+			small_top_icon->base_data.position.x = -30;
+			small_top_right_icon->set_visible(state, false);
 		} else {
 			std::function<bool(dcon::navy_id)> filter;
 
@@ -1149,6 +1277,8 @@ public:
 			siege->set_visible(state, state.world.province_get_siege_progress(prov) > 0);
 			top_icon->base_data.position.x = -30;
 			top_right_icon->set_visible(state, false);
+			small_top_icon->base_data.position.x = -30;
+			small_top_right_icon->set_visible(state, false);
 		}
 
 		if(display.top_left_nation == state.local_player_nation) {
@@ -1239,20 +1369,37 @@ public:
 
 
 				auto location = get_absolute_location(*this);
-				int32_t height = 60;
-				int32_t left = -55;
-				int32_t right = 31;
-				if(siege->is_visible()) {
-					height = 82;
-					right = 48;
-				} else if(battle->is_visible()) {
-					height = 82;
-					right = 95;
-					left = -92;
+
+				if(state.map_state.get_zoom() >= big_counter_cutoff) {
+					int32_t height = 60;
+					int32_t left = -55;
+					int32_t right = 31;
+					if(siege->is_visible()) {
+						height = 82;
+						right = 48;
+					} else if(battle->is_visible()) {
+						height = 82;
+						right = 95;
+						left = -92;
+					}
+					location.x += int16_t(left);
+					location.y -= 30;
+					state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(height), int16_t(right - left)}, prov, false);
+				} else {
+					if(siege->is_visible()) {
+						location.x -= 49;
+						location.y -= 10;
+						state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(97), int16_t(39)}, prov, false);
+					} else if(battle->is_visible()) {
+						location.x -= 62;
+						location.y -= 10;
+						state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(124), int16_t(39)}, prov, false);
+					} else {
+						location.x -= 30;
+						location.y -= 10;
+						state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(60), int16_t(19)}, prov, false);
+					}
 				}
-				location.x += int16_t(left);
-				location.y -= 30;
-				state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(height), int16_t(right - left)}, prov, false);
 			}
 
 			return message_result::consumed;

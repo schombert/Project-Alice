@@ -92,6 +92,12 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 		}
 	} else {
 		map_state.on_mouse_move(x, y, x_size, y_size, mod);
+		if(map_state.is_dragging) {
+			if(ui_state.mouse_sensitive_target) {
+				ui_state.mouse_sensitive_target->set_visible(*this, false);
+				ui_state.mouse_sensitive_target = nullptr;
+			}
+		}
 	}
 	if(ui_state.mouse_sensitive_target) {
 		auto mx = int32_t(x / user_settings.ui_scale);
@@ -132,9 +138,19 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod,
 		if(r != ui::message_result::consumed) {
 			// TODO Settings for making zooming the map faster
 			map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
+
+			if(ui_state.mouse_sensitive_target) {
+				ui_state.mouse_sensitive_target->set_visible(*this, false);
+				ui_state.mouse_sensitive_target = nullptr;
+			}
 		}
 	} else {
 		map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
+
+		if(ui_state.mouse_sensitive_target) {
+			ui_state.mouse_sensitive_target->set_visible(*this, false);
+			ui_state.mouse_sensitive_target = nullptr;
+		}
 	}
 }
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
@@ -151,6 +167,13 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				ui::console_window::show_toggle(*this);
 			}
 			map_state.on_key_down(keycode, mod);
+
+			if(keycode == sys::virtual_key::LEFT || keycode == sys::virtual_key::RIGHT || keycode == sys::virtual_key::UP || keycode == sys::virtual_key::DOWN) {
+				if(ui_state.mouse_sensitive_target) {
+					ui_state.mouse_sensitive_target->set_visible(*this, false);
+					ui_state.mouse_sensitive_target = nullptr;
+				}
+			}
 		}
 	}
 }

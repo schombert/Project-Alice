@@ -26,7 +26,11 @@ spriteTypes = {
 		texturefile = "assets\\unitframes.png"
 		noOfFrames = 5
 	}
-	
+	spriteType = {
+		name = "GFX_alice_small_unit_frames"
+		texturefile = "assets\\small_uframes.png"
+		noOfFrames = 5
+	}
 	spriteType = {
 		name = "GFX_alice_unit_left_edge"
 		texturefile = "assets\\unitleftedges.png"

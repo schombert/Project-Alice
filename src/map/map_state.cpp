@@ -186,6 +186,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
 
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
+		
 	}
 }
 
