@@ -415,10 +415,12 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
-		if(params->top_right_dig_in >= 0)
+		if(params->top_right_dig_in >= 0) {
 			frame = params->top_right_dig_in;
-		else
+			visible = true;
+		} else {
 			visible = false;
+		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

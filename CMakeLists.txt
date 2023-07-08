@@ -75,14 +75,28 @@ if(WIN32)
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	else()
-	set_target_properties(Alice PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
-		target_compile_options(Alice PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
-			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
-			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
-		target_link_options(Alice PRIVATE
-			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
-			$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
+		set_target_properties(Alice PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
+
+		if(OPTIMIZE_MODE STREQUAL "On")
+			message(STATUS "Optimizing with PGO data")
+			target_compile_options(Alice PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+			target_link_options(Alice PRIVATE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
+		elseif(PROFILE_MODE STREQUAL "On")
+			message(STATUS "Compiling for PGO instrumentation")
+			target_compile_options(Alice PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+			target_link_options(Alice PRIVATE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
+		else()
+			message(STATUS "Normal, not PGO, build")
+			target_compile_options(Alice PRIVATE
+											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
+				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
+				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
+			target_link_options(Alice PRIVATE
+				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
+				$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
+		endif()		
 	endif()
 else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

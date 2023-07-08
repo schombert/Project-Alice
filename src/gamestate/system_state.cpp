@@ -157,12 +157,21 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
 	}
 }
-void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod,
-		float amount) { // an amount of 1.0 is one "click" of the wheel
+void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
+
+	auto belongs_on_map = [&](ui::element_base* b) {
+		while(b != nullptr) {
+			if(b == ui_state.units_root.get())
+				return true;
+			b = b->parent;
+		}
+		return false;
+	};
+
 	if(ui_state.scroll_target != nullptr) {
 		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
 				amount, mod);
-	} else if(ui_state.under_mouse == nullptr) {
+	} else if(ui_state.under_mouse == nullptr || belongs_on_map(ui_state.under_mouse)) {
 		map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 
 		if(ui_state.mouse_sensitive_target) {
