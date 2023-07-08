@@ -197,8 +197,8 @@ void initialize(sys::state& state) {
 		fn.set_military_spending(int8_t(60));
 		fn.set_education_spending(int8_t(100));
 		fn.set_social_spending(int8_t(100));
-		fn.set_land_spending(int8_t(30));
-		fn.set_naval_spending(int8_t(30));
+		fn.set_land_spending(int8_t(100));
+		fn.set_naval_spending(int8_t(100));
 		fn.set_construction_spending(int8_t(100));
 
 		fn.set_poor_tax(int8_t(75));

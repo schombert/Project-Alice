@@ -75,8 +75,8 @@ spriteTypes = {
 	}
 	progressbartype = {
 		name = "GFX_alice_battle_bar"
-		textureFile1 = "assets\\battle_red.png"
-		textureFile2 = "assets\\battle_blue.png"
+		textureFile1 = "assets\\battle_blue.png"
+		textureFile2 = "assets\\battle_red.png"
 		size = { x = 86 y = 15 }
 	}
 	spriteType = {

@@ -335,11 +335,21 @@ public:
 	}
 };
 
+class prov_map_br_overlay : public image_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		image_element_base::on_create(state);
+		frame = 1;
+	}
+ };
+
 class map_battle : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "progress") {
 			return make_element_by_type<prov_map_battle_bar>(state, id);
+		} else if(name == "overlay_right") {
+			return make_element_by_type<prov_map_br_overlay>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -518,10 +528,12 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
-		if(number >= params->colors_used)
+		if(number >= params->colors_used) {
 			visible = false;
-		else
+		} else {
 			frame = int32_t(params->colors[number]);
+			visible = true;
+		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -1023,9 +1035,9 @@ public:
 
 			battle->set_visible(state, true);
 			siege->set_visible(state, false);
-			top_icon->base_data.position.x = -67;
+			top_icon->base_data.position.x = -68;
 			top_right_icon->set_visible(state, true);
-			small_top_icon->base_data.position.x = -61;
+			small_top_icon->base_data.position.x = -62;
 			small_top_right_icon->set_visible(state, true);
 		} else if(nbattle) {
 			float max_str = 0.0f;
@@ -1110,14 +1122,9 @@ public:
 
 			battle->set_visible(state, true);
 			siege->set_visible(state, false);
-			top_icon->base_data.position.x = -67;
+			top_icon->base_data.position.x = -68;
 			top_right_icon->set_visible(state, true);
-
-			battle->set_visible(state, true);
-			siege->set_visible(state, false);
-			top_icon->base_data.position.x = -67;
-			top_right_icon->set_visible(state, true);
-			small_top_icon->base_data.position.x = -61;
+			small_top_icon->base_data.position.x = -62;
 			small_top_right_icon->set_visible(state, true);
 		} else if(prov.index() < state.province_definitions.first_sea_province.index()) {
 			std::function<bool(dcon::army_id)> filter;

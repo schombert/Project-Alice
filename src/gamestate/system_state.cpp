@@ -37,7 +37,16 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	// Lose focus on text
 	ui_state.edit_target = nullptr;
 
-	if(ui_state.under_mouse != nullptr) {
+	auto belongs_on_map = [&](ui::element_base* b) {
+		while(b != nullptr) {
+			if(b == ui_state.units_root.get())
+				return true;
+			b = b->parent;
+		}
+		return false;
+	};
+
+	if(ui_state.under_mouse != nullptr && !belongs_on_map(ui_state.under_mouse)) {
 		ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 	} else {
 

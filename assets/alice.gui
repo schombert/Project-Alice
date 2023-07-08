@@ -1032,22 +1032,22 @@ guiTypes = {
 			iconType = {
 				name ="edge1"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=0 y=0 }
+				position = { x=-4 y=0 }
 			}
 			iconType = {
 				name ="edge2"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-8 y=0 }
+				position = { x=-12 y=0 }
 			}
 			iconType = {
 				name ="edge3"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-16 y=0 }
+				position = { x=-20 y=0 }
 			}
 			iconType = {
 				name ="edge4"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-24 y=0 }
+				position = { x=-28 y=0 }
 			}
 			iconType = {
 				name = "org_bar"
@@ -1185,17 +1185,17 @@ guiTypes = {
 			iconType = {
 				name ="progress"
 				spriteType = "GFX_alice_battle_bar"
-				position = { x=18 y=0 }
+				position = { x=5 y=0 }
 			}
 			iconType = {
 				name = "overlay_left"
 				spriteType = "GFX_alice_battle_caps"
-				position = { x = 0 y = 0 }
+				position = { x = -13 y = 0 }
 			}
 			iconType = {
 				name = "overlay_right"
 				spriteType = "GFX_alice_battle_caps"
-				position = { x = 92 y = 0 }
+				position = { x = 79 y = 0 }
 			}
 		}
 	}

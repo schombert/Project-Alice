@@ -1471,6 +1471,8 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 	std::vector<retreat_province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
 
+	origins_vector.set(start, dcon::province_id{0});
+
 	std::vector<dcon::province_id> path_result;
 
 	auto fill_path_result = [&](dcon::province_id i) {
@@ -1486,7 +1488,7 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 		auto nearest = path_heap.back();
 		path_heap.pop_back();
 
-		if(has_naval_access_to_province(state, nation_as, nearest.province)) {
+		if(nearest.province != start && has_naval_access_to_province(state, nation_as, nearest.province)) {
 			fill_path_result(nearest.province);
 			return path_result;
 		}

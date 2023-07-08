@@ -3773,8 +3773,10 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	for(auto n : state.world.land_battle_get_army_battle_participation(b)) {
 		auto nation_owner = state.world.army_get_controller_from_army_control(n.get_army());
 
-		auto role_in_war = bool(war) ? get_role(state, war, n.get_army().get_controller_from_army_control())
-																 : (bool(nation_owner) ? war_role::defender : war_role::attacker);
+		auto role_in_war = bool(war)
+			? get_role(state, war, n.get_army().get_controller_from_army_control())
+			: (bool(nation_owner) ? war_role::defender : war_role::attacker);
+
 		bool battle_attacker = (role_in_war == war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
 
 		auto members = n.get_army().get_army_membership();
@@ -3867,9 +3869,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 						rep.defending_general = state.world.land_battle_get_general_from_defending_general(b);
 
 						rep.location = state.world.land_battle_get_location_from_land_battle_location(b);
-						rep.player_on_winning_side = bool(war) ? is_attacker(state, war, state.local_player_nation) ==
-																												 state.world.land_battle_get_war_attacker_is_attacker(b)
-																									 : !state.world.land_battle_get_war_attacker_is_attacker(b);
+						rep.player_on_winning_side = bool(war)
+							? is_attacker(state, war, state.local_player_nation) == state.world.land_battle_get_war_attacker_is_attacker(b)
+							: !state.world.land_battle_get_war_attacker_is_attacker(b);
 
 						if(war) {
 							if(rep.player_on_winning_side) {
@@ -3936,9 +3938,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 						rep.defending_general = state.world.land_battle_get_general_from_defending_general(b);
 
 						rep.location = state.world.land_battle_get_location_from_land_battle_location(b);
-						rep.player_on_winning_side = bool(war) ? is_attacker(state, war, state.local_player_nation) !=
-																												 state.world.land_battle_get_war_attacker_is_attacker(b)
-																									 : state.world.land_battle_get_war_attacker_is_attacker(b);
+						rep.player_on_winning_side = bool(war)
+							? is_attacker(state, war, state.local_player_nation) != state.world.land_battle_get_war_attacker_is_attacker(b)
+							: state.world.land_battle_get_war_attacker_is_attacker(b);
 
 						if(war) {
 							if(rep.player_on_winning_side) {
@@ -4396,41 +4398,74 @@ void update_land_battles(sys::state& state) {
 
 		// back row
 
+		auto compact = [](std::array<dcon::regiment_id, 30>& a) {
+			int32_t low = 0;
+			while(low < 30 && a[low]) {
+				low += 2;
+			}
+			int32_t high = low + 2;
+			while(high < 30 && !a[high])
+				high += 2;
+
+			while(high < 30) {
+				a[low] = a[high];
+				a[high] = dcon::regiment_id{};
+
+				high += 2;
+				while(high < 30 && !a[high])
+					high += 2;
+
+				low += 2;
+				while(low < 30 && a[low])
+					low += 2;
+			}
+
+			low = 1;
+			while(low < 30 && a[low]) {
+				low += 2;
+			}
+			high = low + 2;
+			while(high < 30 && !a[high])
+				high += 2;
+
+			while(high < 30) {
+				a[low] = a[high];
+				a[high] = dcon::regiment_id{};
+
+				high += 2;
+				while(high < 30 && !a[high])
+					high += 2;
+
+				low += 2;
+				while(low < 30 && a[low])
+					low += 2;
+			}
+		};
+
+		compact(att_back);
+		compact(att_front);
+		compact(def_back);
+		compact(def_front);
+
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
-				for(int32_t j = i + 2; j < combat_width; ++j) {
-					if(att_back[j]) {
-						std::swap(att_back[j], att_back[i]);
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support)) {
+						att_back[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
 						break;
-					}
-				}
-				if(!att_back[i]) {
-					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support)) {
-							att_back[i] = reserves[j].regiment;
-							std::swap(reserves[j], reserves[reserves.size() - 1]);
-							reserves.pop_back();
-							break;
-						}
 					}
 				}
 			}
 
 			if(!def_back[i]) {
-				for(int32_t j = i + 2; j < combat_width; ++j) {
-					if(def_back[j]) {
-						std::swap(def_back[j], def_back[i]);
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::type_support)) {
+						def_back[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
 						break;
-					}
-				}
-				if(!def_back[i]) {
-					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::type_support)) {
-							def_back[i] = reserves[j].regiment;
-							std::swap(reserves[j], reserves[reserves.size() - 1]);
-							reserves.pop_back();
-							break;
-						}
 					}
 				}
 			}
@@ -4440,22 +4475,16 @@ void update_land_battles(sys::state& state) {
 
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_front[i]) {
-				for(int32_t j = i + 2; j < combat_width; ++j) {
-					if(att_front[j]) {
-						std::swap(att_front[j], att_front[i]);
+				
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry)) {
+						att_front[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
 						break;
 					}
 				}
-				if(!att_front[i]) {
-					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry)) {
-							att_front[i] = reserves[j].regiment;
-							std::swap(reserves[j], reserves[reserves.size() - 1]);
-							reserves.pop_back();
-							break;
-						}
-					}
-				}
+				
 				if(!att_front[i]) {
 					for(uint32_t j = reserves.size(); j-- > 0;) {
 						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_cavalry)) {
@@ -4472,22 +4501,15 @@ void update_land_battles(sys::state& state) {
 			}
 
 			if(!def_front[i]) {
-				for(int32_t j = i + 2; j < combat_width; ++j) {
-					if(def_front[j]) {
-						std::swap(def_front[j], def_front[i]);
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::type_infantry)) {
+						def_front[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
 						break;
 					}
 				}
-				if(!def_front[i]) {
-					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::type_infantry)) {
-							def_front[i] = reserves[j].regiment;
-							std::swap(reserves[j], reserves[reserves.size() - 1]);
-							reserves.pop_back();
-							break;
-						}
-					}
-				}
+				
 				if(!def_front[i]) {
 					for(uint32_t j = reserves.size(); j-- > 0;) {
 						if(reserves[j].flags == (reserve_regiment::type_cavalry)) {
@@ -4638,12 +4660,8 @@ void update_land_battles(sys::state& state) {
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_back[i]));
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
-				auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod /
-													((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation,
-																																			sys::national_mod_offsets::military_tactics)));
-				auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod /
-													(attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation,
-																														sys::national_mod_offsets::land_organisation)));
+				auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
+				auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
 				state.world.regiment_get_pending_damage(att_front[i]) += str_damage;
 				state.world.regiment_get_strength(att_front[i]) -= str_damage;
@@ -4657,9 +4675,7 @@ void update_land_battles(sys::state& state) {
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
 				auto att_front_target = def_front[i];
-				if(auto mv =
-								state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].maneuver_or_evasion;
-						!att_front_target && mv > 0.0f) {
+				if(auto mv = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].maneuver_or_evasion; !att_front_target && mv > 0.0f) {
 					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
 						if(def_front[i - cnt * 2]) {
 							att_front_target = def_front[i - cnt * 2];
@@ -4673,13 +4689,11 @@ void update_land_battles(sys::state& state) {
 					auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(att_front_target));
 
 					auto str_damage =
-							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
-							(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation,
-																																					sys::national_mod_offsets::military_tactics)));
+							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
+							(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
 					auto org_damage =
-							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
-							(defender_fort * defender_org_bonus *
-									(1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
+							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
+							(defender_fort * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
 
 					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
 					state.world.regiment_get_strength(att_front_target) -= str_damage;
@@ -4695,9 +4709,7 @@ void update_land_battles(sys::state& state) {
 
 				auto def_front_target = att_front[i];
 
-				if(auto mv =
-								state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].maneuver_or_evasion;
-						!def_front_target && mv > 0.0f) {
+				if(auto mv = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].maneuver_or_evasion; !def_front_target && mv > 0.0f) {
 					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
 						if(att_front[i - cnt * 2]) {
 							def_front_target = att_front[i - cnt * 2];
@@ -4710,12 +4722,8 @@ void update_land_battles(sys::state& state) {
 					auto tech_att_nation = tech_nation_for_regiment(state, def_front_target);
 					auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(def_front_target));
 
-					auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod /
-														((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation,
-																																				sys::national_mod_offsets::military_tactics)));
-					auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod /
-														(attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation,
-																															sys::national_mod_offsets::land_organisation)));
+					auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
+					auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / (attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
 					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
 					state.world.regiment_get_strength(def_front_target) -= str_damage;
@@ -4744,7 +4752,7 @@ void update_land_battles(sys::state& state) {
 						break;
 					}
 					def_back[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(def_back[i]) < 0.3f) {
+				} else if(state.world.regiment_get_org(def_back[i]) < 0.1f) {
 					def_back[i] = dcon::regiment_id{};
 				}
 			}
@@ -4763,7 +4771,7 @@ void update_land_battles(sys::state& state) {
 						break;
 					}
 					def_front[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(def_front[i]) < 0.3f) {
+				} else if(state.world.regiment_get_org(def_front[i]) < 0.1f) {
 					def_front[i] = dcon::regiment_id{};
 				}
 			}
@@ -4782,7 +4790,7 @@ void update_land_battles(sys::state& state) {
 						break;
 					}
 					att_back[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(att_back[i]) < 0.3f) {
+				} else if(state.world.regiment_get_org(att_back[i]) < 0.1f) {
 					att_back[i] = dcon::regiment_id{};
 				}
 			}
@@ -4801,7 +4809,7 @@ void update_land_battles(sys::state& state) {
 						break;
 					}
 					att_front[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(att_front[i]) < 0.3f) {
+				} else if(state.world.regiment_get_org(att_front[i]) < 0.1f) {
 					att_front[i] = dcon::regiment_id{};
 				}
 			}
@@ -4810,7 +4818,7 @@ void update_land_battles(sys::state& state) {
 
 	for(auto b : state.world.in_land_battle) {
 		if(to_delete.get(b) != 0) {
-			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
+ 			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
 		}
 	}
 }
