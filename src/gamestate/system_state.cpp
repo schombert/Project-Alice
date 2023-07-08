@@ -38,12 +38,39 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	ui_state.edit_target = nullptr;
 
 	if(ui_state.under_mouse != nullptr) {
-		// TODO: look at return value
-		auto r =ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
-			if(r != ui::message_result::consumed) {
-				map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
-			}
+		ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 	} else {
+
+		auto mouse_pos = glm::vec2(x, y);
+		auto screen_size = glm::vec2(x_size, y_size);
+		glm::vec2 map_pos;
+		if(!map_state.screen_to_map(mouse_pos, screen_size, user_settings.map_is_globe ? map::map_view::globe : map::map_view::flat, map_pos)) {
+			return;
+		}
+		map_pos *= glm::vec2(float(map_state.map_data.size_x), float(map_state.map_data.size_y));
+		auto idx = int32_t(map_state.map_data.size_y - map_pos.y) * int32_t(map_state.map_data.size_x) + int32_t(map_pos.x);
+		if(0 <= idx && size_t(idx) < map_state.map_data.province_id_map.size()) {
+			sound::play_interface_sound(*this, sound::get_click_sound(*this),
+					user_settings.interface_volume * user_settings.master_volume);
+			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
+
+			if((uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0) {
+				for(auto a : selected_armies) {
+					command::move_army(*this, local_player_nation, a, dcon::province_id{});
+				}
+				for(auto a : selected_navies) {
+					command::move_navy(*this, local_player_nation, a, dcon::province_id{});
+				}
+			}
+
+			for(auto a : selected_armies) {
+				command::move_army(*this, local_player_nation, a, id);
+			}
+			for(auto a : selected_navies) {
+				command::move_navy(*this, local_player_nation, a, id);
+			}
+		}
+
 		map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
 	}
 }
@@ -58,14 +85,8 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	ui_state.edit_target = nullptr;
 
 	if(ui_state.under_mouse != nullptr) {
-		auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
+		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
-		if(r != ui::message_result::consumed) {
-			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-			if(ui_state.province_window) {
-				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
-			}
-		}
 	} else {
 		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		if(ui_state.province_window) {
@@ -87,9 +108,6 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.under_mouse != nullptr) {
 		auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
-		if(r != ui::message_result::consumed) {
-			map_state.on_mouse_move(x, y, x_size, y_size, mod);
-		}
 	} else {
 		map_state.on_mouse_move(x, y, x_size, y_size, mod);
 		if(map_state.is_dragging) {
@@ -133,18 +151,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod,
 		float amount) { // an amount of 1.0 is one "click" of the wheel
 	if(ui_state.scroll_target != nullptr) {
-		auto r = ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
+		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
 				amount, mod);
-		if(r != ui::message_result::consumed) {
-			// TODO Settings for making zooming the map faster
-			map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
-
-			if(ui_state.mouse_sensitive_target) {
-				ui_state.mouse_sensitive_target->set_visible(*this, false);
-				ui_state.mouse_sensitive_target = nullptr;
-			}
-		}
-	} else {
+	} else if(ui_state.under_mouse == nullptr) {
 		map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 
 		if(ui_state.mouse_sensitive_target) {
@@ -357,8 +366,35 @@ void state::render() { // called to render the frame may (and should) delay retu
 		ui_state.rgos_root->impl_on_update(*this);
 		ui_state.units_root->impl_on_update(*this);
 
-		ui_state.multi_unit_selection_window->set_visible(*this, selected_armies.size() + selected_navies.size() > 1);
-
+		if(selected_armies.size() + selected_navies.size() > 1) {
+			ui_state.multi_unit_selection_window->set_visible(*this, true);
+			ui_state.army_status_window->set_visible(*this, false);
+			ui_state.navy_status_window->set_visible(*this, false);
+		} else if(selected_armies.size() == 1) {
+			ui_state.multi_unit_selection_window->set_visible(*this, false);
+			if(ui_state.army_status_window->is_visible() && ui_state.army_status_window->unit_id != selected_armies[0]) {
+				ui_state.army_status_window->unit_id = selected_armies[0];
+				ui_state.army_status_window->impl_on_update(*this);
+			} else {
+				ui_state.army_status_window->unit_id = selected_armies[0];
+				ui_state.army_status_window->set_visible(*this, true);
+			}
+			ui_state.navy_status_window->set_visible(*this, false);
+		} else if(selected_navies.size() == 1) {
+			ui_state.multi_unit_selection_window->set_visible(*this, false);
+			ui_state.army_status_window->set_visible(*this, false);
+			if(ui_state.navy_status_window->is_visible() && ui_state.navy_status_window->unit_id != selected_navies[0]) {
+				ui_state.navy_status_window->unit_id = selected_navies[0];
+				ui_state.navy_status_window->impl_on_update(*this);
+			} else {
+				ui_state.navy_status_window->unit_id = selected_navies[0];
+				ui_state.navy_status_window->set_visible(*this, true);
+			}
+		} else {
+			ui_state.multi_unit_selection_window->set_visible(*this, false);
+			ui_state.army_status_window->set_visible(*this, false);
+			ui_state.navy_status_window->set_visible(*this, false);
+		}
 
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
@@ -677,12 +713,12 @@ void state::on_create() {
 	}
 	{
 		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
-		ui_state.army_status_window = new_elm_army.get();
+		ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
 		new_elm_army->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm_army));
 
 		auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
-		ui_state.navy_status_window = new_elm_navy.get();
+		ui_state.navy_status_window = static_cast<ui::unit_details_window<dcon::navy_id>*>(new_elm_navy.get());
 		new_elm_navy->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm_navy));
 	}

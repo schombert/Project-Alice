@@ -333,6 +333,9 @@ struct element_target {
 class tool_tip;
 class grid_box;
 
+template<class T>
+class unit_details_window;
+
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* scroll_target = nullptr;
@@ -373,8 +376,8 @@ struct state {
 	element_base* technology_subwindow = nullptr;
 	element_base* election_window = nullptr;
 	element_base* request_window = nullptr;
-	element_base* army_status_window = nullptr;
-	element_base* navy_status_window = nullptr;
+	unit_details_window<dcon::army_id>* army_status_window = nullptr;
+	unit_details_window<dcon::navy_id>* navy_status_window = nullptr;
 	element_base* multi_unit_selection_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;

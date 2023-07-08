@@ -5212,7 +5212,7 @@ void update_movement(sys::state& state) {
 			path.pop_back();
 			auto from = state.world.army_get_location_from_army_location(a);
 
-			if(dest.index() < state.province_definitions.first_sea_province.index()) { // sea province
+			if(dest.index() >= state.province_definitions.first_sea_province.index()) { // sea province
 				// check for embarkation possibility, then embark
 				auto to_navy = find_embark_target(state, a.get_controller_from_army_control(), dest, a);
 				if(to_navy) {

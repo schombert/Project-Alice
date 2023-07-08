@@ -1164,15 +1164,16 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 			
 			iconType = {
-				name ="progress"
-				spriteType = "GFX_alice_siege_bar"
-				position = { x=31 y=4 }
-			}
-			iconType = {
 				name = "overlay"
 				spriteType = "GFX_alice_siege_frame"
 				position = { x = 0 y = 0 }
 			}
+			iconType = {
+				name ="progress"
+				spriteType = "GFX_alice_siege_bar"
+				position = { x=31 y=4 }
+			}
+			
 		}
 		windowType = {
 			name = "battle"

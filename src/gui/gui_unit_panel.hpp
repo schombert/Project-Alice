@@ -25,8 +25,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("deselect_unit"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("deselect_unit_dro"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -45,8 +43,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("new_unit"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("new_unit_dro"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -87,8 +83,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("splitinhalf"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("splitinhalf_dro"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -131,8 +125,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("disband_unit"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("disband_unit_dro"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -146,8 +138,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("disband_too_small_unit"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("disband_too_small_unit_dro"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -161,8 +151,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("uw_unitnames_iro"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("uw_unitnames_dro"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -858,9 +846,11 @@ class unit_details_window : public window_element_base {
 	image_element_base* unitdugin_icon = nullptr;
 	unit_selection_panel<T>* unit_selection_win = nullptr;
 
-	T unit_id{};
+	
 
 public:
+	T unit_id;
+
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		base_data.position.y = 250;
@@ -1006,7 +996,10 @@ public:
 			case unitpanel_action::close: {
 				Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{reorg_win_action{reorg_win_action::close}};
 				unit_selection_win->reorg_window->impl_get(state, cpayload);
+				state.selected_armies.clear();
+				state.selected_navies.clear();
 				set_visible(state, false);
+				state.game_state_updated.store(true, std::memory_order_release);
 				break;
 			} default: {
 				break;

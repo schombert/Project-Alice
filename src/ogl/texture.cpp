@@ -239,7 +239,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer,
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(opengl_texture_type, SOIL_TEXTURE_WRAP_R, GL_REPEAT);
 		} else {
-			unsigned int clamp_mode = SOIL_CLAMP_TO_EDGE;
+			unsigned int clamp_mode = GL_CLAMP_TO_EDGE;
 			/* unsigned int clamp_mode = GL_CLAMP; */
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_S, clamp_mode);
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_T, clamp_mode);
@@ -554,6 +554,8 @@ data_texture::data_texture(int32_t sz, int32_t ch) {
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -622,11 +624,10 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		// glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	STBI_FREE(data);
