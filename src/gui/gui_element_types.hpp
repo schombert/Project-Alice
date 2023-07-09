@@ -47,7 +47,7 @@ public:
 
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override;
 	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final;
-	void impl_on_update(sys::state& state) noexcept final;
+	void impl_on_update(sys::state& state) noexcept;
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void impl_on_reset_text(sys::state& state) noexcept override;

@@ -28,8 +28,9 @@ struct option_taken_notification {
 typedef std::variant< event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event,
 		event::pending_human_f_p_event>
 		event_data_wrapper;
-class event_option_button : public multiline_button_element_base {
+class event_option_button : public button_element_base {
 public:
+	bool visible = true;
 	uint8_t index = 0;
 	void on_update(sys::state& state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -37,6 +38,10 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void button_action(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
+	}
 };
 class event_image : public image_element_base {
 public:

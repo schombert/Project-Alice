@@ -807,6 +807,18 @@ public:
 		}
 	}
 
+	void impl_on_update(sys::state& state) noexcept override {
+		on_update(state);
+		if(!populated)
+			return;
+
+		for(auto& c : children) {
+			if(c->is_visible()) {
+				c->impl_on_update(state);
+			}
+		}
+	}
+
 	void on_update(sys::state& state) noexcept override {
 
 		bool found_selected = false;
