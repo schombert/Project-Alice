@@ -6,6 +6,7 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 
 ## Updates
 
+- [July 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/july/july.md)
 - [June 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/june/june.md) [简体中文](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/june/june_cn.md) [Español](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/june/june_ES.md)
 - [May 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/may/may.md)
 - [April 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/april/april.md)

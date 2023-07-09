@@ -1393,19 +1393,20 @@ public:
 
 				if(state.map_state.get_zoom() >= big_counter_cutoff) {
 					int32_t height = 60;
-					int32_t left = -55;
+					int32_t left = -30;
 					int32_t right = 31;
 					if(siege->is_visible()) {
-						height = 82;
+						height = 80;
 						right = 48;
+						left = -49;
 					} else if(battle->is_visible()) {
-						height = 82;
-						right = 95;
-						left = -92;
+						height = 80;
+						right = 62;
+						left = -62;
 					}
 					location.x += int16_t(left);
 					location.y -= 30;
-					state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(height), int16_t(right - left)}, prov, false);
+					state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(right - left), int16_t(height)}, prov, false);
 				} else {
 					if(siege->is_visible()) {
 						location.x -= 49;
