@@ -467,18 +467,24 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		switch(Value) {
-		case economy::province_building_type::railroad: {
-			auto fat_id = dcon::fatten(state.world, prov_id);
-			frame = fat_id.get_railroad_level();
-		}
-		case economy::province_building_type::fort: {
-			auto fat_id = dcon::fatten(state.world, prov_id);
-			frame = fat_id.get_fort_level();
-		}
-		case economy::province_building_type::naval_base: {
-			auto fat_id = dcon::fatten(state.world, prov_id);
-			frame = fat_id.get_naval_base_level();
-		}
+			case economy::province_building_type::railroad:
+			{
+				auto fat_id = dcon::fatten(state.world, prov_id);
+				frame = fat_id.get_railroad_level();
+			}
+			break;
+			case economy::province_building_type::fort:
+			{
+				auto fat_id = dcon::fatten(state.world, prov_id);
+				frame = fat_id.get_fort_level();
+			}
+			break;
+			case economy::province_building_type::naval_base:
+			{
+				auto fat_id = dcon::fatten(state.world, prov_id);
+				frame = fat_id.get_naval_base_level();
+			}
+			break;
 		}
 	}
 };

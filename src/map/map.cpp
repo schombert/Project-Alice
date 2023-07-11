@@ -30,10 +30,10 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto terrain_bmp = open_file(map_dir, name);
 	auto content = simple_fs::view_contents(*terrain_bmp);
-	uint8_t* start = (uint8_t*)(content.data);
+	uint8_t const* start = (uint8_t const*)(content.data);
 
 	// Data offset is where the pixel data starts
-	uint8_t* ptr = start + 10;
+	uint8_t const* ptr = start + 10;
 	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
 	// The width & height of the image
@@ -44,7 +44,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 
 	assert(size_x == uint32_t(map_size.x));
 
-	uint8_t* data = start + data_offset;
+	uint8_t const* data = start + data_offset;
 
 	// Calculate how much extra we add at the poles
 	auto free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add

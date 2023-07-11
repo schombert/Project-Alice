@@ -531,7 +531,7 @@ struct fp_three_places {
 	float value = 0.0f;
 };
 struct fp_four_places {
-	double value = 0.0f;
+	float value = 0.0f;
 };
 struct fp_currency {
 	float value = 0.0f;

@@ -46,7 +46,7 @@ public:
 
 
 class message_body_text_internal : public simple_multiline_body_text {
-	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
 		auto msg = retrieve< notification::message*>(state, parent);
 		if(msg) {
 			msg->body(state, contents);

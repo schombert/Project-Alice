@@ -269,7 +269,7 @@ public:
 			auto fid = any_cast<dcon::factory_id>(payload);
 			auto fat = dcon::fatten(state.world, fid);
 
-			if(fat.get_production_scale() < 0.05) {
+			if(fat.get_production_scale() < 0.05f) {
 				frame = 0;
 			} else {
 				frame = 1;
@@ -666,7 +666,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05;
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05f;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
@@ -1520,8 +1520,7 @@ public:
 					commodity_offset.y += cell_height;
 				}
 
-				Cyto::Any payload = id;
-				info_ptr->impl_set(state, payload);
+				send(state, info_ptr.get(), id);
 
 				good_elements.push_back(info_ptr.get());
 				add_child_to_front(std::move(info_ptr));

@@ -83,7 +83,7 @@ public:
 			dcon::unit_type_id utid = dcon::fatten(state.world, battleship.ship).get_type();
 			auto result = state.military_definitions.unit_base_definitions[utid].icon - 4;
 
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
 				//nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -95,7 +95,7 @@ public:
 				nav_icon_norm->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
 				//nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -108,7 +108,7 @@ public:
 				nav_icon_norm->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
 				nav_icon_norm->set_visible(state, false);
 				//nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -120,7 +120,7 @@ public:
 				nav_icon_attack->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -132,7 +132,7 @@ public:
 				nav_icon_retreat->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -144,7 +144,7 @@ public:
 				nav_icon_disengaged->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				//nav_icon_sunk->set_visible(state, false);
@@ -239,7 +239,7 @@ public:
 			dcon::unit_type_id utid = dcon::fatten(state.world, battleship.ship).get_type();
 			auto result = state.military_definitions.unit_base_definitions[utid].icon - 4;
 
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
 				//nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -251,7 +251,7 @@ public:
 				nav_icon_norm->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
 				//nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -264,7 +264,7 @@ public:
 				nav_icon_norm->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
 				nav_icon_norm->set_visible(state, false);
 				//nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -276,7 +276,7 @@ public:
 				nav_icon_attack->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -288,7 +288,7 @@ public:
 				nav_icon_retreat->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
@@ -300,7 +300,7 @@ public:
 				nav_icon_disengaged->frame = result;
 
 			} else
-			if((battleship.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
+			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				//nav_icon_sunk->set_visible(state, false);
@@ -387,43 +387,47 @@ public:
 				return;
 			}
 
-			if((content.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::is_attacking) {
+			/*
+			// schombert: this is wrong and will eventually need to be reworked
+			uint16_t mode = (content.flags & military::ship_in_battle::mode_mask);
+			if(mode == military::ship_in_battle::is_attacking) {
 				ship_lslot->battleship = content;
-				if((content.flags bitand military::ship_in_battle::mode_approaching) not_eq 0
-				|| (content.flags bitand military::ship_in_battle::mode_engaged) not_eq 0
-				|| (content.flags bitand military::ship_in_battle::mode_retreating) not_eq 0) {	// TODO - needs to be verified, i think its shown but cant be sure
+				if((content.flags & military::ship_in_battle::mode_approaching) not_eq 0
+				|| (content.flags & military::ship_in_battle::mode_engaged) not_eq 0
+				|| (content.flags & military::ship_in_battle::mode_retreating) not_eq 0) {	// TODO - needs to be verified, i think its shown but cant be sure
 					ship_rslot->battleship = fat.get_slots()[content.target_slot];
 				} else {
 					ship_rslot->battleship = military::ship_in_battle{};
 				}
-			} else if((content.flags bitand military::ship_in_battle::mode_mask) != military::ship_in_battle::is_attacking) {
+			} else if((content.flags & military::ship_in_battle::mode_mask) != military::ship_in_battle::is_attacking) {
 				ship_rslot->battleship = content;
-				if((content.flags bitand military::ship_in_battle::mode_approaching) not_eq 0
-				|| (content.flags bitand military::ship_in_battle::mode_engaged) not_eq 0
-				|| (content.flags bitand military::ship_in_battle::mode_retreating) not_eq 0) {	// TODO - needs to be verified, i think its shown but cant be sure
+				if((content.flags & military::ship_in_battle::mode_approaching) not_eq 0
+				|| (content.flags & military::ship_in_battle::mode_engaged) not_eq 0
+				|| (content.flags & military::ship_in_battle::mode_retreating) not_eq 0) {	// TODO - needs to be verified, i think its shown but cant be sure
 					ship_lslot->battleship = fat.get_slots()[content.target_slot];
 				} else {
 					ship_lslot->battleship = military::ship_in_battle{};
 				}
 			}
+			*/
 
-			if((content.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
+			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_approach"));
 
 			} else
-			if((content.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
+			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_seeking"));
 
 			} else
-			if((content.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
+			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_firing"));
 
 			} else
-			if((content.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
+			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_retreat"));
 
 			} else
-			if((content.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
+			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_disengaged"));
 
 			} else {
@@ -452,12 +456,12 @@ public:
 
 			for(auto s : fat.get_slots()) {
 				if constexpr(attacker == true) {
-					if(attacker == true && (s.flags bitand military::ship_in_battle::is_attacking) != 0) {
+					if(attacker == true && (s.flags & military::ship_in_battle::is_attacking) != 0) {
 						row_contents.push_back(s);
 					}
 				} else
 				if constexpr(attacker == false) {
-					if(attacker == false && (s.flags bitand military::ship_in_battle::is_attacking) == 0) {
+					if(attacker == false && (s.flags & military::ship_in_battle::is_attacking) == 0) {
 						row_contents.push_back(s);
 					}
 				}
@@ -623,6 +627,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
+
 			Cyto::Any payload = dcon::naval_battle_id{};
 			parent->impl_get(state, payload);
 			auto fat = dcon::fatten(state.world, any_cast<dcon::naval_battle_id>(payload));
@@ -640,7 +645,7 @@ public:
 			float totalorg = 0.0f;
 			uint16_t totalships = 0;
 			for(auto s : fat.get_slots()) {
-				if((s.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::is_attacking) {
+				if((s.flags & military::ship_in_battle::is_attacking) != 0) {
 					totalorg += dcon::fatten(state.world, s.ship).get_org();
 					totalships += 1;
 				}
@@ -651,8 +656,8 @@ public:
 			float totalstr = 0.0f;
 			totalships = 0;
 			for(auto s : fat.get_slots()) {
-				if((s.flags bitand military::ship_in_battle::mode_mask) == military::ship_in_battle::is_attacking) {
-					totalorg += dcon::fatten(state.world, s.ship).get_strength();
+				if((s.flags & military::ship_in_battle::is_attacking) != 0) {
+					totalstr += dcon::fatten(state.world, s.ship).get_strength();
 					totalships += 1;
 				}
 			}
@@ -803,7 +808,7 @@ public:
 			float totalorg = 0.0f;
 			uint16_t totalships = 0;
 			for(auto s : fat.get_slots()) {
-				if((s.flags bitand military::ship_in_battle::mode_mask) != military::ship_in_battle::is_attacking) {
+				if((s.flags & military::ship_in_battle::is_attacking) == 0) {
 					totalorg += dcon::fatten(state.world, s.ship).get_org();
 					totalships += 1;
 				}
@@ -814,8 +819,8 @@ public:
 			float totalstr = 0.0f;
 			totalships = 0;
 			for(auto s : fat.get_slots()) {
-				if((s.flags bitand military::ship_in_battle::mode_mask) != military::ship_in_battle::is_attacking) {
-					totalorg += dcon::fatten(state.world, s.ship).get_strength();
+				if((s.flags & military::ship_in_battle::is_attacking) == 0) {
+					totalstr += dcon::fatten(state.world, s.ship).get_strength();
 					totalships += 1;
 				}
 			}
@@ -925,7 +930,7 @@ public:
 
 class naval_combat_end_popup_close_button : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept {
+	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<bool>{bool{true}};
 			parent->impl_get(state, payload);

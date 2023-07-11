@@ -35,8 +35,7 @@
       "inherits": "base",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain_ninja_clang-cl.cmake"
       },
       "condition": {
         "type": "equals",
