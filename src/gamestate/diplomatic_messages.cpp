@@ -434,7 +434,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			std::abort();
 			break;
 		case type::access_request:
-			return true;
+			return ai::ai_will_grant_access(state, m.to, m.from);
 		case type::alliance_request:
 			return ai::ai_will_accept_alliance(state, m.to, m.from);
 		case type::call_ally_request:

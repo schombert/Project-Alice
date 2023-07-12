@@ -562,6 +562,8 @@ public:
 					m.from = state.local_player_nation;
 					m.to = target;
 					text::add_line_with_condition(state, contents, "ask_access_explain_3", diplomatic_message::ai_will_accept(state, m));
+
+					ai::explain_ai_access_reasons(state, target, contents, 15);
 				}
 				text::add_line_with_condition(state, contents, "ask_access_explain_4", !military::are_at_war(state, state.local_player_nation, target));
 			}

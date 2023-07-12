@@ -146,4 +146,28 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 	text::add_line_with_condition(state, contents, "ai_alliance_4", source_score * 2 >= target_score, indent);
 }
 
+bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	if(!state.world.nation_get_is_at_war(from))
+		return false;
+	if(state.world.nation_get_ai_rival(target) == from)
+		return false;
+	if(military::are_at_war(state, from, state.world.nation_get_ai_rival(target)))
+		return true;
+
+	for(auto wa : state.world.nation_get_war_participant(target)) {
+		auto is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_is_attacker() != is_attacker) {
+				if(military::are_at_war(state, o.get_nation(), from))
+					return true;
+			}
+		}
+	}
+	return false;
+
+}
+void explain_ai_access_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
+	text::add_line_with_condition(state, contents, "ai_access_1", ai_will_grant_access(state, target, state.local_player_nation), indent);
+}
+
 }
