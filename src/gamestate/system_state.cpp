@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <thread>
 #include "rebels.hpp"
+#include "ai.hpp"
 
 namespace sys {
 //
@@ -2169,6 +2170,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	ai::update_ai_general_status(*this);
+
 	game_state_updated.store(true, std::memory_order::release);
 }
 
@@ -2459,6 +2462,12 @@ void state::game_loop() {
 				case 5:
 					rebel::update_movements(*this);
 					rebel::update_factions(*this);
+					break;
+				case 6:
+					ai::update_ai_general_status(*this);
+					break;
+				case 7:
+					ai::form_alliances(*this);
 					break;
 				case 8:
 					military::apply_attrition(*this);

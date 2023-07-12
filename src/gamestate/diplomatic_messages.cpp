@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "commands.hpp"
 #include "nations.hpp"
+#include "ai.hpp"
 
 namespace diplomatic_message {
 
@@ -435,7 +436,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::access_request:
 			return true;
 		case type::alliance_request:
-			return true;
+			return ai::ai_will_accept_alliance(state, m.to, m.from);
 		case type::call_ally_request:
 			return true;
 		case type::be_crisis_primary_defender:

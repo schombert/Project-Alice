@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "military.hpp"
+#include "ai.hpp"
 
 namespace ui {
 
@@ -375,6 +376,7 @@ public:
 					m.to = content;
 
 					text::add_line_with_condition(state, contents, "ally_explain_7", diplomatic_message::ai_will_accept(state, m));
+					ai::explain_ai_alliance_reasons(state, content, contents, 15);
 				}
 			}
 		

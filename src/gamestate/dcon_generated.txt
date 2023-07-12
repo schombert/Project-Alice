@@ -3483,6 +3483,16 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+
+	property{
+		name{ ai_is_threatened }
+		type{ bitfield }
+	}
+	property{
+		name{ ai_rival }
+		type{ nation_id }
+		tag{ save }
+	}
 }
 
 relationship{
