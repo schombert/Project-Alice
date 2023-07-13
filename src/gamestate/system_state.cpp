@@ -2043,6 +2043,9 @@ void state::load_scenario_data() {
 	economy::update_factory_employment(*this);
 	economy::daily_update(*this);
 
+	ai::initialize_ai_tech_weights(*this);
+	ai::update_ai_research(*this);
+
 	military::recover_org(*this);
 
 	if(err.accumulated_errors.length() > 0)
@@ -2170,6 +2173,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
 
 	game_state_updated.store(true, std::memory_order::release);
@@ -2464,10 +2468,10 @@ void state::game_loop() {
 					rebel::update_factions(*this);
 					break;
 				case 6:
-					ai::update_ai_general_status(*this);
+					ai::form_alliances(*this);
 					break;
 				case 7:
-					ai::form_alliances(*this);
+					ai::update_ai_general_status(*this);
 					break;
 				case 8:
 					military::apply_attrition(*this);
@@ -2480,6 +2484,9 @@ void state::game_loop() {
 					break;
 				case 11:
 					province::update_nationalism(*this);
+					break;
+				case 12:
+					ai::update_ai_research(*this);
 					break;
 				case 15:
 					culture::discover_inventions(*this);

@@ -2691,6 +2691,10 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ ai_weight }
+		type{ float }
+	}
+	property{
 		name{cost}
 		type{int32_t}
 		tag{ scenario }

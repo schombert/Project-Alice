@@ -170,4 +170,107 @@ void explain_ai_access_reasons(sys::state& state, dcon::nation_id target, text::
 	text::add_line_with_condition(state, contents, "ai_access_1", ai_will_grant_access(state, target, state.local_player_nation), indent);
 }
 
+void update_ai_research(sys::state& state) {
+	auto ymd_date = state.current_date.to_ymd(state.start_date);
+	auto year = uint32_t(ymd_date.year);
+	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t id) {
+		dcon::nation_id n{dcon::nation_id::value_base_t(id)};
+
+		if(state.world.nation_get_is_player_controlled(n)
+			|| state.world.nation_get_current_research(n)
+			|| !state.world.nation_get_is_civilized(n)
+			|| state.world.nation_get_owned_province_count(n) == 0) {
+
+			//skip -- does not need new research
+			return;
+		}
+
+		struct potential_techs {
+			dcon::technology_id id;
+			float weight = 0.0f;
+		};
+
+		std::vector<potential_techs> potential;
+
+		for(auto tid : state.world.in_technology) {
+			if(state.world.nation_get_active_technologies(n, tid))
+				continue; // Already researched
+		
+			if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tid)) {
+				// Find previous technology before this one
+				dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tid.id.index() - 1));
+				// Previous technology is from the same folder so we have to check that we have researched it beforehand
+				if(tid.id.index() != 0 && state.world.technology_get_folder_index(prev_tech) == state.world.technology_get_folder_index(tid)) {
+					// Only allow if all previously researched techs are researched
+					if(state.world.nation_get_active_technologies(n, prev_tech))
+						potential.push_back(potential_techs{tid, 0.0f});
+				} else { // first tech in folder
+					potential.push_back(potential_techs{ tid, 0.0f });
+				}
+			}
+		}
+
+		for(auto& pt : potential) { // weight techs
+			auto base = state.world.technology_get_ai_weight(pt.id);
+			if(state.world.nation_get_ai_is_threatened(n) && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::army) {
+				base *= 2.0f;
+			}
+			auto cost = std::max(1.0f, culture::effective_technology_cost(state, year, n, pt.id));
+			pt.weight = base / cost;
+		}
+		auto rval = rng::get_random(state, id);
+		std::sort(potential.begin(), potential.end(), [&](potential_techs& a, potential_techs& b) {
+			if(a.weight != b.weight)
+				return a.weight > b.weight;
+			else // sort semi randomly
+				return (a.id.index() ^ rval) > (b.id.index() ^ rval);
+		});
+
+		if(!potential.empty()) {
+			state.world.nation_set_current_research(n, potential[0].id);
+		}
+	});
+}
+
+void initialize_ai_tech_weights(sys::state& state) {
+	for(auto t : state.world.in_technology) {
+		float base = 1000.0f;
+		if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::army)
+			base *= 1.5f;
+
+		if(t.get_increase_naval_base())
+			base *= 1.1f;
+
+		auto mod = t.get_modifier();
+		auto& vals = mod.get_national_values();
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(vals.offsets[i] == sys::national_mod_offsets::research_points) {
+				base *= 3.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::research_points_modifier) {
+				base *= 3.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::education_efficiency) {
+				base *= 2.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::education_efficiency_modifier) {
+				base *= 2.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::pop_growth) {
+				base *= 1.6f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::max_national_focus) {
+				base *= 1.7f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::colonial_life_rating) {
+				base *= 1.6f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::rgo_output) {
+				base *= 1.2f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_output) {
+				base *= 1.2f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_throughput) {
+				base *= 1.2f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_input) {
+				base *= 1.2f;
+			}
+		}
+
+		t.set_ai_weight(base);
+	}
+}
+
 }

@@ -322,7 +322,7 @@ void update_research_points(sys::state& state) {
 		*/
 		auto current_points = state.world.nation_get_research_points(ids);
 		auto capped_value = ve::min(amount + current_points,
-				ve::select(state.world.nation_get_is_civilized(ids), amount * 365.0f, state.defines.max_research_points));
+				ve::select(state.world.nation_get_is_civilized(ids), ve::select(state.world.nation_get_current_research(ids) == dcon::technology_id{}, amount * 365.0f, amount + current_points), state.defines.max_research_points));
 		state.world.nation_set_research_points(ids, capped_value);
 	});
 }

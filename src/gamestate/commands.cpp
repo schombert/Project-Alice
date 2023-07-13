@@ -106,6 +106,8 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 void execute_start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
 	if(!can_start_research(state, source, tech))
 		return;
+	if(state.world.nation_get_current_research(source))
+		state.world.nation_set_research_points(source, 0.0f);
 	state.world.nation_set_current_research(source, tech);
 }
 
