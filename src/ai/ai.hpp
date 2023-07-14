@@ -13,4 +13,6 @@ bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::natio
 void explain_ai_access_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent);
 void update_ai_research(sys::state& state);
 void initialize_ai_tech_weights(sys::state& state);
+void update_influence_priorities(sys::state& state);
+void perform_influence_actions(sys::state& state);
 }

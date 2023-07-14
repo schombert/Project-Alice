@@ -2045,6 +2045,7 @@ void state::load_scenario_data() {
 
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_research(*this);
+	ai::update_influence_priorities(*this);
 
 	military::recover_org(*this);
 
@@ -2488,6 +2489,9 @@ void state::game_loop() {
 				case 12:
 					ai::update_ai_research(*this);
 					break;
+				case 13:
+					ai::perform_influence_actions(*this);
+					break;
 				case 15:
 					culture::discover_inventions(*this);
 					break;
@@ -2514,6 +2518,13 @@ void state::game_loop() {
 					for(auto n : world.in_nation) {
 						politics::recalculate_upper_house(*this, n);
 					}
+
+					ai::update_influence_priorities(*this);
+				}
+
+				if(ymd_date.day == 1 && ymd_date.month == 6) {
+
+					ai::update_influence_priorities(*this);
 				}
 
 				/*

@@ -240,6 +240,8 @@ void initialize_ai_tech_weights(sys::state& state) {
 
 		if(t.get_increase_naval_base())
 			base *= 1.1f;
+		else if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::navy)
+			base *= 0.9f;
 
 		auto mod = t.get_modifier();
 		auto& vals = mod.get_national_values();
@@ -270,6 +272,194 @@ void initialize_ai_tech_weights(sys::state& state) {
 		}
 
 		t.set_ai_weight(base);
+	}
+}
+
+void update_influence_priorities(sys::state& state) {
+	struct weighted_nation {
+		dcon::nation_id id;
+		float weight = 0.0f;
+	};
+	static std::vector<weighted_nation> targets;
+
+	for(auto gprl : state.world.in_gp_relationship) {
+		if(gprl.get_great_power().get_is_player_controlled()) {
+			// nothing -- player GP
+		} else {
+			auto& status = gprl.get_status();
+			status &= ~nations::influence::priority_mask;
+			if((status & nations::influence::level_mask) == nations::influence::level_in_sphere) {
+				status |= nations::influence::priority_one;
+			}
+		}
+	}
+
+	for(auto&n : state.great_nations) {
+		if(state.world.nation_get_is_player_controlled(n.nation))
+			continue;
+
+		targets.clear();
+		for(auto t : state.world.in_nation) {
+			if(t.get_is_great_power())
+				continue;
+			if(t.get_owned_province_count() == 0)
+				continue;
+			if(t.get_in_sphere_of() == n.nation)
+				continue;
+			if(t.get_demographics(demographics::total) > state.defines.large_population_limit)
+				continue;
+
+			float weight = 0.0f;
+
+			for(auto c : state.world.in_commodity) {
+				if(auto d = state.world.nation_get_real_demand(n.nation, c); d > 0.001f) {
+					auto cweight = std::min(1.0f, t.get_domestic_market_pool(c) * (1.0f - state.world.nation_get_demand_satisfaction(n.nation, c)) / d);
+					weight += cweight;
+				}
+			}
+
+			if(t.get_primary_culture().get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(n.nation).get_group_from_culture_group_membership()) {
+				weight += 4.0f;
+			}
+
+			if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n.nation, t.id)) {
+				weight *= 3.0f;
+			}
+
+			targets.push_back(weighted_nation{t.id, weight});
+		}
+
+		std::sort(targets.begin(), targets.end(), [](weighted_nation const& a, weighted_nation const& b) {
+			if(a.weight != b.weight)
+				return a.weight > b.weight;
+			else
+				return a.id.index() < b.id.index();
+		});
+
+		uint32_t i = 0;
+		for(; i < 2 && i < targets.size(); ++i) {
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(targets[i].id, n.nation);
+			if(!rel)
+				rel = state.world.force_create_gp_relationship(targets[i].id, n.nation);
+			state.world.gp_relationship_get_status(rel) |= nations::influence::priority_three;
+		}
+		for(; i < 4 && i < targets.size(); ++i) {
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(targets[i].id, n.nation);
+			if(!rel)
+				rel = state.world.force_create_gp_relationship(targets[i].id, n.nation);
+			state.world.gp_relationship_get_status(rel) |= nations::influence::priority_two;
+		}
+		for(; i < 6 && i < targets.size(); ++i) {
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(targets[i].id, n.nation);
+			if(!rel)
+				rel = state.world.force_create_gp_relationship(targets[i].id, n.nation);
+			state.world.gp_relationship_get_status(rel) |= nations::influence::priority_one;
+		}
+	}
+}
+
+void perform_influence_actions(sys::state& state) {
+	for(auto gprl : state.world.in_gp_relationship) {
+		if(gprl.get_great_power().get_is_player_controlled()) {
+			// nothing -- player GP
+		} else {
+			if((gprl.get_status() & nations::influence::is_banned) != 0)
+				continue; // can't do anything with a banned nation
+
+			if(military::are_at_war(state, gprl.get_great_power(), gprl.get_influence_target()))
+				continue; // can't do anything while at war
+
+			auto clevel = (nations::influence::level_mask & gprl.get_status());
+			if(clevel == nations::influence::level_in_sphere)
+				continue; // already in sphere
+
+			auto current_sphere = gprl.get_influence_target().get_in_sphere_of();
+
+			if(state.defines.increaseopinion_influence_cost <= gprl.get_influence() && clevel != nations::influence::level_friendly) {
+
+				gprl.get_influence() -= state.defines.increaseopinion_influence_cost;
+				auto& l = gprl.get_status();
+				l = nations::influence::increase_level(l);
+
+				notification::post(state, notification::message{
+					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_op_inc_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+					},
+					"msg_op_inc_title",
+					gprl.get_great_power().id,
+					sys::message_setting_type::increase_opinion
+				});
+			} else if(state.defines.removefromsphere_influence_cost <= gprl.get_influence() && current_sphere /* && current_sphere != gprl.get_great_power()*/ && clevel == nations::influence::level_friendly) { // condition taken care of by check above
+
+				gprl.get_influence() -= state.defines.removefromsphere_influence_cost;
+
+				gprl.get_influence_target().set_in_sphere_of(dcon::nation_id{});
+
+				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(gprl.get_influence_target(), current_sphere);
+				auto& l = state.world.gp_relationship_get_status(orel);
+				l = nations::influence::decrease_level(l);
+
+				nations::adjust_relationship(state, gprl.get_great_power(), current_sphere, state.defines.removefromsphere_relation_on_accept);
+	
+				notification::post(state, notification::message{
+					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id, affected_gp = current_sphere.id](sys::state& state, text::layout_base& contents) {
+						if(source == affected_gp)
+							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+						else
+							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+					},
+					"msg_rem_sphere_title",
+					gprl.get_great_power(),
+					sys::message_setting_type::rem_sphere_by_nation
+				});
+				notification::post(state, notification::message{
+					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id, affected_gp = current_sphere.id](sys::state& state, text::layout_base& contents) {
+						if(source == affected_gp)
+							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+						else
+							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+					},
+					"msg_rem_sphere_title",
+					current_sphere,
+					sys::message_setting_type::rem_sphere_on_nation
+				});
+				notification::post(state, notification::message{
+					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id, affected_gp = current_sphere.id](sys::state& state, text::layout_base& contents) {
+						if(source == affected_gp)
+							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+						else
+							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+					},
+					"msg_rem_sphere_title",
+					gprl.get_influence_target(),
+					sys::message_setting_type::removed_from_sphere
+				});
+			} else if(state.defines.addtosphere_influence_cost <= gprl.get_influence() && !current_sphere && clevel == nations::influence::level_friendly) {
+
+				gprl.get_influence() -= state.defines.addtosphere_influence_cost;
+				auto& l = gprl.get_status();
+				l = nations::influence::increase_level(l);
+
+				gprl.get_influence_target().set_in_sphere_of(gprl.get_great_power());
+
+				notification::post(state, notification::message{
+					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+					},
+					"msg_add_sphere_title",
+					gprl.get_great_power(),
+					sys::message_setting_type::add_sphere
+				});
+				notification::post(state, notification::message{
+					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
+					},
+					"msg_add_sphere_title",
+					gprl.get_influence_target(),
+					sys::message_setting_type::added_to_sphere
+				});
+			}
+		}
 	}
 }
 
