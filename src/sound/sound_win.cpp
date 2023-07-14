@@ -50,7 +50,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 		}
 
 		std::thread creation_dispatch([pGraph, as_music, volume, window_handle, _this = this]() {
-			HRESULT hr = pGraph->RenderFile((wchar_t*)(_this->filename.c_str()), nullptr);
+			HRESULT hr = pGraph->RenderFile((wchar_t const*)(_this->filename.c_str()), nullptr);
 			if(FAILED(hr)) {
 				MessageBoxW(nullptr, L"unable to play audio file", L"Audio error", MB_OK);
 				_this->volume_multiplier = 0.0f;

@@ -185,7 +185,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state);
 void set_default_issue_and_reform_options(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
-float effective_technology_cost(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
+float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id);
 void update_research(sys::state& state, uint32_t current_year);
 void discover_inventions(sys::state& state);
 

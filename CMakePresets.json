@@ -35,8 +35,7 @@
       "inherits": "base",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain_ninja_clang-cl.cmake"
       },
       "condition": {
         "type": "equals",
@@ -70,7 +69,7 @@
     },
     {
       "name": "x64-profile-windows",
-      "displayName": "x64 Release",
+      "displayName": "x64 Release (profile)",
       "inherits": "windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -79,7 +78,7 @@
     },
     {
       "name": "x64-optimize-windows",
-      "displayName": "x64 Release",
+      "displayName": "x64 Release (optimize)",
       "inherits": "windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -92,6 +91,24 @@
       "inherits": "windows-clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "x64-release-win-clang-profile",
+      "displayName": "x64 Release (Clang, profile)",
+      "inherits": "windows-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PROFILE_MODE": "On"
+      }
+    },
+    {
+      "name": "x64-release-win-clang-optimize",
+      "displayName": "x64 Release (Clang, optimize)",
+      "inherits": "windows-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "OPTIMIZE_MODE": "On"
       }
     },
     {

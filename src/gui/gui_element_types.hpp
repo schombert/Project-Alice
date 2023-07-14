@@ -681,7 +681,7 @@ public:
 
 	void change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s);
 
-	void on_create(sys::state& state) noexcept;
+	void on_create(sys::state& state) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 

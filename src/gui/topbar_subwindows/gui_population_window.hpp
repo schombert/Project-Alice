@@ -1110,7 +1110,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 
 class pop_location_text : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		auto pop = retrieve<dcon::pop_id>(state, parent);
 		auto loc = state.world.pop_get_province_from_pop_location(pop);
 		set_text(state, text::produce_simple_string(state, state.world.province_get_name(loc)));

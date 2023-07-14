@@ -193,7 +193,7 @@ public:
 					++regiments;
 				});
 			}
-			unit_strength_progress->progress = (strength && full_strength) ? strength / full_strength : 0.f;
+			unit_strength_progress->progress = (full_strength != 0.0f) ? strength / full_strength : 0.f;
 			unit_men_text->set_text(state, text::prettify(int32_t(strength)));
 			unit_regiments_text->set_text(state, std::to_string(regiments));
 		}
@@ -214,6 +214,7 @@ public:
 		unit_digin_icon->set_visible(state, !is_building && is_digin);
 		unit_combat_icon->set_visible(state, !is_building && is_combat);
 	}
+
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		auto const& content = listbox_row_element_base<military_unit_info<T>>::content;

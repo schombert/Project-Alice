@@ -106,6 +106,8 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 void execute_start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
 	if(!can_start_research(state, source, tech))
 		return;
+	if(state.world.nation_get_current_research(source))
+		state.world.nation_set_research_points(source, 0.0f);
 	state.world.nation_set_current_research(source, tech);
 }
 
@@ -319,8 +321,7 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 	});
 }
 
-void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov,
-		economy::province_building_type type) {
+void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::begin_province_building_construction;
@@ -329,8 +330,7 @@ void begin_province_building_construction(sys::state& state, dcon::nation_id sou
 	p.data.start_province_building.type = type;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p,
-		economy::province_building_type type) {
+bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
 
 	switch(type) {
 	case economy::province_building_type::railroad:
@@ -343,8 +343,7 @@ bool can_begin_province_building_construction(sys::state& state, dcon::nation_id
 
 	return false;
 }
-void execute_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p,
-		economy::province_building_type type) {
+void execute_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
 
 	if(!can_begin_province_building_construction(state, source, p, type))
 		return;
@@ -370,8 +369,7 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	new_rr.set_type(uint8_t(type));
 }
 
-void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location,
-		dcon::factory_type_id type, bool is_upgrade) {
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::begin_factory_building_construction;
@@ -382,8 +380,7 @@ void begin_factory_building_construction(sys::state& state, dcon::nation_id sour
 	auto b = state.incoming_commands.try_push(p);
 }
 
-bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location,
-		dcon::factory_type_id type, bool is_upgrade) {
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
 
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
 
@@ -496,8 +493,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 }
 
-void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location,
-		dcon::factory_type_id type, bool is_upgrade) {
+void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
 
 	if(!can_begin_factory_building_construction(state, source, location, type, is_upgrade))
 		return;
@@ -525,8 +521,7 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	}
 }
 
-void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type) {
+void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::begin_naval_unit_construction;
@@ -536,8 +531,7 @@ void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dc
 	auto b = state.incoming_commands.try_push(p);
 }
 
-bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type) {
+bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	/*
 	The province must be owned and controlled by the building nation, without an ongoing siege.
 	The unit type must be available from start / unlocked by the nation
@@ -576,8 +570,7 @@ bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source
 	}
 }
 
-void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type) {
+void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	if(!can_start_naval_unit_construction(state, source, location, type))
 		return;
 
@@ -585,8 +578,7 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 	c.set_type(type);
 }
 
-void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::begin_land_unit_construction;
@@ -596,8 +588,7 @@ void start_land_unit_construction(sys::state& state, dcon::nation_id source, dco
 	p.data.land_unit_construction.pop_culture = soldier_culture;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 	/*
 	The province must be owned and controlled by the building nation, without an ongoing siege.
 	The unit type must be available from start / unlocked by the nation
@@ -622,8 +613,7 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 		return false;
 	}
 }
-void execute_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+void execute_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 
 	if(!can_start_land_unit_construction(state, source, location, soldier_culture, type))
 		return;
@@ -634,8 +624,7 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 	c.set_type(type);
 }
 
-void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type) {
+void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::cancel_naval_unit_construction;
@@ -645,13 +634,11 @@ void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, d
 	auto b = state.incoming_commands.try_push(p);
 }
 
-bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type) {
+bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	return state.world.province_get_nation_from_province_ownership(location) == source;
 }
 
-void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type) {
+void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	if(!can_cancel_naval_unit_construction(state, source, location, type))
 		return;
 
@@ -664,8 +651,7 @@ void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id s
 	state.world.delete_province_naval_construction(c);
 }
 
-void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::cancel_land_unit_construction;
@@ -675,12 +661,10 @@ void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dc
 	p.data.land_unit_construction.pop_culture = soldier_culture;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 	return state.world.province_get_nation_from_province_ownership(location) == source;
 }
-void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 
 	if(!can_cancel_land_unit_construction(state, source, location, soldier_culture, type))
 		return;
@@ -741,8 +725,7 @@ void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::fa
 	p.data.factory.subsidize = subsidized;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority,
-		bool subsidized) {
+bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
 	auto loc = state.world.factory_get_province_from_factory_location(f);
 	if(state.world.province_get_nation_from_province_ownership(loc) != source)
 		return false;
@@ -764,8 +747,7 @@ bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon
 
 	return true;
 }
-void execute_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::factory_type_id type, uint8_t priority, bool subsidized) {
+void execute_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type, uint8_t priority, bool subsidized) {
 
 	if(state.world.province_get_nation_from_province_ownership(location) != source)
 		return;
@@ -927,13 +909,11 @@ void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::
 	p.data.influence_priority.priority = priority;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		uint8_t priority) {
+bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
 	// The source must be a great power, while the target must not be a great power.
 	return state.world.nation_get_is_great_power(source) && !state.world.nation_get_is_great_power(influence_target);
 }
-void execute_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		uint8_t priority) {
+void execute_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
 	if(!can_change_influence_priority(state, source, influence_target, priority))
 		return;
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
@@ -959,8 +939,7 @@ void execute_change_influence_priority(sys::state& state, dcon::nation_id source
 	}
 }
 
-void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::discredit_advisors;
@@ -969,8 +948,7 @@ void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_
 	p.data.influence_action.gp_target = affected_gp;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
 	The source must be a great power. The source must have define:DISCREDIT_INFLUENCE_COST influence points. The source may not be
 	currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a
@@ -1009,8 +987,7 @@ bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 	return nations::influence::is_influence_level_greater_or_equal(clevel,
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
-void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	if(!can_discredit_advisors(state, source, influence_target, affected_gp))
 		return;
 
@@ -1058,8 +1035,7 @@ void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id i
 	p.data.influence_action.gp_target = affected_gp;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
 	The source must be a great power. The source must have define:EXPELADVISORS_INFLUENCE_COST influence points. The source may
 	not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power
@@ -1093,8 +1069,7 @@ bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_
 	return nations::influence::is_influence_level_greater_or_equal(clevel,
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
-void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	if(!can_expel_advisors(state, source, influence_target, affected_gp))
 		return;
 
@@ -1176,8 +1151,7 @@ bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	return nations::influence::is_influence_level_greater_or_equal(clevel,
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
-void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	if(!can_ban_embassy(state, source, influence_target, affected_gp))
 		return;
 
@@ -1285,8 +1259,7 @@ void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id
 	p.data.influence_action.gp_target = affected_gp;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
 	The source must be a great power. The source must have define:DECREASEOPINION_INFLUENCE_COST influence points. The source may
 	not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power
@@ -1330,8 +1303,7 @@ bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 	return nations::influence::is_influence_level_greater_or_equal(clevel,
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
-void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
 	Decreasing the opinion of a nation "increases" your relationship with them by define:DECREASEOPINION_RELATION_ON_ACCEPT. This
 	actions costs define:DECREASEOPINION_INFLUENCE_COST influence points. Opinion of the influenced nation of the secondary target
@@ -1439,8 +1411,7 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 	});
 }
 
-void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::remove_from_sphere;
@@ -1449,8 +1420,7 @@ void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_
 	p.data.influence_action.gp_target = affected_gp;
 	auto b = state.incoming_commands.try_push(p);
 }
-bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
 	The source must be a great power. The source must have define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. The source may
 	not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power
@@ -1478,13 +1448,12 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 		return false;
 
 	auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
-	if(clevel != nations::influence::level_friendly || clevel != nations::influence::level_in_sphere)
+	if(clevel != nations::influence::level_friendly && clevel != nations::influence::level_in_sphere)
 		return false;
 
 	return true;
 }
-void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp) {
+void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
 	/*
 	Removing a nation from a sphere costs define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. If you remove a nation from
 	your own sphere you lose define:REMOVEFROMSPHERE_PRESTIGE_COST prestige and gain define:REMOVEFROMSPHERE_INFAMY_COST infamy.

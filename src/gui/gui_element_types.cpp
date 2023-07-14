@@ -824,7 +824,7 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	float dx = float(x) - radius;
 	float dy = float(y) - radius;
 	size_t index = 0;
-	if(dx || dy) {
+	if(dx != 0.0f || dy != 0.0f) {
 		float dist = std::sqrt(dx * dx + dy * dy);
 		float angle = std::acos(-dx / dist);
 		if(dy > 0.f) {

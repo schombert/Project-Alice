@@ -901,4 +901,9 @@ msg_crisis_vol_join_title;Nation Takes a Side
 msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
 multiunit_header;$x$ Units Selected
+ai_alliance_1;The AI is currently seeking allies
+ai_alliance_2;Your nation is close enough to assist in a war
+ai_alliance_3;No conflicting ambitions
+ai_alliance_4;Your nation's military is sufficiently strong
+ai_access_1;The AI sees one of your wars as advantageous to them
 ;;;;;;;;;;;;;x

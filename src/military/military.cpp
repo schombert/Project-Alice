@@ -2435,6 +2435,10 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 			}
 		}
 	}
+
+	if(as_loss) {
+		state.world.nation_set_last_war_loss(n, state.current_date);
+	}
 }
 
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {

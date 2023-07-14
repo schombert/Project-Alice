@@ -236,7 +236,7 @@ public:
 
 class decision_listbox : public listbox_element_base<decision_item, dcon::decision_id> {
 protected:
-	std::string_view get_row_element_name() {
+	std::string_view get_row_element_name() override {
 		return "decision_entry";
 	}
 };

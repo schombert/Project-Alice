@@ -57,6 +57,12 @@ public:
 			return text::produce_simple_string(state, "back_crisis_button");
 		case diplomatic_message::type_t::be_crisis_primary_attacker:
 			return text::produce_simple_string(state, "crisis_offer_button");
+		case diplomatic_message::type_t::peace_offer:
+			return text::produce_simple_string(state, "peace_offer");
+		case diplomatic_message::type_t::take_crisis_side_offer:
+			return text::produce_simple_string(state, "crisis_take_side_offer");
+		case diplomatic_message::type_t::crisis_peace_offer:
+			return text::produce_simple_string(state, "crisis_peace_offer");
 		}
 		return std::string("???");
 	}
@@ -88,6 +94,15 @@ public:
 			break;
 		case diplomatic_message::type_t::be_crisis_primary_attacker:
 			text::localised_format_box(state, contents, box, std::string_view("crisis_offer_offer"), sub);
+			break;
+		case diplomatic_message::type_t::peace_offer:
+			text::localised_format_box(state, contents, box, "peace_offer_offer");
+			break;
+		case diplomatic_message::type_t::take_crisis_side_offer:
+			text::localised_format_box(state, contents, box, "crisis_take_side_offer_offer");
+			break;
+		case diplomatic_message::type_t::crisis_peace_offer:
+			text::localised_format_box(state, contents, box, "crisis_peace_offer_offer");
 			break;
 		}
 		text::close_layout_box(contents, box);

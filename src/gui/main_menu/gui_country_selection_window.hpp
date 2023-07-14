@@ -157,6 +157,7 @@ public:
 				break;
 			case mainmenu_action::sp:
 				set_visible(state, false);
+				break;
 			default:
 				break;
 			};

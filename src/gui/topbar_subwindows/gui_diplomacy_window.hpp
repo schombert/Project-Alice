@@ -471,8 +471,8 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 }
 
 class diplomacy_priority_button : public right_click_button_element_base {
-	static std::string_view get_prio_key(uint8_t flags) {
-		switch(flags & nations::influence::priority_mask) {
+	static std::string_view get_prio_key(uint8_t f) {
+		switch(f & nations::influence::priority_mask) {
 		case nations::influence::priority_zero:
 			return "diplomacy_prio_none";
 		case nations::influence::priority_one:
@@ -673,8 +673,10 @@ protected:
 							return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
 						case country_list_filter::neighbors:
 							return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
+						default:
+							return true;
 					}
-					return true;
+					//return true;
 				}();
 				bool right_continent = !current_filter.continent || state.world.nation_get_capital(id).get_continent() == current_filter.continent;
 

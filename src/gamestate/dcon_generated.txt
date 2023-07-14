@@ -2691,6 +2691,10 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ ai_weight }
+		type{ float }
+	}
+	property{
 		name{cost}
 		type{int32_t}
 		tag{ scenario }
@@ -3481,6 +3485,16 @@ object {
 	property{
 		name{ is_interesting }
 		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ ai_is_threatened }
+		type{ bitfield }
+	}
+	property{
+		name{ ai_rival }
+		type{ nation_id }
 		tag{ save }
 	}
 }

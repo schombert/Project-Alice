@@ -1432,14 +1432,14 @@ static void* XXH_memcpy(void* dest, const void* src, size_t size) { return ZSTD_
 
 #if XXH_NO_INLINE_HINTS /* disable inlining hints */
 #if defined(__GNUC__) || defined(__clang__)
-#define XXH_FORCE_INLINE static __attribute__((unused))
+#define XXH_FORCE_INLINE static
 #else
 #define XXH_FORCE_INLINE static
 #endif
 #define XXH_NO_INLINE static
 /* enable inlining hints */
 #elif defined(__GNUC__) || defined(__clang__)
-#define XXH_FORCE_INLINE static __inline__ __attribute__((always_inline, unused))
+#define XXH_FORCE_INLINE static __inline__ __attribute__((always_inline))
 #define XXH_NO_INLINE static __attribute__((noinline))
 #elif defined(_MSC_VER) /* Visual Studio */
 #define XXH_FORCE_INLINE static __forceinline

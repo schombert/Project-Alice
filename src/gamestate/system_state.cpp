@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <thread>
 #include "rebels.hpp"
+#include "ai.hpp"
 
 namespace sys {
 //
@@ -2042,6 +2043,10 @@ void state::load_scenario_data() {
 	economy::update_factory_employment(*this);
 	economy::daily_update(*this);
 
+	ai::initialize_ai_tech_weights(*this);
+	ai::update_ai_research(*this);
+	ai::update_influence_priorities(*this);
+
 	military::recover_org(*this);
 
 	if(err.accumulated_errors.length() > 0)
@@ -2168,6 +2173,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		}
 	}
 	ui_date = current_date;
+
+	ai::initialize_ai_tech_weights(*this);
+	ai::update_ai_general_status(*this);
 
 	game_state_updated.store(true, std::memory_order::release);
 }
@@ -2460,6 +2468,12 @@ void state::game_loop() {
 					rebel::update_movements(*this);
 					rebel::update_factions(*this);
 					break;
+				case 6:
+					ai::form_alliances(*this);
+					break;
+				case 7:
+					ai::update_ai_general_status(*this);
+					break;
 				case 8:
 					military::apply_attrition(*this);
 					break;
@@ -2471,6 +2485,12 @@ void state::game_loop() {
 					break;
 				case 11:
 					province::update_nationalism(*this);
+					break;
+				case 12:
+					ai::update_ai_research(*this);
+					break;
+				case 13:
+					ai::perform_influence_actions(*this);
 					break;
 				case 15:
 					culture::discover_inventions(*this);
@@ -2498,6 +2518,13 @@ void state::game_loop() {
 					for(auto n : world.in_nation) {
 						politics::recalculate_upper_house(*this, n);
 					}
+
+					ai::update_influence_priorities(*this);
+				}
+
+				if(ymd_date.day == 1 && ymd_date.month == 6) {
+
+					ai::update_influence_priorities(*this);
 				}
 
 				/*

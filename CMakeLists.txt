@@ -67,13 +67,25 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-		target_compile_options(Alice PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile
-			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
-			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
-		target_link_options(Alice PRIVATE
-			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
-			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+		if(OPTIMIZE_MODE STREQUAL "On")
+			message(STATUS "Optimizing with PGO data")
+			target_compile_options(Alice PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -fprofile-instr-use=code.profdata)
+			target_link_options(Alice PRIVATE /OPT:REF /OPT:ICF /LTCG -fprofile-instr-use=code.profdata)
+		elseif(PROFILE_MODE STREQUAL "On")
+			message(STATUS "Compiling for PGO instrumentation")
+			target_compile_options(Alice PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
+			target_link_options(Alice PRIVATE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
+		else()
+			target_compile_options(Alice PRIVATE
+											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma
+				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
+				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
+			target_link_options(Alice PRIVATE
+				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
+				$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+		endif()
 	else()
 		set_target_properties(Alice PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -166,6 +178,7 @@ endif()
 
 target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src
+	${PROJECT_SOURCE_DIR}/src/ai
 	${PROJECT_SOURCE_DIR}/src/common_types
 	${PROJECT_SOURCE_DIR}/src/filesystem
 	${PROJECT_SOURCE_DIR}/src/gamestate
