@@ -282,6 +282,14 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 		sound::play_interface_sound(state, sound::get_click_sound(state),
 				state.user_settings.interface_volume * state.user_settings.master_volume);
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			if(state.selected_armies.size() == 0 && state.selected_navies.size() == 0) {
+				dcon::province_id prov_id = province::from_map_id(map_data.province_id_map[idx]);
+				dcon::province_ownership_id prov_ownership_id = state.world.province_get_province_ownership(prov_id);
+				dcon::nation_id owner_id = state.world.province_ownership_get_nation(prov_ownership_id);
+				state.open_diplomacy(owner_id);
+			}
+		}
 	} else {
 		set_selected_province(dcon::province_id{});
 	}

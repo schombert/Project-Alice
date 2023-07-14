@@ -637,11 +637,21 @@ public:
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr,
 					text::fp_one_place{nations::diplomatic_points(state, nation_id)});
+
+			// Monthly gain
+			text::add_to_substitution_map(sub, text::variable_type::value,
+					text::fp_one_place{nations::monthly_diplomatic_points(state, nation_id)});
+
+			text::substitution_map sub_base;
+			// Base gain
+			text::add_to_substitution_map(sub_base, text::variable_type::value,
+					text::fp_one_place{state.defines.base_monthly_diplopoints});
+
 			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_gain"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_basegain"));
+			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_basegain"), sub_base);
 			text::close_layout_box(contents, box);
 
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
