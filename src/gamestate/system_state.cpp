@@ -2043,9 +2043,11 @@ void state::load_scenario_data() {
 	economy::update_factory_employment(*this);
 	economy::daily_update(*this);
 
+	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_research(*this);
 	ai::update_influence_priorities(*this);
+	ai::update_focuses(*this);
 
 	military::recover_org(*this);
 
@@ -2174,6 +2176,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
 
@@ -2491,6 +2494,9 @@ void state::game_loop() {
 					break;
 				case 13:
 					ai::perform_influence_actions(*this);
+					break;
+				case 14:
+					ai::update_focuses(*this);
 					break;
 				case 15:
 					culture::discover_inventions(*this);

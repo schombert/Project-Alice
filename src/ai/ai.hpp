@@ -15,4 +15,6 @@ void update_ai_research(sys::state& state);
 void initialize_ai_tech_weights(sys::state& state);
 void update_influence_priorities(sys::state& state);
 void perform_influence_actions(sys::state& state);
+void update_focuses(sys::state& state);
+void identify_focuses(sys::state& state);
 }

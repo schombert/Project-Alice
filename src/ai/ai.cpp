@@ -313,13 +313,15 @@ void update_influence_priorities(sys::state& state) {
 
 			for(auto c : state.world.in_commodity) {
 				if(auto d = state.world.nation_get_real_demand(n.nation, c); d > 0.001f) {
-					auto cweight = std::min(1.0f, t.get_domestic_market_pool(c) * (1.0f - state.world.nation_get_demand_satisfaction(n.nation, c)) / d);
+					auto cweight = std::min(1.0f, t.get_domestic_market_pool(c) / d) * (1.0f - state.world.nation_get_demand_satisfaction(n.nation, c));
 					weight += cweight;
 				}
 			}
 
 			if(t.get_primary_culture().get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(n.nation).get_group_from_culture_group_membership()) {
 				weight += 4.0f;
+			} else if(t.get_in_sphere_of()) {
+				weight /= 3.0f;
 			}
 
 			if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n.nation, t.id)) {
@@ -460,6 +462,77 @@ void perform_influence_actions(sys::state& state) {
 				});
 			}
 		}
+	}
+}
+
+void identify_focuses(sys::state& state) {
+	for(auto f : state.world.in_national_focus) {
+		if(f.get_promotion_amount() > 0) {
+			if(f.get_promotion_type() == state.culture_definitions.clergy)
+				state.national_definitions.clergy_focus = f;
+			if(f.get_promotion_type() == state.culture_definitions.soldiers)
+				state.national_definitions.soldier_focus = f;
+		}
+	}
+}
+
+void update_focuses(sys::state& state) {
+	for(auto si : state.world.in_state_instance) {
+		if(!si.get_nation_from_state_ownership().get_is_player_controlled())
+			si.set_owner_focus(dcon::national_focus_id{});
+	}
+
+	for(auto n : state.world.in_nation) {
+		if(n.get_is_player_controlled())
+			continue;
+		if(n.get_owned_province_count() == 0)
+			continue;
+
+		n.set_state_from_flashpoint_focus(dcon::state_instance_id{});
+
+		auto num_focuses_total = nations::max_national_focuses(state, n);
+		if(num_focuses_total <= 0)
+			return;
+
+		auto base_opt = state.world.pop_type_get_research_optimum(state.culture_definitions.clergy);
+		auto clergy_frac = n.get_demographics(demographics::to_key(state, state.culture_definitions.clergy)) / n.get_demographics(demographics::total);
+		bool max_clergy = clergy_frac >= base_opt;
+
+		static std::vector<dcon::state_instance_id> ordered_states;
+		ordered_states.clear();
+		for(auto si : n.get_state_ownership()) {
+			ordered_states.push_back(si.get_state().id);
+		}
+		std::sort(ordered_states.begin(), ordered_states.end(), [&](auto a, auto b) {
+			auto apop = state.world.state_instance_get_demographics(a, demographics::total);
+			auto bpop = state.world.state_instance_get_demographics(b, demographics::total);
+			if(apop != bpop)
+				return apop > bpop;
+			else
+				return a.index() < b.index();
+		});
+		bool threatened = n.get_ai_is_threatened() || n.get_is_at_war();
+		for(uint32_t i = 0; num_focuses_total > 0 && i < ordered_states.size(); ++i) {
+			if(max_clergy) {
+				if(threatened) {
+					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.soldier_focus);
+					--num_focuses_total;
+				} else {
+					auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
+					if(cfrac < state.defines.max_clergy_for_literacy * 0.8f) {
+						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
+						--num_focuses_total;
+					}
+				}
+			} else {
+				auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
+				if(cfrac < base_opt * 1.2f) {
+					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
+					--num_focuses_total;
+				}
+			}
+		}
+
 	}
 }
 

@@ -96,6 +96,8 @@ struct global_national_state {
 	int32_t num_allocated_global_flags = 0;
 
 	dcon::national_focus_id flashpoint_focus;
+	dcon::national_focus_id clergy_focus;
+	dcon::national_focus_id soldier_focus;
 	float flashpoint_amount = 0.15f;
 
 	std::vector<fixed_event> on_yearly_pulse;
