@@ -80,6 +80,15 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				for(auto a : selected_navies) {
 					command::move_navy(*this, local_player_nation, a, id);
 				}
+			} else {
+				sound::play_interface_sound(*this, sound::get_click_sound(*this),
+				user_settings.interface_volume * user_settings.master_volume);
+				auto fat_id = dcon::fatten(world, province::from_map_id(map_state.map_data.province_id_map[idx]));
+					
+				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
+				auto owner = world.province_get_nation_from_province_ownership(prov_id);
+				if(owner)
+					open_diplomacy(owner);
 			}
 		}
 
