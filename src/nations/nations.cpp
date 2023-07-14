@@ -646,6 +646,12 @@ float diplomatic_points(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_diplomatic_points(n);
 }
 
+float monthly_diplomatic_points(sys::state const& state, dcon::nation_id n) {
+	auto bmod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::diplomatic_points_modifier) + 1.0f;
+	auto dmod = bmod * state.defines.base_monthly_diplopoints;
+	return dmod;
+}
+
 int32_t free_colonial_points(sys::state& state, dcon::nation_id n) {
 	float used_points = 0;
 

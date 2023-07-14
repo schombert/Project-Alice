@@ -267,7 +267,10 @@ status get_status(sys::state& state, dcon::nation_id n);
 sys::date get_research_end_date(sys::state& state, dcon::technology_id, dcon::nation_id);
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n);
 float suppression_points(sys::state const& state, dcon::nation_id n);
+
 float diplomatic_points(sys::state const& state, dcon::nation_id n);
+float monthly_diplomatic_points(sys::state const& state, dcon::nation_id n);
+
 float leadership_points(sys::state const& state, dcon::nation_id n);
 float get_treasury(sys::state& state, dcon::nation_id n);
 float get_bank_funds(sys::state& state, dcon::nation_id n);

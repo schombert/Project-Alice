@@ -64,20 +64,22 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					user_settings.interface_volume * user_settings.master_volume);
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
 
-			if((uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0) {
+			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
+				if((uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0) {
+					for(auto a : selected_armies) {
+						command::move_army(*this, local_player_nation, a, dcon::province_id{});
+					}
+					for(auto a : selected_navies) {
+						command::move_navy(*this, local_player_nation, a, dcon::province_id{});
+					}
+				}
+
 				for(auto a : selected_armies) {
-					command::move_army(*this, local_player_nation, a, dcon::province_id{});
+					command::move_army(*this, local_player_nation, a, id);
 				}
 				for(auto a : selected_navies) {
-					command::move_navy(*this, local_player_nation, a, dcon::province_id{});
+					command::move_navy(*this, local_player_nation, a, id);
 				}
-			}
-
-			for(auto a : selected_armies) {
-				command::move_army(*this, local_player_nation, a, id);
-			}
-			for(auto a : selected_navies) {
-				command::move_navy(*this, local_player_nation, a, id);
 			}
 		}
 
@@ -104,6 +106,8 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		}
 	}
 }
+
+
 void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) { }
 void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	map_state.on_mbuttom_up(x, y, mod);
