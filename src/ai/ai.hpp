@@ -17,4 +17,5 @@ void update_influence_priorities(sys::state& state);
 void perform_influence_actions(sys::state& state);
 void update_focuses(sys::state& state);
 void identify_focuses(sys::state& state);
+void take_ai_decisions(sys::state& state);
 }

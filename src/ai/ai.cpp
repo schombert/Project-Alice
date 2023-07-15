@@ -536,4 +536,49 @@ void update_focuses(sys::state& state) {
 	}
 }
 
+void take_ai_decisions(sys::state& state) {
+	for(auto d : state.world.in_decision) {
+		auto e = d.get_effect();
+		if(!e)
+			continue;
+
+		auto potential = d.get_potential();
+		auto allow = d.get_allow();
+		auto ai_will_do = d.get_ai_will_do();
+
+		ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
+			ve::vbitfield_type filter_a = potential
+				? ve::compress_mask(trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0)) & !state.world.nation_get_is_player_controlled(ids)
+				: !state.world.nation_get_is_player_controlled(ids) ;
+
+			if(filter_a.v != 0) {
+				ve::mask_vector filter_c = allow
+					? trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0) && filter_a
+					: ve::mask_vector{ filter_a };
+				ve::mask_vector filter_b = ai_will_do
+					? filter_c && (trigger::evaluate_multiplicative_modifier(state, ai_will_do, trigger::to_generic(ids), trigger::to_generic(ids), 0) > 0.0f)
+					: filter_c;
+
+				ve::apply([&](dcon::nation_id n, bool passed_filter) {
+					if(passed_filter) {
+						effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
+									uint32_t(n.index() << 4 ^ d.id.index()));
+
+						notification::post(state, notification::message{
+							[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
+								text::add_line(state, contents, "msg_decision_2");
+								ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
+							},
+							"msg_decision_title",
+							n,
+							sys::message_setting_type::decision
+						});
+					}
+				}, ids, filter_b);
+			}
+		});
+	}
+}
+
 }

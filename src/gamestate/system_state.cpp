@@ -2514,6 +2514,9 @@ void state::game_loop() {
 				case 15:
 					culture::discover_inventions(*this);
 					break;
+				case 16:
+					ai::take_ai_decisions(*this);
+					break;
 				case 20:
 					nations::monthly_flashpoint_update(*this);
 					break;
