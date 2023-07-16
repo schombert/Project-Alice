@@ -244,6 +244,19 @@ void restore_unsaved_values(sys::state& state) {
 		}
 	}
 
+	for(auto si : state.world.in_state_instance) {
+		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			if(state.world.province_get_naval_base_level(p) > 0) {
+				state.world.state_instance_set_naval_base_is_taken(si, true);
+			} else {
+				for(auto pc : state.world.province_get_province_building_construction(p)) {
+					if(pc.get_type() == uint8_t(economy::province_building_type::naval_base))
+						state.world.state_instance_set_naval_base_is_taken(si, true);
+				}
+			}
+		});
+	}
+
 	restore_cached_values(state);
 }
 
@@ -382,19 +395,12 @@ bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_
 		return false;
 
 	auto si = state.world.province_get_state_membership(id);
-	auto d = state.world.state_instance_get_definition(si);
-	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-		if(p.get_province().get_nation_from_province_ownership() == n && p.get_province() != id) {
-			if(p.get_province().get_naval_base_level() != 0 || has_naval_base_being_built(state, p.get_province()))
-				return false;
-		}
-	}
-
+	
 	int32_t current_lvl = state.world.province_get_naval_base_level(id);
 	int32_t max_local_lvl = state.world.nation_get_max_naval_base_level(n);
 	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_naval_base));
 
-	return (max_local_lvl - current_lvl - min_build > 0) && !has_naval_base_being_built(state, id);
+	return (max_local_lvl - current_lvl - min_build > 0) && (current_lvl > 0 || !si.get_naval_base_is_taken()) && !has_naval_base_being_built(state, id);
 }
 
 bool has_an_owner(sys::state& state, dcon::province_id id) {
@@ -623,6 +629,17 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 													(old_owner && state.world.nation_get_is_civilized(old_owner) == false &&
 															state.world.nation_get_is_civilized(new_owner) == true) ||
 													(!old_owner);
+	if(old_si) {
+		if(state.world.province_get_naval_base_level(id) > 0) {
+			state.world.state_instance_set_naval_base_is_taken(old_si, false);
+		} else {
+			for(auto pc : state.world.province_get_province_building_construction(id)) {
+				if(pc.get_type() == uint8_t(economy::province_building_type::naval_base)) {
+					state.world.state_instance_set_naval_base_is_taken(old_si, false);
+				}
+			}
+		}
+	}
 
 	if(new_owner) {
 		for(auto si : state.world.nation_get_state_ownership(new_owner)) {
@@ -640,11 +657,21 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			state.world.province_set_is_slave(id, false);
 			if(will_be_colonial)
 				state.world.nation_set_is_colonial_nation(new_owner, true);
+			if(state.world.province_get_naval_base_level(id) > 0)
+				state.world.state_instance_set_naval_base_is_taken(new_si, true);
+
 			state_is_new = true;
 		} else {
 			auto sc = state.world.state_instance_get_capital(new_si);
 			state.world.province_set_is_colonial(id, state.world.province_get_is_colonial(sc));
 			state.world.province_set_is_slave(id, state.world.province_get_is_slave(sc));
+			if(state.world.province_get_naval_base_level(id) > 0) {
+				if(state.world.state_instance_get_naval_base_is_taken(new_si)) {
+					state.world.province_set_naval_base_level(id, 0);
+				} else {
+					state.world.state_instance_set_naval_base_is_taken(new_si, true);
+				}
+			}
 		}
 
 		int32_t factories_in_new_state = 0;
@@ -656,8 +683,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto province_fac_range = state.world.province_get_factory_location(id);
 		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
 
-		auto excess_factories = std::min(
-				(factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
+		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
 		if(excess_factories > 0) {
 			std::vector<dcon::factory_id> to_delete;
 			while(excess_factories > 0) {

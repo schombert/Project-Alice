@@ -581,4 +581,383 @@ void take_ai_decisions(sys::state& state) {
 	}
 }
 
+void update_ai_econ_construction(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		// skip over: non ais, dead nations, and nations that aren't making money
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
+			continue;
+
+		auto treasury = n.get_stockpiles(economy::money);
+		int32_t max_projects = std::max(2, int32_t(treasury / 8000.0f));
+
+		auto rules = n.get_combined_issue_rules();
+		auto current_iscore = n.get_industrial_score();
+		if(current_iscore < 10) {
+			if((rules & issue_rule::build_factory) == 0) { // try to jumpstart econ
+				bool can_appoint = [&]() {
+
+					if(!politics::can_appoint_ruling_party(state, n))
+						return false;
+					auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
+					if(last_change && state.current_date < last_change + 365)
+						return false;
+					if(politics::is_election_ongoing(state, n))
+						return false;
+					return true;
+					/*auto gov = state.world.nation_get_government_type(source);
+					auto new_ideology = state.world.political_party_get_ideology(p);
+					if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+						return false;
+					}*/
+				}();
+
+				if(can_appoint) {
+					dcon::political_party_id target;
+
+					auto gov = n.get_government_type();
+					auto identity = n.get_identity_from_identity_holder();
+					auto start = state.world.national_identity_get_political_party_first(identity).id.index();
+					auto end = start + state.world.national_identity_get_political_party_count(identity);
+
+					for(int32_t i = start; i < end && !target; i++) {
+						auto pid = dcon::political_party_id(uint16_t(i));
+						if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+
+							for(auto pi : state.culture_definitions.party_issues) {
+								auto issue_rules = state.world.political_party_get_party_issues(pid, pi).get_rules();
+								if((issue_rules & issue_rule::build_factory) != 0) {
+									target = pid;
+									break;
+								}
+							}
+						}
+					}
+
+					if(target) {
+						politics::appoint_ruling_party(state, n, target);
+						rules = n.get_combined_issue_rules();
+					}
+				} // END if(can_appoint)
+			} // END if((rules & issue_rule::build_factory) == 0)
+		} // END if(current_iscore < 10)
+
+
+		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
+			static::std::vector<dcon::factory_type_id> desired_types;
+			desired_types.clear();
+
+			// first pass: try to fill shortages
+			for(auto type : state.world.in_factory_type) {
+				if(n.get_active_building(type) || type.get_is_available_from_start()) {
+					bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 1.0f;
+
+					if(lacking_output) {
+						auto& inputs = type.get_inputs();
+						bool lacking_input = false;
+
+						for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+							if(inputs.commodity_type[i]) {
+								if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
+									lacking_input = true;
+							} else {
+								break;
+							}
+						}
+
+						if(!lacking_input)
+							desired_types.push_back(type.id);
+					}
+				} // END if building unlocked
+			}
+
+			if(desired_types.empty()) { // second pass: try to make money
+				for(auto type : state.world.in_factory_type) {
+					if(n.get_active_building(type) || type.get_is_available_from_start()) {
+						auto& inputs = type.get_inputs();
+						bool lacking_input = false;
+
+						for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+							if(inputs.commodity_type[i]) {
+								if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
+									lacking_input = true;
+							} else {
+								break;
+							}
+						}
+
+						if(!lacking_input)
+							desired_types.push_back(type.id);
+					} // END if building unlocked
+				}
+			}
+
+			// desired types filled: try to construct or upgrade
+			if(!desired_types.empty()) {
+				static std::vector<dcon::state_instance_id> ordered_states;
+				ordered_states.clear();
+				for(auto si : n.get_state_ownership()) {
+					if(si.get_state().get_capital().get_is_colonial() == false)
+						ordered_states.push_back(si.get_state().id);
+				}
+				std::sort(ordered_states.begin(), ordered_states.end(), [&](auto a, auto b) {
+					auto apop = state.world.state_instance_get_demographics(a, demographics::total);
+					auto bpop = state.world.state_instance_get_demographics(b, demographics::total);
+					if(apop != bpop)
+						return apop > bpop;
+					else
+						return a.index() < b.index();
+				});
+
+				if((rules & issue_rule::build_factory) == 0) { // can't build -- by elimination, can upgrade
+					for(auto si : ordered_states) {
+						if(max_projects <= 0)
+							break;
+
+						auto pw_num = state.world.state_instance_get_demographics(si,
+								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+						auto pw_employed = state.world.state_instance_get_demographics(si,
+								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+
+						if(pw_employed >= pw_num && pw_num > 0.0f)
+							continue; // no spare workers
+
+						province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+							for(auto fac : state.world.province_get_factory_location(p)) {
+								auto type = fac.get_factory().get_building_type();
+								if(fac.get_factory().get_unprofitable() == false
+									&& fac.get_factory().get_level() < uint8_t(255)
+									&& std::find(desired_types.begin(), desired_types.end(), type) != desired_types.end()) {
+
+									auto ug_in_progress = false;
+									for(auto c : state.world.state_instance_get_state_building_construction(si)) {
+										if(c.get_type() == type) {
+											ug_in_progress = true;
+											break;
+										}
+									}
+									if(!ug_in_progress) {
+										auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+										new_up.set_is_pop_project(false);
+										new_up.set_is_upgrade(true);
+										new_up.set_type(type);
+
+										--max_projects;
+										return;
+									}
+								}
+							}
+						});
+					} // END for(auto si : ordered_states) {
+				} else { // if if((rules & issue_rule::build_factory) == 0) -- i.e. if building is possible
+					for(auto si : ordered_states) {
+						if(max_projects <= 0)
+							break;
+
+						// check -- either unemployed factory workers or no factory workers
+						auto pw_num = state.world.state_instance_get_demographics(si,
+								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+						auto pw_employed = state.world.state_instance_get_demographics(si,
+								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+
+						if(pw_employed >= pw_num && pw_num > 0.0f)
+							continue; // no spare workers
+
+						auto type_selection = desired_types[rng::get_random(state, uint32_t(n.id.index() + max_projects)) % desired_types.size()];
+						assert(type_selection);
+
+						if(state.world.factory_type_get_is_coastal(type_selection) && !province::state_is_coastal(state, si))
+							continue;
+
+						bool already_in_progress = [&]() {
+							for(auto p : state.world.state_instance_get_state_building_construction(si)) {
+								if(p.get_type() == type_selection)
+									return true;
+							}
+							return false;
+						}();
+						if(already_in_progress)
+							continue;
+
+						if((rules & issue_rule::expand_factory) != 0) { // check: if present, try to upgrade
+							bool present_in_location = false;
+							province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+								for(auto fac : state.world.province_get_factory_location(p)) {
+									auto type = fac.get_factory().get_building_type();
+									if(type_selection == type) {
+										present_in_location = true;
+										return;
+									}
+								}
+							});
+							if(present_in_location) {
+								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+								new_up.set_is_pop_project(false);
+								new_up.set_is_upgrade(true);
+								new_up.set_type(type_selection);
+
+								--max_projects;
+								continue;
+							}
+						}
+
+						// else -- try to build -- must have room
+						int32_t num_factories = 0;
+
+						auto d = state.world.state_instance_get_definition(si);
+						for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+							if(p.get_province().get_nation_from_province_ownership() == n) {
+								for(auto f : p.get_province().get_factory_location()) {
+									++num_factories;
+								}
+							}
+						}
+						for(auto p : state.world.state_instance_get_state_building_construction(si)) {
+							if(p.get_is_upgrade() == false)
+								++num_factories;
+						}
+						if(num_factories <= int32_t(state.defines.factories_per_state)) {
+							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+							new_up.set_is_pop_project(false);
+							new_up.set_is_upgrade(false);
+							new_up.set_type(type_selection);
+
+							--max_projects;
+							continue;
+						} else {
+							// TODO: try to delete a factory here
+						}
+
+					} // END for(auto si : ordered_states) {
+				} // END if((rules & issue_rule::build_factory) == 0) 
+			} // END if(!desired_types.empty()) {
+		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
+
+		static std::vector<dcon::province_id> project_provs;
+
+		// try naval bases
+		if(max_projects > 0) {
+			project_provs.clear();
+			for(auto o : n.get_province_ownership()) {
+				if(!o.get_province().get_is_coast())
+					continue;
+				if(n != o.get_province().get_nation_from_province_control())
+					continue;
+				if(military::province_is_under_siege(state, o.get_province()))
+					continue;
+				if(o.get_province().get_naval_base_level() == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
+					continue;
+
+				int32_t current_lvl = o.get_province().get_naval_base_level();
+				int32_t max_local_lvl = n.get_max_naval_base_level();
+				int32_t min_build = int32_t(o.get_province().get_modifier_values(sys::provincial_mod_offsets::min_build_naval_base));
+
+				if(max_local_lvl - current_lvl - min_build <= 0)
+					continue;
+
+				if(!province::has_naval_base_being_built(state, o.get_province()))
+					project_provs.push_back(o.get_province().id);
+			}
+
+			auto cap = n.get_capital();
+			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+				auto a_dist = province::direct_distance(state, a, cap);
+				auto b_dist = province::direct_distance(state, b, cap);
+				if(a_dist != b_dist)
+					return a_dist < b_dist;
+				else
+					return a.index() < b.index();
+			});
+			if(!project_provs.empty()) {
+				auto si = state.world.province_get_state_membership(project_provs[0]);
+				if(si)
+					si.set_naval_base_is_taken(true);
+				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[0], n));
+				new_rr.set_is_pop_project(false);
+				new_rr.set_type(uint8_t(economy::province_building_type::naval_base));
+				--max_projects;
+			}
+		}
+
+		// try railroads
+		if((rules & issue_rule::build_railway) != 0 && max_projects > 0) {
+			project_provs.clear();
+			for(auto o : n.get_province_ownership()) {
+				if(n != o.get_province().get_nation_from_province_control())
+					continue;
+				if(military::province_is_under_siege(state, o.get_province()))
+					continue;
+
+				int32_t current_rails_lvl = state.world.province_get_railroad_level(o.get_province());
+				int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(n);
+				int32_t min_build_railroad =
+					int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_railroad));
+
+				if(max_local_rails_lvl - current_rails_lvl - min_build_railroad <= 0)
+					continue;
+
+				if(!province::has_railroads_being_built(state, o.get_province())) {
+					project_provs.push_back(o.get_province().id);
+				}
+			}
+
+			auto cap = n.get_capital();
+			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+				auto a_dist = province::direct_distance(state, a, cap);
+				auto b_dist = province::direct_distance(state, b, cap);
+				if(a_dist != b_dist)
+					return a_dist < b_dist;
+				else
+					return a.index() < b.index();
+			});
+
+			for(uint32_t i = 0; i < project_provs.size() && max_projects > 0; ++i) {
+				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
+				new_rr.set_is_pop_project(false);
+				new_rr.set_type(uint8_t(economy::province_building_type::railroad));
+				--max_projects;
+			}
+		}
+
+		// try forts
+		if(max_projects > 0) {
+			project_provs.clear();
+
+			for(auto o : n.get_province_ownership()) {
+				if(n != o.get_province().get_nation_from_province_control())
+					continue;
+				if(military::province_is_under_siege(state, o.get_province()))
+					continue;
+
+				int32_t current_lvl = state.world.province_get_fort_level(o.get_province());
+				int32_t max_local_lvl = state.world.nation_get_max_fort_level(n);
+				int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_fort));
+
+				if(max_local_lvl - current_lvl - min_build <= 0)
+					continue;
+
+				if(!province::has_fort_being_built(state, o.get_province())) {
+					project_provs.push_back(o.get_province().id);
+				}
+			}
+
+			auto cap = n.get_capital();
+			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+				auto a_dist = province::direct_distance(state, a, cap);
+				auto b_dist = province::direct_distance(state, b, cap);
+				if(a_dist != b_dist)
+					return a_dist < b_dist;
+				else
+					return a.index() < b.index();
+			});
+
+			for(uint32_t i = 0; i < project_provs.size() && max_projects > 0; ++i) {
+				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
+				new_rr.set_is_pop_project(false);
+				new_rr.set_type(uint8_t(economy::province_building_type::fort));
+				--max_projects;
+			}
+		}
+	}
+}
+
 }

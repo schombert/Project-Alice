@@ -348,6 +348,12 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	if(!can_begin_province_building_construction(state, source, p, type))
 		return;
 
+	if(type == economy::province_building_type::naval_base) {
+		auto si = state.world.province_get_state_membership(p);
+		if(si)
+			si.set_naval_base_is_taken(true);
+	}
+
 	if(type == economy::province_building_type::railroad && source != state.world.province_get_nation_from_province_ownership(p)) {
 		float amount = 0.0f;
 
@@ -1921,7 +1927,8 @@ bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::p
 	*/
 	if(state.world.nation_get_ruling_party(source) == p)
 		return false;
-
+	if(!politics::political_party_is_active(state, p))
+		return false;
 	if(!politics::can_appoint_ruling_party(state, source))
 		return false;
 

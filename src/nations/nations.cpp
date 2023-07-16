@@ -157,6 +157,11 @@ void restore_unsaved_values(sys::state& state) {
 		}
 	});
 
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto treasury = state.world.nation_get_stockpiles(ids, economy::money);
+		state.world.nation_set_last_treasury(ids, treasury);
+	});
+
 	restore_cached_values(state);
 }
 

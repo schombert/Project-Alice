@@ -2524,6 +2524,10 @@ object {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
 	}
+	property {
+		name{ naval_base_is_taken }
+		type{ bitfield }
+	}
 }
 relationship{
 	name{ colonization }
@@ -3228,6 +3232,10 @@ object {
 		name{ tariffs }
 		type{ int8_t }
 		tag{ save }
+	}
+	property {
+		name{ last_treasury }
+		type{ float }
 	}
 	property {
 		name{ industrial_score }

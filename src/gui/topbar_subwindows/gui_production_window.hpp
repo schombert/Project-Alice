@@ -526,14 +526,32 @@ class normal_factory_background : public opaque_element_base {
 	}
 };
 
+class factory_input_icon : public image_element_base {
+public:
+	dcon::commodity_id com;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return com ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, state.world.commodity_get_name(com));
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(com)
+			image_element_base::render(state, x, y);
+	}
+};
+
 class production_factory_info : public window_element_base {
-	image_element_base* output_icon = nullptr;
-	image_element_base* input_icons[economy::commodity_set::set_size] = {nullptr};
+	factory_input_icon* input_icons[economy::commodity_set::set_size] = {nullptr};
 	image_element_base* input_lack_icons[economy::commodity_set::set_size] = {nullptr};
 	std::vector<element_base*> factory_elements;
 	std::vector<element_base*> upgrade_elements;
 	std::vector<element_base*> build_elements;
 	std::vector<element_base*> closed_elements;
+	dcon::commodity_id output_commodity;
 
 public:
 	uint8_t index = 0; // from 0 to int32_t(state.defines.factories_per_state)
@@ -554,9 +572,7 @@ public:
 			factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "output") {
-			auto ptr = make_element_by_type<commodity_image>(state, id);
-			output_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "closed_overlay") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			closed_elements.push_back(ptr.get());
@@ -616,8 +632,8 @@ public:
 				input_lack_icons[input_index] = ptr.get();
 				return ptr;
 			} else {
-				auto ptr = make_element_by_type<commodity_image>(state, id);
-				input_icons[input_index] = ptr.get();
+				auto ptr = make_element_by_type<factory_input_icon>(state, id);
+				input_icons[input_index] = static_cast<factory_input_icon*>(ptr.get());
 				return ptr;
 			}
 		} else {
@@ -648,6 +664,17 @@ public:
 					e->set_visible(state, true);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
+
+				auto& cset = fat_btid.get_construction_costs();
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(input_icons[size_t(i)]) {
+						dcon::commodity_id cid = cset.commodity_type[size_t(i)];
+						input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
+						input_icons[size_t(i)]->com = cid;
+						bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+						input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+					}
+				}
 			} else if(std::holds_alternative<economy::upgraded_factory>(content.activity)) {
 				// Upgrade
 				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.activity);
@@ -661,6 +688,17 @@ public:
 					e->set_visible(state, false);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
+
+				auto& cset = fat_btid.get_inputs();
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(input_icons[size_t(i)]) {
+						dcon::commodity_id cid = cset.commodity_type[size_t(i)];
+						input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
+						input_icons[size_t(i)]->com = cid;
+						bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+						input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+					}
+				}
 			} else {
 				// "Normal" factory, not being upgraded or built
 				dcon::factory_id fid = content.id;
@@ -675,21 +713,22 @@ public:
 					e->set_visible(state, false);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, is_closed);
+
+				auto& cset = fat_btid.get_inputs();
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(input_icons[size_t(i)]) {
+						dcon::commodity_id cid = cset.commodity_type[size_t(i)];
+						input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
+						input_icons[size_t(i)]->com = cid;
+						bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+						input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+					}
+				}
 			}
 
-			{
-				dcon::commodity_id cid = fat_btid.get_output().id;
-				output_icon->frame = int32_t(state.world.commodity_get_icon(cid));
-			}
-			// Commodity set
-			auto cset = fat_btid.get_inputs();
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
-				if(input_icons[size_t(i)]) {
-					dcon::commodity_id cid = cset.commodity_type[size_t(i)];
-					input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
-					bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
-					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
-				}
+			output_commodity = fat_btid.get_output().id;
+			
+			
 		}
 	}
 
@@ -709,6 +748,8 @@ public:
 				if(std::holds_alternative<economy::new_factory>(content.activity))
 					payload.emplace<economy::new_factory>(std::get<economy::new_factory>(content.activity));
 				return message_result::consumed;
+			} else if(payload.holds_type<dcon::commodity_id>()) {
+				payload.emplace<dcon::commodity_id>(output_commodity);
 			}
 		}
 		return message_result::unseen;
@@ -1375,11 +1416,12 @@ public:
 };
 
 class production_good_info : public window_element_base {
-	dcon::commodity_id commodity_id{};
 	commodity_player_production_text* good_output_total = nullptr;
 	image_element_base* good_not_producing_overlay = nullptr;
 
 public:
+	dcon::commodity_id commodity_id;
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "output_factory") {
 			return make_element_by_type<commodity_image>(state, id);
@@ -1418,14 +1460,6 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(commodity_id);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -1520,7 +1554,7 @@ public:
 					commodity_offset.y += cell_height;
 				}
 
-				send(state, info_ptr.get(), id);
+				info_ptr.get()->commodity_id = id;
 
 				good_elements.push_back(info_ptr.get());
 				add_child_to_front(std::move(info_ptr));

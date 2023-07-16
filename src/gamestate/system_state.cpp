@@ -2517,6 +2517,9 @@ void state::game_loop() {
 				case 16:
 					ai::take_ai_decisions(*this);
 					break;
+				case 18:
+					ai::update_ai_econ_construction(*this);
+					break;
 				case 20:
 					nations::monthly_flashpoint_update(*this);
 					break;
