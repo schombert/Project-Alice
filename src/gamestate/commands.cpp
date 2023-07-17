@@ -1593,67 +1593,7 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(pr);
 	if(province::is_colonizing(state, source, state_def)) {
-		uint8_t greatest_other_level = 0;
-		dcon::nation_id second_colonizer;
-		for(auto rel : state.world.state_definition_get_colonization(state_def)) {
-			if(rel.get_colonizer() != source) {
-				if(rel.get_level() >= greatest_other_level) {
-					greatest_other_level = rel.get_level();
-					second_colonizer = rel.get_colonizer();
-				}
-			}
-		}
-
-		for(auto rel : state.world.state_definition_get_colonization(state_def)) {
-			if(rel.get_colonizer() == source) {
-
-				if(state.world.state_definition_get_colonization_stage(state_def) == 1) {
-					rel.get_points_invested() += uint16_t(state.defines.colonization_interest_cost);
-				} else if(rel.get_level() <= 4) {
-					rel.get_points_invested() += uint16_t(state.defines.colonization_influence_cost);
-				} else {
-					rel.get_points_invested() += uint16_t(
-							state.defines.colonization_extra_guard_cost * (rel.get_level() - 4) + state.defines.colonization_influence_cost);
-				}
-
-				rel.get_level() += uint8_t(1);
-				rel.set_last_investment(state.current_date);
-
-				/*
-				If you get define:COLONIZATION_INTEREST_LEAD points it moves into phase 2, kicking out all but the second-most
-				colonizer (in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other
-				colonizer, the other colonizer is kicked out and the phase moves to 3.
-				*/
-				if(state.world.state_definition_get_colonization_stage(state_def) == 1) {
-					if(rel.get_level() >= int32_t(state.defines.colonization_interest_lead)) {
-
-						state.world.state_definition_set_colonization_stage(state_def, uint8_t(2));
-						auto col_range = state.world.state_definition_get_colonization(state_def);
-						while(int32_t(col_range.end() - col_range.begin()) > 2) {
-							for(auto r : col_range) {
-								if(r.get_colonizer() != source && r.get_colonizer() != second_colonizer) {
-									state.world.delete_colonization(r);
-									break;
-								}
-							}
-						}
-					}
-				} else if(rel.get_level() >= int32_t(state.defines.colonization_interest_lead) + greatest_other_level) {
-					state.world.state_definition_set_colonization_stage(state_def, uint8_t(3));
-					auto col_range = state.world.state_definition_get_colonization(state_def);
-					while(int32_t(col_range.end() - col_range.begin()) > 1) {
-						for(auto r : col_range) {
-							if(r.get_colonizer() != source) {
-								state.world.delete_colonization(r);
-								break;
-							}
-						}
-					}
-				}
-				return;
-			}
-		}
-
+		province::increase_colonial_investment(state, source, state_def);
 	} else {
 		bool adjacent = [&]() {
 			for(auto p : state.world.state_definition_get_abstract_state_membership(state_def)) {
@@ -1674,8 +1614,7 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 		auto new_rel = fatten(state.world, state.world.force_create_colonization(state_def, source));
 		new_rel.set_level(uint8_t(1));
 		new_rel.set_last_investment(state.current_date);
-		new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial +
-																				 (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
+		new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial +  (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
 
 		state.world.state_definition_set_colonization_stage(state_def, uint8_t(1));
 	}
@@ -1738,7 +1677,7 @@ void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon
 	state.world.state_definition_set_colonization_stage(state_def, uint8_t(0));
 
 	auto rng = state.world.state_definition_get_colonization(state_def);
-	;
+
 	while(rng.begin() != rng.end()) {
 		state.world.delete_colonization(*rng.begin());
 	}

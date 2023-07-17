@@ -84,9 +84,11 @@ void update_crimes(sys::state& state);
 void update_nationalism(sys::state& state);
 
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
+bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, bool state_is_coastal, bool& adjacent);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 bool is_colonizing(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 void update_colonization(sys::state& state);
+void increase_colonial_investment(sys::state& state, dcon::nation_id source, dcon::state_definition_id state_def);
 
 void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);
 void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);

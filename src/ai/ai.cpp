@@ -960,4 +960,102 @@ void update_ai_econ_construction(sys::state& state) {
 	}
 }
 
+void update_ai_colonial_investment(sys::state& state) {
+	static std::vector<dcon::state_definition_id> investments;
+	static std::vector<int32_t> free_points;
+
+	investments.clear();
+	investments.resize(uint32_t(state.defines.colonial_rank));
+
+	free_points.clear();
+	free_points.resize(uint32_t(state.defines.colonial_rank), -1);
+
+	for(auto col : state.world.in_colonization) {
+		auto n = col.get_colonizer();
+		if(n.get_is_player_controlled() == false
+			&& n.get_rank() <= uint16_t(state.defines.colonial_rank)
+			&& !investments[n.get_rank() - 1]
+			&& col.get_state().get_colonization_stage() <= uint8_t(2)
+			&& state.crisis_colony != col.get_state()
+			&& (!state.crisis_war || n.get_is_at_war() == false)
+			 ) {
+
+			auto crange = col.get_state().get_colonization();
+			if(crange.end() - crange.begin() > 1) {
+				if(col.get_last_investment() + int32_t(state.defines.colonization_days_between_investment) <= state.current_date) {
+
+					if(free_points[n.get_rank() - 1] < 0) {
+						free_points[n.get_rank() - 1] = nations::free_colonial_points(state, n);
+					}
+
+					int32_t cost = 0;;
+					if(col.get_state().get_colonization_stage() == 1) {
+						cost = int32_t(state.defines.colonization_interest_cost);
+					} else if(col.get_level() <= 4) {
+						cost = int32_t(state.defines.colonization_influence_cost);
+					} else {
+						cost =
+							int32_t(state.defines.colonization_extra_guard_cost * (col.get_level() - 4) + state.defines.colonization_influence_cost);
+					}
+					if(free_points[n.get_rank() - 1] >= cost) {
+						investments[n.get_rank() - 1] = col.get_state().id;
+					}
+				}
+			}
+		}
+	}
+	for(uint32_t i = 0; i < investments.size(); ++i) {
+		if(investments[i])
+			province::increase_colonial_investment(state, state.nations_by_rank[i], investments[i]);
+	}
+}
+void update_ai_colony_starting(sys::state& state) {
+	static std::vector<int32_t> free_points;
+	free_points.clear();
+	free_points.resize(uint32_t(state.defines.colonial_rank), -1);
+	for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
+		if(state.world.nation_get_is_player_controlled(state.nations_by_rank[i])) {
+			free_points[i] = 0;
+		} else {
+			if(military::get_role(state, state.crisis_war, state.nations_by_rank[i]) != military::war_role::none) {
+				free_points[i] = 0;
+			} else {
+				free_points[i] = nations::free_colonial_points(state, state.nations_by_rank[i]);
+			}
+		}
+	}
+	for(auto sd : state.world.in_state_definition) {
+		if(sd.get_colonization_stage() <= 1) {
+			bool has_unowned_land = false;
+			bool state_is_coastal = false;
+
+			for(auto p : state.world.state_definition_get_abstract_state_membership(sd)) {
+				if(!p.get_province().get_nation_from_province_ownership()) {
+					if(p.get_province().get_is_coast())
+						state_is_coastal = true;
+					if(p.get_province().id.index() < state.province_definitions.first_sea_province.index())
+						has_unowned_land = true;
+				}
+			}
+			if(has_unowned_land) {
+				for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
+					if(free_points[i] > 0) {
+						bool adjacent = false;
+						if(province::fast_can_start_colony(state, state.nations_by_rank[i], sd, free_points[i], state_is_coastal, adjacent)) {
+							free_points[i] -= int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
+
+							auto new_rel = fatten(state.world, state.world.force_create_colonization(sd, state.nations_by_rank[i]));
+							new_rel.set_level(uint8_t(1));
+							new_rel.set_last_investment(state.current_date);
+							new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
+
+							state.world.state_definition_set_colonization_stage(sd, uint8_t(1));
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 }

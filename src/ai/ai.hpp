@@ -19,4 +19,6 @@ void update_focuses(sys::state& state);
 void identify_focuses(sys::state& state);
 void take_ai_decisions(sys::state& state);
 void update_ai_econ_construction(sys::state& state);
+void update_ai_colonial_investment(sys::state& state);
+void update_ai_colony_starting(sys::state& state);
 }

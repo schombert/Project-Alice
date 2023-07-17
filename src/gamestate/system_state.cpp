@@ -2058,7 +2058,7 @@ void state::load_scenario_data() {
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
-	ai::update_ai_research(*this);
+	// ai::update_ai_research(*this);
 	ai::update_influence_priorities(*this);
 	ai::update_focuses(*this);
 
@@ -2466,6 +2466,11 @@ void state::game_loop() {
 				nations::update_crisis(*this);
 				politics::update_elections(*this);
 
+				//
+				if(current_date.value % 4 == 0) {
+					ai::update_ai_colonial_investment(*this);
+				}
+
 				// Once per month updates, spread out over the month
 				switch(ymd_date.day) {
 				case 1:
@@ -2522,6 +2527,9 @@ void state::game_loop() {
 					break;
 				case 20:
 					nations::monthly_flashpoint_update(*this);
+					break;
+				case 21:
+					ai::update_ai_colony_starting(*this);
 					break;
 				case 24:
 					rebel::execute_rebel_victories(*this);

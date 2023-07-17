@@ -1228,9 +1228,125 @@ public:
 			disabled = !command::can_invest_in_colony(state, state.local_player_nation, content);
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto province = retrieve<dcon::province_id>(state, parent);
+		auto sdef = state.world.province_get_state_from_abstract_state_membership(province);
+		auto col = retrieve<dcon::colonization_id>(state, parent);
+
+		if(!province::is_colonizing(state, state.local_player_nation, sdef)) {
+			text::add_line(state, contents, "col_start_title");
+			text::add_line_break_to_layout(state, contents);
+
+			text::add_line_with_condition(state, contents, "col_start_1", state.world.state_definition_get_colonization_stage(sdef) <= uint8_t(1));
+			text::add_line_with_condition(state, contents, "col_start_2", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
+			text::add_line_with_condition(state, contents, "col_start_3", state.crisis_colony != sdef);
+		
+			bool war_participant = false;
+			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
+				if(par.get_nation() == state.local_player_nation)
+					war_participant = true;
+			}
+			text::add_line_with_condition(state, contents, "col_start_4", !war_participant);
+
+			float max_life_rating = -1.0f;
+			for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
+				if(!p.get_province().get_nation_from_province_ownership()) {
+					max_life_rating = std::max(max_life_rating, float(p.get_province().get_life_rating()));
+				}
+			}
+
+			text::add_line_with_condition(state, contents, "col_start_5",
+				state.defines.colonial_liferating + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::colonial_life_rating) <= max_life_rating,
+				text::variable_type::x, int64_t(state.defines.colonial_liferating + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::colonial_life_rating)),
+				text::variable_type::y, int64_t(max_life_rating));
+			text::add_line(state, contents, "col_start_6", text::variable_type::x, int64_t(state.defines.colonial_liferating), 15);
+			active_modifiers_description(state, contents, state.local_player_nation, 15, sys::national_mod_offsets::colonial_life_rating, false);
+
+			auto colonizers = state.world.state_definition_get_colonization(sdef);
+			auto num_colonizers = colonizers.end() - colonizers.begin();
+
+			text::add_line_with_condition(state, contents, "col_start_7", num_colonizers < 4);
+		
+			bool nation_has_port = state.world.nation_get_central_ports(state.local_player_nation) != 0;
+			bool adjacent = [&]() {
+				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
+					if(!p.get_province().get_nation_from_province_ownership()) {
+						for(auto adj : p.get_province().get_province_adjacency()) {
+							auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
+							auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
+							if(o == state.local_player_nation)
+								return true;
+							if(o.get_overlord_as_subject().get_ruler() == state.local_player_nation)
+								return true;
+						}
+					}
+				}
+				return false;
+			}();
+			bool coastal = nation_has_port && [&]() {
+				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
+					if(!p.get_province().get_nation_from_province_ownership()) {
+						if(p.get_province().get_is_coast())
+							return true;
+					}
+				}
+				return false;
+			}();
+
+			text::add_line_with_condition(state, contents, "col_start_8", adjacent || coastal);
+
+			auto free_points = nations::free_colonial_points(state, state.local_player_nation);
+			auto required_points = int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
+			
+			text::add_line_with_condition(state, contents, "col_start_9", free_points > required_points, text::variable_type::x, required_points);
+		} else {
+			text::add_line(state, contents, "col_invest_title");
+			text::add_line_break_to_layout(state, contents);
+
+			text::add_line_with_condition(state, contents, "col_invest_1", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
+
+			text::add_line_with_condition(state, contents, "col_invest_2", state.crisis_colony != sdef);
+
+			bool war_participant = false;
+			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
+				if(par.get_nation() == state.local_player_nation)
+					war_participant = true;
+			}
+			text::add_line_with_condition(state, contents, "col_invest_3", !war_participant);
+
+			auto crange = state.world.state_definition_get_colonization(sdef);
+			auto last_investment = state.world.colonization_get_last_investment(col);
+
+			if(crange.end() - crange.begin() <= 1) { // no competition
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "col_invest_4", text::variable_type::x, last_investment + int32_t(state.defines.colonization_days_for_initial_investment));
+			} else {
+				text::add_line_with_condition(state, contents, "col_invest_5", last_investment + int32_t(state.defines.colonization_days_between_investment) <= state.current_date,
+					text::variable_type::x, int32_t(state.defines.colonization_days_between_investment),
+					text::variable_type::y, last_investment + int32_t(state.defines.colonization_days_between_investment));
+
+				auto free_points = nations::free_colonial_points(state, state.local_player_nation);
+				int32_t point_cost = 0;
+				if(state.world.state_definition_get_colonization_stage(sdef) == 1) {
+					point_cost = int32_t(state.defines.colonization_interest_cost);
+				} else if(state.world.colonization_get_level(col) <= 4) {
+					point_cost = int32_t(state.defines.colonization_influence_cost);
+				} else {
+					point_cost = int32_t(state.defines.colonization_extra_guard_cost * (state.world.colonization_get_level(col) - 4) + state.defines.colonization_influence_cost);
+				}
+
+				text::add_line_with_condition(state, contents, "col_invest_6", free_points >= point_cost, text::variable_type::x, point_cost);
+			}
+		}
+	}
 };
 
-class level_entry : public listbox_row_element_base<uint8_t> {
+class level_entry : public listbox_row_element_base<int8_t> {
 private:
 	image_element_base* progressicon = nullptr;
 	button_element_base* investbutton = nullptr;
@@ -1250,16 +1366,19 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(content != 255) {progressicon->frame = content; } else { progressicon->set_visible(state, false); }
-		if(content == 255) {
-			investbutton->set_visible(state, true);
-		} else {
+		if(content >= 0) {
+			progressicon->frame = content;
 			investbutton->set_visible(state, false);
+			progressicon->set_visible(state, true);
+		} else {
+			investbutton->frame = -(content + 1);
+			investbutton->set_visible(state, true);
+			progressicon->set_visible(state, false);
 		}
 	}
 };
 
-class colonisation_listbox : public overlapping_listbox_element_base<level_entry, uint8_t> {
+class colonisation_listbox : public overlapping_listbox_element_base<level_entry, int8_t> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "level_entry";
@@ -1270,19 +1389,48 @@ public:
 		Cyto::Any payload = dcon::colonization_id{};
 		parent->impl_get(state, payload);
 		auto content = any_cast<dcon::colonization_id>(payload);
-		auto fat_colony = dcon::fatten(state.world, content);
+		
+		row_contents.clear();
 
-		if(province::is_colonizing(state, fat_colony.get_colonizer().id, fat_colony.get_state().id)) {
-			for(uint8_t i = 0; i < fat_colony.get_level(); ++i) {
-				row_contents.push_back(i);
+		if(!content) {
+			row_contents.push_back(int8_t(-1));
+		} else {
+			auto province = retrieve<dcon::province_id>(state, parent);
+			auto stage = state.world.state_definition_get_colonization_stage(state.world.province_get_state_from_abstract_state_membership(province));
+
+			auto fat_colony = dcon::fatten(state.world, content);
+
+			if(stage == 3) {
+				row_contents.push_back(int8_t(0));
+				row_contents.push_back(int8_t(1));
+				row_contents.push_back(int8_t(2));
+				row_contents.push_back(int8_t(3));
+				row_contents.push_back(int8_t(4));
+			} else if(fat_colony.get_colonizer() == state.local_player_nation) {
+				int8_t i = 0;
+				for(; i < 4 && i < int32_t(fat_colony.get_level()); ++i) {
+					row_contents.push_back(i);
+				}
+				row_contents.push_back(int8_t(-(i + 1)));
+			} else {
+				for(int8_t i = 0; i < 5 && i < int32_t(fat_colony.get_level()); ++i) {
+					row_contents.push_back(i);
+				}
 			}
 		}
-
-		if(row_contents.size() == 0) {
-			row_contents.push_back(255);
-		}
-
 		update(state);
+	}
+};
+
+class colonization_level_number : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto col = retrieve<dcon::colonization_id>(state, parent);
+		auto level = state.world.colonization_get_level(col);
+		if(level < 5)
+			set_text(state, "");
+		else
+			set_text(state, std::to_string(level - 4));
 	}
 };
 
@@ -1292,10 +1440,9 @@ public:
 		if(name == "controller_flag") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "levels") {
-			// return make_element_by_type<level_entry>(state, id);
 			return make_element_by_type<colonisation_listbox>(state, id);
 		} else if(name == "progress_counter") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<colonization_level_number>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1303,13 +1450,13 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::national_identity_id>()) {
-			payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content).get_colonizer().get_identity_from_identity_holder().id);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::colonization_id>()) {
-			payload.emplace<dcon::colonization_id>(content);
+			if(content)
+				payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content).get_colonizer().get_identity_from_identity_holder().id);
+			else
+				payload.emplace<dcon::national_identity_id>(state.world.nation_get_identity_from_identity_holder(state.local_player_nation));
 			return message_result::consumed;
 		}
-		return message_result::unseen;
+		return listbox_row_element_base<dcon::colonization_id>::get(state, payload);
 	}
 };
 
@@ -1321,31 +1468,27 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			auto fat_def = dcon::fatten(state.world, content).get_definition();
+		
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto fat_def = dcon::fatten(state.world, state.world.province_get_state_from_abstract_state_membership(prov));
 
-			row_contents.clear();
+		row_contents.clear();
 
-			bool bFoundPlayer = false;
-			for(auto colony : fat_def.get_colonization()) {
-				if(colony.get_colonizer().id == state.local_player_nation) {
-					bFoundPlayer = true;
-				}
-				row_contents.push_back(colony.id);
+		bool found_player = false;
+		int32_t existing_colonizers = 0;
+		for(auto colony : fat_def.get_colonization()) {
+			if(colony.get_colonizer().id == state.local_player_nation) {
+				found_player = true;
 			}
-
-			if(!bFoundPlayer) {
-				dcon::colonization_id player_colonisation;
-				dcon::fatten(state.world, player_colonisation).set_colonizer(state.local_player_nation);
-				dcon::fatten(state.world, player_colonisation).set_level(0);
-				row_contents.push_back(player_colonisation);
-			}
-
-			update(state);
+			row_contents.push_back(colony.id);
+			++existing_colonizers;
 		}
+
+		if(!found_player && (existing_colonizers == 0 || (fat_def.get_colonization_stage() == 1 && existing_colonizers < 4))) {
+			row_contents.push_back(dcon::colonization_id{});
+		}
+
+		update(state);
 	}
 };
 
@@ -1384,12 +1527,9 @@ public:
 		} else if(name == "withdraw_button") {
 			return make_element_by_type<province_withdraw_button>(state, id);
 		} else if(name == "colonist_list") {
-			// TODO - Listbox
 			return make_element_by_type<colonist_listbox>(state, id);
 		} else if(name == "crisis_temperature") {
 			return make_element_by_type<province_colonisation_temperature>(state, id);
-		} else if(name == "crisis_temperature_frame") {
-			return make_element_by_type<image_element_base>(state, id);
 		} else {
 			return nullptr;
 		}
