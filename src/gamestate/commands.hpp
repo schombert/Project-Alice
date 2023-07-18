@@ -481,55 +481,55 @@ bool can_start_election(sys::state& state, dcon::nation_id source);
 void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
 bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
 
-void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target); // Implemented in GUI :3
+void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target); // Implemented in GUI :3
+void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp); // Implemented in GUI :3
+void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si); // Implemented in GUI
+void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
 bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
 
 void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p); // Added in GUI Need QA
+void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker); // Implemented in GUI
+void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 
-void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m); // Implemented in GUI
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 
-void civilize_nation(sys::state& state, dcon::nation_id source); // Implemented in GUI
+void civilize_nation(sys::state& state, dcon::nation_id source);
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
 
-void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p); // Added in GUI
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
-void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r); // Added in GUI Need QA
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 
-void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i); // Added in GUI Need QA
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 
 void become_interested_in_crisis(sys::state& state, dcon::nation_id source);
@@ -555,13 +555,13 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 
-void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
 
-void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
-void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
@@ -569,10 +569,10 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
 
-void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // Aded in GUI
+void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target); // Added in GUI
+void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you

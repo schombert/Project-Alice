@@ -2531,6 +2531,12 @@ void state::game_loop() {
 				case 21:
 					ai::update_ai_colony_starting(*this);
 					break;
+				case 22:
+					ai::take_reforms(*this);
+					break;
+				case 23:
+					ai::civilize(*this);
+					break;
 				case 24:
 					rebel::execute_rebel_victories(*this);
 					break;

@@ -1809,7 +1809,7 @@ void civilize_nation(sys::state& state, dcon::nation_id source) {
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_civilize_nation(sys::state& state, dcon::nation_id source) {
-	return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f;
+	return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f && !state.world.nation_get_is_civilized(source);
 }
 void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
 	if(!can_civilize_nation(state, source))
@@ -1880,49 +1880,7 @@ void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::refor
 	if(!can_enact_reform(state, source, r))
 		return;
 
-	/*
-	For military/economic reforms:
-	- Run the `on_execute` member
-	*/
-	auto e = state.world.reform_option_get_on_execute_effect(r);
-	if(e) {
-		auto t = state.world.reform_option_get_on_execute_trigger(r);
-		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
-			effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
-					uint32_t(source.index()));
-	}
-
-	// - Subtract research points (see discussion of when the reform is possible for how many)
-	bool is_military = state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(r)) ==
-										 uint8_t(culture::issue_category::military);
-	if(is_military) {
-		float base_cost = float(state.world.reform_option_get_technology_cost(r));
-		float reform_factor = politics::get_military_reform_multiplier(state, source);
-
-		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
-	} else {
-		float base_cost = float(state.world.reform_option_get_technology_cost(r));
-		float reform_factor = politics::get_economic_reform_multiplier(state, source);
-
-		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
-	}
-
-	/*
-	In general:
-	- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize
-	again)
-	*/
-
-	for(auto id : state.world.in_ideology) {
-		if(id == state.culture_definitions.conservative) {
-			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
-		}
-		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
-	}
-	state.world.nation_set_reforms(source, state.world.reform_option_get_parent_reform(r), r);
-
-	culture::update_nation_issue_rules(state, source);
-	sys::update_single_nation_modifiers(state, source);
+	nations::enact_reform(state, source, r);
 }
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
@@ -1945,104 +1903,7 @@ bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_opti
 void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 	if(!can_enact_issue(state, source, i))
 		return;
-
-	auto e = state.world.issue_option_get_on_execute_effect(i);
-	if(e) {
-		auto t = state.world.issue_option_get_on_execute_trigger(i);
-		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
-			effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
-					uint32_t(source.index()));
-	}
-
-	/*
-	For political and social based reforms:
-	- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a
-	movement; all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /
-	support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
-	*/
-	auto winner = rebel::get_movement_by_position(state, source, i);
-	float winner_support = winner ? state.world.movement_get_pop_support(winner) : 1.0f;
-	for(auto m : state.world.nation_get_movement_within(source)) {
-		if(m.get_movement().get_associated_issue_option() && m.get_movement().get_associated_issue_option() != i &&
-				m.get_movement().get_pop_support() > winner_support) {
-
-			m.get_movement().get_transient_radicalism() +=
-					std::min(3.0f, m.get_movement().get_pop_support() / winner_support - 1.0f) * state.defines.wrong_reform_radical_impact;
-		}
-	}
-
-	/*
-	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing
-	the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal)
-	militancy
-	*/
-	auto issue = state.world.issue_option_get_parent_issue(i);
-	auto current = state.world.nation_get_issues(source, issue.id).id;
-	bool is_social = state.world.issue_get_issue_type(issue) == uint8_t(culture::issue_category::social);
-
-	for(auto id : state.world.in_ideology) {
-
-		auto condition = is_social ? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id)
-																															: state.world.ideology_get_add_social_reform(id))
-															 : (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id)
-																															: state.world.ideology_get_add_political_reform(id));
-		if(condition) {
-			auto factor =
-					trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
-			auto const idsupport_key = pop_demographics::to_key(state, id);
-			if(factor > 0) {
-				for(auto pr : state.world.nation_get_province_ownership(source)) {
-					for(auto pop : pr.get_province().get_pop_location()) {
-						auto base_mil = pop.get_pop().get_militancy();
-						pop.get_pop().set_militancy(base_mil + pop.get_pop().get_demographics(idsupport_key) * factor *
-																											 state.defines.mil_reform_impact); // intentionally left to be clamped below
-					}
-				}
-			}
-		}
-	}
-
-	/*
-	- Each pop in the nation gains defines:CON_REFORM_IMPACT x pop support of the issue consciousness
-
-	- If the pop is part of a movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT
-	militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
-	*/
-
-	auto const isupport_key = pop_demographics::to_key(state, i);
-	for(auto pr : state.world.nation_get_province_ownership(source)) {
-		for(auto pop : pr.get_province().get_pop_location()) {
-			auto base_con = pop.get_pop().get_consciousness();
-			auto adj_con = base_con + pop.get_pop().get_demographics(isupport_key) * state.defines.con_reform_impact;
-			pop.get_pop().set_consciousness(std::clamp(adj_con, 0.0f, 10.0f));
-
-			if(auto m = pop.get_pop().get_movement_from_pop_movement_membership(); m && m.get_associated_issue_option() != i) {
-				auto base_mil = pop.get_pop().get_militancy();
-				pop.get_pop().set_militancy(std::clamp(base_mil + state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
-			} else {
-				auto base_mil = pop.get_pop().get_militancy();
-				pop.get_pop().set_militancy(std::clamp(base_mil - state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
-			}
-		}
-	}
-
-	/*
-	In general:
-	- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize
-	again)
-	- If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
-	*/
-	for(auto id : state.world.in_ideology) {
-		if(id == state.culture_definitions.conservative) {
-			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
-		}
-		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
-	}
-
-	state.world.nation_set_issues(source, issue, i);
-
-	culture::update_nation_issue_rules(state, source);
-	sys::update_single_nation_modifiers(state, source);
+	nations::enact_issue(state, source, i);
 }
 
 void become_interested_in_crisis(sys::state& state, dcon::nation_id source) {

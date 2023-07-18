@@ -22,4 +22,7 @@ void update_ai_econ_construction(sys::state& state);
 void update_ai_colonial_investment(sys::state& state);
 void update_ai_colony_starting(sys::state& state);
 void upgrade_colonies(sys::state& state);
+void civilize(sys::state& state);
+void take_reforms(sys::state& state);
+
 }

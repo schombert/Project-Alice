@@ -1068,4 +1068,62 @@ void upgrade_colonies(sys::state& state) {
 	}
 }
 
+void civilize(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		if(!n.get_is_player_controlled() && !n.get_is_civilized() && n.get_modifier_values(sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f) {
+			nations::make_civilized(state, n);
+		}
+	}
+}
+
+void take_reforms(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		if(n.get_is_player_controlled())
+			continue;
+
+		if(n.get_is_civilized()) { // political & social
+			float max_support = 0.0f;
+			dcon::issue_option_id iss;
+			for(auto m : n.get_movement_within()) {
+				if(m.get_movement().get_associated_issue_option() && m.get_movement().get_pop_support() > max_support) {
+					max_support = m.get_movement().get_pop_support();
+					iss = m.get_movement().get_associated_issue_option();
+				}
+			}
+			if(iss && command::can_enact_issue(state, n, iss)) {
+				nations::enact_issue(state, n, iss);
+			}
+		} else { // military and economic
+			dcon::reform_option_id cheap_r;
+			float cheap_cost = 0.0f;
+
+			auto e_mul = politics::get_economic_reform_multiplier(state, n);
+			auto m_mul = politics::get_military_reform_multiplier(state, n);
+
+			for(auto r : state.world.in_reform_option) {
+				bool is_military = state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(r)) == uint8_t(culture::issue_category::military);
+
+				auto reform = state.world.reform_option_get_parent_reform(r);
+				auto current = state.world.nation_get_reforms(n, reform.id).id;
+				auto allow = state.world.reform_option_get_allow(r);
+
+				if(r.id.index() > current.index() && (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == r.id.index()) && (!allow || trigger::evaluate(state, allow, trigger::to_generic(n.id), trigger::to_generic(n.id), 0))) {
+
+					float base_cost = float(state.world.reform_option_get_technology_cost(r));
+					float reform_factor = is_military ? m_mul : e_mul;
+
+					if(!cheap_r || base_cost * reform_factor < cheap_cost) {
+						cheap_cost = base_cost * reform_factor;
+						cheap_r = r.id;
+					}
+				}
+			}
+
+			if(cheap_r && cheap_cost <= n.get_research_points()) {
+				nations::enact_reform(state, n, cheap_r);
+			}
+		}
+	}
+}
+
 }
