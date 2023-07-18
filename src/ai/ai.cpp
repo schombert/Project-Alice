@@ -86,7 +86,7 @@ void form_alliances(sys::state& state) {
 
 			for(auto nb : n.get_nation_adjacency()) {
 				auto other = nb.get_connected_nations(0) != n ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
-				if(other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler())  && !nations::are_allied(state, n, other) && ai_will_accept_alliance(state, other, n)) {
+				if(other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler())  && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n)) {
 					alliance_targets.push_back(other.id);
 				}
 			}
@@ -1053,6 +1053,16 @@ void update_ai_colony_starting(sys::state& state) {
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+void upgrade_colonies(sys::state& state) {
+	for(auto si : state.world.in_state_instance) {
+		if(si.get_capital().get_is_colonial() && si.get_nation_from_state_ownership().get_is_player_controlled() == false) {
+			if(province::can_integrate_colony(state, si)) {
+				province::upgrade_colonial_state(state, si.get_nation_from_state_ownership(), si);
 			}
 		}
 	}

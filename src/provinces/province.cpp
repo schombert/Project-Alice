@@ -604,10 +604,46 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 	if(entirely_overseas) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 		float distance = state_distance(state, id, state.world.nation_get_capital(owner).id);
-		return state.defines.colonization_create_state_cost * prov_count *
-					 std::max(distance / state.defines.colonization_colony_state_distance, 1.f);
+		return state.defines.colonization_create_state_cost * prov_count * std::max(distance / state.defines.colonization_colony_state_distance, 1.0f);
 	} else {
 		return 0.f;
+	}
+}
+
+void upgrade_colonial_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
+	province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+		// Provinces in the state stop being colonial.
+		state.world.province_set_is_colonial(p, false);
+
+		// All timed modifiers active for provinces in the state expire
+		auto timed_modifiers = state.world.province_get_current_modifiers(p);
+		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
+			if(bool(timed_modifiers[i].expiration)) {
+				timed_modifiers.remove_at(i);
+			}
+		}
+	});
+
+	// Gain define:COLONY_TO_STATE_PRESTIGE_GAIN x(1.0 + colony - prestige - from - tech) x(1.0 + prestige - from - tech)
+	nations::adjust_prestige(state, source,
+			state.defines.colony_to_state_prestige_gain *
+					(1.0f + state.world.nation_get_modifier_values(source, sys::national_mod_offsets::colonial_prestige)));
+
+	// An event from `on_colony_to_state` happens(with the state in scope)
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state, trigger::to_generic(si), event::slot_type::state,
+			source, -1, event::slot_type::none);
+
+	// An event from `on_colony_to_state_free_slaves` happens(with the state in scope)
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state_free_slaves, trigger::to_generic(si),
+			event::slot_type::state, source, -1, event::slot_type::none);
+
+	// Update is colonial nation
+	state.world.nation_set_is_colonial_nation(source, false);
+	for(auto p : state.world.nation_get_province_ownership(source)) {
+		if(p.get_province().get_is_colonial()) {
+			state.world.nation_set_is_colonial_nation(source, true);
+			return;
+		}
 	}
 }
 

@@ -2546,18 +2546,21 @@ void state::game_loop() {
 
 				military::apply_regiment_damage(*this);
 
-				// yearly update : redo the upper house
-				if(ymd_date.day == 1 && ymd_date.month == 1) {
-					for(auto n : world.in_nation) {
-						politics::recalculate_upper_house(*this, n);
+				if(ymd_date.day == 1) {
+					if(ymd_date.month == 1) {
+						// yearly update : redo the upper house
+						for(auto n : world.in_nation) {
+							politics::recalculate_upper_house(*this, n);
+						}
+
+						ai::update_influence_priorities(*this);
 					}
-
-					ai::update_influence_priorities(*this);
-				}
-
-				if(ymd_date.day == 1 && ymd_date.month == 6) {
-
-					ai::update_influence_priorities(*this);
+					if(ymd_date.month == 6) {
+						ai::update_influence_priorities(*this);
+					}
+					if(ymd_date.month == 2) {
+						ai::upgrade_colonies(*this);
+					}
 				}
 
 				/*

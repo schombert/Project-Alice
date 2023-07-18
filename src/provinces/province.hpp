@@ -94,6 +94,7 @@ void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity
 void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);
 void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c);
 void enable_canal(sys::state& state, int32_t id);
+void upgrade_colonial_state(sys::state& state, dcon::nation_id owner, dcon::state_instance_id si);
 
 // distance from a state to a given province (does not pathfind)
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
