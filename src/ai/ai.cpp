@@ -1126,4 +1126,449 @@ void take_reforms(sys::state& state) {
 	}
 }
 
+bool will_be_crisis_primary_attacker(sys::state& state, dcon::nation_id n) {
+	if(state.current_crisis == sys::crisis_type::colonial) {
+		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+		if(colonizers.end() - colonizers.begin() < 2)
+			return false;
+
+		auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+		if(state.world.nation_get_in_sphere_of(defending_colonizer) == n)
+			return false;
+		if(state.world.nation_get_ai_rival(n) == defending_colonizer
+			|| (defending_colonizer.get_in_sphere_of() && !nations::are_allied(state, n, defending_colonizer) && state.world.nation_get_ai_rival(n) == defending_colonizer.get_in_sphere_of())) {
+			return true;
+		} else {
+			return false;
+		}
+	} else if(state.current_crisis == sys::crisis_type::liberation) {
+		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+		auto liberated = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
+
+		if(state.world.nation_get_in_sphere_of(state_owner) == n || nations::are_allied(state, n, state_owner))
+			return false;
+		if(state.world.nation_get_ai_rival(n) == state_owner)
+			return true;
+		if (state.world.nation_get_in_sphere_of(state_owner) && state.world.nation_get_ai_rival(n) == state.world.nation_get_in_sphere_of(state_owner))
+			return true;
+		if(state.world.nation_get_in_sphere_of(liberated) == n || nations::are_allied(state, n, liberated))
+			return true;
+		
+		return false;
+	} else {
+		return false;
+	}
+}
+bool will_be_crisis_primary_defender(sys::state& state, dcon::nation_id n) {
+	if(state.current_crisis == sys::crisis_type::colonial) {
+		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+		if(colonizers.end() - colonizers.begin() < 2)
+			return false;
+
+		auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+
+		if(state.world.nation_get_in_sphere_of(attacking_colonizer) == n)
+			return false;
+		if(state.world.nation_get_ai_rival(n) == attacking_colonizer
+			|| (attacking_colonizer.get_in_sphere_of() && !nations::are_allied(state, n, attacking_colonizer) && state.world.nation_get_ai_rival(n) == attacking_colonizer.get_in_sphere_of())
+			|| state.world.nation_get_ai_rival(n) == state.primary_crisis_attacker) {
+			return true;
+		} else {
+			return false;
+		}
+
+	} else if(state.current_crisis == sys::crisis_type::liberation) {
+		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+		auto liberated = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
+
+		if(state.world.nation_get_in_sphere_of(liberated) == n || nations::are_allied(state, n, liberated))
+			return false;
+		if(state.world.nation_get_ai_rival(n) == liberated)
+			return true;
+		if(state.world.nation_get_in_sphere_of(liberated) && state.world.nation_get_ai_rival(n) == state.world.nation_get_in_sphere_of(liberated))
+			return true;
+		if(state.world.nation_get_in_sphere_of(state_owner) == n || nations::are_allied(state, n, state_owner))
+			return true;
+
+		return false;
+	} else {
+		return false;
+	}
+}
+
+struct crisis_str {
+	float attacker = 0.0f;
+	float defender = 0.0f;
+};
+
+crisis_str estimate_crisis_str(sys::state& state) {
+	float atotal = 0.0f;
+	float dtotal = 0.0f;
+
+	dcon::nation_id secondary_attacker;
+	dcon::nation_id secondary_defender;
+
+	if(state.current_crisis == sys::crisis_type::colonial) {
+		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+		if(colonizers.end() - colonizers.begin() >= 2) {
+			secondary_defender = (*(colonizers.begin() + 1)).get_colonizer();
+			secondary_attacker = (*(colonizers.begin())).get_colonizer();
+		}
+	} else if(state.current_crisis == sys::crisis_type::liberation) {
+		secondary_defender = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+		secondary_attacker = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
+	}
+
+	if(secondary_attacker && secondary_attacker != state.primary_crisis_attacker) {
+		atotal += float(state.world.nation_get_military_score(secondary_attacker));
+	}
+	if(secondary_defender && secondary_defender != state.primary_crisis_defender) {
+		dtotal += float(state.world.nation_get_military_score(secondary_defender));
+	}
+	for(auto& i : state.crisis_participants) {
+		if(!i.id)
+			break;
+		if(!i.merely_interested) {
+			if(i.supports_attacker) {
+				atotal += float(state.world.nation_get_military_score(i.id));
+			} else {
+				dtotal += float(state.world.nation_get_military_score(i.id));
+			}
+		}
+	}
+	return crisis_str{ atotal, dtotal };
+}
+
+bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::crisis_join_offer const& offer) {
+	if(offer.target == state.world.nation_get_ai_rival(n))
+		return true;
+	auto offer_bits = state.world.cb_type_get_type_bits(offer.wargoal_type);
+	if((offer_bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) != 0)
+		return true;
+
+	return false;
+}
+
+bool ai_offer_cb(sys::state& state, dcon::cb_type_id t) {
+	auto offer_bits = state.world.cb_type_get_type_bits(t);
+	if((offer_bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) != 0)
+		return false;
+	if((offer_bits & military::cb_flag::all_allowed_states) != 0)
+		return false;
+	if(military::cb_requires_selection_of_a_liberatable_tag(state, t))
+		return false;
+	if(military::cb_requires_selection_of_a_valid_nation(state, t))
+		return false;
+	return true;
+}
+
+std::vector<dcon::state_instance_id> owned_states_by_distance(sys::state& state, dcon::nation_id owner, dcon::province_id distance_from) {
+	std::vector<dcon::state_instance_id> result;
+	for(auto si : state.world.nation_get_state_ownership(owner)) {
+		result.push_back(si.get_state().id);
+	}
+	std::sort(result.begin(), result.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+		auto a_distance = province::direct_distance(state, state.world.state_instance_get_capital(a), distance_from);
+		auto b_distance = province::direct_distance(state, state.world.state_instance_get_capital(b), distance_from);
+		if(a_distance != b_distance)
+			return a_distance < b_distance;
+		else
+			return a.index() < b.index();
+	});
+	return result;
+}
+
+void update_crisis_leaders(sys::state& state) {
+	if(state.crisis_temperature > 0.75f) { // make peace offer
+		auto str_est = estimate_crisis_str(state);
+		if(str_est.attacker < str_est.defender * 0.66f || str_est.defender < str_est.attacker * 0.66f) { // offer full concession
+			bool defender_victory = str_est.attacker < str_est.defender * 0.66f;
+			if(defender_victory && state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false) {
+				command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, true);
+				auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_attacker);
+
+				for(auto& par : state.crisis_participants) {
+					if(!par.id) 
+						break;
+					if(!par.merely_interested && !par.supports_attacker && par.joined_with_offer.wargoal_type) {
+						auto wg = fatten(state.world, state.world.create_wargoal());
+						wg.set_peace_offer_from_peace_offer_item(pending);
+						wg.set_added_by(par.id);
+						wg.set_associated_state(par.joined_with_offer.wargoal_state);
+						wg.set_associated_tag(par.joined_with_offer.wargoal_tag);
+						wg.set_secondary_nation(par.joined_with_offer.wargoal_secondary_nation);
+						wg.set_target_nation(par.joined_with_offer.target);
+						wg.set_type(par.joined_with_offer.wargoal_type);
+					}
+				}
+
+				command::execute_send_crisis_peace_offer(state, state.primary_crisis_attacker);
+			} else if(!defender_victory && state.world.nation_get_is_player_controlled(state.primary_crisis_defender) == false) {
+				command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, true);
+				auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_defender);
+
+				for(auto& par : state.crisis_participants) {
+					if(!par.id)
+						break;
+					if(!par.merely_interested && par.supports_attacker && par.joined_with_offer.wargoal_type) {
+						auto wg = fatten(state.world, state.world.create_wargoal());
+						wg.set_peace_offer_from_peace_offer_item(pending);
+						wg.set_added_by(par.id);
+						wg.set_associated_state(par.joined_with_offer.wargoal_state);
+						wg.set_associated_tag(par.joined_with_offer.wargoal_tag);
+						wg.set_secondary_nation(par.joined_with_offer.wargoal_secondary_nation);
+						wg.set_target_nation(par.joined_with_offer.target);
+						wg.set_type(par.joined_with_offer.wargoal_type);
+					}
+				}
+
+				command::execute_send_crisis_peace_offer(state, state.primary_crisis_defender);
+			}
+		} else if(str_est.attacker < str_est.defender * 0.75f && state.current_crisis == sys::crisis_type::liberation) { // defender offers WP
+			if(state.world.nation_get_is_player_controlled(state.primary_crisis_defender) == false) {
+				command::execute_start_crisis_peace_offer(state, state.primary_crisis_defender, true);
+				command::execute_send_crisis_peace_offer(state, state.primary_crisis_defender);
+			}
+		}
+	} else if(state.crisis_temperature > 0.2f) { // recruit nations
+		auto str_est = estimate_crisis_str(state);
+		if(str_est.attacker < str_est.defender && state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false) {
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+				if(par.merely_interested) {
+					auto other_cbs = state.world.nation_get_available_cbs(par.id);
+					dcon::cb_type_id offer_cb;
+					dcon::nation_id target;
+
+					[&]() {
+						for(auto& op_par : state.crisis_participants) {
+							if(!op_par.id)
+								break;
+							if(!op_par.merely_interested && op_par.supports_attacker == false) {
+								for(auto& cb : other_cbs) {
+									if(cb.target == op_par.id && ai_offer_cb(state, cb.cb_type) && military::cb_conditions_satisfied(state, par.id, op_par.id, cb.cb_type)) {
+										offer_cb = cb.cb_type;
+										target = op_par.id;
+										return;
+									}
+								}
+								for(auto cb : state.world.in_cb_type) {
+									if((cb.get_type_bits() & military::cb_flag::always) != 0) {
+										if(ai_offer_cb(state, cb) && military::cb_conditions_satisfied(state, par.id, op_par.id, cb)) {
+											offer_cb = cb;
+											target = op_par.id;
+											return;
+										}
+									}
+								}
+							}
+						}
+					}();
+
+					if(offer_cb) {
+						if(military::cb_requires_selection_of_a_state(state, offer_cb)) {
+							auto potential_states = owned_states_by_distance(state, target, state.world.nation_get_capital(par.id));
+							for(auto s : potential_states) {
+								if(military::cb_instance_conditions_satisfied(state, par.id, target, offer_cb, state.world.state_instance_get_definition(s), dcon::national_identity_id{}, dcon::nation_id{})) {
+
+									diplomatic_message::message m;
+									memset(&m, 0, sizeof(diplomatic_message::message));
+									m.to = par.id;
+									m.from = state.primary_crisis_attacker;
+									m.data.crisis_offer.target = target;
+									m.data.crisis_offer.wargoal_secondary_nation = dcon::nation_id{};
+									m.data.crisis_offer.wargoal_state = state.world.state_instance_get_definition(s);
+									m.data.crisis_offer.wargoal_tag = dcon::national_identity_id{};
+									m.data.crisis_offer.wargoal_type = offer_cb;
+									m.type = diplomatic_message::type::take_crisis_side_offer;
+									diplomatic_message::post(state, m);
+
+									break;
+								}
+							}
+						} else {
+							diplomatic_message::message m;
+							memset(&m, 0, sizeof(diplomatic_message::message));
+							m.to = par.id;
+							m.from = state.primary_crisis_attacker;
+							m.data.crisis_offer.target = target;
+							m.data.crisis_offer.wargoal_secondary_nation = dcon::nation_id{};
+							m.data.crisis_offer.wargoal_state = dcon::state_definition_id{};
+							m.data.crisis_offer.wargoal_tag = dcon::national_identity_id{};
+							m.data.crisis_offer.wargoal_type = offer_cb;
+							m.type = diplomatic_message::type::take_crisis_side_offer;
+							diplomatic_message::post(state, m);
+						}
+					}
+				}
+			}
+		} else if(str_est.attacker < str_est.defender && state.world.nation_get_is_player_controlled(state.primary_crisis_defender) == false) {
+			for(auto& par : state.crisis_participants) {
+				if(!par.id)
+					break;
+				if(par.merely_interested) {
+					auto other_cbs = state.world.nation_get_available_cbs(par.id);
+					dcon::cb_type_id offer_cb;
+					dcon::nation_id target;
+
+					[&]() {
+						for(auto& op_par : state.crisis_participants) {
+							if(!op_par.id)
+								break;
+							if(!op_par.merely_interested && op_par.supports_attacker == true) {
+								for(auto& cb : other_cbs) {
+									if(cb.target == op_par.id && ai_offer_cb(state, cb.cb_type) && military::cb_conditions_satisfied(state, par.id, op_par.id, cb.cb_type)) {
+										offer_cb = cb.cb_type;
+										target = op_par.id;
+										return;
+									}
+								}
+								for(auto cb : state.world.in_cb_type) {
+									if((cb.get_type_bits() & military::cb_flag::always) != 0) {
+										if(ai_offer_cb(state, cb) && military::cb_conditions_satisfied(state, par.id, op_par.id, cb)) {
+											offer_cb = cb;
+											target = op_par.id;
+											return;
+										}
+									}
+								}
+							}
+						}
+					}();
+
+					if(offer_cb) {
+						if(military::cb_requires_selection_of_a_state(state, offer_cb)) {
+							auto potential_states = owned_states_by_distance(state, target, state.world.nation_get_capital(par.id));
+							for(auto s : potential_states) {
+								if(military::cb_instance_conditions_satisfied(state, par.id, target, offer_cb, state.world.state_instance_get_definition(s), dcon::national_identity_id{}, dcon::nation_id{})) {
+
+									diplomatic_message::message m;
+									memset(&m, 0, sizeof(diplomatic_message::message));
+									m.to = par.id;
+									m.from = state.primary_crisis_defender;
+									m.data.crisis_offer.target = target;
+									m.data.crisis_offer.wargoal_secondary_nation = dcon::nation_id{};
+									m.data.crisis_offer.wargoal_state = state.world.state_instance_get_definition(s);
+									m.data.crisis_offer.wargoal_tag = dcon::national_identity_id{};
+									m.data.crisis_offer.wargoal_type = offer_cb;
+									m.type = diplomatic_message::type::take_crisis_side_offer;
+									diplomatic_message::post(state, m);
+
+									break;
+								}
+							}
+						} else {
+							diplomatic_message::message m;
+							memset(&m, 0, sizeof(diplomatic_message::message));
+							m.to = par.id;
+							m.from = state.primary_crisis_defender;
+							m.data.crisis_offer.target = target;
+							m.data.crisis_offer.wargoal_secondary_nation = dcon::nation_id{};
+							m.data.crisis_offer.wargoal_state = dcon::state_definition_id{};
+							m.data.crisis_offer.wargoal_tag = dcon::national_identity_id{};
+							m.data.crisis_offer.wargoal_type = offer_cb;
+							m.type = diplomatic_message::type::take_crisis_side_offer;
+							diplomatic_message::post(state, m);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon::peace_offer_id peace) {
+	if(state.crisis_temperature < 50.0f)
+		return false;
+
+	auto str_est = estimate_crisis_str(state);
+
+	if(to == state.primary_crisis_attacker) {
+		if(str_est.attacker < str_est.defender * 0.66f)
+			return true;
+		if(str_est.attacker < str_est.defender * 0.75f)
+			return state.world.peace_offer_get_is_concession(peace);
+
+		if(!state.world.peace_offer_get_is_concession(peace))
+			return false;
+
+		dcon::nation_id attacker = state.primary_crisis_attacker;
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				attacker = (*(colonizers.begin())).get_colonizer();
+			}
+		}
+		{
+			bool missing_wg = true;
+			for(auto wg : state.world.peace_offer_get_peace_offer_item(peace)) {
+				if(wg.get_wargoal().get_added_by() == attacker)
+					missing_wg = false;
+			}
+			if(missing_wg)
+				return false;
+		}
+
+		for(auto& i : state.crisis_participants) {
+			if(!i.id)
+				break;
+			if(!i.merely_interested) {
+				if(i.supports_attacker && i.joined_with_offer.wargoal_type) {
+					bool missing_wg = true;
+					for(auto wg : state.world.peace_offer_get_peace_offer_item(peace)) {
+						if(wg.get_wargoal().get_added_by() == i.id)
+							missing_wg = false;
+					}
+					if(missing_wg)
+						return false;
+				}
+			}
+		}
+		return true;
+
+	} else if(to == state.primary_crisis_defender) {
+		if(str_est.defender < str_est.attacker * 0.66f)
+			return true;
+		if(str_est.defender < str_est.attacker * 0.75f)
+			return state.world.peace_offer_get_is_concession(peace);
+
+		if(!state.world.peace_offer_get_is_concession(peace))
+			return false;
+
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				auto defender = (*(colonizers.begin() + 1)).get_colonizer();
+
+				bool missing_wg = true;
+				for(auto wg : state.world.peace_offer_get_peace_offer_item(peace)) {
+					if(wg.get_wargoal().get_added_by() == defender)
+						missing_wg = false;
+				}
+				if(missing_wg)
+					return false;
+			}
+		}
+
+		for(auto& i : state.crisis_participants) {
+			if(!i.id)
+				break;
+			if(!i.merely_interested) {
+				if(!i.supports_attacker && i.joined_with_offer.wargoal_type) {
+					bool missing_wg = true;
+					for(auto wg : state.world.peace_offer_get_peace_offer_item(peace)) {
+						if(wg.get_wargoal().get_added_by() == i.id)
+							missing_wg = false;
+					}
+					if(missing_wg)
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
 }

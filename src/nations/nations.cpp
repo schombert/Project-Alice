@@ -2075,13 +2075,10 @@ void update_crisis(sys::state& state) {
 						state.current_crisis = sys::crisis_type::colonial;
 
 						if((*colonizers.begin()).get_colonizer().get_is_great_power()) {
-							state.primary_crisis_defender = (*colonizers.begin()).get_colonizer();
+							state.primary_crisis_attacker = (*colonizers.begin()).get_colonizer();
 						}
 						if((*(colonizers.begin() + 1)).get_colonizer().get_is_great_power()) {
-							if(state.primary_crisis_defender)
-								state.primary_crisis_attacker = (*(colonizers.begin() + 1)).get_colonizer();
-							else
-								state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
+							state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
 						}
 
 						notification::post(state, notification::message{
@@ -2107,7 +2104,7 @@ void update_crisis(sys::state& state) {
 		if(!state.primary_crisis_attacker) {
 			state.current_crisis_mode = sys::crisis_mode::finding_attacker;
 			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_defender ? 0 : 1;
-			ask_to_attack_in_crisis(state, state.great_nations[0].nation);
+			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		} else if(!state.primary_crisis_defender) {
 			state.current_crisis_mode = sys::crisis_mode::finding_defender;
 			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
@@ -2121,7 +2118,7 @@ void update_crisis(sys::state& state) {
 				state.current_crisis_mode = sys::crisis_mode::finding_defender;
 				state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
 				ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
-			} else {																													// defender is already a gp
+			} else {	// defender is already a gp
 				state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
 				state.crisis_last_checked_gp = 0;
 			}
@@ -2188,6 +2185,61 @@ void update_crisis(sys::state& state) {
 								event::slot_type::nation, gp.nation, -1, event::slot_type::none);
 					}
 				}
+			}
+
+			// auto join ais
+			dcon::nation_id secondary_attacker;
+			dcon::nation_id secondary_defender;
+
+			if(state.current_crisis == sys::crisis_type::colonial) {
+				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+				secondary_defender = (*(colonizers.begin() + 1)).get_colonizer();
+				secondary_attacker = (*(colonizers.begin())).get_colonizer();
+			} else if(state.current_crisis == sys::crisis_type::liberation) {
+				secondary_defender = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+				secondary_attacker = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
+			}
+
+			for(auto& i : state.crisis_participants) {
+				if(i.id && i.merely_interested == true && state.world.nation_get_is_player_controlled(i.id) == false) {
+					if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_attacker
+						|| nations::are_allied(state, i.id, state.primary_crisis_defender)
+						|| state.world.nation_get_ai_rival(i.id) == secondary_attacker
+						|| nations::are_allied(state, i.id, secondary_defender)
+						|| state.world.nation_get_in_sphere_of(secondary_defender) == i.id) {
+
+						i.merely_interested = false;
+						i.supports_attacker = false;
+
+						notification::post(state, notification::message{
+							[source = i.id](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "msg_crisis_vol_join_2", text::variable_type::x, source);
+							},
+							"msg_crisis_vol_join_title",
+							i.id,
+							sys::message_setting_type::crisis_voluntary_join
+						});
+					} else if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_defender
+						|| nations::are_allied(state, i.id, state.primary_crisis_attacker)
+						|| state.world.nation_get_ai_rival(i.id) == secondary_defender
+						|| nations::are_allied(state, i.id, secondary_attacker)
+						|| state.world.nation_get_in_sphere_of(secondary_attacker) == i.id) {
+
+						i.merely_interested = false;
+						i.supports_attacker = true;
+
+						notification::post(state, notification::message{
+							[source = i.id](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "msg_crisis_vol_join_1", text::variable_type::x, source);
+							},
+							"msg_crisis_vol_join_title",
+							i.id,
+							sys::message_setting_type::crisis_voluntary_join
+						});
+					}
+				}
+				if(!i.id)
+					break;;
 			}
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {

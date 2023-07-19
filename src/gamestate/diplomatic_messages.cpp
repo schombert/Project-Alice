@@ -440,15 +440,15 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::call_ally_request:
 			return true;
 		case type::be_crisis_primary_defender:
-			return true;
+			return ai::will_be_crisis_primary_defender(state, m.to);
 		case type::be_crisis_primary_attacker:
-			return true;
+			return ai::will_be_crisis_primary_attacker(state, m.to);
 		case type::peace_offer:
 			return true;
 		case type::take_crisis_side_offer:
-			return true;
+			return ai::will_join_crisis_with_offer(state, m.to, m.data.crisis_offer);
 		case type::crisis_peace_offer:
-			return true;
+			return ai::will_accept_crisis_peace_offer(state, m.to, m.data.peace);
 	}
 	return false;
 }
