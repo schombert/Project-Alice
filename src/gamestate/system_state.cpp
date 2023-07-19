@@ -2543,8 +2543,14 @@ void state::game_loop() {
 				case 25:
 					rebel::execute_province_defections(*this);
 					break;
+				case 27:
+					ai::update_crisis_leaders(*this);
+					break;
 				case 28:
 					rebel::rebel_risings_check(*this);
+					break;
+				case 29:
+					ai::update_war_intervention(*this);
 					break;
 				default:
 					break;

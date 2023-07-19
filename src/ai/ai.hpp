@@ -29,5 +29,6 @@ bool will_be_crisis_primary_defender(sys::state& state, dcon::nation_id n);
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon::peace_offer_id peace);
 void update_crisis_leaders(sys::state& state);
 bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::crisis_join_offer const& offer);
+void update_war_intervention(sys::state& state);
 
 }

@@ -1571,4 +1571,44 @@ bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon:
 	return false;
 }
 
+void update_war_intervention(sys::state& state) {
+	for(auto& gp : state.great_nations) {
+		if(state.world.nation_get_is_player_controlled(gp.nation) == false && state.world.nation_get_is_at_war(gp.nation) == false) {
+			bool as_attacker = false;
+			dcon::war_id intervention_target;
+			[&]() {
+				for(auto w : state.world.in_war) {
+					if(w.get_is_great()) {
+						if(command::can_intervene_in_war(state, gp.nation, w, false)) {
+							for(auto par : w.get_war_participant()) {
+								if(par.get_is_attacker() && military::can_use_cb_against(state, gp.nation, par.get_nation())) {
+									intervention_target = w;
+									return;
+								}
+							}
+						}
+						if(command::can_intervene_in_war(state, gp.nation, w, true)) {
+							for(auto par : w.get_war_participant()) {
+								if(!par.get_is_attacker() && military::can_use_cb_against(state, gp.nation, par.get_nation())) {
+									intervention_target = w;
+									as_attacker = true;
+									return;
+								}
+							}
+						}
+					} else if(military::get_role(state, w, state.world.nation_get_ai_rival(gp.nation)) == military::war_role::attacker) {
+						if(command::can_intervene_in_war(state, gp.nation, w, false)) {
+							intervention_target = w;
+							return;
+						}
+					}
+				}
+			}();
+			if(intervention_target) {
+				command::execute_intervene_in_war(state, gp.nation, intervention_target, as_attacker);
+			}
+		}
+	}
+}
+
 }
