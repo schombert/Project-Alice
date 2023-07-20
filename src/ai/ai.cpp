@@ -1611,4 +1611,95 @@ void update_war_intervention(sys::state& state) {
 	}
 }
 
+dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+	static std::vector<dcon::cb_type_id> possibilities;
+	possibilities.clear();
+
+	for(auto c : state.world.in_cb_type) {
+		auto bits = state.world.cb_type_get_type_bits(c);
+		if((bits & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0)
+			continue;
+		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
+			continue;
+		if(military::cb_infamy(state, c) > 13.0f)
+			continue;
+		if(!military::cb_conditions_satisfied(state, from, target, c))
+			continue;
+
+		possibilities.push_back(c);
+	}
+
+	if(!possibilities.empty()) {
+		return possibilities[rng::reduce(uint32_t(rng::get_random(state, uint32_t((from.index() << 3) ^ target.index()))), uint32_t(possibilities.size()))];
+	} else {
+		return dcon::cb_type_id{};
+	}
+}
+
+bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+	if(from == target)
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(from);
+	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
+		return false;
+	auto sl = state.world.nation_get_in_sphere_of(target);
+	if(sl == from)
+		return false;
+	if(nations::are_allied(state, target, from))
+		return false;
+	if(nations::are_allied(state, sl, from))
+		return false;
+	if(state.world.nation_get_military_score(target) > state.world.nation_get_military_score(from))
+		return false;
+	if(state.world.nation_get_owned_province_count(target) <= 3)
+		return false;
+	if(military::are_at_war(state, target, from))
+		return false;
+
+	return true;
+}
+
+void update_cb_fabrication(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {
+			if(n.get_is_at_war())
+				continue;
+			if(n.get_infamy() >= 12.0f)
+				continue;
+			if(n.get_constructing_cb_type())
+				continue;
+
+			auto ol = n.get_overlord_as_subject().get_ruler().id;
+			if(n.get_ai_rival()
+				&& n.get_ai_rival().get_in_sphere_of() != n
+				&& (!ol || ol == n.get_ai_rival())
+				&& !military::are_at_war(state, n, n.get_ai_rival())
+				&& !military::can_use_cb_against(state, n, n.get_ai_rival())) {
+
+				auto cb = pick_fabrication_type(state, n, n.get_ai_rival());
+				if(cb) {
+					n.set_constructing_cb_target(n.get_ai_rival());
+					n.set_constructing_cb_type(cb);
+				}
+			} else {
+				static std::vector<dcon::nation_id> possible_targets;
+				possible_targets.clear();
+				for(auto i : state.world.in_nation) {
+					if(valid_construction_target(state, n, i))
+						possible_targets.push_back(i.id);
+				}
+				if(!possible_targets.empty()) {
+					auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
+					auto cb = pick_fabrication_type(state, n, t);
+					if(cb) {
+						n.set_constructing_cb_target(n.get_ai_rival());
+						n.set_constructing_cb_type(cb);
+					}
+				}
+			}
+		}
+	}
+}
+
 }

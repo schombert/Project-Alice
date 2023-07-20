@@ -30,5 +30,5 @@ bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon:
 void update_crisis_leaders(sys::state& state);
 bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::crisis_join_offer const& offer);
 void update_war_intervention(sys::state& state);
-
+void update_cb_fabrication(sys::state& state);
 }

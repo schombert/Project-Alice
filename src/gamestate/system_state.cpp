@@ -2552,6 +2552,9 @@ void state::game_loop() {
 				case 29:
 					ai::update_war_intervention(*this);
 					break;
+				case 31:
+					ai::update_cb_fabrication(*this);
+					break;
 				default:
 					break;
 				}

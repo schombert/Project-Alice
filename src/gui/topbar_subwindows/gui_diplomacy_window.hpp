@@ -1880,6 +1880,19 @@ public:
 			command::cancel_cb_fabrication(state, content);
 		}
 	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(retrieve<dcon::nation_id>(state, parent) == state.local_player_nation)
+			button_element_base::render(state, x, y);
+	}
+};
+
+class cb_progress_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto just_progress = state.world.nation_get_constructing_cb_progress(retrieve<dcon::nation_id>(state, parent));
+		set_text(state, text::format_percentage(just_progress / 100.0f, 0));
+	}
 };
 
 class diplomacy_casus_belli_entry : public listbox_row_element_base<dcon::nation_id> {
@@ -1891,10 +1904,8 @@ public:
 			return make_element_by_type<justifying_cb_type_icon>(state, id);
 		} else if(name == "cb_progress") {
 			return make_element_by_type<justifying_cb_progress>(state, id);
-		} else if(name == "cb_progress_overlay") {
-			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "cb_progress_text") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<cb_progress_text>(state, id);
 		} else if(name == "attackers") {
 			auto ptr = make_element_by_type<justifying_attacker_flag>(state, id);
 			ptr->base_data.position.y -= 7; // Nudge
@@ -1918,6 +1929,10 @@ protected:
 	}
 
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.x += int16_t(400);
+		listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id>::on_create(state);
+	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
