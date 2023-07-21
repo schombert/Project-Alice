@@ -3,6 +3,7 @@
 #include "prng.hpp"
 #include "effects.hpp"
 #include "events.hpp"
+#include "ai.hpp"
 
 namespace military {
 
@@ -220,8 +221,7 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb) {
 	auto can_use = state.world.cb_type_get_can_use(cb);
-	if(can_use &&
-			!trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
+	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
 		return false;
 	}
 
@@ -526,8 +526,15 @@ bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_
 
 bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w) {
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
-		if(is_defender_wargoal(state, w, wg.get_wargoal()) &&
-				(wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0)
+		if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) == 0 && is_defender_wargoal(state, w, wg.get_wargoal()))
+			return true;
+	}
+	return false;
+}
+
+bool defenders_have_status_quo_wargoal(sys::state const& state, dcon::war_id w) {
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0 && is_defender_wargoal(state, w, wg.get_wargoal()))
 			return true;
 	}
 	return false;
@@ -1952,7 +1959,7 @@ void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	} while(w);
 }
 
-void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker) {
+void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker, bool on_war_creation) {
 	auto participant = state.world.force_create_war_participant(w, n);
 	state.world.war_participant_set_is_attacker(participant, as_attacker);
 	state.world.nation_set_is_at_war(n, true);
@@ -2016,6 +2023,9 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			}
 		}
 	}
+	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
+		ai::add_free_ai_cbs_to_war(state, n, w);
+	}
 
 	for(auto o : state.world.nation_get_army_control(n)) {
 		if(o.get_army().get_is_retreating() || o.get_army().get_black_flag() || o.get_army().get_navy_from_army_transport() || o.get_army().get_battle_from_army_battle_participation())
@@ -2068,8 +2078,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 		new_war.set_over_tag(state.world.nation_get_identity_from_identity_holder(primary_wargoal_secondary));
 	}
 
-	add_to_war(state, new_war, primary_attacker, true);
-	add_to_war(state, new_war, real_target, false);
+	add_to_war(state, new_war, primary_attacker, true, true);
+	add_to_war(state, new_war, real_target, false, false);
 
 	if(primary_wargoal) {
 		add_wargoal(state, new_war, primary_attacker, primary_defender, primary_wargoal, primary_wargoal_state, primary_wargoal_tag,
@@ -2082,6 +2092,9 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 			new_war.set_name(it->second);
 		}
 	}
+
+	if(state.world.nation_get_is_player_controlled(primary_attacker) == false)
+		ai::add_free_ai_cbs_to_war(state, primary_attacker, new_war);
 
 	notification::post(state, notification::message{
 		[primary_attacker, primary_defender, w = new_war.id](sys::state& state, text::layout_base& contents) {
@@ -5977,6 +5990,106 @@ void advance_mobilizations(sys::state& state) {
 
 bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation) {
 	return (state.world.naval_battle_get_start_date(battle) + days_before_retreat < state.current_date);
+}
+
+bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state) {
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if(wg.get_wargoal().get_target_nation() == target) {
+			if(auto bits = wg.get_wargoal().get_type().get_type_bits(); (bits & (cb_flag::po_transfer_provinces | cb_flag::po_demand_state)) != 0) {
+				if((bits & cb_flag::all_allowed_states) != 0) {
+					auto state_filter = wg.get_wargoal().get_type().get_allowed_states();
+
+					if((bits & cb_flag::po_transfer_provinces) != 0) {
+						auto holder = state.world.national_identity_get_nation_from_identity_holder(wg.get_wargoal().get_associated_tag());
+
+						if(state_filter) {
+							for(auto si : state.world.nation_get_state_ownership(target)) {
+								if(si.get_state().get_definition() == cb_state && trigger::evaluate(state, state_filter, trigger::to_generic(si.get_state().id), trigger::to_generic(from), trigger::to_generic(holder))) {
+									return true;
+								}
+							}
+						}
+					} else if((bits & cb_flag::po_demand_state) != 0) {
+
+						if(state_filter) {
+							for(auto si : state.world.nation_get_state_ownership(target)) {
+								if(si.get_state().get_definition() == cb_state && trigger::evaluate(state, state_filter, trigger::to_generic(si.get_state().id), trigger::to_generic(from), trigger::to_generic(from))) {
+									return true;
+								}
+							}
+						}
+					}
+				} else {
+					if(wg.get_wargoal().get_associated_state() == cb_state)
+						return true;
+				}
+			}
+			if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_annex) != 0) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+
+	if(cb_state) { // ensure that the state will not be annexed, transferred, or liberated
+		if(state_claimed_in_war(state, w, source, target, cb_state))
+			return true;
+	}
+
+	// ensure no exact duplicate
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if(wg.get_wargoal().get_type() == cb_type && wg.get_wargoal().get_associated_state() == cb_state && wg.get_wargoal().get_associated_tag() == cb_tag && wg.get_wargoal().get_secondary_nation() == cb_secondary_nation && wg.get_wargoal().get_target_nation() == target) {
+
+			return true;
+		}
+	}
+
+	// if all applicable states: ensure that at least one state affected will not be transferred, annexed, or liberated
+	auto bits = state.world.cb_type_get_type_bits(cb_type);
+	if((bits & cb_flag::po_annex) != 0) {
+		for(auto si : state.world.nation_get_state_ownership(target)) {
+			if(!state_claimed_in_war(state, w, source, target, si.get_state().get_definition()))
+				return false;
+		}
+		return true;
+	}
+	if((bits & cb_flag::all_allowed_states) != 0) {
+		auto state_filter = state.world.cb_type_get_allowed_states(cb_type);
+		if((bits & cb_flag::po_transfer_provinces) != 0) {
+			auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
+			auto holder = state.world.national_identity_get_nation_from_identity_holder(cb_tag);
+
+			if(state_filter) {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, state_filter, trigger::to_generic(si.get_state().id), trigger::to_generic(source), trigger::to_generic(holder))
+						&& !state_claimed_in_war(state, w, source, target, si.get_state().get_definition())) {
+
+						return false;
+					}
+				}
+				return true;
+			}
+		} else if((bits & cb_flag::po_demand_state) != 0) {
+			auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
+
+			if(state_filter) {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, state_filter, trigger::to_generic(si.get_state().id), trigger::to_generic(source), trigger::to_generic(source))
+						&& !state_claimed_in_war(state, w, source, target, si.get_state().get_definition())) {
+
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 

@@ -1013,6 +1013,24 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 	}
 }
 
+bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si) {
+	auto d = state.world.state_instance_get_definition(si);
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			for(auto adj : p.get_province().get_province_adjacency()) {
+				auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
+				auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
+				if(o == n)
+					return true;
+				if(o.get_overlord_as_subject().get_ruler() == n)
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
 	if(state.world.state_definition_get_colonization_stage(d) > uint8_t(1))
 		return false; // too late

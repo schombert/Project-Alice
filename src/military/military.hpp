@@ -237,8 +237,11 @@ bool is_civil_war(sys::state const& state, dcon::war_id w);
 bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon::nation_id n, bool as_attacker);
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
 bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w);
+bool defenders_have_status_quo_wargoal(sys::state const& state, dcon::war_id w);
 bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::war_id w);
 bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n);
+bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
 
 // war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
 float primary_warscore(sys::state& state, dcon::war_id w);
@@ -323,7 +326,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor);
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
 		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
 void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker);
-void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker);
+void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker, bool on_war_creation = false);
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);

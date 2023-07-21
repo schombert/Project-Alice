@@ -647,10 +647,11 @@ influence_explain_16;$x$ from our investment in the nation
 influence_explain_17;$x$ from the size of the target nation
 influence_explain_18;$x$ from our relative score
 until_date;Until $x$
-add_wg_1;Cannot add a war goal against yourself
-add_wg_2;Must be at war to add an additional war goal
-add_wg_3;Must have at least $x$ diplomatic point(s) to add a war goal
-add_wg_4;Current jingoism support ($x$) is less than the support required to add a war goal ($y$)
+add_wg_1;You cannot add a war goal against yourself
+add_wg_2;You are at war
+add_wg_3;You have at least $x$ diplomatic point(s)
+add_wg_4;Current jingoism support ($x$) meets the threshold required to add a war goal ($y$)
+add_wg_5;A status quo war goal has not been added to your side
 intervene_1;Intervene in war
 intervene_2;Intervene in great war
 intervene_3;Is a great power

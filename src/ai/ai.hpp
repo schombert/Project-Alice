@@ -31,4 +31,8 @@ void update_crisis_leaders(sys::state& state);
 bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::crisis_join_offer const& offer);
 void update_war_intervention(sys::state& state);
 void update_cb_fabrication(sys::state& state);
+bool will_join_war(sys::state& state, dcon::nation_id, dcon::war_id, bool as_attacker);
+void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w);
+void add_gw_goals(sys::state& state);
+
 }

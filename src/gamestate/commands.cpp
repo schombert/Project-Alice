@@ -2701,16 +2701,15 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 		}
 	}
 
+	if(!is_attacker && military::defenders_have_status_quo_wargoal(state, w))
+		return false;
+
 	if(!target_in_war)
 		return false;
 
 	// prevent duplicate war goals
-	for(auto wg : state.world.war_get_wargoals_attached(w)) {
-		if(wg.get_wargoal().get_added_by() == source && wg.get_wargoal().get_type() == cb_type && wg.get_wargoal().get_associated_state() == cb_state && wg.get_wargoal().get_associated_tag() == cb_tag && wg.get_wargoal().get_secondary_nation() == cb_secondary_nation && wg.get_wargoal().get_target_nation() == target) {
-
-			return false;
-		}
-	}
+	if(military::war_goal_would_be_duplicate(state, source, w, target, cb_type, cb_state, cb_tag, cb_secondary_nation))
+		return false;
 
 	if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
 		bool cb_fabbed = false;

@@ -807,6 +807,10 @@ public:
 			return;
 		}
 
+		bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+		if(!is_attacker && military::defenders_have_status_quo_wargoal(state, w))
+			return;
+
 		for(auto cb_type : state.world.in_cb_type) {
 			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
 				bool cb_fabbed = false;
@@ -863,20 +867,22 @@ public:
 		
 			auto content = retrieve<dcon::nation_id>(state, parent);
 			if(content == state.local_player_nation) {
-				text::add_line(state, contents, "add_wg_1");
+				text::add_line_with_condition(state, contents, "add_wg_1", false);
 				return;
 			}
 
-			if(state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost) {
-				text::add_line(state, contents, "add_wg_3", text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
-				return;
+			if(state.defines.addwargoal_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "add_wg_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
 			}
 
 			auto w = military::find_war_between(state, state.local_player_nation, content);
+			text::add_line_with_condition(state, contents, "add_wg_2", bool(w));
 			if(!w) {
-				text::add_line(state, contents, "add_wg_2");
 				return;
 			}
+
+			bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+			text::add_line_with_condition(state, contents, "add_wg_5", is_attacker || !military::defenders_have_status_quo_wargoal(state, w));
 
 			for(auto cb_type : state.world.in_cb_type) {
 				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
@@ -899,19 +905,9 @@ public:
 			auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
 			auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
 			if(state.world.war_get_is_great(w)) {
-				if(jingoism_perc < state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
-
-					text::add_line_with_condition(state, contents, "add_wg_4", false, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
-
-					return;
-				}
+				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
 			} else {
-				if(jingoism_perc < state.defines.wargoal_jingoism_requirement) {
-
-					text::add_line_with_condition(state, contents, "add_wg_4", false, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
-
-					return;
-				}
+				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
 			}
 	}
 };
