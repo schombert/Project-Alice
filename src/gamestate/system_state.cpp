@@ -2544,6 +2544,9 @@ void state::game_loop() {
 				case 25:
 					rebel::execute_province_defections(*this);
 					break;
+				case 26:
+					ai::make_peace_offers(*this);
+					break;
 				case 27:
 					ai::update_crisis_leaders(*this);
 					break;

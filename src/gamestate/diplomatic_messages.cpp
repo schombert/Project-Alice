@@ -444,7 +444,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::be_crisis_primary_attacker:
 			return ai::will_be_crisis_primary_attacker(state, m.to);
 		case type::peace_offer:
-			return true;
+			return ai::will_accept_peace_offer(state, m.to, m.from, m.data.peace);
 		case type::take_crisis_side_offer:
 			return ai::will_join_crisis_with_offer(state, m.to, m.data.crisis_offer);
 		case type::crisis_peace_offer:
