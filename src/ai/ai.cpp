@@ -63,7 +63,7 @@ void update_ai_general_status(sys::state& state) {
 
 		float self_str = float(state.world.nation_get_military_score(n));
 		for(auto subj : n.get_overlord_as_ruler())
-			self_str += 0.5f * float(subj.get_subject().get_military_score());
+			self_str += 0.75f * float(subj.get_subject().get_military_score());
 		float defensive_str = estimate_defensive_strength(state, n);
 
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
@@ -143,7 +143,7 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 		return false;
 	
 	// Same rival equates to instantaneous alliance (we benefit from more allies against a common enemy)
-	if(state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(from))
+	if(state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(from))
 		return true;
 	
 	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
@@ -153,20 +153,26 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	// And also if they're powerful enough to be considered for an alliance
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, from);
-	return source_score * 2.5f >= target_score;
+	return source_score * 2.0f >= target_score;
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
 
 	text::add_line_with_condition(state, contents, "ai_alliance_1", state.world.nation_get_ai_is_threatened(target), indent);
 
-	text::add_line_with_condition(state, contents, "ai_alliance_2", ai_is_close_enough(state, target, state.local_player_nation), indent);
+	text::add_line(state, contents, "any_of_the_following", indent);
 
-	text::add_line_with_condition(state, contents, "ai_alliance_3", state.world.nation_get_ai_rival(target) != state.local_player_nation && state.world.nation_get_ai_rival(state.local_player_nation) != target, indent);
+	text::add_line_with_condition(state, contents, "ai_alliance_5", state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(state.local_player_nation), indent + 1);
+
+	text::add_line(state, contents, "all_of_the_following", indent + 1);
+
+	text::add_line_with_condition(state, contents, "ai_alliance_2", ai_is_close_enough(state, target, state.local_player_nation), indent + 2);
+
+	text::add_line_with_condition(state, contents, "ai_alliance_3", state.world.nation_get_ai_rival(target) != state.local_player_nation && state.world.nation_get_ai_rival(state.local_player_nation) != target, indent + 2);
 
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, state.local_player_nation);
-	text::add_line_with_condition(state, contents, "ai_alliance_4", source_score * 2.5f >= target_score, indent);
+	text::add_line_with_condition(state, contents, "ai_alliance_4", source_score * 2.0f >= target_score, indent + 2);
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
@@ -1704,6 +1710,11 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
+		auto sl = state.world.nation_get_in_sphere_of(target);
+		if(sl == from)
+			continue;
+		if(nations::are_allied(state, sl, from))
+			continue;
 		possibilities.push_back(c);
 	}
 
@@ -1727,8 +1738,13 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	if(military::are_at_war(state, target, from))
 		return false;
-	
-	if(estimate_defensive_strength(state, target) * 0.5f > estimate_defensive_strength(state, from))
+	auto sl = state.world.nation_get_in_sphere_of(target);
+	if(sl == from)
+		return false;
+	if(nations::are_allied(state, target, from))
+		return false;
+
+	if(estimate_strength(state, target) * 0.5f > estimate_strength(state, from))
 		return false;
 	if(state.world.nation_get_owned_province_count(target) <= 3)
 		return false;
