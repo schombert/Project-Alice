@@ -3,14 +3,14 @@
 
 namespace ai {
 
-static inline float estimate_strength(sys::state& state, dcon::nation_id n) {
+float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
 		value += subj.get_subject().get_military_score();
 	return value;
 }
 
-static inline float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
+float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
 	float value = estimate_strength(state, n);
 	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
 		if(!dr.get_are_allied())
@@ -25,7 +25,7 @@ static inline float estimate_defensive_strength(sys::state& state, dcon::nation_
 	return value;
 }
 
-static inline float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
 	float value = 0.f;
 	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
 		if(!dr.get_are_allied())
@@ -129,7 +129,7 @@ void form_alliances(sys::state& state) {
 	}
 }
 
-static inline bool ai_is_close_enough(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+bool ai_is_close_enough(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
 	auto target_continent = state.world.province_get_continent(state.world.nation_get_capital(target));
 	auto source_continent = state.world.province_get_continent(state.world.nation_get_capital(from));
 	return (target_continent == source_continent) || bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(target, from));
@@ -1714,7 +1714,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 	}
 }
 
-static inline bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
 	// Copied from commands.cpp:can_fabricate_cb()
 	if(from == target)
 		return false;
