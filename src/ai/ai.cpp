@@ -61,7 +61,9 @@ void update_ai_general_status(sys::state& state) {
 			}
 		}
 
-		float self_str = estimate_strength(state, n);
+		float self_str = float(state.world.nation_get_military_score(n));
+		for(auto subj : n.get_overlord_as_ruler()) {
+			self_str += 0.5f * float(subj.get_subject().get_military_score());
 		float defensive_str = estimate_defensive_strength(state, n);
 
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
@@ -1239,19 +1241,19 @@ crisis_str estimate_crisis_str(sys::state& state) {
 	}
 
 	if(secondary_attacker && secondary_attacker != state.primary_crisis_attacker) {
-		atotal += estimate_defensive_strength(state, secondary_attacker);
+		atotal += estimate_strength(state, secondary_attacker);
 	}
 	if(secondary_defender && secondary_defender != state.primary_crisis_defender) {
-		dtotal += estimate_defensive_strength(state, secondary_defender);
+		dtotal += estimate_strength(state, secondary_defender);
 	}
 	for(auto& i : state.crisis_participants) {
 		if(!i.id)
 			break;
 		if(!i.merely_interested) {
 			if(i.supports_attacker) {
-				atotal += estimate_defensive_strength(state, i.id);
+				atotal += estimate_strength(state, i.id);
 			} else {
-				dtotal += estimate_defensive_strength(state, i.id);
+				dtotal += estimate_strength(state, i.id);
 			}
 		}
 	}
@@ -1696,7 +1698,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
 			continue;
-		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c) > state.defines.badboy_limit)
+		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c) > state.defines.badboy_limit / 2.f)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -1738,7 +1740,7 @@ void update_cb_fabrication(sys::state& state) {
 		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {
 			if(n.get_is_at_war())
 				continue;
-			if(n.get_infamy() > state.defines.badboy_limit / 1.2f)
+			if(n.get_infamy() > state.defines.badboy_limit / 2.f)
 				continue;
 			if(n.get_constructing_cb_type())
 				continue;
