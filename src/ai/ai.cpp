@@ -2572,4 +2572,53 @@ void make_war_decs(sys::state& state) {
 	}
 }
 
+void update_budget(sys::state& state) {
+	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
+		dcon::nation_id nid{dcon::nation_id::value_base_t(i)};
+		auto n = fatten(state.world, nid);
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			return;
+
+		if(n.get_is_at_war()) {
+			n.set_land_spending(int8_t(100));
+			n.set_naval_spending(int8_t(100));
+		} else if(n.get_ai_is_threatened()) {
+			n.set_land_spending(int8_t(75));
+			n.set_naval_spending(int8_t(75));
+		} else {
+			n.set_land_spending(int8_t(50));
+			n.set_naval_spending(int8_t(50));
+		}
+		n.set_education_spending(int8_t(100));
+		n.set_construction_spending(int8_t(100));
+		n.set_tariffs(int8_t(0));
+
+		if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
+			if(n.get_administrative_efficiency() > 0.98f) {
+				n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
+			}
+			if(!n.get_ai_is_threatened()) {
+				n.set_military_spending(int8_t(std::max(0, n.get_military_spending() - 5)));
+			}
+			n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
+
+			n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, 80)));
+			n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, 60)));
+			n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 0, 40)));
+		} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
+			if(n.get_administrative_efficiency() < 0.98f) {
+				n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
+			}
+			n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
+			n.set_social_spending(int8_t(std::min(100, n.get_social_spending() + 2)));
+
+			n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 10, 80)));
+			n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, 60)));
+			n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 0, 40)));
+		}
+
+		economy::bound_budget_settings(state, n);
+	});
+}
+
 }

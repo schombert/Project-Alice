@@ -37,4 +37,5 @@ void add_gw_goals(sys::state& state);
 bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_id from, dcon::peace_offer_id p);
 void make_peace_offers(sys::state& state);
 void make_war_decs(sys::state& state);
+void update_budget(sys::state& state);
 }
