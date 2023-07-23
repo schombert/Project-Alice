@@ -62,11 +62,7 @@ void update_ai_general_status(sys::state& state) {
 			}
 		}
 
-		float self_str = float(state.world.nation_get_military_score(n));
-		for(auto subj : n.get_overlord_as_ruler()) {
-			self_str += 0.75f * float(subj.get_subject().get_military_score());
-		}
-
+		float self_str = estimate_strength(state, n);
 		float defensive_str = self_str;
 		defensive_str += in_sphere_of ? float(state.world.nation_get_military_score(in_sphere_of)) : 0.0f;
 		for(auto d : state.world.nation_get_diplomatic_relation(n)) {
