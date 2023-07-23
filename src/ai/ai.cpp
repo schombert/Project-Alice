@@ -1739,8 +1739,14 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 	if(military::are_at_war(state, target, from))
 		return false;
 	auto sl = state.world.nation_get_in_sphere_of(target);
-	if(sl == from)
-		return false;
+	if(sl) {
+		// Fabricating on OUR sphere leader
+		if(sl == from)
+			return false;
+		// Fabricating on spherelings of our allies
+		if(nations::are_allied(state, sl, from))
+			return false;
+	}
 	if(nations::are_allied(state, target, from))
 		return false;
 
