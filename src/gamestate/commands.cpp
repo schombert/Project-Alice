@@ -1744,7 +1744,7 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 	if(!can_intervene_in_war(state, source, w, for_attacker))
 		return;
 
-	military::join_war(state, w, source, for_attacker);
+	military::add_to_war(state, w, source, for_attacker);
 
 	if(!state.world.war_get_is_great(w)) {
 		bool status_quo_added = false;

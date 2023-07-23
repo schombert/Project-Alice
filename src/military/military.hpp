@@ -325,7 +325,6 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor);
 void call_attacker_allies(sys::state& state, dcon::war_id wfor);
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
 		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
-void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker);
 void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker, bool on_war_creation = false);
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);

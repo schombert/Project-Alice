@@ -2023,6 +2023,86 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			}
 		}
 	}
+
+	if(state.military_definitions.great_wars_enabled && !state.world.war_get_is_great(w)) {
+		int32_t gp_attackers = 0;
+		int32_t gp_defenders = 0;
+
+		for(auto par : state.world.war_get_war_participant(w)) {
+			if(nations::is_great_power(state, par.get_nation())) {
+				if(par.get_is_attacker())
+					++gp_attackers;
+				else
+					++gp_defenders;
+			}
+		}
+
+		if(gp_attackers >= 2 && gp_defenders >= 2) {
+			auto old_name = state.world.war_get_name(w);
+			state.world.war_set_is_great(w, true);
+			auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"}); // misspelling is intentional; DO NOT CORRECT
+			if(it != state.key_to_text_sequence.end()) {
+				state.world.war_set_name(w, it->second);
+			}
+
+			notification::post(state, notification::message{
+				[old_name, w](sys::state& state, text::layout_base& contents) {
+					text::substitution_map sub;
+					text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+					text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(state.world.war_get_primary_defender(w)));
+					text::add_to_substitution_map(sub, text::variable_type::second_country, state.world.war_get_primary_defender(w));
+					text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(state.world.war_get_primary_attacker(w)));
+					text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
+					text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
+
+					std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+					std::string old_war_name = text::resolve_string_substitution(state, old_name, sub);
+					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::val, std::string_view{resolved_war_name});
+				},
+				"msg_war_becomes_great_title",
+				state.local_player_nation,
+				sys::message_setting_type::war_becomes_great
+			});
+		}
+	}
+
+	notification::post(state, notification::message{
+		[w, n](sys::state& state, text::layout_base& contents) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+			text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(state.world.war_get_primary_defender(w)));
+			text::add_to_substitution_map(sub, text::variable_type::second_country, state.world.war_get_primary_defender(w));
+			text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(state.world.war_get_primary_attacker(w)));
+			text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
+			text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
+
+			std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+			text::add_line(state, contents, "msg_war_join_1", text::variable_type::x, n, text::variable_type::val, std::string_view{resolved_war_name});
+		},
+		"msg_war_join_title",
+		n,
+		sys::message_setting_type::war_join_by
+	});
+	if(get_role(state, w, state.local_player_nation) != war_role::none) {
+		notification::post(state, notification::message{
+			[w, n](sys::state& state, text::layout_base& contents) {
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(state.world.war_get_primary_defender(w)));
+				text::add_to_substitution_map(sub, text::variable_type::second_country, state.world.war_get_primary_defender(w));
+				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(state.world.war_get_primary_attacker(w)));
+				text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
+				text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
+
+				std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+				text::add_line(state, contents, "msg_war_join_1", text::variable_type::x, n, text::variable_type::val, std::string_view{resolved_war_name});
+			},
+			"msg_war_join_title",
+			state.local_player_nation,
+			sys::message_setting_type::war_join_on
+		});
+	}
+
 	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
 		ai::add_free_ai_cbs_to_war(state, n, w);
 	}
@@ -2155,7 +2235,7 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 	auto n = state.world.war_get_primary_defender(wfor);
 	for(auto drel : state.world.nation_get_diplomatic_relation(n)) {
 		auto other_nation = drel.get_related_nations(0) != n ? drel.get_related_nations(0) : drel.get_related_nations(1);
-		if(drel.get_are_allied() && standard_war_joining_is_possible(state, wfor, n, false)) {
+		if(drel.get_are_allied() && standard_war_joining_is_possible(state, wfor, other_nation, false)) {
 
 			diplomatic_message::message m;
 			std::memset(&m, 0, sizeof(m));
@@ -2187,7 +2267,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 	for(auto drel : state.world.nation_get_diplomatic_relation(n)) {
 		auto other_nation = drel.get_related_nations(0) != n ? drel.get_related_nations(0) : drel.get_related_nations(1);
 		if(drel.get_are_allied() && !has_truce_with(state, other_nation, state.world.war_get_primary_defender(wfor)) &&
-				standard_war_joining_is_possible(state, wfor, n, true)) {
+				standard_war_joining_is_possible(state, wfor, other_nation, true)) {
 
 			diplomatic_message::message m;
 			std::memset(&m, 0, sizeof(m));
@@ -2279,6 +2359,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	}
 }
 
+/*
 void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker) {
 	auto wp = fatten(state.world, state.world.force_create_war_participant(w, n));
 	wp.set_is_attacker(is_attacker);
@@ -2363,6 +2444,7 @@ void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_atta
 		});
 	}
 }
+*/
 
 void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_loss) {
 	dcon::war_participant_id par;

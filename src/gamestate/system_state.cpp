@@ -2537,6 +2537,7 @@ void state::game_loop() {
 					break;
 				case 23:
 					ai::civilize(*this);
+					ai::make_war_decs(*this);
 					break;
 				case 24:
 					rebel::execute_rebel_victories(*this);
