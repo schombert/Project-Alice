@@ -110,9 +110,11 @@ void form_alliances(sys::state& state) {
 		if(!n.get_is_player_controlled() && n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
 			alliance_targets.clear();
 
-			for(auto other : state.world.in_nation)
-				if(other != n && !other.get_is_player_controlled() && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n))
+			for(auto nb : n.get_nation_adjacency()) {
+				auto other = nb.get_connected_nations(0) != n ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
+				if(other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler())  && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n))
 					alliance_targets.push_back(other.id);
+			}
 
 			if(!alliance_targets.empty()) {
 				std::sort(alliance_targets.begin(), alliance_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
