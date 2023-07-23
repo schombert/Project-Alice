@@ -5,9 +5,8 @@ namespace ai {
 
 static inline float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
-	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
+	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
 		value += subj.get_subject().get_military_score();
-	}
 	return value;
 }
 
@@ -58,19 +57,12 @@ void update_ai_general_status(sys::state& state) {
 		for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(n)) {
 			auto other = b.get_connected_nations(0) != n ? b.get_connected_nations(0) : b.get_connected_nations(1);
 			if(!nations::are_allied(state, n, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
-				greatest_neighbor = std::max(greatest_neighbor, float(state.world.nation_get_military_score(other)));
+				greatest_neighbor = std::max(greatest_neighbor, estimate_strength(state, other));
 			}
 		}
 
 		float self_str = estimate_strength(state, n);
-		float defensive_str = self_str;
-		defensive_str += in_sphere_of ? float(state.world.nation_get_military_score(in_sphere_of)) : 0.0f;
-		for(auto d : state.world.nation_get_diplomatic_relation(n)) {
-			if(d.get_are_allied()) {
-				auto other = d.get_related_nations(0) != n ? d.get_related_nations(0) : d.get_related_nations(1);
-				defensive_str += float(state.world.nation_get_military_score(other));
-			}
-		}
+		float defensive_str = estimate_defensive_strength(state, n);
 
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
 		state.world.nation_set_ai_is_threatened(n, threatened);
@@ -82,8 +74,8 @@ void update_ai_general_status(sys::state& state) {
 				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 				auto ol = other.get_overlord_as_subject().get_ruler();
 				if(!ol && other.get_in_sphere_of() != n && (!threatened || !nations::are_allied(state, n, other))) {
-					auto other_str = float(other.get_military_score());
-					if(self_str * 0.5f < other_str && other_str <= self_str * 1.25) {
+					auto other_str = estimate_strength(state, other);
+					if(self_str * 0.5f < other_str && other_str <= self_str * 1.5f) {
 						auto rel = state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, other));
 						if(rel < min_relation) {
 							min_relation = rel;
@@ -100,7 +92,7 @@ void update_ai_general_status(sys::state& state) {
 				n.set_ai_rival(potential);
 			}
 		} else {
-			auto rival_str = float(n.get_ai_rival().get_military_score());
+			auto rival_str = estimate_strength(state, n.get_ai_rival());
 			auto ol = n.get_ai_rival().get_overlord_as_subject().get_ruler();
 			if(ol || n.get_ai_rival().get_in_sphere_of() == n || rival_str * 2 < self_str || self_str * 2 < rival_str) {
 				n.set_ai_rival(dcon::nation_id{});
@@ -113,28 +105,30 @@ void form_alliances(sys::state& state) {
 	static std::vector<dcon::nation_id> alliance_targets;
 
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled() == false && n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
+		if(!n.get_is_player_controlled() && n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
 			alliance_targets.clear();
 
-			for(auto nb : n.get_nation_adjacency()) {
-				auto other = nb.get_connected_nations(0) != n ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
-				if(other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler())  && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n)) {
+			for(auto other : state.world.in_nation)
+				if(other != n && !other.get_is_player_controlled() && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n))
 					alliance_targets.push_back(other.id);
-				}
-			}
 
 			if(!alliance_targets.empty()) {
 				std::sort(alliance_targets.begin(), alliance_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					if(state.world.nation_get_military_score(a) != state.world.nation_get_military_score(b))
-						return state.world.nation_get_military_score(a) > state.world.nation_get_military_score(b);
+					if(estimate_strength(state, a) != estimate_strength(state, b))
+						return estimate_strength(state, a) > estimate_strength(state, b);
 					else
 						return a.index() > b.index();
 				});
-
 				nations::make_alliance(state, n, alliance_targets[0]);
 			}
 		}
 	}
+}
+
+static inline bool ai_is_close_enough(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	auto target_continent = state.world.province_get_continent(state.world.nation_get_capital(target));
+	auto source_continent = state.world.province_get_continent(state.world.nation_get_capital(from));
+	return (target_continent == source_continent) || bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(target, from));
 }
 
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
@@ -143,39 +137,32 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 
 	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
 		return false;
-
-	auto target_continent = state.world.province_get_continent(state.world.nation_get_capital(target));
-	auto source_continent = state.world.province_get_continent(state.world.nation_get_capital(from));
-
-	bool close_enough = (target_continent == source_continent) || bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(target, from));
-
-	if(!close_enough)
+	
+	// Same rival equates to instantaneous alliance (we benefit from more allies against a common enemy)
+	if(state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(from))
+		return true;
+	
+	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
+	if(!ai_is_close_enough(state, target, from))
 		return false;
-
-	auto target_score = state.world.nation_get_military_score(target);
-	auto source_score = state.world.nation_get_military_score(from);
-
-	return source_score * 2 >= target_score;
+	
+	// And also if they're powerful enough to be considered for an alliance
+	auto target_score = estimate_strength(state, target);
+	auto source_score = estimate_strength(state, from);
+	return source_score * 2.5f >= target_score;
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
 
 	text::add_line_with_condition(state, contents, "ai_alliance_1", state.world.nation_get_ai_is_threatened(target), indent);
 
-
-	auto target_continent = state.world.province_get_continent(state.world.nation_get_capital(target));
-	auto source_continent = state.world.province_get_continent(state.world.nation_get_capital(state.local_player_nation));
-
-	bool close_enough = (target_continent == source_continent) || bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(target, state.local_player_nation));
-
-	text::add_line_with_condition(state, contents, "ai_alliance_2", close_enough, indent);
+	text::add_line_with_condition(state, contents, "ai_alliance_2", ai_is_close_enough(state, target, state.local_player_nation), indent);
 
 	text::add_line_with_condition(state, contents, "ai_alliance_3", state.world.nation_get_ai_rival(target) != state.local_player_nation && state.world.nation_get_ai_rival(state.local_player_nation) != target, indent);
 
-	auto target_score = state.world.nation_get_military_score(target);
-	auto source_score = state.world.nation_get_military_score(state.local_player_nation);
-
-	text::add_line_with_condition(state, contents, "ai_alliance_4", source_score * 2 >= target_score, indent);
+	auto target_score = estimate_strength(state, target);
+	auto source_score = estimate_strength(state, state.local_player_nation);
+	text::add_line_with_condition(state, contents, "ai_alliance_4", source_score * 2.5f >= target_score, indent);
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
@@ -1252,19 +1239,19 @@ crisis_str estimate_crisis_str(sys::state& state) {
 	}
 
 	if(secondary_attacker && secondary_attacker != state.primary_crisis_attacker) {
-		atotal += estimate_strength(state, secondary_attacker);
+		atotal += estimate_defensive_strength(state, secondary_attacker);
 	}
 	if(secondary_defender && secondary_defender != state.primary_crisis_defender) {
-		dtotal += estimate_strength(state, secondary_defender);
+		dtotal += estimate_defensive_strength(state, secondary_defender);
 	}
 	for(auto& i : state.crisis_participants) {
 		if(!i.id)
 			break;
 		if(!i.merely_interested) {
 			if(i.supports_attacker) {
-				atotal += estimate_strength(state, i.id);
+				atotal += estimate_defensive_strength(state, i.id);
 			} else {
-				dtotal += estimate_strength(state, i.id);
+				dtotal += estimate_defensive_strength(state, i.id);
 			}
 		}
 	}
@@ -1713,7 +1700,6 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
-
 		possibilities.push_back(c);
 	}
 
@@ -1725,22 +1711,20 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 }
 
 static inline bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+	// Copied from commands.cpp:can_fabricate_cb()
 	if(from == target)
 		return false;
-
+	if(state.world.nation_get_constructing_cb_type(from))
+		return false;
 	auto ol = state.world.nation_get_overlord_as_subject(from);
 	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
 		return false;
-	auto sl = state.world.nation_get_in_sphere_of(target);
-	if(sl == from)
-		return false;
-	if(nations::are_allied(state, target, from))
-		return false;
-	if(nations::are_allied(state, sl, from))
-		return false;
-	if(estimate_strength(state, target) * 0.75f > estimate_strength(state, from))
+	if(state.world.nation_get_in_sphere_of(target) == from)
 		return false;
 	if(military::are_at_war(state, target, from))
+		return false;
+	
+	if(estimate_defensive_strength(state, target) * 0.5f > estimate_defensive_strength(state, from))
 		return false;
 	// Allows small one-province-minors to declare war on other states, and bigger countries to ignore small one-province-minors
 	auto province_threshold = std::min(state.world.nation_get_owned_province_count(from), uint16_t(3));
@@ -1758,7 +1742,7 @@ void update_cb_fabrication(sys::state& state) {
 				continue;
 			if(n.get_constructing_cb_type())
 				continue;
-
+			
 			auto ol = n.get_overlord_as_subject().get_ruler().id;
 			if(n.get_ai_rival()
 				&& n.get_ai_rival().get_in_sphere_of() != n
