@@ -62,7 +62,7 @@ void update_ai_general_status(sys::state& state) {
 		}
 
 		float self_str = float(state.world.nation_get_military_score(n));
-		for(auto subj : n.get_overlord_as_ruler()) {
+		for(auto subj : n.get_overlord_as_ruler())
 			self_str += 0.5f * float(subj.get_subject().get_military_score());
 		float defensive_str = estimate_defensive_strength(state, n);
 
