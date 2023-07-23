@@ -1709,7 +1709,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
 			continue;
-		if(military::cb_infamy(state, c) > state.defines.badboy_limit / 1.2f)
+		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c) > state.defines.badboy_limit)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -1724,7 +1724,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 	}
 }
 
-bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+static inline bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
 	if(from == target)
 		return false;
 
@@ -1738,13 +1738,14 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	if(nations::are_allied(state, sl, from))
 		return false;
-	if(state.world.nation_get_military_score(target) > state.world.nation_get_military_score(from))
-		return false;
-	if(state.world.nation_get_owned_province_count(target) <= 3)
+	if(estimate_strength(state, target) * 0.75f > estimate_strength(state, from))
 		return false;
 	if(military::are_at_war(state, target, from))
 		return false;
-
+	// Allows small one-province-minors to declare war on other states, and bigger countries to ignore small one-province-minors
+	auto province_threshold = std::min(state.world.nation_get_owned_province_count(from), uint16_t(3));
+	if(state.world.nation_get_owned_province_count(target) < province_threshold)
+		return false;
 	return true;
 }
 
