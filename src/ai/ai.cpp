@@ -1728,9 +1728,7 @@ static inline bool valid_construction_target(sys::state& state, dcon::nation_id 
 	
 	if(estimate_defensive_strength(state, target) * 0.5f > estimate_defensive_strength(state, from))
 		return false;
-	// Allows small one-province-minors to declare war on other states, and bigger countries to ignore small one-province-minors
-	auto province_threshold = std::min(state.world.nation_get_owned_province_count(from), uint16_t(3));
-	if(state.world.nation_get_owned_province_count(target) < province_threshold)
+	if(state.world.nation_get_owned_province_count(target) <= 3)
 		return false;
 	return true;
 }
