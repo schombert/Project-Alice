@@ -3,6 +3,42 @@
 
 namespace ai {
 
+static inline float estimate_strength(sys::state& state, dcon::nation_id n) {
+	float value = state.world.nation_get_military_score(n);
+	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
+		value += subj.get_subject().get_military_score();
+	}
+	return value;
+}
+
+static inline float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
+	float value = estimate_strength(state, n);
+	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
+		if(!dr.get_are_allied())
+			continue;
+
+		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
+		if(other.get_overlord_as_subject().get_ruler() != n)
+			value += estimate_strength(state, other);
+	}
+	if(auto sl = state.world.nation_get_in_sphere_of(n); sl)
+		value += estimate_strength(state, sl);
+	return value;
+}
+
+static inline float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	float value = 0.f;
+	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
+		if(!dr.get_are_allied())
+			continue;
+
+		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
+		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against(state, other, target) && !military::has_truce_with(state, other, target))
+			value += estimate_strength(state, other);
+	}
+	return value;
+}
+
 void update_ai_general_status(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(state.world.nation_get_owned_province_count(n) == 0) {
@@ -63,7 +99,7 @@ void update_ai_general_status(sys::state& state) {
 
 			if(potential) {
 				if(!n.get_is_player_controlled() && nations::are_allied(state, n, potential)) {
-					command::cancel_alliance(state, n, potential);
+					command::execute_cancel_alliance(state, n, potential);
 				}
 				n.set_ai_rival(potential);
 			}
@@ -1220,19 +1256,19 @@ crisis_str estimate_crisis_str(sys::state& state) {
 	}
 
 	if(secondary_attacker && secondary_attacker != state.primary_crisis_attacker) {
-		atotal += float(state.world.nation_get_military_score(secondary_attacker));
+		atotal += estimate_strength(state, secondary_attacker);
 	}
 	if(secondary_defender && secondary_defender != state.primary_crisis_defender) {
-		dtotal += float(state.world.nation_get_military_score(secondary_defender));
+		dtotal += estimate_strength(state, secondary_defender);
 	}
 	for(auto& i : state.crisis_participants) {
 		if(!i.id)
 			break;
 		if(!i.merely_interested) {
 			if(i.supports_attacker) {
-				atotal += float(state.world.nation_get_military_score(i.id));
+				atotal += estimate_strength(state, i.id);
 			} else {
-				dtotal += float(state.world.nation_get_military_score(i.id));
+				dtotal += estimate_strength(state, i.id);
 			}
 		}
 	}
@@ -1677,7 +1713,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
 			continue;
-		if(military::cb_infamy(state, c) > 13.0f)
+		if(military::cb_infamy(state, c) > state.defines.badboy_limit / 1.2f)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -1721,7 +1757,7 @@ void update_cb_fabrication(sys::state& state) {
 		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {
 			if(n.get_is_at_war())
 				continue;
-			if(n.get_infamy() >= 12.0f)
+			if(n.get_infamy() > state.defines.badboy_limit / 1.2f)
 				continue;
 			if(n.get_constructing_cb_type())
 				continue;
@@ -2463,42 +2499,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	return false;
 }
 
-int32_t estimate_strength(sys::state& state, dcon::nation_id n) {
-	int32_t value = state.world.nation_get_military_score(n);
-	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
-		value += subj.get_subject().get_military_score();
-	}
-	return value;
-}
-
-int32_t estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
-	int32_t value = estimate_strength(state, n);
-	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
-		if(!dr.get_are_allied())
-			continue;
-
-		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
-		if(other.get_overlord_as_subject().get_ruler() != n)
-			value += estimate_strength(state, other);
-	}
-	if(auto sl = state.world.nation_get_in_sphere_of(n); sl)
-		value += estimate_strength(state, sl);
-	return value;
-}
-
-int32_t estimate_additional_offensive_strength(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
-	int32_t value = 0;
-	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
-		if(!dr.get_are_allied())
-			continue;
-
-		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
-		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against(state, other, target) && !military::has_truce_with(state, other, target))
-			value += estimate_strength(state, other);
-	}
-	return value;
-}
-
 void make_war_decs(sys::state& state) {
 	auto targets = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
@@ -2513,7 +2513,7 @@ void make_war_decs(sys::state& state) {
 			return;
 
 		auto base_strength = estimate_strength(state, n);
-		int32_t best_difference = 2;
+		float best_difference = 2.f;
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
