@@ -109,7 +109,7 @@ sys::key_modifiers get_current_modifiers(int glfw_mods) {
 }
 
 static void glfw_error_callback(int error, char const* description) {
-	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+	emit_error_message(std::string{ "Glfw Error " } + std::to_string(error) + std::string{ description }, false);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -291,7 +291,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 }
 
 void emit_error_message(std::string const& content, bool fatal) {
-	printf("%s", content.c_str());
+	std::fprintf(stderr, "%s", content.c_str());
 	if(fatal) {
 		std::terminate();
 	}

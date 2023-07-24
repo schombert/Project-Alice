@@ -12,11 +12,17 @@
 
 namespace simple_fs {
 file::~file() {
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	if(mapping_handle) {
 		if(munmap(mapping_handle, content.file_size) == -1) {
 			// error
 		}
 	}
+#else
+	if(file_buffer) {
+		free(file_buffer);
+	}
+#endif
 	if(file_descriptor != -1) {
 		close(file_descriptor);
 	}
@@ -24,21 +30,37 @@ file::~file() {
 
 file::file(file&& other) noexcept {
 	file_descriptor = other.file_descriptor;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	mapping_handle = other.mapping_handle;
+#else
+	file_buffer = other.file_buffer;
+#endif
 	content = other.content;
 	absolute_path = std::move(other.absolute_path);
 
 	other.file_descriptor = -1;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	other.mapping_handle = nullptr;
+#else
+	other.file_buffer = nullptr;
+#endif
 }
 void file::operator=(file&& other) noexcept {
 	file_descriptor = other.file_descriptor;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	mapping_handle = other.mapping_handle;
+#else
+	file_buffer = other.file_buffer;
+#endif
 	content = other.content;
 	absolute_path = std::move(other.absolute_path);
 
 	other.file_descriptor = -1;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	other.mapping_handle = nullptr;
+#else
+	other.file_buffer = nullptr;
+#endif
 }
 
 file::file(native_string const& full_path) {
@@ -48,11 +70,17 @@ file::file(native_string const& full_path) {
 		struct stat sb;
 		if(fstat(file_descriptor, &sb) != -1) {
 			content.file_size = sb.st_size;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 			mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
 			if(mapping_handle == MAP_FAILED) {
 				// error
 			}
 			content.data = static_cast<char*>(mapping_handle);
+#else
+			file_buffer = malloc(content.file_size);
+			read(file_descriptor, file_buffer, content.file_size);
+			content.data = static_cast<char*>(file_buffer);
+#endif
 		}
 	}
 }
@@ -61,11 +89,17 @@ file::file(int file_descriptor, native_string const& full_path) : file_descripto
 	struct stat sb;
 	if(fstat(file_descriptor, &sb) != -1) {
 		content.file_size = sb.st_size;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 		mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
 		if(mapping_handle == MAP_FAILED) {
 			// error
 		}
 		content.data = static_cast<char*>(mapping_handle);
+#else
+		file_buffer = malloc(content.file_size);
+		read(file_descriptor, file_buffer, content.file_size);
+		content.data = static_cast<char*>(file_buffer);
+#endif
 	}
 }
 
@@ -88,11 +122,23 @@ void add_root(file_system& fs, native_string_view root_path) {
 
 void add_relative_root(file_system& fs, native_string_view root_path) {
 	char module_name[1024];
-	ssize_t path_used = readlink("/proc/self/exe", module_name, sizeof(module_name) - 1);
-	if(path_used != -1) {
+	ssize_t path_used = -1;
+	if((path_used = readlink("/proc/self/exe", module_name, sizeof(module_name) - 1)) != -1) {
 		while(path_used >= 0 && module_name[path_used] != '/') {
 			module_name[path_used] = '\0';
 			--path_used;
+		}
+	} else {
+		char tmpbuf[512];
+		snprintf(tmpbuf, sizeof(tmpbuf), "/proc/%u/exe", unsigned(getpid()));
+		if((path_used = readlink(tmpbuf, module_name, sizeof(module_name) - 1)) != -1) {
+			while(path_used >= 0 && module_name[path_used] != '/') {
+				module_name[path_used] = '\0';
+				--path_used;
+			}
+		} else {
+			// error
+			std::abort();
 		}
 	}
 
@@ -154,16 +200,14 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 	std::vector<unopened_file> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-			DIR* d;
-			struct dirent* dir_ent;
 			auto const appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-
 			if(simple_fs::is_ignored_path(*dir.parent_system, appended_path + NATIVE("/"))) {
 				continue;
 			}
 
-			d = opendir(appended_path.c_str());
+			DIR* d = opendir(appended_path.c_str());
 			if(d) {
+				struct dirent* dir_ent = nullptr;
 				while((dir_ent = readdir(d)) != nullptr) {
 					// Check if it's a file. Not POSIX standard but included in Linux
 					if(dir_ent->d_type != DT_REG)
@@ -193,10 +237,9 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 		}
 	} else {
 		auto const appended_path = dir.relative_path;
-		DIR* d;
-		struct dirent* dir_ent;
-		d = opendir(appended_path.c_str());
+		DIR* d = opendir(appended_path.c_str());
 		if(d) {
+			struct dirent* dir_ent = nullptr;
 			while((dir_ent = readdir(d)) != nullptr) {
 				// Check if it's a file. Not POSIX standard but included in Linux
 				if(dir_ent->d_type != DT_REG)
@@ -230,14 +273,13 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 	std::vector<directory> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-			DIR* d;
-			struct dirent* dir_ent;
 			auto const appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
 			if(simple_fs::is_ignored_path(*dir.parent_system, appended_path + NATIVE("/"))) {
 				continue;
 			}
-			d = opendir(appended_path.c_str());
+			DIR* d = opendir(appended_path.c_str());
 			if(d) {
+				struct dirent* dir_ent = nullptr;
 				while((dir_ent = readdir(d)) != nullptr) {
 					// Check if it's a directory. Not POSIX standard but included in Linux
 					if(dir_ent->d_type != DT_DIR)
@@ -260,10 +302,9 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 		}
 	} else {
 		auto const appended_path = dir.relative_path;
-		DIR* d;
-		struct dirent* dir_ent;
-		d = opendir(appended_path.c_str());
+		DIR* d = opendir(appended_path.c_str());
 		if(d) {
+			struct dirent* dir_ent = nullptr;
 			while((dir_ent = readdir(d)) != nullptr) {
 				// Check if it's a directory. Not POSIX standard but included in Linux
 				if(dir_ent->d_type != DT_DIR)
