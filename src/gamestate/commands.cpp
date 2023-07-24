@@ -479,22 +479,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				return false;
 		}
 
-		// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
-		// present.
-		int32_t num_factories = 0;
-
-		auto d = state.world.state_instance_get_definition(location);
-		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == owner) {
-				for(auto f : p.get_province().get_factory_location()) {
-					++num_factories;
-				}
-			}
-		}
-		for(auto p : state.world.state_instance_get_state_building_construction(location)) {
-			if(p.get_is_upgrade() == false)
-				++num_factories;
-		}
+		int32_t num_factories = economy::state_factory_count(state, location, owner);
 		return num_factories <= int32_t(state.defines.factories_per_state);
 	}
 }
