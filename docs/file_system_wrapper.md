@@ -60,6 +60,8 @@ This represents an open file that has its contents loaded into memory (on Window
 - `file_contents view_contents(file const& f)` -- This function returns the `file_contents` object, which contains a non-null `char const*` called data that points to the first byte of the file's contents, and a `uint32_t` member called `file_size` that contains the number of bytes in the file. Do not attempt to modify these bytes.
 - `native_string get_full_name(file const& f)` -- This gets the name of the file along with any of the directories that were used to get to it, as well as the particular root that it belongs to.
 
+**Linux**: The file may be memory-mapped (that is, a virtual memory mapping of the file from the disk, optimized by the OS) if available, however if this functionality is lacking (or the libc is from some of those "distros") the files instead will be allocated and their entire contents read onto the memory. The behaviour of the former decreases physical memory usage whereas the latter increases it.
+
 ### Special directory functions
 
 There are currently three special directory functions, which are mainly intended to locate the right place to save various kinds of information.

@@ -66,7 +66,11 @@ public:
 
 class file {
 	int file_descriptor = -1;
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	void* mapping_handle = nullptr;
+#else
+	void* file_buffer = nullptr;
+#endif
 
 	native_string absolute_path;
 	file_contents content;
