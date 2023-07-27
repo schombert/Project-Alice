@@ -38,4 +38,5 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 void make_peace_offers(sys::state& state);
 void make_war_decs(sys::state& state);
 void update_budget(sys::state& state);
+void on_fleet_arrival(sys::state& state, dcon::navy_id n);
 }

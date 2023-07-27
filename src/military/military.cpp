@@ -1030,7 +1030,7 @@ void update_naval_supply_points(sys::state& state) {
 		float total = 0;
 		for(auto nv : state.world.nation_get_navy_control(n)) {
 			for(auto shp : nv.get_navy().get_navy_membership()) {
-				total += state.world.nation_get_unit_stats(n, shp.get_ship().get_type()).supply_consumption;
+				total += state.military_definitions.unit_base_definitions[shp.get_ship().get_type()].supply_consumption_score;
 			}
 		}
 		state.world.nation_set_used_naval_supply_points(n, uint16_t(total));
@@ -5242,7 +5242,6 @@ void update_naval_battles(sys::state& state) {
 			auto ship_owner =
 					state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
 			auto type = state.world.ship_get_type(slots[j].ship);
-			auto& ship_stats = state.world.nation_get_unit_stats(ship_owner, type);
 
 			switch(slots[j].flags & ship_in_battle::mode_mask) {
 			case ship_in_battle::mode_seeking:
@@ -5257,7 +5256,7 @@ void update_naval_battles(sys::state& state) {
 						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
 							state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
 						}
-						state.world.naval_battle_get_attacker_loss_value(b) += ship_stats.supply_consumption;
+						state.world.naval_battle_get_attacker_loss_value(b) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
 					} else {
 						if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
 							state.world.naval_battle_get_defender_big_ships_lost(b)++;
@@ -5266,7 +5265,7 @@ void update_naval_battles(sys::state& state) {
 						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
 							state.world.naval_battle_get_defender_transport_ships_lost(b)++;
 						}
-						state.world.naval_battle_get_defender_loss_value(b) += ship_stats.supply_consumption;
+						state.world.naval_battle_get_defender_loss_value(b) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
 					}
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_sunk;

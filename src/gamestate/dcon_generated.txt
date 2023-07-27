@@ -1573,6 +1573,16 @@ object {
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ ai_activity }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ ai_province }
+		type{ province_id }
+		tag{ save }
+	}
 }
 
 object {
@@ -1600,6 +1610,11 @@ object {
 	property{
 		name{ is_retreating }
 		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ ai_activity }
+		type{ uint8_t }
 		tag{ save }
 	}
 }
@@ -3504,6 +3519,10 @@ object {
 		name{ ai_rival }
 		type{ nation_id }
 		tag{ save }
+	}
+	property{
+		name{ ai_home_port }
+		type{ province_id }
 	}
 }
 
