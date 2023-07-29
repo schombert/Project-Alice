@@ -73,6 +73,7 @@ void update_connected_regions(sys::state& state) {
 	// TODO get a better allocator
 	static std::vector<dcon::province_id> to_fill_list;
 	uint16_t current_fill_id = 0;
+	state.province_definitions.connected_region_is_coastal.clear();
 
 	to_fill_list.reserve(state.world.province_size());
 
@@ -81,11 +82,15 @@ void update_connected_regions(sys::state& state) {
 		if(state.world.province_get_connected_region_id(id) == 0) {
 			++current_fill_id;
 
+			bool found_coast = false;
+
 			to_fill_list.push_back(id);
 
 			while(!to_fill_list.empty()) {
 				auto current_id = to_fill_list.back();
 				to_fill_list.pop_back();
+
+				found_coast = found_coast || state.world.province_get_is_coast(current_id);
 
 				state.world.province_set_connected_region_id(current_id, current_fill_id);
 				for(auto rel : state.world.province_get_province_adjacency(current_id)) {
@@ -105,6 +110,7 @@ void update_connected_regions(sys::state& state) {
 				}
 			}
 
+			state.province_definitions.connected_region_is_coastal.push_back(found_coast);
 			to_fill_list.clear();
 		}
 	}
@@ -575,7 +581,12 @@ struct queue_node {
 
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
 	// TODO
-	return 1.f;
+	return 1.0f;
+}
+
+float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
+	// TODO
+	return 1.0f;
 }
 
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
@@ -1423,6 +1434,11 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 	return 1.0f;
 }
 
+float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
+	// TODO
+	return 1.0f;
+}
+
 // whether a ship can dock at a land province
 bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
 	auto controller = state.world.province_get_nation_from_province_control(prov);
@@ -1757,6 +1773,103 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 					origins_vector.set(other_prov, nearest.province);
 				} else { // is sea province
 								 // nothing
+				}
+			}
+		}
+	}
+
+	return path_result;
+}
+
+std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start) {
+	std::vector<retreat_province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	origins_vector.set(start, dcon::province_id{0});
+
+	std::vector<dcon::province_id> path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+	};
+
+	path_heap.push_back(retreat_province_and_distance{ 0.0f, start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		if(state.world.province_get_is_coast(nearest.province)) {
+			fill_path_result(nearest.province);
+			return path_result;
+		}
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
+					if(has_naval_access_to_province(state, nation_as, other_prov)) {
+						path_heap.push_back(retreat_province_and_distance{ nearest.distance_covered + distance, other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					} else {
+						origins_vector.set(other_prov, dcon::province_id{0});
+					}
+				} else { // is sea province
+					// nothing
+				}
+			}
+		}
+	}
+
+	return path_result;
+}
+std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start) {
+	std::vector<retreat_province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	origins_vector.set(start, dcon::province_id{0});
+
+	std::vector<dcon::province_id> path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+	};
+
+	path_heap.push_back(retreat_province_and_distance{ 0.0f, start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		if(state.world.province_get_is_coast(nearest.province)) {
+			fill_path_result(nearest.province);
+			return path_result;
+		}
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
+					path_heap.push_back(retreat_province_and_distance{ nearest.distance_covered + distance, other_prov });
+					std::push_heap(path_heap.begin(), path_heap.end());
+					origins_vector.set(other_prov, nearest.province);
+				} else { // is sea province
+					// nothing
 				}
 			}
 		}

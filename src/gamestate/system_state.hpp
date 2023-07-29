@@ -562,8 +562,7 @@ struct alignas(64) state {
 
 	dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
 	dcon::text_key add_to_pool(std::string_view text);
-	dcon::text_key add_to_pool_lowercase(
-			std::string const& text); // these functions are as above, but force the text into lower case
+	dcon::text_key add_to_pool_lowercase(std::string const& text); // these functions are as above, but force the text into lower case
 	dcon::text_key add_to_pool_lowercase(std::string_view text);
 
 	// searches the string pool for any existing string, appends if it is new

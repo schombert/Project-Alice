@@ -3434,6 +3434,7 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 		auto to_navy = military::find_embark_target(state, source, location, a);
 		if(to_navy) {
 			state.world.army_set_navy_from_army_transport(a, to_navy);
+			state.world.army_set_black_flag(a, false);
 		}
 	}
 	state.world.army_set_dig_in(a, 0);

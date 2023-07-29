@@ -374,6 +374,7 @@ float effective_army_speed(sys::state& state, dcon::army_id a);
 float effective_navy_speed(sys::state& state, dcon::navy_id n);
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a);
 bool will_recieve_attrition(sys::state& state, dcon::army_id a);
+float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
