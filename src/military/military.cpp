@@ -4383,6 +4383,14 @@ bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {
 	return false;
 }
 
+float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov) {
+	auto supply_limit = supply_limit_in_province(state, n, prov);
+	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
+	auto attrition_mod = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attrition);
+
+	return (supply_limit + prov_attrition_mod) / attrition_mod;
+}
+
 bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto prov = state.world.army_get_location_from_army_location(a);
 
@@ -5413,6 +5421,7 @@ void update_movement(sys::state& state) {
 				if(to_navy) {
 					a.set_location_from_army_location(dest);
 					a.set_navy_from_army_transport(to_navy);
+					a.set_black_flag(false);
 				} else {
 					path.clear();
 				}
@@ -5480,9 +5489,10 @@ void update_movement(sys::state& state) {
 						auto a = (*attached.begin()).get_army();
 
 						a.set_navy_from_army_transport(dcon::navy_id{});
-						a.set_location_from_army_location(dest);
 						a.get_path().clear();
 						a.set_arrival_time(sys::date{});
+
+						army_arrives_in_province(state, a, dest, military::crossing_type::none, dcon::land_battle_id{});
 					}
 				} else {
 					path.clear();

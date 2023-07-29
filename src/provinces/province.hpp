@@ -17,6 +17,7 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 struct global_provincial_state {
 	std::vector<dcon::province_adjacency_id> canals;
 	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
+	std::vector<bool> connected_region_is_coastal;
 
 	dcon::province_id first_sea_province;
 	dcon::modifier_id europe;
@@ -103,6 +104,10 @@ float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::
 float distance(sys::state& state, dcon::province_adjacency_id pair);
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
+// sorting distance returns values such that a smaller sorting distance between two provinces
+// means that they are closer, but does not translate 1 to 1 to actual distances (i.e. is the negative dot product)
+float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
+float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
 
 // determines whether a land unit is allowed to move to / be in a province
 bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
@@ -114,8 +119,7 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 //
 
 // normal pathfinding
-std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end,
-		dcon::nation_id nation_as, dcon::army_id a);
+std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 // used for rebel unit and black-flagged unit pathfinding
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
@@ -123,5 +127,8 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
+
+std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
+std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start);
 
 } // namespace province

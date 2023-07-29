@@ -889,8 +889,8 @@ void update_ai_econ_construction(sys::state& state) {
 
 			auto cap = n.get_capital();
 			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-				auto a_dist = province::direct_distance(state, a, cap);
-				auto b_dist = province::direct_distance(state, b, cap);
+				auto a_dist = province::sorting_distance(state, a, cap);
+				auto b_dist = province::sorting_distance(state, b, cap);
 				if(a_dist != b_dist)
 					return a_dist < b_dist;
 				else
@@ -931,8 +931,8 @@ void update_ai_econ_construction(sys::state& state) {
 
 			auto cap = n.get_capital();
 			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-				auto a_dist = province::direct_distance(state, a, cap);
-				auto b_dist = province::direct_distance(state, b, cap);
+				auto a_dist = province::sorting_distance(state, a, cap);
+				auto b_dist = province::sorting_distance(state, b, cap);
 				if(a_dist != b_dist)
 					return a_dist < b_dist;
 				else
@@ -971,8 +971,8 @@ void update_ai_econ_construction(sys::state& state) {
 
 			auto cap = n.get_capital();
 			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-				auto a_dist = province::direct_distance(state, a, cap);
-				auto b_dist = province::direct_distance(state, b, cap);
+				auto a_dist = province::sorting_distance(state, a, cap);
+				auto b_dist = province::sorting_distance(state, b, cap);
 				if(a_dist != b_dist)
 					return a_dist < b_dist;
 				else
@@ -1317,8 +1317,8 @@ void state_target_list(std::vector<dcon::state_instance_id>& result, sys::state&
 		}
 
 		std::sort(result.begin(), result.begin() + first, [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-			auto a_distance = province::direct_distance(state, state.world.state_instance_get_capital(a), distance_from);
-			auto b_distance = province::direct_distance(state, state.world.state_instance_get_capital(b), distance_from);
+			auto a_distance = province::sorting_distance(state, state.world.state_instance_get_capital(a), distance_from);
+			auto b_distance = province::sorting_distance(state, state.world.state_instance_get_capital(b), distance_from);
 			if(a_distance != b_distance)
 				return a_distance < b_distance;
 			else
@@ -1341,8 +1341,8 @@ void state_target_list(std::vector<dcon::state_instance_id>& result, sys::state&
 			}
 		}
 		std::sort(result.begin(), result.begin() + first, [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-			auto a_distance = province::direct_distance(state, state.world.state_instance_get_capital(a), distance_from);
-			auto b_distance = province::direct_distance(state, state.world.state_instance_get_capital(b), distance_from);
+			auto a_distance = province::sorting_distance(state, state.world.state_instance_get_capital(a), distance_from);
+			auto b_distance = province::sorting_distance(state, state.world.state_instance_get_capital(b), distance_from);
 			if(a_distance != b_distance)
 				return a_distance < b_distance;
 			else
@@ -1351,8 +1351,8 @@ void state_target_list(std::vector<dcon::state_instance_id>& result, sys::state&
 	}
 	if(first < int32_t(result.size())) {
 		std::sort(result.begin() + first, result.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-			auto a_distance = province::direct_distance(state, state.world.state_instance_get_capital(a), distance_from);
-			auto b_distance = province::direct_distance(state, state.world.state_instance_get_capital(b), distance_from);
+			auto a_distance = province::sorting_distance(state, state.world.state_instance_get_capital(a), distance_from);
+			auto b_distance = province::sorting_distance(state, state.world.state_instance_get_capital(b), distance_from);
 			if(a_distance != b_distance)
 				return a_distance < b_distance;
 			else
@@ -2643,7 +2643,8 @@ enum class army_activity {
 	merging = 3,
 	reinforcing = 4,
 	transport_guard = 5,
-	transport_attack = 6
+	transport_attack = 6,
+	attack_finished = 7,
 };
 
 void update_ships(sys::state& state) {
@@ -2754,8 +2755,8 @@ void build_ships(sys::state& state) {
 			}
 			auto cap = n.get_capital().id;
 			std::sort(owned_ports.begin(), owned_ports.end(), [&](dcon::province_id a, dcon::province_id b) {
-				auto a_dist = province::direct_distance(state, a, cap);
-				auto b_dist = province::direct_distance(state, b, cap);
+				auto a_dist = province::sorting_distance(state, a, cap);
+				auto b_dist = province::sorting_distance(state, b, cap);
 				if(a_dist != b_dist)
 					return a_dist < b_dist;
 				else
@@ -2843,9 +2844,9 @@ dcon::province_id get_home_port(sys::state& state, dcon::nation_id n) {
 			if(p.get_province().get_naval_base_level() > max_level) {
 				max_level = p.get_province().get_naval_base_level();
 				result = p.get_province();
-				current_distance = province::direct_distance(state, cap, p.get_province());
-			} else if(result && p.get_province().get_naval_base_level() == max_level && province::direct_distance(state, cap, p.get_province()) < current_distance) {
-				current_distance = province::direct_distance(state, cap, p.get_province());
+				current_distance = province::sorting_distance(state, cap, p.get_province());
+			} else if(result && p.get_province().get_naval_base_level() == max_level && province::sorting_distance(state, cap, p.get_province()) < current_distance) {
+				current_distance = province::sorting_distance(state, cap, p.get_province());
 				result = p.get_province();
 			}
 		}
@@ -2913,7 +2914,7 @@ bool set_fleet_target(sys::state& state, dcon::nation_id n, dcon::province_id st
 			if(other.get_is_attacker() != par.get_is_attacker()) {
 				for(auto nv : other.get_nation().get_navy_control()) {
 					auto loc = nv.get_navy().get_location_from_navy_location();
-					auto dist = province::direct_distance(state, start, loc);
+					auto dist = province::sorting_distance(state, start, loc);
 					if(!result || dist < closest) {
 						if(loc.id.index() < state.province_definitions.first_sea_province.index()) {
 							result = loc.get_port_to();
@@ -3100,6 +3101,7 @@ void on_fleet_arrival(sys::state& state, dcon::navy_id n, dcon::province_id p) {
 			// do nothing: wait for all units to board
 			break;
 		case fleet_activity::transporting:
+			// TODO
 			break;
 		case fleet_activity::returning_to_base:
 			if(p == home_port) {
@@ -3269,8 +3271,8 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 		if(a.c != b.c) {
 			return uint8_t(a.c) > uint8_t(b.c);
 		}
-		auto adist = province::direct_distance(state, a.id, cap);
-		auto bdist = province::direct_distance(state, b.id, cap);
+		auto adist = province::sorting_distance(state, a.id, cap);
+		auto bdist = province::sorting_distance(state, b.id, cap);
 		if(adist != bdist) {
 			return adist < bdist;
 		}
@@ -3278,8 +3280,345 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 	});
 
 	// form list of guards
+	static std::vector<dcon::army_id> guards_list;
+	guards_list.clear();
+	for(auto a : state.world.nation_get_army_control(n)) {
+		if(a.get_army().get_ai_activity() == uint8_t(army_activity::on_guard)) {
+			auto regs = a.get_army().get_army_membership();
+			if((regs.end() - regs.begin()) == 10) {
+				guards_list.push_back(a.get_army().id);
+			}
+		}
+	}
+
 	// distribute target provinces
+	uint32_t end_of_stage = 0;
+
+	for(uint8_t stage = 4; stage-- > 0 && !guards_list.empty(); ) {
+		uint32_t start_of_stage = end_of_stage;
+
+		for(; end_of_stage < provinces.size(); ++end_of_stage) {
+			if(uint8_t(provinces[end_of_stage].c) != stage)
+				break;
+		}
+
+		uint32_t full_loops_through = 0;
+		bool guard_assigned = false;
+		do {
+			guard_assigned = false;
+			for(uint32_t j = start_of_stage; j < end_of_stage && !guards_list.empty(); ++j) {
+				auto p = provinces[j].id;
+				auto p_region = state.world.province_get_connected_region_id(provinces[j].id);
+				assert(p_region > 0);
+				bool p_region_is_coastal = state.province_definitions.connected_region_is_coastal[p_region - 1];
+
+				if(full_loops_through == 0 || 10.0f * (1 + full_loops_through) <= military::peacetime_attrition_limit(state, n, p)) {
+					uint32_t nearest_index = 0;
+					dcon::army_id nearest;
+					float nearest_distance = 0.0f;
+					for(uint32_t k = uint32_t(guards_list.size()) ; k-- > 0;) {
+						auto guard_loc = state.world.army_get_location_from_army_location(guards_list[k]);
+						auto g_region = state.world.province_get_connected_region_id(guard_loc);
+						assert(g_region > 0);
+
+						/*
+						// this wont work because a unit could end up in, for example, a subject's region at the end of a war
+						// this region could be landlocked, resulting in this thinking that the unit can only be stationed in that
+						// same region, even though it could walk out to another region
+
+						if(p_region != g_region && !(state.world.army_get_black_flag(guards_list[k]))  && (!p_region_is_coastal || !state.province_definitions.connected_region_is_coastal[g_region - 1]))
+							continue;
+						*/
+
+						if(auto d = province::sorting_distance(state, guard_loc, p);
+							!nearest || d < nearest_distance) {
+
+							nearest_index = k;
+							nearest_distance = d;
+							nearest = guards_list[k];
+						}
+					}
+
+					// assign nearest guard
+					if(nearest) {
+						state.world.army_set_ai_province(nearest, p);
+						guards_list[nearest_index] = guards_list.back();
+						guards_list.pop_back();
+
+						guard_assigned = true;
+					}
+				}
+			}
+			
+			++full_loops_through;
+		} while(guard_assigned);
+
+	}
+
+
 	// start movement commands
 }
+
+void move_idle_guards(sys::state& state) {
+	static std::vector<dcon::army_id> require_transport;
+	require_transport.clear();
+
+	for(auto ar : state.world.in_army) {
+		if(ar.get_ai_activity() == uint8_t(army_activity::on_guard)
+			&& ar.get_ai_province() != ar.get_location_from_army_location()
+			&& ar.get_controller_from_army_control()
+			&& ar.get_controller_from_army_control().get_is_player_controlled() == false
+			&& !ar.get_arrival_time()
+			&& !ar.get_battle_from_army_battle_participation()
+			&& !ar.get_navy_from_army_transport()) {
+
+			auto path = province::make_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar);
+			if(path.size() > 0) {
+				auto existing_path = ar.get_path();
+				auto new_size = uint32_t(path.size());
+				existing_path.resize(new_size);
+
+				for(uint32_t i = 0; i < new_size; ++i) {
+					existing_path.at(i) = path[i];
+				}
+				ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
+			} else {
+				require_transport.push_back(ar.id);
+			}
+		}
+	}
+
+	for(uint32_t i = 0; i < require_transport.size(); ++i) {
+		auto coastal_target_prov = state.world.army_get_location_from_army_location(require_transport[i]);
+		auto controller = state.world.army_get_controller_from_army_control(require_transport[i]);
+
+		// find free transport fleet
+
+		dcon::navy_id transport_fleet;
+		for(auto v : state.world.nation_get_navy_control(controller)) {
+			if(v.get_navy().get_battle_from_navy_battle_participation())
+				continue;
+
+			fleet_activity activity = fleet_activity(v.get_navy().get_ai_activity());
+			if(activity == fleet_activity::attacking || activity == fleet_activity::idle || activity == fleet_activity::returning_to_base) {
+				auto in_transport = v.get_navy().get_army_transport();
+				if(in_transport.begin() == in_transport.end()) {
+					transport_fleet = v.get_navy();
+					break;
+				}
+			}
+		}
+
+		auto tcap = military::transport_capacity(state, transport_fleet);
+		if(tcap < 10) {
+			for(uint32_t j = uint32_t(require_transport.size()); j-- > i + 1;) {
+				if(state.world.army_get_controller_from_army_control(require_transport[j]) == controller) {
+					require_transport[j] = require_transport.back();
+					require_transport.pop_back();
+				}
+			}
+			continue;
+		}
+
+		if(!state.world.province_get_is_coast(coastal_target_prov)) {
+			auto path = state.world.army_get_black_flag(require_transport[i])
+				? province::make_unowned_path_to_nearest_coast(state, coastal_target_prov)
+				: province::make_path_to_nearest_coast(state, controller, coastal_target_prov);
+			if(path.empty()) {
+				continue; // army could not reach coast -- maybe target for deletion?
+			} else {
+				coastal_target_prov = path.front();
+
+				auto existing_path = state.world.army_get_path(require_transport[i]);
+				auto new_size = uint32_t(path.size());
+				existing_path.resize(new_size);
+
+				for(uint32_t k = 0; k < new_size; ++k) {
+					existing_path.at(k) = path[k];
+				}
+				state.world.army_set_arrival_time(require_transport[i], military::arrival_time_to(state, require_transport[i], path.back()));
+			}
+		}
+
+		{
+			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
+			auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination);
+			if(fleet_path.empty()) {
+				continue;
+			} else {
+				auto existing_path = state.world.navy_get_path(transport_fleet);
+				auto new_size = uint32_t(fleet_path.size());
+				existing_path.resize(new_size);
+
+				for(uint32_t k = 0; k < new_size; ++k) {
+					existing_path.at(k) = fleet_path[k];
+				}
+				state.world.navy_set_arrival_time(transport_fleet, military::arrival_time_to(state, transport_fleet, fleet_path.back()));
+				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
+			}
+		}
+
+		state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_guard));
+
+		auto regs = state.world.army_get_army_membership(require_transport[i]);
+		tcap -= int32_t(regs.end() - regs.begin());
+
+		auto destination_region = state.world.province_get_connected_region_id(state.world.army_get_ai_province(require_transport[i]));
+
+		// scoop up other armies to transport
+		for(uint32_t j = uint32_t(require_transport.size()); j-- > i + 1;) {
+			if(state.world.army_get_controller_from_army_control(require_transport[j]) == controller) {
+				auto jregs = state.world.army_get_army_membership(require_transport[j]);
+				if(tcap >= (jregs.end() - jregs.begin())) { // check if it will fit
+					if(state.world.province_get_connected_region_id(state.world.army_get_ai_province(require_transport[j])) != destination_region)
+						continue;
+
+					if(state.world.army_get_location_from_army_location(require_transport[j]) == coastal_target_prov) {
+						state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_guard));
+					} else {
+						auto jpath = state.world.army_get_black_flag(require_transport[j])
+							? province::make_land_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov, controller, require_transport[j])
+							: province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov);
+						if(!jpath.empty()) {
+							auto existing_path = state.world.army_get_path(require_transport[j]);
+							auto new_size = uint32_t(jpath.size());
+							existing_path.resize(new_size);
+
+							for(uint32_t k = 0; k < new_size; ++k) {
+								existing_path.at(k) = jpath[k];
+							}
+							state.world.army_set_arrival_time(require_transport[j], military::arrival_time_to(state, require_transport[j], jpath.back()));
+							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_guard));
+						}
+					}
+				}
+
+				require_transport[j] = require_transport.back();
+				require_transport.pop_back();
+			}
+		}
+	}
+}
+
+void update_naval_transport(sys::state& state) {
+
+	// set armies to move into transports
+	for(auto ar : state.world.in_army) {
+		if(ar.get_battle_from_army_battle_participation())
+			continue;
+		if(ar.get_navy_from_army_transport())
+			continue;
+		if(ar.get_arrival_time())
+			continue;
+
+		if(ar.get_ai_activity() == uint8_t(army_activity::transport_guard) || ar.get_ai_activity() == uint8_t(army_activity::transport_attack)) {
+			auto controller = ar.get_controller_from_army_control();
+			dcon::navy_id transports;
+			for(auto v : controller.get_navy_control()) {
+				if(v.get_navy().get_ai_activity() == uint8_t(fleet_activity::boarding)) {
+					transports = v.get_navy();
+				}
+			}
+			if(!transports) {
+				ar.set_ai_activity(uint8_t(army_activity::on_guard));
+				continue;
+			}
+			if(state.world.navy_get_arrival_time(transports))
+				continue; // still moving
+
+			auto army_location = ar.get_location_from_army_location();
+			auto transport_location = state.world.navy_get_location_from_navy_location(transports);
+			if(transport_location  == army_location) {
+				ar.set_navy_from_army_transport(transports);
+				ar.set_black_flag(false);
+			} else if(army_location.get_port_to() == transport_location) {
+				auto existing_path = ar.get_path();
+				existing_path.resize(1);
+				existing_path.at(0) = transport_location;
+				ar.set_arrival_time(military::arrival_time_to(state, ar, transport_location));
+			} else { // transport arrived in inaccessible location
+				ar.set_ai_activity(uint8_t(army_activity::on_guard));
+			}
+		}
+	}
+
+	// move navies that have finished loading
+	for(auto v : state.world.in_navy) {
+		if(v.get_ai_activity() == uint8_t(fleet_activity::boarding)) {
+			bool all_loaded = true;
+			for(auto ar : state.world.in_army) {
+				if(ar.get_ai_activity() == uint8_t(army_activity::transport_guard) || ar.get_ai_activity() == uint8_t(army_activity::transport_attack)) {
+					if(ar.get_navy_from_army_transport() != v)
+						all_loaded = false;
+				}
+			}
+
+			if(all_loaded) {
+				auto transporting_range = v.get_army_transport();
+				if(transporting_range.begin() == transporting_range.end()) { // failed to pick up troops
+					auto home_port = v.get_controller_from_navy_control().get_ai_home_port();
+					if(!home_port) {
+						v.set_ai_activity(uint8_t(fleet_activity::unspecified));
+						continue;
+					}
+					auto path = province::make_naval_path(state, v.get_location_from_navy_location(), home_port);
+					if(path.size() > 0) {
+						auto new_size = uint32_t(path.size());
+						auto existing_path = v.get_path();
+						existing_path.resize(new_size);
+
+						for(uint32_t i = 0; i < new_size; ++i) {
+							existing_path.at(i) = path[i];
+						}
+						v.set_arrival_time(military::arrival_time_to(state, v, path.back()));
+						v.set_ai_activity(uint8_t(fleet_activity::returning_to_base));
+					} else {
+						v.set_ai_activity(uint8_t(fleet_activity::unspecified));
+					}
+					continue;
+				}
+				auto transported_dest = (*(transporting_range.begin())).get_army().get_ai_province();
+
+				auto path = province::make_path_to_nearest_coast(state, v.get_controller_from_navy_control(), transported_dest);
+				// move to closest port or closest off_shore
+
+				if(path.empty()) {
+					auto home_port = v.get_controller_from_navy_control().get_ai_home_port();
+					auto naval_path = province::make_naval_path(state, v.get_location_from_navy_location(), home_port);
+					if(naval_path.size() > 0) {
+						auto new_size = uint32_t(naval_path.size());
+						auto existing_path = v.get_path();
+						existing_path.resize(new_size);
+
+						for(uint32_t i = 0; i < new_size; ++i) {
+							existing_path.at(i) = naval_path[i];
+						}
+						v.set_arrival_time(military::arrival_time_to(state, v, naval_path.back()));
+						v.set_ai_activity(uint8_t(fleet_activity::returning_to_base));
+					} else {
+						v.set_ai_activity(uint8_t(fleet_activity::unspecified));
+					}
+				} else {
+					auto target_prov = path.front();
+					if(!province::has_naval_access_to_province(state, v.get_controller_from_navy_control(), target_prov)) {
+						target_prov = state.world.province_get_port_to(target_prov);
+					}
+					auto naval_path = province::make_naval_path(state, v.get_location_from_navy_location(), target_prov);
+
+					auto existing_path = v.get_path();
+					auto new_size = uint32_t(naval_path.size());
+					existing_path.resize(new_size);
+
+					for(uint32_t k = 0; k < new_size; ++k) {
+						existing_path.at(k) = naval_path[k];
+					}
+					v.set_arrival_time(military::arrival_time_to(state, v, naval_path.back()));
+					v.set_ai_activity(uint8_t(fleet_activity::transporting));
+				}
+			}
+		}
+	}
+}
+
 
 }
