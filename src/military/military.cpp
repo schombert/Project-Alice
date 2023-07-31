@@ -2900,11 +2900,6 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	float prestige_gain = successful_cb_prestige(state, wargoal, from) * (war ? 1.0f : state.defines.crisis_wargoal_prestige_mult);
 	nations::adjust_prestige(state, from, prestige_gain);
 	nations::adjust_prestige(state, target, -prestige_gain);
-
-	// If the nation stops existing we shall cleanup all wars it was involved at
-	if(state.world.nation_get_owned_province_count(target) == 0)
-		for(auto p : state.world.nation_get_war_participant(target))
-			remove_from_war(state, p.get_war(), target, true);
 }
 
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {

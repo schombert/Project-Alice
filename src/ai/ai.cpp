@@ -1800,19 +1800,15 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
-	// Prevent constraint violations
-	if(!military::standard_war_joining_is_possible(state, w, n, as_attacker))
-		return false;
-
 	if(!as_attacker)
 		return true;
 	for(auto par : state.world.war_get_war_participant(w)) {
 		if(par.get_is_attacker() == false) {
 			if(military::can_use_cb_against(state, n, par.get_nation()))
 				return true;
-		// Eager to absolutely demolish our rival uwu
-		} else if(state.world.nation_get_ai_rival(n) == par.get_nation()) {
-			return true;
+			// Eager to absolutely demolish our rival
+			if(state.world.nation_get_ai_rival(n) == par.get_nation())
+				return true;
 		}
 	}
 	return false;
