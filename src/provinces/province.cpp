@@ -911,7 +911,7 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 	// If the nation stops existing we shall cleanup all wars it was involved at
 	if(state.world.nation_get_owned_province_count(old_owner) == 0)
 		for(auto p : state.world.nation_get_war_participant(old_owner))
-			remove_from_war(state, p.get_war(), old_owner, true);
+			military::remove_from_war(state, p.get_war(), old_owner, true);
 }
 
 void update_nationalism(sys::state& state) {

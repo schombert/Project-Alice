@@ -439,7 +439,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			return ai::ai_will_accept_alliance(state, m.to, m.from);
 		case type::call_ally_request:
 			if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
-				return;
+				return false;
 			return ai::will_join_war(state, m.to, m.data.war, military::get_role(state, m.data.war, m.from) == military::war_role::attacker);
 		case type::be_crisis_primary_defender:
 			return ai::will_be_crisis_primary_defender(state, m.to);
