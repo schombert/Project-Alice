@@ -859,8 +859,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
 	bool was_colonial = state.world.province_get_is_colonial(id);
-	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
-
 	change_province_owner(state, id, new_owner);
 
 	/*
