@@ -3308,6 +3308,15 @@ void update_ticking_war_score(sys::state& state) {
 	}
 }
 
+void update_war_cleanup(sys::state& state) {
+	state.world.for_each_war([&](dcon::war_id w) {
+		if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(w)) == 0)
+			military::cleanup_war(state, w, military::war_result::defender_won);
+		if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(w)) == 0)
+			military::cleanup_war(state, w, military::war_result::attacker_won);
+	});
+}
+
 float primary_warscore(sys::state& state, dcon::war_id w) {
 	return std::clamp(
 		primary_warscore_from_occupation(state, w)

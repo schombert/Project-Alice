@@ -2433,6 +2433,7 @@ void state::game_loop() {
 						break;
 					case 12:
 						military::update_ticking_war_score(*this);
+						military::update_war_cleanup(*this);
 						break;
 					case 13:
 						military::increase_dig_in(*this);

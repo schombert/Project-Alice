@@ -1245,19 +1245,6 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		state.world.delete_wargoal(wg);
 	}
 
-	// If the nation stops existing we shall cleanup all wars it was involved at
-	// War participation may already be annulled by previous calls so we have to iterate
-	// over all wars to properly dispose of such
-	// TODO: Handle crises
-	state.world.for_each_war([&](dcon::war_id w) {
-		for(auto p : state.world.nation_get_war_participant(n))
-			military::remove_from_war(state, p.get_war(), n, true);
-		if(state.world.war_get_primary_attacker(w) == n)
-			military::cleanup_war(state, w, military::war_result::defender_won);
-		if(state.world.war_get_primary_defender(w) == n)
-			military::cleanup_war(state, w, military::war_result::attacker_won);
-	});
-
 	auto leaders = state.world.nation_get_leader_loyalty(n);
 	while(leaders.begin() != leaders.end()) {
 		state.world.delete_leader((*leaders.begin()).get_leader());
