@@ -118,11 +118,13 @@ public:
 
 template<typename T>
 inline T retrieve(sys::state& state, element_base* parent) {
-	Cyto::Any payload = T{};
 	if(parent) {
+		Cyto::Any payload = T{};
 		parent->impl_get(state, payload);
+		return any_cast<T>(payload);
+	} else {
+		return T{};
 	}
-	return any_cast<T>(payload);
 }
 
 template<typename T>
