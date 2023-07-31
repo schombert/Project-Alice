@@ -2956,9 +2956,11 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 		state.world.delete_wargoal(wg_offered.get_wargoal());
 	}
 
-	
-
 	if(war) {
+		// Nothing to implement, war should be already cleaned up
+		if(state.world.nation_get_owned_province_count(from) == 0 || state.world.nation_get_owned_province_count(target) == 0)
+			return;
+		
 		if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
 			if(state.world.war_get_is_great(war)) {
 				if(state.world.peace_offer_get_is_concession(offer) == false) {
@@ -3009,7 +3011,13 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 				implement_war_goal(state, war, state.military_definitions.standard_great_war, from, target, dcon::nation_id{},
 						dcon::state_definition_id{}, dcon::national_identity_id{});
 			}
-			remove_from_war(state, war, target, state.world.peace_offer_get_is_concession(offer) == false);
+
+			if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(war)) == 0)
+				cleanup_war(state, war, war_result::defender_won);
+			else if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(war)) == 0)
+				cleanup_war(state, war, war_result::attacker_won);
+			else
+				remove_from_war(state, war, target, state.world.peace_offer_get_is_concession(offer) == false);
 
 		} else if(state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == target) {
 
@@ -3017,7 +3025,13 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 				implement_war_goal(state, war, state.military_definitions.standard_great_war, target, from, dcon::nation_id{},
 						dcon::state_definition_id{}, dcon::national_identity_id{});
 			}
-			remove_from_war(state, war, from, state.world.peace_offer_get_is_concession(offer) == false);
+
+			if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(war)) == 0)
+				cleanup_war(state, war, war_result::defender_won);
+			else if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(war)) == 0)
+				cleanup_war(state, war, war_result::attacker_won);
+			else
+				remove_from_war(state, war, from, state.world.peace_offer_get_is_concession(offer) == false);
 
 		} else {
 			assert(false);
@@ -3292,6 +3306,15 @@ void update_ticking_war_score(sys::state& state) {
 		wg.get_ticking_war_score() =
 				std::clamp(wg.get_ticking_war_score(), -state.defines.tws_cb_limit_default, state.defines.tws_cb_limit_default);
 	}
+}
+
+void update_war_cleanup(sys::state& state) {
+	state.world.for_each_war([&](dcon::war_id w) {
+		if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(w)) == 0)
+			military::cleanup_war(state, w, military::war_result::defender_won);
+		if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(w)) == 0)
+			military::cleanup_war(state, w, military::war_result::attacker_won);
+	});
 }
 
 float primary_warscore(sys::state& state, dcon::war_id w) {

@@ -331,7 +331,7 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
-		if(ch >= 32) {
+		if(ch >= 32 && ch != '`') {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
 			set_text(state, s);
