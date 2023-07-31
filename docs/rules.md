@@ -559,6 +559,8 @@ A war goal added in this way will result in a status quo war goal on that side b
 
 Any war ending probably requires checking that units aren't stuck in invalid combats, updating blockade status, etc.
 
+A nation being fully annexxed (i.e no longer exists) will automatically white peace all wars it was involved in and remove itself from war participations, it will also end all wars it was the primary attacker or defender.
+
 #### Crisis offers
 
 Crisis resolution offers function much in the same way as peace offers. Every refused crisis offer increases the temperature of the current crisis by define:CRISIS_TEMPERATURE_ON_OFFER_DECLINE.
