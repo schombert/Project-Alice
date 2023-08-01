@@ -925,4 +925,13 @@ col_invest_3;You are not participating in a crisis war
 col_invest_4;Without competition, you will be able to turn this state into a colony on $x$
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
 col_invest_6;You have at least $x$ free colonial points
+alice_maximum_speed;Max Speed §G$x$§! KPH
+alice_attack;Attack §G$x$
+alice_hull;Hull §G$x$
+alice_fire_range;Firing Range §G$x$
+alice_supply_consumption;Supply Consumption §R$x$%
+alice_supply_load;Supplies Weight §R$x$
+alice_defence;Defence §G$x$
+alice_discipline;Discipline §G$x$%
+alice_maneuver;Maneuver §G$x$
 ;;;;;;;;;;;;;x
