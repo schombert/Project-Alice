@@ -934,4 +934,7 @@ alice_supply_load;Supplies Weight §R$x$
 alice_defence;Defence §G$x$
 alice_discipline;Discipline §G$x$%
 alice_maneuver;Maneuver §G$x$
+alice_recon;Reconaissance §G$x$
+alice_support;Support §G$x$%
+alice_evasion;Evasion §G$x$%
 ;;;;;;;;;;;;;x
