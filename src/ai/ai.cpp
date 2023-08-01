@@ -1806,6 +1806,9 @@ bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as
 		if(par.get_is_attacker() == false) {
 			if(military::can_use_cb_against(state, n, par.get_nation()))
 				return true;
+			// Eager to absolutely demolish our rival
+			if(state.world.nation_get_ai_rival(n) == par.get_nation())
+				return true;
 		}
 	}
 	return false;
@@ -2112,7 +2115,7 @@ void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w
 	do {
 		added = false;
 		static std::vector<possible_cb> potential;
-		 sort_avilable_cbs(potential, state, n, w);
+		sort_avilable_cbs(potential, state, n, w);
 		for(auto& p : potential) {
 			if(!military::war_goal_would_be_duplicate(state, n, w, p.target, p.cb, p.state_def, p.associated_tag, p.secondary_nation)) {
 				military::add_wargoal(state, w, n, p.target, p.cb, p.state_def, p.associated_tag, p.secondary_nation);

@@ -617,10 +617,6 @@ public:
 	}
 };
 
-class topbar_overlapping_enemy_flags : public overlapping_enemy_flags {
-public:
-};
-
 class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1278,9 +1274,24 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		state.ui_state.politics_subwindow->set_visible(state, true);
-		Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::reforms);
-		state.ui_state.politics_subwindow->impl_get(state, defs);
+		auto const override_and_show_tab = [&]() {
+			state.ui_state.politics_subwindow->set_visible(state, true);
+			state.ui_state.politics_subwindow->impl_on_update(state);
+
+			Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::reforms);
+			state.ui_state.politics_subwindow->impl_get(state, defs);
+
+			state.ui_state.root->move_child_to_front(state.ui_state.politics_subwindow);
+			state.ui_state.topbar_subwindow = state.ui_state.politics_subwindow;
+		};
+
+		if(state.ui_state.topbar_subwindow->is_visible()) {
+			state.ui_state.topbar_subwindow->set_visible(state, false);
+			if(state.ui_state.topbar_subwindow != state.ui_state.politics_subwindow)
+				override_and_show_tab();
+		} else {
+			override_and_show_tab();
+		}
 	}
 
 };
@@ -1328,9 +1339,24 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		state.ui_state.politics_subwindow->set_visible(state, true);
-		Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::decisions);
-		state.ui_state.politics_subwindow->impl_get(state, defs);
+		auto const override_and_show_tab = [&]() {
+			state.ui_state.politics_subwindow->set_visible(state, true);
+			state.ui_state.politics_subwindow->impl_on_update(state);
+
+			Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::decisions);
+			state.ui_state.politics_subwindow->impl_get(state, defs);
+
+			state.ui_state.root->move_child_to_front(state.ui_state.politics_subwindow);
+			state.ui_state.topbar_subwindow = state.ui_state.politics_subwindow;
+		};
+
+		if(state.ui_state.topbar_subwindow->is_visible()) {
+			state.ui_state.topbar_subwindow->set_visible(state, false);
+			if(state.ui_state.topbar_subwindow != state.ui_state.politics_subwindow)
+				override_and_show_tab();
+		} else {
+			override_and_show_tab();
+		}
 	}
 
 };
@@ -1416,9 +1442,24 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		state.ui_state.politics_subwindow->set_visible(state, true);
-		Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::movements);
-		state.ui_state.politics_subwindow->impl_get(state, defs);
+		auto const override_and_show_tab = [&]() {
+			state.ui_state.politics_subwindow->set_visible(state, true);
+			state.ui_state.politics_subwindow->impl_on_update(state);
+
+			Cyto::Any defs = Cyto::make_any<politics_window_tab>(politics_window_tab::movements);
+			state.ui_state.politics_subwindow->impl_get(state, defs);
+
+			state.ui_state.root->move_child_to_front(state.ui_state.politics_subwindow);
+			state.ui_state.topbar_subwindow = state.ui_state.politics_subwindow;
+		};
+
+		if(state.ui_state.topbar_subwindow->is_visible()) {
+			state.ui_state.topbar_subwindow->set_visible(state, false);
+			if(state.ui_state.topbar_subwindow != state.ui_state.politics_subwindow)
+				override_and_show_tab();
+		} else {
+			override_and_show_tab();
+		}
 	}
 
 };
@@ -1815,8 +1856,9 @@ public:
 			atpeacetext = ptr.get();
 			return ptr;
 		} else if(name == "diplomacy_at_war") {
-			auto ptr = make_element_by_type<topbar_overlapping_enemy_flags>(state, id);
+			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
 			ptr->base_data.position.y -= ptr->base_data.position.y / 4;
+			ptr->base_data.size.x /= 2;
 			return ptr;
 		} else if(name == "diplomacy_diplopoints_value") {
 			return make_element_by_type<topbar_nation_diplomatic_points_text>(state, id);
