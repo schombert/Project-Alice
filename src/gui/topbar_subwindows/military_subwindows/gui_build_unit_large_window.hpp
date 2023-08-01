@@ -13,6 +13,15 @@ public:
 	bool is_navy;
 };
 
+class queue_unit_entry_info {
+public:
+	dcon::province_land_construction_id land_id;
+	dcon::province_naval_construction_id naval_id;
+	// false == army
+	// true == navy
+	bool is_navy;
+};
+
 class build_unit_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -92,22 +101,20 @@ public:
 	bool is_navy = false;
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(n_payload);
-			Cyto::Any u_payload = dcon::unit_type_id{};
-			parent->impl_get(state, u_payload);
-			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(u_payload);
-			Cyto::Any p_payload = dcon::province_id{};
-			parent->impl_get(state, p_payload);
-			dcon::province_id p = Cyto::any_cast<dcon::province_id>(p_payload);
+			Cyto::Any q_payload = ui::queue_unit_entry_info{};
+			parent->impl_get(state, q_payload);
+			ui::queue_unit_entry_info local_unit_entry = Cyto::any_cast<ui::queue_unit_entry_info>(q_payload);
 
-			if(is_navy == false) {
-				Cyto::Any c_payload = dcon::culture_id{};
-				parent->impl_get(state, c_payload);
-				dcon::culture_id c = Cyto::any_cast<dcon::culture_id>(c_payload);
+			if(!local_unit_entry.is_navy) {
+				dcon::nation_id n = state.world.province_land_construction_get_nation(local_unit_entry.land_id);
+				dcon::unit_type_id utid = state.world.province_land_construction_get_type(local_unit_entry.land_id);
+				dcon::province_id p = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(local_unit_entry.land_id));
+				dcon::culture_id c = state.world.pop_get_culture(state.world.province_land_construction_get_pop(local_unit_entry.land_id));
 				command::cancel_land_unit_construction(state, n, p, c, utid);
 			} else {
+				dcon::nation_id n = state.world.province_naval_construction_get_nation(local_unit_entry.naval_id);
+				dcon::unit_type_id utid = state.world.province_naval_construction_get_type(local_unit_entry.naval_id);
+				dcon::province_id p = state.world.province_naval_construction_get_province(local_unit_entry.naval_id);
 				command::cancel_naval_unit_construction(state, n, p, utid);
 			}
 		}
@@ -310,8 +317,7 @@ public:
 	}
 };
 
-class units_queue_item
-		: public listbox_row_element_base<std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
+class units_queue_item : public listbox_row_element_base<queue_unit_entry_info> {
 public:
 	ui::image_element_base* unit_icon = nullptr;
 	ui::simple_text_element_base* unit_name = nullptr;
@@ -346,8 +352,8 @@ public:
 
 	void update(sys::state& state) noexcept override {
 		if(parent) {
-			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
-				auto c = std::get<dcon::province_land_construction_id>(content);
+			if(!content.is_navy) {
+				auto c = content.land_id;
 
 				dcon::unit_type_id utid = state.world.province_land_construction_get_type(c);
 				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
@@ -357,8 +363,8 @@ public:
 				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
 				unit_name->set_text(state, culture_content + " " + unit_type_name);
 				queue_button->is_navy = false;
-			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
-				auto c = std::get<dcon::province_naval_construction_id>(content);
+			} else if(content.is_navy) {
+				auto c = content.naval_id;
 
 				dcon::unit_type_id utid = state.world.province_naval_construction_get_type(c);
 				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
@@ -370,26 +376,27 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+
 		if(payload.holds_type<dcon::province_id>()) {
 			dcon::province_id p{};
-			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
-				auto c = std::get<dcon::province_land_construction_id>(content);
-				p = state.world.pop_location_get_province(
-						state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
-			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
-				auto c = std::get<dcon::province_naval_construction_id>(content);
+			if(!content.is_navy) {
+				auto c = content.land_id;
+				p = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
+			} else if(content.is_navy) {
+				auto c = content.naval_id;
 				p = state.world.province_naval_construction_get_province(c);
 			}
 			payload.emplace<dcon::province_id>(p);
 			return message_result::consumed;
+		} else if(payload.holds_type<ui::queue_unit_entry_info>()) {
+			payload.emplace<ui::queue_unit_entry_info>(content);
+			return message_result::consumed;
 		}
-		return listbox_row_element_base<
-				std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>>::get(state, payload);
+		return listbox_row_element_base<queue_unit_entry_info>::get(state, payload);
 	}
 };
 
-class units_queue_listbox : public listbox_element_base<units_queue_item,
-																std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
+class units_queue_listbox : public listbox_element_base<units_queue_item, ui::queue_unit_entry_info> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "queue_unit_entry";
@@ -407,11 +414,9 @@ public:
 			parent->impl_get(state, payload);
 			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
 			if(is_navy == false) {
-				state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation,
-						[&](dcon::province_land_construction_id c) { row_contents.push_back(c); });
+				state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation, [&](dcon::province_land_construction_id c) { row_contents.push_back(ui::queue_unit_entry_info{c, dcon::province_naval_construction_id{0}, false}); });
 			} else {
-				state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation,
-						[&](dcon::province_naval_construction_id c) { row_contents.push_back(c); });
+				state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation, [&](dcon::province_naval_construction_id c) { row_contents.push_back(ui::queue_unit_entry_info{dcon::province_land_construction_id{0}, c, true}); });
 			}
 		}
 		update(state);
