@@ -201,6 +201,25 @@ public:
 			// no flashpoint
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id p = Cyto::any_cast<dcon::province_id>(payload);
+
+			text::substitution_map sub_map{};
+			text::add_to_substitution_map(sub_map, text::variable_type::value, text::fp_two_places{ state.world.state_instance_get_flashpoint_tension(state.world.province_get_state_membership(p)) });
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("flashpoint_tension"), sub_map);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_controller_flag : public flag_button {
