@@ -30,12 +30,16 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 if(WIN32)
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	"src/alice.rc"
 	${ASSET_FILES})
 else()
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	${ASSET_FILES})
 endif()
@@ -108,7 +112,7 @@ if(WIN32)
 			target_link_options(Alice PRIVATE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
-		endif()		
+		endif()
 	endif()
 else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
