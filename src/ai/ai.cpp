@@ -4026,7 +4026,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		--max_attacks_to_make;
 
 		// remove subsequent targets that are too close
-		for(uint32_t j = i + 1; j < psize; ++i) {
+		for(uint32_t j = i + 1; j < psize; ++j) {
 			if(province::sorting_distance(state, potential_targets[j].location, potential_targets[i].location) < attack_target_radius)
 				potential_targets[j].location = dcon::province_id{};
 		}
