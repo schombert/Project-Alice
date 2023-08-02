@@ -403,18 +403,15 @@ public:
 		auto fat_id = dcon::fatten(state.world, movement_id);
 		auto independence_target = fat_id.get_associated_independence();
 		auto box = text::open_layout_box(contents);
-		text::substitution_map sub;
-		std::string movementAdj;
+		text::substitution_map sub{};
 		if(independence_target.get_cultural_union_of().id) {
-			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
-			movementAdj = text::get_adjective_as_string(state, independence_target);
-			text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movementAdj));
-			text::add_to_layout_box(state, contents, box, k->second, sub);
+			std::string movement_adj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movement_adj));
+			text::localised_format_box(state, contents, box, std::string_view("nationalist_union_movement"), sub);
 		} else {
-			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
-			movementAdj = text::get_adjective_as_string(state, independence_target);
-			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(movementAdj));
-			text::add_to_layout_box(state, contents, box, k->second, sub);
+			std::string movement_adj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(movement_adj));
+			text::localised_format_box(state, contents, box, std::string_view("nationalist_liberation_movement"), sub);
 		}
 		text::close_layout_box(contents, box);
 	}
