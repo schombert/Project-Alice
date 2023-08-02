@@ -1283,6 +1283,10 @@ object {
 		type{ glm::vec2 }
 		tag{ scenario }
 	}
+	property{
+		name{ mid_point_b }
+		type{ glm::vec3 }
+	}
 
 	property{
 		name{ port_to }
@@ -1439,7 +1443,6 @@ relationship{
 	property{
 		name{ distance }
 		type{ float }
-		tag{ scenario }
 	}
 
 	property{

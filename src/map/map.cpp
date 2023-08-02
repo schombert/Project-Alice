@@ -12,6 +12,7 @@
 #include "stb_image.h"
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
+#include "math_fns.hpp"
 
 namespace map {
 
@@ -1029,12 +1030,12 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 	// schombert: needs to start from +1 here or you don't catch the last province
 	for(int i = context.state.world.province_size() + 1; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 
-		glm::ivec2 tile_pos;
+		glm::vec2 tile_pos;
 
 		assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
 
 		if(tiles_number[i] == 0) {
-			tile_pos = glm::ivec2(0, 0);
+			tile_pos = glm::vec2(0, 0);
 		} else {
 			tile_pos = accumulated_tile_positions[i] / tiles_number[i];
 		}

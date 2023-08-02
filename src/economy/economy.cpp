@@ -3104,10 +3104,11 @@ void resolve_constructions(sys::state& state) {
 
 			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
 			auto a = [&]() {
-				for(auto ar : state.world.province_get_army_location(pop_location)) {
-					if(ar.get_army().get_controller_from_army_control() == c.get_nation())
-						return ar.get_army().id;
-				}
+				// auto merge elimiated: this makes it easier for the ai to handle merging
+				//for(auto ar : state.world.province_get_army_location(pop_location)) {
+				//	if(ar.get_army().get_controller_from_army_control() == c.get_nation())
+				//		return ar.get_army().id;
+				//}
 				auto new_army = fatten(state.world, state.world.create_army());
 				new_army.set_controller_from_army_control(c.get_nation());
 				military::army_arrives_in_province(state, new_army, pop_location, military::crossing_type::none);

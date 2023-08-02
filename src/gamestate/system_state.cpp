@@ -2086,6 +2086,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
 
+	province::restore_distances(*this);
+
 	world.for_each_nation([&](dcon::nation_id id) { politics::update_displayed_identity(*this, id); });
 
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations

@@ -47,6 +47,13 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 }
 
 void restore_unsaved_values(sys::state& state) {
+	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
+		if(state.military_definitions.unit_base_definitions[u].icon == 3) {
+			state.military_definitions.artillery = u;
+			break;
+		}
+	}
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto w = state.world.nation_get_war_participant(n);
 		if(w.begin() != w.end()) {
@@ -2612,10 +2619,12 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that
 	// added the war goal's sphere with max influence.
 	if((bits & cb_flag::po_add_to_sphere) != 0) {
-		if(secondary_nation)
-			take_from_sphere(state, secondary_nation, from);
-		else
+		if(secondary_nation) {
+			if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
+				take_from_sphere(state, secondary_nation, from);
+		} else {
 			take_from_sphere(state, target, from);
+		}
 	}
 
 	// po_clear_union_sphere: every nation of the actors culture group in the target nation's sphere leaves (and has relation set
@@ -2949,11 +2958,12 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	auto wg_range = state.world.peace_offer_get_peace_offer_item(offer);
 	while(wg_range.begin() != wg_range.end()) {
 		auto wg_offered = *(wg_range.begin());
-		implement_war_goal(state, state.world.peace_offer_get_war_from_war_settlement(offer), wg_offered.get_wargoal().get_type(),
-				wg_offered.get_wargoal().get_added_by(), wg_offered.get_wargoal().get_target_nation(),
-				wg_offered.get_wargoal().get_secondary_nation(), wg_offered.get_wargoal().get_associated_state(),
-				wg_offered.get_wargoal().get_associated_tag());
-		state.world.delete_wargoal(wg_offered.get_wargoal());
+		auto wg = wg_offered.get_wargoal();
+		implement_war_goal(state, state.world.peace_offer_get_war_from_war_settlement(offer), wg.get_type(),
+				wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+
+		if(state.world.wargoal_is_valid(wg)) // prevent double deletion if the nation has been killed, thereby deleting the wargoal
+			state.world.delete_wargoal(wg);
 	}
 
 	

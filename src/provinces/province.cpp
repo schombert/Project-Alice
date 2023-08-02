@@ -5,6 +5,7 @@
 #include "system_state.hpp"
 #include <vector>
 #include "rebels.hpp"
+#include "math_fns.hpp"
 
 namespace province {
 
@@ -580,13 +581,11 @@ struct queue_node {
 };
 
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
-	// TODO
-	return 1.0f;
+	return direct_distance(state, state.world.state_instance_get_capital(state_id), prov_id);
 }
 
 float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
-	// TODO
-	return 1.0f;
+	return sorting_distance(state, state.world.state_instance_get_capital(state_id), prov_id);
 }
 
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
@@ -1424,19 +1423,22 @@ void enable_canal(sys::state& state, int32_t id) {
 
 // distance between to adjacent provinces
 float distance(sys::state& state, dcon::province_adjacency_id pair) {
-	// TODO
-	return 1.0f;
+	return state.world.province_adjacency_get_distance(pair);
 }
 
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
-	// TODO
-	return 1.0f;
+	auto apos = state.world.province_get_mid_point_b(a);
+	auto bpos = state.world.province_get_mid_point_b(a);
+	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
+	return math::acos(dot) * (40075.0f / ((24.0f * 2.0f) * math::pi));
 }
 
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
-	// TODO
-	return 1.0f;
+	auto apos = state.world.province_get_mid_point_b(a);
+	auto bpos = state.world.province_get_mid_point_b(a);
+	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
+	return -dot;
 }
 
 // whether a ship can dock at a land province
@@ -1476,6 +1478,9 @@ bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::
 	if(controller == nation_as)
 		return true;
 
+	if(state.world.nation_get_in_sphere_of(controller) == nation_as)
+		return true;
+
 	auto coverl = state.world.nation_get_overlord_as_subject(controller);
 	if(state.world.overlord_get_ruler(coverl) == nation_as)
 		return true;
@@ -1485,6 +1490,35 @@ bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::
 		return true;
 
 	if(military::are_in_common_war(state, nation_as, controller))
+		return true;
+
+	return false;
+}
+
+bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
+	auto controller = state.world.province_get_nation_from_province_control(prov);
+
+	if(!controller)
+		return !bool(state.world.province_get_rebel_faction_from_province_rebel_control(prov));
+
+	if(!nation_as) // rebels go everywhere
+		return true;
+
+	if(controller == nation_as)
+		return true;
+
+	if(state.world.nation_get_in_sphere_of(controller) == nation_as)
+		return true;
+
+	auto coverl = state.world.nation_get_overlord_as_subject(controller);
+	if(state.world.overlord_get_ruler(coverl) == nation_as)
+		return true;
+
+	auto url = state.world.get_unilateral_relationship_by_unilateral_pair(controller, nation_as);
+	if(state.world.unilateral_relationship_get_military_access(url))
+		return true;
+
+	if(military::are_allied_in_war(state, nation_as, controller))
 		return true;
 
 	return false;
@@ -1503,8 +1537,7 @@ struct province_and_distance {
 };
 
 // normal pathfinding
-std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end,
-		dcon::nation_id nation_as, dcon::army_id a) {
+std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a) {
 
 	std::vector<province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
@@ -1555,6 +1588,58 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 					} else {
 						origins_vector.set(other_prov, dcon::province_id{0}); // exclude it from being checked again
 					}
+				}
+			}
+		}
+	}
+
+	return path_result;
+}
+
+std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as) {
+
+	std::vector<province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	std::vector<dcon::province_id> path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		path_result.push_back(end);
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+	};
+
+	path_heap.push_back(province_and_distance{ 0.0f, direct_distance(state, start, end), start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+				if(other_prov == end) {
+					fill_path_result(nearest.province);
+					return path_result;
+				}
+
+				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
+					if(other_prov.get_siege_progress() == 0 && has_safe_access_to_province(state, nation_as, other_prov)) {
+						path_heap.push_back(
+								province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					} else {
+						origins_vector.set(other_prov, dcon::province_id{0}); // exclude it from being checked again
+					}
+				} else { // is sea
+					origins_vector.set(other_prov, dcon::province_id{0}); // exclude it from being checked again
 				}
 			}
 		}
@@ -1876,6 +1961,29 @@ std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& st
 	}
 
 	return path_result;
+}
+
+void restore_distances(sys::state& state) {
+	for(auto p : state.world.in_province) {
+		auto tile_pos = p.get_mid_point();
+		auto scaled_pos = tile_pos / glm::vec2{float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y)};
+
+		glm::vec3 new_world_pos;
+		float angle_x = 2 * scaled_pos.x * math::pi;
+		new_world_pos.x = math::cos(angle_x);
+		new_world_pos.y = math::sin(angle_x);
+
+		float angle_y = scaled_pos.y * math::pi;
+		new_world_pos.x *= math::sin(angle_y);
+		new_world_pos.y *= math::sin(angle_y);
+		new_world_pos.z = math::cos(angle_y);
+
+		p.set_mid_point_b(new_world_pos);
+	}
+	for(auto adj : state.world.in_province_adjacency) {
+		auto dist = direct_distance(state, adj.get_connected_provinces(0), adj.get_connected_provinces(1));
+		adj.set_distance(dist);
+	}
 }
 
 } // namespace province

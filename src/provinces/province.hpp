@@ -41,6 +41,7 @@ bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id 
 void update_connected_regions(sys::state& state);
 void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
+void restore_distances(sys::state& state);
 
 template<typename T>
 auto is_overseas(sys::state const& state, T ids);
@@ -113,6 +114,8 @@ float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id
 bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 // whether a ship can dock at a land province
 bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+// determines whether a land unit is allowed to move to / be in a province that isn't an active enemy
+bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 
 //
 // when pathfinding, check that the destination province is valid on its own (i.e. accessible for normal, or embark-able for sea)
@@ -120,6 +123,8 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 
 // normal pathfinding
 std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
+// pathfind through non-enemy controlled, not under siege provinces
+std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 // used for rebel unit and black-flagged unit pathfinding
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both

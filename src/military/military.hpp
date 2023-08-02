@@ -128,6 +128,7 @@ struct global_military_state {
 
 	dcon::unit_type_id irregular;
 	dcon::unit_type_id infantry;
+	dcon::unit_type_id artillery;
 };
 
 struct available_cb {
