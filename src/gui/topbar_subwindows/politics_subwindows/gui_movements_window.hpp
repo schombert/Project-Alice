@@ -181,17 +181,15 @@ public:
 			dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 		auto box = text::open_layout_box(contents);
-		text::substitution_map sub;
-		std::string adjective;
-		auto rebelAdj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
-		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebelAdj));
+		text::substitution_map sub{};
+		auto rebel_adj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
+		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebel_adj));
 		auto culture = fat_id.get_primary_culture();
 		auto defection_target = fat_id.get_defection_target();
 		if(culture.id) {
-			// auto rebelName = text::get_name_as_string(state, culture);
 			text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
 		} else if(defection_target.id) {
-			adjective = text::get_adjective_as_string(state, defection_target);
+			std::string adjective = text::get_adjective_as_string(state, defection_target);
 			text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
 			text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
 		}

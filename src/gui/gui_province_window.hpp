@@ -201,6 +201,25 @@ public:
 			// no flashpoint
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id p = Cyto::any_cast<dcon::province_id>(payload);
+
+			text::substitution_map sub_map{};
+			text::add_to_substitution_map(sub_map, text::variable_type::value, text::fp_two_places{ state.world.state_instance_get_flashpoint_tension(state.world.province_get_state_membership(p)) });
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("flashpoint_tension"), sub_map);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_controller_flag : public flag_button {
@@ -208,12 +227,9 @@ public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {
 			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
-
 			auto fat_id = dcon::fatten(state.world, province_id);
-			auto controller_id = fat_id.get_province_control_as_province().get_nation();
-			return controller_id.get_identity_from_identity_holder().id;
+			return state.world.nation_get_identity_from_identity_holder(fat_id.get_province_control_as_province().get_nation().id);
 		}
-		// TODO: must handle rebel control
 		return dcon::national_identity_id{};
 	}
 
@@ -222,19 +238,35 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
+		text::add_space_to_layout_box(state, contents, box);
 
-			auto prov_fat = dcon::fatten(state.world, province_id);
-			auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
-			text::add_space_to_layout_box(state, contents, box);
+		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		dcon::nation_id controller_id = prov_fat.get_province_control_as_province().get_nation().id;
+		if(bool(controller_id)) {
+			auto controller_name = state.world.nation_get_name(controller_id);
 			text::add_to_layout_box(state, contents, box, controller_name);
 			text::close_layout_box(contents, box);
-
-			// TODO: must handle rebel control
+		} else {
+			auto rebel_faction_id = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
+			auto fat_id = dcon::fatten(state.world, rebel_faction_id);
+			text::substitution_map sub{};
+			auto rebel_adj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebel_adj));
+			auto culture = fat_id.get_primary_culture();
+			auto defection_target = fat_id.get_defection_target();
+			if(culture.id) {
+				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
+			} else if(defection_target.id) {
+				std::string adjective = text::get_adjective_as_string(state, defection_target);
+				text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
+				text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
+			}
+			text::add_to_layout_box(state, contents, box, fat_id.get_type().get_name(), sub);
 		}
+		text::close_layout_box(contents, box);
 	}
 };
 

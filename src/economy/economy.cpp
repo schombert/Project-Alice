@@ -3024,6 +3024,21 @@ bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_
 	return false;
 }
 
+int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+	int32_t num_factories = 0;
+	auto d = state.world.state_instance_get_definition(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(p.get_province().get_nation_from_province_ownership() == n)
+			num_factories += int32_t(state.world.province_get_factory_location(p.get_province()).end() - state.world.province_get_factory_location(p.get_province()).begin());
+	for(auto p : state.world.state_instance_get_state_building_construction(sid))
+		if(p.get_is_upgrade() == false)
+			++num_factories;
+	
+	// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
+	assert(num_factories <= int32_t(state.defines.factories_per_state));
+	return num_factories;
+}
+
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c) {
 	auto& goods = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].build_cost;
 	auto& cgoods = state.world.province_land_construction_get_purchased_goods(c);
