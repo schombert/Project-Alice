@@ -1300,25 +1300,30 @@ dcon::national_identity_id flag_button::get_current_nation(sys::state& state) no
 }
 
 void flag_button::button_action(sys::state& state) noexcept {
-	auto fat_id = dcon::fatten(state.world, get_current_nation(state));
+	auto ident = get_current_nation(state);
+	if(!bool(ident))
+		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+
+	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		state.open_diplomacy(nation.id);
 	}
 }
 
-void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept {
-	if(bool(identity)) {
-		auto fat_id = dcon::fatten(state.world, identity);
-		auto nation = fat_id.get_nation_from_identity_holder();
-		culture::flag_type flag_type = culture::flag_type{};
-		if(bool(nation.id) && nation.get_owned_province_count() != 0) {
-			flag_type = culture::get_current_flag_type(state, nation.id);
-		} else {
-			flag_type = culture::get_current_flag_type(state, identity);
-		}
-		flag_texture_handle = ogl::get_flag_handle(state, identity, flag_type);
+void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
+	if(!bool(ident))
+		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	
+	auto fat_id = dcon::fatten(state.world, ident);
+	auto nation = fat_id.get_nation_from_identity_holder();
+	culture::flag_type flag_type = culture::flag_type{};
+	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
+		flag_type = culture::get_current_flag_type(state, nation.id);
+	} else {
+		flag_type = culture::get_current_flag_type(state, ident);
 	}
+	flag_texture_handle = ogl::get_flag_handle(state, ident, flag_type);
 }
 
 void flag_button::on_update(sys::state& state) noexcept {
@@ -1357,10 +1362,13 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 }
 void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);
+	if(!bool(ident))
+		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+
 	auto name = nations::name_from_tag(state, ident);
 	if(name) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, name, text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, name);
 		text::close_layout_box(contents, box);
 	}
 }

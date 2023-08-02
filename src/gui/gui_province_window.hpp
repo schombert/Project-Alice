@@ -227,12 +227,9 @@ public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		if(parent) {
 			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
-
 			auto fat_id = dcon::fatten(state.world, province_id);
-			auto controller_id = fat_id.get_province_control_as_province().get_nation();
-			return controller_id.get_identity_from_identity_holder().id;
+			return state.world.nation_get_identity_from_identity_holder(fat_id.get_province_control_as_province().get_nation().id);
 		}
-		// TODO: must handle rebel control
 		return dcon::national_identity_id{};
 	}
 
