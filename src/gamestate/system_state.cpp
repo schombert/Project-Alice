@@ -2043,6 +2043,12 @@ void state::load_scenario_data() {
 		}
 	}
 
+	world.for_each_national_identity([&](dcon::national_identity_id n) {
+		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(n));
+		if(tag == "REB")
+			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
+	});
+
 	// run the economy for three days on scenario creation
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
