@@ -30,7 +30,8 @@ struct command_info {
 		mainmenu,
 		debug,
 		cb_progress,
-		crisis
+		crisis,
+		militancy
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -104,6 +105,9 @@ static const std::vector<command_info> possible_commands = {
 						command_info::argument_info{}}},
 		command_info{"crisis", command_info::type::crisis, "Force a crisis to occur",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"angry", command_info::type::militancy, "Makes everyone in your nation very militant",
+				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}}},
 	};
 
@@ -971,6 +975,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::crisis:
 		command::c_force_crisis(state, state.local_player_nation);
+		break;
+	case command_info::type::militancy:
+		command::c_change_national_militancy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
 		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");

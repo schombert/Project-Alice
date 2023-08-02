@@ -3227,6 +3227,20 @@ void execute_c_force_crisis(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_national_militancy;
+	p.source = source;
+	p.data.cheat.value = value;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_c_change_national_militancy(sys::state& state, dcon::nation_id source, float value) {
+	for(auto pr : state.world.nation_get_province_ownership(source))
+		for(auto pop : pr.get_province().get_pop_location())
+			pop.get_pop().set_militancy(pop.get_pop().get_militancy() + value);
+}
+
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4247,6 +4261,10 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::c_force_crisis:
 			execute_c_force_crisis(state, c->source);
+			break;
+		case command_type::c_change_national_militancy:
+			execute_c_change_national_militancy(state, c->source, c->data.cheat.value);
+			break;
 		}
 
 		state.incoming_commands.pop();
