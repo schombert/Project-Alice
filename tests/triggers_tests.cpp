@@ -19,11 +19,14 @@ TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 		t.push_back(uint16_t(0));
 
 		int32_t total = 0;
-		trigger::recurse_over_triggers(t.data(), [&total](uint16_t *) { ++total; });
+		trigger::recurse_over_triggers(t.data(), [&total](uint16_t*) { ++total; });
 		REQUIRE(5 == total);
 
 		int32_t blockade_count = 0;
-		trigger::recurse_over_triggers(t.data(), [&blockade_count](uint16_t *v) { if((*v & trigger::code_mask) == trigger::blockade) ++blockade_count; });
+		trigger::recurse_over_triggers(t.data(), [&blockade_count](uint16_t* v) {
+			if((*v & trigger::code_mask) == trigger::blockade)
+				++blockade_count;
+		});
 		REQUIRE(2 == blockade_count);
 	}
 }
@@ -46,15 +49,18 @@ TEST_CASE("effect scope recursion", "[effect_tests]") {
 		t.push_back(uint16_t(3));
 
 		int32_t total = 0;
-		parsers::recurse_over_effects(t.data(), [&total](uint16_t *) { ++total; });
+		parsers::recurse_over_effects(t.data(), [&total](uint16_t*) { ++total; });
 		REQUIRE(6 == total);
 
 		int32_t no_payload_count = 0;
-		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t *v) { if(effect::get_generic_effect_payload_size(v) == 0) ++no_payload_count; });
+		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t* v) {
+			if(effect::get_generic_effect_payload_size(v) == 0)
+				++no_payload_count;
+		});
 		REQUIRE(2 == no_payload_count);
 
 		int32_t total_payload = 0;
-		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t *v) { total_payload += effect::get_generic_effect_payload_size(v); });
+		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t* v) { total_payload += effect::get_generic_effect_payload_size(v); });
 		REQUIRE(23 == total_payload);
 	}
 	{
@@ -77,15 +83,18 @@ TEST_CASE("effect scope recursion", "[effect_tests]") {
 		t.push_back(uint16_t(8));
 
 		int32_t total = 0;
-		parsers::recurse_over_effects(t.data(), [&total](uint16_t *) { ++total; });
+		parsers::recurse_over_effects(t.data(), [&total](uint16_t*) { ++total; });
 		REQUIRE(6 == total);
 
 		int32_t no_payload_count = 0;
-		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t *v) { if(effect::get_generic_effect_payload_size(v) == 0) ++no_payload_count; });
+		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t* v) {
+			if(effect::get_generic_effect_payload_size(v) == 0)
+				++no_payload_count;
+		});
 		REQUIRE(2 == no_payload_count);
 
 		int32_t total_payload = 0;
-		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t *v) { total_payload += effect::get_generic_effect_payload_size(v); });
+		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t* v) { total_payload += effect::get_generic_effect_payload_size(v); });
 		REQUIRE(30 == total_payload);
 	}
 }
@@ -297,7 +306,7 @@ TEST_CASE("simple negation removal", "[trigger_tests]") {
 		t.push_back(uint16_t(2));
 		t.push_back(uint16_t(1));
 
-		const auto new_size = parsers::simplify_trigger(t.data());
+		auto const new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(3 == new_size);
 		REQUIRE(t[0] == uint16_t(trigger::association_ne | trigger::blockade));
@@ -318,7 +327,7 @@ TEST_CASE("double negation removal", "[trigger_tests]") {
 		t.push_back(uint16_t(2));
 		t.push_back(uint16_t(1));
 
-		const auto new_size = parsers::simplify_trigger(t.data());
+		auto const new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(3 == new_size);
 		REQUIRE(t[0] == uint16_t(trigger::association_eq | trigger::blockade));
@@ -343,7 +352,7 @@ TEST_CASE("complex inversion", "[trigger_tests]") {
 		t.push_back(uint16_t(2));
 		t.push_back(uint16_t(1));
 
-		const auto new_size = parsers::simplify_trigger(t.data());
+		auto const new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(9 == new_size);
 		REQUIRE(t[0] == uint16_t(trigger::is_disjunctive_scope | trigger::generic_scope));
@@ -372,7 +381,7 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 		t.push_back(uint16_t(trigger::association_eq | trigger::no_payload | trigger::owns));
 		t.push_back(uint16_t(0));
 
-		const auto new_size = parsers::simplify_trigger(t.data());
+		auto const new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(7 == new_size);
 		REQUIRE(t[0] == uint16_t(trigger::x_neighbor_province_scope | trigger::is_existence_scope));
@@ -397,7 +406,7 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 		t.push_back(uint16_t(trigger::association_eq | trigger::no_payload | trigger::owns));
 		t.push_back(uint16_t(0));
 
-		const auto new_size = parsers::simplify_trigger(t.data());
+		auto const new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(8 == new_size);
 		REQUIRE(t[0] == uint16_t(trigger::integer_scope | trigger::is_disjunctive_scope));
@@ -421,7 +430,7 @@ TEST_CASE("and folding", "[trigger_tests]") {
 		t.push_back(uint16_t(trigger::generic_scope));
 		t.push_back(uint16_t(1));
 
-		const auto new_size = parsers::simplify_trigger(t.data());
+		auto const new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(0 == new_size);
 	}
@@ -441,7 +450,7 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 		t.push_back(uint16_t(7));
 		t.push_back(uint16_t(effect::no_payload | effect::add_core_this_pop));
 
-		const auto new_size = parsers::simplify_effect(t.data());
+		auto const new_size = parsers::simplify_effect(t.data());
 
 		REQUIRE(5 == new_size);
 		REQUIRE(t[0] == uint16_t(effect::x_neighbor_province_scope));
@@ -463,7 +472,7 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 		t.push_back(uint16_t(2));
 		t.push_back(uint16_t(effect::no_payload | effect::add_core_this_pop));
 
-		const auto new_size = parsers::simplify_effect(t.data());
+		auto const new_size = parsers::simplify_effect(t.data());
 
 		REQUIRE(7 == new_size);
 		REQUIRE(t[0] == uint16_t(effect::x_neighbor_province_scope));
@@ -488,7 +497,7 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 		t.push_back(uint16_t(effect::no_payload | effect::add_accepted_culture));
 		t.push_back(uint16_t(2));
 
-		const auto new_size = parsers::simplify_effect(t.data());
+		auto const new_size = parsers::simplify_effect(t.data());
 
 		REQUIRE(10 == new_size);
 		REQUIRE(t[0] == uint16_t(effect::scope_has_limit | effect::integer_scope));
@@ -505,7 +514,7 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 }
 
 TEST_CASE("trivial trigger", "[trigger_tests]") {
-	const char trigger_text[] = "always = no";
+	char const trigger_text[] = "always = no";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(trigger_text, trigger_text + strlen(trigger_text));
@@ -521,7 +530,7 @@ TEST_CASE("trivial trigger", "[trigger_tests]") {
 }
 
 TEST_CASE("trivial effect", "[effect_tests]") {
-	const char effect_text[] = "is_slave = yes";
+	char const effect_text[] = "is_slave = yes";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(effect_text, effect_text + strlen(effect_text));
@@ -537,7 +546,7 @@ TEST_CASE("trivial effect", "[effect_tests]") {
 }
 
 TEST_CASE("multipart effect", "[effect_tests]") {
-	const char effect_text[] = "relation = { value = -10 who = THIS }";
+	char const effect_text[] = "relation = { value = -10 who = THIS }";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(effect_text, effect_text + strlen(effect_text));
@@ -554,7 +563,7 @@ TEST_CASE("multipart effect", "[effect_tests]") {
 }
 
 TEST_CASE("effect scope", "[effect_tests]") {
-	const char effect_text[] = "owner = { world_wars_enabled = yes treasury = 0.5 }";
+	char const effect_text[] = "owner = { world_wars_enabled = yes treasury = 0.5 }";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(effect_text, effect_text + strlen(effect_text));
@@ -565,7 +574,7 @@ TEST_CASE("effect scope", "[effect_tests]") {
 
 	parsers::parse_effect_body(gen, err, tc);
 
-	const auto new_size = parsers::simplify_effect(tc.compiled_effect.data());
+	auto const new_size = parsers::simplify_effect(tc.compiled_effect.data());
 	tc.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	REQUIRE(size_t(6) == tc.compiled_effect.size());
@@ -576,7 +585,7 @@ TEST_CASE("effect scope", "[effect_tests]") {
 }
 
 TEST_CASE("effect with limit", "[effect_tests]") {
-	const char effect_text[] = "any_country = { limit = { tag = this } treasury = 0.5 }";
+	char const effect_text[] = "any_country = { limit = { tag = this } treasury = 0.5 }";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(effect_text, effect_text + strlen(effect_text));
@@ -587,7 +596,7 @@ TEST_CASE("effect with limit", "[effect_tests]") {
 
 	parsers::parse_effect_body(gen, err, tc);
 
-	const auto new_size = parsers::simplify_effect(tc.compiled_effect.data());
+	auto const new_size = parsers::simplify_effect(tc.compiled_effect.data());
 	tc.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	REQUIRE(size_t(6) == tc.compiled_effect.size());
@@ -601,7 +610,7 @@ TEST_CASE("effect with limit", "[effect_tests]") {
 }
 
 TEST_CASE("scope sensitive trigger", "[trigger_tests]") {
-	const char trigger_text[] = "militancy < 12";
+	char const trigger_text[] = "militancy < 12";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(trigger_text, trigger_text + strlen(trigger_text));
@@ -617,7 +626,7 @@ TEST_CASE("scope sensitive trigger", "[trigger_tests]") {
 }
 
 TEST_CASE("scope trigger", "[trigger_tests]") {
-	const char trigger_text[] = "this = { average_consciousness >= 1.0 average_militancy != 0.5 }";
+	char const trigger_text[] = "this = { average_consciousness >= 1.0 average_militancy != 0.5 }";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(trigger_text, trigger_text + strlen(trigger_text));
@@ -636,7 +645,7 @@ TEST_CASE("scope trigger", "[trigger_tests]") {
 }
 
 TEST_CASE("empty trigger", "[trigger_tests]") {
-	const char trigger_text[] = " ";
+	char const trigger_text[] = " ";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(trigger_text, trigger_text + strlen(trigger_text));
@@ -651,7 +660,7 @@ TEST_CASE("empty trigger", "[trigger_tests]") {
 }
 
 TEST_CASE("complex full reduction", "[trigger_tests]") {
-	const char trigger_text[] = "NOT = { AND = { AND = { always = yes } any_core = { average_consciousness >= 1.0 } } }";
+	char const trigger_text[] = "NOT = { AND = { AND = { always = yes } any_core = { average_consciousness >= 1.0 } } }";
 
 	parsers::error_handler err("no file");
 	parsers::token_generator gen(trigger_text, trigger_text + strlen(trigger_text));
@@ -662,7 +671,7 @@ TEST_CASE("complex full reduction", "[trigger_tests]") {
 
 	parsers::parse_trigger_body(gen, err, tc);
 
-	const auto new_size = parsers::simplify_trigger(tc.compiled_trigger.data());
+	auto const new_size = parsers::simplify_trigger(tc.compiled_trigger.data());
 	tc.compiled_trigger.resize(static_cast<size_t>(new_size));
 
 	REQUIRE(size_t(8) == tc.compiled_trigger.size());
@@ -684,11 +693,12 @@ TEST_CASE("batch-individual comparision", "[trigger_tests]") {
 		ve::contiguous_tags<dcon::pop_id> g1(16);
 		auto bulk_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(g1), trigger::to_generic(nations::owner_of_pop(*ws, g1)), 0);
 
-		ve::apply([&](float v1, dcon::pop_id p, dcon::nation_id n) {
-			auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
-			REQUIRE(single_eval == v1);
-		},
-		          bulk_eval, g1, nations::owner_of_pop(*ws, g1));
+		ve::apply(
+			[&](float v1, dcon::pop_id p, dcon::nation_id n) {
+				auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
+				REQUIRE(single_eval == v1);
+			},
+			bulk_eval, g1, nations::owner_of_pop(*ws, g1));
 	}
 	{
 		auto modifier = ws->world.pop_type_get_promotion(ws->culture_definitions.primary_factory_worker, ws->culture_definitions.secondary_factory_worker);
@@ -697,11 +707,12 @@ TEST_CASE("batch-individual comparision", "[trigger_tests]") {
 		ve::contiguous_tags<dcon::pop_id> g1(32);
 		auto bulk_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(g1), trigger::to_generic(nations::owner_of_pop(*ws, g1)), 0);
 
-		ve::apply([&](float v1, dcon::pop_id p, dcon::nation_id n) {
-			auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
-			REQUIRE(single_eval == v1);
-		},
-		          bulk_eval, g1, nations::owner_of_pop(*ws, g1));
+		ve::apply(
+			[&](float v1, dcon::pop_id p, dcon::nation_id n) {
+				auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
+				REQUIRE(single_eval == v1);
+			},
+			bulk_eval, g1, nations::owner_of_pop(*ws, g1));
 	}
 	{
 		auto modifier = ws->world.pop_type_get_promotion(ws->culture_definitions.aristocrat, ws->culture_definitions.capitalists);
@@ -710,11 +721,12 @@ TEST_CASE("batch-individual comparision", "[trigger_tests]") {
 		ve::contiguous_tags<dcon::pop_id> g1(48);
 		auto bulk_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(g1), trigger::to_generic(nations::owner_of_pop(*ws, g1)), 0);
 
-		ve::apply([&](float v1, dcon::pop_id p, dcon::nation_id n) {
-			auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
-			REQUIRE(single_eval == v1);
-		},
-		          bulk_eval, g1, nations::owner_of_pop(*ws, g1));
+		ve::apply(
+			[&](float v1, dcon::pop_id p, dcon::nation_id n) {
+				auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
+				REQUIRE(single_eval == v1);
+			},
+			bulk_eval, g1, nations::owner_of_pop(*ws, g1));
 	}
 }
 

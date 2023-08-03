@@ -47,10 +47,9 @@ TEST_CASE("File system reading", "[file_system]") {
 	}
 }
 
-template <typename T>
-bool something_is_named(std::vector<T> const &list, native_string name) {
-	for (auto &val : list) {
-		if (get_full_name(val).find(name) != std::string::npos)
+template<typename T> bool something_is_named(std::vector<T> const& list, native_string name) {
+	for(auto& val : list) {
+		if(get_full_name(val).find(name) != std::string::npos)
 			return true;
 	}
 	return false;

@@ -14,8 +14,7 @@ TEST_CASE("text from csv", "[parsers]") {
 		auto key = state->key_to_text_sequence.find(std::string_view("label"))->second;
 		REQUIRE(bool(key) == true);
 		REQUIRE(state->text_sequences[key].component_count == 3);
-		REQUIRE(state->to_string_view(
-		            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == "more");
+		REQUIRE(state->to_string_view(std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == "more");
 	}
 	SECTION("multiple_lines") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
@@ -29,15 +28,13 @@ TEST_CASE("text from csv", "[parsers]") {
 			auto key = state->key_to_text_sequence.find(std::string_view("label"))->second;
 			REQUIRE(bool(key) == true);
 			REQUIRE(state->text_sequences[key].component_count == 3);
-			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == "more");
+			REQUIRE(state->to_string_view(std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == "more");
 		}
 		{
 			auto key = state->key_to_text_sequence.find(std::string_view("ccc"))->second;
 			REQUIRE(bool(key) == true);
 			REQUIRE(state->text_sequences[key].component_count == 1);
-			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component])) == "last");
+			REQUIRE(state->to_string_view(std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component])) == "last");
 		}
 	}
 }
@@ -61,8 +58,7 @@ TEST_CASE("text game files parsing", "[parsers]") {
 			auto key = it->second;
 			REQUIRE(bool(key) == true);
 			REQUIRE(state->text_sequences[key].component_count == 3);
-			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == " disconnected. Choose your action.");
+			REQUIRE(state->to_string_view(std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == " disconnected. Choose your action.");
 		}
 	}
 }

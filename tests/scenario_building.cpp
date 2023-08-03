@@ -8,16 +8,16 @@
 
 /*
 * parsers::scenario_building_context context(*this);
-        // Read national tags from countries.txt
-        {
-            auto countries = open_file(root, NATIVE("countries.txt"));
-            if(countries) {
-                auto content = view_contents(*countries);
-                err.file_name = "countries.txt";
-                parsers::token_generator gen(content.data, content.data + content.file_size);
-                parsers::parse_national_identity_file(gen, err, context);
-            }
-        }
+		// Read national tags from countries.txt
+		{
+			auto countries = open_file(root, NATIVE("countries.txt"));
+			if(countries) {
+				auto content = view_contents(*countries);
+				err.file_name = "countries.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_national_identity_file(gen, err, context);
+			}
+		}
 */
 
 #ifndef IGNORE_REAL_FILES_TESTS
@@ -36,10 +36,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// This should have no effect whatsoever on the files, and it's only
 	// used so we can test the filesystem state later on
 	{
-		auto content = std::string_view{
-		    "name = \"Test\"\n"
-		    "path = \"mod/test\"\n"
-		    "replace_path = \"non_existing_folder\"\n"};
+		auto content = std::string_view{"name = \"Test\"\n"
+										"path = \"mod/test\"\n"
+										"replace_path = \"non_existing_folder\"\n"};
 		err.file_name = "test.mod";
 		parsers::token_generator gen(content.data(), content.data() + content.length());
 
@@ -47,10 +46,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		parsers::parse_mod_file(gen, err, mod_file_context);
 	}
 	{
-		auto content = std::string_view{
-		    "name = \"Test2\"\n"
-		    "path = \"mod/test2\"\n"
-		    "replace_path = \"non_existing_folder\"\n"};
+		auto content = std::string_view{"name = \"Test2\"\n"
+										"path = \"mod/test2\"\n"
+										"replace_path = \"non_existing_folder\"\n"};
 		err.file_name = "test2.mod";
 		parsers::token_generator gen(content.data(), content.data() + content.length());
 
@@ -61,7 +59,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	auto map = open_directory(root, NATIVE("map"));
 	{
 		auto def_map_file = open_file(map, NATIVE("default.map"));
-		if (def_map_file) {
+		if(def_map_file) {
 			auto content = view_contents(*def_map_file);
 			err.file_name = "default.map";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -73,7 +71,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto def_csv_file = open_file(map, NATIVE("definition.csv"));
-		if (def_csv_file) {
+		if(def_csv_file) {
 			auto content = view_contents(*def_csv_file);
 			err.file_name = "definition.csv";
 			parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
@@ -92,21 +90,19 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	{
 		err.file_name = "adjacencies.csv";
 		auto adj_csv_file = open_file(map, NATIVE("adjacencies.csv"));
-		if (adj_csv_file) {
+		if(adj_csv_file) {
 			auto adj_content = view_contents(*adj_csv_file);
 			parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
 		}
 	}
 
-	std::thread map_loader([&]() {
-		state->map_state.load_map_data(context);
-	});
+	std::thread map_loader([&]() { state->map_state.load_map_data(context); });
 
 	// COUNTRIES
 	{
 		auto countries = open_file(common, NATIVE("countries.txt"));
 		REQUIRE(countries);
-		if (countries) {
+		if(countries) {
 			auto content = view_contents(*countries);
 			err.file_name = "countries.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -135,7 +131,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// RELIGION
 	{
 		auto religion = open_file(common, NATIVE("religion.txt"));
-		if (religion) {
+		if(religion) {
 			auto content = view_contents(*religion);
 			err.file_name = "religion.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -156,7 +152,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// CULTURE
 	{
 		auto cultures = open_file(common, NATIVE("cultures.txt"));
-		if (cultures) {
+		if(cultures) {
 			auto content = view_contents(*cultures);
 			err.file_name = "cultures.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -179,7 +175,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.culture_group_get_leader(idb) == uint8_t(sys::leader_type::european));
 		REQUIRE(idb.get_is_overseas() == false);
 		int32_t count = 0;
-		for (auto c : idb.get_culture_group_membership())
+		for(auto c : idb.get_culture_group_membership())
 			++count;
 		REQUIRE(count == 4);
 		REQUIRE(id.get_culture_group_membership_as_member().get_group() == idb);
@@ -195,13 +191,13 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		// FIRST: make sure that we have a money good
-		if (state->world.commodity_size() == 0) {
+		if(state->world.commodity_size() == 0) {
 			// create money
 			auto money_id = state->world.create_commodity();
 			assert(money_id.index() == 0);
 		}
 		auto goods = open_file(common, NATIVE("goods.txt"));
-		if (goods) {
+		if(goods) {
 			auto content = view_contents(*goods);
 			err.file_name = "goods.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -231,7 +227,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto buildings = open_file(common, NATIVE("buildings.txt"));
-		if (buildings) {
+		if(buildings) {
 			auto content = view_contents(*buildings);
 			err.file_name = "buildings.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -254,7 +250,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		context.ideologies_file = open_file(common, NATIVE("ideologies.txt"));
-		if (context.ideologies_file) {
+		if(context.ideologies_file) {
 			auto content = view_contents(*context.ideologies_file);
 			err.file_name = "ideologies.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -274,13 +270,13 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(fatb.get_ideology_group_membership_as_ideology().get_ideology_group() == fata);
 		int32_t count = 0;
-		for (auto c : fata.get_ideology_group_membership_as_ideology_group())
+		for(auto c : fata.get_ideology_group_membership_as_ideology_group())
 			++count;
 		REQUIRE(count == 2);
 	}
 	{
 		context.issues_file = open_file(common, NATIVE("issues.txt"));
-		if (context.issues_file) {
+		if(context.issues_file) {
 			auto content = view_contents(*context.issues_file);
 			err.file_name = "issues.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -306,7 +302,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto governments = open_file(common, NATIVE("governments.txt"));
-		if (governments) {
+		if(governments) {
 			auto content = view_contents(*governments);
 			err.file_name = "governments.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -324,13 +320,11 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->culture_definitions.governments[ida].duration == 48);
 		REQUIRE(state->culture_definitions.governments[ida].can_appoint_ruling_party == true);
 		REQUIRE(state->culture_definitions.governments[ida].flag == ::culture::flag_type::monarchy);
-		REQUIRE(
-		    (state->culture_definitions.governments[ida].ideologies_allowed &
-		     ::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
+		REQUIRE((state->culture_definitions.governments[ida].ideologies_allowed & ::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
 	}
 	{
 		context.cb_types_file = open_file(common, NATIVE("cb_types.txt"));
-		if (context.cb_types_file) {
+		if(context.cb_types_file) {
 			auto content = view_contents(*context.cb_types_file);
 			err.file_name = "cb_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -342,7 +336,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto traits = open_file(common, NATIVE("traits.txt"));
-		if (traits) {
+		if(traits) {
 			auto content = view_contents(*traits);
 			err.file_name = "traits.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -360,7 +354,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		context.crimes_file = open_file(common, NATIVE("crime.txt"));
-		if (context.crimes_file) {
+		if(context.crimes_file) {
 			auto content = view_contents(*context.crimes_file);
 			err.file_name = "crime.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -376,7 +370,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		context.triggered_modifiers_file = open_file(common, NATIVE("triggered_modifiers.txt"));
-		if (context.triggered_modifiers_file) {
+		if(context.triggered_modifiers_file) {
 			auto content = view_contents(*context.triggered_modifiers_file);
 			err.file_name = "triggered_modifiers.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -388,7 +382,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto nv_file = open_file(common, NATIVE("nationalvalues.txt"));
-		if (nv_file) {
+		if(nv_file) {
 			auto content = view_contents(*nv_file);
 			err.file_name = "nationalvalues.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -409,7 +403,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto sm_file = open_file(common, NATIVE("static_modifiers.txt"));
-		if (sm_file) {
+		if(sm_file) {
 			auto content = view_contents(*sm_file);
 			err.file_name = "static_modifiers.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -420,8 +414,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		/*
 		* has_siege = {
-		    farm_rgo_eff = -0.5
-		    mine_rgo_eff = -0.5
+			farm_rgo_eff = -0.5
+			mine_rgo_eff = -0.5
 		}
 		*/
 
@@ -435,7 +429,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto em_file = open_file(common, NATIVE("event_modifiers.txt"));
-		if (em_file) {
+		if(em_file) {
 			auto content = view_contents(*em_file);
 			err.file_name = "event_modifiers.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -455,7 +449,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto defines_file = open_file(common, NATIVE("defines.lua"));
-		if (defines_file) {
+		if(defines_file) {
 			auto content = view_contents(*defines_file);
 			err.file_name = "defines.lua";
 			state->defines.parse_file(*state, std::string_view(content.data, content.data + content.file_size), err);
@@ -472,7 +466,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		context.rebel_types_file = open_file(common, NATIVE("rebel_types.txt"));
-		if (context.rebel_types_file) {
+		if(context.rebel_types_file) {
 			auto content = view_contents(*context.rebel_types_file);
 			err.file_name = "rebel_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -487,7 +481,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto terrain_file = open_file(map, NATIVE("terrain.txt"));
-		if (terrain_file) {
+		if(terrain_file) {
 			auto content = view_contents(*terrain_file);
 			err.file_name = "terrain.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -510,7 +504,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto region_file = open_file(map, NATIVE("region.txt"));
-		if (region_file) {
+		if(region_file) {
 			auto content = view_contents(*region_file);
 			err.file_name = "region.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -526,7 +520,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto continent_file = open_file(map, NATIVE("continent.txt"));
-		if (continent_file) {
+		if(continent_file) {
 			auto content = view_contents(*continent_file);
 			err.file_name = "continent.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -546,7 +540,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto climate_file = open_file(map, NATIVE("climate.txt"));
-		if (climate_file) {
+		if(climate_file) {
 			auto content = view_contents(*climate_file);
 			err.file_name = "climate.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -568,7 +562,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		auto tech_file = open_file(common, NATIVE("technology.txt"));
-		if (tech_file) {
+		if(tech_file) {
 			auto content = view_contents(*tech_file);
 			err.file_name = "technology.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -597,7 +591,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::army};
 			auto i_file = open_file(inventions, NATIVE("army_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "army_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -608,7 +602,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::navy};
 			auto i_file = open_file(inventions, NATIVE("navy_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "navy_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -619,7 +613,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::commerce};
 			auto i_file = open_file(inventions, NATIVE("commerce_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "commerce_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -630,7 +624,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::culture};
 			auto i_file = open_file(inventions, NATIVE("culture_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "culture_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -641,7 +635,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::industry};
 			auto i_file = open_file(inventions, NATIVE("industry_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "industry_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -660,9 +654,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	{
 		parsers::make_base_units(context);
 		auto units = open_directory(root, NATIVE("units"));
-		for (auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
+		for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
 			auto opened_file = open_file(unit_file);
-			if (opened_file) {
+			if(opened_file) {
 				auto content = view_contents(*opened_file);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -719,7 +713,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
 			auto country_file = open_file(common, file_name);
-			if (country_file) {
+			if(country_file) {
 				parsers::country_file_context c_context{context, i};
 				auto content = view_contents(*country_file);
 				err.file_name = context.file_names_for_idents[i];
@@ -749,18 +743,18 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	auto history = open_directory(root, NATIVE("history"));
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
-		for (auto subdir : list_subdirectories(prov_history)) {
-			for (auto prov_file : list_files(subdir, NATIVE(".txt"))) {
+		for(auto subdir : list_subdirectories(prov_history)) {
+			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
 				auto name_begin = file_name.c_str();
 				auto name_end = name_begin + file_name.length();
-				for (; --name_end > name_begin;) {
-					if (isdigit(*name_end))
+				for(; --name_end > name_begin;) {
+					if(isdigit(*name_end))
 						break;
 				}
 				auto value_start = name_end;
-				for (; value_start > name_begin; --value_start) {
-					if (!isdigit(*value_start))
+				for(; value_start > name_begin; --value_start) {
+					if(!isdigit(*value_start))
 						break;
 				}
 				++value_start;
@@ -768,9 +762,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 				err.file_name = file_name;
 				auto province_id = parsers::parse_int(std::string_view(value_start, name_end - value_start), 0, err);
-				if (province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
+				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
-					if (opened_file) {
+					if(opened_file) {
 						auto pid = context.original_id_to_prov_id_map[province_id];
 						parsers::province_file_context pf_context{context, pid};
 						auto content = view_contents(*opened_file);
@@ -794,8 +788,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(prov.get_railroad_level() == uint8_t(0));
 
 		bool found_france = false;
-		for (auto cr : prov.get_core()) {
-			if (cr.get_identity() == france_tag)
+		for(auto cr : prov.get_core()) {
+			if(cr.get_identity() == france_tag)
 				found_france = true;
 		}
 		REQUIRE(found_france);
@@ -810,9 +804,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 
-		for (auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
+		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -826,9 +820,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		float count = 0;
 
-		for (auto pops_by_location : state->world.province_get_pop_location(context.original_id_to_prov_id_map[302])) {
+		for(auto pops_by_location : state->world.province_get_pop_location(context.original_id_to_prov_id_map[302])) {
 			auto pop_id = pops_by_location.get_pop();
-			if (pop_id.get_culture() == cid && pop_id.get_poptype() == ptype && pop_id.get_religion() == rid) {
+			if(pop_id.get_culture() == cid && pop_id.get_poptype() == ptype && pop_id.get_religion() == rid) {
 				count = pop_id.get_size();
 			}
 		}
@@ -839,9 +833,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// load poptype definitions
 	{
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
-		for (auto pr : context.map_of_poptypes) {
+		for(auto pr : context.map_of_poptypes) {
 			auto opened_file = open_file(poptypes, simple_fs::utf8_to_native(pr.first + ".txt"));
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = pr.first + ".txt";
 				auto content = view_contents(*opened_file);
 				parsers::poptype_context inner_context{context, pr.second};
@@ -865,7 +859,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// load ideology contents
 	{
-		for (auto &pr : context.map_of_ideologies) {
+		for(auto& pr : context.map_of_ideologies) {
 			parsers::individual_ideology_context new_context{context, pr.second.id};
 			parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
 		}
@@ -878,7 +872,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// triggered modifier contents
 	{
-		for (auto &r : context.set_of_triggered_modifiers) {
+		for(auto& r : context.set_of_triggered_modifiers) {
 			state->national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
 		}
 		REQUIRE(err.accumulated_errors == "");
@@ -886,7 +880,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// cb contents
 	{
 		err.file_name = "cb_types.txt";
-		for (auto &r : context.map_of_cb_types) {
+		for(auto& r : context.map_of_cb_types) {
 			parsers::individual_cb_context new_context{context, r.second.id};
 			parsers::parse_cb_body(r.second.generator_state, err, new_context);
 		}
@@ -898,8 +892,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.cb_type_get_peace_cost_factor(state->military_definitions.standard_civil_war) == 1.0f);
 		REQUIRE(state->world.cb_type_get_break_truce_militancy_factor(state->military_definitions.standard_civil_war) == 2.0f);
 		REQUIRE(state->world.cb_type_get_truce_months(state->military_definitions.standard_civil_war) == uint8_t(0));
-		REQUIRE(state->world.cb_type_get_type_bits(state->military_definitions.standard_civil_war) ==
-		        uint32_t(military::cb_flag::is_civil_war | military::cb_flag::po_annex | military::cb_flag::is_triggered_only | military::cb_flag::is_not_constructing_cb | military::cb_flag::not_in_crisis));
+		REQUIRE(state->world.cb_type_get_type_bits(state->military_definitions.standard_civil_war) == uint32_t(military::cb_flag::is_civil_war | military::cb_flag::po_annex | military::cb_flag::is_triggered_only | military::cb_flag::is_not_constructing_cb | military::cb_flag::not_in_crisis));
 		REQUIRE(bool(state->world.cb_type_get_can_use(state->military_definitions.standard_civil_war)) == true);
 		REQUIRE(bool(state->world.cb_type_get_on_add(state->military_definitions.standard_civil_war)) == true);
 		REQUIRE(bool(state->world.cb_type_get_allowed_states(state->military_definitions.standard_civil_war)) == false);
@@ -907,7 +900,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// pending crimes
 	{
 		err.file_name = "crime.txt";
-		for (auto &r : context.map_of_crimes) {
+		for(auto& r : context.map_of_crimes) {
 			parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
 		}
 
@@ -924,10 +917,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// pending issue/ reform options
 	{
 		err.file_name = "issues.txt";
-		for (auto &r : context.map_of_ioptions) {
+		for(auto& r : context.map_of_ioptions) {
 			parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
 		}
-		for (auto &r : context.map_of_roptions) {
+		for(auto& r : context.map_of_roptions) {
 			parsers::read_pending_reform(r.second.id, r.second.generator_state, err, context);
 		}
 
@@ -945,7 +938,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// parse national_focus.txt
 	{
 		auto nat_focus = open_file(common, NATIVE("national_focus.txt"));
-		if (nat_focus) {
+		if(nat_focus) {
 			auto content = view_contents(*nat_focus);
 			err.file_name = "national_focus.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -965,7 +958,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// load pop_types.txt
 	{
 		auto pop_types_file = open_file(common, NATIVE("pop_types.txt"));
-		if (pop_types_file) {
+		if(pop_types_file) {
 			auto content = view_contents(*pop_types_file);
 			err.file_name = "pop_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -982,7 +975,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// read pending techs
 	{
 		err.file_name = "technology file";
-		for (auto &r : context.map_of_technologies) {
+		for(auto& r : context.map_of_technologies) {
 			parsers::read_pending_technology(r.second.id, r.second.generator_state, err, context);
 		}
 
@@ -1004,7 +997,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// read pending inventions
 	{
 		err.file_name = "inventions file";
-		for (auto &r : context.map_of_inventions) {
+		for(auto& r : context.map_of_inventions) {
 			parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
 		}
 
@@ -1025,7 +1018,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// parse on_actions.txt
 	{
 		auto on_action = open_file(common, NATIVE("on_actions.txt"));
-		if (on_action) {
+		if(on_action) {
 			auto content = view_contents(*on_action);
 			err.file_name = "on_actions.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1042,7 +1035,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// parse production_types.txt
 	{
 		auto prod_types = open_file(common, NATIVE("production_types.txt"));
-		if (prod_types) {
+		if(prod_types) {
 			auto content = view_contents(*prod_types);
 			err.file_name = "production_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1050,7 +1043,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			parsers::production_context new_context{context};
 			parsers::parse_production_types_file(gen, err, new_context);
 
-			if (!new_context.found_worker_types) {
+			if(!new_context.found_worker_types) {
 				err.fatal = true;
 				err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
 			}
@@ -1073,7 +1066,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// read pending rebel types
 	{
 		err.file_name = "rebel_types.txt";
-		for (auto &r : context.map_of_rebeltypes) {
+		for(auto& r : context.map_of_rebeltypes) {
 			parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
 		}
 
@@ -1098,9 +1091,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// load decisions
 	{
 		auto decisions = open_directory(root, NATIVE("decisions"));
-		for (auto decision_file : list_files(decisions, NATIVE(".txt"))) {
+		for(auto decision_file : list_files(decisions, NATIVE(".txt"))) {
 			auto opened_file = open_file(decision_file);
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1114,9 +1107,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	{
 		std::vector<simple_fs::file> held_open_files;
 		auto events = open_directory(root, NATIVE("events"));
-		for (auto event_file : list_files(events, NATIVE(".txt"))) {
+		for(auto event_file : list_files(events, NATIVE(".txt"))) {
 			auto opened_file = open_file(event_file);
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1133,28 +1126,28 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
-		for (auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
+		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(oob_file);
 
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
-			for (; start_of_name >= first; --start_of_name) {
-				if (*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
 					++start_of_name;
 					break;
 				}
 			}
-			if (last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
+			if(last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
-				if (auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-					if (holder) {
+					if(holder) {
 						parsers::oob_file_context new_context{context, holder};
 
 						auto opened_file = open_file(oob_file);
-						if (opened_file) {
+						if(opened_file) {
 							err.file_name = utf8name;
 							auto content = view_contents(*opened_file);
 							parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1173,7 +1166,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		dcon::army_id frst;
 		int32_t army_count = 0;
-		for (auto aloc : state->world.province_get_army_location(context.original_id_to_prov_id_map[300])) {
+		for(auto aloc : state->world.province_get_army_location(context.original_id_to_prov_id_map[300])) {
 			frst = aloc.get_army();
 			++army_count;
 		}
@@ -1181,10 +1174,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(bool(frst) == true);
 		int32_t reg_count = 0;
 		bool from_294 = false;
-		for (auto rmem : state->world.army_get_army_membership(frst)) {
+		for(auto rmem : state->world.army_get_army_membership(frst)) {
 			++reg_count;
-			from_294 = from_294 ||
-			           rmem.get_regiment().get_pop_from_regiment_source().get_province_from_pop_location() == context.original_id_to_prov_id_map[294];
+			from_294 = from_294 || rmem.get_regiment().get_pop_from_regiment_source().get_province_from_pop_location() == context.original_id_to_prov_id_map[294];
 		}
 		REQUIRE(reg_count == 6);
 		REQUIRE(from_294 == true);
@@ -1195,7 +1187,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto diplomacy = open_directory(history, NATIVE("diplomacy"));
 		{
 			auto dip_file = open_file(diplomacy, NATIVE("Alliances.txt"));
-			if (dip_file) {
+			if(dip_file) {
 				auto content = view_contents(*dip_file);
 				err.file_name = "Alliances.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1206,7 +1198,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		}
 		{
 			auto dip_file = open_file(diplomacy, NATIVE("PuppetStates.txt"));
-			if (dip_file) {
+			if(dip_file) {
 				auto content = view_contents(*dip_file);
 				err.file_name = "PuppetStates.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1217,7 +1209,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		}
 		{
 			auto dip_file = open_file(diplomacy, NATIVE("Unions.txt"));
-			if (dip_file) {
+			if(dip_file) {
 				auto content = view_contents(*dip_file);
 				err.file_name = "Unions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1247,28 +1239,28 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// load country history
 	{
 		auto country_dir = open_directory(history, NATIVE("countries"));
-		for (auto country_file : list_files(country_dir, NATIVE(".txt"))) {
+		for(auto country_file : list_files(country_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(country_file);
 
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
-			for (; start_of_name >= first; --start_of_name) {
-				if (*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
 					++start_of_name;
 					break;
 				}
 			}
-			if (last - start_of_name >= 6) {
+			if(last - start_of_name >= 6) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
-				if (auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
 					parsers::country_history_context new_context{context, it->second, holder};
 
 					auto opened_file = open_file(country_file);
-					if (opened_file) {
+					if(opened_file) {
 						err.file_name = utf8name;
 						auto content = view_contents(*opened_file);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1296,9 +1288,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// load war history
 	{
 		auto country_dir = open_directory(history, NATIVE("wars"));
-		for (auto war_file : list_files(country_dir, NATIVE(".txt"))) {
+		for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
 			auto opened_file = open_file(war_file);
-			if (opened_file) {
+			if(opened_file) {
 				parsers::war_history_context new_context{context};
 
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
@@ -1320,7 +1312,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->national_definitions.global_flag_variables.resize((state->national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 	state->world.for_each_ideology([&](dcon::ideology_id id) {
-		if (!bool(state->world.ideology_get_activation_date(id))) {
+		if(!bool(state->world.ideology_get_activation_date(id))) {
 			state->world.ideology_set_enabled(id, true);
 		}
 	});
@@ -1332,31 +1324,29 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto frel = fatten(state->world, id);
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
-		if (prov_a.id.index() < state->province_definitions.first_sea_province.index() &&
-		    prov_b.id.index() >= state->province_definitions.first_sea_province.index()) {
+		if(prov_a.id.index() < state->province_definitions.first_sea_province.index() && prov_b.id.index() >= state->province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
-		} else if (prov_a.id.index() >= state->province_definitions.first_sea_province.index() &&
-		           prov_b.id.index() < state->province_definitions.first_sea_province.index()) {
+		} else if(prov_a.id.index() >= state->province_definitions.first_sea_province.index() && prov_b.id.index() < state->province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		}
-		if (prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
+		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
 			frel.get_type() |= province::border::state_bit;
 		}
-		if (prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
+		if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
 			frel.get_type() |= province::border::national_bit;
 		}
 	});
 
 	// fill in the terrain type
 
-	for (int32_t i = 0; i < state->province_definitions.first_sea_province.index(); ++i) {
+	for(int32_t i = 0; i < state->province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id id{dcon::province_id::value_base_t(i)};
-		if (!state->world.province_get_terrain(id)) { // don't overwrite if set by the history file
+		if(!state->world.province_get_terrain(id)) { // don't overwrite if set by the history file
 			auto modifier = context.modifier_by_terrain_index[state->map_state.map_data.median_terrain_type[province::to_map_id(id)]];
 			state->world.province_set_terrain(id, modifier);
 		}
 	}
-	for (int32_t i = state->province_definitions.first_sea_province.index(); i < int32_t(state->world.province_size()); ++i) {
+	for(int32_t i = state->province_definitions.first_sea_province.index(); i < int32_t(state->world.province_size()); ++i) {
 		dcon::province_id id{dcon::province_id::value_base_t(i)};
 		state->world.province_set_terrain(id, context.ocean_terrain);
 	}
@@ -1377,7 +1367,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		state->world.for_each_reform([&](dcon::reform_id r) {
 			auto optzero = state->world.reform_get_options(r)[0];
-			if (tag.get_nation_from_identity_holder().get_reforms(r) != optzero)
+			if(tag.get_nation_from_identity_holder().get_reforms(r) != optzero)
 				++non_def_count;
 		});
 		REQUIRE(non_def_count == 0);
@@ -1386,7 +1376,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 
 	// Obtain filesystem state just before saving (see test below)
-	const auto fs_str = simple_fs::extract_state(state->common_fs);
+	auto const fs_str = simple_fs::extract_state(state->common_fs);
 	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"));
 
 	state = nullptr;
@@ -1408,7 +1398,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		state->world.for_each_reform([&](dcon::reform_id r) {
 			auto optzero = state->world.reform_get_options(r)[0];
-			if (tag.get_nation_from_identity_holder().get_reforms(r) != optzero)
+			if(tag.get_nation_from_identity_holder().get_reforms(r) != optzero)
 				++non_def_count;
 		});
 		REQUIRE(non_def_count == 0);
@@ -1419,7 +1409,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// COUNTRIES
 	{
 
-	    {auto name_num = nations::tag_to_int('T', 'P', 'G');
+		{auto name_num = nations::tag_to_int('T', 'P', 'G');
 	auto it = context.map_of_ident_names.find(name_num);
 	REQUIRE(it != context.map_of_ident_names.end());
 	auto id = it->second;
@@ -1460,7 +1450,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	REQUIRE(state->world.culture_group_get_leader(idb) == uint8_t(sys::leader_type::european));
 	REQUIRE(idb.get_is_overseas() == false);
 	int32_t count = 0;
-	for (auto c : idb.get_culture_group_membership())
+	for(auto c : idb.get_culture_group_membership())
 		++count;
 	REQUIRE(count == 4);
 	REQUIRE(id.get_culture_group_membership_as_member().get_group() == idb);
@@ -1476,7 +1466,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 }
 {
 
-    {auto it = context.map_of_commodity_names.find(std::string("aeroplanes"));
+	{auto it = context.map_of_commodity_names.find(std::string("aeroplanes"));
 REQUIRE(it != context.map_of_commodity_names.end());
 auto id = dcon::fatten(state->world, it->second);
 REQUIRE(sys::red_from_int(id.get_color()) >= 0.5f);
@@ -1519,7 +1509,7 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 
 	REQUIRE(fatb.get_ideology_group_membership_as_ideology().get_ideology_group() == fata);
 	int32_t count = 0;
-	for (auto c : fata.get_ideology_group_membership_as_ideology_group())
+	for(auto c : fata.get_ideology_group_membership_as_ideology_group())
 		++count;
 	REQUIRE(count == 2);
 }
@@ -1549,13 +1539,9 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(state->culture_definitions.governments[ida].duration == 48);
 	REQUIRE(state->culture_definitions.governments[ida].can_appoint_ruling_party == true);
 	REQUIRE(state->culture_definitions.governments[ida].flag == ::culture::flag_type::monarchy);
-	REQUIRE(
-	    (state->culture_definitions.governments[ida].ideologies_allowed &
-	     ::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
+	REQUIRE((state->culture_definitions.governments[ida].ideologies_allowed & ::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
 }
-{
-	REQUIRE(state->world.cb_type_size() > 5);
-}
+{ REQUIRE(state->world.cb_type_size() > 5); }
 {
 
 	auto ita = context.map_of_leader_traits.find(std::string("wretched"));
@@ -1615,9 +1601,7 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(nvit != context.map_of_rebeltypes.end());
 	REQUIRE(bool(nvit->second.id) == true);
 }
-{
-	REQUIRE(state->world.province_size() == size_t(3248));
-}
+{ REQUIRE(state->world.province_size() == size_t(3248)); }
 {
 	REQUIRE(context.map_color_to_province_id.size() != size_t(0));
 	auto clr = sys::pack_color(4, 78, 135);
@@ -1740,8 +1724,8 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(prov.get_railroad_level() == uint8_t(0));
 
 	bool found_france = false;
-	for (auto cr : prov.get_core()) {
-		if (cr.get_identity() == france_tag)
+	for(auto cr : prov.get_core()) {
+		if(cr.get_identity() == france_tag)
 			found_france = true;
 	}
 	REQUIRE(found_france);
@@ -1756,9 +1740,9 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 
 	float count = 0;
 
-	for (auto pops_by_location : state->world.province_get_pop_location(context.original_id_to_prov_id_map[302])) {
+	for(auto pops_by_location : state->world.province_get_pop_location(context.original_id_to_prov_id_map[302])) {
 		auto pop_id = pops_by_location.get_pop();
-		if (pop_id.get_culture() == cid && pop_id.get_poptype() == ptype && pop_id.get_religion() == rid) {
+		if(pop_id.get_culture() == cid && pop_id.get_poptype() == ptype && pop_id.get_religion() == rid) {
 			count = pop_id.get_size();
 		}
 	}
@@ -1796,8 +1780,7 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(state->world.cb_type_get_peace_cost_factor(state->military_definitions.standard_civil_war) == 1.0f);
 	REQUIRE(state->world.cb_type_get_break_truce_militancy_factor(state->military_definitions.standard_civil_war) == 2.0f);
 	REQUIRE(state->world.cb_type_get_truce_months(state->military_definitions.standard_civil_war) == uint8_t(0));
-	REQUIRE(state->world.cb_type_get_type_bits(state->military_definitions.standard_civil_war) ==
-	        uint32_t(military::cb_flag::is_civil_war | military::cb_flag::po_annex | military::cb_flag::is_triggered_only | military::cb_flag::is_not_constructing_cb | military::cb_flag::not_in_crisis));
+	REQUIRE(state->world.cb_type_get_type_bits(state->military_definitions.standard_civil_war) == uint32_t(military::cb_flag::is_civil_war | military::cb_flag::po_annex | military::cb_flag::is_triggered_only | military::cb_flag::is_not_constructing_cb | military::cb_flag::not_in_crisis));
 	REQUIRE(bool(state->world.cb_type_get_can_use(state->military_definitions.standard_civil_war)) == true);
 	REQUIRE(bool(state->world.cb_type_get_on_add(state->military_definitions.standard_civil_war)) == true);
 	REQUIRE(bool(state->world.cb_type_get_allowed_states(state->military_definitions.standard_civil_war)) == false);
@@ -1834,10 +1817,7 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
 }
 // load pop_types.txt
-{
-
-	REQUIRE(bool(state->culture_definitions.migration_chance) == true);
-}
+{ REQUIRE(bool(state->culture_definitions.migration_chance) == true); }
 
 // read pending techs
 {
@@ -1910,7 +1890,7 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 {
 	dcon::army_id frst;
 	int32_t army_count = 0;
-	for (auto aloc : state->world.province_get_army_location(context.original_id_to_prov_id_map[300])) {
+	for(auto aloc : state->world.province_get_army_location(context.original_id_to_prov_id_map[300])) {
 		frst = aloc.get_army();
 		++army_count;
 	}
@@ -1918,10 +1898,9 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(bool(frst) == true);
 	int32_t reg_count = 0;
 	bool from_294 = false;
-	for (auto rmem : state->world.army_get_army_membership(frst)) {
+	for(auto rmem : state->world.army_get_army_membership(frst)) {
 		++reg_count;
-		from_294 = from_294 ||
-		           rmem.get_regiment().get_pop_from_regiment_source().get_province_from_pop_location() == context.original_id_to_prov_id_map[294];
+		from_294 = from_294 || rmem.get_regiment().get_pop_from_regiment_source().get_province_from_pop_location() == context.original_id_to_prov_id_map[294];
 	}
 	REQUIRE(reg_count == 6);
 	REQUIRE(from_294 == true);
@@ -1975,51 +1954,51 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 // where some benchmarks live
 
 const auto trash_cache = []() {
-    volatile char* p[8192];
-    for(uint32_t i = 0; i < 8192; i++) {
-        p[i] = static_cast<volatile char*>(::new char[4096]);
-        p[i][0] = p[i][4095] = 1;
-    }
-    for(uint32_t i = 0; i < 8192; i++) {
-        delete[] p[i];
-    }
+	volatile char* p[8192];
+	for(uint32_t i = 0; i < 8192; i++) {
+		p[i] = static_cast<volatile char*>(::new char[4096]);
+		p[i][0] = p[i][4095] = 1;
+	}
+	for(uint32_t i = 0; i < 8192; i++) {
+		delete[] p[i];
+	}
 };
 
 BENCHMARK_ADVANCED("basic maximum")(Catch::Benchmark::Chronometer meter) {
-    trash_cache();
-    meter.measure([&]() {
-        province::for_each_land_province(*state, [&](dcon::province_id p) {
-            // schombert: there is a faster way to do this. Instead of figuring out the max province by province
-            // it would be better to go culture by culture, storing the temporary max share per province in a
-            // temporary buffer. Why? Because by going through things one culture at a time would be much easier
-            // on the prefetcher given the typical number of cultures
-            dcon::culture_id max_id;
-            float max_value = 0.0f;
-            state->world.for_each_culture([&](dcon::culture_id c) {
-                if(auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c)); v > max_value) {
-                    max_value = v;
-                    max_id = c;
-                }
-            });
-            state->world.province_set_dominant_culture(p, max_id);
-        });
-    });
+	trash_cache();
+	meter.measure([&]() {
+		province::for_each_land_province(*state, [&](dcon::province_id p) {
+			// schombert: there is a faster way to do this. Instead of figuring out the max province by province
+			// it would be better to go culture by culture, storing the temporary max share per province in a
+			// temporary buffer. Why? Because by going through things one culture at a time would be much easier
+			// on the prefetcher given the typical number of cultures
+			dcon::culture_id max_id;
+			float max_value = 0.0f;
+			state->world.for_each_culture([&](dcon::culture_id c) {
+				if(auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c)); v > max_value) {
+					max_value = v;
+					max_id = c;
+				}
+			});
+			state->world.province_set_dominant_culture(p, max_id);
+		});
+	});
 };
 BENCHMARK_ADVANCED("vectorized maximum")(Catch::Benchmark::Chronometer meter) {
-    trash_cache();
-    meter.measure([&]() {
-        ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
-            ve::tagged_vector<dcon::culture_id> max_id;
-            ve::fp_vector max_value = 0.0f;
-            state->world.for_each_culture([&](dcon::culture_id c) {
-                auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
-                auto mask = v > max_value;
-                max_id = ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), max_id);
-                max_value = ve::select(mask, v, max_value);
-            });
-            state->world.province_set_dominant_culture(p, max_id);
-        });
-    });
+	trash_cache();
+	meter.measure([&]() {
+		ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+			ve::tagged_vector<dcon::culture_id> max_id;
+			ve::fp_vector max_value = 0.0f;
+			state->world.for_each_culture([&](dcon::culture_id c) {
+				auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
+				auto mask = v > max_value;
+				max_id = ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), max_id);
+				max_value = ve::select(mask, v, max_value);
+			});
+			state->world.province_set_dominant_culture(p, max_id);
+		});
+	});
 };
 
 static ve::vectorizable_buffer<float, dcon::province_id> max_buffer(uint32_t(1));
@@ -2028,27 +2007,27 @@ static uint32_t old_count = 1;
 // this isn't needed here but I will need it in some of the other places
 auto new_count = uint32_t(state->province_definitions.first_sea_province.index());
 if(new_count > old_count) {
-    max_buffer = state->world.province_make_vectorizable_float_buffer();
-    old_count = new_count;
+	max_buffer = state->world.province_make_vectorizable_float_buffer();
+	old_count = new_count;
 }
 
 BENCHMARK_ADVANCED("vectorized loop exchanged maximum")(Catch::Benchmark::Chronometer meter) {
-    trash_cache();
-    meter.measure([&]() {
+	trash_cache();
+	meter.measure([&]() {
 
-        ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
-            max_buffer.set(p, ve::fp_vector());
-        });
-        state->world.for_each_culture([&](dcon::culture_id c) {
-            ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
-                auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
-                auto old_max = max_buffer.get(p);
-                auto mask = v > old_max;
-                state->world.province_set_dominant_culture(p, ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state->world.province_get_dominant_culture(p)));
-                max_buffer.set(p, ve::select(mask, v, old_max));
-            });
-        });
-    });
+		ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+			max_buffer.set(p, ve::fp_vector());
+		});
+		state->world.for_each_culture([&](dcon::culture_id c) {
+			ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+				auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
+				auto old_max = max_buffer.get(p);
+				auto mask = v > old_max;
+				state->world.province_set_dominant_culture(p, ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state->world.province_get_dominant_culture(p)));
+				max_buffer.set(p, ve::select(mask, v, old_max));
+			});
+		});
+	});
 };
 // ***************************/
 }
@@ -2057,40 +2036,37 @@ struct test_event_nation_pair {
 	dcon::nation_id n;
 	dcon::free_national_event_id e;
 
-	bool operator==(test_event_nation_pair const &other) const noexcept {
-		return other.n == n && other.e == e;
-	}
-	bool operator<(test_event_nation_pair const &other) const noexcept {
-		return other.n != n ? (n.value < other.n.value) : (e.value < other.e.value);
-	}
+	bool operator==(test_event_nation_pair const& other) const noexcept { return other.n == n && other.e == e; }
+	bool operator<(test_event_nation_pair const& other) const noexcept { return other.n != n ? (n.value < other.n.value) : (e.value < other.e.value); }
 };
 
 TEST_CASE("event performance", "[benchmarks]") {
 	auto ws = load_testing_scenario_file();
-	auto &state = *ws;
+	auto& state = *ws;
 
 	BENCHMARK_ADVANCED("national events in sequence")
 	(Catch::Benchmark::Chronometer meter) {
 		meter.measure([&]() {
-			for (uint32_t k = 0; k < 32; ++k) {
+			for(uint32_t k = 0; k < 32; ++k) {
 				uint32_t n_block_size = state.world.free_national_event_size() / 32;
 				uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
 
 				uint32_t block_index = (state.current_date.value & 31);
 
 				auto n_block_end = block_index == 31 ? state.world.free_national_event_size() : n_block_size * (block_index + 1);
-				for (uint32_t i = n_block_size * block_index; i < n_block_end; ++i) {
+				for(uint32_t i = n_block_size * block_index; i < n_block_end; ++i) {
 					dcon::free_national_event_id id{dcon::national_event_id::value_base_t(i)};
 					auto mod = state.world.free_national_event_get_mtth(id);
 					auto t = state.world.free_national_event_get_trigger(id);
 
-					if (mod && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)) {
+					if(mod && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)) {
 						ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 							/*
-							For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
+							For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the
+							probability is the multiplicative inverse of the value.
 							*/
 							auto some_exist = t ? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0) : (state.world.nation_get_owned_province_count(ids) != 0);
-							if (ve::compress_mask(some_exist).v != 0) {
+							if(ve::compress_mask(some_exist).v != 0) {
 								auto chances = trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 								auto adj_chance = 1.0f - ve::select(chances <= 1.0f, 1.0f, 1.0f / (chances));
 								auto adj_chance_2 = adj_chance * adj_chance;
@@ -2098,16 +2074,17 @@ TEST_CASE("event performance", "[benchmarks]") {
 								auto adj_chance_8 = adj_chance_4 * adj_chance_4;
 								auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
-								ve::apply([&](dcon::nation_id n, float c, bool condition) {
-									auto owned_range = state.world.nation_get_province_ownership(n);
-									if (condition && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false) && owned_range.begin() != owned_range.end()) {
+								ve::apply(
+									[&](dcon::nation_id n, float c, bool condition) {
+										auto owned_range = state.world.nation_get_province_ownership(n);
+										if(condition && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false) && owned_range.begin() != owned_range.end()) {
 
-										if (float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
-											event::trigger_national_event(state, id, n, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(n.index()));
+											if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+												event::trigger_national_event(state, id, n, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(n.index()));
+											}
 										}
-									}
-								},
-								          ids, adj_chance_16, some_exist);
+									},
+									ids, adj_chance_16, some_exist);
 							}
 						});
 					}
@@ -2120,7 +2097,7 @@ TEST_CASE("event performance", "[benchmarks]") {
 	BENCHMARK_ADVANCED("national events in parallel")
 	(Catch::Benchmark::Chronometer meter) {
 		meter.measure([&]() {
-			for (uint32_t k = 0; k < 32; ++k) {
+			for(uint32_t k = 0; k < 32; ++k) {
 				concurrency::combinable<std::vector<test_event_nation_pair>> events_triggered;
 				uint32_t n_block_size = state.world.free_national_event_size() / 32;
 				uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
@@ -2137,18 +2114,18 @@ TEST_CASE("event performance", "[benchmarks]") {
 					bool trigger_at_most_once = state.world.free_national_event_get_only_once(id);
 					bool has_been_triggered = state.world.free_national_event_get_has_been_triggered(id);
 
-					if (mod && (trigger_at_most_once == false || has_been_triggered == false)) {
+					if(mod && (trigger_at_most_once == false || has_been_triggered == false)) {
 						ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 							/*
-							For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
+							For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the
+							probability is the multiplicative inverse of the value.
 							*/
-							if (trigger_at_most_once == true && has_been_triggered == true)
+							if(trigger_at_most_once == true && has_been_triggered == true)
 								return;
 
-							auto some_exist =
-							    (t ? trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0) : true) && (state.world.nation_get_owned_province_count(ids) != 0);
+							auto some_exist = (t ? trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0) : true) && (state.world.nation_get_owned_province_count(ids) != 0);
 
-							if (ve::compress_mask(some_exist).v != 0) {
+							if(ve::compress_mask(some_exist).v != 0) {
 								auto chances = trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 								auto adj_chance = 1.0f - ve::select(chances <= 1.0f, 1.0f, 1.0f / (chances));
 								auto adj_chance_2 = adj_chance * adj_chance;
@@ -2156,34 +2133,35 @@ TEST_CASE("event performance", "[benchmarks]") {
 								auto adj_chance_8 = adj_chance_4 * adj_chance_4;
 								auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
-								ve::apply([&](dcon::nation_id n, float c, bool condition) {
-									if (trigger_at_most_once == true && has_been_triggered == true)
-										return;
+								ve::apply(
+									[&](dcon::nation_id n, float c, bool condition) {
+										if(trigger_at_most_once == true && has_been_triggered == true)
+											return;
 
-									auto owned_range = state.world.nation_get_province_ownership(n);
-									if (condition && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false) && owned_range.begin() != owned_range.end()) {
+										auto owned_range = state.world.nation_get_province_ownership(n);
+										if(condition && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false) && owned_range.begin() != owned_range.end()) {
 
-										if (float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
-											has_been_triggered = true;
-											events_triggered.local().push_back(test_event_nation_pair{n, id});
-											// event::trigger_national_event(state, id, n, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(n.index()));
+											if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+												has_been_triggered = true;
+												events_triggered.local().push_back(test_event_nation_pair{n, id});
+												// event::trigger_national_event(state, id, n, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(n.index()));
+											}
 										}
-									}
-								},
-								          ids, adj_chance_16, some_exist);
+									},
+									ids, adj_chance_16, some_exist);
 							}
 						});
 					}
 				});
 
-				auto total_vector = events_triggered.combine([](auto &a, auto &b) {
+				auto total_vector = events_triggered.combine([](auto& a, auto& b) {
 					std::vector<test_event_nation_pair> result;
 					result.insert(result.end(), a.begin(), a.end());
 					result.insert(result.end(), b.begin(), b.end());
 					return result;
 				});
 				std::sort(total_vector.begin(), total_vector.end());
-				for (auto &v : total_vector) {
+				for(auto& v : total_vector) {
 					event::trigger_national_event(state, v.e, v.n, uint32_t((state.current_date.value) ^ (v.e.value << 3)), uint32_t(v.n.value));
 				}
 
@@ -2211,10 +2189,9 @@ TEST_CASE(".mod overrides", "[req-game-files]") {
 
 	// As it is about to be overriden by a .mod file with no prior notice
 	{
-		auto content = std::string_view{
-		    "name = \"Test\"\n"
-		    "path = \"mod\\test\"\n"
-		    "replace_path = \"map\"\n"};
+		auto content = std::string_view{"name = \"Test\"\n"
+										"path = \"mod\\test\"\n"
+										"replace_path = \"map\"\n"};
 		err.file_name = "test.mod";
 		parsers::token_generator gen(content.data(), content.data() + content.length());
 
@@ -2231,7 +2208,7 @@ TEST_CASE(".mod overrides", "[req-game-files]") {
 	}
 
 	// Ensure the filesystem state is kept the same
-	const auto fs_str = simple_fs::extract_state(state->common_fs);
+	auto const fs_str = simple_fs::extract_state(state->common_fs);
 	simple_fs::restore_state(state->common_fs, fs_str);
 	REQUIRE(simple_fs::extract_state(state->common_fs) == fs_str);
 

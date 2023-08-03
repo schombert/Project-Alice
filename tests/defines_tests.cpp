@@ -11,7 +11,7 @@ TEST_CASE("defines tests", "[defines_tests]") {
 #ifndef IGNORE_REAL_FILES_TESTS
 	auto file = open_file(common, NATIVE("defines.lua"));
 	REQUIRE(file);
-	if (file) {
+	if(file) {
 		parsers::error_handler err("");
 		auto content = view_contents(*file);
 		parsing::defines d{};
