@@ -1,4 +1,4 @@
-# Modding support
+## Modding support
 
 As of writing, Alice doesn't properly support most of the popular mods without a patch (which shouldn't be the case once we get near to 1.0).
 

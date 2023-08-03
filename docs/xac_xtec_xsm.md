@@ -1,4 +1,13 @@
-## XAC Format
+## XAC, XSM and XTEC file formats
+
+Main link : https://aluigi.altervista.org/quickbms.htm
+
+chrrox work >
+- (model) xac(?) extractor : https://forum.xentax.com/viewtopic.php?p=52319#p52319
+- (texture) xtex(?) extractor : https://forum.xentax.com/viewtopic.php?p=52491#p52491 (does not appear to be used in Vic2)
+- (animation) xsm
+
+### XAC
 ```c
 #define DEF_HEADSIZE 28
 #define DEF_FLAGSIZE 12
@@ -128,4 +137,163 @@ struct {
 
 ```
 
+Program to readback XAC files:
+```c++
+#include <iostream>
+#include <stdint.h>
+#include <stdio.h>
 
+struct xac_header {
+	char magic[3];
+	int32_t version;
+	int32_t unknown_data;
+	char junk[29];
+};
+
+int main(int argc, char *argv[]) {
+	if (argc == 2) {
+		FILE *fp = fopen(argv[1], "rb");
+		xac_header header;
+		fread(&header, sizeof(header), 1, fp);
+		printf("Magic: %c.%c.%c\n",header.magic[0], header.magic[1], header.magic[2]);
+		printf("Version: %d\n", header.version);
+		printf("Unknown: %d\n", header.unknown_data);
+		fclose(fp);
+		return 0;
+	}
+	return -1;
+}
+```
+
+QuickBMS script:
+```python
+#quickbms script
+#War of Dragons
+#from chrrox
+
+open FDDE tbl2 1
+set arcnum 0
+
+goto 0x10001C 1
+
+for i = 0
+    get offset long 1
+    get zsize long 1
+    get null3 long 1
+    get size long 1
+   get arcnum long 1
+        set NAME1 string "file0"
+    set MYEXT string arcnum
+    strlen MYEXTSZ MYEXT
+    if MYEXTSZ == 1
+        string NAME1 += "00"
+    endif
+    if MYEXTSZ == 2
+        string name1 - 1
+        string NAME1 += "0"
+    endif
+    if MYEXTSZ == 3
+        string name1 - 1
+        string NAME1 += ""
+    endif
+    string NAME1 += MYEXT
+    string NAME1 += .data2
+    open FDSE NAME1 0
+
+
+    get null1 long 1
+    get null2 long 1
+
+    get name string 1
+    Padding 4 1
+
+    get null long 1
+
+        log name offset zsize
+next i
+```
+
+### XTEX
+
+QuickBMS script:
+```python
+#quickbms script
+#War of Dragons
+#from chrrox
+
+open FDDE tbl2 1
+set arcnum 0
+
+
+goto 0x10001C 1
+
+for i = 0
+    get offset long 1
+    get zsize long 1
+    get null3 long 1
+    get size long 1
+   get arcnum long 1
+        set NAME1 string "file0"
+    set MYEXT string arcnum
+    strlen MYEXTSZ MYEXT
+    if MYEXTSZ == 1
+        string NAME1 += "00"
+    endif
+    if MYEXTSZ == 2
+        string name1 - 1
+        string NAME1 += "0"
+    endif
+    if MYEXTSZ == 3
+        string name1 - 1
+        string NAME1 += ""
+    endif
+    string NAME1 += MYEXT
+    string NAME1 += .data2
+    open FDSE NAME1 0
+
+
+    get null1 long 1
+    get null2 long 1
+
+    get name string 1
+    Padding 4 1
+
+    get null long 1
+
+        log name offset zsize
+next i
+```
+
+### XSM
+```c
+struct xsm_header {
+	char magic[4] = {'X', 'S', 'M', ' '}; // Offset 0x0h	--- Magic Value
+	uint16_t fp_num;											// Offset 0x2h	--- First MagicNum, appears to always be 01 00
+	uint16_t sp_num; // Offset 0x4h	--- Second MagicNUm, appears to be 00 01 or 00 00, changing depending on if Maya X64 was used
+									 // or not, might be false though
+};
+
+struct xsm_metadata_section {
+	uint32_t section_id;						// Offset 0x0h	--- Appears to use C9 00 00 00 for the metadata section
+	uint32_t unknown1;							// Offset 0x4h	---
+	uint32_t unk_ident;							// Offset 0x8h	--- Appears to always be 02 00 00 00, same as in XAC
+	uint32_t unknown2;							// Offset 0xCh	--- Appears to always be 00 00 00 3F ???
+	uint32_t unknown3;							// Offset 0x10h	---
+	uint32_t unknown4;							// Offset 0x14h	---
+	uint32_t unknown5;							// Offset 0x18h	---
+	uint32_t toolversize						// Offset 0x1Ch	--- Is how large the CString with the Tool Name and Version in it is
+			char toolname[toolversize]; // Offset 0x20h	--- Is the tool that generated the file
+	uint32_t workfilesize;					//		--- Is how large the CString with the file location is
+	char filename[workfilesize];		//		--- Is the originial, source file, the current file was generated from
+	uint32_t datesize;							//		--- Is how large the CString with the date of creation in it
+	char datestring[datesize];			//		--- Is the CString with the date of creation in it, Format is MMM-DD-YYYY
+};
+
+struct xsm_data_section_header {
+	uint32_t section_id; // Offset 0x0h	--- Appears to use 00 00 00 00 for the data section
+	uint32_t unknown2;	 // Offset 0x4h	--- Appears to always be CA 00 00 00, significance unknown
+	uint32_t unknown3;	 // Offset 0x8h
+	uint32_t unknown4;	 // Offset 0xCh	---
+	uint32_t numentries; // Offset 0x10h	--- Appears to Contain how many Data Section Entries
+};
+```
