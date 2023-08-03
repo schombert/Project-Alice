@@ -17,13 +17,10 @@ enum direction : uint8_t {
 };
 
 struct BorderDirection {
-	BorderDirection() {
-	};
+	BorderDirection(){};
 	struct Information {
-		Information() {
-		};
-		Information(int32_t index_, int32_t id_) : index{ index_ }, id{ id_ } {
-		};
+		Information(){};
+		Information(int32_t index_, int32_t id_) : index{index_}, id{id_} {};
 		int32_t index = -1;
 		int32_t id = -1;
 	};
@@ -60,20 +57,20 @@ void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec
 
 	BorderDirection::Information direction_information(border_index, border_id);
 	switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
+	case direction::UP:
+		current_row[x].up = direction_information;
+		break;
+	case direction::DOWN:
+		current_row[x].down = direction_information;
+		break;
+	case direction::LEFT:
+		current_row[x].left = direction_information;
+		break;
+	case direction::RIGHT:
+		current_row[x].right = direction_information;
+		break;
+	default:
+		break;
 	}
 };
 
@@ -85,20 +82,20 @@ bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vecto
 
 	BorderDirection::Information direction_information;
 	switch(dir) {
-		case direction::UP:
-			direction_information = last_row[x].down;
-			break;
-		case direction::DOWN:
-			direction_information = current_row[x].up;
-			break;
-		case direction::LEFT:
-			direction_information = current_row[x - 1].right;
-			break;
-		case direction::RIGHT:
-			direction_information = current_row[x].left;
-			break;
-		default:
-			return false;
+	case direction::UP:
+		direction_information = last_row[x].down;
+		break;
+	case direction::DOWN:
+		direction_information = current_row[x].up;
+		break;
+	case direction::LEFT:
+		direction_information = current_row[x - 1].right;
+		break;
+	case direction::RIGHT:
+		direction_information = current_row[x].left;
+		break;
+	default:
+		return false;
 	}
 	if(direction_information.id != border_id)
 		return false;
@@ -108,36 +105,36 @@ bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vecto
 		return false;
 
 	switch(dir) {
-		case direction::UP:
-		case direction::DOWN:
-			border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
-			border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
-			border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
-			break;
-		case direction::LEFT:
-		case direction::RIGHT:
-			border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
-			border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
-			border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
-			break;
-		default:
-			break;
+	case direction::UP:
+	case direction::DOWN:
+		border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
+		border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
+		border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
+		break;
+	case direction::LEFT:
+	case direction::RIGHT:
+		border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
+		border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
+		border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
+		break;
+	default:
+		break;
 	}
 	switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
+	case direction::UP:
+		current_row[x].up = direction_information;
+		break;
+	case direction::DOWN:
+		current_row[x].down = direction_information;
+		break;
+	case direction::LEFT:
+		current_row[x].left = direction_information;
+		break;
+	case direction::RIGHT:
+		current_row[x].right = direction_information;
+		break;
+	default:
+		break;
 	}
 	return true;
 };
@@ -155,19 +152,8 @@ int32_t get_border_index(uint16_t map_province_id1, uint16_t map_province_id2, p
 	return border_index.index();
 }
 
-void add_border(
-	const uint32_t& x0,
-	const uint32_t& y0,
-	const uint16_t& id_ul,
-	const uint16_t& id_ur,
-	const uint16_t& id_dl,
-	const uint16_t& id_dr,
-	std::vector<std::vector<border_vertex>>& borders_list_vertices,
-	std::vector<BorderDirection>& current_row,
-	std::vector<BorderDirection>& last_row,
-	parsers::scenario_building_context& context,
-	glm::vec2& map_size)
-{
+void add_border(uint32_t const& x0, uint32_t const& y0, uint16_t const& id_ul, uint16_t const& id_ur, uint16_t const& id_dl, uint16_t const& id_dr, std::vector<std::vector<border_vertex>>& borders_list_vertices, std::vector<BorderDirection>& current_row, std::vector<BorderDirection>& last_row,
+	parsers::scenario_building_context& context, glm::vec2& map_size) {
 	uint8_t diff_u = id_ul != id_ur;
 	uint8_t diff_d = id_dl != id_dr;
 	uint8_t diff_l = id_ul != id_dl;
@@ -184,7 +170,7 @@ void add_border(
 		auto& current_border_vertices = borders_list_vertices[border_index];
 		if(!extend_if_possible(x0, border_index, dir, last_row, current_row, map_size, current_border_vertices))
 			add_line(map_pos, map_size, pos1, pos2, border_index, x0, dir, current_border_vertices, current_row, 0.5);
-		};
+	};
 
 	if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
 		add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ul, id_dl, direction::UP_LEFT);
@@ -220,7 +206,6 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	// The borders of the current row and last row
 	std::vector<BorderDirection> current_row(size_x);
 	std::vector<BorderDirection> last_row(size_x);
-
 
 	for(uint32_t y = 0; y < size_y - 1; y++) {
 		for(uint32_t x = 0; x < size_x - 1; x++) {
@@ -272,7 +257,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	// TODO: unfortunately, this isn't enough to remove the Michigan lakes, since there are two touching lake tiles there
 
 	for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
-		dcon::province_id p{ dcon::province_id::value_base_t(k) };
+		dcon::province_id p{dcon::province_id::value_base_t(k)};
 		bool any_other_sea = false;
 		for(auto adj : context.state.world.province_get_province_adjacency(p)) {
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
@@ -331,9 +316,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	}
 }
 
-bool is_river(uint8_t river_data) {
-	return river_data < 16;
-}
+bool is_river(uint8_t river_data) { return river_data < 16; }
 
 // Set the river crossing bit for the province adjencencies
 // Will march a line between each adjecent province centroid. If it hits a river it will set the bit
@@ -394,9 +377,7 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 
 // Needs to be called after load_province_data for the mid points to set
 // and load_border_data for the province_adjacencies to be set
-std::vector<border_vertex> create_river_vertices(display_data const& data,
-												 parsers::scenario_building_context& context,
-												 std::vector<uint8_t> river_data) {
+std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> river_data) {
 	auto size = glm::ivec2(data.size_x, data.size_y);
 	load_river_crossings(context, river_data, size);
 
@@ -412,7 +393,7 @@ std::vector<border_vertex> create_river_vertices(display_data const& data,
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
 			// if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, river_vertices))
 			add_line(map_pos, map_size, pos1, pos2, 0, x0, dir, river_vertices, current_row, 0.0);
-			};
+		};
 
 		if(river_l && river_u && !river_r && !river_d) { // Upper left
 			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_LEFT);
@@ -436,7 +417,7 @@ std::vector<border_vertex> create_river_vertices(display_data const& data,
 				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), direction::RIGHT);
 			}
 		}
-		};
+	};
 
 	for(int y = 1; y < size.y - 1; y++) {
 		for(int x = 1; x < size.x - 1; x++) {
@@ -456,4 +437,4 @@ std::vector<border_vertex> create_river_vertices(display_data const& data,
 	}
 	return river_vertices;
 }
-}
+} // namespace map

@@ -9,7 +9,6 @@
 
 namespace ui {
 
-
 struct toggle_unit_grid {
 	bool with_shift;
 };
@@ -30,15 +29,15 @@ class port_ex_bg : public shift_button_element_base {
 		if(visible)
 			return button_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{} };
+			return mouse_probe{nullptr, ui::xy_pair{}};
 	}
 	void button_shift_action(sys::state& state) noexcept override {
 		if(visible)
-			send(state, parent, toggle_unit_grid{ true });
+			send(state, parent, toggle_unit_grid{true});
 	}
 	void button_action(sys::state& state) noexcept override {
 		if(visible)
-			send(state, parent, toggle_unit_grid{ false });
+			send(state, parent, toggle_unit_grid{false});
 	}
 };
 
@@ -182,7 +181,8 @@ public:
 				} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
 					enemy_navy = true;
 				} else if(military::are_allied_in_war(state, controller, state.local_player_nation)) {
-					allied_navy = true;;
+					allied_navy = true;
+					;
 				}
 
 				auto srange = n.get_navy().get_navy_membership();
@@ -202,14 +202,12 @@ public:
 				color = outline_color::gray;
 			}
 		}
-
 	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(populated) {
 			glm::vec2 map_pos(map_x, 1.0f - map_y);
-			auto screen_size =
-				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+			auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 			glm::vec2 screen_pos;
 			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 				visible = false;
@@ -217,7 +215,7 @@ public:
 			}
 			visible = true;
 
-			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+			auto new_position = xy_pair{int16_t(screen_pos.x), int16_t(screen_pos.y)};
 			window_element_base::base_data.position = new_position;
 			window_element_base::impl_render(state, new_position.x, new_position.y);
 		}
@@ -271,7 +269,7 @@ public:
 		if(visible && populated)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{} };
+			return mouse_probe{nullptr, ui::xy_pair{}};
 	}
 };
 
@@ -341,7 +339,7 @@ public:
 		image_element_base::on_create(state);
 		frame = 1;
 	}
- };
+};
 
 class map_battle : public window_element_base {
 public:
@@ -488,7 +486,7 @@ public:
 		if(state.map_state.get_zoom() >= big_counter_cutoff)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+			return mouse_probe{nullptr, ui::xy_pair{0, 0}};
 	}
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.map_state.get_zoom() >= big_counter_cutoff)
@@ -514,14 +512,13 @@ public:
 		if(state.map_state.get_zoom() < big_counter_cutoff)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{0,0}};
+			return mouse_probe{nullptr, ui::xy_pair{0, 0}};
 	}
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.map_state.get_zoom() < big_counter_cutoff)
 			window_element_base::impl_render(state, x, y);
 	}
 };
-
 
 class tl_edge : public image_element_base {
 public:
@@ -550,12 +547,8 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		frame = int32_t(params->colors[0]);
 	}
-	void button_action(sys::state& state) noexcept override {
-		send(state, parent, toggle_unit_grid{ false });
-	}
-	void button_shift_action(sys::state& state) noexcept override {
-		send(state, parent, toggle_unit_grid{ true });
-	}
+	void button_action(sys::state& state) noexcept override { send(state, parent, toggle_unit_grid{false}); }
+	void button_shift_action(sys::state& state) noexcept override { send(state, parent, toggle_unit_grid{true}); }
 };
 
 class tl_org_bar : public progress_bar {
@@ -659,7 +652,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 
-		visible =  params->top_left_nation != state.local_player_nation;
+		visible = params->top_left_nation != state.local_player_nation;
 		if(visible)
 			flag_button::on_update(state);
 	}
@@ -671,13 +664,12 @@ public:
 		if(visible)
 			return flag_button::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{} };
+			return mouse_probe{nullptr, ui::xy_pair{}};
 	}
 };
 
 class tl_sm_controller_flag : public flag_button {
 public:
-
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		if(params)
@@ -729,7 +721,7 @@ class top_unit_icon : public window_element_base {
 		if(state.map_state.get_zoom() >= big_counter_cutoff)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+			return mouse_probe{nullptr, ui::xy_pair{0, 0}};
 	}
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.map_state.get_zoom() >= big_counter_cutoff)
@@ -754,7 +746,7 @@ class small_top_unit_icon : public window_element_base {
 		if(state.map_state.get_zoom() < big_counter_cutoff)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+			return mouse_probe{nullptr, ui::xy_pair{0, 0}};
 	}
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.map_state.get_zoom() < big_counter_cutoff)
@@ -870,7 +862,6 @@ public:
 						found_ally = true;
 					else
 						found_other = true;
-
 				}
 			}
 		}
@@ -929,7 +920,6 @@ public:
 		static std::vector<int32_t> by_icon_count;
 		for(auto& i : by_icon_count)
 			i = 0;
-
 
 		display.top_left_status = -1;
 		display.top_dig_in = -1;
@@ -1114,17 +1104,17 @@ public:
 
 			for(uint32_t j = slots.size(); j-- > 0;) {
 				switch(slots[j].flags & military::ship_in_battle::mode_mask) {
-					case military::ship_in_battle::mode_seeking:
-					case military::ship_in_battle::mode_approaching:
-					case military::ship_in_battle::mode_retreating:
-					case military::ship_in_battle::mode_engaged:
-						if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
-							++attacker_ships;
-						else
-							++defender_ships;
-						break;
-					default:
-						break;
+				case military::ship_in_battle::mode_seeking:
+				case military::ship_in_battle::mode_approaching:
+				case military::ship_in_battle::mode_retreating:
+				case military::ship_in_battle::mode_engaged:
+					if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
+						++attacker_ships;
+					else
+						++defender_ships;
+					break;
+				default:
+					break;
 				}
 			}
 
@@ -1321,23 +1311,21 @@ public:
 					display.common_unit_2 = int8_t(max_index);
 			}
 		}
-
 	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(populated) {
 			auto mid_point = state.world.province_get_mid_point(prov);
 			auto map_pos = state.map_state.normalize_map_coord(mid_point);
-			auto screen_size =
-				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+			auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 			glm::vec2 screen_pos;
 			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 				visible = false;
 				return;
 			}
 			visible = true;
-		
-			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+
+			auto new_position = xy_pair{int16_t(screen_pos.x), int16_t(screen_pos.y)};
 			window_element_base::base_data.position = new_position;
 			window_element_base::impl_render(state, new_position.x, new_position.y);
 		}
@@ -1387,8 +1375,6 @@ public:
 					}
 				}
 
-
-
 				auto location = get_absolute_location(*this);
 
 				if(state.map_state.get_zoom() >= big_counter_cutoff) {
@@ -1433,11 +1419,9 @@ public:
 		if(visible && populated)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{} };
+			return mouse_probe{nullptr, ui::xy_pair{}};
 	}
-
 };
-
 
 struct update_position { };
 
@@ -1465,9 +1449,7 @@ class unit_icon_color : public image_element_base {
 	}
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		frame = get_frame(state);
-	}
+	void on_update(sys::state& state) noexcept override { frame = get_frame(state); }
 };
 
 class unit_strength_text : public simple_text_element_base {
@@ -1541,25 +1523,19 @@ public:
 					frame = 2;
 				}
 			});
-			state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) {
-				frame = 1;
-			});
+			state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { frame = 1; });
 		}
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		populate_unit_tooltip(state, contents, retrieve<dcon::province_id>(state, parent));
-	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override { populate_unit_tooltip(state, contents, retrieve<dcon::province_id>(state, parent)); }
 };
 
 class unit_icon_window : public window_element_base {
 	unit_strength_text* strength_text = nullptr;
 	image_element_base* attr_icon = nullptr;
+
 public:
 	bool visible = true;
 	bool province_is_populated = false;
@@ -1591,7 +1567,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-	 province_is_populated = false;
+		province_is_populated = false;
 		state.world.province_for_each_army_location_as_location(content, [&](dcon::army_location_id id) { province_is_populated = true; });
 		state.world.province_for_each_navy_location_as_location(content, [&](dcon::navy_location_id id) { province_is_populated = true; });
 
@@ -1605,8 +1581,7 @@ public:
 
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size =
-				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 			visible = false;
@@ -1656,14 +1631,12 @@ public:
 		return message_result::unseen;
 	}
 
-	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y,
-			mouse_probe_type type) noexcept override {
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible && province_is_populated)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
-			return mouse_probe{ nullptr, ui::xy_pair{} };
+			return mouse_probe{nullptr, ui::xy_pair{}};
 	}
-
 };
 
 class rgo_icon : public image_element_base {
@@ -1672,8 +1645,7 @@ public:
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size =
-				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;

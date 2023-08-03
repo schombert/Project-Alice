@@ -4,9 +4,7 @@
 #include "military.hpp"
 
 namespace nations {
-inline uint32_t tag_to_int(char first, char second, char third) {
-	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
-}
+inline uint32_t tag_to_int(char first, char second, char third) { return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0); }
 inline std::string int_to_tag(uint32_t v) {
 	char values[] = {char((v >> 16) & 0xFF), char((v >> 8) & 0xFF), char((v >> 0) & 0xFF)};
 	return std::string(values, values + 3);
@@ -28,21 +26,13 @@ struct fixed_province_event {
 	dcon::trigger_key condition;
 };
 
-enum class focus_type : uint8_t {
-	unknown = 0,
-	rail_focus = 1,
-	immigration_focus = 2,
-	diplomatic_focus = 3,
-	promotion_focus = 4,
-	production_focus = 5,
-	party_loyalty_focus = 6
-};
+enum class focus_type : uint8_t { unknown = 0, rail_focus = 1, immigration_focus = 2, diplomatic_focus = 3, promotion_focus = 4, production_focus = 5, party_loyalty_focus = 6 };
 
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
 	std::vector<dcon::nation_id> nations_by_rank;
-	
+
 	tagged_vector<dcon::text_sequence_id, dcon::national_flag_id> flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
@@ -212,9 +202,7 @@ inline bool is_influence_level_greater(int32_t l, int32_t r) {
 		return false;
 	}
 }
-inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) {
-	return l == r || is_influence_level_greater(l, r);
-}
+inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) { return l == r || is_influence_level_greater(l, r); }
 int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target);
 
 } // namespace influence
@@ -222,22 +210,15 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
 // returns whether a culture is on the accepted list OR is the primary culture
-template<typename T, typename U>
-auto nation_accepts_culture(sys::state const& state, T ids, U c);
+template<typename T, typename U> auto nation_accepts_culture(sys::state const& state, T ids, U c);
 
-template<typename T>
-auto primary_culture_group(sys::state const& state, T ids);
+template<typename T> auto primary_culture_group(sys::state const& state, T ids);
 dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids);
-template<typename T>
-auto owner_of_pop(sys::state const& state, T pop_ids);
-template<typename T>
-auto central_reb_controlled_fraction(sys::state const& state, T ids);
-template<typename T>
-auto central_blockaded_fraction(sys::state const& state, T ids);
-template<typename T>
-auto central_has_crime_fraction(sys::state const& state, T ids);
-template<typename T>
-auto occupied_provinces_fraction(sys::state const& state, T ids);
+template<typename T> auto owner_of_pop(sys::state const& state, T pop_ids);
+template<typename T> auto central_reb_controlled_fraction(sys::state const& state, T ids);
+template<typename T> auto central_blockaded_fraction(sys::state const& state, T ids);
+template<typename T> auto central_has_crime_fraction(sys::state const& state, T ids);
+template<typename T> auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
@@ -344,7 +325,7 @@ void accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::na
 void update_pop_acceptance(sys::state& state, dcon::nation_id n);
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated,
-		dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+	dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
 void perform_nationalization(sys::state& state, dcon::nation_id n);
 

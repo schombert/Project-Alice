@@ -15,9 +15,7 @@ public:
 	element_base* parent = nullptr;
 	uint8_t flags = 0;
 
-	bool is_visible() const {
-		return (flags & is_invisible_mask) == 0;
-	}
+	bool is_visible() const { return (flags & is_invisible_mask) == 0; }
 	void set_visible(sys::state& state, bool vis) {
 		auto old_visibility = is_visible();
 		flags = uint8_t((flags & ~is_invisible_mask) | (vis ? 0 : is_invisible_mask));
@@ -45,9 +43,7 @@ public:
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
 	virtual void impl_on_reset_text(sys::state& state) noexcept;
-	virtual void impl_on_drag_finish(sys::state& state) noexcept {
-		on_drag_finish(state);
-	}
+	virtual void impl_on_drag_finish(sys::state& state) noexcept { on_drag_finish(state); }
 
 	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
 		return tooltip_behavior::no_tooltip;
@@ -69,7 +65,7 @@ protected:
 	virtual void on_update(sys::state& state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
 	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y,
-			sys::key_modifiers mods) noexcept; // as drag events are generated
+		sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_text(sys::state& state, char ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
@@ -85,23 +81,13 @@ private:
 
 public:
 	// these commands are meaningful only if the element has children
-	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
-		return std::unique_ptr<element_base>{};
-	}
+	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept { return std::unique_ptr<element_base>{}; }
 	virtual void move_child_to_front(element_base* child) noexcept { }
 	virtual void move_child_to_back(element_base* child) noexcept { }
-	virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept {
-		std::abort();
-	}
-	virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept {
-		std::abort();
-	}
-	virtual element_base* get_child_by_name(sys::state const& state, std::string_view name) noexcept {
-		return nullptr;
-	}
-	virtual element_base* get_child_by_index(sys::state const& state, int32_t index) noexcept {
-		return nullptr;
-	}
+	virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept { std::abort(); }
+	virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept { std::abort(); }
+	virtual element_base* get_child_by_name(sys::state const& state, std::string_view name) noexcept { return nullptr; }
+	virtual element_base* get_child_by_index(sys::state const& state, int32_t index) noexcept { return nullptr; }
 
 	virtual ~element_base() { }
 
@@ -110,14 +96,11 @@ public:
 	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
 	friend void sys::state::on_text(char c);
 	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
-	template<typename T>
-	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id);
-	template<typename T>
-	friend std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name);
+	template<typename T> friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id);
+	template<typename T> friend std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name);
 };
 
-template<typename T>
-inline T retrieve(sys::state& state, element_base* parent) {
+template<typename T> inline T retrieve(sys::state& state, element_base* parent) {
 	if(parent) {
 		Cyto::Any payload = T{};
 		parent->impl_get(state, payload);
@@ -127,27 +110,20 @@ inline T retrieve(sys::state& state, element_base* parent) {
 	}
 }
 
-template<typename T>
-inline void send(sys::state& state, element_base* parent, T value) {
+template<typename T> inline void send(sys::state& state, element_base* parent, T value) {
 	if(parent) {
 		Cyto::Any payload = value;
 		parent->impl_get(state, payload);
 	}
 }
 
-void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
-		int32_t this_slot = -1, int32_t from_slot = -1);
-void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
-void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
+void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
-		dcon::national_modifier_value nmid, bool header);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
-		dcon::provincial_modifier_value nmid, bool have_header);
-void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
-		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, bool header);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation, dcon::provincial_modifier_value nmid, bool have_header);
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 void invention_description(sys::state& state, text::layout_base& contents, dcon::invention_id inv_id, int32_t indent) noexcept;
 void technology_description(sys::state& state, text::layout_base& contents, dcon::technology_id tech_id) noexcept;
 

@@ -63,16 +63,13 @@ public:
 class politics_release_nation_window_title : public simple_text_element_base {
 public:
 	std::string get_text(sys::state& state) noexcept {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal"));
-				k != state.key_to_text_sequence.end()) {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal")); k != state.key_to_text_sequence.end()) {
 			return text::produce_simple_string(state, k->second);
 		}
 		return "";
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
 };
 
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
@@ -142,9 +139,7 @@ public:
 
 class release_nation_listbox : public listbox_element_base<release_nation_option, dcon::national_identity_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "vassal_nation";
-	}
+	std::string_view get_row_element_name() override { return "vassal_nation"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {

@@ -6,8 +6,7 @@
 
 namespace ui {
 
-template<bool Left>
-class message_lr_button : public button_element_base {
+template<bool Left> class message_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -44,7 +43,6 @@ public:
 	}
 };
 
-
 class message_body_text_internal : public simple_multiline_body_text {
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
 		auto msg = retrieve< notification::message*>(state, parent);
@@ -58,16 +56,14 @@ class message_body_text : public window_element_base {
 protected:
 	multiline_text_scrollbar* text_scrollbar = nullptr;
 	message_body_text_internal* delegate = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override { return message_result::consumed; }
 };
-
 
 void message_body_text::on_create(sys::state& state) noexcept {
 	base_data.size.x = 500 - (base_data.position.x * 2) - 8;
@@ -91,16 +87,14 @@ void message_body_text::on_create(sys::state& state) noexcept {
 void message_body_text::on_update(sys::state& state) noexcept {
 	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->set_visible(state, true);
-		text_scrollbar->change_settings(state,
-				mutable_scrollbar_settings{ 0, delegate->internal_layout.number_of_lines - delegate->visible_lines, 0, 0, false });
+		text_scrollbar->change_settings(state, mutable_scrollbar_settings{0, delegate->internal_layout.number_of_lines - delegate->visible_lines, 0, 0, false});
 	} else {
 		text_scrollbar->set_visible(state, false);
 		delegate->current_line = 0;
 	}
 }
 
-message_result message_body_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
+message_result message_body_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		delegate->current_line = int32_t(text_scrollbar->scaled_value());
@@ -141,9 +135,7 @@ public:
 			auto& gfx_def = state.ui_defs.gfx[gid];
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
-			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -163,24 +155,21 @@ public:
 		window_element_base::on_create(state);
 		xy_pair cur_pos{0, 0};
 		{
-			auto ptr = make_element_by_type<message_lr_button<false>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<message_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<message_count_text>(state,
-					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+			auto ptr = make_element_by_type<message_count_text>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<message_lr_button<true>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<message_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));

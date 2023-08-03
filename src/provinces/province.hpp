@@ -4,9 +4,7 @@
 
 namespace province {
 
-inline constexpr uint16_t to_map_id(dcon::province_id id) {
-	return uint16_t(id.index() + 1);
-}
+inline constexpr uint16_t to_map_id(dcon::province_id id) { return uint16_t(id.index() + 1); }
 inline constexpr dcon::province_id from_map_id(uint16_t id) {
 	if(id == 0)
 		return dcon::province_id();
@@ -28,14 +26,10 @@ struct global_provincial_state {
 	dcon::modifier_id oceania;
 };
 
-template<typename F>
-void for_each_land_province(sys::state& state, F const& func);
-template<typename F>
-void for_each_sea_province(sys::state& state, F const& func);
-template<typename F>
-void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
-template<typename F>
-void ve_for_each_land_province(sys::state& state, F const& func);
+template<typename F> void for_each_land_province(sys::state& state, F const& func);
+template<typename F> void for_each_sea_province(sys::state& state, F const& func);
+template<typename F> void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
+template<typename F> void ve_for_each_land_province(sys::state& state, F const& func);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);
@@ -43,8 +37,7 @@ void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void restore_distances(sys::state& state);
 
-template<typename T>
-auto is_overseas(sys::state const& state, T ids);
+template<typename T> auto is_overseas(sys::state const& state, T ids);
 bool is_overseas(sys::state const& state, dcon::province_id ids);
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id);
 dcon::province_id get_connected_province(sys::state& state, dcon::province_adjacency_id adj, dcon::province_id curr);

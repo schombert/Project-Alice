@@ -19,18 +19,14 @@ public:
 	value_base_t value = 0;
 	pop_satisfaction_wrapper_id() { }
 	pop_satisfaction_wrapper_id(uint8_t v) : value(v) { }
-	value_base_t index() {
-		return value;
-	}
+	value_base_t index() { return value; }
 };
 class pop_satisfaction_wrapper_fat {
 	static text_sequence_id names[5];
 
 public:
 	uint8_t value = 0;
-	void set_name(text_sequence_id text) noexcept {
-		names[value] = text;
-	}
+	void set_name(text_sequence_id text) noexcept { names[value] = text; }
 	text_sequence_id get_name() noexcept {
 		switch(value) {
 		case 0: // No needs fulfilled
@@ -43,13 +39,10 @@ public:
 		return text_sequence_id{0};
 	}
 };
-pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {
-	return pop_satisfaction_wrapper_fat{id.value};
-}
+pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept { return pop_satisfaction_wrapper_fat{id.value}; }
 } // namespace dcon
 namespace ogl {
-template<>
-uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
+template<> uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 	switch(id.value) {
 	case 0: // red
 		return sys::pack_color(1.0f, 0.1f, 0.1f);
@@ -68,94 +61,76 @@ uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 
 namespace ui {
 
-
 class nation_administrative_efficiency_text : public standard_nation_text {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
-	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override { return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id)); }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto n = any_cast<dcon::nation_id>(payload);
 
-			
+			{
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_percentage{1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "admin_explain_1", m);
+				text::close_layout_box(contents, box);
+			}
+			active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier, false);
+			{
+				auto non_colonial = state.world.nation_get_non_colonial_population(n);
+				auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
 
-				{
-					text::substitution_map m;
-					text::add_to_substitution_map(m, text::variable_type::val,
-							text::fp_percentage{1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, "admin_explain_1", m);
-					text::close_layout_box(contents, box);
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "admin_explain_2", m);
+				text::close_layout_box(contents, box);
+			}
+			{
+				float issue_sum = 0.0f;
+				for(auto i : state.culture_definitions.social_issues) {
+					issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
 				}
-				active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier,
-						false);
-				{
-					auto non_colonial = state.world.nation_get_non_colonial_population(n);
-					auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
+				auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
 
-					text::substitution_map m;
-					text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, "admin_explain_2", m);
-					text::close_layout_box(contents, box);
-				}
-				{
-					float issue_sum = 0.0f;
-					for(auto i : state.culture_definitions.social_issues) {
-						issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
-					}
-					auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
-
-					text::substitution_map m;
-					text::add_to_substitution_map(m, text::variable_type::val,
-							text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
-					text::add_to_substitution_map(m, text::variable_type::x,
-							text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
-					text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, "admin_explain_3", m);
-					text::close_layout_box(contents, box);
-				}
-			
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
+				text::add_to_substitution_map(m, text::variable_type::x, text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
+				text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "admin_explain_3", m);
+				text::close_layout_box(contents, box);
+			}
 		}
 	}
 };
 
-template<culture::pop_strata Strata>
-class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
+template<culture::pop_strata Strata> class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
-	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
-			sys::state& state) noexcept override {
+	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
 		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
-		
+
 		enabled = true;
 		if(parent == nullptr)
 			return distrib;
 
 		auto total = 0.f;
-		std::array<float, 5> sat_pool = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		std::array<float, 5> sat_pool = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
 
 			for(auto pop_loc : prov.get_province().get_pop_location()) {
 				auto pop_id = pop_loc.get_pop();
 				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
 				auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
-					// All luxury needs
-					// OR All everyday needs
-					// OR All life needs
-					// OR Some life needs
-					// OR No needs fulfilled...
-				sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
-								 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
-								 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
-								 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
-								 : 0] += pop_size;
+				// All luxury needs
+				// OR All everyday needs
+				// OR All life needs
+				// OR Some life needs
+				// OR No needs fulfilled...
+				sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f) ? 4 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3 : (pop_id.get_life_needs_satisfaction() > 0.95f) ? 2 : (pop_id.get_life_needs_satisfaction() > 0.01f) ? 1 : 0] += pop_size;
 				total += pop_size;
 			}
 		}
@@ -166,7 +141,7 @@ protected:
 
 		for(size_t i = 0; i < sat_pool.size(); i++)
 			distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
-		
+
 		return distrib;
 	}
 
@@ -175,23 +150,17 @@ public:
 		// Fill-in static information...
 		static bool has_run = false;
 		if(!has_run) {
-			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0})
-					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
-			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1})
-					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2})
-					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3})
-					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4})
-					.set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+			dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
 			has_run = true;
 		}
 		piechart::on_create(state);
 	}
 
-	void populate_tooltip(sys::state& state, dcon::pop_satisfaction_wrapper_id psw, float percentage,
-			text::columnar_layout& contents) noexcept override {
+	void populate_tooltip(sys::state& state, dcon::pop_satisfaction_wrapper_id psw, float percentage, text::columnar_layout& contents) noexcept override {
 		static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
 		auto fat_psw = dcon::fatten(state.world, psw);
 		auto box = text::open_layout_box(contents, 0);
@@ -204,29 +173,14 @@ public:
 	}
 };
 
-enum class budget_slider_target : uint8_t {
-	poor_tax,
-	middle_tax,
-	rich_tax,
-	army_stock,
-	navy_stock,
-	construction_stock,
-	education,
-	admin,
-	social,
-	military,
-	tariffs,
-	raw,
-	target_count
-};
+enum class budget_slider_target : uint8_t { poor_tax, middle_tax, rich_tax, army_stock, navy_stock, construction_stock, education, admin, social, military, tariffs, raw, target_count };
 
 struct budget_slider_signal {
 	budget_slider_target target;
 	float amount;
 };
 
-template<budget_slider_target SliderTarget>
-class budget_slider : public scrollbar {
+template<budget_slider_target SliderTarget> class budget_slider : public scrollbar {
 public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
@@ -250,10 +204,8 @@ public:
 
 		switch(SliderTarget) {
 		case budget_slider_target::poor_tax: {
-			auto min_tax =
-					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
-			auto max_tax =
-					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
 			if(max_tax <= 0)
 				max_tax = 100;
 			max_tax = std::max(min_tax, max_tax);
@@ -267,10 +219,8 @@ public:
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::middle_tax: {
-			auto min_tax =
-					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
-			auto max_tax =
-					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
 			if(max_tax <= 0)
 				max_tax = 100;
 			max_tax = std::max(min_tax, max_tax);
@@ -284,10 +234,8 @@ public:
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::rich_tax: {
-			auto min_tax =
-					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
-			auto max_tax =
-					int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
+			auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tax));
+			auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tax));
 			if(max_tax <= 0)
 				max_tax = 100;
 			max_tax = std::max(min_tax, max_tax);
@@ -301,10 +249,8 @@ public:
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::social: {
-			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
-																						sys::national_mod_offsets::min_social_spending));
-			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
-																						sys::national_mod_offsets::max_social_spending));
+			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_social_spending));
+			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_social_spending));
 			if(max_spend <= 0)
 				max_spend = 100;
 			max_spend = std::max(min_spend, max_spend);
@@ -318,10 +264,8 @@ public:
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::military: {
-			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
-																						sys::national_mod_offsets::min_military_spending));
-			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation,
-																						sys::national_mod_offsets::max_military_spending));
+			auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_military_spending));
+			auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_military_spending));
 			if(max_spend <= 0)
 				max_spend = 100;
 			max_spend = std::max(min_spend, max_spend);
@@ -335,10 +279,8 @@ public:
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::tariffs: {
-			auto min_tariff = int32_t(
-					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tariff));
-			auto max_tariff = int32_t(
-					100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tariff));
+			auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_tariff));
+			auto max_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_tariff));
 			max_tariff = std::max(min_tariff, max_tariff);
 
 			mutable_scrollbar_settings new_settings;
@@ -360,13 +302,9 @@ public:
 		}
 	}
 
-	virtual int32_t get_true_value(sys::state& state) noexcept {
-		return 0;
-	}
+	virtual int32_t get_true_value(sys::state& state) noexcept { return 0; }
 
-	void on_drag_finish(sys::state& state) noexcept override {
-		commit_changes(state);
-	}
+	void on_drag_finish(sys::state& state) noexcept override { commit_changes(state); }
 
 private:
 	void commit_changes(sys::state& state) noexcept {
@@ -418,69 +356,47 @@ private:
 };
 
 class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_tax> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_poor_tax(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_poor_tax(state.local_player_nation)); }
 };
 
 class budget_middle_tax_slider : public budget_slider<budget_slider_target::middle_tax> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_middle_tax(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_middle_tax(state.local_player_nation)); }
 };
 
 class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_tax> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_rich_tax(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_rich_tax(state.local_player_nation)); }
 };
 
 class budget_army_stockpile_slider : public budget_slider<budget_slider_target::army_stock> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_land_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_land_spending(state.local_player_nation)); }
 };
 
 class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::navy_stock> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_naval_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_naval_spending(state.local_player_nation)); }
 };
 
 class budget_construction_stockpile_slider : public budget_slider<budget_slider_target::construction_stock> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_construction_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_construction_spending(state.local_player_nation)); }
 };
 
 class budget_education_slider : public budget_slider<budget_slider_target::education> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_education_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_education_spending(state.local_player_nation)); }
 };
 
 class budget_administration_slider : public budget_slider<budget_slider_target::admin> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_administrative_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_administrative_spending(state.local_player_nation)); }
 };
 
 class budget_social_spending_slider : public budget_slider<budget_slider_target::social> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_social_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_social_spending(state.local_player_nation)); }
 };
 
 class budget_military_spending_slider : public budget_slider<budget_slider_target::military> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_military_spending(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_military_spending(state.local_player_nation)); }
 };
 
 class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs> {
-	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_tariffs(state.local_player_nation));
-	}
+	int32_t get_true_value(sys::state& state) noexcept override { return int32_t(state.world.nation_get_tariffs(state.local_player_nation)); }
 };
 
 class budget_scaled_monetary_value_text : public standard_nation_text {
@@ -527,8 +443,7 @@ public:
 class budget_estimated_stockpile_spending_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::construction_stock)] =
-				economy::estimate_construction_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::construction_stock)] = economy::estimate_construction_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 	}
@@ -536,56 +451,39 @@ public:
 
 class budget_army_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
-	}
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation); }
 };
 
 class budget_naval_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
-	}
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation); }
 };
 
 class budget_tariff_income_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
-	}
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation); }
 };
 
-template<culture::pop_strata Strata, budget_slider_target BudgetTarget>
-class budget_stratified_tax_income_text : public budget_scaled_monetary_value_text {
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(BudgetTarget)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, Strata);
-	}
+template<culture::pop_strata Strata, budget_slider_target BudgetTarget> class budget_stratified_tax_income_text : public budget_scaled_monetary_value_text {
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(BudgetTarget)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, Strata); }
 };
 
-template<culture::income_type IncomeType, budget_slider_target BudgetTarget>
-class budget_expenditure_text : public budget_scaled_monetary_value_text {
+template<culture::income_type IncomeType, budget_slider_target BudgetTarget> class budget_expenditure_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(BudgetTarget)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, IncomeType);
-	}
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(BudgetTarget)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, IncomeType); }
 };
 
 class budget_social_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation);
-	}
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override { vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation); }
 };
 
 class budget_income_projection_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::poor_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
-		vals[uint8_t(budget_slider_target::middle_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
-		vals[uint8_t(budget_slider_target::rich_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
+		vals[uint8_t(budget_slider_target::poor_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
+		vals[uint8_t(budget_slider_target::middle_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
+		vals[uint8_t(budget_slider_target::rich_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
 	}
 };
@@ -593,17 +491,13 @@ public:
 class budget_expenditure_projection_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::construction_stock)] =
-				economy::estimate_construction_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::construction_stock)] = economy::estimate_construction_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::education)] =
-				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
-		vals[uint8_t(budget_slider_target::admin)] =
-				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
-		vals[uint8_t(budget_slider_target::military)] =
-				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::education)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+		vals[uint8_t(budget_slider_target::admin)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+		vals[uint8_t(budget_slider_target::military)] = economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 	}
@@ -613,26 +507,19 @@ class budget_balance_projection_text : public budget_scaled_monetary_value_text 
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		// income
-		vals[uint8_t(budget_slider_target::poor_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
-		vals[uint8_t(budget_slider_target::middle_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
-		vals[uint8_t(budget_slider_target::rich_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
+		vals[uint8_t(budget_slider_target::poor_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
+		vals[uint8_t(budget_slider_target::middle_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
+		vals[uint8_t(budget_slider_target::rich_tax)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
 
 		// spend
-		vals[uint8_t(budget_slider_target::construction_stock)] =
-				-economy::estimate_construction_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::construction_stock)] = -economy::estimate_construction_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::army_stock)] = -economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = -economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = -economy::estimate_social_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::education)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
-		vals[uint8_t(budget_slider_target::admin)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
-		vals[uint8_t(budget_slider_target::military)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::education)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+		vals[uint8_t(budget_slider_target::admin)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+		vals[uint8_t(budget_slider_target::military)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
 
@@ -718,9 +605,7 @@ public:
 		frame = int32_t(state.world.pop_type_get_sprite(t) - 1);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void on_update(sys::state& state) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, type));
@@ -735,101 +620,94 @@ public:
 				auto pop_id = pop_loc.get_pop();
 				if(pop_id.get_poptype() == type) {
 					auto pop_size = state.world.pop_get_size(pop_id);
-					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
-									 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
-									 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
-									 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
-									 : 0] += pop_size;
+					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f) ? 4 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3 : (pop_id.get_life_needs_satisfaction() > 0.95f) ? 2 : (pop_id.get_life_needs_satisfaction() > 0.01f) ? 1 : 0] += pop_size;
 					total += pop_size;
 				}
 			}
 		}
 
-	
-			if(total > 0.0f) {
-				auto type_strata = state.world.pop_type_get_strata(type);
-				float total_pop = 0.0f;
-				if(culture::pop_strata(type_strata) == culture::pop_strata::poor) {
-					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::poor_total);
-				} else if(culture::pop_strata(type_strata) == culture::pop_strata::middle) {
-					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::middle_total);
-				} else {
-					total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::rich_total);
-				}
-
-				{
-					auto box = text::open_layout_box(contents, 0);
-					text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_single_sub_box(state, contents, box, std::string_view("percent_of_pop_strata"),
-							text::variable_type::val, text::fp_percentage{total / total_pop});
-					text::close_layout_box(contents, box);
-					//percent_of_pop_strata
-				}
-				text::add_line_break_to_layout(state, contents);
-				static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
-				{
-					auto box = text::open_layout_box(contents);
-					auto sub = text::substitution_map{};
-					auto needs_type = text::produce_simple_string(state, "no_need");
-					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[0] * 100.0f / total});
-					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-					text::localised_format_box(state, contents, box, "budget_strata_no_need", sub);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					auto sub = text::substitution_map{};
-					auto needs_type = text::produce_simple_string(state, "some_life_needs");
-					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[1] * 100.0f / total});
-					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					auto sub = text::substitution_map{};
-					auto needs_type = text::produce_simple_string(state, "life_needs");
-					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[2] * 100.0f / total});
-					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					auto sub = text::substitution_map{};
-					auto needs_type = text::produce_simple_string(state, "everyday_needs");
-					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[3] * 100.0f / total});
-					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					auto sub = text::substitution_map{};
-					auto needs_type = text::produce_simple_string(state, "luxury_needs");
-					text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[4] * 100.0f / total});
-					text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
-					text::localised_format_box(state, contents, box, "budget_strata_need", sub);
-					text::close_layout_box(contents, box);
-				}
+		if(total > 0.0f) {
+			auto type_strata = state.world.pop_type_get_strata(type);
+			float total_pop = 0.0f;
+			if(culture::pop_strata(type_strata) == culture::pop_strata::poor) {
+				total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::poor_total);
+			} else if(culture::pop_strata(type_strata) == culture::pop_strata::middle) {
+				total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::middle_total);
 			} else {
-				{
-					auto box = text::open_layout_box(contents, 0);
-					text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
-					text::close_layout_box(contents, box);
-				}
-				text::add_line_break_to_layout(state, contents);
-				{
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, std::string_view("no_pops_of_type"));
-					text::close_layout_box(contents, box);
-				}
+				total_pop = state.world.nation_get_demographics(state.local_player_nation, demographics::rich_total);
 			}
-		
+
+			{
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_single_sub_box(state, contents, box, std::string_view("percent_of_pop_strata"), text::variable_type::val, text::fp_percentage{total / total_pop});
+				text::close_layout_box(contents, box);
+				// percent_of_pop_strata
+			}
+			text::add_line_break_to_layout(state, contents);
+			static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "no_need");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[0] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_no_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "some_life_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[1] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "life_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[2] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "everyday_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[3] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				auto sub = text::substitution_map{};
+				auto needs_type = text::produce_simple_string(state, "luxury_needs");
+				text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{sat_pool[4] * 100.0f / total});
+				text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+				text::localised_format_box(state, contents, box, "budget_strata_need", sub);
+				text::close_layout_box(contents, box);
+			}
+		} else {
+			{
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(type));
+				text::close_layout_box(contents, box);
+			}
+			text::add_line_break_to_layout(state, contents);
+			{
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, std::string_view("no_pops_of_type"));
+				text::close_layout_box(contents, box);
+			}
+		}
 	}
 };
 
@@ -858,12 +736,9 @@ public:
 	}
 };
 
-template<culture::pop_strata Strata>
-class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
+template<culture::pop_strata Strata> class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "pop_listitem";
-	}
+	std::string_view get_row_element_name() override { return "pop_listitem"; }
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -877,20 +752,15 @@ public:
 	}
 };
 
-template<culture::income_type Income>
-class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
+template<culture::income_type Income> class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "pop_listitem";
-	}
+	std::string_view get_row_element_name() override { return "pop_listitem"; }
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
 		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income) ||
-					state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income) ||
-					state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
+			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income) || state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income) || state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
 				row_contents.push_back(pt);
 			}
 		});
@@ -898,12 +768,9 @@ public:
 	}
 };
 
-template<culture::income_type Income>
-class budget_small_pop_income_list : public budget_pop_income_list<Income> {
+template<culture::income_type Income> class budget_small_pop_income_list : public budget_pop_income_list<Income> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "pop_listitem_small";
-	}
+	std::string_view get_row_element_name() override { return "pop_listitem_small"; }
 };
 
 class budget_window : public window_element_base {
@@ -915,15 +782,13 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto win1337 = make_element_by_type<budget_take_loan_window>(state,
-				state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
+		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
 		budget_take_loan_win = win1337.get();
 		win1337->base_data.position.y -= 66; // Nudge >w<
 		win1337->set_visible(state, false);
 		add_child_to_front(std::move(win1337));
 
-		auto win101 = make_element_by_type<budget_repay_loan_window>(state,
-				state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
+		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
 		budget_repay_loan_win = win101.get();
 		win101->base_data.position.y -= 66; // Nudge >w<
 		win101->set_visible(state, false);
@@ -962,25 +827,19 @@ public:
 		} else if(name == "gold_inc") {
 			return make_element_by_type<nation_gold_income_text>(state, id);
 		} else if(name == "tax_0_inc") {
-			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>(
-					state, id);
+			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>(state, id);
 		} else if(name == "tax_1_inc") {
-			return make_element_by_type<
-					budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
+			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
 		} else if(name == "tax_2_inc") {
-			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>(
-					state, id);
+			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>(state, id);
 		} else if(name == "exp_val_0") {
-			return make_element_by_type< budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(
-					state, id);
+			return make_element_by_type< budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(state, id);
 		} else if(name == "exp_val_1") {
-			return make_element_by_type< budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(
-					state, id);
+			return make_element_by_type< budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(state, id);
 		} else if(name == "exp_val_2") {
 			return make_element_by_type<budget_social_spending_text>(state, id);
 		} else if(name == "exp_val_3") {
-			return make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state,
-					id);
+			return make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state, id);
 		} else if(name == "admin_efficiency") {
 			return make_element_by_type<nation_administrative_efficiency_text>(state, id);
 		} else if(name == "interest_val") {

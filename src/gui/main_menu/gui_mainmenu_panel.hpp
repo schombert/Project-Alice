@@ -41,8 +41,7 @@ public:
 		window_element_base::on_create(state);
 
 		{
-			auto new_win = make_element_by_type<mainmenu_settings_window>(state,
-					state.ui_state.defs_by_name.find("menu_settings")->second.definition);
+			auto new_win = make_element_by_type<mainmenu_settings_window>(state, state.ui_state.defs_by_name.find("menu_settings")->second.definition);
 			new_win->set_visible(state, false);
 			mainmenu_settings_win = new_win.get();
 			add_child_to_front(std::move(new_win));
@@ -52,7 +51,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "single_player_button") {
 			return make_element_by_type<mainmenu_singleplayer_button>(state,
-					id); // TODO - replace with proper button, this is just temp
+				id); // TODO - replace with proper button, this is just temp
 
 		} else if(name == "multi_player_button") {
 			return make_element_by_type<mainmenu_multiplayer_button>(state, id);
@@ -104,8 +103,7 @@ public:
 			auto content = any_cast<element_selection_wrapper<mainmenu_action>>(payload).data;
 			switch(content) {
 			case mainmenu_action::settings:
-				mainmenu_settings_win->is_visible() ? mainmenu_settings_win->set_visible(state, false)
-																						: mainmenu_settings_win->set_visible(state, true);
+				mainmenu_settings_win->is_visible() ? mainmenu_settings_win->set_visible(state, false) : mainmenu_settings_win->set_visible(state, true);
 				mainmenu_settings_win->impl_on_update(state);
 				break;
 			case mainmenu_action::mp:

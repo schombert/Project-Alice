@@ -17,4 +17,4 @@ struct unitamounts {
 
 void populate_unit_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov);
 
-}
+} // namespace ui

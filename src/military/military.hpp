@@ -232,8 +232,8 @@ bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nation_id a, dcon::war_id w,
-		bool as_attacker); // tests whether joining the war would violate the constraint that you can't both be in a war with and
-											 // fighting against the same nation or fighting against them twice
+	bool as_attacker); // tests whether joining the war would violate the constraint that you can't both be in a war with and
+					   // fighting against the same nation or fighting against them twice
 bool is_civil_war(sys::state const& state, dcon::war_id w);
 bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon::nation_id n, bool as_attacker);
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
@@ -260,12 +260,9 @@ bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_
 enum class war_role { none, attacker, defender };
 war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n);
 
-template<typename T>
-auto province_is_blockaded(sys::state const& state, T ids);
-template<typename T>
-auto province_is_under_siege(sys::state const& state, T ids);
-template<typename T>
-auto battle_is_ongoing_in_province(sys::state const& state, T ids);
+template<typename T> auto province_is_blockaded(sys::state const& state, T ids);
+template<typename T> auto province_is_under_siege(sys::state const& state, T ids);
+template<typename T> auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
 bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
@@ -309,31 +306,26 @@ void monthly_leaders_update(sys::state& state);
 void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
-bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb,
-		dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
+bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb,
-		dcon::nation_id target); // do not call this function directly unless you know what you are doing
+	dcon::nation_id target); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 
-dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender,
-		dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state,
-		dcon::national_identity_id primary_wargoal_tag, dcon::nation_id primary_wargoal_secondary);
+dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag, dcon::nation_id primary_wargoal_secondary);
 void call_defender_allies(sys::state& state, dcon::war_id wfor);
 void call_attacker_allies(sys::state& state, dcon::war_id wfor);
-void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
-		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
+void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
 void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker, bool on_war_creation = false);
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type);
 
-int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
-		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
+int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 
 int32_t attacker_peace_cost(sys::state& state, dcon::war_id war);
@@ -342,7 +334,7 @@ int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
 float cb_infamy(sys::state const& state, dcon::cb_type_id t); // the fabrication cost in infamy
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
-		dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
+	dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
 float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target);
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t);
@@ -356,9 +348,7 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
 void cleanup_army(sys::state& state, dcon::army_id n);
 void cleanup_navy(sys::state& state, dcon::navy_id n);
 
-void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from,
-		dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state,
-		dcon::national_identity_id wargoal_t);
+void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 
@@ -382,7 +372,7 @@ sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id 
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 enum class crossing_type { none, river, sea };
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
-void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
+void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{});						// only for sea provinces
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 

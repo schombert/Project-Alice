@@ -19,16 +19,12 @@ class player_investement_text : public multiline_text_element_base {
 		}
 
 		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
-				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
-						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
-						text::alignment::left, text::text_color::black, true});
+			text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x, multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true});
 
 		text::add_line(state, container, "production_our_invest", text::variable_type::amount, text::pretty_integer{int64_t(player_investment)}, text::variable_type::percentage, text::fp_one_place{total_investment > 0 ? 100.0f * player_investment / total_investment : 0.0f});
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 
@@ -44,21 +40,16 @@ class player_investement_text : public multiline_text_element_base {
 				total_investment += oul.get_foreign_investment();
 			}
 
-			float base = state.world.nation_get_rank(to_nation) <= state.defines.colonial_rank
-											 ? state.defines.second_rank_base_share_factor
-											 : state.defines.civ_base_share_factor;
+			float base = state.world.nation_get_rank(to_nation) <= state.defines.colonial_rank ? state.defines.second_rank_base_share_factor : state.defines.civ_base_share_factor;
 			float investment_fraction = total_investment > 0.0001f ? sl_investment / total_investment : 0.0f;
 			auto share = base + (1.0f - base) * investment_fraction;
 
 			if(!state.world.nation_get_is_civilized(to_nation)) {
-				text::add_line(state, contents, "sphere_share_unciv", text::variable_type::percentage,
-						int64_t(100.0f * state.defines.unciv_base_share_factor));
+				text::add_line(state, contents, "sphere_share_unciv", text::variable_type::percentage, int64_t(100.0f * state.defines.unciv_base_share_factor));
 			} else if(state.world.nation_get_rank(to_nation) <= state.defines.colonial_rank) {
-				text::add_line(state, contents, "sphere_share_2ndrank", text::variable_type::percentage, int64_t(100.0f * share),
-						text::variable_type::base_percentage, int64_t(100.0f * state.defines.second_rank_base_share_factor));
+				text::add_line(state, contents, "sphere_share_2ndrank", text::variable_type::percentage, int64_t(100.0f * share), text::variable_type::base_percentage, int64_t(100.0f * state.defines.second_rank_base_share_factor));
 			} else {
-				text::add_line(state, contents, "sphere_share_civ", text::variable_type::percentage, int64_t(100.0f * share),
-						text::variable_type::base_percentage, int64_t(100.0f * state.defines.civ_base_share_factor));
+				text::add_line(state, contents, "sphere_share_civ", text::variable_type::percentage, int64_t(100.0f * share), text::variable_type::base_percentage, int64_t(100.0f * state.defines.civ_base_share_factor));
 			}
 		} else {
 			text::add_line(state, contents, "sphere_share_not_in_sphere");
@@ -67,9 +58,7 @@ class player_investement_text : public multiline_text_element_base {
 };
 
 class close_investments : public button_element_base {
-	void button_action(sys::state& state) noexcept override {
-		send(state, parent, production_window_tab::investments);
-	}
+	void button_action(sys::state& state) noexcept override { send(state, parent, production_window_tab::investments); }
 };
 
 class gp_investment_text : public simple_text_element_base {
@@ -84,11 +73,8 @@ public:
 
 		set_text(state, text::format_money(investment));
 	}
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		simple_text_element_base::render(state, x, y);
-	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override { simple_text_element_base::render(state, x, y); }
 };
-
 
 class production_foreign_investment_window : public window_element_base {
 public:
@@ -131,7 +117,7 @@ public:
 	// 450 x x-off
 	// nation_gp_flag
 	/*
-	
+
 			if(subwindow_width <= 0) {
 				subwindow_width = ptr->base_data.size.x;
 			}
@@ -173,32 +159,24 @@ public:
 			}
 		}
 
-
-		xy_pair base_sort_template_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
+		xy_pair base_sort_template_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
 		xy_pair sort_template_offset = base_sort_template_offset;
 		sort_template_offset.y += 233;
 
-		auto ptr = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
-		ptr->set_button_text(state,
-				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
+		auto ptr = make_element_by_type<button_element_base>(state, state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+		ptr->set_button_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 0;
 		ptr->base_data.position = sort_template_offset;
 		add_child_to_back(std::move(ptr));
 
-		auto ptr2 = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
-		ptr2->set_button_text(state,
-				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
+		auto ptr2 = make_element_by_type<button_element_base>(state, state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+		ptr2->set_button_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 1;
 		ptr2->base_data.position = sort_template_offset;
 		add_child_to_back(std::move(ptr2));
 
-		auto ptr3 = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
-		ptr3->set_button_text(state,
-				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)));
+		auto ptr3 = make_element_by_type<button_element_base>(state, state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+		ptr3->set_button_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 2;
 		ptr3->base_data.position = sort_template_offset;
 		add_child_to_back(std::move(ptr3));

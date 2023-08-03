@@ -5,7 +5,6 @@
 
 namespace ui {
 
-
 //======================================================================================================================================
 //	LEADER CHANGE WINDOW
 //======================================================================================================================================
@@ -73,13 +72,11 @@ public:
 	}
 };
 
-template<class T>
-class available_leader_listbox : public listbox_element_base<leader_listbox_element, dcon::leader_id> {
-using listbox = listbox_element_base<leader_listbox_element, dcon::leader_id>;
+template<class T> class available_leader_listbox : public listbox_element_base<leader_listbox_element, dcon::leader_id> {
+	using listbox = listbox_element_base<leader_listbox_element, dcon::leader_id>;
+
 protected:
-	std::string_view get_row_element_name() override {
-		return "leader_entry";
-	}
+	std::string_view get_row_element_name() override { return "leader_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -97,8 +94,7 @@ public:
 	}
 };
 
-template<class T>
-class leader_selection_window : public window_element_base {
+template<class T> class leader_selection_window : public window_element_base {
 private:
 	vertical_progress_bar* leaderprestige_bar = nullptr;
 	simple_text_element_base* leadername_text = nullptr;
@@ -188,8 +184,7 @@ public:
 				leaderpersonality_text->set_text(state, text::produce_simple_string(state, fat.get_personality().get_name()));
 				leaderbackground_text->set_text(state, text::produce_simple_string(state, fat.get_background().get_name()));
 			}
-			//auto fat = dcon::fatten(state.world, military::get_leader_from_navy_or_army(state, content));
-
+			// auto fat = dcon::fatten(state.world, military::get_leader_from_navy_or_army(state, content));
 		}
 	}
 };
@@ -202,24 +197,23 @@ enum class reorg_win_action : uint8_t {
 	balance = 1,
 };
 
-template<class T>
-class reorg_unit_transfer_button : public button_element_base {
+template<class T> class reorg_unit_transfer_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<T>(payload);
-			
+
 			Cyto::Any npayload = element_selection_wrapper<T>{content};
 			parent->impl_get(state, npayload);
 		}
 	}
 };
 
-template<class T>
-class reorg_unit_listbox_row : public listbox_row_element_base<T> {
-using listrow = listbox_row_element_base<T>;
+template<class T> class reorg_unit_listbox_row : public listbox_row_element_base<T> {
+	using listrow = listbox_row_element_base<T>;
+
 private:
 	simple_text_element_base* str_land = nullptr;
 	simple_text_element_base* str_naval = nullptr;
@@ -233,7 +227,7 @@ private:
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		listrow::base_data.position.y += 128;	// Nudge
+		listrow::base_data.position.y += 128; // Nudge
 		listrow::base_data.position.x += 256;
 		listrow::on_create(state);
 	}
@@ -327,13 +321,11 @@ public:
 	}
 };
 
-template<class T, class T2>
-class reorg_unit_listbox_left : public listbox_element_base<reorg_unit_listbox_row<T2>, T2> {
-using listbox_left = listbox_element_base<reorg_unit_listbox_row<T2>, T2>;
+template<class T, class T2> class reorg_unit_listbox_left : public listbox_element_base<reorg_unit_listbox_row<T2>, T2> {
+	using listbox_left = listbox_element_base<reorg_unit_listbox_row<T2>, T2>;
+
 protected:
-	std::string_view get_row_element_name() override {
-		return "reorg_entry";
-	}
+	std::string_view get_row_element_name() override { return "reorg_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -369,13 +361,11 @@ public:
 	}
 };
 
-template<class T, class T2>
-class reorg_unit_listbox_right : public listbox_element_base<reorg_unit_listbox_row<T2>, T2> {
-using listbox_right = listbox_element_base<reorg_unit_listbox_row<T2>, T2>;
+template<class T, class T2> class reorg_unit_listbox_right : public listbox_element_base<reorg_unit_listbox_row<T2>, T2> {
+	using listbox_right = listbox_element_base<reorg_unit_listbox_row<T2>, T2>;
+
 protected:
-	std::string_view get_row_element_name() override {
-		return "reorg_entry_right";
-	}
+	std::string_view get_row_element_name() override { return "reorg_entry_right"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -411,7 +401,6 @@ public:
 	}
 };
 
-
 class unit_reorg_balance_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -432,8 +421,7 @@ public:
 	}
 };
 
-template<class T, class T2>
-class unit_reorg_window : public window_element_base {
+template<class T, class T2> class unit_reorg_window : public window_element_base {
 private:
 	std::vector<T2> selectedsubunits;
 	T unitToReorg{};
@@ -474,14 +462,14 @@ public:
 		} else if(name == "left_list") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				auto ptr = make_element_by_type<reorg_unit_listbox_left<T, T2>>(state, id);
-				//ptr->base_data.position.x += 255;	// Nudge
-				//ptr->list_scrollbar->base_data.position.x += 256;
+				// ptr->base_data.position.x += 255;	// Nudge
+				// ptr->list_scrollbar->base_data.position.x += 256;
 				ptr->base_data.size.x += 256;
 				return ptr;
 			} else {
 				auto ptr = make_element_by_type<reorg_unit_listbox_left<T, T2>>(state, id);
-				//ptr->base_data.position.x += 255;	// Nudge
-				//ptr->list_scrollbar->base_data.position.x += 256;
+				// ptr->base_data.position.x += 255;	// Nudge
+				// ptr->list_scrollbar->base_data.position.x += 256;
 				ptr->base_data.size.x += 256;
 				return ptr;
 			}
@@ -489,14 +477,14 @@ public:
 		} else if(name == "right_list") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				auto ptr = make_element_by_type<reorg_unit_listbox_right<T, T2>>(state, id);
-				//ptr->base_data.position.x += 255;	// Nudge
-				//ptr->list_scrollbar->base_data.position.x += 256;
+				// ptr->base_data.position.x += 255;	// Nudge
+				// ptr->list_scrollbar->base_data.position.x += 256;
 				ptr->base_data.size.x += 256;
 				return ptr;
 			} else {
 				auto ptr = make_element_by_type<reorg_unit_listbox_right<T, T2>>(state, id);
-				//ptr->base_data.position.x += 255;	// Nudge
-				//ptr->list_scrollbar->base_data.position.x += 256;
+				// ptr->base_data.position.x += 255;	// Nudge
+				// ptr->list_scrollbar->base_data.position.x += 256;
 				ptr->base_data.size.x += 256;
 				return ptr;
 			}
@@ -555,86 +543,86 @@ public:
 			return message_result::consumed;
 		}
 		//=======================================================================================
-		//	REORGANISATION WINDOW ACTIONS 
+		//	REORGANISATION WINDOW ACTIONS
 		//=======================================================================================
 		else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
 			auto content = any_cast<element_selection_wrapper<reorg_win_action>>(payload).data;
 			switch(content) {
-				case reorg_win_action::close:
-					if(selectedsubunits.size() <= command::num_packed_units && !selectedsubunits.empty()) {
-						if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
-							std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-							for(size_t i = 0; i < selectedsubunits.size(); i++) {
+			case reorg_win_action::close:
+				if(selectedsubunits.size() <= command::num_packed_units && !selectedsubunits.empty()) {
+					if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
+						std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
+						for(size_t i = 0; i < selectedsubunits.size(); i++) {
+							tosplit[i] = selectedsubunits[i];
+						}
+						command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
+						command::split_army(state, state.local_player_nation, unitToReorg);
+					} else {
+						std::array<dcon::ship_id, command::num_packed_units> tosplit{};
+						for(size_t i = 0; i < selectedsubunits.size(); i++) {
+							tosplit[i] = selectedsubunits[i];
+						}
+						command::mark_ships_to_split(state, state.local_player_nation, tosplit);
+						command::split_navy(state, state.local_player_nation, unitToReorg);
+					}
+				} else if(selectedsubunits.size() > command::num_packed_units) {
+					if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
+						std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
+						// while(selectedsubunits.size() > command::num_packed_units) {
+						while(selectedsubunits.size() > 0) {
+							tosplit.fill(dcon::regiment_id{});
+							for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
 								tosplit[i] = selectedsubunits[i];
 							}
 							command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-							command::split_army(state, state.local_player_nation, unitToReorg);
-						} else {
-							std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-							for(size_t i = 0; i < selectedsubunits.size(); i++) {
+							(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units) : selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
+						}
+						command::split_army(state, state.local_player_nation, unitToReorg);
+					} else {
+						std::array<dcon::ship_id, command::num_packed_units> tosplit{};
+						// while(selectedsubunits.size() > command::num_packed_units) {
+						while(selectedsubunits.size() > 0) {
+							tosplit.fill(dcon::ship_id{});
+							for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
 								tosplit[i] = selectedsubunits[i];
 							}
-							command::mark_ships_to_split( state, state.local_player_nation, tosplit);
-							command::split_navy(state, state.local_player_nation, unitToReorg);
+							command::mark_ships_to_split(state, state.local_player_nation, tosplit);
+							(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units) : selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
 						}
-					} else if(selectedsubunits.size() > command::num_packed_units){
-						if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
-							std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-							//while(selectedsubunits.size() > command::num_packed_units) {
-							while(selectedsubunits.size() > 0) {
-								tosplit.fill(dcon::regiment_id{});
-								for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
-									tosplit[i] = selectedsubunits[i];
-								}
-								command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-								(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units)
-																						: selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-							}
-							command::split_army(state, state.local_player_nation, unitToReorg);
-						} else {
-							std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-							//while(selectedsubunits.size() > command::num_packed_units) {
-							while(selectedsubunits.size() > 0) {
-								tosplit.fill(dcon::ship_id{});
-								for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
-									tosplit[i] = selectedsubunits[i];
-								}
-								command::mark_ships_to_split(state, state.local_player_nation, tosplit);
-								(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units)
-																						: selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-							}
-							command::split_navy(state, state.local_player_nation, unitToReorg);
-						}
+						command::split_navy(state, state.local_player_nation, unitToReorg);
 					}
-					if(selectedsubunits.empty()) { selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end()); }
-					set_visible(state, false);
-					break;
-				case reorg_win_action::balance:
-					// Disregard any of the units the player already selected, because its our way or the hi(fi)-way
+				}
+				if(selectedsubunits.empty()) {
 					selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-					if constexpr(std::is_same_v<T, dcon::army_id>) {
-						for(auto reg : dcon::fatten(state.world, unitToReorg).get_army_membership()) {
-							selectedsubunits.push_back(reg.get_regiment().id);
-						}
-					} else {
-						for(auto reg : dcon::fatten(state.world, unitToReorg).get_navy_membership()) {
-							selectedsubunits.push_back(reg.get_ship().id);
-						}
+				}
+				set_visible(state, false);
+				break;
+			case reorg_win_action::balance:
+				// Disregard any of the units the player already selected, because its our way or the hi(fi)-way
+				selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
+				if constexpr(std::is_same_v<T, dcon::army_id>) {
+					for(auto reg : dcon::fatten(state.world, unitToReorg).get_army_membership()) {
+						selectedsubunits.push_back(reg.get_regiment().id);
 					}
-					std::sort(selectedsubunits.begin(), selectedsubunits.end(), [&](auto a, auto b){return dcon::fatten(state.world,a).get_type().value > dcon::fatten(state.world,b).get_type().value;});
-					//for(size_t i = selectedsubunits.size(); i > 0; i--) {
-					for(size_t i = selectedsubunits.size(); i-->0;) {
-						if((i % 2) == 0) {
-							selectedsubunits.erase(selectedsubunits.begin() + i);
-						}
+				} else {
+					for(auto reg : dcon::fatten(state.world, unitToReorg).get_navy_membership()) {
+						selectedsubunits.push_back(reg.get_ship().id);
 					}
-					impl_on_update(state);
-					break;
-				default:
-					break;
+				}
+				std::sort(selectedsubunits.begin(), selectedsubunits.end(), [&](auto a, auto b) { return dcon::fatten(state.world, a).get_type().value > dcon::fatten(state.world, b).get_type().value; });
+				// for(size_t i = selectedsubunits.size(); i > 0; i--) {
+				for(size_t i = selectedsubunits.size(); i-- > 0;) {
+					if((i % 2) == 0) {
+						selectedsubunits.erase(selectedsubunits.begin() + i);
+					}
+				}
+				impl_on_update(state);
+				break;
+			default:
+				break;
 			}
 			return message_result::consumed;
-		}	
+		}
 		return message_result::unseen;
 	}
 };

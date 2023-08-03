@@ -84,7 +84,7 @@ public:
 			auto result = state.military_definitions.unit_base_definitions[utid].icon - 4;
 
 			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
-				//nav_icon_norm->set_visible(state, false);
+				// nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
@@ -94,23 +94,21 @@ public:
 				nav_icon_norm->set_visible(state, true);
 				nav_icon_norm->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
-				//nav_icon_norm->set_visible(state, false);
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
+				// nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
-				//nav_icon_seeking->set_visible(state, false);
+				// nav_icon_seeking->set_visible(state, false);
 
-				nav_icon_seeking->set_visible(state, true);	// Not actually used in V2 but whatever
+				nav_icon_seeking->set_visible(state, true); // Not actually used in V2 but whatever
 				nav_icon_norm->set_visible(state, true);
 				nav_icon_norm->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
 				nav_icon_norm->set_visible(state, false);
-				//nav_icon_attack->set_visible(state, false);
+				// nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
@@ -119,42 +117,38 @@ public:
 				nav_icon_attack->set_visible(state, true);
 				nav_icon_attack->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
-				//nav_icon_retreat->set_visible(state, false);
+				// nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
 				nav_icon_seeking->set_visible(state, false);
 
 				nav_icon_retreat->set_visible(state, true);
 				nav_icon_retreat->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
-				//nav_icon_disengaged->set_visible(state, false);
+				// nav_icon_disengaged->set_visible(state, false);
 				nav_icon_seeking->set_visible(state, false);
 
 				nav_icon_disengaged->set_visible(state, true);
 				nav_icon_disengaged->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
-				//nav_icon_sunk->set_visible(state, false);
+				// nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
 				nav_icon_seeking->set_visible(state, false);
 
 				nav_icon_sunk->set_visible(state, true);
 				nav_icon_sunk->frame = result;
-
 			}
 		}
 	}
@@ -225,7 +219,6 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 
-
 		} else {
 			return nullptr;
 		}
@@ -240,7 +233,7 @@ public:
 			auto result = state.military_definitions.unit_base_definitions[utid].icon - 4;
 
 			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
-				//nav_icon_norm->set_visible(state, false);
+				// nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
@@ -250,23 +243,21 @@ public:
 				nav_icon_norm->set_visible(state, true);
 				nav_icon_norm->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
-				//nav_icon_norm->set_visible(state, false);
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
+				// nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
-				//nav_icon_seeking->set_visible(state, false);
+				// nav_icon_seeking->set_visible(state, false);
 
-				nav_icon_seeking->set_visible(state, true);	// Not actually used in V2 but whatever
+				nav_icon_seeking->set_visible(state, true); // Not actually used in V2 but whatever
 				nav_icon_norm->set_visible(state, true);
 				nav_icon_norm->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
 				nav_icon_norm->set_visible(state, false);
-				//nav_icon_attack->set_visible(state, false);
+				// nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
@@ -275,42 +266,38 @@ public:
 				nav_icon_attack->set_visible(state, true);
 				nav_icon_attack->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
-				//nav_icon_retreat->set_visible(state, false);
+				// nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
 				nav_icon_seeking->set_visible(state, false);
 
 				nav_icon_retreat->set_visible(state, true);
 				nav_icon_retreat->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
 				nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
-				//nav_icon_disengaged->set_visible(state, false);
+				// nav_icon_disengaged->set_visible(state, false);
 				nav_icon_seeking->set_visible(state, false);
 
 				nav_icon_disengaged->set_visible(state, true);
 				nav_icon_disengaged->frame = result;
 
-			} else
-			if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
+			} else if((battleship.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_sunk) {
 				nav_icon_norm->set_visible(state, false);
 				nav_icon_attack->set_visible(state, false);
-				//nav_icon_sunk->set_visible(state, false);
+				// nav_icon_sunk->set_visible(state, false);
 				nav_icon_retreat->set_visible(state, false);
 				nav_icon_disengaged->set_visible(state, false);
 				nav_icon_seeking->set_visible(state, false);
 
 				nav_icon_sunk->set_visible(state, true);
 				nav_icon_sunk->frame = result;
-
 			}
 		}
 	}
@@ -322,6 +309,7 @@ class naval_combat_ship_unit : public listbox_row_element_base<military::ship_in
 	simple_text_element_base* defender_ship_text = nullptr;
 	naval_combat_ship_lslot* ship_lslot = nullptr;
 	naval_combat_ship_rslot* ship_rslot = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
@@ -332,12 +320,12 @@ public:
 
 		} else if(name == "left_slot") {
 			auto ptr = make_element_by_type<naval_combat_ship_lslot>(state, id);
-			ship_lslot = ptr.get();	// Its always on the left
+			ship_lslot = ptr.get(); // Its always on the left
 			return ptr;
 
 		} else if(name == "right_slot") {
 			auto ptr = make_element_by_type<naval_combat_ship_rslot>(state, id);
-			ship_rslot = ptr.get();	// Its always on the right
+			ship_rslot = ptr.get(); // Its always on the right
 			return ptr;
 
 		} else if(name == "attacker_name") {
@@ -370,7 +358,6 @@ public:
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
-
 
 		} else {
 			return nullptr;
@@ -414,20 +401,16 @@ public:
 			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_approaching) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_approach"));
 
-			} else
-			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
+			} else if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_seeking) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_seeking"));
 
-			} else
-			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
+			} else if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_engaged) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_firing"));
 
-			} else
-			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
+			} else if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreating) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_retreat"));
 
-			} else
-			if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
+			} else if((content.flags & military::ship_in_battle::mode_mask) == military::ship_in_battle::mode_retreated) {
 				combatstatus_text->set_text(state, text::produce_simple_string(state, "naval_combat_status_disengaged"));
 
 			} else {
@@ -439,12 +422,9 @@ public:
 	}
 };
 
-template<bool attacker>
-class naval_slots_listbox : public listbox_element_base<naval_combat_ship_unit, military::ship_in_battle> {
+template<bool attacker> class naval_slots_listbox : public listbox_element_base<naval_combat_ship_unit, military::ship_in_battle> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "ship_unit";
-	}
+	std::string_view get_row_element_name() override { return "ship_unit"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -459,8 +439,7 @@ public:
 					if(attacker == true && (s.flags & military::ship_in_battle::is_attacking) != 0) {
 						row_contents.push_back(s);
 					}
-				} else
-				if constexpr(attacker == false) {
+				} else if constexpr(attacker == false) {
 					if(attacker == false && (s.flags & military::ship_in_battle::is_attacking) == 0) {
 						row_contents.push_back(s);
 					}
@@ -472,14 +451,12 @@ public:
 	}
 };
 
-enum class modifiertype : uint8_t {
-	dice = 0,
-	leader
-};
+enum class modifiertype : uint8_t { dice = 0, leader };
 
 class combat_modifier_win : public window_element_base {
 	image_element_base* modifier_icon = nullptr;
 	simple_text_element_base* modifier_text = nullptr;
+
 public:
 	modifiertype type = modifiertype::dice;
 	uint8_t value = 0;
@@ -500,15 +477,15 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		switch(type) {
-			case modifiertype::dice:
-				modifier_icon->frame = 0;
-				break;
-			case modifiertype::leader:
-				modifier_icon->frame = 4;
-				break;
-			default:
-				modifier_icon->frame = 0;
-				break;
+		case modifiertype::dice:
+			modifier_icon->frame = 0;
+			break;
+		case modifiertype::leader:
+			modifier_icon->frame = 4;
+			break;
+		default:
+			modifier_icon->frame = 0;
+			break;
 		}
 		modifier_text->set_text(state, text::format_float(float(value), 0));
 	}
@@ -529,6 +506,7 @@ class naval_combat_attacker_window : public window_element_base {
 
 	window_element_base* dice_roll = nullptr;
 	window_element_base* leader_roll = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -589,18 +567,15 @@ public:
 			ptr->frame = ptr->frame - 1;
 			return ptr;
 
-
 		} else if(name == "small_ship_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->frame = ptr->frame - 1;
 			return ptr;
 
-
 		} else if(name == "trade_ship_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->frame = ptr->frame - 1;
 			return ptr;
-
 
 		} else if(name == "big_ship_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -663,7 +638,6 @@ public:
 			}
 			strbar->progress = (totalstr / totalships);
 			strength_text->set_text(state, text::format_percentage((totalstr / totalships), 0));
-
 		}
 	}
 
@@ -694,6 +668,7 @@ class naval_combat_defender_window : public window_element_base {
 
 	window_element_base* dice_roll = nullptr;
 	window_element_base* leader_roll = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -754,12 +729,10 @@ public:
 			ptr->frame = ptr->frame - 1;
 			return ptr;
 
-
 		} else if(name == "small_ship_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->frame = ptr->frame - 1;
 			return ptr;
-
 
 		} else if(name == "trade_ship_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -814,7 +787,7 @@ public:
 				}
 			}
 			orgbar->progress = ((totalorg / totalships) > 0) ? (totalorg / totalships) : 0.0f;
-			organisation_text->set_text(state, text::format_percentage( ((totalorg / totalships) > 0) ? (totalorg / totalships) : 0.0f, 0));
+			organisation_text->set_text(state, text::format_percentage(((totalorg / totalships) > 0) ? (totalorg / totalships) : 0.0f, 0));
 
 			float totalstr = 0.0f;
 			totalships = 0;
@@ -825,7 +798,7 @@ public:
 				}
 			}
 			strbar->progress = ((totalstr / totalships) > 0) ? (totalstr / totalships) : 0.0f;
-			strength_text->set_text(state, text::format_percentage( ((totalstr / totalships) > 0) ? (totalstr / totalships) : 0.0f, 0));
+			strength_text->set_text(state, text::format_percentage(((totalstr / totalships) > 0) ? (totalstr / totalships) : 0.0f, 0));
 		}
 	}
 
@@ -847,6 +820,7 @@ class naval_combat_window : public window_element_base {
 
 	image_element_base* mayretreat_image = nullptr;
 	simple_text_element_base* navalbattleloc_text = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -900,13 +874,10 @@ public:
 			set_visible(state, false);
 		}
 
-
-
 		mayretreat_image->set_visible(state, military::can_retreat_from_battle(state, battle.id, state.local_player_nation));
 		auto fat = dcon::fatten(state.world, selectednavy);
 
-		navalbattleloc_text->set_text(state, text::produce_simple_string(state, "battle_of") + " " +
-			text::produce_simple_string(state, battle.get_location_from_naval_battle_location().get_name()));
+		navalbattleloc_text->set_text(state, text::produce_simple_string(state, "battle_of") + " " + text::produce_simple_string(state, battle.get_location_from_naval_battle_location().get_name()));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -1006,7 +977,7 @@ public:
 			return ptr;
 
 		} else if(name == "line1") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			battlename_text = ptr.get();
 			return ptr;
 
@@ -1054,7 +1025,7 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "our_unit_type_1") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
+			ptr->frame = ptr->frame - 1;
 			return ptr;
 
 		} else if(name == "our_unit_type_1_1_text") {
@@ -1074,7 +1045,7 @@ public:
 
 		} else if(name == "our_unit_type_2") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
+			ptr->frame = ptr->frame - 1;
 			return ptr;
 
 		} else if(name == "our_unit_type_2_1_text") {
@@ -1094,7 +1065,7 @@ public:
 
 		} else if(name == "our_unit_type_3") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
+			ptr->frame = ptr->frame - 1;
 			return ptr;
 
 		} else if(name == "our_unit_type_3_1_text") {
@@ -1114,61 +1085,61 @@ public:
 
 		} else if(name == "enemy_unit_type_1") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
+			ptr->frame = ptr->frame - 1;
 			return ptr;
 
 		} else if(name == "enemy_unit_type_1_1_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_bigship_initial_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_1_2_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_bigship_casualties_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_1_3_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_bigship_survivors_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_2") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
+			ptr->frame = ptr->frame - 1;
 			return ptr;
 
 		} else if(name == "enemy_unit_type_2_1_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_smallship_initial_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_2_2_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_smallship_casualties_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_2_3_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_smallship_survivors_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_3") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
+			ptr->frame = ptr->frame - 1;
 			return ptr;
 
 		} else if(name == "enemy_unit_type_3_1_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_transship_initial_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_3_2_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_transship_casualties_text = ptr.get();
 			return ptr;
 
 		} else if(name == "enemy_unit_type_3_3_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			right_transship_survivors_text = ptr.get();
 			return ptr;
 
@@ -1241,15 +1212,12 @@ public:
 		}
 
 		warscore_text->set_text(state, text::format_float(report.warscore_effect, 1));
-		winorlose_text->set_text(state, report.player_on_winning_side ? text::produce_simple_string(state, "you_won") :
-										text::produce_simple_string(state, "you_lost"));
+		winorlose_text->set_text(state, report.player_on_winning_side ? text::produce_simple_string(state, "you_won") : text::produce_simple_string(state, "you_lost"));
 		auto attack_leader = dcon::fatten(state.world, report.attacking_admiral);
 		auto defend_leader = dcon::fatten(state.world, report.defending_admiral);
 
-		attack_leader.is_valid() ? ourleader_text->set_text(state, text::produce_simple_string(state, state.to_string_view(attack_leader.get_name())))
-					: ourleader_text->set_text(state, text::produce_simple_string(state, "no_leader"));
-		defend_leader.is_valid() ? enemyleader_text->set_text(state, text::produce_simple_string(state, state.to_string_view(defend_leader.get_name())))
-					: enemyleader_text->set_text(state, text::produce_simple_string(state, "no_leader"));
+		attack_leader.is_valid() ? ourleader_text->set_text(state, text::produce_simple_string(state, state.to_string_view(attack_leader.get_name()))) : ourleader_text->set_text(state, text::produce_simple_string(state, "no_leader"));
+		defend_leader.is_valid() ? enemyleader_text->set_text(state, text::produce_simple_string(state, state.to_string_view(defend_leader.get_name()))) : enemyleader_text->set_text(state, text::produce_simple_string(state, "no_leader"));
 
 		//============================================================================================
 
@@ -1265,7 +1233,7 @@ public:
 
 		left_bigship_casualties_text->set_text(state, text::format_float(report.attacker_big_losses, 0));
 		left_smallship_casualties_text->set_text(state, text::format_float(report.attacker_small_losses, 0));
-		left_transship_casualties_text->set_text(state, text::format_float(report.attacker_transport_losses, 0));	// We stand for the Thin Pink Line
+		left_transship_casualties_text->set_text(state, text::format_float(report.attacker_transport_losses, 0)); // We stand for the Thin Pink Line
 
 		right_bigship_casualties_text->set_text(state, text::format_float(report.defender_big_losses, 0));
 		right_smallship_casualties_text->set_text(state, text::format_float(report.defender_small_losses, 0));
@@ -1283,24 +1251,12 @@ public:
 
 		//============================================================================================
 
-		left_total_initial_text->set_text(state, text::format_float(
-					float(report.attacker_big_ships + report.attacker_small_ships + report.attacker_transport_ships), 0));
-		left_total_lost_text->set_text(state, text::format_float(
-					float(report.attacker_big_losses + report.attacker_small_losses + report.attacker_transport_losses), 0));
-		left_total_left_text->set_text(state, text::format_float(float(
-					(report.attacker_big_ships - report.attacker_big_losses) +
-					(report.attacker_small_ships - report.attacker_small_losses) +
-					(report.attacker_transport_ships - report.attacker_transport_losses)
-					), 0));
-		right_total_initial_text->set_text(state, text::format_float(
-					float(report.defender_big_ships + report.defender_small_ships + report.defender_transport_ships), 0));
-		right_total_lost_text->set_text(state, text::format_float(
-					float(report.defender_big_losses + report.defender_small_losses + report.defender_transport_losses), 0));
-		right_total_left_text->set_text(state, text::format_float(float(
-					(report.defender_big_ships - report.defender_big_losses) +
-					(report.defender_small_ships - report.defender_small_losses) +
-					(report.defender_transport_ships - report.defender_transport_losses)
-					), 0));
+		left_total_initial_text->set_text(state, text::format_float(float(report.attacker_big_ships + report.attacker_small_ships + report.attacker_transport_ships), 0));
+		left_total_lost_text->set_text(state, text::format_float(float(report.attacker_big_losses + report.attacker_small_losses + report.attacker_transport_losses), 0));
+		left_total_left_text->set_text(state, text::format_float(float((report.attacker_big_ships - report.attacker_big_losses) + (report.attacker_small_ships - report.attacker_small_losses) + (report.attacker_transport_ships - report.attacker_transport_losses)), 0));
+		right_total_initial_text->set_text(state, text::format_float(float(report.defender_big_ships + report.defender_small_ships + report.defender_transport_ships), 0));
+		right_total_lost_text->set_text(state, text::format_float(float(report.defender_big_losses + report.defender_small_losses + report.defender_transport_losses), 0));
+		right_total_left_text->set_text(state, text::format_float(float((report.defender_big_ships - report.defender_big_losses) + (report.defender_small_ships - report.defender_small_losses) + (report.defender_transport_ships - report.defender_transport_losses)), 0));
 
 		//============================================================================================
 	}
@@ -1309,18 +1265,19 @@ public:
 		if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			auto content = any_cast<element_selection_wrapper<bool>>(payload).data;
 			if(content) {
-					auto root = static_cast<ui::container_base*>(state.ui_state.root.get());
-					if(auto result = std::find_if(root->children.begin(), root->children.end(), [this](std::unique_ptr<element_base>& p){return p.get() == this;});
-							result != root->children.end()) {
-						if(result + 1 != children.end()) { std::rotate(result, result+1, root->children.end());}
-
-						auto temp = std::move(root->children.back());
-						root->children.pop_back();
-						set_visible(state, false);
-						state.ui_state.endof_navalcombat_windows.push_back(std::move(temp));
-					} else {
-						std::abort();	// Failed to move the naavl combat window back out
+				auto root = static_cast<ui::container_base*>(state.ui_state.root.get());
+				if(auto result = std::find_if(root->children.begin(), root->children.end(), [this](std::unique_ptr<element_base>& p) { return p.get() == this; }); result != root->children.end()) {
+					if(result + 1 != children.end()) {
+						std::rotate(result, result + 1, root->children.end());
 					}
+
+					auto temp = std::move(root->children.back());
+					root->children.pop_back();
+					set_visible(state, false);
+					state.ui_state.endof_navalcombat_windows.push_back(std::move(temp));
+				} else {
+					std::abort(); // Failed to move the naavl combat window back out
+				}
 			} else {
 				// TODO - We dont handle this, yet
 			}

@@ -10,9 +10,7 @@ namespace ui {
 
 class military_mob_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -34,9 +32,7 @@ public:
 
 class military_demob_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -55,17 +51,11 @@ public:
 
 class military_mob_progress_bar_text : public simple_text_element_base {
 protected:
-	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(float(4.20), 2);
-	}
+	std::string get_text(sys::state& state, dcon::nation_id n) noexcept { return text::format_percentage(float(4.20), 2); }
 
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state, state.local_player_nation));
-	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state, state.local_player_nation)); }
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto fat = dcon::fatten(state.world, state.local_player_nation);
@@ -83,9 +73,7 @@ public:
 
 class military_mob_size_text : public nation_mobilization_size_text {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -113,21 +101,18 @@ public:
 		window_element_base::on_create(state);
 
 		// Unit information comes first
-		auto win1 = make_element_by_type<military_units_window<dcon::army_id>>(state,
-				state.ui_state.defs_by_name.find("unit_window")->second.definition);
+		auto win1 = make_element_by_type<military_units_window<dcon::army_id>>(state, state.ui_state.defs_by_name.find("unit_window")->second.definition);
 		win1->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("army_pos")->second.definition].position;
 		state.ui_state.unit_window_army = win1.get();
 		add_child_to_front(std::move(win1));
 
 		// Navy information is right next to the army information
-		auto win2 = make_element_by_type<military_units_window<dcon::navy_id>>(state,
-				state.ui_state.defs_by_name.find("unit_window")->second.definition);
+		auto win2 = make_element_by_type<military_units_window<dcon::navy_id>>(state, state.ui_state.defs_by_name.find("unit_window")->second.definition);
 		win2->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("navy_pos")->second.definition].position;
 		state.ui_state.unit_window_navy = win2.get();
 		add_child_to_front(std::move(win2));
 
-		auto build_units_window = make_element_by_type<build_unit_large_window>(state,
-				state.ui_state.defs_by_name.find("build_unit_view_large")->second.definition);
+		auto build_units_window = make_element_by_type<build_unit_large_window>(state, state.ui_state.defs_by_name.find("build_unit_view_large")->second.definition);
 		build_units_window->base_data.position.y -= 63;
 		build_units_window->base_data.position.x += 1;
 		state.ui_state.build_unit_window = build_units_window.get();

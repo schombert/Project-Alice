@@ -12,8 +12,6 @@ void post(sys::state& state, message&& m) {
 	bool v = state.new_messages.try_emplace(std::move(m));
 }
 
-bool nation_is_interesting(sys::state& state, dcon::nation_id n) {
-	return false;
-}
+bool nation_is_interesting(sys::state& state, dcon::nation_id n) { return false; }
 
 } // namespace notification

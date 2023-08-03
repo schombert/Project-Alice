@@ -4,8 +4,7 @@
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
 
-namespace map
-{
+namespace map {
 
 // Used to load the terrain.bmp and the rivers.bmp
 std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, native_string_view name, glm::ivec2 map_size, uint8_t fill) {
@@ -64,7 +63,6 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	// Load the terrain
 	load_median_terrain_type(context);
 }
-
 
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
@@ -164,9 +162,6 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 }
 
 // Called to load the terrain and province map data
-void map_state::load_map_data(parsers::scenario_building_context& context) {
-	map_data.load_map_data(context);
-}
+void map_state::load_map_data(parsers::scenario_building_context& context) { map_data.load_map_data(context); }
 
-
-}
+} // namespace map

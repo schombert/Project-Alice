@@ -1,7 +1,6 @@
-#pragma once 
+#pragma once
 
 #include "gui_element_types.hpp"
-
 
 namespace ui {
 

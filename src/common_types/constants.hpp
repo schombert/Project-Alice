@@ -153,51 +153,32 @@ enum class virtual_key : uint8_t {
 	CLOSED_BRACKET = 0xDD,
 	QUOTE = 0xDE
 };
-enum class key_modifiers : uint8_t {
-	modifiers_none = 0x0,
-	modifiers_alt = 0x4,
-	modifiers_ctrl = 0x2,
-	modifiers_shift = 0x1,
-	modifiers_ctrl_shift = 0x3,
-	modifiers_ctrl_alt = 0x6,
-	modifiers_alt_shift = 0x5,
-	modifiers_all = 0x7
-};
+enum class key_modifiers : uint8_t { modifiers_none = 0x0, modifiers_alt = 0x4, modifiers_ctrl = 0x2, modifiers_shift = 0x1, modifiers_ctrl_shift = 0x3, modifiers_ctrl_alt = 0x6, modifiers_alt_shift = 0x5, modifiers_all = 0x7 };
 constexpr inline float ui_scales[] = {0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
 constexpr inline uint32_t ui_scales_count = 8;
 
-enum class leader_type : uint8_t {
-	european = 0,
-	southamerican,
-	russian,
-	arab,
-	asian,
-	indian,
-	nativeamerican,
-	african,
-	polar_bear
-};
+enum class leader_type : uint8_t { european = 0, southamerican, russian, arab, asian, indian, nativeamerican, african, polar_bear };
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, count };
 
 enum class message_setting_type : uint8_t {
-	revolt = 0, // added
-	war_on_nation = 1, // added
-	war_by_nation = 2, // added
-	wargoal_added = 3, // added
+	revolt = 0,				 // added
+	war_on_nation = 1,		 // added
+	war_by_nation = 2,		 // added
+	wargoal_added = 3,		 // added
 	siegeover_by_nation = 4, // added
 	siegeover_on_nation = 5, // added
 	colony_finished = 6,
 	reform_gained = 7,
 	reform_lost = 8,
 	ruling_party_change = 9,
-	upperhouse = 10, // added
-	electionstart = 11, // added
-	electiondone = 12, // added
-	breakcountry = 13, // added
+	upperhouse = 10,				 // added
+	electionstart = 11,				 // added
+	electiondone = 12,				 // added
+	breakcountry = 13,				 // added
 	peace_accepted_from_nation = 14, // added
 	peace_rejected_from_nation = 15, // added
-	peace_accepted_by_nation = 16, // added
-	peace_rejected_by_nation = 17, // added
+	peace_accepted_by_nation = 16,	 // added
+	peace_rejected_by_nation = 17,	 // added
 	mobilization_start = 18,
 	mobilization_end = 19,
 	factory_complete = 20,
@@ -207,81 +188,81 @@ enum class message_setting_type : uint8_t {
 	province_event = 24,
 	national_event = 25,
 	major_event = 26,
-	invention = 27, // added
-	tech = 28, // added
+	invention = 27,	  // added
+	tech = 28,		  // added
 	leader_dies = 29, // added
 	land_combat_starts_on_nation = 30,
 	naval_combat_starts_on_nation = 31,
 	land_combat_starts_by_nation = 32,
 	naval_combat_starts_by_nation = 33,
 	movement_finishes = 34,
-	decision = 35, // added
-	lose_great_power = 36, // added
-	become_great_power = 37, // added
+	decision = 35,						// added
+	lose_great_power = 36,				// added
+	become_great_power = 37,			// added
 	war_subsidies_start_by_nation = 38, // added
 	war_subsidies_start_on_nation = 39, // added
-	war_subsidies_end_by_nation = 40, // added
-	war_subsidies_end_on_nation = 41, // added
+	war_subsidies_end_by_nation = 40,	// added
+	war_subsidies_end_on_nation = 41,	// added
 	reparations_start_by_nation = 42,
 	reparations_start_on_nation = 43,
 	reparations_end_by_nation = 44,
 	reparations_end_on_nation = 45,
-	mil_access_start_by_nation = 46, // added
-	mil_access_start_on_nation = 47, // added
-	mil_access_end_by_nation = 48, // added
-	mil_access_end_on_nation = 49, // added
-	mil_access_declined_by_nation = 50, // added
-	mil_access_declined_on_nation = 51, // added
-	alliance_starts = 52, // added
-	alliance_ends = 53, // added
-	alliance_declined_by_nation = 54, // added
-	alliance_declined_on_nation = 55, // added
+	mil_access_start_by_nation = 46,	 // added
+	mil_access_start_on_nation = 47,	 // added
+	mil_access_end_by_nation = 48,		 // added
+	mil_access_end_on_nation = 49,		 // added
+	mil_access_declined_by_nation = 50,	 // added
+	mil_access_declined_on_nation = 51,	 // added
+	alliance_starts = 52,				 // added
+	alliance_ends = 53,					 // added
+	alliance_declined_by_nation = 54,	 // added
+	alliance_declined_on_nation = 55,	 // added
 	ally_called_accepted_by_nation = 56, // added
 	ally_called_declined_by_nation = 57, // added
-	discredit_by_nation = 58, // added
-	ban_by_nation = 59, // added
-	expell_by_nation = 60, // added
-	discredit_on_nation = 61, // added
-	ban_on_nation = 62, // added
-	expell_on_nation = 63, // added
-	increase_opinion = 64, // added
-	decrease_opinion_by_nation = 65, // added
-	decrease_opinion_on_nation = 66, // added
-	rem_sphere_by_nation = 67, // added
-	rem_sphere_on_nation = 68, // added
-	removed_from_sphere = 69, // added
-	add_sphere = 70, // added
-	added_to_sphere = 71, // added
-	increase_relation_by_nation = 72, // added
-	increase_relation_on_nation = 73, // added
-	decrease_relation_by_nation = 74, // added
-	decrease_relation_on_nation = 75, // added
-	join_war_by_nation = 76, // added
-	join_war_on_nation = 77, // added
+	discredit_by_nation = 58,			 // added
+	ban_by_nation = 59,					 // added
+	expell_by_nation = 60,				 // added
+	discredit_on_nation = 61,			 // added
+	ban_on_nation = 62,					 // added
+	expell_on_nation = 63,				 // added
+	increase_opinion = 64,				 // added
+	decrease_opinion_by_nation = 65,	 // added
+	decrease_opinion_on_nation = 66,	 // added
+	rem_sphere_by_nation = 67,			 // added
+	rem_sphere_on_nation = 68,			 // added
+	removed_from_sphere = 69,			 // added
+	add_sphere = 70,					 // added
+	added_to_sphere = 71,				 // added
+	increase_relation_by_nation = 72,	 // added
+	increase_relation_on_nation = 73,	 // added
+	decrease_relation_by_nation = 74,	 // added
+	decrease_relation_on_nation = 75,	 // added
+	join_war_by_nation = 76,			 // added
+	join_war_on_nation = 77,			 // added
 	gw_unlocked = 78,
-	war_becomes_great = 79, // added
-	cb_detected_on_nation = 80, // added
-	cb_detected_by_nation = 81, // added
-	crisis_join_offer_accepted_by_nation = 82, // added
-	crisis_join_offer_declined_by_nation = 83, // added
+	war_becomes_great = 79,						 // added
+	cb_detected_on_nation = 80,					 // added
+	cb_detected_by_nation = 81,					 // added
+	crisis_join_offer_accepted_by_nation = 82,	 // added
+	crisis_join_offer_declined_by_nation = 83,	 // added
 	crisis_join_offer_accepted_from_nation = 84, // added
 	crisis_join_offer_declined_from_nation = 85, // added
-	crisis_resolution_accepted = 86, // added
-	crisis_becomes_war = 87, // added
+	crisis_resolution_accepted = 86,			 // added
+	crisis_becomes_war = 87,					 // added
 	crisis_resolution_declined_from_nation = 88, // added
-	crisis_starts = 89, // added
-	crisis_attacker_backer = 90, // added
-	crisis_defender_backer = 91, // added
-	crisis_fizzle = 92, // added
-	war_join_by = 93, // added
-	war_join_on = 94, // added
-	cb_fab_finished = 95, // added
-	cb_fab_cancelled = 96, // added
-	crisis_voluntary_join = 97, // added
+	crisis_starts = 89,							 // added
+	crisis_attacker_backer = 90,				 // added
+	crisis_defender_backer = 91,				 // added
+	crisis_fizzle = 92,							 // added
+	war_join_by = 93,							 // added
+	war_join_on = 94,							 // added
+	cb_fab_finished = 95,						 // added
+	cb_fab_cancelled = 96,						 // added
+	crisis_voluntary_join = 97,					 // added
 	count = 98
 };
 
-namespace  message_response {
+namespace message_response {
 
 constexpr inline uint8_t ignore = 0x00;
 constexpr inline uint8_t log = 0x01;
@@ -291,7 +272,7 @@ constexpr inline uint8_t pause = 0x04;
 constexpr inline uint8_t standard_popup = log | popup;
 constexpr inline uint8_t standard_pause = log | popup | pause;
 
-}
+} // namespace message_response
 
 } // namespace sys
 
@@ -304,7 +285,7 @@ namespace ui {
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
 
-}
+} // namespace ui
 
 namespace province {
 namespace border {

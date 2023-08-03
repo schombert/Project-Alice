@@ -10,7 +10,6 @@
 
 namespace ui {
 
-
 void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::reform_option_id ref) {
 	auto reform = fatten(state.world, ref);
 
@@ -27,16 +26,14 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::r
 	if(allow) {
 		// allow_reform_cond
 		text::add_line(state, contents, "allow_reform_cond");
-		trigger_description(state, contents, allow, trigger::to_generic(state.local_player_nation),
-				trigger::to_generic(state.local_player_nation), -1);
+		trigger_description(state, contents, allow, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 		text::add_line_break_to_layout(state, contents);
 	}
 
 	auto ext = reform.get_on_execute_trigger();
 	if(ext) {
 		text::add_line(state, contents, "reform_effect_if_desc");
-		trigger_description(state, contents, ext, trigger::to_generic(state.local_player_nation),
-				trigger::to_generic(state.local_player_nation), -1);
+		trigger_description(state, contents, ext, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 	}
 	auto ex = reform.get_on_execute_effect();
 	if(ex) {
@@ -45,18 +42,14 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::r
 		else
 			text::add_line(state, contents, "reform_effect_desc");
 
-		effect_description(state, contents, ex, trigger::to_generic(state.local_player_nation),
-				trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-				uint32_t((ref.index() << 2) ^ state.local_player_nation.index()));
+		effect_description(state, contents, ex, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t((ref.index() << 2) ^ state.local_player_nation.index()));
 		text::add_line_break_to_layout(state, contents);
 	}
 
 	auto rules = reform.get_rules();
 
-	if((rules &
-				 (issue_rule::primary_culture_voting | issue_rule::culture_voting | issue_rule::culture_voting | issue_rule::all_voting |
-						 issue_rule::largest_share | issue_rule::dhont | issue_rule::sainte_laque | issue_rule::same_as_ruling_party |
-						 issue_rule::rich_only | issue_rule::state_vote | issue_rule::population_vote)) != 0) {
+	if((rules & (issue_rule::primary_culture_voting | issue_rule::culture_voting | issue_rule::culture_voting | issue_rule::all_voting | issue_rule::largest_share | issue_rule::dhont | issue_rule::sainte_laque | issue_rule::same_as_ruling_party | issue_rule::rich_only | issue_rule::state_vote |
+					issue_rule::population_vote)) != 0) {
 
 		text::add_line(state, contents, "voting_rules");
 		if((rules & issue_rule::primary_culture_voting) != 0) {
@@ -92,10 +85,8 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::r
 		text::add_line_break_to_layout(state, contents);
 	}
 
-	if((rules & (issue_rule::build_factory | issue_rule::expand_factory | issue_rule::open_factory | issue_rule::destroy_factory |
-									issue_rule::factory_priority | issue_rule::can_subsidise | issue_rule::pop_build_factory |
-									issue_rule::pop_expand_factory | issue_rule::pop_open_factory | issue_rule::delete_factory_if_no_input |
-									issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway)) != 0) {
+	if((rules & (issue_rule::build_factory | issue_rule::expand_factory | issue_rule::open_factory | issue_rule::destroy_factory | issue_rule::factory_priority | issue_rule::can_subsidise | issue_rule::pop_build_factory | issue_rule::pop_expand_factory | issue_rule::pop_open_factory |
+					issue_rule::delete_factory_if_no_input | issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway)) != 0) {
 
 		text::add_line(state, contents, "special_rules");
 
@@ -176,9 +167,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -224,9 +213,7 @@ public:
 
 class unciv_reforms_listbox : public listbox_element_base<unciv_reforms_option, dcon::reform_option_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "reform_option_window";
-	}
+	std::string_view get_row_element_name() override { return "reform_option_window"; }
 
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

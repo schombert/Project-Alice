@@ -58,9 +58,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(is_navy) {
@@ -71,7 +69,7 @@ public:
 			parent->impl_get(state, p_payload);
 			dcon::province_id p = Cyto::any_cast<dcon::province_id>(p_payload);
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
-			//Any key starting with 'alice' has been added in \assets\alice.csv
+			// Any key starting with 'alice' has been added in \assets\alice.csv
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
 			text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power, 2));
 			if(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack > 0) {
@@ -82,7 +80,7 @@ public:
 			if(state.military_definitions.unit_base_definitions[utid].maneuver_or_evasion > 0) {
 				text::add_line(state, contents, "alice_evasion", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver_or_evasion * 100, 0));
 			}
-			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption*100, 0));
+			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
 		} else {
 			Cyto::Any payload = dcon::unit_type_id{};
@@ -100,7 +98,7 @@ public:
 			}
 			text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power, 2));
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
-			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline*100, 0));
+			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline * 100, 0));
 			if(state.military_definitions.unit_base_definitions[utid].support > 0) {
 				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100, 0));
 			}
@@ -135,9 +133,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		/*
@@ -191,14 +187,11 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
-			disabled = state.world.nation_get_active_unit(n, unit_type) == false &&
-								 state.military_definitions.unit_base_definitions[unit_type].active == false;
+			disabled = state.world.nation_get_active_unit(n, unit_type) == false && state.military_definitions.unit_base_definitions[unit_type].active == false;
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(state.military_definitions.unit_base_definitions[unit_type].is_land) {
@@ -236,7 +229,6 @@ public:
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
 		}
 	}
-
 };
 
 class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
@@ -245,9 +237,7 @@ public:
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
 
-	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base::on_create(state);
-	}
+	void on_create(sys::state& state) noexcept override { listbox_row_element_base::on_create(state); }
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "build_button") {
@@ -302,8 +292,7 @@ public:
 					}
 				}*/
 			} else {
-				unit_name->set_text(state,
-						text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 			}
 		}
 	}
@@ -322,9 +311,7 @@ public:
 
 class units_build_listbox : public listbox_element_base<units_build_item, buildable_unit_entry_info> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "build_unit_entry_wide";
-	}
+	std::string_view get_row_element_name() override { return "build_unit_entry_wide"; }
 
 public:
 	// false == army
@@ -415,8 +402,7 @@ public:
 				dcon::unit_type_id utid = state.world.province_land_construction_get_type(c);
 				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
 
-				auto culture_content = text::produce_simple_string(state,
-						state.world.pop_get_culture(state.world.province_land_construction_get_pop(c)).get_name());
+				auto culture_content = text::produce_simple_string(state, state.world.pop_get_culture(state.world.province_land_construction_get_pop(c)).get_name());
 				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
 				unit_name->set_text(state, culture_content + " " + unit_type_name);
 				queue_button->is_navy = false;
@@ -455,9 +441,7 @@ public:
 
 class units_queue_listbox : public listbox_element_base<units_queue_item, ui::queue_unit_entry_info> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "queue_unit_entry";
-	}
+	std::string_view get_row_element_name() override { return "queue_unit_entry"; }
 
 public:
 	// false == army

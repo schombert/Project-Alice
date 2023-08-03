@@ -124,16 +124,12 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
-		text->set_text(state, text::produce_simple_string(state, get_setting_text_key(content)));
-	}
+	void update(sys::state& state) noexcept override { text->set_text(state, text::produce_simple_string(state, get_setting_text_key(content))); }
 };
 
 class message_settings_listbox : public listbox_element_base<message_settings_item, sys::message_setting_type> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "message_entry";
-	}
+	std::string_view get_row_element_name() override { return "message_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -203,22 +199,22 @@ public:
 			auto content = any_cast<message_settings_category>(payload);
 			active_tab = content;
 			switch(content) {
-				case message_settings_category::all:
-					break;
-				case message_settings_category::combat:
-					break;
-				case message_settings_category::diplomacy:
-					break;
-				case message_settings_category::units:
-					break;
-				case message_settings_category::provinces:
-					break;
-				case message_settings_category::events:
-					break;
-				case message_settings_category::others:
-					break;
-				default:
-					break;
+			case message_settings_category::all:
+				break;
+			case message_settings_category::combat:
+				break;
+			case message_settings_category::diplomacy:
+				break;
+			case message_settings_category::units:
+				break;
+			case message_settings_category::provinces:
+				break;
+			case message_settings_category::events:
+				break;
+			case message_settings_category::others:
+				break;
+			default:
+				break;
 			};
 			return message_result::consumed;
 		}
@@ -244,13 +240,10 @@ public:
 
 class message_log_listbox : public listbox_element_base<message_log_entry, int32_t> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "logtext";
-	}
+	std::string_view get_row_element_name() override { return "logtext"; }
 };
 
-template<message_settings_category Filter>
-class message_log_filter_checkbox : public checkbox_button {
+template<message_settings_category Filter> class message_log_filter_checkbox : public checkbox_button {
 	static std::string_view get_filter_text_key(message_settings_category f) noexcept {
 		switch(f) {
 		case message_settings_category::all:
@@ -289,9 +282,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);

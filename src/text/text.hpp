@@ -14,23 +14,7 @@ struct state;
 }
 
 namespace text {
-enum class text_color : uint8_t {
-	black,
-	white,
-	red,
-	green,
-	yellow,
-	unspecified,
-	light_blue,
-	dark_blue,
-	orange,
-	lilac,
-	light_grey,
-	dark_red,
-	dark_green,
-	gold,
-	reset
-};
+enum class text_color : uint8_t { black, white, red, green, yellow, unspecified, light_blue, dark_blue, orange, lilac, light_grey, dark_red, dark_green, gold, reset };
 enum class alignment : uint8_t { left, right, center };
 enum class variable_type : uint16_t {
 	error_no_matching_value,
@@ -430,9 +414,7 @@ struct vector_backed_hash {
 
 	vector_backed_hash(std::vector<char>& text_data) : text_data(text_data) { }
 
-	auto operator()(std::string_view sv) const noexcept -> uint64_t {
-		return ankerl::unordered_dense::detail::wyhash::hash(sv.data(), sv.size());
-	}
+	auto operator()(std::string_view sv) const noexcept -> uint64_t { return ankerl::unordered_dense::detail::wyhash::hash(sv.data(), sv.size()); }
 	auto operator()(dcon::text_key tag) const noexcept -> uint64_t {
 		auto sv = [&]() {
 			if(!tag)
@@ -456,9 +438,7 @@ struct vector_backed_eq {
 
 	vector_backed_eq(std::vector<char>& text_data) : text_data(text_data) { }
 
-	bool operator()(dcon::text_key l, dcon::text_key r) const noexcept {
-		return l == r;
-	}
+	bool operator()(dcon::text_key l, dcon::text_key r) const noexcept { return l == r; }
 	bool operator()(dcon::text_key l, std::string_view r) const noexcept {
 		auto sv = [&]() {
 			if(!l)
@@ -554,10 +534,8 @@ struct int_percentage {
 struct int_wholenum {
 	int32_t value = 0;
 };
-using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
-		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
-		fp_currency, pretty_integer, dp_percentage, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum, dcon::text_sequence_id,
-		dcon::state_definition_id>;
+using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places, fp_currency, pretty_integer, dp_percentage,
+	fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum, dcon::text_sequence_id, dcon::state_definition_id>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 struct text_chunk {
@@ -602,8 +580,7 @@ struct layout_base {
 	layout& base_layout;
 	layout_parameters fixed_parameters;
 
-	layout_base(layout& base_layout, layout_parameters const& fixed_parameters)
-			: base_layout(base_layout), fixed_parameters(fixed_parameters) { }
+	layout_base(layout& base_layout, layout_parameters const& fixed_parameters) : base_layout(base_layout), fixed_parameters(fixed_parameters) { }
 
 	virtual void internal_close_box(layout_box& box) = 0;
 };
@@ -615,10 +592,8 @@ struct columnar_layout : public layout_base {
 	int32_t current_column_x = 0;
 	int32_t column_width = 0;
 
-	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0,
-			int32_t y_cursor = 0, int32_t column_width = 0)
-			: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
-				current_column_x(fixed_parameters.left), column_width(column_width) {
+	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t column_width = 0)
+		: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor), current_column_x(fixed_parameters.left), column_width(column_width) {
 		layout_base::fixed_parameters.left = 0;
 	}
 
@@ -628,8 +603,7 @@ struct columnar_layout : public layout_base {
 struct endless_layout : public layout_base {
 	int32_t y_cursor = 0;
 
-	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t y_cursor = 0)
-			: layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
+	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t y_cursor = 0) : layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -643,14 +617,10 @@ columnar_layout create_columnar_layout(layout& dest, layout_parameters const& pa
 
 layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 void close_layout_box(columnar_layout& dest, layout_box& box);
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text,
-		substitution_map const& mp = substitution_map{});
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view,
-		text_color color = text_color::white, substitution source = std::monostate{});
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, substitution val,
-		text_color color = text_color::white);
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string const& val,
-		text_color color = text_color::white);
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp = substitution_map{});
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view, text_color color = text_color::white, substitution source = std::monostate{});
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, substitution val, text_color color = text_color::white);
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string const& val, text_color color = text_color::white);
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
@@ -677,40 +647,26 @@ std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
-template<class T>
-std::string get_name_as_string(sys::state const& state, T t);
-template<class T>
-std::string get_adjective_as_string(sys::state const& state, T t);
+template<class T> std::string get_name_as_string(sys::state const& state, T t);
+template<class T> std::string get_adjective_as_string(sys::state const& state, T t);
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
 std::string get_influence_level_name(sys::state const& state, uint8_t v);
 
-void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
-		substitution_map const& sub = substitution_map{});
-void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey,
-		substitution value);
+void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const& sub = substitution_map{});
+void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
 
 void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
-		int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
-		variable_type subkey_b, substitution value_b, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
-		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
-		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
-		substitution value_d, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value, variable_type subkey_b, substitution value_b, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value, variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value, variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d, substitution value_d, int32_t indent = 0);
 void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
-		int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
-		variable_type subkey_b, substitution value_b, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
-		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
-		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
-		substitution value_d, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value, variable_type subkey_b, substitution value_b, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value, variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value, variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d, substitution value_d, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent = 0);

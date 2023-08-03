@@ -18,9 +18,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -36,9 +34,7 @@ public:
 		parent->impl_get(state, payload);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -47,8 +43,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_selection_split_in_half_button : public button_element_base {
+template<class T> class unit_selection_split_in_half_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -76,9 +71,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -87,8 +80,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_selection_disband_button : public button_element_base {
+template<class T> class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -118,9 +110,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -131,9 +121,7 @@ public:
 
 class unit_selection_disband_too_small_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -144,9 +132,7 @@ public:
 
 class unit_selection_unit_name_text : public simple_text_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -155,8 +141,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_selection_change_leader_button : public button_element_base {
+template<class T> class unit_selection_change_leader_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::changeleader};
@@ -166,9 +151,7 @@ public:
 
 class unit_selection_unit_location_text : public simple_text_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -177,12 +160,9 @@ public:
 	}
 };
 
-template<class T>
-class unit_selection_str_bar : public vertical_progress_bar {
+template<class T> class unit_selection_str_bar : public vertical_progress_bar {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
@@ -215,8 +195,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_selection_panel : public window_element_base {
+template<class T> class unit_selection_panel : public window_element_base {
 private:
 	simple_text_element_base* unitlocation_text = nullptr;
 	simple_text_element_base* unitname_text = nullptr;
@@ -231,8 +210,7 @@ public:
 public:
 	void on_create(sys::state& state) noexcept override {
 		{
-			auto win1 = make_element_by_type<leader_selection_window<T>>(state,
-					state.ui_state.defs_by_name.find("leader_selection_panel")->second.definition);
+			auto win1 = make_element_by_type<leader_selection_window<T>>(state, state.ui_state.defs_by_name.find("leader_selection_panel")->second.definition);
 			win1->base_data.position.y -= 148;
 			win1->set_visible(state, false);
 			leader_change_win = win1.get();
@@ -326,8 +304,7 @@ public:
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				auto fat = dcon::fatten(state.world, content);
 				unitleader_text->set_text(state, std::string(state.to_string_view(fat.get_general_from_army_leadership().get_name())));
-				unitlocation_text->set_text(state,
-						text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_army_location().get_name()));
+				unitlocation_text->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_army_location().get_name()));
 				uint16_t total = 0;
 				for(auto n : fat.get_army_membership()) {
 					total++;
@@ -336,8 +313,7 @@ public:
 			} else {
 				auto fat = dcon::fatten(state.world, content);
 				unitleader_text->set_text(state, std::string(state.to_string_view(fat.get_admiral_from_navy_leadership().get_name())));
-				unitlocation_text->set_text(state,
-						text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_navy_location().get_name()));
+				unitlocation_text->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_location_from_navy_location().get_name()));
 				uint16_t total = 0;
 				for(auto n : fat.get_navy_membership()) {
 					total++;
@@ -359,16 +335,18 @@ public:
 				Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{reorg_win_action{reorg_win_action::close}};
 				reorg_window->impl_get(state, cpayload);
 				break;
-			} case unitpanel_action::reorg: {
+			}
+			case unitpanel_action::reorg: {
 				reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
 				reorg_window->impl_on_update(state);
 				break;
-			} case unitpanel_action::changeleader: {
-				leader_change_win->is_visible() ? leader_change_win->set_visible(state, false)
-																				: leader_change_win->set_visible(state, true);
+			}
+			case unitpanel_action::changeleader: {
+				leader_change_win->is_visible() ? leader_change_win->set_visible(state, false) : leader_change_win->set_visible(state, true);
 				leader_change_win->impl_on_update(state);
 				break;
-			} default: {
+			}
+			default: {
 				break;
 			}
 			}
@@ -378,11 +356,11 @@ public:
 	}
 };
 
-template<class T, std::size_t N>
-class unit_details_type_item : public window_element_base {
+template<class T, std::size_t N> class unit_details_type_item : public window_element_base {
 private:
 	simple_text_element_base* unitamount_text = nullptr;
 	simple_text_element_base* unitstrength_text = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_amount") {
@@ -466,8 +444,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_name : public simple_text_element_base {
+template<class T> class subunit_details_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -480,8 +457,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_type_text : public simple_text_element_base {
+template<class T> class subunit_details_type_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -497,8 +473,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_details_type_icon : public image_element_base {
+template<class T> class subunit_details_type_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -512,8 +487,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_organisation_progress_bar : public vertical_progress_bar {
+template<class T> class subunit_organisation_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -525,8 +499,7 @@ public:
 	}
 };
 
-template<class T>
-class subunit_strength_progress_bar : public vertical_progress_bar {
+template<class T> class subunit_strength_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -564,6 +537,7 @@ public:
 class subunit_details_entry_regiment : public listbox_row_element_base<dcon::regiment_id> {
 private:
 	button_element_base* connectedpop_icon = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select") {
@@ -571,7 +545,7 @@ public:
 		} else if(name == "select_naval") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->set_visible(state, false);
-			return ptr;	
+			return ptr;
 		} else if(name == "sunit_icon") {
 			return make_element_by_type<subunit_details_type_icon<dcon::regiment_id>>(state, id);
 		} else if(name == "subunit_name") {
@@ -603,7 +577,7 @@ public:
 		}
 	}
 
-	void on_update(sys::state& state) noexcept override { 
+	void on_update(sys::state& state) noexcept override {
 		auto fat = dcon::fatten(state.world, content);
 		connectedpop_icon->set_visible(state, true);
 		connectedpop_icon->frame = fat.get_pop_from_regiment_source().get_poptype().get_sprite() - 1;
@@ -616,7 +590,7 @@ public:
 		if(name == "select") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->set_visible(state, false);
-			return ptr;	
+			return ptr;
 		} else if(name == "select_naval") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "sunit_icon") {
@@ -650,15 +624,12 @@ public:
 		}
 	}
 
-	void on_update(sys::state& state) noexcept override { 
-	}
+	void on_update(sys::state& state) noexcept override { }
 };
 
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry_regiment, dcon::regiment_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "subunit_entry";
-	}
+	std::string_view get_row_element_name() override { return "subunit_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -677,9 +648,7 @@ public:
 };
 class unit_details_navy_listbox : public listbox_element_base<subunit_details_entry_ship, dcon::ship_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "subunit_entry";
-	}
+	std::string_view get_row_element_name() override { return "subunit_entry"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -747,8 +716,7 @@ public:
 		}
 	}
 };
-template<class T>
-class unit_details_attach_button : public button_element_base {
+template<class T> class unit_details_attach_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -758,8 +726,7 @@ public:
 		}
 	}
 };
-template<class T>
-class unit_details_detach_button : public button_element_base {
+template<class T> class unit_details_detach_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -770,11 +737,11 @@ public:
 	}
 };
 
-template<class T>
-class unit_details_buttons : public window_element_base {
+template<class T> class unit_details_buttons : public window_element_base {
 private:
 	button_element_base* navytransport_button = nullptr;
 	simple_text_element_base* navytransport_text = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "load_button" && std::is_same_v<T, dcon::army_id>) {
@@ -824,8 +791,7 @@ public:
 
 			text::substitution_map sub;
 			if(military::transport_capacity(state, content) != military::free_transport_capacity(state, content)) {
-				text::add_to_substitution_map(sub, text::variable_type::num, 
-				std::string_view((std::to_string(military::free_transport_capacity(state, content)) + " (" + std::to_string(military::transport_capacity(state, content)) + ")")));
+				text::add_to_substitution_map(sub, text::variable_type::num, std::string_view((std::to_string(military::free_transport_capacity(state, content)) + " (" + std::to_string(military::transport_capacity(state, content)) + ")")));
 				navytransport_text->set_text(state, text::resolve_string_substitution(state, std::string_view("load_capacity_label"), sub));
 			} else {
 				text::add_to_substitution_map(sub, text::variable_type::num, military::transport_capacity(state, content));
@@ -835,8 +801,7 @@ public:
 	}
 };
 
-template<class T>
-class unit_details_window : public window_element_base {
+template<class T> class unit_details_window : public window_element_base {
 	simple_text_element_base* unitspeed_text = nullptr;
 	image_element_base* unitrecon_icon = nullptr;
 	simple_text_element_base* unitrecon_text = nullptr;
@@ -846,8 +811,6 @@ class unit_details_window : public window_element_base {
 	image_element_base* unitdugin_icon = nullptr;
 	unit_selection_panel<T>* unit_selection_win = nullptr;
 
-	
-
 public:
 	T unit_id;
 
@@ -855,27 +818,23 @@ public:
 		window_element_base::on_create(state);
 		base_data.position.y = 250;
 
-		xy_pair base_position = {20,
-				0}; // state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_start")->second.definition].position;
+		xy_pair base_position = {20, 0}; // state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_start")->second.definition].position;
 		xy_pair base_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_offset")->second.definition].position;
 
 		{
-			auto win = make_element_by_type<unit_details_type_item<T, 0>>(state,
-					state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+			auto win = make_element_by_type<unit_details_type_item<T, 0>>(state, state.ui_state.defs_by_name.find("unittype_item")->second.definition);
 			win->base_data.position.x = base_position.x + (0 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (0 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<unit_details_type_item<T, 1>>(state,
-					state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+			auto win = make_element_by_type<unit_details_type_item<T, 1>>(state, state.ui_state.defs_by_name.find("unittype_item")->second.definition);
 			win->base_data.position.x = base_position.x + (1 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (1 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<unit_details_type_item<T, 2>>(state,
-					state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+			auto win = make_element_by_type<unit_details_type_item<T, 2>>(state, state.ui_state.defs_by_name.find("unittype_item")->second.definition);
 			win->base_data.position.x = base_position.x + (2 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (2 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
@@ -883,29 +842,25 @@ public:
 
 		const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item")->second.definition].position;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			auto ptr = make_element_by_type<unit_details_army_listbox>(state,
-					state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
+			auto ptr = make_element_by_type<unit_details_army_listbox>(state, state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
 			add_child_to_front(std::move(ptr));
 		} else {
-			auto ptr = make_element_by_type<unit_details_navy_listbox>(state,
-					state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
+			auto ptr = make_element_by_type<unit_details_navy_listbox>(state, state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
 			add_child_to_front(std::move(ptr));
 		}
 
 		{
-			auto ptr = make_element_by_type<unit_details_buttons<T>>(state,
-					state.ui_state.defs_by_name.find("sup_buttons_window")->second.definition);
+			auto ptr = make_element_by_type<unit_details_buttons<T>>(state, state.ui_state.defs_by_name.find("sup_buttons_window")->second.definition);
 			ptr->base_data.position.y = base_data.size.y; // Nudge
 			add_child_to_front(std::move(ptr));
 		}
 
 		{
-			auto ptr =
-					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+			auto ptr = make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
 			unit_selection_win = ptr.get();
 			ptr->base_data.position.y = -80;
 			add_child_to_front(std::move(ptr));
@@ -1001,7 +956,8 @@ public:
 				set_visible(state, false);
 				state.game_state_updated.store(true, std::memory_order_release);
 				break;
-			} default: {
+			}
+			default: {
 				break;
 			}
 			};
@@ -1056,7 +1012,6 @@ public:
 		for(auto a : state.selected_navies) {
 			command::delete_navy(state, state.local_player_nation, a);
 		}
-		
 	}
 };
 
@@ -1337,7 +1292,7 @@ public:
 		if(name == "unitpanel_bg") {
 			return make_element_by_type<whole_panel_button>(state, id);
 		} else if(name == "unitstrength") {
-			return make_element_by_type <u_row_strength> (state, id);
+			return make_element_by_type<u_row_strength>(state, id);
 		} else if(name == "unitattrition_icon") {
 			return make_element_by_type<u_row_attrit_icon>(state, id);
 		} else if(name == "org_bar") {
@@ -1372,9 +1327,7 @@ public:
 
 class selected_unit_list : public listbox_element_base<selected_unit_item, unit_var> {
 public:
-	std::string_view get_row_element_name() override {
-		return "alice_unit_row";
-	}
+	std::string_view get_row_element_name() override { return "alice_unit_row"; }
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto i : state.selected_armies)
@@ -1392,7 +1345,7 @@ class mulit_unit_selection_panel : public main_window_element_base {
 		} else if(name == "mergebutton") {
 			return make_element_by_type<merge_all_button>(state, id);
 		} else if(name == "close_multiunit") {
-			return make_element_by_type<deselect_all_button> (state, id);
+			return make_element_by_type<deselect_all_button>(state, id);
 		} else if(name == "disband_multiunit") {
 			return make_element_by_type<disband_all_button>(state, id);
 		} else if(name == "unit_listbox") {

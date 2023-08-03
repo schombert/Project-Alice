@@ -41,17 +41,14 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		issname->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
-		auto value = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)) /
-								 state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+		auto value = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)) / state.world.nation_get_demographics(state.local_player_nation, demographics::total);
 		issvalue->set_text(state, text::format_percentage(value));
 	}
 };
 
 class elecwin_voter_issues_listbox : public listbox_element_base<elecwin_voter_issue_entry, dcon::issue_option_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "ew_issue_option_window";
-	}
+	std::string_view get_row_element_name() override { return "ew_issue_option_window"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -89,7 +86,7 @@ public:
 			return ptr;
 		} else if(name == "legend_desc") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->base_data.position.x += 4;	// Nudge
+			ptr->base_data.position.x += 4; // Nudge
 			partyvalue = ptr.get();
 			return ptr;
 		} else if(name == "legend_value") {
@@ -107,8 +104,7 @@ public:
 		auto issid = any_cast<dcon::issue_id>(payload);
 
 		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
-		partyvalue->set_text(state,
-				text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
+		partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -119,16 +115,12 @@ public:
 		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
 };
 
 class elecwin_parties_listbox : public listbox_element_base<elecwin_party_entry, dcon::political_party_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "eew_item";
-	}
+	std::string_view get_row_element_name() override { return "eew_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -159,7 +151,7 @@ public:
 		} else if(name == "legend_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			// ptr->set_visible(state, false);	// Unused ?
-			ptr->base_data.position.x += 3;	// Nudge
+			ptr->base_data.position.x += 3; // Nudge
 			partyvalue = ptr.get();
 			return ptr;
 		} else {
@@ -170,8 +162,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto fat = dcon::fatten(state.world, content);
 		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
-		partyvalue->set_text(state, text::format_percentage(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, fat.get_ideology().id)) 
-															/ state.world.nation_get_demographics(state.local_player_nation, demographics::total), 0));
+		partyvalue->set_text(state, text::format_percentage(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, fat.get_ideology().id)) / state.world.nation_get_demographics(state.local_player_nation, demographics::total), 0));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -182,16 +173,12 @@ public:
 		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
 	}
 
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override { return parent->impl_on_scroll(state, x, y, amount, mods); }
 };
 
 class elecwin_popularity_listbox : public listbox_element_base<elecwin_popularity_entry, dcon::political_party_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "eew_item";
-	}
+	std::string_view get_row_element_name() override { return "eew_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {

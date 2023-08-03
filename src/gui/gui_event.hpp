@@ -5,8 +5,7 @@
 
 namespace ui {
 
-template<bool Left>
-class event_lr_button : public button_element_base {
+template<bool Left> class event_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -25,17 +24,13 @@ struct option_taken_notification {
 	int a = 0;
 };
 
-typedef std::variant< event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event,
-		event::pending_human_f_p_event>
-		event_data_wrapper;
+typedef std::variant< event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> event_data_wrapper;
 class event_option_button : public button_element_base {
 public:
 	bool visible = true;
 	uint8_t index = 0;
 	void on_update(sys::state& state) noexcept override;
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -58,24 +53,19 @@ public:
 };
 class event_requirements_icon : public image_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 class event_odds_icon : public image_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 //
 // National events
 //
-template<bool IsMajor>
-class national_event_window : public window_element_base {
+template<bool IsMajor> class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;

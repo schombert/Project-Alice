@@ -29,33 +29,33 @@ std::vector<uint32_t> party_loyalty_map_from(sys::state& state) {
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
-			auto parties_info = get_sorted_parties_info(state, prov_id);
+		auto parties_info = get_sorted_parties_info(state, prov_id);
 
-			auto i = province::to_map_id(prov_id);
+		auto i = province::to_map_id(prov_id);
 
-			if(parties_info.size() == 0) {
+		if(parties_info.size() == 0) {
 
-				prov_color[i] = 0xFFFFFF;
-				prov_color[i + texture_size] = 0xFFFFFF;
+			prov_color[i] = 0xFFFFFF;
+			prov_color[i + texture_size] = 0xFFFFFF;
 
-			} else if(parties_info.size() == 1) {
+		} else if(parties_info.size() == 1) {
 
-				uint32_t color = parties_info[0].color;
-				prov_color[i] = color;
-				prov_color[i + texture_size] = color;
+			uint32_t color = parties_info[0].color;
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
 
+		} else {
+			party_info a = parties_info[0];
+			party_info b = parties_info[1];
+
+			prov_color[i] = a.color;
+
+			if(b.loyalty >= a.loyalty * 0.75) {
+				prov_color[i + texture_size] = b.color;
 			} else {
-				party_info a = parties_info[0];
-				party_info b = parties_info[1];
-
-				prov_color[i] = a.color;
-
-				if(b.loyalty >= a.loyalty * 0.75) {
-					prov_color[i + texture_size] = b.color;
-				} else {
-					prov_color[i + texture_size] = a.color;
-				}
+				prov_color[i + texture_size] = a.color;
 			}
+		}
 	});
 
 	return prov_color;

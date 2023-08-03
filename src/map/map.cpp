@@ -28,8 +28,8 @@ image load_stb_image(simple_fs::file& file) {
 GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
-	const GLuint internalformats[] = { GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 };
-	const GLuint formats[] = { GL_RED, GL_RG, GL_RGB, GL_RGBA };
+	const GLuint internalformats[] = {GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
+	const GLuint formats[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
 	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 		glTexStorage2D(GL_TEXTURE_2D, 1, internalformats[channels - 1], size_x, size_y);
@@ -87,7 +87,6 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 
 	return texture_handle;
 }
-
 
 void display_data::update_borders(sys::state& state) {
 	uint32_t border_id = 0;
@@ -203,7 +202,7 @@ void display_data::create_meshes() {
 		vertices.emplace_back(pos1.x, pos1.y);
 		vertices.emplace_back(pos0.x, pos1.y);
 		vertices.emplace_back(pos0.x, pos0.y);
-		};
+	};
 
 	glm::vec2 last_pos(0, 0);
 	glm::vec2 pos(0, 0);
@@ -391,7 +390,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		else
 			vertex_subroutines = 1; // flat_coords()
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &vertex_subroutines);
-		};
+	};
 
 	load_shader(terrain_shader);
 
@@ -431,9 +430,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	if(zoom > 8) {
 		glUniform1f(4, 0.0013f);
-		uint8_t visible_borders =
-			(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
-					province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -448,8 +445,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	if(zoom > 3.5f) {
 		glUniform1f(4, 0.0018f);
-		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -464,8 +460,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	{
 		glUniform1f(4, 0.0027f);
-		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-															 province::border::non_adjacent_bit | province::border::impassible_bit);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -568,40 +563,38 @@ void display_data::set_selected_province(sys::state& state, dcon::province_id pr
 	gen_prov_color_texture(province_highlight, province_highlights);
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
-	gen_prov_color_texture(province_color, prov_color, 2);
-}
+void display_data::set_province_color(std::vector<uint32_t> const& prov_color) { gen_prov_color_texture(province_color, prov_color, 2); }
 
 void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows) {
 	unit_arrow_vertices.clear();
 	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-	for (auto& arrow : arrows) {
-		if (arrow.size() <= 1)
+	for(auto& arrow : arrows) {
+		if(arrow.size() <= 1)
 			continue;
 		glm::vec2 prev_normal_dir;
 		{
 			auto prev_pos = arrow[0];
 			auto next_pos = arrow[1];
-			if (next_pos.x + size_x / 2 < prev_pos.x)
+			if(next_pos.x + size_x / 2 < prev_pos.x)
 				next_pos.x += size_x;
-			if (next_pos.x - size_x / 2 > prev_pos.x)
+			if(next_pos.x - size_x / 2 > prev_pos.x)
 				next_pos.x -= size_x;
 
 			auto direction1 = normalize(next_pos - prev_pos);
 			prev_normal_dir = glm::vec2(-direction1.y, direction1.x);
 		}
-		for (int i = 0; i < static_cast<int>(arrow.size()) - 2; i++) {
+		for(int i = 0; i < static_cast<int>(arrow.size()) - 2; i++) {
 			auto pos1 = arrow[i];
 			auto pos2 = arrow[i + 1];
 			auto pos3 = arrow[i + 2];
-			if (pos2.x + size_x / 2 < pos1.x)
+			if(pos2.x + size_x / 2 < pos1.x)
 				pos2.x += size_x;
-			if (pos2.x - size_x / 2 > pos1.x)
+			if(pos2.x - size_x / 2 > pos1.x)
 				pos2.x -= size_x;
 
-			if (pos3.x + size_x / 2 < pos2.x)
+			if(pos3.x + size_x / 2 < pos2.x)
 				pos3.x += size_x;
-			if (pos3.x - size_x / 2 > pos2.x)
+			if(pos3.x - size_x / 2 > pos2.x)
 				pos3.x -= size_x;
 
 			glm::vec2 current_dir = normalize(pos2 - pos1);
@@ -660,7 +653,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 	}
 	if(unit_arrow_vertices.size() > 0) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), &unit_arrow_vertices[0], GL_STATIC_DRAW);
-	} 
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

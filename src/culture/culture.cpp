@@ -95,16 +95,14 @@ void repopulate_technology_effects(sys::state& state) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
 				auto old_value = state.world.nation_get_rgo_goods_output(nation_indices, cmod.type);
-				state.world.nation_set_rgo_goods_output(nation_indices, cmod.type,
-						ve::select(has_tech_mask, old_value + cmod.amount, old_value));
+				state.world.nation_set_rgo_goods_output(nation_indices, cmod.type, ve::select(has_tech_mask, old_value + cmod.amount, old_value));
 			});
 		}
 		for(auto cmod : tech_id.get_factory_goods_output()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
 				auto old_value = state.world.nation_get_factory_goods_output(nation_indices, cmod.type);
-				state.world.nation_set_factory_goods_output(nation_indices, cmod.type,
-						ve::select(has_tech_mask, old_value + cmod.amount, old_value));
+				state.world.nation_set_factory_goods_output(nation_indices, cmod.type, ve::select(has_tech_mask, old_value + cmod.amount, old_value));
 			});
 		}
 		for(auto cmod : tech_id.get_rgo_size()) {
@@ -199,24 +197,21 @@ void repopulate_invention_effects(sys::state& state) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
 				auto old_value = state.world.nation_get_rgo_goods_output(nation_indices, cmod.type);
-				state.world.nation_set_rgo_goods_output(nation_indices, cmod.type,
-						ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+				state.world.nation_set_rgo_goods_output(nation_indices, cmod.type, ve::select(has_inv_mask, old_value + cmod.amount, old_value));
 			});
 		}
 		for(auto cmod : inv_id.get_factory_goods_output()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
 				auto old_value = state.world.nation_get_factory_goods_output(nation_indices, cmod.type);
-				state.world.nation_set_factory_goods_output(nation_indices, cmod.type,
-						ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+				state.world.nation_set_factory_goods_output(nation_indices, cmod.type, ve::select(has_inv_mask, old_value + cmod.amount, old_value));
 			});
 		}
 		for(auto cmod : inv_id.get_factory_goods_throughput()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
 				auto old_value = state.world.nation_get_factory_goods_throughput(nation_indices, cmod.type);
-				state.world.nation_set_factory_goods_throughput(nation_indices, cmod.type,
-						ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+				state.world.nation_set_factory_goods_throughput(nation_indices, cmod.type, ve::select(has_inv_mask, old_value + cmod.amount, old_value));
 			});
 		}
 		for(auto cmod : inv_id.get_rebel_org()) {
@@ -224,13 +219,11 @@ void repopulate_invention_effects(sys::state& state) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
 				if(cmod.type) {
 					auto old_value = state.world.nation_get_rebel_org_modifier(nation_indices, cmod.type);
-					state.world.nation_set_rebel_org_modifier(nation_indices, cmod.type,
-							ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+					state.world.nation_set_rebel_org_modifier(nation_indices, cmod.type, ve::select(has_inv_mask, old_value + cmod.amount, old_value));
 				} else if(has_inv_mask.v != 0) {
 					state.world.for_each_rebel_type([&](dcon::rebel_type_id rt) {
 						auto old_value = state.world.nation_get_rebel_org_modifier(nation_indices, rt);
-						state.world.nation_set_rebel_org_modifier(nation_indices, rt,
-								ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+						state.world.nation_set_rebel_org_modifier(nation_indices, rt, ve::select(has_inv_mask, old_value + cmod.amount, old_value));
 					});
 				}
 			});
@@ -449,8 +442,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 		if(cmod.type) {
 			state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) += cmod.amount;
 		} else {
-			state.world.for_each_rebel_type(
-					[&](dcon::rebel_type_id rt) { state.world.nation_get_rebel_org_modifier(target_nation, rt) += cmod.amount; });
+			state.world.for_each_rebel_type([&](dcon::rebel_type_id rt) { state.world.nation_get_rebel_org_modifier(target_nation, rt) += cmod.amount; });
 		}
 	}
 	for(auto& umod : inv_id.get_modified_units()) {
@@ -485,7 +477,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 }
 
 void remove_invention(sys::state& state, dcon::nation_id target_nation,
-		dcon::invention_id i_id) { //  TODO: shared prestige effect
+	dcon::invention_id i_id) { //  TODO: shared prestige effect
 	auto inv_id = fatten(state.world, i_id);
 
 	state.world.nation_set_active_inventions(target_nation, i_id, false);
@@ -546,8 +538,7 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 		if(cmod.type) {
 			state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) -= cmod.amount;
 		} else {
-			state.world.for_each_rebel_type(
-					[&](dcon::rebel_type_id rt) { state.world.nation_get_rebel_org_modifier(target_nation, rt) -= cmod.amount; });
+			state.world.for_each_rebel_type([&](dcon::rebel_type_id rt) { state.world.nation_get_rebel_org_modifier(target_nation, rt) -= cmod.amount; });
 		}
 	}
 	for(auto& umod : inv_id.get_modified_units()) {
@@ -581,14 +572,11 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 	}
 }
 
-uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
-	return state.flag_type_map[static_cast<size_t>(type)];
-}
+uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) { return state.flag_type_map[static_cast<size_t>(type)]; }
 
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
 	auto gov_type = state.world.nation_get_government_type(target_nation);
-	auto id = state.world.national_identity_get_government_flag_type(
-			state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
+	auto id = state.world.national_identity_get_government_flag_type(state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
 	if(id != 0)
 		return flag_type(id - 1);
 	return state.culture_definitions.governments[gov_type].flag;
@@ -689,12 +677,10 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 		{ // ideologies
 			float total = 0.0f;
 			state.world.for_each_ideology([&](dcon::ideology_id iid) {
-				if(state.world.ideology_get_enabled(iid) &&
-						(!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
+				if(state.world.ideology_get_enabled(iid) && (!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
 					auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
 					if(ptrigger) {
-						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-								trigger::to_generic(owner), 0);
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
 						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
 						total += amount;
 					}
@@ -703,8 +689,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			if(total != 0) {
 				float adjustment_factor = 1.0f / total;
 				state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
-					auto normalized_amount =
-							state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
 					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
 				});
 			}
@@ -717,12 +702,9 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				auto opt = fatten(state.world, iid);
 				auto allow = opt.get_allow();
 				auto parent_issue = opt.get_parent_issue();
-				if((state.world.nation_get_is_civilized(owner) ||
-							 state.world.issue_get_issue_type(parent_issue) == uint8_t(issue_type::party)) &&
-						(!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+				if((state.world.nation_get_is_civilized(owner) || state.world.issue_get_issue_type(parent_issue) == uint8_t(issue_type::party)) && (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					if(auto mtrigger = state.world.pop_type_get_issues(ptype, iid); mtrigger) {
-						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid),
-								trigger::to_generic(owner), 0);
+						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
 						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
 						total += amount;
 					}
@@ -731,8 +713,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			if(total != 0) {
 				float adjustment_factor = 1.0f / total;
 				state.world.for_each_issue_option([&state, pid, adjustment_factor](dcon::issue_option_id iid) {
-					auto normalized_amount =
-							state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
 					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
 				});
 			}
@@ -740,8 +721,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 	});
 }
 
-float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation,
-		dcon::technology_id tech_id) {
+float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id) {
 	/*
 	The effective amount of research points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) /
 	define:TECH_YEAR_SPAN) x define:TECH_FACTOR_VASSAL(if your overlord has the tech) / (1 + tech-category-research-modifier)
@@ -757,23 +737,17 @@ float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::
 		case tech_category::navy:
 			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::navy_tech_research_bonus) + 1.0f;
 		case tech_category::commerce:
-			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) +
-						 1.0f;
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) + 1.0f;
 		case tech_category::culture:
 			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::culture_tech_research_bonus) + 1.0f;
 		case tech_category::industry:
-			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) +
-						 1.0f;
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) + 1.0f;
 		default:
 			return 1.0f;
 		}
 	}();
-	auto ol_mod = state.world.nation_get_active_technologies(
-										state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target_nation)), tech_id)
-										? state.defines.tech_factor_vassal
-										: 1.0f;
-	return float(base_cost) * ol_mod * (1.0f / research_mod) *
-				 (1.0f - std::max(0.0f, float(current_year - availability_year) / state.defines.tech_year_span));
+	auto ol_mod = state.world.nation_get_active_technologies(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target_nation)), tech_id) ? state.defines.tech_factor_vassal : 1.0f;
+	return float(base_cost) * ol_mod * (1.0f / research_mod) * (1.0f - std::max(0.0f, float(current_year - availability_year) / state.defines.tech_year_span));
 }
 
 void update_research(sys::state& state, uint32_t current_year) {
@@ -787,15 +761,11 @@ void update_research(sys::state& state, uint32_t current_year) {
 					n.get_research_points() -= cost;
 					apply_technology(state, n, n.get_current_research());
 
-					notification::post(state, notification::message{
-						[t = n.get_current_research()](sys::state& state, text::layout_base& contents) {
-							text::add_line(state, contents, "msg_tech_1", text::variable_type::x, state.world.technology_get_name(t));
-							ui::technology_description(state, contents, t);
-						},
-						"msg_tech_title",
-						n,
-						sys::message_setting_type::tech
-					});
+					notification::post(state, notification::message{[t = n.get_current_research()](sys::state& state, text::layout_base& contents) {
+																		text::add_line(state, contents, "msg_tech_1", text::variable_type::x, state.world.technology_get_name(t));
+																		ui::technology_description(state, contents, t);
+																	},
+												  "msg_tech_title", n, sys::message_setting_type::tech});
 
 					n.set_current_research(dcon::technology_id{});
 				}
@@ -817,61 +787,48 @@ void discover_inventions(sys::state& state) {
 		assert(odds);
 		if(lim) {
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
-				auto may_not_discover = state.world.nation_get_active_inventions(nids, inv) ||
-																(state.world.nation_get_owned_province_count(nids) == 0) ||
-																!trigger::evaluate(state, lim, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+				auto may_not_discover = state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0) || !trigger::evaluate(state, lim, trigger::to_generic(nids), trigger::to_generic(nids), 0);
 				if(ve::compress_mask(may_not_discover).v != 0) {
-					auto chances =
-							trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+					auto chances = trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
 					ve::apply(
-							[&](dcon::nation_id n, float chance, bool block_discovery) {
-								if(!block_discovery) {
-									auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
-									if(int32_t(random % 100) < int32_t(chance)) {
-										apply_invention(state, n, inv);
+						[&](dcon::nation_id n, float chance, bool block_discovery) {
+							if(!block_discovery) {
+								auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
+								if(int32_t(random % 100) < int32_t(chance)) {
+									apply_invention(state, n, inv);
 
-										notification::post(state, notification::message{
-											[inv](sys::state& state, text::layout_base& contents) {
-												text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
-												ui::invention_description(state, contents, inv, 0);
-											},
-											"msg_inv_title",
-											n,
-											sys::message_setting_type::invention
-										});
-									}
+									notification::post(state, notification::message{[inv](sys::state& state, text::layout_base& contents) {
+																						text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
+																						ui::invention_description(state, contents, inv, 0);
+																					},
+																  "msg_inv_title", n, sys::message_setting_type::invention});
 								}
-							},
-							nids, chances, may_not_discover);
+							}
+						},
+						nids, chances, may_not_discover);
 				}
 			});
 		} else {
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
-				auto may_not_discover =
-						state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0);
+				auto may_not_discover = state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0);
 				if(ve::compress_mask(may_not_discover).v != 0) {
-					auto chances =
-							trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+					auto chances = trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
 					ve::apply(
-							[&](dcon::nation_id n, float chance, bool block_discovery) {
-								if(!block_discovery) {
-									auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
-									if(int32_t(random % 100) < int32_t(chance)) {
-										apply_invention(state, n, inv);
+						[&](dcon::nation_id n, float chance, bool block_discovery) {
+							if(!block_discovery) {
+								auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
+								if(int32_t(random % 100) < int32_t(chance)) {
+									apply_invention(state, n, inv);
 
-										notification::post(state, notification::message{
-											[inv](sys::state& state, text::layout_base& contents) {
-												text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
-												ui::invention_description(state, contents, inv, 0);
-											},
-												"msg_inv_title",
-												n,
-												sys::message_setting_type::invention
-										});
-									}
+									notification::post(state, notification::message{[inv](sys::state& state, text::layout_base& contents) {
+																						text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
+																						ui::invention_description(state, contents, inv, 0);
+																					},
+																  "msg_inv_title", n, sys::message_setting_type::invention});
 								}
-							},
-							nids, chances, may_not_discover);
+							}
+						},
+						nids, chances, may_not_discover);
 				}
 			});
 		}

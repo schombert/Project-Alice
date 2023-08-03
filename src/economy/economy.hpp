@@ -54,8 +54,7 @@ struct global_economy_state {
 
 enum class worker_effect : uint8_t { none = 0, input, output, throughput };
 
-template<typename T>
-auto desired_needs_spending(sys::state const& state, T pop_indices) {
+template<typename T> auto desired_needs_spending(sys::state const& state, T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc
 	return 0.0f;
 }
@@ -124,7 +123,6 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
 float estimate_reparations_income(sys::state& state, dcon::nation_id n);
 
-
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment
 float estimate_war_subsidies(sys::state& state, dcon::nation_id n);
@@ -143,17 +141,15 @@ struct new_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
+template<typename F> void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
+	F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
+template<typename F> void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
+	F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);

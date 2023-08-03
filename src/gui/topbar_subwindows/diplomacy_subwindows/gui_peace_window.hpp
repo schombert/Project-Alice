@@ -18,18 +18,15 @@ public:
 	}
 };
 
-template<bool is_concession>
-class diplomacy_peace_tab_button : public button_element_base {
+template<bool is_concession> class diplomacy_peace_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{ is_concession };
+			Cyto::Any payload = element_selection_wrapper<bool>{is_concession};
 			parent->impl_get(state, payload);
 		}
 	}
-	void on_update(sys::state& state) noexcept override {
-		frame = (retrieve<bool>(state, parent) == is_concession) ? 1 : 0;
-	}
+	void on_update(sys::state& state) noexcept override { frame = (retrieve<bool>(state, parent) == is_concession) ? 1 : 0; }
 };
 
 class diplomacy_peace_pick_side_window : public window_element_base {
@@ -106,7 +103,7 @@ class diplomacy_peace_select_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto wg = retrieve<dcon::wargoal_id>(state, parent);
-		Cyto::Any setting = toggled_wargoal{ wg, false };
+		Cyto::Any setting = toggled_wargoal{wg, false};
 		if(parent)
 			parent->impl_get(state, setting);
 
@@ -142,9 +139,7 @@ public:
 
 class diplomacy_peace_goal_listbox : public listbox_element_base<diplomacy_peace_goal_row, dcon::wargoal_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "peace_goal_item";
-	}
+	std::string_view get_row_element_name() override { return "peace_goal_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -197,7 +192,7 @@ public:
 		} else {
 			std::abort(); // should be impossible: neither is war leader
 		}
-		
+
 		update(state);
 	}
 };
@@ -235,8 +230,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		const dcon::war_id w = retrieve<dcon::war_id>(state, parent);
 		const dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
-		if(    (state.world.war_get_primary_attacker(w) == target && state.world.war_get_primary_defender(w) == state.local_player_nation)
-			|| (state.world.war_get_primary_defender(w) == target && state.world.war_get_primary_attacker(w) == state.local_player_nation)) {
+		if((state.world.war_get_primary_attacker(w) == target && state.world.war_get_primary_defender(w) == state.local_player_nation) || (state.world.war_get_primary_defender(w) == target && state.world.war_get_primary_attacker(w) == state.local_player_nation)) {
 
 			const int32_t score = int32_t(military::primary_warscore(state, w));
 			if(state.world.war_get_primary_attacker(w) == state.local_player_nation)
@@ -254,9 +248,7 @@ struct send_offer { };
 
 class diplomacy_peace_send : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept override {
-		send(state, parent, send_offer{});
-	}
+	void button_action(sys::state& state) noexcept override { send(state, parent, send_offer{}); }
 };
 
 class diplomacy_setup_peace_dialog : public window_element_base { // eu3dialogtype
@@ -273,11 +265,11 @@ public:
 
 		if(state.world.war_get_primary_attacker(war) == state.local_player_nation && state.world.war_get_primary_defender(war) == target) {
 			for(auto wg : state.world.war_get_wargoals_attached(war)) {
-				wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+				wargoals.push_back(toggled_wargoal{wg.get_wargoal().id, false});
 			}
 		} else if(state.world.war_get_primary_attacker(war) == target && state.world.war_get_primary_defender(war) == state.local_player_nation) {
 			for(auto wg : state.world.war_get_wargoals_attached(war)) {
-				wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+				wargoals.push_back(toggled_wargoal{wg.get_wargoal().id, false});
 			}
 		} else {
 			for(auto wg : state.world.war_get_wargoals_attached(war)) {
@@ -286,13 +278,14 @@ public:
 
 					if(wg.get_wargoal().get_added_by() == target || wg.get_wargoal().get_added_by().get_overlord_as_subject().get_ruler() == target || wg.get_wargoal().get_target_nation() == target || wg.get_wargoal().get_target_nation().get_overlord_as_subject().get_ruler() == target) {
 
-						wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+						wargoals.push_back(toggled_wargoal{wg.get_wargoal().id, false});
 					}
-					
-				} else {
-					if(wg.get_wargoal().get_added_by() == state.local_player_nation || wg.get_wargoal().get_added_by().get_overlord_as_subject().get_ruler() == state.local_player_nation || wg.get_wargoal().get_target_nation() == state.local_player_nation || wg.get_wargoal().get_target_nation().get_overlord_as_subject().get_ruler() == state.local_player_nation) {
 
-						wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+				} else {
+					if(wg.get_wargoal().get_added_by() == state.local_player_nation || wg.get_wargoal().get_added_by().get_overlord_as_subject().get_ruler() == state.local_player_nation || wg.get_wargoal().get_target_nation() == state.local_player_nation ||
+						wg.get_wargoal().get_target_nation().get_overlord_as_subject().get_ruler() == state.local_player_nation) {
+
+						wargoals.push_back(toggled_wargoal{wg.get_wargoal().id, false});
 					}
 				}
 			}
@@ -312,8 +305,7 @@ public:
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "title") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			!is_concession ? ptr->set_text(state, text::produce_simple_string(state, "demand_peace"))
-					 : ptr->set_text(state, text::produce_simple_string(state, "offer_peace"));
+			!is_concession ? ptr->set_text(state, text::produce_simple_string(state, "demand_peace")) : ptr->set_text(state, text::produce_simple_string(state, "offer_peace"));
 			return ptr;
 		} else if(name == "warscore_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -410,7 +402,6 @@ public:
 	}
 };
 
-
 struct toggled_crisis_wargoal {
 	int32_t index = 0;
 	bool added = false;
@@ -422,9 +413,7 @@ struct toggle_crisis_wargoal {
 
 class diplomacy_crisis_peace_total_warscore : public simple_text_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		set_visible(state, false);
-	}
+	void on_create(sys::state& state) noexcept override { set_visible(state, false); }
 };
 
 class crisis_peace_wg_from : public flag_button {
@@ -473,7 +462,7 @@ class diplomacy_crisis_peace_select_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto wg = retrieve<int32_t>(state, parent);
-		Cyto::Any setting = toggled_crisis_wargoal{ wg, false };
+		Cyto::Any setting = toggled_crisis_wargoal{wg, false};
 		if(parent)
 			parent->impl_get(state, setting);
 
@@ -482,7 +471,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto wg = retrieve<int32_t>(state, parent);
-		send(state, parent, toggle_crisis_wargoal{ wg });
+		send(state, parent, toggle_crisis_wargoal{wg});
 	}
 };
 
@@ -507,9 +496,7 @@ public:
 
 class diplomacy_crisis_peace_goal_listbox : public listbox_element_base<diplomacy_crisis_peace_goal_row, int32_t> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "peace_goal_item";
-	}
+	std::string_view get_row_element_name() override { return "peace_goal_item"; }
 
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -563,8 +550,7 @@ public:
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "title") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			!is_concession ? ptr->set_text(state, text::produce_simple_string(state, "demand_peace"))
-				: ptr->set_text(state, text::produce_simple_string(state, "offer_peace"));
+			!is_concession ? ptr->set_text(state, text::produce_simple_string(state, "demand_peace")) : ptr->set_text(state, text::produce_simple_string(state, "offer_peace"));
 			return ptr;
 		} else if(name == "warscore_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -599,7 +585,7 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<toggled_crisis_wargoal>()) {
 			toggled_crisis_wargoal twg = any_cast<toggled_crisis_wargoal>(payload);
-			payload.emplace<toggled_crisis_wargoal>(toggled_crisis_wargoal{twg.index, wargoals[twg.index] });
+			payload.emplace<toggled_crisis_wargoal>(toggled_crisis_wargoal{twg.index, wargoals[twg.index]});
 			return message_result::consumed;
 		} else if(payload.holds_type<toggle_crisis_wargoal>()) {
 			toggle_crisis_wargoal twg = any_cast<toggle_crisis_wargoal>(payload);
@@ -618,7 +604,7 @@ public:
 				}
 			}
 
-			payload.emplace<offer_cost>(offer_cost{ total });
+			payload.emplace<offer_cost>(offer_cost{total});
 			return message_result::consumed;
 		} else if(payload.holds_type<send_offer>()) {
 			command::start_crisis_peace_offer(state, state.local_player_nation, is_concession);
@@ -628,7 +614,7 @@ public:
 			for(int32_t i = 0; i < count; ++i) {
 				if(wargoals[i] && nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
 					auto wg = nations::get_nth_crisis_war_goal(state, i);
-					command::add_to_crisis_peace_offer(state, state.local_player_nation,wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+					command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
 				}
 			}
 			command::send_crisis_peace_offer(state, state.local_player_nation);

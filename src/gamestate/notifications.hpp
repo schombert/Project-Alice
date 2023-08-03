@@ -8,7 +8,7 @@ namespace notification {
 struct message {
 	std::function<void(sys::state&, text::layout_base&)> body;
 	char const* title = nullptr;
-	dcon::nation_id about;	 // which nation this message is primarily about (i.e. who the thing happened to)
+	dcon::nation_id about; // which nation this message is primarily about (i.e. who the thing happened to)
 	sys::message_setting_type type;
 };
 

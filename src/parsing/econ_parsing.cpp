@@ -34,8 +34,7 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 	}
 }
 
-void building_file::result(std::string_view name, building_definition&& res, error_handler& err, int32_t line,
-		scenario_building_context& context) {
+void building_file::result(std::string_view name, building_definition&& res, error_handler& err, int32_t line, scenario_building_context& context) {
 	res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
 	switch(res.stored_type) {
 	case building_type::factory: {
@@ -95,14 +94,10 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.economy_definitions.naval_base_definition.name = text::find_or_add_key(context.state, name);
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.naval_base_definition.province_modifier = context.state.world.create_modifier();
-			context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier,
-					res.peek_province_mod());
-			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier,
-					res.peek_national_mod());
-			context.state.world.modifier_set_icon(context.state.economy_definitions.naval_base_definition.province_modifier,
-					uint8_t(res.icon_index));
-			context.state.world.modifier_set_name(context.state.economy_definitions.naval_base_definition.province_modifier,
-					context.state.economy_definitions.naval_base_definition.name);
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_icon(context.state.economy_definitions.naval_base_definition.province_modifier, uint8_t(res.icon_index));
+			context.state.world.modifier_set_name(context.state.economy_definitions.naval_base_definition.province_modifier, context.state.economy_definitions.naval_base_definition.name);
 		}
 		break;
 	case building_type::fort: {
@@ -125,14 +120,10 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.economy_definitions.fort_definition.name = text::find_or_add_key(context.state, name);
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.fort_definition.province_modifier = context.state.world.create_modifier();
-			context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier,
-					res.peek_province_mod());
-			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier,
-					res.peek_national_mod());
-			context.state.world.modifier_set_icon(context.state.economy_definitions.fort_definition.province_modifier,
-					uint8_t(res.icon_index));
-			context.state.world.modifier_set_name(context.state.economy_definitions.fort_definition.province_modifier,
-					context.state.economy_definitions.fort_definition.name);
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier, res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_icon(context.state.economy_definitions.fort_definition.province_modifier, uint8_t(res.icon_index));
+			context.state.world.modifier_set_name(context.state.economy_definitions.fort_definition.province_modifier, context.state.economy_definitions.fort_definition.name);
 		}
 		break;
 	case building_type::railroad: {
@@ -156,22 +147,17 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.economy_definitions.railroad_definition.name = text::find_or_add_key(context.state, name);
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.railroad_definition.province_modifier = context.state.world.create_modifier();
-			context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier,
-					res.peek_province_mod());
-			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier,
-					res.peek_national_mod());
-			context.state.world.modifier_set_icon(context.state.economy_definitions.railroad_definition.province_modifier,
-					uint8_t(res.icon_index));
-			context.state.world.modifier_set_name(context.state.economy_definitions.railroad_definition.province_modifier,
-					context.state.economy_definitions.railroad_definition.name);
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier, res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_icon(context.state.economy_definitions.railroad_definition.province_modifier, uint8_t(res.icon_index));
+			context.state.world.modifier_set_name(context.state.economy_definitions.railroad_definition.province_modifier, context.state.economy_definitions.railroad_definition.name);
 		}
 		break;
 	}
 }
 
 dcon::trigger_key make_production_bonus_trigger(token_generator& gen, error_handler& err, production_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation,
-			trigger::slot_contents::empty};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 
@@ -211,8 +197,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 		context.outer_context.state.world.commodity_set_artisan_inputs(pt.output_goods_, cset);
 		context.outer_context.state.world.commodity_set_artisan_output_amount(pt.output_goods_, pt.value);
 	} else if(pt.type_ == production_type_enum::factory) {
-		if(auto it = context.outer_context.map_of_production_types.find(std::string(name));
-				it != context.outer_context.map_of_production_types.end()) {
+		if(auto it = context.outer_context.map_of_production_types.find(std::string(name)); it != context.outer_context.map_of_production_types.end()) {
 			auto factory_handle = fatten(context.outer_context.state.world, it->second);
 
 			economy::commodity_set cset;
@@ -273,8 +258,6 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 	}
 }
 
-commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context) {
-	return parse_commodity_array(gen, err, context.outer_context);
-}
+commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context) { return parse_commodity_array(gen, err, context.outer_context); }
 
 } // namespace parsers

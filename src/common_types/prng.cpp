@@ -43,8 +43,6 @@ random_pair get_random_pair(sys::state const& state, uint32_t value_in_hi, uint3
 
 	return random_pair{(uint64_t(r[0]) << 32) | uint64_t(r[1]), (uint64_t(r[2]) << 32) | uint64_t(r[3])};
 }
-uint32_t reduce(uint32_t value_in, uint32_t upper_bound) {
-	return uint32_t((uint64_t(value_in) * uint64_t(upper_bound)) >> 32);
-}
+uint32_t reduce(uint32_t value_in, uint32_t upper_bound) { return uint32_t((uint64_t(value_in) * uint64_t(upper_bound)) >> 32); }
 
 } // namespace rng

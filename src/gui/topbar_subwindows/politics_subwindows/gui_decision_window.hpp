@@ -9,9 +9,7 @@ namespace ui {
 
 class decision_requirements : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
@@ -20,11 +18,9 @@ public:
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto condition = state.world.decision_get_allow(id);
 			if(condition)
-				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation),
-						trigger::to_generic(state.local_player_nation), -1);
+				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
-	
 };
 
 class make_decision : public button_element_base {
@@ -54,9 +50,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::variable_tooltip; }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
@@ -74,12 +68,9 @@ public:
 
 			auto ef = fat_id.get_effect();
 			if(bool(ef))
-				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
-						trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-						uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
+				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 		}
 	}
-
 };
 
 // -------------
@@ -144,9 +135,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, id);
 			description = fat_id.get_description();
 		}
-		auto container = text::create_endless_layout(delegate->internal_layout,
-				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+		auto container = text::create_endless_layout(delegate->internal_layout, text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
@@ -179,13 +168,9 @@ public:
 		return false;
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override { return tooltip_behavior::tooltip; }
 
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "hide_decision");
-	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override { text::add_line(state, contents, "hide_decision"); }
 };
 
 // -------------
@@ -236,9 +221,7 @@ public:
 
 class decision_listbox : public listbox_element_base<decision_item, dcon::decision_id> {
 protected:
-	std::string_view get_row_element_name() override {
-		return "decision_entry";
-	}
+	std::string_view get_row_element_name() override { return "decision_entry"; }
 };
 
 // ----------------

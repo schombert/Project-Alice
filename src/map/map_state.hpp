@@ -42,10 +42,8 @@ public:
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
-	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
-			sys::key_modifiers mod);
-	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
-			sys::key_modifiers mod);
+	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	dcon::province_id get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
 
 	dcon::province_id get_selected_province();
@@ -71,7 +69,7 @@ public:
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	glm::vec2 last_camera_drag_pos;
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
-	
+
 	float zoom = 1.f;
 	float zoom_change = 1.f;
 	bool has_zoom_changed = false;
@@ -86,8 +84,6 @@ public:
 
 	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
 
-	float get_zoom() {
-		return zoom;
-	}
+	float get_zoom() { return zoom; }
 };
 } // namespace map

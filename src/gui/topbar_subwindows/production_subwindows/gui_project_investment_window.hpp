@@ -6,24 +6,16 @@ namespace ui {
 
 class project_investment_header : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, std::string csv) noexcept {
-		return text::produce_simple_string(state, csv);
-	}
+	std::string get_text(sys::state& state, std::string csv) noexcept { return text::produce_simple_string(state, csv); }
 
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state, "invest_project_title"));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state, "invest_project_title")); }
 };
 
 class project_investment_current_funds : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state) noexcept {
-		return text::format_money(nations::get_treasury(state, state.local_player_nation));
-	}
+	std::string get_text(sys::state& state) noexcept { return text::format_money(nations::get_treasury(state, state.local_player_nation)); }
 
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
+	void on_update(sys::state& state) noexcept override { set_text(state, get_text(state)); }
 };
 
 class project_investment_window : public window_element_base {

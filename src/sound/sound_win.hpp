@@ -25,9 +25,7 @@ public:
 	audio_instance(std::wstring const& file) : filename(file) { }
 	audio_instance(audio_instance const&) = delete;
 	audio_instance(audio_instance&& o) noexcept
-			: filename(std::move(o.filename)), graph_interface(o.graph_interface), control_interface(o.control_interface),
-				audio_interface(o.audio_interface), seek_interface(o.seek_interface), event_interface(o.event_interface),
-				volume_multiplier(o.volume_multiplier) {
+		: filename(std::move(o.filename)), graph_interface(o.graph_interface), control_interface(o.control_interface), audio_interface(o.audio_interface), seek_interface(o.seek_interface), event_interface(o.event_interface), volume_multiplier(o.volume_multiplier) {
 
 		o.graph_interface = nullptr;
 		o.control_interface = nullptr;
@@ -37,9 +35,7 @@ public:
 	}
 	~audio_instance();
 
-	void set_file(std::wstring const& file) {
-		filename = file;
-	}
+	void set_file(std::wstring const& file) { filename = file; }
 	void play(float volume, bool as_music, void* window_handle);
 	void stop() const;
 	bool is_playing() const;
