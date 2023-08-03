@@ -1,16 +1,113 @@
 #pragma once
 
+#include "constants.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
-#include "constants.hpp"
 
 namespace ui {
 
 static std::string get_setting_text_key(sys::message_setting_type type) {
-	switch(type) {
-	default:
-		return "???";
-	}
+	static char const* key_str[] = {
+		"msg_revolt",								  // revolt
+		"msg_war_on_nation",						  // war_on_nation
+		"msg_war_by_nation",						  // war_by_nation
+		"msg_wargoal_added",						  // wargoal_added
+		"msg_siegeover_by_nation",					  // siegeover_by_nation
+		"msg_siegeover_on_nation",					  // siegeover_on_nation
+		"msg_colony_finished",						  // colony_finished
+		"msg_reform_gained",						  // reform_gained
+		"msg_reform_lost",							  // reform_lost
+		"msg_ruling_party_change",					  // ruling_party_change
+		"msg_upperhouse",							  // upperhouse
+		"msg_electionstart",						  // electionstart
+		"msg_electiondone",							  // electiondone
+		"msg_breakcountry",							  // breakcountry
+		"msg_peace_accepted_from_nation",			  // peace_accepted_from_nation
+		"msg_peace_rejected_from_nation",			  // peace_rejected_from_nation
+		"msg_peace_accepted_by_nation",				  // peace_accepted_by_nation
+		"msg_peace_rejected_by_nation",				  // peace_rejected_by_nation
+		"msg_mobilization_start",					  // mobilization_start
+		"msg_mobilization_end",						  // mobilization_end
+		"msg_factory_complete",						  // factory_complete
+		"msg_rr_complete",							  // rr_complete
+		"msg_fort_complete",						  // fort_complete
+		"msg_naval_base_complete",					  // naval_base_complete
+		"msg_province_event",						  // province_event
+		"msg_national_event",						  // national_event
+		"msg_major_event",							  // major_event
+		"msg_invention",							  // invention
+		"msg_tech",									  // tech
+		"msg_leader_dies",							  // leader_dies
+		"msg_land_combat_starts_on_nation",			  // land_combat_starts_on_nation
+		"msg_naval_combat_starts_on_nation",		  // naval_combat_starts_on_nation
+		"msg_land_combat_starts_by_nation",			  // land_combat_starts_by_nation
+		"msg_naval_combat_starts_by_nation",		  // naval_combat_starts_by_nation
+		"msg_movement_finishes",					  // movement_finishes
+		"msg_decision",								  // decision
+		"msg_lose_great_power",						  // lose_great_power
+		"msg_become_great_power",					  // become_great_power
+		"msg_war_subsidies_start_by_nation",		  // war_subsidies_start_by_nation
+		"msg_war_subsidies_start_on_nation",		  // war_subsidies_start_on_nation
+		"msg_war_subsidies_end_by_nation",			  // war_subsidies_end_by_nation
+		"msg_war_subsidies_end_on_nation",			  // war_subsidies_end_on_nation
+		"msg_reparations_start_by_nation",			  // reparations_start_by_nation
+		"msg_reparations_start_on_nation",			  // reparations_start_on_nation
+		"msg_reparations_end_by_nation",			  // reparations_end_by_nation
+		"msg_reparations_end_on_nation",			  // reparations_end_on_nation
+		"msg_mil_access_start_by_nation",			  // mil_access_start_by_nation
+		"msg_mil_access_start_on_nation",			  // mil_access_start_on_nation
+		"msg_mil_access_end_by_nation",				  // mil_access_end_by_nation
+		"msg_mil_access_end_on_nation",				  // mil_access_end_on_nation
+		"msg_mil_access_declined_by_nation",		  // mil_access_declined_by_nation
+		"msg_mil_access_declined_on_nation",		  // mil_access_declined_on_nation
+		"msg_alliance_starts",						  // alliance_starts
+		"msg_alliance_ends",						  // alliance_ends
+		"msg_alliance_declined_by_nation",			  // alliance_declined_by_nation
+		"msg_alliance_declined_on_nation",			  // alliance_declined_on_nation
+		"msg_ally_called_accepted_by_nation",		  // ally_called_accepted_by_nation
+		"msg_ally_called_declined_by_nation",		  // ally_called_declined_by_nation
+		"msg_discredit_by_nation",					  // discredit_by_nation
+		"msg_ban_by_nation",						  // ban_by_nation
+		"msg_expell_by_nation",						  // expell_by_nation
+		"msg_discredit_on_nation",					  // discredit_on_nation
+		"msg_ban_on_nation",						  // ban_on_nation
+		"msg_expell_on_nation",						  // expell_on_nation
+		"msg_increase_opinion",						  // increase_opinion
+		"msg_decrease_opinion_by_nation",			  // decrease_opinion_by_nation
+		"msg_decrease_opinion_on_nation",			  // decrease_opinion_on_nation
+		"msg_rem_sphere_by_nation",					  // rem_sphere_by_nation
+		"msg_rem_sphere_on_nation",					  // rem_sphere_on_nation
+		"msg_removed_from_sphere",					  // removed_from_sphere
+		"msg_add_sphere",							  // add_sphere
+		"msg_added_to_sphere",						  // added_to_sphere
+		"msg_increase_relation_by_nation",			  // increase_relation_by_nation
+		"msg_increase_relation_on_nation",			  // increase_relation_on_nation
+		"msg_decrease_relation_by_nation",			  // decrease_relation_by_nation
+		"msg_decrease_relation_on_nation",			  // decrease_relation_on_nation
+		"msg_join_war_by_nation",					  // join_war_by_nation
+		"msg_join_war_on_nation",					  // join_war_on_nation
+		"msg_gw_unlocked",							  // gw_unlocked
+		"msg_war_becomes_great",					  // war_becomes_great
+		"msg_cb_detected_on_nation",				  // cb_detected_on_nation
+		"msg_cb_detected_by_nation",				  // cb_detected_by_nation
+		"msg_crisis_join_offer_accepted_by_nation",	  // crisis_join_offer_accepted_by_nation
+		"msg_crisis_join_offer_declined_by_nation",	  // crisis_join_offer_declined_by_nation
+		"msg_crisis_join_offer_accepted_from_nation", // crisis_join_offer_accepted_from_nation
+		"msg_crisis_join_offer_declined_from_nation", // crisis_join_offer_declined_from_nation
+		"msg_crisis_resolution_accepted",			  // crisis_resolution_accepted
+		"msg_crisis_becomes_war",					  // crisis_becomes_war
+		"msg_crisis_resolution_declined_from_nation", // crisis_resolution_declined_from_nation
+		"msg_crisis_starts",						  // crisis_starts
+		"msg_crisis_attacker_backer",				  // crisis_attacker_backer
+		"msg_crisis_defender_backer",				  // crisis_defender_backer
+		"msg_crisis_fizzle",						  // crisis_fizzle
+		"msg_war_join_by",							  // war_join_by
+		"msg_war_join_on",							  // war_join_on
+		"msg_cb_fab_finished",						  // cb_fab_finished
+		"msg_cb_fab_cancelled",						  // cb_fab_cancelled
+		"msg_crisis_voluntary_join",				  // crisis_voluntary_join
+	};
+	return std::string{key_str[static_cast< int>(type)]};
 }
 
 class message_settings_item : public listbox_row_element_base<sys::message_setting_type> {
