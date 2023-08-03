@@ -937,4 +937,7 @@ alice_maneuver;Maneuver §G$x$
 alice_recon;Reconaissance §G$x$
 alice_support;Support §G$x$%
 alice_evasion;Evasion §G$x$%
+alice_siege;Siege §G$x$
+alice_torpedo_attack;Torpedo Attack §G$x$
+alice_unit_folder_unit_name;§Y$x$
 ;;;;;;;;;;;;;x
