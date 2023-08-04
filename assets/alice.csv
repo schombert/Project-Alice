@@ -940,4 +940,102 @@ alice_evasion;Evasion §G$x$%
 alice_siege;Siege §G$x$
 alice_torpedo_attack;Torpedo Attack §G$x$
 alice_unit_folder_unit_name;§Y$x$
+msg_revolt;When a revolt occurs;;;;;;;;;;;;x
+msg_war_on_nation;When we declare war;;;;;;;;;;;;x
+msg_war_by_nation;When we are declared war;;;;;;;;;;;;x
+msg_wargoal_added;When a wargoal is added;;;;;;;;;;;;x
+msg_siegeover_by_nation;Siege done against us;;;;;;;;;;;;x
+msg_siegeover_on_nation;Siege done against them;;;;;;;;;;;;x
+msg_colony_finished;When we finish colonizing;;;;;;;;;;;x
+msg_reform_gained;When we gain a reform;;;;;;;;;;;x
+msg_reform_lost;When we lose a reform;;;;;;;;;;;x
+msg_ruling_party_change;When the ruling party changes;;;;;;;;;;;x
+msg_upperhouse;When the upperhouse changes;;;;;;;;;;;;x
+msg_electionstart;When elections start;;;;;;;;;;;;x
+msg_electiondone;When elections end;;;;;;;;;;;;x
+msg_breakcountry;When a country is broken;;;;;;;;;;;;x
+msg_peace_accepted_from_nation;When we accept a peace offer;;;;;;;;;;;;x
+msg_peace_rejected_from_nation;When we reject a peace offer;;;;;;;;;;;;x
+msg_peace_accepted_by_nation;When they accept a peace offer;;;;;;;;;;;;x
+msg_peace_rejected_by_nation;When they reject a peace offer;;;;;;;;;;;;x
+msg_mobilization_start;When we mobilize;;;;;;;;;;;x
+msg_mobilization_end;When we demobilize;;;;;;;;;;;x
+msg_factory_complete;When a factory gets constructed;;;;;;;;;;;x
+msg_rr_complete;When a railroad gets constructed;;;;;;;;;;;x
+msg_fort_complete;When a fort gets constructed;;;;;;;;;;;x
+msg_naval_base_complete;When a naval base gets constructed;;;;;;;;;;;x
+msg_province_event;When a province event occurs;;;;;;;;;;;x
+msg_national_event;When a national event occurs;;;;;;;;;;;x
+msg_major_event;When a major event occurs;;;;;;;;;;;x
+msg_invention;When an invention is discovered;;;;;;;;;;;;x
+msg_tech;When we finish research;;;;;;;;;;;;x
+msg_leader_dies;When a leader dies;;;;;;;;;;;;x
+msg_land_combat_starts_on_nation;When we start land combat;;;;;;;;;;;x
+msg_naval_combat_starts_on_nation;When we start naval combat;;;;;;;;;;;x
+msg_land_combat_starts_by_nation;When land combat is started;;;;;;;;;;;x
+msg_naval_combat_starts_by_nation;When naval combat is started;;;;;;;;;;;x
+msg_movement_finishes;When movement finishes;;;;;;;;;;;x
+msg_decision;When a decision is done;;;;;;;;;;;;x
+msg_lose_great_power;When we lose great power;;;;;;;;;;;;x
+msg_become_great_power;When we become great power;;;;;;;;;;;;x
+msg_war_subsidies_start_by_nation;When war subsidies are given;;;;;;;;;;;;x
+msg_war_subsidies_start_on_nation;When we give war subsidies;;;;;;;;;;;;x
+msg_war_subsidies_end_by_nation;When war subsidies are ended;;;;;;;;;;;;x
+msg_war_subsidies_end_on_nation;When we end war subsidies;;;;;;;;;;;;x
+msg_reparations_start_by_nation;When war reparations are placed;;;;;;;;;;;x
+msg_reparations_start_on_nation;When we pay have to war reparations;;;;;;;;;;;x
+msg_reparations_end_by_nation;When war reparations are paid off;;;;;;;;;;;x
+msg_reparations_end_on_nation;When we pay off war reparations;;;;;;;;;;;x
+msg_mil_access_start_by_nation;When we are given military access;;;;;;;;;;;;x
+msg_mil_access_start_on_nation;When we give military access;;;;;;;;;;;;x
+msg_mil_access_end_by_nation;;;;;;;;;;;;;x
+msg_mil_access_end_on_nation;;;;;;;;;;;;;x
+msg_mil_access_declined_by_nation;;;;;;;;;;;;;x
+msg_mil_access_declined_on_nation;;;;;;;;;;;;;x
+msg_alliance_starts;;;;;;;;;;;;;x
+msg_alliance_ends;;;;;;;;;;;;;x
+msg_alliance_declined_by_nation;;;;;;;;;;;;;x
+msg_alliance_declined_on_nation;;;;;;;;;;;;;x
+msg_ally_called_accepted_by_nation;;;;;;;;;;;;;x
+msg_ally_called_declined_by_nation;;;;;;;;;;;;;x
+msg_discredit_by_nation;;;;;;;;;;;;;x
+msg_ban_by_nation;;;;;;;;;;;;;x
+msg_expell_by_nation;;;;;;;;;;;;;x
+msg_discredit_on_nation;;;;;;;;;;;;;x
+msg_ban_on_nation;;;;;;;;;;;;;x
+msg_expell_on_nation;;;;;;;;;;;;;x
+msg_increase_opinion;;;;;;;;;;;;;x
+msg_decrease_opinion_by_nation;;;;;;;;;;;;;x
+msg_decrease_opinion_on_nation;;;;;;;;;;;;;x
+msg_rem_sphere_by_nation;;;;;;;;;;;;;x
+msg_rem_sphere_on_nation;;;;;;;;;;;;;x
+msg_removed_from_sphere;;;;;;;;;;;;;x
+msg_add_sphere;When we add to our sphere;;;;;;;;;;;;x
+msg_added_to_sphere;When we are added to a sphere;;;;;;;;;;;;x
+msg_increase_relation_by_nation;When they increase relations;;;;;;;;;;;;x
+msg_increase_relation_on_nation;When we increase relations;;;;;;;;;;;;x
+msg_decrease_relation_by_nation;When they decrease relations;;;;;;;;;;;;x
+msg_decrease_relation_on_nation;When we decrease relations;;;;;;;;;;;;x
+msg_join_war_by_nation;When a nation joins a war;;;;;;;;;;;;x
+msg_join_war_on_nation;When we join a war;;;;;;;;;;;;x
+msg_gw_unlocked;When great wars are unlocked;;;;;;;;;;;x
+msg_war_becomes_great;When a war becomes a great war;;;;;;;;;;;;x
+msg_cb_detected_on_nation;;;;;;;;;;;;;x
+msg_cb_detected_by_nation;;;;;;;;;;;;;x
+msg_crisis_join_offer_accepted_by_nation;;;;;;;;;;;;;x
+msg_crisis_join_offer_declined_by_nation;;;;;;;;;;;;;x
+msg_crisis_join_offer_accepted_from_nation;;;;;;;;;;;;;x
+msg_crisis_join_offer_declined_from_nation;;;;;;;;;;;;;x
+msg_crisis_resolution_accepted;When a crisis resolution is accepted;;;;;;;;;;;;x
+msg_crisis_becomes_war;When a crisis war starts;;;;;;;;;;;;x
+msg_crisis_resolution_declined_from_nation;;;;;;;;;;;;;x
+msg_crisis_starts;;;;;;;;;;;;;x
+msg_crisis_attacker_backer;;;;;;;;;;;;;x
+msg_crisis_defender_backer;;;;;;;;;;;;;x
+msg_crisis_fizzle;;;;;;;;;;;;;x
+msg_war_join_by;;;;;;;;;;;;;x
+msg_war_join_on;;;;;;;;;;;;;x
+msg_cb_fab_finished;;;;;;;;;;;;;x
+msg_cb_fab_cancelled;;;;;;;;;;;;;x
+msg_crisis_voluntary_join;;;;;;;;;;;;;x
 ;;;;;;;;;;;;;x
