@@ -301,15 +301,15 @@ public:
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
 		if(fat.get_subsidized()) {
-			if(command::can_change_factory_settings(state, state.local_player_nation, fid,
+			if(command::can_change_factory_settings(state, n, fid,
 							uint8_t(economy::factory_priority(state, fid)), false)) {
-				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)),
+				command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)),
 						false);
 			}
 		} else {
-			if(command::can_change_factory_settings(state, state.local_player_nation, fid,
+			if(command::can_change_factory_settings(state, n, fid,
 							uint8_t(economy::factory_priority(state, fid)), true)) {
-				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)),
+				command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)),
 						true);
 			}
 		}
@@ -358,7 +358,6 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		if(n == state.local_player_nation) {
 			text::add_line(state, contents, "factory_delete_header");
@@ -827,22 +826,15 @@ public:
 class production_build_new_factory : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto sid = any_cast<dcon::state_instance_id>(payload);
+		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-
-			bool can_build = false;
-			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				can_build =
-						can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
-			});
-			disabled = !can_build;
-		}
+		bool can_build = false;
+		state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+			can_build =
+					can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
+		});
+		disabled = !can_build;
 	}
 
 	void button_action(sys::state& state) noexcept override {

@@ -540,13 +540,10 @@ class wargoal_success_prestige : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
-		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto source = state.local_player_nation;
 
-
 		if(cb) {
-			float prestige_gain = military::successful_cb_prestige(state, cb, state.local_player_nation);
-
+			float prestige_gain = military::successful_cb_prestige(state, cb, source);
 			if(prestige_gain > 0) {
 				color = text::text_color::green;
 				set_text(state, text::format_float(prestige_gain, 1));
@@ -596,11 +593,7 @@ class wargoal_failure_prestige : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
-		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto source = state.local_player_nation;
-
-		dcon::nation_id real_target = target;
-
 		if(cb) {
 			float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base, state.defines.war_failed_goal_prestige * nations::prestige_score(state, source)) * state.world.cb_type_get_penalty_factor(cb);
 
@@ -622,9 +615,6 @@ class wargoal_failure_militancy : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
-		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto source = state.local_player_nation;
-
 		if(cb) {
 			auto pop_militancy = state.defines.war_failed_goal_militancy * state.world.cb_type_get_penalty_factor(cb);
 
@@ -832,7 +822,6 @@ int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon:
 					}
 				}
 			} else {
-				auto is_attacker = military::is_attacker(state, war, state.local_player_nation);
 				for(auto si : state.world.in_state_instance) {
 					if(si.get_definition() == state_def) {
 						auto n = si.get_nation_from_state_ownership();
@@ -1440,11 +1429,6 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-
-		dcon::nation_id target = retrieve<get_target>(state, parent).n;
-		auto actor = retrieve<get_offer_to>(state, parent).n;
-		dcon::cb_type_id cb = retrieve<dcon::cb_type_id>(state, parent);
-
 		for(auto& par : state.crisis_participants) {
 			if(!par.id) {
 				break; // not in crisis

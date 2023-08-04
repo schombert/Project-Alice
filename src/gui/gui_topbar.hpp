@@ -53,50 +53,46 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
-			text::add_line_break_to_layout_box(state, contents, box);
-			switch(nations::get_status(state, nation_id)) {
-			case(nations::status::great_power):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"),
-						text::substitution_map{});
-				break;
-			case(nations::status::secondary_power):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"),
-						text::substitution_map{});
-				break;
-			case(nations::status::civilized):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"),
-						text::substitution_map{});
-				// Civil
-				break;
-			case(nations::status::westernizing):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"),
-						text::substitution_map{});
-				// ???
-				break;
-			case(nations::status::uncivilized):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"),
-						text::substitution_map{});
-				// Nothing
-				break;
-			case(nations::status::primitive):
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"),
-						text::substitution_map{});
-				// Nothing
-				break;
-			default:
-				break;
-			};
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
+		text::add_line_break_to_layout_box(state, contents, box);
+		switch(nations::get_status(state, nation_id)) {
+		case(nations::status::great_power):
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"),
+					text::substitution_map{});
+			break;
+		case(nations::status::secondary_power):
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"),
+					text::substitution_map{});
+			break;
+		case(nations::status::civilized):
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"),
+					text::substitution_map{});
+			// Civil
+			break;
+		case(nations::status::westernizing):
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"),
+					text::substitution_map{});
+			// ???
+			break;
+		case(nations::status::uncivilized):
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"),
+					text::substitution_map{});
+			// Nothing
+			break;
+		case(nations::status::primitive):
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"),
+					text::substitution_map{});
+			// Nothing
+			break;
+		default:
+			break;
+		};
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -107,17 +103,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("rank_industry"), text::substitution_map{});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("rank_industry_d"), text::substitution_map{});
-			text::close_layout_box(contents, box);
-		}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("rank_industry"), text::substitution_map{});
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("rank_industry_d"), text::substitution_map{});
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -128,17 +119,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("rank_military"), text::substitution_map{});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("rank_military_d"), text::substitution_map{});
-			text::close_layout_box(contents, box);
-		}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("rank_military"), text::substitution_map{});
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("rank_military_d"), text::substitution_map{});
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -757,8 +743,6 @@ public:
 class topbar_nation_leadership_points_text : public nation_leadership_points_text {
 private:
 	float getResearchPointsFromPop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		auto fat_nation = dcon::fatten(state.world, n);
-		auto fat_pop = dcon::fatten(state.world, pop);
 		/*
 		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
 		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
@@ -1217,7 +1201,6 @@ public:
 				}
 				if(state.world.nation_get_is_civilized(nation_id)) {
 					for(auto i : state.culture_definitions.political_issues) {
-						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_political_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -1229,7 +1212,6 @@ public:
 					}
 
 					for(auto i : state.culture_definitions.social_issues) {
-						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_social_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -1243,9 +1225,7 @@ public:
 					text::close_layout_box(contents, box);
 					return;
 				} else {
-					auto stored_rp = state.world.nation_get_research_points(nation_id);
 					for(auto i : state.culture_definitions.military_issues) {
-						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_military_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -1257,7 +1237,6 @@ public:
 					}
 
 					for(auto i : state.culture_definitions.economic_issues) {
-						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -1533,25 +1512,19 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{state.crisis_temperature});
-			if(state.current_crisis == sys::crisis_type::none) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_crisis"), sub);
-			} else if(state.crisis_temperature > 0.8f) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
-			} else {
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{state.crisis_temperature});
+		if(state.current_crisis == sys::crisis_type::none) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_crisis"), sub);
+		} else if(state.crisis_temperature > 0.8f) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
+		} else {
 #define STRINGIFY(x) #x
-				text::add_to_layout_box(state, contents, box, std::string_view(__FILE__ ":" STRINGIFY(__LINE__)));
+			text::add_to_layout_box(state, contents, box, std::string_view(__FILE__ ":" STRINGIFY(__LINE__)));
 #undef STRINGIFY
-			}
-			text::close_layout_box(contents, box);
 		}
+		text::close_layout_box(contents, box);
 	}
 };
 
