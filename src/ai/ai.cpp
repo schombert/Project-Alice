@@ -145,7 +145,7 @@ void form_alliances(sys::state& state) {
 
 				// Call our new allies into wars.... they may not accept but they may just may join!
 				for(auto wp : state.world.nation_get_war_participant(n)) {
-					if(!military::are_allied_in_war(state, n, alliance_targets[0]))
+					if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(n, ))
 						command::execute_call_to_arms(state, n, alliance_targets[0], wp.get_war());
 				}
 			}
@@ -170,19 +170,6 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	if(state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(from))
 		return true;
 	
-	// Having a mutual, non-rival enemy - incentivizing AI to clump against a
-	// common enemy more easily
-	bool mutual_enemy = false;
-	state.world.for_each_nation([&](dcon::nation_id n) {
-		if(n != target && n != from) {
-			bool enemy_a = military::can_use_cb_against(state, from, n) || military::are_at_war(state, from, n);
-			bool enemy_b = military::can_use_cb_against(state, target, n) || military::are_at_war(state, target, n);
-			mutual_enemy = mutual_enemy || (enemy_a && enemy_b);
-		}
-	});
-	if(mutual_enemy)
-		return true;
-	
 	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
 	if(!ai_is_close_enough(state, target, from))
 		return false;
@@ -199,17 +186,7 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 
 	text::add_line(state, contents, "kierkegaard_1", indent);
 
-	// Having a mutual, non-rival enemy - incentivizing AI to clump against a
-	// common enemy more easily
-	bool mutual_enemy = false;
-	state.world.for_each_nation([&](dcon::nation_id n) {
-		if(n != target && n != state.local_player_nation) {
-			bool enemy_a = military::can_use_cb_against(state, state.local_player_nation, n) || military::are_at_war(state, state.local_player_nation, n);
-			bool enemy_b = military::can_use_cb_against(state, target, n) || military::are_at_war(state, target, n);
-			mutual_enemy = mutual_enemy || (enemy_a && enemy_b);
-		}
-	});
-	text::add_line_with_condition(state, contents, "ai_alliance_5", (state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(state.local_player_nation)) || mutual_enemy, indent + 15);
+	text::add_line_with_condition(state, contents, "ai_alliance_5", state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(state.local_player_nation), indent + 15);
 
 	text::add_line(state, contents, "kierkegaard_2", indent);
 
@@ -1847,13 +1824,12 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
+	if(!as_attacker)
+		return true;
 	for(auto par : state.world.war_get_war_participant(w)) {
 		if(par.get_is_attacker() == !as_attacker) {
 			// Could use a CB against this nation?
 			if(military::can_use_cb_against(state, n, par.get_nation()))
-				return true;
-			// Already at war with this nation?
-			if(military::are_at_war(state, n, par.get_nation()))
 				return true;
 			// Eager to absolutely demolish our rival if possible
 			if(state.world.nation_get_ai_rival(n) == par.get_nation())
@@ -2570,7 +2546,7 @@ void make_war_decs(sys::state& state) {
 			return;
 
 		auto base_strength = estimate_strength(state, n);
-		float best_difference = 2.f;
+		float best_difference = -10.f;
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
@@ -3819,7 +3795,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 	});
 
 	// organize attack stacks
-	int32_t max_attacks_to_make = (ready_count + 1) / 2;
+	int32_t max_attacks_to_make = ((ready_count + 1) / 4) * 3;
 	auto const psize = potential_targets.size();
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {
 		if(!potential_targets[i].location)

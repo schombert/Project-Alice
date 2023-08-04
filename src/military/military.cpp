@@ -3965,16 +3965,26 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 		state.world.delete_regiment((*regs.begin()).get_regiment());
 	}
 
-	auto controller = state.world.army_get_controller_from_army_control(n);
 	auto b = state.world.army_get_battle_from_army_battle_participation(n);
 	if(b) {
 		bool should_end = true;
-		// TODO: Do they have to be in common war or can they just be "hostile against"?
-		for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
-			if(bp.get_army() != n && are_allied_in_war(state, controller, state.world.army_get_controller_from_army_control(bp.get_army()))) {
-				should_end = false;
+		auto controller = state.world.army_get_controller_from_army_control(n);
+		if(bool(controller)) {
+			// TODO: Do they have to be in common war or can they just be "hostile against"?
+			for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
+				if(bp.get_army() != n && are_allied_in_war(state, controller, state.world.army_get_controller_from_army_control(bp.get_army()))) {
+					should_end = false;
+				}
+			}
+		} else {
+			assert(state.world.army_get_controller_from_army_rebel_control(n));
+			for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
+				if(bp.get_army() != n && bp.get_army().get_army_rebel_control()) {
+					should_end = false;
+				}
 			}
 		}
+		
 		if(should_end) {
 			bool as_attacker = state.world.land_battle_get_war_attacker_is_attacker(b);
 			end_battle(state, b, as_attacker ? battle_result::defender_won : battle_result::attacker_won);
