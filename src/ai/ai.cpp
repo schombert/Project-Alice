@@ -2574,7 +2574,7 @@ void make_war_decs(sys::state& state) {
 		if(n.get_is_at_war() == false && targets.get(n)) {
 			static std::vector<possible_cb> potential;
 			sort_avilable_declaration_cbs(potential, state, n, targets.get(n));
-			if(potential.size() > 0) {
+			if(!potential.empty()) {
 				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true);
 			}
 		}
@@ -2946,7 +2946,8 @@ void send_fleet_home(sys::state& state, dcon::navy_id n, fleet_activity moving_s
 		existing_path.resize(new_size);
 
 		for(uint32_t i = 0; i < new_size; ++i) {
-			existing_path.at(i) = naval_path[i];
+			assert(naval_path[i]);
+			existing_path[i] = naval_path[i];
 		}
 		v.set_arrival_time(military::arrival_time_to(state, v, naval_path.back()));
 		v.set_ai_activity(uint8_t(moving_status));
@@ -2986,9 +2987,9 @@ bool set_fleet_target(sys::state& state, dcon::nation_id n, dcon::province_id st
 		if(path.size() > 0) {
 			auto new_size = std::min(uint32_t(path.size()), uint32_t(2));
 			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-->0; ) {
-				existing_path.at(i) = path[path.size() - i];
+			for(uint32_t i = new_size; i-- > 0;) {
+				assert(path[path.size() - 1 - i]);
+				existing_path[i] = path[path.size() - 1 - i];
 			}
 			state.world.navy_set_arrival_time(for_navy, military::arrival_time_to(state, for_navy, path.back()));
 			state.world.navy_set_ai_activity(for_navy, uint8_t(fleet_activity::attacking));
@@ -3011,7 +3012,8 @@ void unload_units_from_transport(sys::state& state, dcon::navy_id n) {
 			existing_path.resize(new_size);
 
 			for(uint32_t i = 0; i < new_size; ++i) {
-				existing_path.at(i) = path[i];
+				assert(path[i]);
+				existing_path[i] = path[i];
 			}
 			ar.get_army().set_arrival_time(military::arrival_time_to(state, ar.get_army(), path.back()));
 			auto activity = army_activity(ar.get_army().get_ai_activity());
@@ -3116,7 +3118,8 @@ void pickup_idle_ships(sys::state& state) {
 							existing_path.resize(new_size);
 
 							for(uint32_t k = 0; k < new_size; ++k) {
-								existing_path.at(k) = naval_path[k];
+								assert(naval_path[k]);
+								existing_path[k] = naval_path[k];
 							}
 							if(new_size > 0)
 								n.set_arrival_time(military::arrival_time_to(state, n, naval_path.back()));
@@ -3137,7 +3140,8 @@ void pickup_idle_ships(sys::state& state) {
 							existing_path.resize(new_size);
 
 							for(uint32_t k = 0; k < new_size; ++k) {
-								existing_path.at(k) = naval_path[k];
+								assert(naval_path[k]);
+								existing_path[k] = naval_path[k];
 							}
 							if(new_size > 0)
 								n.set_arrival_time(military::arrival_time_to(state, n, naval_path.back()));
@@ -3173,7 +3177,8 @@ void pickup_idle_ships(sys::state& state) {
 						existing_path.resize(new_size);
 
 						for(uint32_t i = 0; i < new_size; ++i) {
-							existing_path.at(i) = path[i];
+							assert(path[i]);
+							existing_path[i] = path[i];
 						}
 						state.world.navy_set_arrival_time(n, military::arrival_time_to(state, n, path.back()));
 					}
@@ -3404,7 +3409,8 @@ void move_idle_guards(sys::state& state) {
 				existing_path.resize(new_size);
 
 				for(uint32_t i = 0; i < new_size; ++i) {
-					existing_path.at(i) = path[i];
+					assert(path[i]);
+					existing_path[i] = path[i];
 				}
 				ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
 			} else {
@@ -3466,7 +3472,8 @@ void move_idle_guards(sys::state& state) {
 				existing_path.resize(new_size);
 
 				for(uint32_t k = 0; k < new_size; ++k) {
-					existing_path.at(k) = path[k];
+					assert(path[k]);
+					existing_path[k] = path[k];
 				}
 				state.world.army_set_arrival_time(require_transport[i], military::arrival_time_to(state, require_transport[i], path.back()));
 			}
@@ -3483,7 +3490,8 @@ void move_idle_guards(sys::state& state) {
 				existing_path.resize(new_size);
 
 				for(uint32_t k = 0; k < new_size; ++k) {
-					existing_path.at(k) = fleet_path[k];
+					assert(fleet_path[k]);
+					existing_path[k] = fleet_path[k];
 				}
 				state.world.navy_set_arrival_time(transport_fleet, military::arrival_time_to(state, transport_fleet, fleet_path.back()));
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
@@ -3515,7 +3523,8 @@ void move_idle_guards(sys::state& state) {
 							existing_path.resize(new_size);
 
 							for(uint32_t k = 0; k < new_size; ++k) {
-								existing_path.at(k) = jpath[k];
+								assert(jpath[k]);
+								existing_path[k] = jpath[k];
 							}
 							state.world.army_set_arrival_time(require_transport[j], military::arrival_time_to(state, require_transport[j], jpath.back()));
 							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_guard));
@@ -3566,7 +3575,8 @@ void update_naval_transport(sys::state& state) {
 			} else if(army_location.get_port_to() == transport_location) {
 				auto existing_path = ar.get_path();
 				existing_path.resize(1);
-				existing_path.at(0) = transport_location;
+				assert(transport_location);
+				existing_path[0] = transport_location;
 				ar.set_arrival_time(military::arrival_time_to(state, ar, transport_location));
 			} else { // transport arrived in inaccessible location
 				ar.set_ai_activity(uint8_t(army_activity::on_guard));
@@ -3592,8 +3602,6 @@ bool army_ready_for_battle(sys::state& state, dcon::nation_id n, dcon::army_id a
 	return state.world.regiment_get_org(sample_reg) > 0.7f * max_org;
 }
 
-constexpr inline float gather_radius = -0.996f; // = about 5 degrees
-
 void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		army_activity activity = army_activity(ar.get_army().get_ai_activity());
@@ -3612,22 +3620,26 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 			continue;
 
 		auto sdist = province::sorting_distance(state, location, p);
-		if(sdist > gather_radius)
+		if(sdist > state.defines.alice_ai_gather_radius)
 			continue;
 
 		auto jpath = province::make_land_path(state, location, p, n, ar.get_army());
 		if(!jpath.empty()) {
+
 			auto existing_path = ar.get_army().get_path();
 			auto new_size = uint32_t(jpath.size());
 			existing_path.resize(new_size * 2);
 
 			for(uint32_t k = 0; k < new_size; ++k) {
-				existing_path.at(new_size + k) = jpath[k];
+				assert(jpath[k]);
+				existing_path[new_size + k] = jpath[k];
 			}
 			for(uint32_t k = 1; k < new_size; ++k) {
-				existing_path.at(new_size - k) = jpath[k];
+				assert(jpath[k]);
+				existing_path[new_size - k] = jpath[k];
 			}
-			existing_path.at(0) = location;
+			assert(location);
+			existing_path[0] = location;
 			ar.get_army().set_arrival_time(military::arrival_time_to(state, ar.get_army(), jpath.back()));
 		}
 	
@@ -3782,7 +3794,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		});
 
 		// make list of attackers
-		float a_force_str = 0.0f;
+		float a_force_str = 0.f;
 		int32_t k = int32_t(ready_armies.size());
 		for(; k-- > 0 && a_force_str < target_attack_force;) {
 			for(auto ar : state.world.province_get_army_location(ready_armies[k])) {
@@ -3851,7 +3863,8 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 					existing_path.resize(new_size);
 
 					for(uint32_t q = 0; q < new_size; ++q) {
-						existing_path.at(q) = path[q];
+						assert(path[q]);
+						existing_path[q] = path[q];
 					}
 					ar.get_army().set_arrival_time(military::arrival_time_to(state, ar.get_army(), path.back()));
 					ar.get_army().set_ai_province(potential_targets[i].location);
@@ -3922,14 +3935,14 @@ void move_gathered_attackers(sys::state& state) {
 				} else {
 					if(province::has_access_to_province(state, ar.get_controller_from_army_control(), ar.get_ai_province())) {
 						if(auto path = province::make_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar); path.size() > 0) {
-
 							
 							auto existing_path = ar.get_path();
 							auto new_size = uint32_t(path.size());
 							existing_path.resize(new_size);
 
 							for(uint32_t i = 0; i < new_size; ++i) {
-								existing_path.at(i) = path[i];
+								assert(path[i]);
+								existing_path[i] = path[i];
 							}
 							ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
 						} else {
@@ -3953,7 +3966,7 @@ void move_gathered_attackers(sys::state& state) {
 				if(o.get_army().get_ai_province() == ar.get_ai_province()) {
 					if(ar.get_location_from_army_location() != o.get_army().get_location_from_army_location()) {
 						// an army with the same target on a different location
-						if(o.get_army().get_path().size() > 0 && o.get_army().get_path().at(0) == ar.get_location_from_army_location()) {
+						if(o.get_army().get_path().size() > 0 && o.get_army().get_path()[0] == ar.get_location_from_army_location()) {
 							all_gathered = false;
 							break;
 						}
@@ -3988,7 +4001,8 @@ void move_gathered_attackers(sys::state& state) {
 								existing_path.resize(new_size);
 
 								for(uint32_t i = 0; i < new_size; ++i) {
-									existing_path.at(i) = path[i];
+									assert(path[i]);
+									existing_path[i] = path[i];
 								}
 								o.get_army().set_arrival_time(military::arrival_time_to(state, o.get_army(), path.back()));
 								o.get_army().set_ai_activity(uint8_t(army_activity::attack_gathered));
@@ -4068,7 +4082,8 @@ void move_gathered_attackers(sys::state& state) {
 				existing_path.resize(new_size);
 
 				for(uint32_t k = 0; k < new_size; ++k) {
-					existing_path.at(k) = path[k];
+					assert(path[k]);
+					existing_path[k] = path[k];
 				}
 				state.world.army_set_arrival_time(require_transport[i], military::arrival_time_to(state, require_transport[i], path.back()));
 			}
@@ -4085,7 +4100,8 @@ void move_gathered_attackers(sys::state& state) {
 				existing_path.resize(new_size);
 
 				for(uint32_t k = 0; k < new_size; ++k) {
-					existing_path.at(k) = fleet_path[k];
+					assert(fleet_path[k]);
+					existing_path[k] = fleet_path[k];
 				}
 				state.world.navy_set_arrival_time(transport_fleet, military::arrival_time_to(state, transport_fleet, fleet_path.back()));
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
@@ -4117,7 +4133,8 @@ void move_gathered_attackers(sys::state& state) {
 							existing_path.resize(new_size);
 
 							for(uint32_t k = 0; k < new_size; ++k) {
-								existing_path.at(k) = jpath[k];
+								assert(jpath[k]);
+								existing_path[k] = jpath[k];
 							}
 							state.world.army_set_arrival_time(require_transport[j], military::arrival_time_to(state, require_transport[j], jpath.back()));
 							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_attack));
@@ -4308,7 +4325,8 @@ void new_units_and_merging(sys::state& state) {
 							existing_path.resize(new_size);
 
 							for(uint32_t i = 0; i < new_size; ++i) {
-								existing_path.at(i) = path[i];
+								assert(path[i]);
+								existing_path[i] = path[i];
 							}
 							ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
 							ar.set_ai_province(target_location);
