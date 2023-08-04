@@ -170,6 +170,19 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	if(state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(from))
 		return true;
 	
+	// Having a mutual, non-rival enemy - incentivizing AI to clump against a
+	// common enemy more easily
+	bool mutual_enemy = false;
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		if(n != target && n != from) {
+			bool enemy_a = military::can_use_cb_against(state, from, n) || military::are_at_war(state, from, n);
+			bool enemy_b = military::can_use_cb_against(state, target, n) || military::are_at_war(state, target, n);
+			mutual_enemy = mutual_enemy || (enemy_a && enemy_b);
+		}
+	});
+	if(mutual_enemy)
+		return true;
+	
 	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
 	if(!ai_is_close_enough(state, target, from))
 		return false;
@@ -177,7 +190,7 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	// And also if they're powerful enough to be considered for an alliance
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, from);
-	return source_score * 2.0f >= target_score;
+	return target_score >= source_score * 0.5f; // target has to be atleast as half as strong as us
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
@@ -186,7 +199,17 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 
 	text::add_line(state, contents, "kierkegaard_1", indent);
 
-	text::add_line_with_condition(state, contents, "ai_alliance_5", state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(state.local_player_nation), indent + 15);
+	// Having a mutual, non-rival enemy - incentivizing AI to clump against a
+	// common enemy more easily
+	bool mutual_enemy = false;
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		if(n != target && n != state.local_player_nation) {
+			bool enemy_a = military::can_use_cb_against(state, state.local_player_nation, n) || military::are_at_war(state, state.local_player_nation, n);
+			bool enemy_b = military::can_use_cb_against(state, target, n) || military::are_at_war(state, target, n);
+			mutual_enemy = mutual_enemy || (enemy_a && enemy_b);
+		}
+	});
+	text::add_line_with_condition(state, contents, "ai_alliance_5", (state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(state.local_player_nation)) || mutual_enemy, indent + 15);
 
 	text::add_line(state, contents, "kierkegaard_2", indent);
 
@@ -196,7 +219,7 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, state.local_player_nation);
-	text::add_line_with_condition(state, contents, "ai_alliance_4", source_score * 2.0f >= target_score, indent + 15);
+	text::add_line_with_condition(state, contents, "ai_alliance_4", target_score >= source_score * 0.5f, indent + 15);
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
