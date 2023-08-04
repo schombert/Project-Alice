@@ -1847,13 +1847,15 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
-	if(!as_attacker)
-		return true;
 	for(auto par : state.world.war_get_war_participant(w)) {
-		if(par.get_is_attacker() == false) {
+		if(par.get_is_attacker() == !as_attacker) {
+			// Could use a CB against this nation?
 			if(military::can_use_cb_against(state, n, par.get_nation()))
 				return true;
-			// Eager to absolutely demolish our rival
+			// Already at war with this nation?
+			if(military::are_at_war(state, n, par.get_nation()))
+				return true;
+			// Eager to absolutely demolish our rival if possible
 			if(state.world.nation_get_ai_rival(n) == par.get_nation())
 				return true;
 		}
