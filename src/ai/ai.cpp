@@ -3790,7 +3790,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		// make list of attackers
 		float a_force_str = 0.f;
 		int32_t k = int32_t(ready_armies.size());
-		for(; k-- > 0 && a_force_str < target_attack_force;) {
+		for(; k-- > 0 && a_force_str <= target_attack_force;) {
 			for(auto ar : state.world.province_get_army_location(ready_armies[k])) {
 				if(ar.get_army().get_battle_from_army_battle_participation()
 					|| n != ar.get_army().get_controller_from_army_control()
