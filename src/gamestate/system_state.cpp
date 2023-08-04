@@ -2200,6 +2200,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
+	ai::refresh_home_ports(*this);
 
 	game_state_updated.store(true, std::memory_order::release);
 }
@@ -2400,8 +2401,8 @@ void state::game_loop() {
 				// basic repopulation of demographics derived values
 				demographics::regenerate_from_pop_data(*this);
 
-				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 15, [&](int32_t index) {
+				// values updates pass 1 (mostly trivial things, can be done in parallel)
+				concurrency::parallel_for(0, 16, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2441,7 +2442,6 @@ void state::game_loop() {
 						break;
 					case 12:
 						military::update_ticking_war_score(*this);
-						military::update_war_cleanup(*this);
 						break;
 					case 13:
 						military::increase_dig_in(*this);
@@ -2449,9 +2449,13 @@ void state::game_loop() {
 					case 14:
 						military::recover_org(*this);
 						break;
+					case 15:
+						ai::refresh_home_ports(*this);
+						break;
 					}
 				});
 
+				military::update_war_cleanup(*this);
 				economy::daily_update(*this);
 
 				military::update_movement(*this);
@@ -2494,6 +2498,7 @@ void state::game_loop() {
 					break;
 				case 4:
 					military::reinforce_regiments(*this);
+					ai::make_defense(*this);
 					break;
 				case 5:
 					rebel::update_movements(*this);
@@ -2532,6 +2537,10 @@ void state::game_loop() {
 				case 16:
 					ai::take_ai_decisions(*this);
 					break;
+				case 17:
+					ai::build_ships(*this);
+					ai::update_land_constructions(*this);
+					break;
 				case 18:
 					ai::update_ai_econ_construction(*this);
 					break;
@@ -2552,6 +2561,7 @@ void state::game_loop() {
 					break;
 				case 24:
 					rebel::execute_rebel_victories(*this);
+					ai::make_attacks(*this);
 					break;
 				case 25:
 					rebel::execute_province_defections(*this);
@@ -2567,6 +2577,9 @@ void state::game_loop() {
 					break;
 				case 29:
 					ai::update_war_intervention(*this);
+					break;
+				case 30:
+					ai::update_ships(*this);
 					break;
 				case 31:
 					ai::update_cb_fabrication(*this);
@@ -2593,6 +2606,10 @@ void state::game_loop() {
 						ai::upgrade_colonies(*this);
 					}
 				}
+
+				ai::general_ai_unit_tick(*this);
+
+				ai::daily_cleanup(*this);
 
 				/*
 				 * END OF DAY: update cached data

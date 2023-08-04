@@ -38,5 +38,17 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 void make_peace_offers(sys::state& state);
 void make_war_decs(sys::state& state);
 void update_budget(sys::state& state);
-void on_fleet_arrival(sys::state& state, dcon::navy_id n);
+void remove_ai_data(sys::state& state, dcon::nation_id n);
+void update_ships(sys::state& state);
+void build_ships(sys::state& state);
+void refresh_home_ports(sys::state& state);
+void daily_cleanup(sys::state& state);
+void move_idle_guards(sys::state& state);
+void update_land_constructions(sys::state& state);
+void update_naval_transport(sys::state& state);
+void move_gathered_attackers(sys::state& state);
+void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p);
+void make_attacks(sys::state& state);
+void make_defense(sys::state& state);
+void general_ai_unit_tick(sys::state& state);
 }

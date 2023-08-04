@@ -815,6 +815,9 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	state.world.nation_set_is_player_controlled(holder, state.world.nation_get_is_player_controlled(source));
 	state.world.nation_set_is_player_controlled(source, old_controller);
 
+	if(state.world.nation_get_is_player_controlled(holder))
+		ai::remove_ai_data(state, holder);
+
 	if(state.local_player_nation == source) {
 		state.local_player_nation = holder;
 	} else if(state.local_player_nation == holder) {
@@ -2764,6 +2767,7 @@ void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::nati
 		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(t);
 	}
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+	ai::remove_ai_data(state, state.local_player_nation);
 }
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
@@ -3262,7 +3266,7 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	auto last_province = state.world.army_get_location_from_army_location(a);
 	auto movement = state.world.army_get_path(a);
 	if(movement.size() > 0) {
-		last_province = movement.at(movement.size() - 1);
+		last_province = movement.at(0);
 	}
 
 	if(last_province == dest)
@@ -3311,7 +3315,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		auto new_size = old_size + append_size;
 		existing_path.resize(new_size);
 
-		for(uint32_t i = 0; i < old_size; ++i) {
+		for(uint32_t i = old_size; i--> 0; ) {
 			existing_path.at(append_size + i) = existing_path.at(i);
 		}
 		for(uint32_t i = 0; i < append_size; ++i) {
@@ -3345,7 +3349,7 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 	auto last_province = state.world.navy_get_location_from_navy_location(n);
 	auto movement = state.world.navy_get_path(n);
 	if(movement.size() > 0) {
-		last_province = movement.at(movement.size() - 1);
+		last_province = movement.at(0);
 	}
 
 	if(last_province == dest)
@@ -3386,7 +3390,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 		auto new_size = old_size + append_size;
 		existing_path.resize(new_size);
 
-		for(uint32_t i = 0; i < old_size; ++i) {
+		for(uint32_t i = old_size; i-- > 0; ) {
 			existing_path.at(append_size + i) = existing_path.at(i);
 		}
 		for(uint32_t i = 0; i < append_size; ++i) {

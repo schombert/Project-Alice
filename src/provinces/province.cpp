@@ -1428,14 +1428,15 @@ float distance(sys::state& state, dcon::province_adjacency_id pair) {
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
 	auto apos = state.world.province_get_mid_point_b(a);
-	auto bpos = state.world.province_get_mid_point_b(a);
+	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
-	return math::acos(dot) * (40075.0f / ((24.0f * 2.0f) * math::pi));
+	//return math::acos(dot) * (40075.0f / ((24.0f * 2.0f) * math::pi));
+	return math::acos(dot) * (400.0f / ((24.0f * 2.0f) * math::pi));
 }
 
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
 	auto apos = state.world.province_get_mid_point_b(a);
-	auto bpos = state.world.province_get_mid_point_b(a);
+	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
 	return -dot;
 }

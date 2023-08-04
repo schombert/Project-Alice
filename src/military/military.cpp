@@ -3731,9 +3731,16 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 					add_army_to_battle(state, o.get_army(), gather_to_battle, !bool(other_nation) ? war_role::attacker : war_role::defender);
 				}
 			}
-		}
 
-		// TODO: notify on new battle
+			if(battle_in_war) { // gather as part of war
+				for(auto par : state.world.war_get_war_participant(battle_in_war)) {
+					if(par.get_nation().get_is_player_controlled() == false)
+						ai::gather_to_battle(state, par.get_nation(), p);
+				}
+			} else if(state.world.nation_get_is_player_controlled(owner_nation) == false) { // gather vs. rebels
+				ai::gather_to_battle(state, owner_nation, p);
+			}
+		}
 	}
 }
 
