@@ -3727,7 +3727,7 @@ float estimate_attack_force(sys::state& state, dcon::province_id target, dcon::n
 		auto sdist = province::sorting_distance(state, loc, target);
 		if(sdist < state.defines.alice_ai_threat_radius) {
 			auto other_nation = ar.get_controller_from_army_control();
-			if(!other_nation || military::are_at_war(state, other_nation, by)) {
+			if((by != other_nation) && (!other_nation || military::are_at_war(state, other_nation, by))) {
 				strength_total += estimate_army_strength(state, ar);
 			}
 		}
