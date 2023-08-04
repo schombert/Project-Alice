@@ -1976,6 +1976,11 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		add_to_war(state, w, dep.get_subject(), as_attacker);
 	}
 
+	for(auto wp : state.world.war_get_war_participant(w)) {
+		if(wp.get_is_attacker() == !as_attacker && nations::are_allied(state, n, wp.get_nation()))
+			nations::break_alliance(state, n, wp.get_nation());
+	}
+
 	for(auto ul : state.world.nation_get_unilateral_relationship_as_source(n)) {
 		if(ul.get_war_subsidies()) {
 			auto role = get_role(state, w, ul.get_target());
@@ -4434,7 +4439,7 @@ float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::prov
 bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto prov = state.world.army_get_location_from_army_location(a);
 
-	if(state.world.province_get_siege_progress(prov) > 0)
+	if(state.world.province_get_siege_progress(prov) > 0.f)
 		return true;
 
 	float total_army_weight = 0;
@@ -4521,7 +4526,7 @@ void apply_attrition(sys::state& state) {
 
 				float attrition_value =
 					std::clamp(total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort), 0.0f, state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::max_attrition))
-					+ state.world.province_get_siege_progress(prov) > 0 ? state.defines.siege_attrition : 0.0f;
+					+ state.world.province_get_siege_progress(prov) > 0.f ? state.defines.siege_attrition : 0.0f;
 
 				for(auto rg : ar.get_army().get_army_membership()) {
 					rg.get_regiment().get_pending_damage() += attrition_value * 0.01f;
