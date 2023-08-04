@@ -3654,9 +3654,6 @@ bool rebel_army_in_province(sys::state& state, dcon::province_id p) {
 	return false;
 }
 
-constexpr inline float threat_radius = -0.996f; // = about 5 degrees
-constexpr inline float threat_overestimate = 2.0f;
-
 float estimate_army_strength(sys::state& state, dcon::army_id a) {
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
@@ -3675,25 +3672,22 @@ float conservative_estimate_army_strength(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_attack_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
-	float strength_total = 0;
+	float strength_total = 0.f;
 	for(auto ar : state.world.in_army) {
 		if(ar.get_is_retreating() || ar.get_battle_from_army_battle_participation())
 			continue;
 
 		auto loc = ar.get_location_from_army_location();
 		auto sdist = province::sorting_distance(state, loc, target);
-		if(sdist < threat_radius) {
+		if(sdist < state.defines.alice_ai_threat_radius) {
 			auto other_nation = ar.get_controller_from_army_control();
 			if(!other_nation || military::are_at_war(state, other_nation, by)) {
 				strength_total += estimate_army_strength(state, ar);
 			}
 		}
 	}
-
-	return threat_overestimate * strength_total;
+	return state.defines.alice_ai_threat_overestimate * strength_total;
 }
-
-constexpr inline float attack_target_radius = -0.996f; // = about 5 degrees
 
 void assign_targets(sys::state& state, dcon::nation_id n) {
 	std::vector<dcon::province_id> ready_armies;
@@ -3878,7 +3872,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 
 		// remove subsequent targets that are too close
 		for(uint32_t j = i + 1; j < psize; ++j) {
-			if(province::sorting_distance(state, potential_targets[j].location, potential_targets[i].location) < attack_target_radius)
+			if(province::sorting_distance(state, potential_targets[j].location, potential_targets[i].location) < state.defines.alice_ai_attack_target_radius)
 				potential_targets[j].location = dcon::province_id{};
 		}
 	}
