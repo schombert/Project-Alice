@@ -19,7 +19,7 @@ float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
 
 		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 		if(other.get_overlord_as_subject().get_ruler() != n)
-			value += estimate_strength(state, other);
+			value += other.get_military_score();
 	}
 	if(auto sl = state.world.nation_get_in_sphere_of(n); sl)
 		value += estimate_strength(state, sl);
@@ -34,7 +34,7 @@ float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id 
 
 		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against(state, other, target) && !military::has_truce_with(state, other, target))
-			value += estimate_strength(state, other);
+			value += other.get_military_score();
 	}
 	return value;
 }
