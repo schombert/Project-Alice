@@ -1536,6 +1536,12 @@ struct province_and_distance {
 	}
 };
 
+static inline std::vector<dcon::province_id>& assert_path_result(std::vector<dcon::province_id>& v) {
+	for(auto const e : v)
+		assert(bool(e));
+	return v;
+}
+
 // normal pathfinding
 std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a) {
 
@@ -1567,7 +1573,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
-					return path_result;
+					return assert_path_result(path_result);
 				}
 
 				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
@@ -1593,7 +1599,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as) {
@@ -1626,7 +1632,7 @@ std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::prov
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
-					return path_result;
+					return assert_path_result(path_result);
 				}
 
 				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
@@ -1645,7 +1651,7 @@ std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::prov
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 // used for rebel unit and black-flagged unit pathfinding
@@ -1678,7 +1684,7 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
-					return path_result;
+					return assert_path_result(path_result);
 				}
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
 					path_heap.push_back(
@@ -1690,7 +1696,7 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
@@ -1731,7 +1737,7 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is sea province
 					if(other_prov == end) {
 						fill_path_result(nearest.province);
-						return path_result;
+						return assert_path_result(path_result);
 					} else {
 
 						path_heap.push_back(province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
@@ -1741,7 +1747,7 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 				} else if(other_prov.id.index() < state.province_definitions.first_sea_province.index() && other_prov == end && other_prov.get_port_to() == nearest.province) { // case: ending in a port
 
 					fill_path_result(nearest.province);
-					return path_result;
+					return assert_path_result(path_result);
 				} else if(nearest.province.index() < state.province_definitions.first_sea_province.index() && state.world.province_get_port_to(nearest.province) == other_prov.id) { // case: leaving port
 
 					path_heap.push_back(province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
@@ -1752,7 +1758,7 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 struct retreat_province_and_distance {
@@ -1788,7 +1794,7 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 
 		if(nearest.province.index() < state.province_definitions.first_sea_province.index()) {
 			fill_path_result(nearest.province);
-			return path_result;
+			return assert_path_result(path_result);
 		}
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
@@ -1815,7 +1821,7 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start) {
@@ -1842,7 +1848,7 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 
 		if(nearest.province != start && has_naval_access_to_province(state, nation_as, nearest.province)) {
 			fill_path_result(nearest.province);
-			return path_result;
+			return assert_path_result(path_result);
 		}
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
@@ -1863,7 +1869,7 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start) {
@@ -1889,7 +1895,7 @@ std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dco
 
 		if(state.world.province_get_is_coast(nearest.province)) {
 			fill_path_result(nearest.province);
-			return path_result;
+			return assert_path_result(path_result);
 		}
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
@@ -1914,7 +1920,7 @@ std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dco
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start) {
 	std::vector<retreat_province_and_distance> path_heap;
@@ -1939,7 +1945,7 @@ std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& st
 
 		if(state.world.province_get_is_coast(nearest.province)) {
 			fill_path_result(nearest.province);
-			return path_result;
+			return assert_path_result(path_result);
 		}
 
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
@@ -1960,7 +1966,7 @@ std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& st
 		}
 	}
 
-	return path_result;
+	return assert_path_result(path_result);
 }
 
 void restore_distances(sys::state& state) {

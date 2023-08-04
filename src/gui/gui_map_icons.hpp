@@ -1219,7 +1219,7 @@ public:
 			display.top_left_org_value /= float(total_count);
 
 			battle->set_visible(state, false);
-			siege->set_visible(state, state.world.province_get_siege_progress(prov) > 0);
+			siege->set_visible(state, state.world.province_get_siege_progress(prov) > 0.f);
 			top_icon->base_data.position.x = -30;
 			top_right_icon->set_visible(state, false);
 			small_top_icon->base_data.position.x = -30;

@@ -2885,7 +2885,7 @@ void daily_cleanup(sys::state& state) {
 		if(state.world.navy_is_valid(n)) {
 			auto rng = state.world.navy_get_navy_membership(n);
 			if(rng.begin() == rng.end()) {
-				state.world.delete_navy(n);
+				military::cleanup_navy(state, n);
 			}
 		}
 	}
@@ -2894,7 +2894,7 @@ void daily_cleanup(sys::state& state) {
 		if(state.world.army_is_valid(n)) {
 			auto rng = state.world.army_get_army_membership(n);
 			if(rng.begin() == rng.end()) {
-				state.world.delete_army(n);
+				military::cleanup_army(state, n);
 			}
 		}
 	}

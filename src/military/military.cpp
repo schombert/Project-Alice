@@ -3964,6 +3964,23 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 	while(regs.begin() != regs.end()) {
 		state.world.delete_regiment((*regs.begin()).get_regiment());
 	}
+
+	auto controller = state.world.army_get_controller_from_army_control(n);
+	auto b = state.world.army_get_battle_from_army_battle_participation(n);
+	if(b) {
+		bool should_end = true;
+		// TODO: Do they have to be in common war or can they just be "hostile against"?
+		for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
+			if(bp.get_army() != n && are_allied_in_war(state, controller, state.world.army_get_controller_from_army_control(bp.get_army()))) {
+				should_end = false;
+			}
+		}
+		if(should_end) {
+			bool as_attacker = state.world.land_battle_get_war_attacker_is_attacker(b);
+			end_battle(state, b, as_attacker ? battle_result::defender_won : battle_result::attacker_won);
+		}
+	}
+
 	state.world.delete_army(n);
 }
 
@@ -3976,6 +3993,23 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 	while(em.begin() != em.end()) {
 		cleanup_army(state, (*em.begin()).get_army());
 	}
+
+	auto controller = state.world.navy_get_controller_from_navy_control(n);
+	auto b = state.world.navy_get_battle_from_navy_battle_participation(n);
+	if(b) {
+		bool should_end = true;
+		// TODO: Do they have to be in common war or can they just be "hostile against"?
+		for(auto bp : state.world.naval_battle_get_navy_battle_participation_as_battle(b)) {
+			if(bp.get_navy() != n && are_allied_in_war(state, controller, state.world.navy_get_controller_from_navy_control(bp.get_navy()))) {
+				should_end = false;
+			}
+		}
+		if(should_end) {
+			bool as_attacker = state.world.naval_battle_get_war_attacker_is_attacker(b);
+			end_battle(state, b, as_attacker ? battle_result::defender_won : battle_result::attacker_won);
+		}
+	}
+
 	state.world.delete_navy(n);
 }
 
@@ -4406,7 +4440,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		cleanup_navy(state, n);
 	}
 	for(auto a : army_to_delete) {
-		state.world.delete_army(a);
+		cleanup_army(state, a);
 	}
 }
 
@@ -4582,7 +4616,7 @@ void apply_regiment_damage(sys::state& state) {
 				state.world.delete_regiment(s);
 				auto army_regs = state.world.army_get_army_membership(army);
 				if(army_regs.begin() == army_regs.end()) {
-					state.world.delete_army(army);
+					military::cleanup_army(state, army);
 				}
 			}
 		}
@@ -5735,9 +5769,10 @@ void update_siege_progress(sys::state& state) {
 				state.world.province_set_former_rebel_controller(prov, state.world.province_get_rebel_faction_from_province_rebel_control(prov));
 
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
+				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
+				assert(bool(new_controller) != bool(rebel_controller));
 				if(!new_controller || are_at_war(state, new_controller, owner)) {
 					state.world.province_set_nation_from_province_control(prov, new_controller);
-					auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
 					state.world.province_set_rebel_faction_from_province_rebel_control(prov, rebel_controller);
 				} else {
 					state.world.province_set_nation_from_province_control(prov, owner);
