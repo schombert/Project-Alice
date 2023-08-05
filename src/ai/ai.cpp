@@ -171,7 +171,8 @@ static bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::n
 	if(rival_a && rival_a == rival_b)
 		return true;
 	// Our rivals are allied?
-	if(rival_a && rival_b && rival_a != rival_b && nations::are_allied(state, rival_a, rival_b))
+	//if(rival_a && rival_b && rival_a != rival_b && nations::are_allied(state, rival_a, rival_b))
+	//	return true;
 		return true;
 
 	return false;
