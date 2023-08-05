@@ -4,7 +4,7 @@
 #include "system_state.hpp"
 #include "serialization.hpp"
 
-TEST_CASE("location setting on armies", "[dcon]") {
+TEST_CASE("dl_setting", "[dcon]") {
     std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
 
     constexpr uint32_t num_test = 2000;

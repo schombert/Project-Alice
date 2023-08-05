@@ -1,14 +1,14 @@
 #94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
 if(WIN32)
-add_executable(tests_project WIN32 "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
 	"${PROJECT_SOURCE_DIR}/src/alice.rc")
 else()
-add_executable(tests_project WIN32 "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
@@ -24,7 +24,7 @@ if(WIN32)
 										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
-		target_link_options(tests_project PRIVATE
+		target_link_options(tests_project PRIVATE /SUBSYSTEM:CONSOLE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	else()
@@ -32,7 +32,7 @@ if(WIN32)
 										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
-		target_link_options(tests_project PRIVATE
+		target_link_options(tests_project PRIVATE /SUBSYSTEM:CONSOLE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
 	endif()
