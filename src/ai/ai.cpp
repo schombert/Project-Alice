@@ -19,7 +19,7 @@ float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
 
 		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 		if(other.get_overlord_as_subject().get_ruler() != n)
-			value += other.get_military_score();
+			value += estimate_strength(other);
 	}
 	if(auto sl = state.world.nation_get_in_sphere_of(n); sl)
 		value += estimate_strength(state, sl);
@@ -34,7 +34,7 @@ float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id 
 
 		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against(state, other, target) && !military::has_truce_with(state, other, target))
-			value += other.get_military_score();
+			value += estimate_strength(other);
 	}
 	return value;
 }
@@ -104,34 +104,42 @@ void update_ai_general_status(sys::state& state) {
 	}
 }
 
-static void get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
+static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
 		if(other != n && other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n))
 			alliance_targets.push_back(other.id);
 	}
 }
+static void internal_get_alliance_targets(sys::state& state, dcon::nation_id n, std::vector<dcon::nation_id>& alliance_targets) {
+	// Adjacency with us
+	internal_get_alliance_targets_by_adjacency(state, n.id, n.id, alliance_targets);
+	if(!alliance_targets.empty())
+		return;
+
+	// Adjacency with rival (useful for e.x, Chile allying Paraguay to fight bolivia)
+	internal_get_alliance_targets_by_adjacency(state, n.id, n.get_ai_rival(), alliance_targets);
+	if(!alliance_targets.empty())
+		return;
+	
+	// Adjacency with people who are at war with us
+	for(auto wp : state.world.nation_get_war_participant(n)) {
+		for(auto p : state.world.war_get_war_participant(wp.get_war())) {
+			if(p.get_is_attacker() == !wp.get_is_attacker()) {
+				internal_get_alliance_targets_by_adjacency(state, n.id, p.get_nation(), alliance_targets);
+				if(!alliance_targets.empty())
+					return;
+			}
+		}
+	}
+}
 
 void form_alliances(sys::state& state) {
 	static std::vector<dcon::nation_id> alliance_targets;
-
 	for(auto n : state.world.in_nation) {
 		if(!n.get_is_player_controlled() && n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
 			alliance_targets.clear();
-
-			// Adjacency with us
-			get_alliance_targets_by_adjacency(state, n.id, n.id, alliance_targets);
-			// Adjacency with rival (useful for e.x, Chile allying Paraguay to fight bolivia)
-			get_alliance_targets_by_adjacency(state, n.id, n.get_ai_rival(), alliance_targets);
-			// Adjacency with people who are at war with us
-			for(auto wp : state.world.nation_get_war_participant(n)) {
-				bool as_attacker = wp.get_is_attacker();
-				for(auto p : state.world.war_get_war_participant(wp.get_war())) {
-					if(p.get_is_attacker() == !as_attacker)
-						get_alliance_targets_by_adjacency(state, n.id, p.get_nation(), alliance_targets);
-				}
-			}
-
+			internal_get_alliance_targets(state, n, alliance_targets);
 			if(!alliance_targets.empty()) {
 				std::sort(alliance_targets.begin(), alliance_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 					if(estimate_strength(state, a) != estimate_strength(state, b))
@@ -139,15 +147,12 @@ void form_alliances(sys::state& state) {
 					else
 						return a.index() > b.index();
 				});
-				auto last = std::unique(alliance_targets.begin(), alliance_targets.end());
-				alliance_targets.erase(last, alliance_targets.end());
 				nations::make_alliance(state, n, alliance_targets[0]);
 
 				// Call our new allies into wars.... they may not accept but they may just may join!
-				for(auto wp : state.world.nation_get_war_participant(n)) {
+				for(auto wp : state.world.nation_get_war_participant(n))
 					if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(state, alliance_targets[0], wp.get_war(), wp.get_is_attacker()))
 						command::execute_call_to_arms(state, n, alliance_targets[0], wp.get_war());
-				}
 			}
 		}
 	}
