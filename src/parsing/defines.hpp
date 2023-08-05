@@ -645,7 +645,12 @@
 	LUA_DEFINES_LIST_ELEMENT(cities_special_buildings_pool_size, 64.000000)                                                        \
 	LUA_DEFINES_LIST_ELEMENT(cities_size_max_population_k, 1000.000000)                                                            \
 	/* Non-vanilla defines */                                                                                                      \
-	LUA_DEFINES_LIST_ELEMENT(factories_per_state, 8.000000)
+	LUA_DEFINES_LIST_ELEMENT(factories_per_state, 8.000000)                                                                        \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_gather_radius, -0.996000)                                                                    \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_radius, -0.996000)                                                                    \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_overestimate, 1.150000)                                                               \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_attack_target_radius, -0.996000)                                                             \
+
 
 namespace parsing {
 struct defines {

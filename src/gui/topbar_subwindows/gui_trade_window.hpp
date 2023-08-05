@@ -799,17 +799,10 @@ public:
 class trade_confirm_trade_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = float{};
-			parent->impl_get(state, payload);
-			auto famount = any_cast<float>(payload);
-
-			Cyto::Any payload2 = dcon::commodity_id{};
-			parent->impl_get(state, payload2);
-			auto cid = any_cast<dcon::commodity_id>(payload2);
-
-			//command::change_stockpile_settings(state, state.local_player_nation, cid, famount, false);
-		}
+		// TODO: change stockpile settings option?
+		//float famount = retrieve<float>(state, parent);
+		//auto cid = retrieve<dcon::commodity_id>(state, parent);
+		//command::change_stockpile_settings(state, state.local_player_nation, cid, famount, false);
 	}
 };
 

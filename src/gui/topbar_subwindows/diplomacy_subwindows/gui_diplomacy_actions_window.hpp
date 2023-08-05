@@ -394,7 +394,6 @@ public:
 		auto content = retrieve<dcon::nation_id>(state, parent);
 
 		disabled = true;
-		auto fat = dcon::fatten(state.world, content);
 		for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
 			if(command::can_call_to_arms(state, state.local_player_nation, content, war_par.get_war())) {
 
@@ -928,15 +927,15 @@ public:
 			text::add_line(state, contents, "increaseopinion_desc");
 			text::add_line_break_to_layout(state, contents);
 
-			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(source));
 
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 
-			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation);
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.increaseopinion_influence_cost, text::variable_type::x, int64_t(state.defines.increaseopinion_influence_cost));
 
 			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
-			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, source, target));
 
 			auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 			text::add_line_with_condition(state, contents, "inc_op_explain_1", clevel != nations::influence::level_friendly && clevel != nations::influence::level_in_sphere);
@@ -972,15 +971,15 @@ public:
 			text::add_line(state, contents, "addtosphere_desc");
 			text::add_line_break_to_layout(state, contents);
 
-			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(source));
 
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 
-			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation);
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.addtosphere_influence_cost, text::variable_type::x, int64_t(state.defines.addtosphere_influence_cost));
 
 			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
-			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, source, target));
 
 			auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 			text::add_line_with_condition(state, contents, "add_sphere_explain_1", clevel == nations::influence::level_friendly);

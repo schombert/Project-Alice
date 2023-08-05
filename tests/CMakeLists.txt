@@ -1,7 +1,19 @@
 #94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
-add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp")
-
+if(WIN32)
+add_executable(tests_project WIN32 "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+	"${PROJECT_SOURCE_DIR}/src/alice.rc")
+else()
+add_executable(tests_project WIN32 "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map.cpp")
+endif()
 
 if(WIN32)
 	set(CMAKE_CXX_FLAGS "")
@@ -26,7 +38,7 @@ if(WIN32)
 	endif()
 else() # GCC or CLANG
 	target_compile_options(tests_project PRIVATE
-									-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wshadow
+									-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wshadow
 		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
 endif()

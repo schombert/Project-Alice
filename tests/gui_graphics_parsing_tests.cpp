@@ -225,6 +225,20 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		{
 			auto all_gui_files = list_files(interfc, NATIVE(".gui"));
 
+			// NOTE: Hardcoded in the tests only
+			{
+				std::string_view eu3_fix =
+					"spriteTypes = {\n"
+					"  textSpriteType = {\n"
+					"    name = \"GFX_icon_merchant\"\n"
+					"    texturefile = \"gfx\\test\\factions.dds\"\n"
+					"  }\n"
+					"}";
+				err.file_name = "eu3_fix.gfx";
+				parsers::token_generator gen(eu3_fix.data(), eu3_fix.data() + eu3_fix.length());
+				parsers::parse_gfx_files(gen, err, test_context);
+			}
+
 			for (auto &file : all_gui_files) {
 				auto file_name = get_full_name(file);
 				if (!parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("confirmbuild.gui")) && !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("convoys.gui")) && !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("brigadeview.gui"))) {

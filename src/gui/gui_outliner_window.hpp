@@ -57,27 +57,27 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("ol_navies_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
-			auto grid = std::get<dcon::gp_relationship_id>(content);
-			auto nid = state.world.gp_relationship_get_influence_target(grid);
+			//auto grid = std::get<dcon::gp_relationship_id>(content);
+			//auto nid = state.world.gp_relationship_get_influence_target(grid);
 
 		} else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
-			auto sbcid = std::get<dcon::state_building_construction_id>(content);
-			auto ftid = state.world.state_building_construction_get_type(sbcid);
+			//auto sbcid = std::get<dcon::state_building_construction_id>(content);
+			//auto ftid = state.world.state_building_construction_get_type(sbcid);
 
 		} else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
-			auto pbcid = std::get<dcon::province_building_construction_id>(content);
-			auto btid = state.world.province_building_construction_get_type(pbcid);
-			auto name = province_building_type_get_name(economy::province_building_type(btid));
+			//auto pbcid = std::get<dcon::province_building_construction_id>(content);
+			//auto btid = state.world.province_building_construction_get_type(pbcid);
+			//auto name = province_building_type_get_name(economy::province_building_type(btid));
 
 		} else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
-			auto plcid = std::get<dcon::province_land_construction_id>(content);
-			auto utid = state.world.province_land_construction_get_type(plcid);
-			auto name = state.military_definitions.unit_base_definitions[utid].name;
+			//auto plcid = std::get<dcon::province_land_construction_id>(content);
+			//auto utid = state.world.province_land_construction_get_type(plcid);
+			//auto name = state.military_definitions.unit_base_definitions[utid].name;
 
 		} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
-			auto pncid = std::get<dcon::province_naval_construction_id>(content);
-			auto utid = state.world.province_naval_construction_get_type(pncid);
-			auto name = state.military_definitions.unit_base_definitions[utid].name;
+			//auto pncid = std::get<dcon::province_naval_construction_id>(content);
+			//auto utid = state.world.province_naval_construction_get_type(pncid);
+			//auto name = state.military_definitions.unit_base_definitions[utid].name;
 		}
 	}
 };

@@ -348,7 +348,6 @@ public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		auto pop = retrieve<dcon::pop_id>(state, parent);
 		auto movement = state.world.pop_get_movement_from_pop_movement_membership(pop);
-		auto rebel_fac = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop);
 		if(movement) {
 			if(auto id = state.world.movement_get_associated_independence(movement); id) {
 				show = true;
@@ -612,7 +611,6 @@ void describe_emigration(sys::state& state, text::columnar_layout& contents, dco
 		return;
 	}
 
-	auto pop_sizes = state.world.pop_get_size(ids);
 	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 	auto emig = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f);
 	auto scale =  state.defines.immigration_scale;
@@ -1020,7 +1018,6 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 }
 
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
-	float total = 0.0f;
 	auto location = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
 	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(owner), 0), 0.0f);
@@ -1919,7 +1916,6 @@ class issue_with_explanation : public simple_text_element_base {
 			auto opt = fatten(state.world, issue);
 			auto allow = opt.get_allow();
 			auto parent_issue = opt.get_parent_issue();
-			auto const i_key = pop_demographics::to_key(state, issue);
 			auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
 			auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
 			auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
