@@ -1,14 +1,12 @@
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 #define CATCH_CONFIG_MAIN
 #include "catch2/catch.hpp"
-#include "simple_fs.hpp"
-#include "system_state.hpp"
 
 #ifndef DCON_TRAP_INVALID_STORE
 #define DCON_TRAP_INVALID_STORE 1
 #endif
 
-#define ALICE_NO_ENTRY_POINT
+#define ALICE_NO_ENTRY_POINT 1
 #include "main.cpp"
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
