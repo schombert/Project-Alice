@@ -1,0 +1,16 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Version=0.1
+Name=Project Alice
+Icon=alice
+Exec=Alice
+Terminal=false
+StartupNotify=true
+Categories=Game;StrategyGame;
+Keywords=strategy;simulation;gsg;
+Comment=An open-source game.
+Comment[en]=An open-source game.
+Comment[es]=Un juego de codigo abierto.
+Comment[de]=Ein quelloffene spiel.
+Comment[it]=Un gioco open source.
