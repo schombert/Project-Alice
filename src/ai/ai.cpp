@@ -172,11 +172,21 @@ static bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::n
 	// Same rival equates to instantaneous alliance (we benefit from more allies against a common enemy)
 	if(rival_a && rival_a == rival_b)
 		return true;
-	// Our rivals are allied?
-	//if(rival_a && rival_b && rival_a != rival_b && nations::are_allied(state, rival_a, rival_b))
-	//	return true;
-		return true;
+	// // Our rivals are allied?
+	// if(rival_a && rival_b && rival_a != rival_b && nations::are_allied(state, rival_a, rival_b))
+	// 	return true;
 
+	// // One of the allies of our rivals can be declared on?
+	// for(auto n : state.world.in_nation) {
+	// 	if(n.id != target && n.id != from && n.id != rival_a && n.id != rival_b) {
+	// 		if(nations::are_allied(state, rival_a, n.id) || nations::are_allied(state, rival_b, n.id)) {
+	// 			bool enemy_a = military::can_use_cb_against(state, from, n.id);
+	// 			bool enemy_b = military::can_use_cb_against(state, target, n.id);
+	// 			if(enemy_a || enemy_b)
+	// 				return true;
+	// 		}
+	// 	}
+	// }
 	return false;
 }
 
