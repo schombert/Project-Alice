@@ -3073,6 +3073,7 @@ void unload_units_from_transport(sys::state& state, dcon::navy_id n) {
 				existing_path[i] = path[i];
 			}
 			ar.get_army().set_arrival_time(military::arrival_time_to(state, ar.get_army(), path.back()));
+			ar.get_army().set_dig_in(0);
 			auto activity = army_activity(ar.get_army().get_ai_activity());
 			if(activity == army_activity::transport_guard) {
 				ar.get_army().set_ai_activity(uint8_t(army_activity::on_guard));
@@ -3470,6 +3471,7 @@ void move_idle_guards(sys::state& state) {
 					existing_path[i] = path[i];
 				}
 				ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
+				ar.set_dig_in(0);
 			} else {
 				require_transport.push_back(ar.id);
 			}
@@ -3533,6 +3535,8 @@ void move_idle_guards(sys::state& state) {
 					existing_path[k] = path[k];
 				}
 				state.world.army_set_arrival_time(require_transport[i], military::arrival_time_to(state, require_transport[i], path.back()));
+				state.world.army_set_dig_in(require_transport[i], 0);
+				state.world.army_set_dig_in(require_transport[i], 0);
 			}
 		}
 
@@ -3584,6 +3588,7 @@ void move_idle_guards(sys::state& state) {
 								existing_path[k] = jpath[k];
 							}
 							state.world.army_set_arrival_time(require_transport[j], military::arrival_time_to(state, require_transport[j], jpath.back()));
+							state.world.army_set_dig_in(require_transport[j], 0);
 							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_guard));
 							tcap -= int32_t(jregs.end() - jregs.begin());
 						}
@@ -3635,6 +3640,7 @@ void update_naval_transport(sys::state& state) {
 				assert(transport_location);
 				existing_path[0] = transport_location;
 				ar.set_arrival_time(military::arrival_time_to(state, ar, transport_location));
+				ar.set_dig_in(0);
 			} else { // transport arrived in inaccessible location
 				ar.set_ai_activity(uint8_t(army_activity::on_guard));
 				ar.set_ai_province(dcon::province_id{});
@@ -3698,6 +3704,7 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 			assert(location);
 			existing_path[0] = location;
 			ar.get_army().set_arrival_time(military::arrival_time_to(state, ar.get_army(), jpath.back()));
+			ar.get_army().set_dig_in(0);
 		}
 	
 	}
@@ -3918,6 +3925,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 						existing_path[q] = path[q];
 					}
 					ar.get_army().set_arrival_time(military::arrival_time_to(state, ar.get_army(), path.back()));
+					ar.get_army().set_dig_in(0);
 					ar.get_army().set_ai_province(potential_targets[i].location);
 					ar.get_army().set_ai_activity(uint8_t(army_activity::attacking));
 				}
@@ -3996,6 +4004,7 @@ void move_gathered_attackers(sys::state& state) {
 								existing_path[i] = path[i];
 							}
 							ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
+							ar.set_dig_in(0);
 						} else {
 							ar.set_ai_activity(uint8_t(army_activity::on_guard));
 							ar.set_ai_province(dcon::province_id{});
@@ -4056,6 +4065,7 @@ void move_gathered_attackers(sys::state& state) {
 									existing_path[i] = path[i];
 								}
 								o.get_army().set_arrival_time(military::arrival_time_to(state, o.get_army(), path.back()));
+								o.get_army().set_dig_in(0);
 								o.get_army().set_ai_activity(uint8_t(army_activity::attack_gathered));
 							}
 						}
@@ -4137,6 +4147,7 @@ void move_gathered_attackers(sys::state& state) {
 					existing_path[k] = path[k];
 				}
 				state.world.army_set_arrival_time(require_transport[i], military::arrival_time_to(state, require_transport[i], path.back()));
+				state.world.army_set_dig_in(require_transport[i], 0);
 			}
 		}
 
@@ -4188,6 +4199,7 @@ void move_gathered_attackers(sys::state& state) {
 								existing_path[k] = jpath[k];
 							}
 							state.world.army_set_arrival_time(require_transport[j], military::arrival_time_to(state, require_transport[j], jpath.back()));
+							state.world.army_set_dig_in(require_transport[j], 0);
 							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_attack));
 							tcap -= int32_t(jregs.end() - jregs.begin());
 						}
@@ -4380,6 +4392,7 @@ void new_units_and_merging(sys::state& state) {
 								existing_path[i] = path[i];
 							}
 							ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
+							ar.set_dig_in(0);
 							ar.set_ai_province(target_location);
 							ar.set_ai_activity(uint8_t(army_activity::merging));
 						} else {
