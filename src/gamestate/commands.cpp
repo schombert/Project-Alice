@@ -3509,8 +3509,7 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 	if(source == state.local_player_nation) {
 		state.deselect(b);
 	}
-
-	state.world.delete_army(b);
+	military::cleanup_army(state, b);
 }
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
@@ -3569,8 +3568,7 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 	if(source == state.local_player_nation) {
 		state.deselect(b);
 	}
-
-	state.world.delete_navy(b);
+	military::cleanup_navy(state, b);
 }
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -3615,11 +3613,11 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 		auto old_regs = state.world.army_get_army_membership(a);
 		if(old_regs.begin() == old_regs.end()) {
 			state.world.leader_set_army_from_army_leadership(state.world.army_get_general_from_army_leadership(a), new_u);
-			state.world.delete_army(a);
 
 			if(source == state.local_player_nation) {
 				state.deselect(a);
 			}
+			military::cleanup_army(state, a);
 		}
 	}
 }
@@ -3666,11 +3664,10 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 		auto old_regs = state.world.navy_get_navy_membership(a);
 		if(old_regs.begin() == old_regs.end()) {
 			state.world.leader_set_navy_from_navy_leadership(state.world.navy_get_admiral_from_navy_leadership(a), new_u);
-			state.world.delete_navy(a);
-
 			if(source == state.local_player_nation) {
 				state.deselect(a);
 			}
+			military::cleanup_navy(state, a);
 		}
 	}
 }
@@ -3695,11 +3692,7 @@ void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_i
 	if(source == state.local_player_nation) {
 		state.deselect(a);
 	}
-	auto r = state.world.army_get_army_membership(a);
-	while(r.begin() != r.end()) {
-		state.world.delete_regiment((*r.begin()).get_regiment());
-	}
-	state.world.delete_army(a);
+	military::cleanup_army(state, a);
 }
 
 void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
@@ -3724,11 +3717,7 @@ void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_i
 	if(source == state.local_player_nation) {
 		state.deselect(a);
 	}
-	auto r = state.world.navy_get_navy_membership(a);
-	while(r.begin() != r.end()) {
-		state.world.delete_ship((*r.begin()).get_ship());
-	}
-	state.world.delete_navy(a);
+	military::cleanup_navy(state, a);
 }
 
 void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {

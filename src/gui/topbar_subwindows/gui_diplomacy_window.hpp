@@ -1344,9 +1344,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		auto fat_id = dcon::fatten(state.world, content);
 		country_relation->set_visible(state, content != state.local_player_nation);
 		country_relation_icon->set_visible(state, content != state.local_player_nation);
 		auto active_tab = retrieve<dip_tab_request>(state, parent).tab;
