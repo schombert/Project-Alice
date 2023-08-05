@@ -145,7 +145,7 @@ void form_alliances(sys::state& state) {
 
 				// Call our new allies into wars.... they may not accept but they may just may join!
 				for(auto wp : state.world.nation_get_war_participant(n)) {
-					if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(n, ))
+					if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(state, alliance_targets[0], wp.get_war(), wp.get_is_attacker()))
 						command::execute_call_to_arms(state, n, alliance_targets[0], wp.get_war());
 				}
 			}
@@ -159,15 +159,30 @@ bool ai_is_close_enough(sys::state& state, dcon::nation_id target, dcon::nation_
 	return (target_continent == source_continent) || bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(target, from));
 }
 
+static bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+	auto rival_a = state.world.nation_get_ai_rival(target);
+	auto rival_b = state.world.nation_get_ai_rival(from);
+	// Same rival equates to instantaneous alliance (we benefit from more allies against a common enemy)
+	if(rival_a && rival_a == rival_b)
+		return true;
+	// Our rivals are allied?
+	if(rival_a && rival_b && rival_a != rival_b && nations::are_allied(state, rival_a, rival_b))
+		return true;
+
+	return false;
+}
+
+constexpr inline float ally_overestimate = 3.5f;
+
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
 	if(!state.world.nation_get_ai_is_threatened(target))
 		return false;
-
+	
+	// Won't ally our rivals
 	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
 		return false;
-	
-	// Same rival equates to instantaneous alliance (we benefit from more allies against a common enemy)
-	if(state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(from))
+
+	if(ai_has_mutual_enemy(state, from, target))
 		return true;
 	
 	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
@@ -177,7 +192,7 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	// And also if they're powerful enough to be considered for an alliance
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, from);
-	return target_score >= source_score * 0.5f; // target has to be atleast as half as strong as us
+	return std::max<float>(source_score, 1.f) * ally_overestimate >= target_score;
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
@@ -186,7 +201,7 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 
 	text::add_line(state, contents, "kierkegaard_1", indent);
 
-	text::add_line_with_condition(state, contents, "ai_alliance_5", state.world.nation_get_ai_rival(target) && state.world.nation_get_ai_rival(target) == state.world.nation_get_ai_rival(state.local_player_nation), indent + 15);
+	text::add_line_with_condition(state, contents, "ai_alliance_5", ai_has_mutual_enemy(state, state.local_player_nation, target), indent + 15);
 
 	text::add_line(state, contents, "kierkegaard_2", indent);
 
@@ -196,7 +211,7 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, state.local_player_nation);
-	text::add_line_with_condition(state, contents, "ai_alliance_4", target_score >= source_score * 0.5f, indent + 15);
+	text::add_line_with_condition(state, contents, "ai_alliance_4", std::max<float>(source_score, 1.f) * ally_overestimate >= target_score, indent + 15);
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
@@ -2546,7 +2561,7 @@ void make_war_decs(sys::state& state) {
 			return;
 
 		auto base_strength = estimate_strength(state, n);
-		float best_difference = -10.f;
+		float best_difference = 2.f;
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
