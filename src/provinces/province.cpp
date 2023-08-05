@@ -1536,10 +1536,9 @@ struct province_and_distance {
 	}
 };
 
-static inline std::vector<dcon::province_id>& assert_path_result(std::vector<dcon::province_id>& v) {
+static void assert_path_result(std::vector<dcon::province_id>& v) {
 	for(auto const e : v)
 		assert(bool(e));
-	return v;
 }
 
 // normal pathfinding
