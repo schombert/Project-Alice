@@ -1,7 +1,21 @@
 #94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
-add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp")
-
+if(WIN32)
+add_executable(tests_project WIN32 "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+	"${PROJECT_SOURCE_DIR}/src/alice.rc"
+	${ASSET_FILES})
+else()
+add_executable(tests_project WIN32 "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+	${ASSET_FILES})
+endif()
 
 if(WIN32)
 	set(CMAKE_CXX_FLAGS "")
