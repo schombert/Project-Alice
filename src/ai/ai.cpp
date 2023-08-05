@@ -118,9 +118,11 @@ static void internal_get_alliance_targets(sys::state& state, dcon::nation_id n, 
 		return;
 
 	// Adjacency with rival (useful for e.x, Chile allying Paraguay to fight bolivia)
+	if(n.get_ai_rival()) {
 	internal_get_alliance_targets_by_adjacency(state, n.id, n.get_ai_rival(), alliance_targets);
 	if(!alliance_targets.empty())
 		return;
+	}
 	
 	// Adjacency with people who are at war with us
 	for(auto wp : state.world.nation_get_war_participant(n)) {
