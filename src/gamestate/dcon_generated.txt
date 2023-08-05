@@ -1074,7 +1074,6 @@ object {
 		type{array{commodity_id}{float}}
 		tag{ scenario }
 	}
-
 }
 
 object {
