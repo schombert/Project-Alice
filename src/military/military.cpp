@@ -3971,11 +3971,21 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 		auto controller = state.world.army_get_controller_from_army_control(n);
 		if(bool(controller)) {
 			// TODO: Do they have to be in common war or can they just be "hostile against"?
+			bool has_other = false;
+			bool has_rebels = false;
 			for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
-				if(bp.get_army() != n && are_allied_in_war(state, controller, state.world.army_get_controller_from_army_control(bp.get_army()))) {
-					should_end = false;
+				if(bp.get_army() != n) {
+					has_other = true;
+					if(are_allied_in_war(state, controller, bp.get_army().get_controller_from_army_control())) {
+						should_end = false;
+					} else if(bp.get_army().get_controller_from_army_rebel_control()) {
+						has_rebels = true;
+					}
 				}
 			}
+			// continue fighting rebels
+			if(has_other && has_rebels)
+				should_end = false;
 		} else {
 			assert(state.world.army_get_controller_from_army_rebel_control(n));
 			for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {

@@ -172,7 +172,7 @@ static bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::n
 	return false;
 }
 
-constexpr inline float ally_overestimate = 3.5f;
+constexpr inline float ally_overestimate = 2.f;
 
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
 	if(!state.world.nation_get_ai_is_threatened(target))
