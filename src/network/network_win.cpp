@@ -67,7 +67,7 @@ void network_state::server_client_loop(sys::state& state) {
 		// TODO: Notify other clients  std::fprintf(stderr, "client connected\n");
 		num_clients++;
 		while(1) {
-			ack_clients++; // semaphore
+			ack_sem++; // semaphore
 			// read out until no more data
 			while(1) {
 				command::payload cmd;
@@ -87,20 +87,20 @@ void network_state::server_client_loop(sys::state& state) {
 				q.pop();
 				c = q.front();
 			}
-			ack_clients--; // semaphore
+			ack_sem--; // semaphore
 
-			if(ack_clients.load(std::memory_order::acquire) != 0) {
+			if(ack_sem.load(std::memory_order::acquire) != 0) {
 				// send "advance tick" notification to client
 				command::payload advt;
 				advt.type = command::command_type::advance_tick;
 				if(send(client_fd, &advt, sizeof(advt), MSG_NOSIGNAL) != sizeof(advt)) {
 					// TODO: Notify other clients
-					ack_clients--;
+					ack_sem--;
 					goto close_finish;
 				}
-				ack_clients--;
+				ack_sem--;
 				// wait for all other clients to also advance time...
-				while(ack_clients.load(std::memory_order::acquire) != 0)
+				while(ack_sem.load(std::memory_order::acquire) != 0)
 					;
 			}
 		}
@@ -128,12 +128,12 @@ void network_state::perform_pending(sys::state& state) {
 	
 	if(as_server) {
 		if(state.actual_game_speed.load(std::memory_order::acquire) <= 0 || state.ui_pause.load(std::memory_order::acquire) || state.internally_paused) {
-			ack_clients += 0;
+			ack_sem += 0;
 		} else {
-			ack_clients += num_clients;
+			ack_sem += num_clients;
 		}
 		// wait until ack-clients goes down (all clients finished being sent pending commands)
-		while(ack_clients.load(std::memory_order::acquire) != 0)
+		while(ack_sem.load(std::memory_order::acquire) != 0)
 			;
 	} else {
 		client_flush_local_commands(state);

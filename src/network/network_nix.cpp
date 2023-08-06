@@ -53,7 +53,7 @@ void network_state::init(sys::state& state, bool _as_server) {
 	}
 }
 
-void network_state::server_client_loop(sys::state& state) {
+void network_state::server_client_loop(sys::state& state, int worker_id) {
 	if(!is_present() || !as_server)
 		return;
 
@@ -65,41 +65,22 @@ void network_state::server_client_loop(sys::state& state) {
 		// TODO: Notify other clients  std::fprintf(stderr, "client connected\n");
 		num_clients++;
 		while(1) {
-			ack_clients++; // semaphore
 			// read out until no more data
 			while(1) {
 				command::payload cmd;
 				if(recv(client_fd, &cmd, sizeof(cmd), MSG_DONTWAIT) != sizeof(cmd))
 					break;
-				auto b = state.incoming_commands.try_push(cmd);
+				clients[worker_id].worker_commands.push(cmd);
 			}
 			// send commands to client
-			rigtorp::SPSCQueue<command::payload> q(1024);
-			copy_queue(q, state.incoming_commands);
-			auto* c = q.front();
+			auto* c = server_commands.front();
 			while(c) {
 				if(send(client_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c)) {
 					// TODO: Notify other clients
 					goto close_finish;
 				}
-				q.pop();
-				c = q.front();
-			}
-			ack_clients--; // semaphore
-
-			if(ack_clients.load(std::memory_order::acquire) != 0) {
-				// send "advance tick" notification to client
-				command::payload advt;
-				advt.type = command::command_type::advance_tick;
-				if(send(client_fd, &advt, sizeof(advt), MSG_NOSIGNAL) != sizeof(advt)) {
-					// TODO: Notify other clients
-					ack_clients--;
-					goto close_finish;
-				}
-				ack_clients--;
-				// wait for all other clients to also advance time...
-				while(ack_clients.load(std::memory_order::acquire) != 0)
-					;
+				clients[worker_id].worker_commands.pop();
+				c = clients[worker_id].worker_commands.front();
 			}
 		}
 close_finish:
@@ -109,48 +90,47 @@ close_finish:
 	}
 }
 
-void network_state::client_flush_local_commands(sys::state& state) {
-	// clear the (local) incoming commands
-	auto* c = state.incoming_commands.front();
-	while(c) {
-		if(send(socket_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c))
-			std::abort();
-		state.incoming_commands.pop();
-		c = state.incoming_commands.front();
-	}
-}
-
 void network_state::perform_pending(sys::state& state) {
 	if(!is_present())
 		return;
 	
 	if(as_server) {
 		if(state.actual_game_speed.load(std::memory_order::acquire) <= 0 || state.ui_pause.load(std::memory_order::acquire) || state.internally_paused) {
-			ack_clients += 0;
+		
 		} else {
-			ack_clients += num_clients;
+			command::payload advt;
+			advt.type = command::command_type::advance_tick;
+			server_commands.push(advt);
 		}
-		// wait until ack-clients goes down (all clients finished being sent pending commands)
-		while(ack_clients.load(std::memory_order::acquire) != 0)
-			;
+
+		auto* c = server_commands.front();
+		while(c) {
+			for(uint32_t i = 0; i < max_clients; i++)
+				if(clients[i].active)
+					clients[i].worker_commands.push(*c);
+			server_commands.pop();
+			c = server_commands.front();
+		}
+
 	} else {
-		client_flush_local_commands(state);
 		// read from server until we are advised to advance the simulation
-		rigtorp::SPSCQueue<command::payload> server_queue(1024);
 		while(1) {
-			client_flush_local_commands(state);
+			// clear the (local) incoming commands
+			auto* c = state.network_state.client_commands.front();
+			while(c) {
+				if(send(socket_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c))
+					std::abort();
+				state.network_state.client_commands.pop();
+				c = state.network_state.client_commands.front();
+			}
+
 			command::payload cmd;
 			if(recv(socket_fd, &cmd, sizeof(cmd), MSG_DONTWAIT) != sizeof(cmd))
 				continue;
-			if(cmd.type == command::command_type::advance_tick) {
-				client_flush_local_commands(state);
+			if(cmd.type == command::command_type::advance_tick)
 				break;
-			}
-			auto b = server_queue.try_push(cmd);
+			state.incoming_commands.push(cmd);
 		}
-		// after collecting all the commands the server sent us, copy it into the incoming commands queue
-		client_flush_local_commands(state);
-		copy_queue(state.incoming_commands, server_queue);
 	}
 }
 
