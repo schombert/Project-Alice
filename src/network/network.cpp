@@ -70,9 +70,8 @@ void network_state::server_client_loop(sys::state& state) {
 			continue;
 		}
 		std::fprintf(stderr, "client connected\n");
-
+		num_clients++;
 		while(1) {
-			
 			ack_clients++; // semaphore
 			// read out until no more data
 			while(1) {
@@ -88,34 +87,46 @@ void network_state::server_client_loop(sys::state& state) {
 			while(c) {
 				if(::send(client_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c)) {
 					std::fprintf(stderr, "unable to send command to client\n");
-					ack_clients--; // semaphore
 					goto close_finish;
 				}
 				std::fprintf(stderr, "sent command to client\n");
 				q.pop();
 				c = q.front();
 			}
-			
-			if(state.actual_game_speed.load(std::memory_order::acquire) <= 0 || state.ui_pause.load(std::memory_order::acquire) || state.internally_paused) {
-				// paused, no advt sent
-			} else {
+			ack_clients--; // semaphore
+
+			if(ack_clients.load(std::memory_order::acquire) != 0) {
 				// send "advance tick" notification to client
 				command::payload advt;
 				advt.type = command::command_type::advance_tick;
 				if(::send(client_fd, &advt, sizeof(advt), MSG_NOSIGNAL) != sizeof(advt)) {
 					std::fprintf(stderr, "unable to send ADVT to client\n");
+					ack_clients--;
 					goto close_finish;
 				}
 				std::fprintf(stderr, "sent ADVT to client\n");
+				ack_clients--;
+				// wait for all other clients to also advance time...
+				while(ack_clients.load(std::memory_order::acquire) != 0)
+					;
 			}
-			ack_clients--; // semaphore
-
-			// wait until all clients are finished processing their stuff
-			while(ack_clients.load(std::memory_order::acquire) > 0)
-				;
 		}
 close_finish:
+		num_clients--;
 		::close(client_fd);
+	}
+}
+
+void network_state::client_flush_local_commands(sys::state& state) {
+	// clear the (local) incoming commands
+	auto* c = state.incoming_commands.front();
+	while(c) {
+		if(::send(socket_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c)) {
+			std::fprintf(stderr, "unable to send command to server\n");
+			std::abort();
+		}
+		state.incoming_commands.pop();
+		c = state.incoming_commands.front();
 	}
 }
 
@@ -124,36 +135,33 @@ void network_state::perform_pending(sys::state& state) {
 		return;
 	
 	if(as_server) {
+		if(state.actual_game_speed.load(std::memory_order::acquire) <= 0 || state.ui_pause.load(std::memory_order::acquire) || state.internally_paused) {
+			ack_clients += 0;
+		} else {
+			ack_clients += num_clients;
+		}
 		// wait until ack-clients goes down (all clients finished being sent pending commands)
-		ack_clients--; // semaphore
-		while(ack_clients.load(std::memory_order::acquire) > 0)
+		while(ack_clients.load(std::memory_order::acquire) != 0)
 			;
-		ack_clients++; // semaphore
 	} else {
-		// send commands to server
-		rigtorp::SPSCQueue<command::payload> q(1024);
-		copy_queue(q, state.incoming_commands);
-		auto* c = q.front();
-		while(c) {
-			if(::send(socket_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c)) {
-				std::fprintf(stderr, "unable to command send to server\n");
-				std::abort();
-			}
-			q.pop();
-			c = q.front();
-		}
+		client_send_local_commands(state);
 		// read from server until we are advised to advance the simulation
+		rigtorp::SPSCQueue<command::payload> server_queue;
 		while(1) {
+			client_flush_local_commands(state);
 			command::payload cmd;
-			if(::recv(socket_fd, &cmd, sizeof(cmd), MSG_WAITALL) != sizeof(cmd)) {
-				std::fprintf(stderr, "unable to read from server\n");
-				std::abort();
-			}
+			if(::recv(socket_fd, &cmd, sizeof(cmd), MSG_DONTWAIT) != sizeof(cmd))
+				continue;
 			std::fprintf(stderr, "got command from server\n");
-			if(cmd.type == command::command_type::advance_tick)
+			if(cmd.type == command::command_type::advance_tick) {
+				client_flush_local_commands(state);
 				break;
-			auto b = state.incoming_commands.try_push(cmd);
+			}
+			auto b = server_queue.try_push(cmd);
 		}
+		// after collecting all the commands the server sent us, copy it into the incoming commands queue
+		client_flush_local_commands(state);
+		copy_queue(state.incoming_commands, server_queue);
 	}
 }
 

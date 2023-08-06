@@ -21,10 +21,13 @@ struct network_state {
 	~network_state();
 	void init(sys::state& state, bool as_server);
 	void server_client_loop(sys::state& state);
+	void client_flush_local_commands(sys::state& state);
 	void perform_pending(sys::state& state);
 	bool is_present();
 private:
 	std::atomic<int32_t> ack_clients = 0;
+	std::atomic<int32_t> advt_clients = 0;
+	std::atomic<int32_t> num_clients = 0;
 	struct sockaddr_in server_address;
 	int socket_fd = 0;
 };
