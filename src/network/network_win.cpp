@@ -1,11 +1,5 @@
-#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
-#ifndef WINSOCK2_IMPORTED
-#define WINSOCK2_IMPORTED
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#endif
-#include <windows.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include "network.hpp"
 #include "system_state.hpp"
 #include "commands.hpp"

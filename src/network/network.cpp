@@ -1,8 +1,21 @@
+#ifndef _WIN64 // WINDOWS
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
+#ifndef WINSOCK2_IMPORTED
+#define WINSOCK2_IMPORTED
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+#include <windows.h>
+#else // NIX
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <unistd.h>
+#endif // ...
 #include "system_state.hpp"
 #include "commands.hpp"
 #include "SPSCQueue.h"
@@ -12,6 +25,13 @@ namespace network {
 
 void network_state::init(sys::state& state, bool _as_server) {
 	as_server = _as_server;
+
+#ifdef _WIN64
+    WSADATA data;
+    if(WSAStartup(MAKEWORD(2, 2), &data) != 0)
+		std::abort();
+#endif
+
 	if(as_server) {
 		if((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 			std::abort();
@@ -77,8 +97,13 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 		}
 close_finish:
 		clients[worker_id].active.store(false, std::memory_order_release);
+#ifdef _WIN64
+		shutdown(client_fd, SD_BOTH);
+		close(client_fd);
+#else
 		shutdown(client_fd, SHUT_RDWR);
 		close(client_fd);
+#endif
 	}
 }
 
@@ -127,8 +152,14 @@ void network_state::perform_pending(sys::state& state) {
 }
 
 network_state::~network_state() {
+#ifdef _WIN64
+	shutdown(socket_fd, SD_BOTH);
+	close(socket_fd);
+	WSACleanup();
+#else
 	shutdown(socket_fd, SHUT_RDWR);
 	close(socket_fd);
+#endif
 }
 
 bool network_state::is_present() {
