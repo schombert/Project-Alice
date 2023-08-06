@@ -108,28 +108,43 @@ index a8c06cd2..ae028f93 100644
  	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
  	dcon::national_modifier_value offsets[modifier_definition_size] = {dcon::national_modifier_value{}};
 diff --git a/src/gamestate/system_state.cpp b/src/gamestate/system_state.cpp
-index 605cc42a..d009ce7f 100644
+index 605cc42a..1691bea1 100644
 --- a/src/gamestate/system_state.cpp
 +++ b/src/gamestate/system_state.cpp
-@@ -927,9 +927,15 @@ std::string_view state::to_string_view(dcon::unit_name_id tag) const {
+@@ -926,9 +926,14 @@ std::string_view state::to_string_view(dcon::unit_name_id tag) const {
+ }
  
  dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
++	if(trigger_data_indices.empty()) { //placeholder for invalid triggers
++		trigger_data_indices.push_back(0);
++		trigger_data.push_back(uint16_t(trigger::integer_scope));
++		trigger_data.push_back(uint16_t(2));
++		trigger_data.push_back(uint16_t(1));
++	}
++	
  	if(data.size() == 0) {
 -		if(trigger_data_indices.empty())
 -			trigger_data_indices.push_back(int32_t(0));
--		return dcon::trigger_key();
-+		if(trigger_data_indices.empty()) {
-+ 			trigger_data_indices.push_back(trigger_data.size());
-+			trigger_data.push_back(uint16_t(trigger::x_core_scope_nation));
-+			trigger_data.push_back(uint16_t(4));
-+			trigger_data.push_back(uint16_t(trigger::association_lt | trigger::blockade));
-+			trigger_data.push_back(uint16_t(2));
-+			trigger_data.push_back(uint16_t(1));
-+		}
-+		return dcon::trigger_key(0);
+ 		return dcon::trigger_key();
  	}
  
- 	auto search_result = std::search(trigger_data.data(), trigger_data.data() + trigger_data.size(),
+@@ -957,8 +962,15 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
+ }
+ 
+ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
+-	if(data.size() == 0)
++	if(effect_data.empty()) { //placeholder for invalid effects
++		effect_data.push_back(uint16_t(trigger::integer_scope));
++		effect_data.push_back(uint16_t(2));
++		effect_data.push_back(uint16_t(1));
++	}
++
++	if(data.size() == 0) {
+ 		return dcon::effect_key();
++	}
+ 
+ 	auto start = effect_data.size();
+ 	auto size = data.size();
 diff --git a/src/map/map.cpp b/src/map/map.cpp
 index c36d6460..5e2f41ea 100644
 --- a/src/map/map.cpp
@@ -143,6 +158,59 @@ index c36d6460..5e2f41ea 100644
  	auto content = simple_fs::view_contents(*file);
  	uint32_t size_x, size_y;
  	uint8_t const* data = (uint8_t const*)(content.data);
+diff --git a/src/map/map_data_loading.cpp b/src/map/map_data_loading.cpp
+index 94efdd6c..fa500580 100644
+--- a/src/map/map_data_loading.cpp
++++ b/src/map/map_data_loading.cpp
+@@ -104,7 +104,7 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context&
+ 
+ 		glm::vec2 tile_pos;
+ 
+-		assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
++		//assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
+ 
+ 		if(tiles_number[i] == 0) {
+ 			tile_pos = glm::vec2(0, 0);
+diff --git a/src/parsing/effect_parsing.cpp b/src/parsing/effect_parsing.cpp
+index 87131ed7..071fea76 100644
+--- a/src/parsing/effect_parsing.cpp
++++ b/src/parsing/effect_parsing.cpp
+@@ -1102,9 +1102,12 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
+ 		return dcon::effect_key{0};
+ 	}
+ 
+-	auto const new_size = simplify_effect(context.compiled_effect.data());
+-	context.compiled_effect.resize(static_cast<size_t>(new_size));
+-
++	if(err.accumulated_errors.empty()) {
++		auto const new_size = simplify_effect(context.compiled_effect.data());
++		context.compiled_effect.resize(static_cast<size_t>(new_size));
++	} else {
++		context.compiled_effect.clear();
++	}
+ 	return context.outer_context.state.commit_effect_data(context.compiled_effect);
+ }
+ 
+diff --git a/src/parsing/nations_parsing.cpp b/src/parsing/nations_parsing.cpp
+index 3f53e7d8..4f970ea9 100644
+--- a/src/parsing/nations_parsing.cpp
++++ b/src/parsing/nations_parsing.cpp
+@@ -978,8 +978,13 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
+ 															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+ 		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
+ 	}
+-	auto const new_size = simplify_effect(e_context.compiled_effect.data());
+-	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
++
++	if(err.accumulated_errors.empty()) {
++		auto const new_size = simplify_effect(e_context.compiled_effect.data());
++		e_context.compiled_effect.resize(static_cast<size_t>(new_size));
++	} else {
++		e_context.compiled_effect.clear();
++	}
+ 
+ 	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);
+ 
 diff --git a/src/parsing/parsers_declarations.cpp b/src/parsing/parsers_declarations.cpp
 index 1e8ce7f0..8d539ddf 100644
 --- a/src/parsing/parsers_declarations.cpp
