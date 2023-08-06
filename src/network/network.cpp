@@ -1,4 +1,4 @@
-#ifndef _WIN64 // WINDOWS
+#ifdef _WIN64 // WINDOWS
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
