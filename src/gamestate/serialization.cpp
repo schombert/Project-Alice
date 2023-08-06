@@ -831,8 +831,8 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 				[&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
 		
 		if(state.network_state.is_present()) {
-			// TODO: server should set the game seed in question
-			state.game_seed = uint32_t(1000);
+			// the game seed won't be changed when playing multiplayer
+			// as to not disrupt the RNG functions and make 'em deterministic
 		} else {
 			state.game_seed = uint32_t(std::random_device()());
 		}

@@ -18,17 +18,14 @@ constexpr inline uint32_t max_clients = 16;
 
 struct network_state {
 	bool as_server = false;
-	std::atomic<int32_t> recv_sem = 0;
-	std::atomic<int32_t> cmd_sem = 0;
-	std::atomic<int32_t> num_clients = 0;
 	struct sockaddr_in server_address;
 	int socket_fd = 0;
 	rigtorp::SPSCQueue<command::payload> client_commands;
 	rigtorp::SPSCQueue<command::payload> server_commands;
 	struct client_data {
 		std::atomic<bool> active = false;
+		std::atomic<bool> wait_write = false;
 		rigtorp::SPSCQueue<command::payload> worker_commands;
-
 		client_data() : worker_commands(1024) {};
 	} clients[max_clients];
 

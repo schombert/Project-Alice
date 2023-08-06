@@ -2,7 +2,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdio.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include "system_state.hpp"
 #include "commands.hpp"
@@ -10,13 +9,6 @@
 #include "network.hpp"
 
 namespace network {
-
-static void copy_queue(rigtorp::SPSCQueue<command::payload>& d, rigtorp::SPSCQueue<command::payload>& s) {
-	auto* c = s.front();
-	if(c != nullptr)
-		for(size_t i = 0; i < s.size(); i++)
-			d.push(c[i]);
-}
 
 void network_state::init(sys::state& state, bool _as_server) {
 	as_server = _as_server;
@@ -63,17 +55,17 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 		if((client_fd = accept(socket_fd, (struct sockaddr *)&server_address, &addr_len)) < 0)
 			continue;
 		// TODO: Notify other clients  std::fprintf(stderr, "client connected\n");
-		num_clients++;
+		clients[worker_id].active.store(true, std::memory_order_release);
 		while(1) {
 			// read out until no more data
 			while(1) {
 				command::payload cmd;
 				if(recv(client_fd, &cmd, sizeof(cmd), MSG_DONTWAIT) != sizeof(cmd))
 					break;
-				clients[worker_id].worker_commands.push(cmd);
+				server_commands.push(cmd);
 			}
 			// send commands to client
-			auto* c = server_commands.front();
+			auto* c = clients[worker_id].worker_commands.front();
 			while(c) {
 				if(send(client_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c)) {
 					// TODO: Notify other clients
@@ -84,7 +76,7 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 			}
 		}
 close_finish:
-		num_clients--;
+		clients[worker_id].active.store(false, std::memory_order_release);
 		shutdown(client_fd, SHUT_RDWR);
 		close(client_fd);
 	}
@@ -95,27 +87,27 @@ void network_state::perform_pending(sys::state& state) {
 		return;
 	
 	if(as_server) {
-		if(state.actual_game_speed.load(std::memory_order::acquire) <= 0 || state.ui_pause.load(std::memory_order::acquire) || state.internally_paused) {
-		
-		} else {
+		if(!(state.actual_game_speed.load(std::memory_order::acquire) <= 0 || state.ui_pause.load(std::memory_order::acquire) || state.internally_paused)) {
+			// place "advance time" command
 			command::payload advt;
 			advt.type = command::command_type::advance_tick;
 			server_commands.push(advt);
 		}
-
+		// put server commands onto the queues of the worker commands
 		auto* c = server_commands.front();
 		while(c) {
 			for(uint32_t i = 0; i < max_clients; i++)
 				if(clients[i].active)
 					clients[i].worker_commands.push(*c);
+			state.incoming_commands.push(*c);
+			//
 			server_commands.pop();
 			c = server_commands.front();
 		}
-
 	} else {
 		// read from server until we are advised to advance the simulation
 		while(1) {
-			// clear the (local) incoming commands
+			// clear the (local) incoming commands and send them to the server
 			auto* c = state.network_state.client_commands.front();
 			while(c) {
 				if(send(socket_fd, c, sizeof(*c), MSG_NOSIGNAL) != sizeof(*c))
@@ -123,7 +115,7 @@ void network_state::perform_pending(sys::state& state) {
 				state.network_state.client_commands.pop();
 				c = state.network_state.client_commands.front();
 			}
-
+			// obtain messages from the server, push them to the incoming commands
 			command::payload cmd;
 			if(recv(socket_fd, &cmd, sizeof(cmd), MSG_DONTWAIT) != sizeof(cmd))
 				continue;
