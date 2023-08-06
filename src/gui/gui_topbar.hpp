@@ -471,8 +471,14 @@ public:
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr,
 					text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total))});
+			text::add_to_substitution_map(sub, text::variable_type::x,
+					text::pretty_integer{int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id))});
+			//text::add_to_substitution_map(sub, text::variable_type::days,
+			//	text::produce_simple_string(state, std::string_view("31")));
 
-			text::localised_format_box(state, contents, box, std::string_view("topbar_population"), sub);
+
+
+			text::localised_format_box(state, contents, box, std::string_view("pop_growth_topbar"), sub);
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_population_visual"),
 					text::variable_type::curr,
