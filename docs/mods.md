@@ -6,7 +6,7 @@ If you're impertinent to try out the mods, you may be able to apply the followin
 
 ```diff
 diff --git a/src/common_types/container_types.hpp b/src/common_types/container_types.hpp
-index 5505214..b9d085a 100644
+index 9b7801f9..d312692b 100644
 --- a/src/common_types/container_types.hpp
 +++ b/src/common_types/container_types.hpp
 @@ -48,7 +48,7 @@ struct event_option {
@@ -19,12 +19,20 @@ index 5505214..b9d085a 100644
  struct modifier_hash {
  	using is_avalanching = void;
 diff --git a/src/entry_point_nix.cpp b/src/entry_point_nix.cpp
-index 2dc422d..f5c0f44 100644
+index da0afa0f..78aca3cd 100644
 --- a/src/entry_point_nix.cpp
 +++ b/src/entry_point_nix.cpp
-@@ -7,6 +7,23 @@ int main() {
- 	add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
- 	add_root(game_state->common_fs, NATIVE("."));        // will add the working directory as first root -- for the moment this lets us find the shader files
+@@ -1,6 +1,6 @@
+ #include "system_state.hpp"
+ 
+-int main() {
++int main(int argc, char **argv) {
+ 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
+ 
+ 	assert(
+@@ -10,6 +10,23 @@ int main() {
+ 	add_root(game_state->common_fs,
+ 			NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
  
 +	{
 +		std::vector<std::string> cmd_args;
@@ -47,19 +55,19 @@ index 2dc422d..f5c0f44 100644
  		// scenario making functions
  		game_state->load_scenario_data();
 diff --git a/src/entry_point_win.cpp b/src/entry_point_win.cpp
-index 3144322..ba5adbf 100644
+index 606db1ac..e3642da8 100644
 --- a/src/entry_point_win.cpp
 +++ b/src/entry_point_win.cpp
-@@ -15,7 +15,7 @@
- int WINAPI wWinMain(
-     HINSTANCE /*hInstance*/,
-     HINSTANCE /*hPrevInstance*/,
--    LPWSTR /*lpCmdLine*/,
-+    LPWSTR lpCmdLine,
-     int /*nCmdShow*/
+@@ -12,7 +12,7 @@
+ 
+ #pragma comment(lib, "Ole32.lib")
+ 
+-int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/
++int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR lpCmdLine, int /*nCmdShow*/
  ) {
  
-@@ -50,6 +50,18 @@ int WINAPI wWinMain(
+ #ifdef _DEBUG
+@@ -47,6 +47,18 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
  			RegCloseKey(hKey);
  		}
  
@@ -79,15 +87,15 @@ index 3144322..ba5adbf 100644
  			// scenario making functions
  			game_state->load_scenario_data();
 diff --git a/src/gamestate/modifiers.hpp b/src/gamestate/modifiers.hpp
-index 794a61c..0f89293 100644
+index a8c06cd2..ae028f93 100644
 --- a/src/gamestate/modifiers.hpp
 +++ b/src/gamestate/modifiers.hpp
-@@ -197,14 +197,14 @@ constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
+@@ -206,14 +206,14 @@ constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
  } // namespace national_mod_offsets
  
  struct provincial_modifier_definition {
 -	static constexpr uint32_t modifier_definition_size = 10;
-+	static constexpr uint32_t modifier_definition_size = 24;
++	static constexpr uint32_t modifier_definition_size = 25;
  
  	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
  	dcon::provincial_modifier_value offsets[modifier_definition_size] = {dcon::provincial_modifier_value{}};
@@ -95,74 +103,193 @@ index 794a61c..0f89293 100644
  
  struct national_modifier_definition {
 -	static constexpr uint32_t modifier_definition_size = 10;
-+	static constexpr uint32_t modifier_definition_size = 24;
++	static constexpr uint32_t modifier_definition_size = 25;
  
  	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
  	dcon::national_modifier_value offsets[modifier_definition_size] = {dcon::national_modifier_value{}};
-diff --git a/src/map/map.cpp b/src/map/map.cpp
-index c0d9e61..298f79f 100644
---- a/src/map/map.cpp
-+++ b/src/map/map.cpp
-@@ -876,6 +876,9 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
+diff --git a/src/gamestate/system_state.cpp b/src/gamestate/system_state.cpp
+index 605cc42a..1691bea1 100644
+--- a/src/gamestate/system_state.cpp
++++ b/src/gamestate/system_state.cpp
+@@ -926,9 +926,14 @@ std::string_view state::to_string_view(dcon::unit_name_id tag) const {
  }
  
- GLuint load_dds_texture(simple_fs::directory const & dir, native_string_view file_name) {
+ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
++	if(trigger_data_indices.empty()) { //placeholder for invalid triggers
++		trigger_data_indices.push_back(0);
++		trigger_data.push_back(uint16_t(trigger::integer_scope));
++		trigger_data.push_back(uint16_t(2));
++		trigger_data.push_back(uint16_t(1));
++	}
++	
+ 	if(data.size() == 0) {
+-		if(trigger_data_indices.empty())
+-			trigger_data_indices.push_back(int32_t(0));
+ 		return dcon::trigger_key();
+ 	}
+ 
+@@ -957,8 +962,15 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
+ }
+ 
+ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
+-	if(data.size() == 0)
++	if(effect_data.empty()) { //placeholder for invalid effects
++		effect_data.push_back(uint16_t(trigger::integer_scope));
++		effect_data.push_back(uint16_t(2));
++		effect_data.push_back(uint16_t(1));
++	}
++
++	if(data.size() == 0) {
+ 		return dcon::effect_key();
++	}
+ 
+ 	auto start = effect_data.size();
+ 	auto size = data.size();
+diff --git a/src/map/map.cpp b/src/map/map.cpp
+index c36d6460..5e2f41ea 100644
+--- a/src/map/map.cpp
++++ b/src/map/map.cpp
+@@ -666,6 +666,8 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
+ 
+ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
+ 	auto file = simple_fs::open_file(dir, file_name);
 +	if(!bool(file))
 +		return 0;
-+
- 	auto file = simple_fs::open_file(dir, file_name);
  	auto content = simple_fs::view_contents(*file);
  	uint32_t size_x, size_y;
+ 	uint8_t const* data = (uint8_t const*)(content.data);
+diff --git a/src/map/map_data_loading.cpp b/src/map/map_data_loading.cpp
+index 94efdd6c..fa500580 100644
+--- a/src/map/map_data_loading.cpp
++++ b/src/map/map_data_loading.cpp
+@@ -104,7 +104,7 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context&
+ 
+ 		glm::vec2 tile_pos;
+ 
+-		assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
++		//assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
+ 
+ 		if(tiles_number[i] == 0) {
+ 			tile_pos = glm::vec2(0, 0);
+diff --git a/src/parsing/effect_parsing.cpp b/src/parsing/effect_parsing.cpp
+index 87131ed7..071fea76 100644
+--- a/src/parsing/effect_parsing.cpp
++++ b/src/parsing/effect_parsing.cpp
+@@ -1102,9 +1102,12 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
+ 		return dcon::effect_key{0};
+ 	}
+ 
+-	auto const new_size = simplify_effect(context.compiled_effect.data());
+-	context.compiled_effect.resize(static_cast<size_t>(new_size));
+-
++	if(err.accumulated_errors.empty()) {
++		auto const new_size = simplify_effect(context.compiled_effect.data());
++		context.compiled_effect.resize(static_cast<size_t>(new_size));
++	} else {
++		context.compiled_effect.clear();
++	}
+ 	return context.outer_context.state.commit_effect_data(context.compiled_effect);
+ }
+ 
+diff --git a/src/parsing/nations_parsing.cpp b/src/parsing/nations_parsing.cpp
+index 3f53e7d8..4f970ea9 100644
+--- a/src/parsing/nations_parsing.cpp
++++ b/src/parsing/nations_parsing.cpp
+@@ -978,8 +978,13 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
+ 															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+ 		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
+ 	}
+-	auto const new_size = simplify_effect(e_context.compiled_effect.data());
+-	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
++
++	if(err.accumulated_errors.empty()) {
++		auto const new_size = simplify_effect(e_context.compiled_effect.data());
++		e_context.compiled_effect.resize(static_cast<size_t>(new_size));
++	} else {
++		e_context.compiled_effect.clear();
++	}
+ 
+ 	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);
+ 
 diff --git a/src/parsing/parsers_declarations.cpp b/src/parsing/parsers_declarations.cpp
-index 270a4d8..f15a14d 100644
+index 1e8ce7f0..8d539ddf 100644
 --- a/src/parsing/parsers_declarations.cpp
 +++ b/src/parsing/parsers_declarations.cpp
-@@ -2530,13 +2530,16 @@ void mod_file::finish(mod_file_context& context) {
+@@ -2954,24 +2954,25 @@ void mod_file::finish(mod_file_context& context) {
+ 	// If there isn't any path then we aren't required to do anything
+ 	if(context.path.empty())
+ 		return;
+-
++	
  	auto& fs = context.outer_context.state.common_fs;
- 
- 	// Add root of mod_path
+-
+-	// Add root of mod_path
 -	for(auto replace_path : context.replace_paths) {
 -		native_string path_block = simple_fs::list_roots(fs)[0];
 -		path_block += NATIVE_DIR_SEPARATOR;
 -		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
 -		if(path_block.back() != NATIVE_DIR_SEPARATOR)
-+	auto& fs = context.outer_context.state.common_fs;
 +	const auto roots = simple_fs::list_roots(fs);
 +	for(const auto& root : roots) {
++		// Add root of mod_path
 +		for(auto replace_path : context.replace_paths) {
 +			native_string path_block = root;
  			path_block += NATIVE_DIR_SEPARATOR;
--
 +			path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
 +			if(path_block.back() != NATIVE_DIR_SEPARATOR)
 +				path_block += NATIVE_DIR_SEPARATOR;
-+		}
- 		simple_fs::add_ignore_path(fs, path_block);
- 	}
  
+-		simple_fs::add_ignore_path(fs, path_block);
++			simple_fs::add_ignore_path(fs, path_block);
++		}
++		native_string mod_path = root;
++		mod_path += NATIVE_DIR_SEPARATOR;
++		mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
++		add_root(fs, mod_path);
+ 	}
+-
+-	native_string mod_path = simple_fs::list_roots(fs)[0];
+-	mod_path += NATIVE_DIR_SEPARATOR;
+-	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
+-	add_root(fs, mod_path);
+ }
+ 
+ } // namespace parsers
 diff --git a/src/parsing/trigger_parsing.cpp b/src/parsing/trigger_parsing.cpp
-index 93d4aa0..9f825d4 100644
+index daa864f9..fac1d821 100644
 --- a/src/parsing/trigger_parsing.cpp
 +++ b/src/parsing/trigger_parsing.cpp
-@@ -664,6 +664,9 @@ int32_t simplify_trigger(uint16_t* source) {
+@@ -692,9 +692,13 @@ int32_t simplify_trigger(uint16_t* source) {
  
  dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
  	tr_scope_and(gen, err, context);
-+	if(!err.accumulated_errors.empty())
-+		return dcon::trigger_key{1}; // Can't rely on a trigger with errors!
-+
- 	const auto new_size = simplify_trigger(context.compiled_trigger.data());
- 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
+-	auto const new_size = simplify_trigger(context.compiled_trigger.data());
+-	context.compiled_trigger.resize(static_cast<size_t>(new_size));
  
-@@ -674,6 +677,9 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
- 	auto old_factor = context.factor;
- 	context.factor = 0.0f;
- 	tr_scope_and(gen, err, context);
-+	if(!err.accumulated_errors.empty())
-+		return dcon::trigger_key{1}; // Can't rely on a trigger with errors!
-+
++	if(err.accumulated_errors.empty()) {
++		auto const new_size = simplify_trigger(context.compiled_trigger.data());
++		context.compiled_trigger.resize(static_cast<size_t>(new_size));
++	} else {
++		context.compiled_trigger.clear();
++	}
+ 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
+ }
+ 
+@@ -705,9 +709,12 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
  	auto new_factor = context.factor;
  	context.factor = old_factor;
+ 
+-	auto const new_size = simplify_trigger(context.compiled_trigger.data());
+-	context.compiled_trigger.resize(static_cast<size_t>(new_size));
+-
++	if(err.accumulated_errors.empty()) {
++		auto const new_size = simplify_trigger(context.compiled_trigger.data());
++		context.compiled_trigger.resize(static_cast<size_t>(new_size));
++	} else {
++		context.compiled_trigger.clear();
++	}
+ 	auto tkey = context.outer_context.state.commit_trigger_data(context.compiled_trigger);
+ 	context.compiled_trigger.clear();
  
 
 ```
