@@ -28,11 +28,11 @@ static int internal_recv(SOCKET client_fd, void *data, size_t n) {
     u_long has_pending = 0;
     auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return recv(client_fd, data, n, MSG_DONTWAIT);
+		return recv(client_fd, data, n, 0);
 	return 0;
 }
 static int internal_send(SOCKET client_fd, const void *data, size_t n) {
-	return send(client_fd, data, n, 0);
+	return send(client_fd, (const char *)data, n, 0);
 }
 #else
 static int internal_recv(int client_fd, void *data, size_t n) {
@@ -58,11 +58,11 @@ void network_state::init(sys::state& state, bool _as_server) {
 		
 #ifdef _WIN64
 		int opt = 1;
-		if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, (char *)&opt, sizeof(opt)))
+		if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)))
 			std::abort();
 #else
 		int opt = 1;
-		if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
+		if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
 			std::abort();
 #endif
 
@@ -129,7 +129,7 @@ close_finish:
 		clients[worker_id].active.store(false, std::memory_order_release);
 #ifdef _WIN64
 		shutdown(client_fd, SD_BOTH);
-		close(client_fd);
+		closesocket(client_fd);
 #else
 		shutdown(client_fd, SHUT_RDWR);
 		close(client_fd);
