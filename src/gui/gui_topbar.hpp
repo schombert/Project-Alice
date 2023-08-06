@@ -888,7 +888,11 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
+		if(state.network_state.is_present() && !state.network_state.as_server) {
+			disabled = true; // clients can't mess with speed controls
+		} else {
+			disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
+		}
 	}
 };
 

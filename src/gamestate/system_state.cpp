@@ -2218,14 +2218,15 @@ void state::game_loop() {
 		auto speed = actual_game_speed.load(std::memory_order::acquire);
 		auto upause = ui_pause.load(std::memory_order::acquire);
 		if(speed <= 0 || upause || internally_paused) {
+			network_state.perform_pending(*this);
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
 			auto entry_time = std::chrono::steady_clock::now();
 			auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
-
-			command::execute_pending_commands(*this);
 			if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+				network_state.perform_pending(*this);
+				command::execute_pending_commands(*this);
 				last_update = entry_time;
 
 				// do update logic

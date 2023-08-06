@@ -29,6 +29,7 @@
 #include "diplomatic_messages.hpp"
 #include "events.hpp"
 #include "notifications.hpp"
+#include "network.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -529,6 +530,9 @@ struct alignas(64) state {
 	// map data
 	map::map_state map_state;
 	dcon::gfx_object_id bg_gfx_id{};
+
+	// network data
+	network::network_state network_state;
 
 	// graphics data
 	ogl::data open_gl;

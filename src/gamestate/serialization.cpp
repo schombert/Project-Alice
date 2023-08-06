@@ -829,8 +829,13 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 				[&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-
-		state.game_seed = uint32_t(std::random_device()());
+		
+		if(state.network_state.is_present()) {
+			// TODO: server should set the game seed in question
+			state.game_seed = uint32_t(1000);
+		} else {
+			state.game_seed = uint32_t(std::random_device()());
+		}
 
 		float g1price = state.world.commodity_get_current_price(dcon::commodity_id(1));
 

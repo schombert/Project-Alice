@@ -51,6 +51,7 @@
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
 #include "ai.cpp"
+#include "network.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
