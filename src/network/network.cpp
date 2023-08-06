@@ -28,11 +28,11 @@ static int internal_recv(SOCKET client_fd, void *data, size_t n) {
     u_long has_pending = 0;
     auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return (int)recv(client_fd, (char *)data, n, 0);
+		return (int)recv(client_fd, (char *)data, (int)n, 0);
 	return 0;
 }
 static int internal_send(SOCKET client_fd, const void *data, size_t n) {
-	return (int)send(client_fd, (const char *)data, n, 0);
+	return (int)send(client_fd, (const char *)data, (int)n, 0);
 }
 #else
 static int internal_recv(int client_fd, void *data, size_t n) {
