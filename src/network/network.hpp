@@ -1,23 +1,17 @@
 #pragma once
 
 #include <atomic>
-
-#ifdef _WIN64
-
+#ifdef _WIN64 // WINDOWS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 1
 #ifndef WINSOCK2_IMPORTED
 #define WINSOCK2_IMPORTED
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
-
-#else
-
+#else // NIX
 #include <netinet/in.h>
-
-#endif
-
 #include <sys/socket.h>
+#endif
 #include "SPSCQueue.h"
 
 namespace sys {
