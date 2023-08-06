@@ -3724,7 +3724,7 @@ float estimate_army_strength(sys::state& state, dcon::army_id a) {
 		return 0.0f;
 
 	auto last_reg = regs.end() - 1;
-	return float(regs.end() - regs.begin()) * (*last_reg).get_regiment().get_org();
+	return float(regs.end() - regs.begin()) * (*last_reg).get_regiment().get_org() + 1.f;
 }
 
 float conservative_estimate_army_strength(sys::state& state, dcon::army_id a) {
@@ -3732,7 +3732,7 @@ float conservative_estimate_army_strength(sys::state& state, dcon::army_id a) {
 	if(regs.begin() == regs.end())
 		return 0.0f;
 
-	return float(regs.end() - regs.begin()) * (*regs.begin()).get_regiment().get_org();
+	return float(regs.end() - regs.begin()) * (*regs.begin()).get_regiment().get_org() + 1.f;
 }
 
 float estimate_attack_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
