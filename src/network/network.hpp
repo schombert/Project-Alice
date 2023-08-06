@@ -28,7 +28,6 @@ constexpr inline uint32_t max_clients = 16;
 struct network_state {
 	bool as_server = false;
 	struct sockaddr_in server_address;
-	int socket_fd = 0;
 	rigtorp::SPSCQueue<command::payload> client_commands;
 	rigtorp::SPSCQueue<command::payload> server_commands;
 	struct client_data {
@@ -37,6 +36,11 @@ struct network_state {
 		rigtorp::SPSCQueue<command::payload> worker_commands;
 		client_data() : worker_commands(1024) {};
 	} clients[max_clients];
+#ifdef _WIN64
+	SOCKET socket_fd = 0;
+#else
+	int socket_fd = 0;
+#endif
 
 	network_state() : client_commands(1024), server_commands(1024) {};
 	~network_state();
