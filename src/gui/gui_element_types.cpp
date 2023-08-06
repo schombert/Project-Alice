@@ -650,8 +650,79 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	auto const* chunk = internal_layout.get_chunk_from_position(x, y);
 	if(chunk != nullptr) {
-		if(std::holds_alternative<dcon::nation_id>(chunk->source))
+		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
 			state.open_diplomacy(std::get<dcon::nation_id>(chunk->source));
+			auto cap = state.world.nation_get_capital(std::get<dcon::nation_id>(chunk->source));
+			if(cap) {
+				auto map_pos = state.world.province_get_mid_point(cap);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		} else if(std::holds_alternative<dcon::province_id>(chunk->source)) {
+			auto prov = std::get<dcon::province_id>(chunk->source);
+			if(prov) {
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		} else if(std::holds_alternative<dcon::state_instance_id>(chunk->source)) {
+			auto s = std::get<dcon::state_instance_id>(chunk->source);
+			auto prov = state.world.state_instance_get_capital(s);
+			if(prov) {
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		} else if(std::holds_alternative<dcon::national_identity_id>(chunk->source)) {
+			auto id = std::get<dcon::national_identity_id>(chunk->source);
+			auto nat = state.world.national_identity_get_nation_from_identity_holder(id);
+			if(nat) {
+				state.open_diplomacy(nat);
+				auto cap = state.world.nation_get_capital(nat);
+				if(cap) {
+					auto map_pos = state.world.province_get_mid_point(cap);
+					map_pos.x /= float(state.map_state.map_data.size_x);
+					map_pos.y /= float(state.map_state.map_data.size_y);
+					map_pos.y = 1.0f - map_pos.y;
+					state.map_state.set_pos(map_pos);
+				}
+			}
+		} else if(std::holds_alternative<dcon::state_definition_id>(chunk->source)) {
+			auto s = std::get<dcon::state_definition_id>(chunk->source);
+			auto prov_rng = state.world.state_definition_get_abstract_state_membership(s);
+			dcon::province_id prov = prov_rng.begin() != prov_rng.end() ? (*prov_rng.begin()).get_province().id : dcon::province_id{ };
+			if(prov) {
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		}
 		return message_result::consumed;
 	}
 	return message_result::unseen;

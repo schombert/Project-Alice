@@ -176,8 +176,6 @@ void add_border(
 	glm::vec2 map_pos(x0, y0);
 
 	auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, uint16_t id1, uint16_t id2, direction dir) {
-		if(id1 == 0 || id2 == 0)
-			return;
 		auto border_index = get_border_index(id1, id2, context);
 		if(uint32_t(border_index) >= borders_list_vertices.size())
 			borders_list_vertices.resize(border_index + 1);
