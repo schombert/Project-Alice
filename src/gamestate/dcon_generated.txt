@@ -1074,7 +1074,6 @@ object {
 		type{array{commodity_id}{float}}
 		tag{ scenario }
 	}
-
 }
 
 object {
@@ -1283,6 +1282,10 @@ object {
 		type{ glm::vec2 }
 		tag{ scenario }
 	}
+	property{
+		name{ mid_point_b }
+		type{ glm::vec3 }
+	}
 
 	property{
 		name{ port_to }
@@ -1439,7 +1442,6 @@ relationship{
 	property{
 		name{ distance }
 		type{ float }
-		tag{ scenario }
 	}
 
 	property{
@@ -1573,6 +1575,16 @@ object {
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ ai_activity }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ ai_province }
+		type{ province_id }
+		tag{ save }
+	}
 }
 
 object {
@@ -1600,6 +1612,11 @@ object {
 	property{
 		name{ is_retreating }
 		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ ai_activity }
+		type{ uint8_t }
 		tag{ save }
 	}
 }
@@ -2524,6 +2541,10 @@ object {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
 	}
+	property {
+		name{ naval_base_is_taken }
+		type{ bitfield }
+	}
 }
 relationship{
 	name{ colonization }
@@ -3230,6 +3251,10 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ last_treasury }
+		type{ float }
+	}
+	property {
 		name{ industrial_score }
 		type{ uint16_t }
 	}
@@ -3496,6 +3521,10 @@ object {
 		name{ ai_rival }
 		type{ nation_id }
 		tag{ save }
+	}
+	property{
+		name{ ai_home_port }
+		type{ province_id }
 	}
 }
 
@@ -4450,7 +4479,6 @@ object {
 		tag{ save }
 	}
 }
-
 
 load_save{
 	name{store_scenario}

@@ -1,14 +1,12 @@
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 #define CATCH_CONFIG_MAIN
 #include "catch2/catch.hpp"
-#include "simple_fs.hpp"
-#include "system_state.hpp"
 
 #ifndef DCON_TRAP_INVALID_STORE
 #define DCON_TRAP_INVALID_STORE 1
 #endif
 
-#define ALICE_NO_ENTRY_POINT
+#define ALICE_NO_ENTRY_POINT 1
 #include "main.cpp"
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
@@ -47,6 +45,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 #include "scenario_building.cpp"
 #include "defines_tests.cpp"
 #include "triggers_tests.cpp"
+#include "dcon_tests.cpp"
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
 	REQUIRE(1 + 1 == 2);

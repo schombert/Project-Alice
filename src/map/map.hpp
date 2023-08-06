@@ -49,6 +49,16 @@ struct border_vertex {
 	glm::vec2 direction_;
 	int32_t border_id_;
 };
+struct unit_arrow_vertex {
+	unit_arrow_vertex(){};
+	unit_arrow_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type)
+			: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{type} {};
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	glm::vec2 direction_;
+	glm::vec2 texture_coord_;
+	float type_;
+};
 struct border {
 	int start_index = -1;
 	int count = -1;
@@ -70,6 +80,7 @@ public:
 	void update_borders(sys::state& state);
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
+	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows);
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -77,6 +88,8 @@ public:
 	std::vector<border> borders;
 	std::vector<border_vertex> border_vertices;
 	std::vector<border_vertex> river_vertices;
+	std::vector<unit_arrow_vertex> unit_arrow_vertices;
+	std::vector<unit_arrow_vertex> unit_arrow_head_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 
@@ -91,6 +104,10 @@ private:
 	GLuint border_vbo = 0;
 	GLuint river_vao = 0;
 	GLuint river_vbo = 0;
+	GLuint unit_arrow_vao = 0;
+	GLuint unit_arrow_vbo = 0;
+	GLuint unit_arrow_head_vao = 0;
+	GLuint unit_arrow_head_vbo = 0;
 	uint32_t land_vertex_count = 0;
 
 	// Textures
@@ -105,11 +122,14 @@ private:
 	GLuint province_color = 0;
 	GLuint province_highlight = 0;
 	GLuint stripes_texture = 0;
+	GLuint unit_arrow_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
 	GLuint line_river_shader = 0;
+	GLuint line_unit_arrow_shader = 0;
+	GLuint line_unit_arrow_shader2 = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
@@ -122,4 +142,8 @@ private:
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
+
+std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> river_data);
+
+image load_stb_image(simple_fs::file& file);
 } // namespace map

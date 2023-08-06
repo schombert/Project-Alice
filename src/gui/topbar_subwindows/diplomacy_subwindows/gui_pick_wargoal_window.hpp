@@ -90,7 +90,14 @@ public:
 
 		if(w) { // war is ongoing
 			for(auto cb_type : state.world.in_cb_type) {
+				// prevent duplicate war goals
+				if(!military::cb_requires_selection_of_a_liberatable_tag(state, cb_type) && !military::cb_requires_selection_of_a_state(state, cb_type) && !military::cb_requires_selection_of_a_valid_nation(state, cb_type)) {
+					if(military::war_goal_would_be_duplicate(state, state.local_player_nation, w, content, cb_type, dcon::state_definition_id{}, dcon::national_identity_id{}, dcon::nation_id{}))
+						continue;
+				}
+
 				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
+
 					bool cb_fabbed = false;
 					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
 						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
@@ -123,7 +130,6 @@ public:
 						continue;
 					}
 				} else { // this is an always CB
-					// prevent duplicate war goals
 					if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type) && military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
 						row_contents.push_back(cb_type);
 						continue;
@@ -227,19 +233,10 @@ public:
 
 								auto def = si.get_state().get_definition().id;
 								if(std::find(row_contents.begin(), row_contents.end(), def) == row_contents.end()) {
-
-									bool dup = false;
-									for(auto wg : state.world.war_get_wargoals_attached(war)) {
-										if(wg.get_wargoal().get_added_by() == actor && wg.get_wargoal().get_type() == cb && wg.get_wargoal().get_associated_state() == def && wg.get_wargoal().get_target_nation() == v.get_subject()) {
-											dup = true;
-										}
-									}
-									if(!dup) {
+									if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
 										row_contents.push_back(def);
 									}
-
 								}
-
 							}
 						}
 					}
@@ -253,23 +250,7 @@ public:
 						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
 
 							auto def = si.get_state().get_definition().id;
-							bool dup = false;
-
-							if(military::cb_requires_selection_of_a_liberatable_tag(state, cb)) {
-								for(auto wg : state.world.war_get_wargoals_attached(war)) {
-									if(wg.get_wargoal().get_added_by() == actor && wg.get_wargoal().get_type() == cb && wg.get_wargoal().get_associated_tag() == secondary_tag && wg.get_wargoal().get_associated_state() == def && wg.get_wargoal().get_target_nation() == target) {
-										dup = true;
-									}
-								}
-							} else {
-								for(auto wg : state.world.war_get_wargoals_attached(war)) {
-									if(wg.get_wargoal().get_added_by() == actor && wg.get_wargoal().get_type() == cb && wg.get_wargoal().get_secondary_nation() == in_nation && wg.get_wargoal().get_associated_state() == def && wg.get_wargoal().get_target_nation() == target) {
-										dup = true;
-									}
-								}
-							}
-
-							if(!dup) {
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
 								row_contents.push_back(def);
 							}
 						}
@@ -280,13 +261,7 @@ public:
 						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
 
 							auto def = si.get_state().get_definition().id;
-							bool dup = false;
-							for(auto wg : state.world.war_get_wargoals_attached(war)) {
-								if(wg.get_wargoal().get_added_by() == actor && wg.get_wargoal().get_type() == cb && wg.get_wargoal().get_associated_state() == def && wg.get_wargoal().get_target_nation() == target) {
-									dup = true;
-								}
-							}
-							if(!dup) {
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
 								row_contents.push_back(def);
 							}
 						}
@@ -378,25 +353,19 @@ public:
 					trigger::to_generic(n.id))) {
 
 					auto id = state.world.nation_get_identity_from_identity_holder(n);
-					if(!war || military::cb_requires_selection_of_a_state(state, cb)) {
+					if(!war) {
+						row_contents.push_back(id);
+					} else if(military::cb_requires_selection_of_a_state(state, cb)) {
 						row_contents.push_back(id);
 					} else {
-						bool dup = false;
 						if(military::cb_requires_selection_of_a_liberatable_tag(state, cb)) {
-							for(auto wg : state.world.war_get_wargoals_attached(war)) {
-								if(wg.get_wargoal().get_added_by() == actor && wg.get_wargoal().get_type() == cb && wg.get_wargoal().get_associated_tag() == id && wg.get_wargoal().get_target_nation() == target) {
-									dup = true;
-								}
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, dcon::state_definition_id{}, id, dcon::nation_id{})) {
+								row_contents.push_back(id);
 							}
 						} else {
-							for(auto wg : state.world.war_get_wargoals_attached(war)) {
-								if(wg.get_wargoal().get_added_by() == actor && wg.get_wargoal().get_type() == cb && wg.get_wargoal().get_secondary_nation() == n && wg.get_wargoal().get_target_nation() == target) {
-									dup = true;
-								}
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, dcon::state_definition_id{}, dcon::national_identity_id{}, n)) {
+								row_contents.push_back(id);
 							}
-						}
-						if(!dup) {
-							row_contents.push_back(id);
 						}
 					}
 				}
@@ -571,13 +540,10 @@ class wargoal_success_prestige : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
-		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto source = state.local_player_nation;
 
-
 		if(cb) {
-			float prestige_gain = military::successful_cb_prestige(state, cb, state.local_player_nation);
-
+			float prestige_gain = military::successful_cb_prestige(state, cb, source);
 			if(prestige_gain > 0) {
 				color = text::text_color::green;
 				set_text(state, text::format_float(prestige_gain, 1));
@@ -627,11 +593,7 @@ class wargoal_failure_prestige : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
-		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto source = state.local_player_nation;
-
-		dcon::nation_id real_target = target;
-
 		if(cb) {
 			float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base, state.defines.war_failed_goal_prestige * nations::prestige_score(state, source)) * state.world.cb_type_get_penalty_factor(cb);
 
@@ -653,9 +615,6 @@ class wargoal_failure_militancy : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
-		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto source = state.local_player_nation;
-
 		if(cb) {
 			auto pop_militancy = state.defines.war_failed_goal_militancy * state.world.cb_type_get_penalty_factor(cb);
 
@@ -863,7 +822,6 @@ int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon:
 					}
 				}
 			} else {
-				auto is_attacker = military::is_attacker(state, war, state.local_player_nation);
 				for(auto si : state.world.in_state_instance) {
 					if(si.get_definition() == state_def) {
 						auto n = si.get_nation_from_state_ownership();
@@ -1471,11 +1429,6 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-
-		dcon::nation_id target = retrieve<get_target>(state, parent).n;
-		auto actor = retrieve<get_offer_to>(state, parent).n;
-		dcon::cb_type_id cb = retrieve<dcon::cb_type_id>(state, parent);
-
 		for(auto& par : state.crisis_participants) {
 			if(!par.id) {
 				break; // not in crisis

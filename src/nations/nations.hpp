@@ -42,10 +42,12 @@ struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
 	std::vector<dcon::nation_id> nations_by_rank;
-
+	
 	tagged_vector<dcon::text_sequence_id, dcon::national_flag_id> flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
+
+	dcon::nation_id rebel_id;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
@@ -96,6 +98,8 @@ struct global_national_state {
 	int32_t num_allocated_global_flags = 0;
 
 	dcon::national_focus_id flashpoint_focus;
+	dcon::national_focus_id clergy_focus;
+	dcon::national_focus_id soldier_focus;
 	float flashpoint_amount = 0.15f;
 
 	std::vector<fixed_event> on_yearly_pulse;
@@ -320,6 +324,8 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id i);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);

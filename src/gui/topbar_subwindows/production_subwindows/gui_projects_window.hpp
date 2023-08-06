@@ -93,13 +93,7 @@ class production_project_info : public listbox_row_element_base<production_proje
 	dcon::state_instance_id get_state_instance_id(sys::state& state) {
 		if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
-			auto sdef = state.world.province_get_state_from_abstract_state_membership(fat_id.get_province());
-			dcon::state_instance_id state_id{};
-			state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
-				if(state.world.state_instance_get_definition(sid) == sdef)
-					state_id = sid;
-			});
-			return state_id;
+			return fat_id.get_province().get_state_membership().id;
 		} else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
 			return fat_id.get_state();
@@ -156,8 +150,7 @@ public:
 			building_icon->set_visible(state, true);
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
 			factory_icon->frame = uint16_t(fat_id.get_type());
-			name_text->set_text(state, text::produce_simple_string(state,
-																		 province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
+			name_text->set_text(state, text::produce_simple_string(state,  province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
 			switch(economy::province_building_type(fat_id.get_type())) {
 			case economy::province_building_type::railroad:
 				needed_commodities = state.economy_definitions.railroad_definition.cost;

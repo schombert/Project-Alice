@@ -16,11 +16,6 @@ dcon::province_id map_state::get_selected_province() {
 	return selected_province;
 }
 
-// Called to load the terrain and province map data
-void map_state::load_map_data(parsers::scenario_building_context& context) {
-	map_data.load_map_data(context);
-}
-
 // Called to load the map. Will load the texture and shaders from disk
 void map_state::load_map(sys::state& state) {
 	map_data.load_map(state);
@@ -38,6 +33,58 @@ void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) 
 			state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
 }
 
+glm::vec2 get_port_location(sys::state & state, dcon::province_id p) {
+	auto adj = state.world.get_province_adjacency_by_province_pair(p, state.world.province_get_port_to(p));
+	assert(adj);
+	auto id = adj.index();
+	auto& map_data = state.map_state.map_data;
+	auto& border = map_data.borders[id];
+	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
+	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
+
+	return vertex.position_ * map_size;
+}
+
+bool is_sea_province(sys::state & state, dcon::province_id prov_id) {
+	return prov_id.index() >= state.province_definitions.first_sea_province.index();
+}
+
+glm::vec2 get_navy_location(sys::state & state, dcon::province_id prov_id) {
+	if (is_sea_province(state, prov_id))
+		return state.world.province_get_mid_point(prov_id);
+	else
+		return get_port_location(state, prov_id);
+}
+
+glm::vec2 get_army_location(sys::state & state, dcon::province_id prov_id) {
+	return state.world.province_get_mid_point(prov_id);
+}
+
+void update_unit_arrows(sys::state & state, display_data& map_data) {
+	std::vector<std::vector<glm::vec2>> arrows;
+	for (auto& selected_army : state.selected_armies) {
+		auto current_pos = state.world.army_get_location_from_army_location(selected_army);
+		auto path = state.world.army_get_path(selected_army);
+		arrows.push_back(std::vector<glm::vec2>());
+		arrows.back().push_back(get_army_location(state, current_pos));
+		for (auto i = path.size(); i --> 0;) {
+			auto army_pos = get_army_location(state, path[i]);
+			arrows.back().push_back(army_pos);
+		}
+	}
+	for (auto& selected_navy : state.selected_navies) {
+		auto current_pos = state.world.navy_get_location_from_navy_location(selected_navy);
+		auto path = state.world.navy_get_path(selected_navy);
+		arrows.push_back(std::vector<glm::vec2>());
+		arrows.back().push_back(get_navy_location(state, current_pos));
+		for (auto i = path.size(); i --> 0;) {
+			auto navy_pos = get_navy_location(state, path[i]);
+			arrows.back().push_back(navy_pos);
+		}
+	}
+	map_data.set_unit_arrows(arrows);
+}
+
 void map_state::update(sys::state& state) {
 	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 	// Set the last_update_time if it hasn't been set yet
@@ -45,6 +92,8 @@ void map_state::update(sys::state& state) {
 		last_update_time = now;
 	if(last_zoom_time == std::chrono::time_point<std::chrono::system_clock>{})
 		last_zoom_time = now;
+
+	update_unit_arrows(state, map_data);
 
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
 	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
@@ -186,7 +235,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
 
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
-		
+
 	}
 }
 
@@ -279,17 +328,7 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
 	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-		sound::play_interface_sound(state, sound::get_click_sound(state),
-				state.user_settings.interface_volume * state.user_settings.master_volume);
-		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
-		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
-			if(state.selected_armies.size() == 0 && state.selected_navies.size() == 0) {
-				dcon::province_id prov_id = province::from_map_id(map_data.province_id_map[idx]);
-				dcon::province_ownership_id prov_ownership_id = state.world.province_get_province_ownership(prov_id);
-				dcon::nation_id owner_id = state.world.province_ownership_get_nation(prov_ownership_id);
-				state.open_diplomacy(owner_id);
-			}
-		}
+		
 	} else {
 		set_selected_province(dcon::province_id{});
 	}

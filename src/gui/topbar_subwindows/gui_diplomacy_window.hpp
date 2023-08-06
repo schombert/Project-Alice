@@ -807,6 +807,10 @@ public:
 			return;
 		}
 
+		bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+		if(!is_attacker && military::defenders_have_status_quo_wargoal(state, w))
+			return;
+
 		for(auto cb_type : state.world.in_cb_type) {
 			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
 				bool cb_fabbed = false;
@@ -863,20 +867,22 @@ public:
 		
 			auto content = retrieve<dcon::nation_id>(state, parent);
 			if(content == state.local_player_nation) {
-				text::add_line(state, contents, "add_wg_1");
+				text::add_line_with_condition(state, contents, "add_wg_1", false);
 				return;
 			}
 
-			if(state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost) {
-				text::add_line(state, contents, "add_wg_3", text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
-				return;
+			if(state.defines.addwargoal_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "add_wg_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
 			}
 
 			auto w = military::find_war_between(state, state.local_player_nation, content);
+			text::add_line_with_condition(state, contents, "add_wg_2", bool(w));
 			if(!w) {
-				text::add_line(state, contents, "add_wg_2");
 				return;
 			}
+
+			bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+			text::add_line_with_condition(state, contents, "add_wg_5", is_attacker || !military::defenders_have_status_quo_wargoal(state, w));
 
 			for(auto cb_type : state.world.in_cb_type) {
 				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
@@ -899,19 +905,9 @@ public:
 			auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
 			auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
 			if(state.world.war_get_is_great(w)) {
-				if(jingoism_perc < state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
-
-					text::add_line_with_condition(state, contents, "add_wg_4", false, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
-
-					return;
-				}
+				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
 			} else {
-				if(jingoism_perc < state.defines.wargoal_jingoism_requirement) {
-
-					text::add_line_with_condition(state, contents, "add_wg_4", false, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
-
-					return;
-				}
+				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
 			}
 	}
 };
@@ -1348,9 +1344,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		auto fat_id = dcon::fatten(state.world, content);
 		country_relation->set_visible(state, content != state.local_player_nation);
 		country_relation_icon->set_visible(state, content != state.local_player_nation);
 		auto active_tab = retrieve<dip_tab_request>(state, parent).tab;
@@ -1880,6 +1874,19 @@ public:
 			command::cancel_cb_fabrication(state, content);
 		}
 	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(retrieve<dcon::nation_id>(state, parent) == state.local_player_nation)
+			button_element_base::render(state, x, y);
+	}
+};
+
+class cb_progress_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto just_progress = state.world.nation_get_constructing_cb_progress(retrieve<dcon::nation_id>(state, parent));
+		set_text(state, text::format_percentage(just_progress / 100.0f, 0));
+	}
 };
 
 class diplomacy_casus_belli_entry : public listbox_row_element_base<dcon::nation_id> {
@@ -1891,10 +1898,8 @@ public:
 			return make_element_by_type<justifying_cb_type_icon>(state, id);
 		} else if(name == "cb_progress") {
 			return make_element_by_type<justifying_cb_progress>(state, id);
-		} else if(name == "cb_progress_overlay") {
-			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "cb_progress_text") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<cb_progress_text>(state, id);
 		} else if(name == "attackers") {
 			auto ptr = make_element_by_type<justifying_attacker_flag>(state, id);
 			ptr->base_data.position.y -= 7; // Nudge
@@ -1918,6 +1923,10 @@ protected:
 	}
 
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.x += int16_t(400);
+		listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id>::on_create(state);
+	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {

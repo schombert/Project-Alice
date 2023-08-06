@@ -351,7 +351,7 @@ void accept(sys::state& state, message const& m) {
 		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
 			return;
 
-		military::join_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
+		military::add_to_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_accept);
 
@@ -438,17 +438,19 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::alliance_request:
 			return ai::ai_will_accept_alliance(state, m.to, m.from);
 		case type::call_ally_request:
-			return true;
+			if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
+				return false;
+			return ai::will_join_war(state, m.to, m.data.war, military::get_role(state, m.data.war, m.from) == military::war_role::attacker);
 		case type::be_crisis_primary_defender:
-			return true;
+			return ai::will_be_crisis_primary_defender(state, m.to);
 		case type::be_crisis_primary_attacker:
-			return true;
+			return ai::will_be_crisis_primary_attacker(state, m.to);
 		case type::peace_offer:
-			return true;
+			return ai::will_accept_peace_offer(state, m.to, m.from, m.data.peace);
 		case type::take_crisis_side_offer:
-			return true;
+			return ai::will_join_crisis_with_offer(state, m.to, m.data.crisis_offer);
 		case type::crisis_peace_offer:
-			return true;
+			return ai::will_accept_crisis_peace_offer(state, m.to, m.data.peace);
 	}
 	return false;
 }

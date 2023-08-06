@@ -428,6 +428,7 @@ void update_pop_rebel_membership(sys::state& state) {
 
 				auto occupying_faction = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
 				if(occupying_faction && pop_is_compatible_with_rebel_faction(state, p, occupying_faction)) {
+					assert(!bool(state.world.province_get_nation_from_province_control(prov)));
 					add_pop_to_rebel_faction(state, p, occupying_faction);
 				} else {
 					/*
@@ -859,6 +860,7 @@ void execute_province_defections(sys::state& state) {
 		auto reb_controller = state.world.province_get_rebel_faction_from_province_rebel_control(p);
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(reb_controller && owner) {
+			assert(!bool(state.world.province_get_nation_from_province_control(p)));
 			auto reb_type = state.world.rebel_faction_get_type(reb_controller);
 			culture::rebel_defection def_type = culture::rebel_defection(reb_type.get_defection());
 			if(def_type != culture::rebel_defection::none &&

@@ -9,6 +9,7 @@
 #include "politics.hpp"
 #include "events.hpp"
 #include "prng.hpp"
+#include "effects.hpp"
 
 namespace nations {
 
@@ -186,6 +187,11 @@ void restore_unsaved_values(sys::state& state) {
 			auto gp = state.world.gp_relationship_get_great_power(rel);
 			state.world.nation_set_in_sphere_of(t, gp);
 		}
+	});
+
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto treasury = state.world.nation_get_stockpiles(ids, economy::money);
+		state.world.nation_set_last_treasury(ids, treasury);
 	});
 
 	restore_cached_values(state);
@@ -2100,13 +2106,10 @@ void update_crisis(sys::state& state) {
 						state.current_crisis = sys::crisis_type::colonial;
 
 						if((*colonizers.begin()).get_colonizer().get_is_great_power()) {
-							state.primary_crisis_defender = (*colonizers.begin()).get_colonizer();
+							state.primary_crisis_attacker = (*colonizers.begin()).get_colonizer();
 						}
 						if((*(colonizers.begin() + 1)).get_colonizer().get_is_great_power()) {
-							if(state.primary_crisis_defender)
-								state.primary_crisis_attacker = (*(colonizers.begin() + 1)).get_colonizer();
-							else
-								state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
+							state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
 						}
 
 						notification::post(state, notification::message{
@@ -2132,7 +2135,7 @@ void update_crisis(sys::state& state) {
 		if(!state.primary_crisis_attacker) {
 			state.current_crisis_mode = sys::crisis_mode::finding_attacker;
 			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_defender ? 0 : 1;
-			ask_to_attack_in_crisis(state, state.great_nations[0].nation);
+			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		} else if(!state.primary_crisis_defender) {
 			state.current_crisis_mode = sys::crisis_mode::finding_defender;
 			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
@@ -2146,7 +2149,7 @@ void update_crisis(sys::state& state) {
 				state.current_crisis_mode = sys::crisis_mode::finding_defender;
 				state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
 				ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
-			} else {																													// defender is already a gp
+			} else {	// defender is already a gp
 				state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
 				state.crisis_last_checked_gp = 0;
 			}
@@ -2213,6 +2216,61 @@ void update_crisis(sys::state& state) {
 								event::slot_type::nation, gp.nation, -1, event::slot_type::none);
 					}
 				}
+			}
+
+			// auto join ais
+			dcon::nation_id secondary_attacker;
+			dcon::nation_id secondary_defender;
+
+			if(state.current_crisis == sys::crisis_type::colonial) {
+				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+				secondary_defender = (*(colonizers.begin() + 1)).get_colonizer();
+				secondary_attacker = (*(colonizers.begin())).get_colonizer();
+			} else if(state.current_crisis == sys::crisis_type::liberation) {
+				secondary_defender = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+				secondary_attacker = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
+			}
+
+			for(auto& i : state.crisis_participants) {
+				if(i.id && i.merely_interested == true && state.world.nation_get_is_player_controlled(i.id) == false) {
+					if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_attacker
+						|| nations::are_allied(state, i.id, state.primary_crisis_defender)
+						|| state.world.nation_get_ai_rival(i.id) == secondary_attacker
+						|| nations::are_allied(state, i.id, secondary_defender)
+						|| state.world.nation_get_in_sphere_of(secondary_defender) == i.id) {
+
+						i.merely_interested = false;
+						i.supports_attacker = false;
+
+						notification::post(state, notification::message{
+							[source = i.id](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "msg_crisis_vol_join_2", text::variable_type::x, source);
+							},
+							"msg_crisis_vol_join_title",
+							i.id,
+							sys::message_setting_type::crisis_voluntary_join
+						});
+					} else if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_defender
+						|| nations::are_allied(state, i.id, state.primary_crisis_attacker)
+						|| state.world.nation_get_ai_rival(i.id) == secondary_defender
+						|| nations::are_allied(state, i.id, secondary_attacker)
+						|| state.world.nation_get_in_sphere_of(secondary_attacker) == i.id) {
+
+						i.merely_interested = false;
+						i.supports_attacker = true;
+
+						notification::post(state, notification::message{
+							[source = i.id](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "msg_crisis_vol_join_1", text::variable_type::x, source);
+							},
+							"msg_crisis_vol_join_title",
+							i.id,
+							sys::message_setting_type::crisis_voluntary_join
+						});
+					}
+				}
+				if(!i.id)
+					break;;
 			}
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
@@ -2799,6 +2857,150 @@ void make_uncivilized(sys::state& state, dcon::nation_id n) {
 	}
 	sys::update_single_nation_modifiers(state, n);
 	culture::update_nation_issue_rules(state, n);
+}
+
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
+	/*
+	For military/economic reforms:
+	- Run the `on_execute` member
+	*/
+	auto e = state.world.reform_option_get_on_execute_effect(r);
+	if(e) {
+		auto t = state.world.reform_option_get_on_execute_trigger(r);
+		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
+			effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
+					uint32_t(source.index()));
+	}
+
+	// - Subtract research points (see discussion of when the reform is possible for how many)
+	bool is_military = state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(r)) ==uint8_t(culture::issue_category::military);
+	if(is_military) {
+		float base_cost = float(state.world.reform_option_get_technology_cost(r));
+		float reform_factor = politics::get_military_reform_multiplier(state, source);
+
+		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
+	} else {
+		float base_cost = float(state.world.reform_option_get_technology_cost(r));
+		float reform_factor = politics::get_economic_reform_multiplier(state, source);
+
+		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
+	}
+
+	/*
+	In general:
+	- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize
+	again)
+	*/
+
+	for(auto id : state.world.in_ideology) {
+		if(id == state.culture_definitions.conservative) {
+			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
+		}
+		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
+	}
+	state.world.nation_set_reforms(source, state.world.reform_option_get_parent_reform(r), r);
+
+	culture::update_nation_issue_rules(state, source);
+	sys::update_single_nation_modifiers(state, source);
+}
+
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
+
+	auto e = state.world.issue_option_get_on_execute_effect(i);
+	if(e) {
+		auto t = state.world.issue_option_get_on_execute_trigger(i);
+		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
+			effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
+					uint32_t(source.index()));
+	}
+
+	/*
+	For political and social based reforms:
+	- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a
+	movement; all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /
+	support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
+	*/
+	auto winner = rebel::get_movement_by_position(state, source, i);
+	float winner_support = winner ? state.world.movement_get_pop_support(winner) : 1.0f;
+	for(auto m : state.world.nation_get_movement_within(source)) {
+		if(m.get_movement().get_associated_issue_option() && m.get_movement().get_associated_issue_option() != i &&
+				m.get_movement().get_pop_support() > winner_support) {
+
+			m.get_movement().get_transient_radicalism() +=
+				std::min(3.0f, m.get_movement().get_pop_support() / winner_support - 1.0f) * state.defines.wrong_reform_radical_impact;
+		}
+	}
+
+	/*
+	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing
+	the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal)
+	militancy
+	*/
+	auto issue = state.world.issue_option_get_parent_issue(i);
+	auto current = state.world.nation_get_issues(source, issue.id).id;
+	bool is_social = state.world.issue_get_issue_type(issue) == uint8_t(culture::issue_category::social);
+
+	for(auto id : state.world.in_ideology) {
+
+		auto condition = is_social
+			? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
+			: (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
+		if(condition) {
+			auto factor =
+				trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
+			auto const idsupport_key = pop_demographics::to_key(state, id);
+			if(factor > 0) {
+				for(auto pr : state.world.nation_get_province_ownership(source)) {
+					for(auto pop : pr.get_province().get_pop_location()) {
+						auto base_mil = pop.get_pop().get_militancy();
+						pop.get_pop().set_militancy(base_mil + pop.get_pop().get_demographics(idsupport_key) * factor * state.defines.mil_reform_impact); // intentionally left to be clamped below
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	- Each pop in the nation gains defines:CON_REFORM_IMPACT x pop support of the issue consciousness
+
+	- If the pop is part of a movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT
+	militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
+	*/
+
+	auto const isupport_key = pop_demographics::to_key(state, i);
+	for(auto pr : state.world.nation_get_province_ownership(source)) {
+		for(auto pop : pr.get_province().get_pop_location()) {
+			auto base_con = pop.get_pop().get_consciousness();
+			auto adj_con = base_con + pop.get_pop().get_demographics(isupport_key) * state.defines.con_reform_impact;
+			pop.get_pop().set_consciousness(std::clamp(adj_con, 0.0f, 10.0f));
+
+			if(auto m = pop.get_pop().get_movement_from_pop_movement_membership(); m && m.get_associated_issue_option() != i) {
+				auto base_mil = pop.get_pop().get_militancy();
+				pop.get_pop().set_militancy(std::clamp(base_mil + state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
+			} else {
+				auto base_mil = pop.get_pop().get_militancy();
+				pop.get_pop().set_militancy(std::clamp(base_mil - state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
+			}
+		}
+	}
+
+	/*
+	In general:
+	- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize
+	again)
+	- If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
+	*/
+	for(auto id : state.world.in_ideology) {
+		if(id == state.culture_definitions.conservative) {
+			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
+		}
+		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
+	}
+
+	state.world.nation_set_issues(source, issue, i);
+
+	culture::update_nation_issue_rules(state, source);
+	sys::update_single_nation_modifiers(state, source);
 }
 
 } // namespace nations

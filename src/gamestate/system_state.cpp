@@ -80,6 +80,15 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				for(auto a : selected_navies) {
 					command::move_navy(*this, local_player_nation, a, id);
 				}
+			} else {
+				sound::play_interface_sound(*this, sound::get_click_sound(*this),
+				user_settings.interface_volume * user_settings.master_volume);
+				auto fat_id = dcon::fatten(world, province::from_map_id(map_state.map_data.province_id_map[idx]));
+					
+				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
+				auto owner = world.province_get_nation_from_province_ownership(prov_id);
+				if(owner)
+					open_diplomacy(owner);
 			}
 		}
 
@@ -2042,6 +2051,12 @@ void state::load_scenario_data() {
 		}
 	}
 
+	world.for_each_national_identity([&](dcon::national_identity_id n) {
+		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(n));
+		if(tag == "REB")
+			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
+	});
+
 	// run the economy for three days on scenario creation
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
@@ -2055,9 +2070,11 @@ void state::load_scenario_data() {
 	economy::update_factory_employment(*this);
 	economy::daily_update(*this);
 
+	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
-	ai::update_ai_research(*this);
+	// ai::update_ai_research(*this);
 	ai::update_influence_priorities(*this);
+	ai::update_focuses(*this);
 
 	military::recover_org(*this);
 
@@ -2082,6 +2099,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
+
+	province::restore_distances(*this);
 
 	world.for_each_nation([&](dcon::nation_id id) { politics::update_displayed_identity(*this, id); });
 
@@ -2186,8 +2205,10 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
+	ai::refresh_home_ports(*this);
 
 	game_state_updated.store(true, std::memory_order::release);
 }
@@ -2388,8 +2409,8 @@ void state::game_loop() {
 				// basic repopulation of demographics derived values
 				demographics::regenerate_from_pop_data(*this);
 
-				// values updates pass 1 (mostly trivial things, can be done in parallel
-				concurrency::parallel_for(0, 15, [&](int32_t index) {
+				// values updates pass 1 (mostly trivial things, can be done in parallel)
+				concurrency::parallel_for(0, 16, [&](int32_t index) {
 					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
@@ -2436,9 +2457,13 @@ void state::game_loop() {
 					case 14:
 						military::recover_org(*this);
 						break;
+					case 15:
+						ai::refresh_home_ports(*this);
+						break;
 					}
 				});
 
+				military::update_war_cleanup(*this);
 				economy::daily_update(*this);
 
 				military::update_movement(*this);
@@ -2462,6 +2487,11 @@ void state::game_loop() {
 				nations::update_crisis(*this);
 				politics::update_elections(*this);
 
+				//
+				if(current_date.value % 4 == 0) {
+					ai::update_ai_colonial_investment(*this);
+				}
+
 				// Once per month updates, spread out over the month
 				switch(ymd_date.day) {
 				case 1:
@@ -2472,9 +2502,11 @@ void state::game_loop() {
 					break;
 				case 3:
 					military::monthly_leaders_update(*this);
+					ai::add_gw_goals(*this);
 					break;
 				case 4:
 					military::reinforce_regiments(*this);
+					ai::make_defense(*this);
 					break;
 				case 5:
 					rebel::update_movements(*this);
@@ -2504,20 +2536,61 @@ void state::game_loop() {
 				case 13:
 					ai::perform_influence_actions(*this);
 					break;
+				case 14:
+					ai::update_focuses(*this);
+					break;
 				case 15:
 					culture::discover_inventions(*this);
 					break;
+				case 16:
+					ai::take_ai_decisions(*this);
+					break;
+				case 17:
+					ai::build_ships(*this);
+					ai::update_land_constructions(*this);
+					break;
+				case 18:
+					ai::update_ai_econ_construction(*this);
+					break;
+				case 19:
+					ai::update_budget(*this);
 				case 20:
 					nations::monthly_flashpoint_update(*this);
 					break;
+				case 21:
+					ai::update_ai_colony_starting(*this);
+					break;
+				case 22:
+					ai::take_reforms(*this);
+					break;
+				case 23:
+					ai::civilize(*this);
+					ai::make_war_decs(*this);
+					break;
 				case 24:
 					rebel::execute_rebel_victories(*this);
+					ai::make_attacks(*this);
 					break;
 				case 25:
 					rebel::execute_province_defections(*this);
 					break;
+				case 26:
+					ai::make_peace_offers(*this);
+					break;
+				case 27:
+					ai::update_crisis_leaders(*this);
+					break;
 				case 28:
 					rebel::rebel_risings_check(*this);
+					break;
+				case 29:
+					ai::update_war_intervention(*this);
+					break;
+				case 30:
+					ai::update_ships(*this);
+					break;
+				case 31:
+					ai::update_cb_fabrication(*this);
 					break;
 				default:
 					break;
@@ -2525,19 +2598,26 @@ void state::game_loop() {
 
 				military::apply_regiment_damage(*this);
 
-				// yearly update : redo the upper house
-				if(ymd_date.day == 1 && ymd_date.month == 1) {
-					for(auto n : world.in_nation) {
-						politics::recalculate_upper_house(*this, n);
+				if(ymd_date.day == 1) {
+					if(ymd_date.month == 1) {
+						// yearly update : redo the upper house
+						for(auto n : world.in_nation) {
+							politics::recalculate_upper_house(*this, n);
+						}
+
+						ai::update_influence_priorities(*this);
 					}
-
-					ai::update_influence_priorities(*this);
+					if(ymd_date.month == 6) {
+						ai::update_influence_priorities(*this);
+					}
+					if(ymd_date.month == 2) {
+						ai::upgrade_colonies(*this);
+					}
 				}
 
-				if(ymd_date.day == 1 && ymd_date.month == 6) {
+				ai::general_ai_unit_tick(*this);
 
-					ai::update_influence_priorities(*this);
-				}
+				ai::daily_cleanup(*this);
 
 				/*
 				 * END OF DAY: update cached data

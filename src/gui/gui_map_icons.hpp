@@ -253,7 +253,8 @@ public:
 				}
 
 				for(auto n : state.world.province_get_navy_location(port_for)) {
-					state.select(n.get_navy().id);
+					if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation)
+						state.select(n.get_navy().id);
 				}
 
 				auto location = get_absolute_location(*this);
@@ -1157,7 +1158,7 @@ public:
 			} else if(display.colors[0] == outline_color::red) {
 				filter = [&](dcon::army_id a) {
 					auto n = state.world.army_get_controller_from_army_control(a);
-					return military::are_at_war(state, n, state.local_player_nation);
+					return !n || military::are_at_war(state, n, state.local_player_nation);
 				};
 			} else if(display.colors[0] == outline_color::gray) {
 				filter = [&](dcon::army_id a) {
@@ -1219,7 +1220,7 @@ public:
 			display.top_left_org_value /= float(total_count);
 
 			battle->set_visible(state, false);
-			siege->set_visible(state, state.world.province_get_siege_progress(prov) > 0);
+			siege->set_visible(state, state.world.province_get_siege_progress(prov) > 0.f);
 			top_icon->base_data.position.x = -30;
 			top_right_icon->set_visible(state, false);
 			small_top_icon->base_data.position.x = -30;

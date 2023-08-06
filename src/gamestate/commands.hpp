@@ -99,6 +99,7 @@ enum class command_type : uint8_t {
 	c_change_cb_progress = 134,
 	c_change_infamy = 135,
 	c_force_crisis = 136,
+	c_change_national_militancy = 137,
 };
 
 struct national_focus_data {
@@ -411,10 +412,8 @@ struct payload {
 	payload() { }
 };
 
-void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
-		dcon::national_focus_id focus);
-bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
-		dcon::national_focus_id focus);
+void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
+bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
 
 void start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech);
 bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech);
@@ -425,42 +424,29 @@ bool can_make_leader(sys::state& state, dcon::nation_id source, bool general);
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p,
-		economy::province_building_type type);
-bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p,
-		economy::province_building_type type);
+void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
+bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
 
-void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location,
-		dcon::factory_type_id type, bool is_upgrade);
-bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location,
-		dcon::factory_type_id type, bool is_upgrade);
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 
-void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type);
-bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type);
+void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 
-void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type);
-bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type);
+void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
+bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
 
-void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type);
-bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::unit_type_id type);
+void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 
-void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type);
-bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location,
-		dcon::culture_id soldier_culture, dcon::unit_type_id type);
+void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
+bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
 
 void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f);
 bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f);
 
 void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized);
-bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority,
-		bool subsidized);
+bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized);
 
 void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
@@ -496,63 +482,55 @@ bool can_start_election(sys::state& state, dcon::nation_id source);
 void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
 bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
 
-void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp); // Implemented in GUI :3
-bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp);
+void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp); // Implemented in GUI :3
+void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp); // Implemented in GUI :3
+void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target); // Implemented in GUI :3
+void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp); // Implemented in GUI :3
-bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp);
+void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target); // Implemented in GUI :3
+void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp); // Implemented in GUI :3
-bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target,
-		dcon::nation_id affected_gp);
+void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si); // Implemented in GUI
+void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
 bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
 
 void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p); // Added in GUI Need QA
+void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker); // Implemented in GUI
+void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 
-void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m); // Implemented in GUI
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 
-void civilize_nation(sys::state& state, dcon::nation_id source); // Implemented in GUI
+void civilize_nation(sys::state& state, dcon::nation_id source);
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
 
-void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p); // Added in GUI
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
-void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r); // Added in GUI Need QA
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 
-void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i); // Added in GUI Need QA
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 
 void become_interested_in_crisis(sys::state& state, dcon::nation_id source);
@@ -561,10 +539,8 @@ bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source);
 void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
 bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
 
-void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount,
-		bool draw_on_stockpiles);
-bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount,
-		bool draw_on_stockpiles);
+void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles);
+bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles);
 
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
@@ -580,41 +556,35 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 
-void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
 
-void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
-void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target); // Added in GUI
+void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
+void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost = false);
 
-void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type,
-		bool accept);
+void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
 
-void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // Aded in GUI
+void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target); // Added in GUI
+void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void cancel_given_military_access(sys::state& state, dcon::nation_id source,
-		dcon::nation_id target); // this is for cancelling the access someone has with you
+void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies);
-bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies);
+bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
-void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
-bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target,
-		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
-		dcon::nation_id cb_secondary_nation);
+void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 // NOTE: sending an invalid province id will stop movement of an army or navy;
 //     otherwise path will be appended to its current destination if any
@@ -671,12 +641,8 @@ bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id
 void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l);
 bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l);
 
-void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
-		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
-		dcon::nation_id cb_secondary_nation);
-bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
-		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
-		dcon::nation_id cb_secondary_nation);
+void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
@@ -692,8 +658,7 @@ flight while constructing / offering a crisis peace offer
 */
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession);
-bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war,
-		bool is_concession);
+bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession);
 
 void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal);
 bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal);
@@ -706,12 +671,8 @@ bool can_send_peace_offer(sys::state& state, dcon::nation_id source);
 void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
 bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
 
-void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target,
-		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
-		dcon::nation_id cb_secondary_nation);
-bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
-		dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
-		dcon::nation_id cb_secondary_nation);
+void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
@@ -727,6 +688,7 @@ void c_change_research_points(sys::state& state, dcon::nation_id source, float v
 void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value);
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
+void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
 void execute_pending_commands(sys::state& state);
 
 } // namespace command

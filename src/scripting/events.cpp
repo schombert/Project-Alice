@@ -152,8 +152,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		float odds[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] =
-						trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
 				total += odds[i];
 			}
 		}
@@ -181,8 +180,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo,
 		int32_t from_slot, slot_type ft) {
 	if(ft == slot_type::province)
-		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)))
-							 .is_valid());
+		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
@@ -310,9 +308,9 @@ void update_events(sys::state& state) {
 				non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the
 				event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
 				*/
-				auto some_exist = t ? (state.world.nation_get_owned_province_count(ids) != 0) &&
-																	trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
-														: (state.world.nation_get_owned_province_count(ids) != 0);
+				auto some_exist = t
+					? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
+					: (state.world.nation_get_owned_province_count(ids) != 0);
 				if(ve::compress_mask(some_exist).v != 0) {
 					auto chances =
 							trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);

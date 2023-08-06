@@ -331,7 +331,7 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
-		if(ch >= 32) {
+		if(ch >= 32 && ch != '`') {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
 			set_text(state, s);
@@ -645,6 +645,103 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 			}
 		}
 	}
+}
+
+message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	auto const* chunk = internal_layout.get_chunk_from_position(x, y);
+	if(chunk != nullptr) {
+		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
+			state.open_diplomacy(std::get<dcon::nation_id>(chunk->source));
+			auto cap = state.world.nation_get_capital(std::get<dcon::nation_id>(chunk->source));
+			if(cap) {
+				auto map_pos = state.world.province_get_mid_point(cap);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		} else if(std::holds_alternative<dcon::province_id>(chunk->source)) {
+			auto prov = std::get<dcon::province_id>(chunk->source);
+			if(prov) {
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		} else if(std::holds_alternative<dcon::state_instance_id>(chunk->source)) {
+			auto s = std::get<dcon::state_instance_id>(chunk->source);
+			auto prov = state.world.state_instance_get_capital(s);
+			if(prov) {
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		} else if(std::holds_alternative<dcon::national_identity_id>(chunk->source)) {
+			auto id = std::get<dcon::national_identity_id>(chunk->source);
+			auto nat = state.world.national_identity_get_nation_from_identity_holder(id);
+			if(nat) {
+				state.open_diplomacy(nat);
+				auto cap = state.world.nation_get_capital(nat);
+				if(cap) {
+					auto map_pos = state.world.province_get_mid_point(cap);
+					map_pos.x /= float(state.map_state.map_data.size_x);
+					map_pos.y /= float(state.map_state.map_data.size_y);
+					map_pos.y = 1.0f - map_pos.y;
+					state.map_state.set_pos(map_pos);
+				}
+			}
+		} else if(std::holds_alternative<dcon::state_definition_id>(chunk->source)) {
+			auto s = std::get<dcon::state_definition_id>(chunk->source);
+			auto prov_rng = state.world.state_definition_get_abstract_state_membership(s);
+			dcon::province_id prov = prov_rng.begin() != prov_rng.end() ? (*prov_rng.begin()).get_province().id : dcon::province_id{ };
+			if(prov) {
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		}
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+
+message_result multiline_text_element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return message_result::consumed;
+}
+
+message_result multiline_text_element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
+	switch(type) {
+	case mouse_probe_type::click:
+		return (internal_layout.get_chunk_from_position(x, y) != nullptr) ? message_result::consumed : message_result::unseen;
+	case mouse_probe_type::tooltip:
+		return (has_tooltip(state) != tooltip_behavior::no_tooltip) ? message_result::consumed : message_result::unseen;
+	case mouse_probe_type::scroll:
+		break;
+	}
+	return message_result::unseen;
 }
 
 void multiline_button_element_base::on_create(sys::state& state) noexcept {
@@ -1274,25 +1371,30 @@ dcon::national_identity_id flag_button::get_current_nation(sys::state& state) no
 }
 
 void flag_button::button_action(sys::state& state) noexcept {
-	auto fat_id = dcon::fatten(state.world, get_current_nation(state));
+	auto ident = get_current_nation(state);
+	if(!bool(ident))
+		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+
+	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		state.open_diplomacy(nation.id);
 	}
 }
 
-void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept {
-	if(bool(identity)) {
-		auto fat_id = dcon::fatten(state.world, identity);
-		auto nation = fat_id.get_nation_from_identity_holder();
-		culture::flag_type flag_type = culture::flag_type{};
-		if(bool(nation.id) && nation.get_owned_province_count() != 0) {
-			flag_type = culture::get_current_flag_type(state, nation.id);
-		} else {
-			flag_type = culture::get_current_flag_type(state, identity);
-		}
-		flag_texture_handle = ogl::get_flag_handle(state, identity, flag_type);
+void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
+	if(!bool(ident))
+		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	
+	auto fat_id = dcon::fatten(state.world, ident);
+	auto nation = fat_id.get_nation_from_identity_holder();
+	culture::flag_type flag_type = culture::flag_type{};
+	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
+		flag_type = culture::get_current_flag_type(state, nation.id);
+	} else {
+		flag_type = culture::get_current_flag_type(state, ident);
 	}
+	flag_texture_handle = ogl::get_flag_handle(state, ident, flag_type);
 }
 
 void flag_button::on_update(sys::state& state) noexcept {
@@ -1331,10 +1433,13 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 }
 void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);
+	if(!bool(ident))
+		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+
 	auto name = nations::name_from_tag(state, ident);
 	if(name) {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, name, text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, name);
 		text::close_layout_box(contents, box);
 	}
 }
