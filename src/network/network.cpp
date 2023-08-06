@@ -24,23 +24,22 @@
 namespace network {
 
 #ifdef _WIN64
-static int nb_recv(SOCKET client_fd, void *data, size_t n) {
+static int internal_recv(SOCKET client_fd, void *data, size_t n) {
     u_long has_pending = 0;
-    auto r = ioctlsocket(this->fd, FIONREAD, &has_pending);
-	if(has_pending) {
-		return recv(client_fd, &data, n, MSG_DONTWAIT);
-	}
+    auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
+	if(has_pending)
+		return recv(client_fd, data, n, MSG_DONTWAIT);
 	return 0;
 }
-static int nb_send(int client_fd, const void *data, size_t n) {
-	return send(client_fd, &data, n, 0);
+static int internal_send(SOCKET client_fd, const void *data, size_t n) {
+	return send(client_fd, data, n, 0);
 }
 #else
-static int nb_recv(int client_fd, void *data, size_t n) {
-	return recv(client_fd, &data, n, MSG_DONTWAIT);
+static int internal_recv(int client_fd, void *data, size_t n) {
+	return recv(client_fd, data, n, MSG_DONTWAIT);
 }
-static int nb_send(int client_fd, const void *data, size_t n) {
-	return send(client_fd, &data, n, MSG_NOSIGNAL);
+static int internal_send(int client_fd, const void *data, size_t n) {
+	return send(client_fd, data, n, MSG_NOSIGNAL);
 }
 #endif
 
@@ -57,10 +56,16 @@ void network_state::init(sys::state& state, bool _as_server) {
 		if((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 			std::abort();
 		
+#ifdef _WIN64
+		int opt = 1;
+		if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, (char *)&opt, sizeof(opt)))
+			std::abort();
+#else
 		int opt = 1;
 		if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
 			std::abort();
-		
+#endif
+
 		server_address.sin_family = AF_INET;
 		server_address.sin_addr.s_addr = INADDR_ANY;
 		server_address.sin_port = htons(server_port);
@@ -105,14 +110,14 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 			// read out until no more data
 			while(1) {
 				command::payload cmd;
-				if(nb_recv(client_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
+				if(internal_recv(client_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
 					break;
 				server_commands.push(cmd);
 			}
 			// send commands to client
 			auto* c = clients[worker_id].worker_commands.front();
 			while(c) {
-				if(nb_send(client_fd, c, sizeof(*c)) != sizeof(*c)) {
+				if(internal_send(client_fd, c, sizeof(*c)) != sizeof(*c)) {
 					// TODO: Notify other clients
 					goto close_finish;
 				}
@@ -160,14 +165,14 @@ void network_state::perform_pending(sys::state& state) {
 			// clear the (local) incoming commands and send them to the server
 			auto* c = state.network_state.client_commands.front();
 			while(c) {
-				if(nb_send(socket_fd, c, sizeof(*c)) != sizeof(*c))
+				if(internal_send(socket_fd, c, sizeof(*c)) != sizeof(*c))
 					std::abort();
 				state.network_state.client_commands.pop();
 				c = state.network_state.client_commands.front();
 			}
 			// obtain messages from the server, push them to the incoming commands
 			command::payload cmd;
-			if(nb_recv(socket_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
+			if(internal_recv(socket_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
 				continue;
 			if(cmd.type == command::command_type::advance_tick)
 				break;
