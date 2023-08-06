@@ -51,7 +51,6 @@
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
 #include "ai.cpp"
-#include "network.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
@@ -60,6 +59,7 @@
 #include "window_win.cpp"
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
+#include "network_win.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
@@ -72,6 +72,7 @@
 #include "window_nix.cpp"
 #include "sound_nix.cpp"
 #include "opengl_wrapper_nix.cpp"
+#include "network_nix.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_nix.cpp"
