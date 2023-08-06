@@ -3722,7 +3722,6 @@ float estimate_army_strength(sys::state& state, dcon::army_id a) {
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
 		return 0.0f;
-
 	auto last_reg = regs.end() - 1;
 	return float(regs.end() - regs.begin()) * (*last_reg).get_regiment().get_org();
 }
@@ -3731,7 +3730,6 @@ float conservative_estimate_army_strength(sys::state& state, dcon::army_id a) {
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
 		return 0.0f;
-
 	return float(regs.end() - regs.begin()) * (*regs.begin()).get_regiment().get_org();
 }
 
