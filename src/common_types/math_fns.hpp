@@ -17,12 +17,12 @@ inline float sin(float v) noexcept {
 		if(v < -pi) { // Cover domain -2*pi <-> -pi
 			v -= pi;
 		}
-		return -(-16 * v * (v - pi) / (4 * v * (v - pi) + 49.3480220054468));
+		return -(-16.f * v * (v - pi) / (4.f * v * (v - pi) + 49.3480220054468f));
 	}
 	if(v > pi) { // Cover domain 2*pi <-> pi
 		v -= pi;
 	}
-	return -16 * v * (v - pi) / (4 * v * (v - pi) + 49.3480220054468);
+	return -16.f * v * (v - pi) / (4 * v * (v - pi) + 49.3480220054468f);
 }
 
 inline float cos(float v) noexcept {
@@ -30,19 +30,19 @@ inline float cos(float v) noexcept {
 	assert(v >= 3.f * -pi / 2.f && v <= 3.f * pi / 2.f);
 	if(v < -pi_2) { // -pi <-> -pi/2 domain
 		v = -v - pi;
-		return -((39.4784176043574 - 16.0 * v * v) / (4.0 * v * v + 39.4784176043574));
+		return -((39.4784176043574f - 16.f * v * v) / (4.f * v * v + 39.4784176043574f));
 	} else if(v > pi_2) { // pi/2 <-> pi domain
 		v -= pi;
-		return -((39.4784176043574 - 16.0 * v * v) / (4.0 * v * v + 39.4784176043574));
+		return -((39.4784176043574f - 16.f * v * v) / (4.f * v * v + 39.4784176043574f));
 	}
-	return (39.4784176043574 - 16.0 * v * v) / (4.0 * v * v + 39.4784176043574);
+	return (39.4784176043574f - 16.f * v * v) / (4.f * v * v + 39.4784176043574f);
 }
 
 inline float acos(float v) noexcept {
 	// Lagrange polynomial - https://stackoverflow.com/questions/3380628/fast-arc-cos-algorithm
 	// Maximum absolute error of 0.017
 	assert(v >= -1.f && v <= 1.f);
-	return ((0.4643653210307 * v * v * v + 0.921784152891457 * v * v - 2.0178302343512 * v - 0.939115566365855) * v + 1.5707963267949) / ((0.295624144969963 * v * v - 1.28459062446908) * (v * v) + 1);
+	return ((0.4643653210307f * v * v * v + 0.921784152891457f * v * v - 2.0178302343512f * v - 0.939115566365855f) * v + 1.5707963267949f) / ((0.295624144969963f * v * v - 1.28459062446908f) * (v * v) + 1);
 }
 
 inline float sqrt(float x) noexcept {
