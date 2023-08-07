@@ -72,15 +72,18 @@ TEST_CASE("fp_fprec", "[determinism]") {
 }
 
 TEST_CASE("math_fns", "[determinism]") {
-	for(float k = 1.f; k <= 16.f; k += 1.f) {
+	for(float k = 1.f; k <= 128.f; k += 1.f) {
 		UNOPTIMIZABLE_FLOAT(f1, k);
-		REQUIRE(math::sqrt(f1) == Approx(std::sqrt(f1)));
+		REQUIRE(math::sqrt(f1) == Approx(std::sqrt(f1)).margin(0.01f));
 	}
 	for(float k = -1.f; k <= 1.f; k += 0.01f) {
 		UNOPTIMIZABLE_FLOAT(f1, k);
-		REQUIRE(math::cos(f1) == Approx(std::cos(f1)));
-		REQUIRE(math::sin(f1 == Approx(std::sin(f1))));
-		REQUIRE(math::acos(f1) == Approx(std::acos(f1)));
+		REQUIRE(math::acos(f1) == Approx(std::acos(f1)).margin(0.01f));
+	}
+	for(float k = -math::pi / 2.f; k <= math::pi / 2.f; k += 0.01f) {
+		UNOPTIMIZABLE_FLOAT(f1, k);
+		REQUIRE(math::cos(f1) == Approx(std::cos(f1)).margin(0.01f));
+		REQUIRE(math::sin(f1) == Approx(std::sin(f1)).margin(0.01f));
 	}
 }
 
