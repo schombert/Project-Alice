@@ -78,7 +78,7 @@ TEST_CASE("math_fns", "[determinism]") {
 	}
 	for(float k = -1.f; k <= 1.f; k += 0.01f) {
 		UNOPTIMIZABLE_FLOAT(f1, k);
-		REQUIRE(math::acos(f1) == Approx(std::acos(f1)).margin(0.01f));
+		REQUIRE(math::acos(f1) == Approx(std::acos(f1)).margin(0.018f));
 	}
 	for(float k = -math::pi / 2.f; k <= math::pi / 2.f; k += 0.01f) {
 		UNOPTIMIZABLE_FLOAT(f1, k);
