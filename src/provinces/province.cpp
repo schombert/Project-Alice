@@ -1549,6 +1549,9 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 
 	std::vector<dcon::province_id> path_result;
 
+	if(start == end)
+		return path_result;
+
 	auto fill_path_result = [&](dcon::province_id i) {
 		path_result.push_back(end);
 		while(i && i != start) {
@@ -1610,6 +1613,9 @@ std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::prov
 
 	std::vector<dcon::province_id> path_result;
 
+	if(start == end)
+		return path_result;
+
 	auto fill_path_result = [&](dcon::province_id i) {
 		path_result.push_back(end);
 		while(i && i != start) {
@@ -1664,6 +1670,9 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 
 	std::vector<dcon::province_id> path_result;
 
+	if(start == end)
+		return path_result;
+
 	auto fill_path_result = [&](dcon::province_id i) {
 		path_result.push_back(end);
 		while(i && i != start) {
@@ -1711,6 +1720,9 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
 
 	std::vector<dcon::province_id> path_result;
+
+	if(start == end)
+		return path_result;
 
 	auto fill_path_result = [&](dcon::province_id i) {
 		path_result.push_back(end);

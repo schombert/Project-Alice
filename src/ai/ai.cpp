@@ -3833,7 +3833,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 	});
 
 	// organize attack stacks
-	int32_t max_attacks_to_make = ((ready_count + 1) / 4) * 3;
+	int32_t max_attacks_to_make = (ready_count + 3) / 4;
 	auto const psize = potential_targets.size();
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {
 		if(!potential_targets[i].location)
@@ -3912,8 +3912,10 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 					continue;
 				}
 
-				auto path = province::make_safe_land_path(state, ready_armies[m], central_province, n);
-				if(!path.empty()) {
+				if(ready_armies[m] == central_province) {
+					ar.get_army().set_ai_province(potential_targets[i].location);
+					ar.get_army().set_ai_activity(uint8_t(army_activity::attacking));
+				} else if(auto path = province::make_safe_land_path(state, ready_armies[m], central_province, n); !path.empty()) {
 					auto existing_path = ar.get_army().get_path();
 					auto new_size = uint32_t(path.size());
 					existing_path.resize(new_size);
