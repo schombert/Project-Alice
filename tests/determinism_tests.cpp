@@ -71,4 +71,14 @@ TEST_CASE("fp_fprec", "[determinism]") {
 	REQUIRE(fprec_1 == fprec_4);
 }
 
+TEST_CASE("math_fns", "[determinism]") {
+	for(float k = 0.f; k <= 10.f; k += 1.f) {
+		UNOPTIMIZABLE_FLOAT(f1, k);
+		REQUIRE(math::sqrt(f1) == Approx(std::sqrt(f1)));
+		REQUIRE(math::cos(f1) == Approx(std::cos(f1)));
+		REQUIRE(math::sin(f1 == Approx(std::sin(f1))));
+		REQUIRE(math::acos(f1) == Approx(std::acos(f1)));
+	}
+}
+
 #undef UNOPTIMIZABLE_FLOAT
