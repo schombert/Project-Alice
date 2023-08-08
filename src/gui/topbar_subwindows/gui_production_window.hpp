@@ -1416,7 +1416,7 @@ struct open_investment_nation {
 
 class production_window : public generic_tabbed_window<production_window_tab> {
 	bool show_empty_states = true;
-	bool* show_output_commodity;
+	std::unique_ptr<bool[]> show_output_commodity;
 
 	production_state_listbox* state_listbox = nullptr;
 	production_state_invest_listbox* state_listbox_invest = nullptr;
@@ -1526,8 +1526,7 @@ public:
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));
 
-		show_output_commodity = new bool[state.world.commodity_size()];
-
+		show_output_commodity = std::unique_ptr<bool[]>(new bool[state.world.commodity_size()]);
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
