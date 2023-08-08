@@ -2213,6 +2213,409 @@ constexpr inline int32_t game_speed[] = {
 		250,	// speed 4 -- 0.25 seconds
 };
 
+void state::single_game_tick() {
+	// do update logic
+	province::update_connected_regions(*this);
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
+
+	current_date += 1;
+
+	auto ymd_date = current_date.to_ymd(start_date);
+
+	diplomatic_message::update_pending(*this);
+
+	auto month_start = sys::year_month_day{ymd_date.year, ymd_date.month, uint16_t(1)};
+	auto next_month_start = sys::year_month_day{ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1)};
+	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
+
+	// pop update:
+	static demographics::ideology_buffer idbuf(*this);
+	static demographics::issues_buffer isbuf(*this);
+	static demographics::promotion_buffer pbuf;
+	static demographics::assimilation_buffer abuf;
+	static demographics::migration_buffer mbuf;
+	static demographics::migration_buffer cmbuf;
+	static demographics::migration_buffer imbuf;
+
+	// calculate complex changes in parallel where we can, but don't actually apply the results
+	// instead, the changes are saved to be applied only after all triggers have been evaluated
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
+		switch(index) {
+		case 0: {
+			auto o = uint32_t(ymd_date.day);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_ideologies(*this, o, days_in_month, idbuf);
+			break;
+		}
+		case 1: {
+			auto o = uint32_t(ymd_date.day + 1);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_issues(*this, o, days_in_month, isbuf);
+			break;
+		}
+		case 2: {
+			auto o = uint32_t(ymd_date.day + 6);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_type_changes(*this, o, days_in_month, pbuf);
+			break;
+		}
+		case 3: {
+			auto o = uint32_t(ymd_date.day + 7);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_assimilation(*this, o, days_in_month, abuf);
+			break;
+		}
+		case 4: {
+			auto o = uint32_t(ymd_date.day + 8);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_internal_migration(*this, o, days_in_month, mbuf);
+			break;
+		}
+		case 5: {
+			auto o = uint32_t(ymd_date.day + 9);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
+			break;
+		}
+		case 6: {
+			auto o = uint32_t(ymd_date.day + 10);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_immigration(*this, o, days_in_month, imbuf);
+			break;
+		}
+		}
+	});
+
+	// apply in parallel where we can
+	concurrency::parallel_for(0, 8, [&](int32_t index) {
+		switch(index) {
+		case 0: {
+			auto o = uint32_t(ymd_date.day + 0);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::apply_ideologies(*this, o, days_in_month, idbuf);
+			break;
+		}
+		case 1: {
+			auto o = uint32_t(ymd_date.day + 1);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::apply_issues(*this, o, days_in_month, isbuf);
+			break;
+		}
+		case 2: {
+			auto o = uint32_t(ymd_date.day + 2);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_militancy(*this, o, days_in_month);
+			break;
+		}
+		case 3: {
+			auto o = uint32_t(ymd_date.day + 3);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_consciousness(*this, o, days_in_month);
+			break;
+		}
+		case 4: {
+			auto o = uint32_t(ymd_date.day + 4);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_literacy(*this, o, days_in_month);
+			break;
+		}
+		case 5: {
+			auto o = uint32_t(ymd_date.day + 5);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_growth(*this, o, days_in_month);
+			break;
+		}
+		case 6:
+			province::ve_for_each_land_province(*this,
+					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
+			break;
+		case 7:
+			province::ve_for_each_land_province(*this,
+					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+			break;
+		}
+	});
+
+	// because they may add pops, these changes must be applied sequentially
+	{
+		auto o = uint32_t(ymd_date.day + 6);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 7);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_assimilation(*this, o, days_in_month, abuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 8);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 9);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 10);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_immigration(*this, o, days_in_month, imbuf);
+	}
+
+	demographics::remove_size_zero_pops(*this);
+
+	// basic repopulation of demographics derived values
+	demographics::regenerate_from_pop_data(*this);
+
+	// values updates pass 1 (mostly trivial things, can be done in parallel)
+	concurrency::parallel_for(0, 16, [&](int32_t index) {
+		switch(index) {
+		case 0:
+			nations::update_administrative_efficiency(*this);
+			break;
+		case 1:
+			nations::update_research_points(*this);
+			break;
+		case 2:
+			military::regenerate_land_unit_average(*this);
+			break;
+		case 3:
+			military::regenerate_ship_scores(*this);
+			break;
+		case 4:
+			nations::update_industrial_scores(*this);
+			break;
+		case 5:
+			military::update_naval_supply_points(*this);
+			break;
+		case 6:
+			economy::update_rgo_employment(*this);
+			break;
+		case 7:
+			economy::update_factory_employment(*this);
+			break;
+		case 8:
+			rebel::daily_update_rebel_organization(*this);
+			break;
+		case 9:
+			military::daily_leaders_update(*this);
+			break;
+		case 10:
+			politics::daily_party_loyalty_update(*this);
+			break;
+		case 11:
+			nations::daily_update_flashpoint_tension(*this);
+			break;
+		case 12:
+			military::update_ticking_war_score(*this);
+			break;
+		case 13:
+			military::increase_dig_in(*this);
+			break;
+		case 14:
+			military::recover_org(*this);
+			break;
+		case 15:
+			ai::refresh_home_ports(*this);
+			break;
+		}
+	});
+
+	military::update_war_cleanup(*this);
+	economy::daily_update(*this);
+
+	military::update_movement(*this);
+	military::update_siege_progress(*this);
+	military::update_naval_battles(*this);
+	military::update_land_battles(*this);
+	military::advance_mobilizations(*this);
+
+	event::update_events(*this);
+
+	culture::update_research(*this, uint32_t(ymd_date.year));
+
+	nations::update_military_scores(*this); // depends on ship score, land unit average
+	nations::update_rankings(*this);				// depends on industrial score, military scores
+	nations::update_great_powers(*this);		// depends on rankings
+	nations::update_influence(*this);				// depends on rankings, great powers
+
+	province::update_colonization(*this);
+	military::update_cbs(*this); // may add/remove cbs to a nation
+
+	nations::update_crisis(*this);
+	politics::update_elections(*this);
+
+	//
+	if(current_date.value % 4 == 0) {
+		ai::update_ai_colonial_investment(*this);
+	}
+
+	// Once per month updates, spread out over the month
+	switch(ymd_date.day) {
+	case 1:
+		nations::update_monthly_points(*this);
+		break;
+	case 2:
+		sys::update_modifier_effects(*this);
+		break;
+	case 3:
+		military::monthly_leaders_update(*this);
+		ai::add_gw_goals(*this);
+		break;
+	case 4:
+		military::reinforce_regiments(*this);
+		ai::make_defense(*this);
+		break;
+	case 5:
+		rebel::update_movements(*this);
+		rebel::update_factions(*this);
+		break;
+	case 6:
+		ai::form_alliances(*this);
+		ai::make_attacks(*this);
+		break;
+	case 7:
+		ai::update_ai_general_status(*this);
+		break;
+	case 8:
+		military::apply_attrition(*this);
+		break;
+	case 9:
+		military::repair_ships(*this);
+		break;
+	case 10:
+		province::update_crimes(*this);
+		break;
+	case 11:
+		province::update_nationalism(*this);
+		break;
+	case 12:
+		ai::update_ai_research(*this);
+		break;
+	case 13:
+		ai::perform_influence_actions(*this);
+		break;
+	case 14:
+		ai::update_focuses(*this);
+		break;
+	case 15:
+		culture::discover_inventions(*this);
+		break;
+	case 16:
+		ai::take_ai_decisions(*this);
+		break;
+	case 17:
+		ai::build_ships(*this);
+		ai::update_land_constructions(*this);
+		break;
+	case 18:
+		ai::update_ai_econ_construction(*this);
+		break;
+	case 19:
+		ai::update_budget(*this);
+	case 20:
+		nations::monthly_flashpoint_update(*this);
+		ai::make_defense(*this);
+		break;
+	case 21:
+		ai::update_ai_colony_starting(*this);
+		break;
+	case 22:
+		ai::take_reforms(*this);
+		break;
+	case 23:
+		ai::civilize(*this);
+		ai::make_war_decs(*this);
+		break;
+	case 24:
+		rebel::execute_rebel_victories(*this);
+		ai::make_attacks(*this);
+		break;
+	case 25:
+		rebel::execute_province_defections(*this);
+		break;
+	case 26:
+		ai::make_peace_offers(*this);
+		break;
+	case 27:
+		ai::update_crisis_leaders(*this);
+		break;
+	case 28:
+		rebel::rebel_risings_check(*this);
+		break;
+	case 29:
+		ai::update_war_intervention(*this);
+		break;
+	case 30:
+		ai::update_ships(*this);
+		break;
+	case 31:
+		ai::update_cb_fabrication(*this);
+		break;
+	default:
+		break;
+	}
+
+	military::apply_regiment_damage(*this);
+
+	if(ymd_date.day == 1) {
+		if(ymd_date.month == 1) {
+			// yearly update : redo the upper house
+			for(auto n : world.in_nation) {
+				politics::recalculate_upper_house(*this, n);
+			}
+
+			ai::update_influence_priorities(*this);
+		}
+		if(ymd_date.month == 6) {
+			ai::update_influence_priorities(*this);
+		}
+		if(ymd_date.month == 2) {
+			ai::upgrade_colonies(*this);
+		}
+	}
+
+	ai::general_ai_unit_tick(*this);
+
+	ai::daily_cleanup(*this);
+
+	/*
+		* END OF DAY: update cached data
+		*/
+
+	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
+	if((current_date.value % 16) == 0) {
+		auto index = economy::most_recent_price_record_index(*this);
+		for(auto c : world.in_commodity) {
+			c.set_price_record(index, c.get_current_price());
+		}
+	}
+
+	ui_date = current_date;
+
+	game_state_updated.store(true, std::memory_order::release);
+}
+
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		auto speed = actual_game_speed.load(std::memory_order::acquire);
@@ -2228,407 +2631,7 @@ void state::game_loop() {
 				network_state.perform_pending(*this);
 				command::execute_pending_commands(*this);
 				last_update = entry_time;
-
-				// do update logic
-				province::update_connected_regions(*this);
-				province::update_cached_values(*this);
-				nations::update_cached_values(*this);
-
-				current_date += 1;
-
-				auto ymd_date = current_date.to_ymd(start_date);
-
-				diplomatic_message::update_pending(*this);
-
-				auto month_start = sys::year_month_day{ymd_date.year, ymd_date.month, uint16_t(1)};
-				auto next_month_start = sys::year_month_day{ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1)};
-				auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
-
-				// pop update:
-				static demographics::ideology_buffer idbuf(*this);
-				static demographics::issues_buffer isbuf(*this);
-				static demographics::promotion_buffer pbuf;
-				static demographics::assimilation_buffer abuf;
-				static demographics::migration_buffer mbuf;
-				static demographics::migration_buffer cmbuf;
-				static demographics::migration_buffer imbuf;
-
-				// calculate complex changes in parallel where we can, but don't actually apply the results
-				// instead, the changes are saved to be applied only after all triggers have been evaluated
-				concurrency::parallel_for(0, 7, [&](int32_t index) {
-					switch(index) {
-					case 0: {
-						auto o = uint32_t(ymd_date.day);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_ideologies(*this, o, days_in_month, idbuf);
-						break;
-					}
-					case 1: {
-						auto o = uint32_t(ymd_date.day + 1);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_issues(*this, o, days_in_month, isbuf);
-						break;
-					}
-					case 2: {
-						auto o = uint32_t(ymd_date.day + 6);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_type_changes(*this, o, days_in_month, pbuf);
-						break;
-					}
-					case 3: {
-						auto o = uint32_t(ymd_date.day + 7);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_assimilation(*this, o, days_in_month, abuf);
-						break;
-					}
-					case 4: {
-						auto o = uint32_t(ymd_date.day + 8);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_internal_migration(*this, o, days_in_month, mbuf);
-						break;
-					}
-					case 5: {
-						auto o = uint32_t(ymd_date.day + 9);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
-						break;
-					}
-					case 6: {
-						auto o = uint32_t(ymd_date.day + 10);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_immigration(*this, o, days_in_month, imbuf);
-						break;
-					}
-					}
-				});
-
-				// apply in parallel where we can
-				concurrency::parallel_for(0, 8, [&](int32_t index) {
-					switch(index) {
-					case 0: {
-						auto o = uint32_t(ymd_date.day + 0);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::apply_ideologies(*this, o, days_in_month, idbuf);
-						break;
-					}
-					case 1: {
-						auto o = uint32_t(ymd_date.day + 1);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::apply_issues(*this, o, days_in_month, isbuf);
-						break;
-					}
-					case 2: {
-						auto o = uint32_t(ymd_date.day + 2);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_militancy(*this, o, days_in_month);
-						break;
-					}
-					case 3: {
-						auto o = uint32_t(ymd_date.day + 3);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_consciousness(*this, o, days_in_month);
-						break;
-					}
-					case 4: {
-						auto o = uint32_t(ymd_date.day + 4);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_literacy(*this, o, days_in_month);
-						break;
-					}
-					case 5: {
-						auto o = uint32_t(ymd_date.day + 5);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_growth(*this, o, days_in_month);
-						break;
-					}
-					case 6:
-						province::ve_for_each_land_province(*this,
-								[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
-						break;
-					case 7:
-						province::ve_for_each_land_province(*this,
-								[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
-						break;
-					}
-				});
-
-				// because they may add pops, these changes must be applied sequentially
-				{
-					auto o = uint32_t(ymd_date.day + 6);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_type_changes(*this, o, days_in_month, pbuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 7);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_assimilation(*this, o, days_in_month, abuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 8);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 9);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 10);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_immigration(*this, o, days_in_month, imbuf);
-				}
-
-				demographics::remove_size_zero_pops(*this);
-
-				// basic repopulation of demographics derived values
-				demographics::regenerate_from_pop_data(*this);
-
-				// values updates pass 1 (mostly trivial things, can be done in parallel)
-				concurrency::parallel_for(0, 16, [&](int32_t index) {
-					switch(index) {
-					case 0:
-						nations::update_administrative_efficiency(*this);
-						break;
-					case 1:
-						nations::update_research_points(*this);
-						break;
-					case 2:
-						military::regenerate_land_unit_average(*this);
-						break;
-					case 3:
-						military::regenerate_ship_scores(*this);
-						break;
-					case 4:
-						nations::update_industrial_scores(*this);
-						break;
-					case 5:
-						military::update_naval_supply_points(*this);
-						break;
-					case 6:
-						economy::update_rgo_employment(*this);
-						break;
-					case 7:
-						economy::update_factory_employment(*this);
-						break;
-					case 8:
-						rebel::daily_update_rebel_organization(*this);
-						break;
-					case 9:
-						military::daily_leaders_update(*this);
-						break;
-					case 10:
-						politics::daily_party_loyalty_update(*this);
-						break;
-					case 11:
-						nations::daily_update_flashpoint_tension(*this);
-						break;
-					case 12:
-						military::update_ticking_war_score(*this);
-						break;
-					case 13:
-						military::increase_dig_in(*this);
-						break;
-					case 14:
-						military::recover_org(*this);
-						break;
-					case 15:
-						ai::refresh_home_ports(*this);
-						break;
-					}
-				});
-
-				military::update_war_cleanup(*this);
-				economy::daily_update(*this);
-
-				military::update_movement(*this);
-				military::update_siege_progress(*this);
-				military::update_naval_battles(*this);
-				military::update_land_battles(*this);
-				military::advance_mobilizations(*this);
-
-				event::update_events(*this);
-
-				culture::update_research(*this, uint32_t(ymd_date.year));
-
-				nations::update_military_scores(*this); // depends on ship score, land unit average
-				nations::update_rankings(*this);				// depends on industrial score, military scores
-				nations::update_great_powers(*this);		// depends on rankings
-				nations::update_influence(*this);				// depends on rankings, great powers
-
-				province::update_colonization(*this);
-				military::update_cbs(*this); // may add/remove cbs to a nation
-
-				nations::update_crisis(*this);
-				politics::update_elections(*this);
-
-				//
-				if(current_date.value % 4 == 0) {
-					ai::update_ai_colonial_investment(*this);
-				}
-
-				// Once per month updates, spread out over the month
-				switch(ymd_date.day) {
-				case 1:
-					nations::update_monthly_points(*this);
-					break;
-				case 2:
-					sys::update_modifier_effects(*this);
-					break;
-				case 3:
-					military::monthly_leaders_update(*this);
-					ai::add_gw_goals(*this);
-					break;
-				case 4:
-					military::reinforce_regiments(*this);
-					ai::make_defense(*this);
-					break;
-				case 5:
-					rebel::update_movements(*this);
-					rebel::update_factions(*this);
-					break;
-				case 6:
-					ai::form_alliances(*this);
-					ai::make_attacks(*this);
-					break;
-				case 7:
-					ai::update_ai_general_status(*this);
-					break;
-				case 8:
-					military::apply_attrition(*this);
-					break;
-				case 9:
-					military::repair_ships(*this);
-					break;
-				case 10:
-					province::update_crimes(*this);
-					break;
-				case 11:
-					province::update_nationalism(*this);
-					break;
-				case 12:
-					ai::update_ai_research(*this);
-					break;
-				case 13:
-					ai::perform_influence_actions(*this);
-					break;
-				case 14:
-					ai::update_focuses(*this);
-					break;
-				case 15:
-					culture::discover_inventions(*this);
-					break;
-				case 16:
-					ai::take_ai_decisions(*this);
-					break;
-				case 17:
-					ai::build_ships(*this);
-					ai::update_land_constructions(*this);
-					break;
-				case 18:
-					ai::update_ai_econ_construction(*this);
-					break;
-				case 19:
-					ai::update_budget(*this);
-				case 20:
-					nations::monthly_flashpoint_update(*this);
-					ai::make_defense(*this);
-					break;
-				case 21:
-					ai::update_ai_colony_starting(*this);
-					break;
-				case 22:
-					ai::take_reforms(*this);
-					break;
-				case 23:
-					ai::civilize(*this);
-					ai::make_war_decs(*this);
-					break;
-				case 24:
-					rebel::execute_rebel_victories(*this);
-					ai::make_attacks(*this);
-					break;
-				case 25:
-					rebel::execute_province_defections(*this);
-					break;
-				case 26:
-					ai::make_peace_offers(*this);
-					break;
-				case 27:
-					ai::update_crisis_leaders(*this);
-					break;
-				case 28:
-					rebel::rebel_risings_check(*this);
-					break;
-				case 29:
-					ai::update_war_intervention(*this);
-					break;
-				case 30:
-					ai::update_ships(*this);
-					break;
-				case 31:
-					ai::update_cb_fabrication(*this);
-					break;
-				default:
-					break;
-				}
-
-				military::apply_regiment_damage(*this);
-
-				if(ymd_date.day == 1) {
-					if(ymd_date.month == 1) {
-						// yearly update : redo the upper house
-						for(auto n : world.in_nation) {
-							politics::recalculate_upper_house(*this, n);
-						}
-
-						ai::update_influence_priorities(*this);
-					}
-					if(ymd_date.month == 6) {
-						ai::update_influence_priorities(*this);
-					}
-					if(ymd_date.month == 2) {
-						ai::upgrade_colonies(*this);
-					}
-				}
-
-				ai::general_ai_unit_tick(*this);
-
-				ai::daily_cleanup(*this);
-
-				/*
-				 * END OF DAY: update cached data
-				 */
-
-				player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-				if((current_date.value % 16) == 0) {
-					auto index = economy::most_recent_price_record_index(*this);
-					for(auto c : world.in_commodity) {
-						c.set_price_record(index, c.get_current_price());
-					}
-				}
-
-				ui_date = current_date;
-
-				game_state_updated.store(true, std::memory_order::release);
+				single_game_tick();
 			} else {
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
