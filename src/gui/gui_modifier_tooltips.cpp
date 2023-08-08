@@ -38,9 +38,9 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
 	case modifier_display_type::percent:
 		return (value >= 0.f ? "+" : "") + text::format_percentage(value, 1);
 	case modifier_display_type::fp_two_places:
-		return text::format_float(value, 2);
+		return(value >= 0.f ? "+" : "") + text::format_float(value, 2);
 	case modifier_display_type::fp_three_places:
-		return text::format_float(value, 3);
+		return (value >= 0.f ? "+" : "") + text::format_float(value, 3);
 	}
 	return "x%";
 }

@@ -651,6 +651,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 	auto const* chunk = internal_layout.get_chunk_from_position(x, y);
 	if(chunk != nullptr) {
 		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			state.open_diplomacy(std::get<dcon::nation_id>(chunk->source));
 			auto cap = state.world.nation_get_capital(std::get<dcon::nation_id>(chunk->source));
 			if(cap) {
@@ -663,6 +664,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 		} else if(std::holds_alternative<dcon::province_id>(chunk->source)) {
 			auto prov = std::get<dcon::province_id>(chunk->source);
 			if(prov) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
@@ -679,6 +681,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			auto s = std::get<dcon::state_instance_id>(chunk->source);
 			auto prov = state.world.state_instance_get_capital(s);
 			if(prov) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
@@ -695,6 +698,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			auto id = std::get<dcon::national_identity_id>(chunk->source);
 			auto nat = state.world.national_identity_get_nation_from_identity_holder(id);
 			if(nat) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.open_diplomacy(nat);
 				auto cap = state.world.nation_get_capital(nat);
 				if(cap) {
@@ -710,6 +714,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			auto prov_rng = state.world.state_definition_get_abstract_state_membership(s);
 			dcon::province_id prov = prov_rng.begin() != prov_rng.end() ? (*prov_rng.begin()).get_province().id : dcon::province_id{ };
 			if(prov) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
