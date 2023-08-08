@@ -997,35 +997,30 @@ void compare_game_states(sys::state& ws1, sys::state& ws2) {	// obj
 TEST_CASE("sim_0", "[determinism]") {
 	// Test that the game states are equal AFTER loading
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	game_state_1->game_seed = 808080;
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
-	game_state_2->game_seed = 808080;
-	// should be equal in memory
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
 	compare_game_states(*game_state_1, *game_state_2);
 }
 
 TEST_CASE("sim_1", "[determinism]") {
 	// Test that the game states are equal after loading and performing 1 tick
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	game_state_1->game_seed = 808080;
-	game_state_1->single_game_tick(); // 1 tick
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
-	game_state_2->game_seed = 808080;
-	game_state_2->single_game_tick(); // 1 tick
-	// should be equal in memory
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	game_state_1->single_game_tick();
+	game_state_2->single_game_tick();
 	compare_game_states(*game_state_1, *game_state_2);
 }
 
-TEST_CASE("sim_2", "[determinism]") {
+TEST_CASE("sim_full", "[determinism]") {
 	// Test that the game states are equal after loading and performing 1 tick
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	game_state_1->game_seed = 808080;
-	game_state_1->single_game_tick(); // 1 tick
-	game_state_1->single_game_tick(); // 1 tick
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
-	game_state_2->game_seed = 808080;
-	game_state_2->single_game_tick(); // 1 tick
-	game_state_2->single_game_tick(); // 1 tick
-	// should be equal in memory
-	compare_game_states(*game_state_1, *game_state_2);
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	for(int i = 0; i < 31; i++) {
+		UNSCOPED_INFO("Day number: #" << i);
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
 }
