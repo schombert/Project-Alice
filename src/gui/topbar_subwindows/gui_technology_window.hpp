@@ -365,7 +365,7 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 			}
 		}
 		auto box = text::open_layout_box(contents, indent);
-		text::localised_format_box(state, contents, box, "prestige");
+		text::localised_format_box(state, contents, box, "shared_prestige_tech");
 		text::add_to_layout_box(state, contents, box, std::string_view{": "});
 		text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
 		text::add_to_layout_box( state, contents, box, text::fp_one_place { p / float(total) }, text::text_color::green);
