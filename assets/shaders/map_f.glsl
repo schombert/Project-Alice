@@ -94,7 +94,7 @@ vec4 get_water_terrain()
 
 layout(index = 4) subroutine(get_water_class)
 vec4 get_water_political() {
-	vec3 water_background = vec3(0.21, 0.38, 0.55);
+	vec3 water_background = vec3(0.21, 0.38, 0.45);
 	vec3 color = water_background.rgb;
 
 	// The "foldable map" overlay effect

@@ -430,7 +430,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 
 	if(zoom > 8) {
-		glUniform1f(4, 0.0013f);
+		glUniform1f(4, 0.00085f);
 		uint8_t visible_borders =
 			(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
 					province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
@@ -447,7 +447,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	}
 
 	if(zoom > 3.5f) {
-		glUniform1f(4, 0.0018f);
+		glUniform1f(4, 0.0010f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
@@ -463,7 +463,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	}
 
 	{
-		glUniform1f(4, 0.0027f);
+		glUniform1f(4, 0.00145f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 															 province::border::non_adjacent_bit | province::border::impassible_bit);
 
