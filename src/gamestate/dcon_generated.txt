@@ -4098,7 +4098,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 80000 }
+	size{ 90000 }
 	tag{ save }
 
 	property{
