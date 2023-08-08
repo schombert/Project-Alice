@@ -2507,6 +2507,7 @@ void state::game_loop() {
 					break;
 				case 6:
 					ai::form_alliances(*this);
+					ai::make_attacks(*this);
 					break;
 				case 7:
 					ai::update_ai_general_status(*this);
@@ -2549,6 +2550,7 @@ void state::game_loop() {
 					ai::update_budget(*this);
 				case 20:
 					nations::monthly_flashpoint_update(*this);
+					ai::make_defense(*this);
 					break;
 				case 21:
 					ai::update_ai_colony_starting(*this);
