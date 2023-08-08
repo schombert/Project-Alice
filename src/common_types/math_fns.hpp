@@ -26,16 +26,7 @@ inline float sin(float v) noexcept {
 }
 
 inline float cos(float v) noexcept {
-	// Bhaskara formula, expanded for -3 * pi / 2 <-> 3 * pi / 2, error of 0.0016
-	assert(v >= 3.f * -pi / 2.f && v <= 3.f * pi / 2.f);
-	if(v < -pi_2) { // -pi <-> -pi/2 domain
-		v = -v - pi;
-		return -((39.4784176043574f - 16.f * v * v) / (4.f * v * v + 39.4784176043574f));
-	} else if(v > pi_2) { // pi/2 <-> pi domain
-		v -= pi;
-		return -((39.4784176043574f - 16.f * v * v) / (4.f * v * v + 39.4784176043574f));
-	}
-	return (39.4784176043574f - 16.f * v * v) / (4.f * v * v + 39.4784176043574f);
+	return math::sin(pi_2 - v);
 }
 
 inline float acos(float v) noexcept {

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "catch.hpp"
 #include "parsers_declarations.hpp"
 #include "dcon_generated.hpp"
@@ -80,7 +81,7 @@ TEST_CASE("math_fns", "[determinism]") {
 		UNOPTIMIZABLE_FLOAT(f1, k);
 		REQUIRE(math::acos(f1) == Approx(std::acos(f1)).margin(0.018f));
 	}
-	for(float k = -math::pi / 2.f; k <= math::pi / 2.f; k += 0.01f) {
+	for(float k = -math::pi; k <= math::pi; k += 0.01f) {
 		UNOPTIMIZABLE_FLOAT(f1, k);
 		REQUIRE(math::cos(f1) == Approx(std::cos(f1)).margin(0.01f));
 		REQUIRE(math::sin(f1) == Approx(std::sin(f1)).margin(0.01f));
@@ -88,3 +89,25 @@ TEST_CASE("math_fns", "[determinism]") {
 }
 
 #undef UNOPTIMIZABLE_FLOAT
+
+TEST_CASE("sim_0", "[determinism]") {
+	// Test that the game states are equal AFTER loading
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	game_state_1->game_seed = 808080;
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	game_state_2->game_seed = 808080;
+	// should be equal in memory
+	REQUIRE(std::memcmp(&game_state_1->world, &game_state_2->world, sizeof(dcon::data_container)) == 0);
+}
+
+TEST_CASE("sim_1", "[determinism]") {
+	// Test that the game states are equal after loading and performing 1 tick
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	game_state_1->game_seed = 808080;
+	game_state_1->single_game_tick(); // 1 tick
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	game_state_2->game_seed = 808080;
+	game_state_2->single_game_tick(); // 1 tick
+	// should be equal in memory
+	REQUIRE(std::memcmp(&game_state_1->world, &game_state_2->world, sizeof(dcon::data_container)) == 0);
+}
