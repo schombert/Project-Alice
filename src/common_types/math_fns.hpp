@@ -7,7 +7,6 @@ namespace math {
 // basic floating point operations (+, -, *, /)
 
 inline constexpr float pi = 3.14159265358979323846f;
-inline constexpr float pi_2 = pi / 2.f;
 
 inline constexpr void internal_check(float v, float err, float lower, float upper) noexcept {
 	assert(err >= 0.f); // error must be positive
@@ -40,7 +39,7 @@ inline float sin(float v) noexcept {
 }
 
 inline float cos(float v) noexcept {
-	float r = math::sin(pi_2 - v);
+	float r = math::sin(pi / 2.f - v);
 	internal_check(r, 0.0016f, -1.f, 1.f);
 	return r;
 }
@@ -49,8 +48,18 @@ inline float acos(float v) noexcept {
 	// Lagrange polynomial - https://stackoverflow.com/questions/3380628/fast-arc-cos-algorithm
 	// Maximum absolute error of 0.017
 	constexpr float acos_input_err = 0.001f;
-	assert(v + acos_input_err >= -1.f && v - acos_input_err <= 1.f);
+	assert(v >= -1.f - acos_input_err && v <= 1.f + acos_input_err);
+	if(v >= 1.f) { // clamp max
+		assert(v <= 1.f + acos_input_err);
+		v = 1.f;
+	} else if(v <= -1.f) { // clamp min
+		assert(v >= -1.f - acos_input_err);
+		v = -1.f;
+	} else if(v == 1.f) {
+		return 0.f;
+	}
 	float r = ((0.4643653210307f * v * v * v + 0.921784152891457f * v * v - 2.0178302343512f * v - 0.939115566365855f) * v + 1.5707963267949f) / ((0.295624144969963f * v * v - 1.28459062446908f) * (v * v) + 1.f);
+	assert((v >= 1.f) ? r == 0.f : r > 0.f); //we need not to give 0 on distances
 	internal_check(r, 0.017f, 0.f, pi);
 	return r;
 }
