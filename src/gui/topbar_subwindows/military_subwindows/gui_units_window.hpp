@@ -69,6 +69,82 @@ public:
 };
 
 template<typename T>
+class leader_in_army_img : public image_element_base {
+	bool visible = true;
+	dcon::gfx_object_id default_img;
+
+	void on_update(sys::state& state) noexcept override {
+		if(!default_img)
+			default_img = base_data.data.image.gfx_object;
+
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		if(!std::holds_alternative<T>(container)) {
+			visible = false;
+			return;
+		}
+
+		auto unit = std::get<T>(container);
+		dcon::leader_id lid;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			lid = state.world.army_get_general_from_army_leadership(unit);
+		} else {
+			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+		}
+
+		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
+
+		if(ltype && lid) {
+			auto admiral = state.world.leader_get_is_admiral(lid);
+			if(admiral) {
+				auto arange = ltype.get_admirals();
+				if(arange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), arange.size());
+					base_data.data.image.gfx_object = arange[in_range];
+				}
+			} else {
+				auto grange = ltype.get_generals();
+				if(grange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), grange.size());
+					base_data.data.image.gfx_object = grange[in_range];
+				}
+			}
+		} else {
+			base_data.data.image.gfx_object = default_img;
+		}
+
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return visible ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		if(!std::holds_alternative<T>(container)) {
+			return;
+		}
+
+		auto unit = std::get<T>(container);
+		dcon::leader_id lid;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			lid = state.world.army_get_general_from_army_leadership(unit);
+		} else {
+			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+		}
+		if(lid)
+			display_leader_full(state, lid, contents, 0);
+	}
+};
+
+template<typename T>
 class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
 	simple_text_element_base* unit_name = nullptr;
 	image_element_base* unit_icon = nullptr;
@@ -95,7 +171,7 @@ public:
 			return ptr;
 
 		} else if(name == "leader") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<leader_in_army_img<T>>(state, id);
 			leader_icon = ptr.get();
 			return ptr;
 		} else if(name == "unit_strip") {

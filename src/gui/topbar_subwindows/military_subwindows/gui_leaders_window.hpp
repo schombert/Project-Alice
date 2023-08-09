@@ -1,8 +1,45 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "prng.hpp"
+#include "gui_leader_tooltip.hpp"
 
 namespace ui {
+
+class leader_portrait : public image_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
+		if(ltype) {
+			auto lid = retrieve<dcon::leader_id>(state, parent);
+			auto admiral = state.world.leader_get_is_admiral(lid);
+			if(admiral) {
+				auto arange = ltype.get_admirals();
+				if(arange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), arange.size());
+					base_data.data.image.gfx_object = arange[in_range];
+				}
+			} else {
+				auto grange = ltype.get_generals();
+				if(grange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), grange.size());
+					base_data.data.image.gfx_object = grange[in_range];
+				}
+			}
+		}
+		
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		display_leader_attributes(state, retrieve<dcon::leader_id>(state, parent), contents, 0);
+	}
+ };
 
 class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 public:
@@ -22,7 +59,8 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			leader_name = ptr.get();
 			return ptr;
-
+		} else if (name == "leader") {
+			return make_element_by_type<leader_portrait>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			background = ptr.get();

@@ -330,6 +330,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<std::string, dcon::state_definition_id> map_of_state_names;
 	ankerl::unordered_dense::map<int32_t, pending_nat_event> map_of_national_events;
 	ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
+	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -2510,6 +2511,9 @@ struct mod_file {
 	void replace_path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
 	void finish(mod_file_context& context);
 };
+
+void make_leader_images(scenario_building_context& outer_context);
+
 } // namespace parsers
 
 #include "trigger_parsing.hpp"

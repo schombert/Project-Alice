@@ -113,6 +113,14 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
+		if(selected_armies.size() > 0) {
+			if(ui_state.army_status_window)
+				ui_state.army_status_window->set_visible(*this, false);
+			if(ui_state.unit_window_army)
+				ui_state.unit_window_army->set_visible(*this, false);
+			selected_armies.clear();
+			game_state_updated.store(true, std::memory_order_release);
+		}
 	}
 }
 
@@ -1128,6 +1136,8 @@ void state::load_scenario_data() {
 
 
 	std::thread map_loader([&]() { map_state.load_map_data(context); });
+
+	parsers::make_leader_images(context);
 
 	// Read national tags from countries.txt
 	{

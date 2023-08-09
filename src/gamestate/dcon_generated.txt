@@ -135,6 +135,24 @@ object {
 }
 
 object{
+	name{ leader_images }
+	storage_type{ contiguous }
+	size{ 126 }
+	tag{ scenario }
+
+	property{
+		name{ admirals }
+		type{vector_pool{2000}{gfx_object_id}}
+		tag{ scenario }
+	}
+	property{
+		name{ generals }
+		type{vector_pool{2000}{gfx_object_id}}
+		tag{ scenario }
+	}
+}
+
+object{
 	name{ religion }
 	storage_type{ contiguous }
 	size{ 126 }
@@ -182,7 +200,7 @@ object {
 
 	property{
 		name{ leader }
-		type{ uint8_t }
+		type{ leader_images_id }
 		tag{ scenario }
 	}
 }

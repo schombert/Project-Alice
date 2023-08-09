@@ -666,6 +666,15 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = simple_fs::open_file(dir, file_name);
+	if(!bool(file)) {
+		auto full_message = std::string("Can't load DDS file ") + simple_fs::native_to_utf8(file_name);
+#ifdef _WIN64
+		OutputDebugStringA(full_message.c_str());
+#else
+		std::fprintf(stderr, "%s", full_message.c_str());
+#endif
+		return 0;
+	}
 	auto content = simple_fs::view_contents(*file);
 	uint32_t size_x, size_y;
 	uint8_t const* data = (uint8_t const*)(content.data);

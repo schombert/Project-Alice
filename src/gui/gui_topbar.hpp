@@ -440,12 +440,36 @@ public:
 	}
 };
 
-class topbar_nation_population_text : public nation_population_text {
+class topbar_nation_population_text : public multiline_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
+		auto pop_change = int64_t(nations::get_monthly_pop_increase_of_nation(state, n));
+		text::text_color color;
+
+		pop_change < 0 ? color = text::text_color::red : color = text::text_color::green;
+		if(pop_change == 0){ color = text::text_color::white; }
+
+		auto layout = text::create_endless_layout(internal_layout,
+		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+		auto box = text::open_layout_box(layout, 0);
+
+
+		text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
+		text::add_to_layout_box(state, layout, box, std::string(" ("));
+		if(pop_change > 0) {
+			text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
+		}
+		text::add_to_layout_box(state, layout, box, text::pretty_integer{pop_change}, color);
+		text::add_to_layout_box(state, layout, box, std::string(")"));
+
+		
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -457,8 +481,14 @@ public:
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr,
 					text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total))});
+			text::add_to_substitution_map(sub, text::variable_type::x,
+					text::pretty_integer{int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id))});
+			//text::add_to_substitution_map(sub, text::variable_type::days,
+			//	text::produce_simple_string(state, std::string_view("31")));
 
-			text::localised_format_box(state, contents, box, std::string_view("topbar_population"), sub);
+
+
+			text::localised_format_box(state, contents, box, std::string_view("pop_growth_topbar"), sub);
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_population_visual"),
 					text::variable_type::curr,
@@ -467,9 +497,9 @@ public:
 
 			
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
-			
 		}
 	}
+
 };
 
 class topbar_nation_focus_allocation_text : public nation_focus_allocation_text {

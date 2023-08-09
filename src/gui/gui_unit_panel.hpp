@@ -4,6 +4,8 @@
 #include "gui_element_types.hpp"
 #include "gui_unit_panel_subwindow.hpp"
 #include "text.hpp"
+#include "prng.hpp"
+#include "gui_leader_tooltip.hpp"
 
 namespace ui {
 
@@ -158,8 +160,92 @@ public:
 template<class T>
 class unit_selection_change_leader_button : public button_element_base {
 public:
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return  tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto unit = retrieve<T>(state, parent);
+		dcon::leader_id lid;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			lid = state.world.army_get_general_from_army_leadership(unit);
+		} else {
+			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+		}
+		if(lid)
+			display_leader_full(state, lid, contents, 0);
+	}
+	
+
 	void button_action(sys::state& state) noexcept override {
 		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::changeleader};
+		parent->impl_get(state, payload);
+	}
+};
+
+template<class T>
+class unit_selection_leader_image : public button_element_base {
+public:
+	dcon::gfx_object_id default_img;
+
+	void on_update(sys::state& state) noexcept override {
+		if(!default_img)
+			default_img = base_data.data.image.gfx_object;
+
+
+		auto unit = retrieve<T>(state, parent);
+		dcon::leader_id lid;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			lid = state.world.army_get_general_from_army_leadership(unit);
+		} else {
+			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+		}
+
+		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
+
+		if(ltype && lid) {
+			auto admiral = state.world.leader_get_is_admiral(lid);
+			if(admiral) {
+				auto arange = ltype.get_admirals();
+				if(arange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), arange.size());
+					base_data.data.image.gfx_object = arange[in_range];
+				}
+			} else {
+				auto grange = ltype.get_generals();
+				if(grange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), grange.size());
+					base_data.data.image.gfx_object = grange[in_range];
+				}
+			}
+		} else {
+			base_data.data.image.gfx_object = default_img;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return  tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto unit = retrieve<T>(state, parent);
+		dcon::leader_id lid;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			lid = state.world.army_get_general_from_army_leadership(unit);
+		} else {
+			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+		}
+		if(lid)
+			display_leader_full(state, lid, contents, 0);
+	}
+
+
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{ unitpanel_action::changeleader };
 		parent->impl_get(state, payload);
 	}
 };
@@ -312,7 +398,7 @@ public:
 		} else if(name == "unit_activity") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leader_photo") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<unit_selection_leader_image<T>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1331,11 +1417,77 @@ public:
 	}
 };
 
+
+class multi_selection_leader_image : public button_element_base {
+public:
+	dcon::gfx_object_id default_img;
+
+	void on_update(sys::state& state) noexcept override {
+		if(!default_img)
+			default_img = base_data.data.image.gfx_object;
+
+		auto foru = retrieve<unit_var>(state, parent);
+		dcon::leader_id lid;
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			lid = state.world.army_get_general_from_army_leadership(std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
+		}
+
+		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
+
+		if(ltype && lid) {
+			auto admiral = state.world.leader_get_is_admiral(lid);
+			if(admiral) {
+				auto arange = ltype.get_admirals();
+				if(arange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), arange.size());
+					base_data.data.image.gfx_object = arange[in_range];
+				}
+			} else {
+				auto grange = ltype.get_generals();
+				if(grange.size() > 0) {
+					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+					auto in_range = rng::reduce(uint32_t(rval), grange.size());
+					base_data.data.image.gfx_object = grange[in_range];
+				}
+			}
+		} else {
+			base_data.data.image.gfx_object = default_img;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return  tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		dcon::leader_id lid;
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			lid = state.world.army_get_general_from_army_leadership(std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
+		}
+		if(lid)
+			display_leader_full(state, lid, contents, 0);
+	}
+
+
+	void button_action(sys::state& state) noexcept override {
+		// TODO
+	}
+};
+
 class selected_unit_item : public listbox_row_element_base<unit_var> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unitpanel_bg") {
 			return make_element_by_type<whole_panel_button>(state, id);
+		} else if(name == "leader_photo") {
+			return make_element_by_type<multi_selection_leader_image>(state, id);
 		} else if(name == "unitstrength") {
 			return make_element_by_type <u_row_strength> (state, id);
 		} else if(name == "unitattrition_icon") {

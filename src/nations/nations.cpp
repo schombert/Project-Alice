@@ -28,7 +28,35 @@ int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n)
 	 * month, depending which one is better to implement Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is
 	 * divided by 30
 	 */
-	return 0;
+
+	int64_t estimated_change = 0;
+
+	std::vector<dcon::state_instance_id> state_list{};
+	for(auto si : state.world.nation_get_state_ownership(n))
+		state_list.push_back(si.get_state().id);
+
+	std::vector<dcon::province_id> province_list{};
+	for(auto& state_id : state_list) {
+		auto fat_id = dcon::fatten(state.world, state_id);
+		province::for_each_province_in_state_instance(state, fat_id, [&](dcon::province_id id) { province_list.push_back(id); });
+	}
+
+	for(auto& province_id : province_list) {
+		auto fat_id = dcon::fatten(state.world, province_id);
+		fat_id.for_each_pop_location_as_province([&](dcon::pop_location_id id) {
+			auto pop = state.world.pop_location_get_pop(id);
+
+			auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
+			auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pop));
+			auto emigration = -int64_t(demographics::get_estimated_emigration(state, pop));
+			auto total = int64_t(growth) + colonial_migration + emigration;
+
+			estimated_change += total;
+		});
+	}
+
+
+	return estimated_change;
 }
 
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
