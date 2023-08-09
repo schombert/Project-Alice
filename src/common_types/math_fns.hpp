@@ -9,7 +9,7 @@ namespace math {
 inline constexpr float pi = 3.14159265358979323846f;
 inline constexpr float pi_2 = pi / 2.f;
 
-inline void internal_check(float v, float err, float lower, float upper) noexcept {
+inline constexpr void internal_check(float v, float err, float lower, float upper) noexcept {
 	assert(err >= 0.f); // error must be positive
 	assert(lower <= upper); // conflicting definitions
 	assert(v + err >= lower && v - err <= upper); // unreasonable
@@ -35,6 +35,7 @@ inline float sin(float v) noexcept {
 		return r;
 	} else {
 		assert(0);
+		return 0.f;
 	}
 }
 
@@ -47,7 +48,8 @@ inline float cos(float v) noexcept {
 inline float acos(float v) noexcept {
 	// Lagrange polynomial - https://stackoverflow.com/questions/3380628/fast-arc-cos-algorithm
 	// Maximum absolute error of 0.017
-	assert(v >= -1.f && v <= 1.f);
+	constexpr float acos_input_err = 0.0001f;
+	assert(v >= -1.f - acos_input_err && v <= 1.f + acos_input_err);
 	float r = ((0.4643653210307f * v * v * v + 0.921784152891457f * v * v - 2.0178302343512f * v - 0.939115566365855f) * v + 1.5707963267949f) / ((0.295624144969963f * v * v - 1.28459062446908f) * (v * v) + 1.f);
 	internal_check(r, 0.017f, 0.f, pi);
 	return r;
