@@ -534,7 +534,16 @@ public:
 	MOD_NAT_FUNCTION(research_points_on_conquer)
 	MOD_NAT_FUNCTION(import_cost)
 	MOD_NAT_FUNCTION(loan_interest)
-	MOD_NAT_FUNCTION(tax_efficiency)
+	template<typename T>
+	void tax_efficiency(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+		} else {
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::tax_efficiency;
+			constructed_definition_n.values[next_to_add_n] = v * 0.01f;
+			++next_to_add_n;
+		}
+	}
 	MOD_NAT_FUNCTION(min_tax)
 	MOD_NAT_FUNCTION(max_tax)
 	MOD_NAT_FUNCTION(min_military_spending)

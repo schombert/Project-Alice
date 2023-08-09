@@ -563,6 +563,36 @@ public:
 			set_text(state, text::produce_simple_string(state, state.world.province_get_name(std::get<event::pending_human_f_p_event>(content).p)));
 		}
 	}
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		dcon::province_id prov;
+		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+		if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			prov = std::get<event::pending_human_p_event>(content).p;
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			prov = std::get<event::pending_human_f_p_event>(content).p;
+		}
+		if(!prov)
+			return message_result::consumed;
+
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		state.map_state.set_selected_province(prov);
+		static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+		if(state.map_state.get_zoom() < 8)
+			state.map_state.zoom = 8.0f;
+
+		auto map_pos = state.world.province_get_mid_point(prov);
+		map_pos.x /= float(state.map_state.map_data.size_x);
+		map_pos.y /= float(state.map_state.map_data.size_y);
+		map_pos.y = 1.0f - map_pos.y;
+		state.map_state.set_pos(map_pos);
+
+		return message_result::consumed;
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::scroll ? message_result::unseen : message_result::consumed;
+	}
 };
 
 std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& state, std::string_view name,

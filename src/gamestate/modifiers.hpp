@@ -33,7 +33,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(23, number_of_voters, true, modifier_display_type::percent, "modifier_number_of_voters")                      \
 	MOD_LIST_ELEMENT(24, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand")                              \
 	MOD_LIST_ELEMENT(25, assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate")                    \
-	MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::percent, "modifier_life_rating")                                \
+	MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::integer, "modifier_life_rating")                                \
 	MOD_LIST_ELEMENT(27, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_efficiency")                           \
 	MOD_LIST_ELEMENT(28, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_efficiency")                           \
 	MOD_LIST_ELEMENT(29, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_size")                                \
@@ -114,14 +114,13 @@ namespace sys {
 	MOD_LIST_ELEMENT(52, global_assimilation_rate, true, modifier_display_type::percent, "modifier_global_assimilation_rate")      \
 	MOD_LIST_ELEMENT(53, prestige, true, modifier_display_type::percent, "modifier_prestige")                                      \
 	MOD_LIST_ELEMENT(54, factory_cost, false, modifier_display_type::percent, "modifier_factory_cost")                             \
-	MOD_LIST_ELEMENT(55, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_rgo_eff")                              \
-	MOD_LIST_ELEMENT(56, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_rgo_eff")                              \
+	MOD_LIST_ELEMENT(55, farm_rgo_eff, true, modifier_display_type::percent, "tech_farm_output")                              \
+	MOD_LIST_ELEMENT(56, mine_rgo_eff, true, modifier_display_type::percent, "tech_mine_output")                              \
 	MOD_LIST_ELEMENT(57, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_rgo_size")                            \
 	MOD_LIST_ELEMENT(58, mine_rgo_size, true, modifier_display_type::percent, "modifier_mine_rgo_size")                            \
 	MOD_LIST_ELEMENT(59, issue_change_speed, true, modifier_display_type::percent, "modifier_issue_change_speed")                  \
-	MOD_LIST_ELEMENT(60, social_reform_desire, false, modifier_display_type::fp_three_places, "modifier_social_reform_desire")     \
-	MOD_LIST_ELEMENT(61, political_reform_desire, false, modifier_display_type::fp_three_places,                                   \
-			"modifier_political_reform_desire")                                                                                        \
+	MOD_LIST_ELEMENT(60, social_reform_desire, true, modifier_display_type::percent, "modifier_social_reform_desire")     \
+	MOD_LIST_ELEMENT(61, political_reform_desire, true, modifier_display_type::percent, "modifier_political_reform_desire")     \
 	MOD_LIST_ELEMENT(62, literacy_con_impact, true, modifier_display_type::percent, "modifier_literacy_con_impact")                \
 	MOD_LIST_ELEMENT(63, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier")              \
 	MOD_LIST_ELEMENT(64, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier")          \
@@ -174,19 +173,19 @@ namespace sys {
 	MOD_LIST_ELEMENT(103, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech")                              \
 	MOD_LIST_ELEMENT(104, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech")                                  \
 	MOD_LIST_ELEMENT(105, influence, true, modifier_display_type::percent, "tech_gp_influence")                                    \
-	MOD_LIST_ELEMENT(106, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech")                                     \
+	MOD_LIST_ELEMENT(106, dig_in_cap, true, modifier_display_type::integer, "digin_from_tech")                                     \
 	MOD_LIST_ELEMENT(107, combat_width, false, modifier_display_type::integer, "combat_width_tech")                                \
 	MOD_LIST_ELEMENT(108, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech")                              \
 	MOD_LIST_ELEMENT(109, supply_range, true, modifier_display_type::percent, "supply_range_tech")                                 \
-	MOD_LIST_ELEMENT(110, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech")                      \
+	MOD_LIST_ELEMENT(110, regular_experience_level, true, modifier_display_type::integer, "regular_exp_tech")                      \
 	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
-	MOD_LIST_ELEMENT(112, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech")                           \
-	MOD_LIST_ELEMENT(113, land_attrition, true, modifier_display_type::percent, "land_attrition_tech")                             \
+	MOD_LIST_ELEMENT(112, naval_attrition, false, modifier_display_type::percent, "naval_attrition_tech")                           \
+	MOD_LIST_ELEMENT(113, land_attrition, false, modifier_display_type::percent, "land_attrition_tech")                             \
 	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
 	MOD_LIST_ELEMENT(115, colonial_life_rating, false, modifier_display_type::integer, "modifier_life_rating")                      \
-	MOD_LIST_ELEMENT(116, seperatism, true, modifier_display_type::percent, "seperatism_tech")                                     \
+	MOD_LIST_ELEMENT(116, seperatism, false, modifier_display_type::percent, "separatism_tech")                                     \
 	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
-	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech")
+	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")
 #define MOD_NAT_LIST_COUNT 119
 
 namespace provincial_mod_offsets {

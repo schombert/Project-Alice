@@ -488,6 +488,74 @@ class politics_hold_election_button : public button_element_base {
 	}
 };
 
+
+class national_modifier_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
+		if(mod.mod_id) {
+			frame = state.world.modifier_get_icon(mod.mod_id) - 1;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
+		if(mod.mod_id) {
+			text::add_line(state, contents, state.world.modifier_get_name(mod.mod_id));
+			modifier_description(state, contents, mod.mod_id, 15);
+		}
+		if(mod.expiration) {
+			text::add_line(state, contents, "expires_on", text::variable_type::date, mod.expiration);
+		}
+	}
+};
+
+class national_modifier_win : public window_element_base {
+public:
+	sys::dated_modifier mod;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "country_modifier_icon") {
+			return make_element_by_type<national_modifier_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<sys::dated_modifier>()) {
+			payload.emplace<sys::dated_modifier>(mod);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+};
+
+class national_modifiers : public overlapping_listbox_element_base<national_modifier_win, sys::dated_modifier> {
+public:
+	std::string_view get_row_element_name() override {
+		return "country_modifier_item";
+	}
+	void update_subwindow(sys::state& state, national_modifier_win& subwindow, sys::dated_modifier content) override {
+		subwindow.mod = content;
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		for(auto mods : state.world.nation_get_current_modifiers(state.local_player_nation)) {
+			row_contents.push_back(mods);
+		}
+		
+		update(state);
+	}
+};
+
+
 class politics_issue_sort_button : public button_element_base {
 public:
 	politics_issue_sort_order order = politics_issue_sort_order::name;
@@ -569,6 +637,8 @@ public:
 			unciv_reforms_win = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "country_modifier_overlappingbox") {
+			return make_element_by_type<national_modifiers>(state, id);
 		} else if(name == "government_name") {
 			return make_element_by_type<nation_government_type_text>(state, id);
 		} else if(name == "government_desc") {

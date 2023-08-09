@@ -388,6 +388,75 @@ public:
 	}
 };
 
+
+class province_modifier_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
+		if(mod.mod_id) {
+			frame = state.world.modifier_get_icon(mod.mod_id) - 1;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
+		if(mod.mod_id) {
+			text::add_line(state, contents, state.world.modifier_get_name(mod.mod_id));
+			modifier_description(state, contents, mod.mod_id, 15);
+		}
+		if(mod.expiration) {
+			text::add_line(state, contents, "expires_on", text::variable_type::date, mod.expiration);
+		}
+	}
+};
+
+class province_modifier_win : public window_element_base {
+public:
+	sys::dated_modifier mod;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "modifier") {
+			return make_element_by_type<province_modifier_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<sys::dated_modifier>()) {
+			payload.emplace<sys::dated_modifier>(mod);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+};
+
+class province_modifiers : public overlapping_listbox_element_base<province_modifier_win, sys::dated_modifier> {
+public:
+	std::string_view get_row_element_name() override {
+		return "prov_state_modifier";
+	}
+	void update_subwindow(sys::state& state, province_modifier_win& subwindow, sys::dated_modifier content) override {
+		subwindow.mod = content;
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(prov) {
+			for(auto mods : state.world.province_get_current_modifiers(prov)) {
+				row_contents.push_back(mods);
+			}
+		}
+		update(state);
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -401,6 +470,8 @@ public:
 			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
 			return make_element_by_type<province_terrain_image>(state, id);
+		} else if(name == "province_modifiers") {
+			return make_element_by_type<province_modifiers>(state, id);
 		} else if(name == "slave_state_icon") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
 			slave_icon = ptr.get();

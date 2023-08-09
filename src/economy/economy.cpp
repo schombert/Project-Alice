@@ -2697,8 +2697,7 @@ float pop_income(sys::state& state, dcon::pop_id p) {
 		return 0.0f;
 
 	auto owner = nations::owner_of_pop(state, p);
-	auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency +
-																			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::tax_efficiency),
+	auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::tax_efficiency),
 			0.1f, 1.0f);
 	auto strata = culture::pop_strata(state.world.pop_type_get_strata(state.world.pop_get_poptype(p)));
 

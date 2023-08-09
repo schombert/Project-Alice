@@ -47,13 +47,13 @@ GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_
 
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
 	glBindTexture(texture_type, texture_handle);
-	if(filter == GL_LINEAR_MIPMAP_NEAREST) {
-		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	if(filter == GL_LINEAR_MIPMAP_NEAREST || filter == GL_LINEAR_MIPMAP_LINEAR) {
+		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glGenerateMipmap(texture_type);
 	} else {
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
-		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
 	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
@@ -430,7 +430,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 
 	if(zoom > 8) {
-		glUniform1f(4, 0.0013f);
+		glUniform1f(4, 0.00085f);
 		uint8_t visible_borders =
 			(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
 					province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
@@ -447,7 +447,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	}
 
 	if(zoom > 3.5f) {
-		glUniform1f(4, 0.0018f);
+		glUniform1f(4, 0.0010f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
@@ -463,7 +463,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	}
 
 	{
-		glUniform1f(4, 0.0027f);
+		glUniform1f(4, 0.00145f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 															 province::border::non_adjacent_bit | province::border::impassible_bit);
 
@@ -666,6 +666,15 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = simple_fs::open_file(dir, file_name);
+	if(!bool(file)) {
+		auto full_message = std::string("Can't load DDS file ") + simple_fs::native_to_utf8(file_name);
+#ifdef _WIN64
+		OutputDebugStringA(full_message.c_str());
+#else
+		std::fprintf(stderr, "%s", full_message.c_str());
+#endif
+		return 0;
+	}
 	auto content = simple_fs::view_contents(*file);
 	uint32_t size_x, size_y;
 	uint8_t const* data = (uint8_t const*)(content.data);
