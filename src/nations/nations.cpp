@@ -47,12 +47,9 @@ int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n)
 			auto pop = state.world.pop_location_get_pop(id);
 
 			auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
-			auto promote = -int64_t(demographics::get_estimated_type_change(state, pop));
-			auto assimilation = -int64_t(demographics::get_estimated_assimilation(state, pop));
-			auto internal_migration = -int64_t(demographics::get_estimated_internal_migration(state, pop));
 			auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pop));
 			auto emigration = -int64_t(demographics::get_estimated_emigration(state, pop));
-			auto total = int64_t(growth) + promote + assimilation + internal_migration + colonial_migration + emigration;
+			auto total = int64_t(growth) + colonial_migration + emigration;
 
 			estimated_change += total;
 		});
