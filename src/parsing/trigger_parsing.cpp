@@ -692,9 +692,12 @@ int32_t simplify_trigger(uint16_t* source) {
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	tr_scope_and(gen, err, context);
-	auto const new_size = simplify_trigger(context.compiled_trigger.data());
-	context.compiled_trigger.resize(static_cast<size_t>(new_size));
-
+	if(err.accumulated_errors.empty()) {
+		auto const new_size = simplify_trigger(context.compiled_trigger.data());
+		context.compiled_trigger.resize(static_cast<size_t>(new_size));
+	} else {
+		context.compiled_trigger.clear();
+	}
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 }
 
@@ -705,8 +708,12 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
 	auto new_factor = context.factor;
 	context.factor = old_factor;
 
-	auto const new_size = simplify_trigger(context.compiled_trigger.data());
-	context.compiled_trigger.resize(static_cast<size_t>(new_size));
+	if(err.accumulated_errors.empty()) {
+		auto const new_size = simplify_trigger(context.compiled_trigger.data());
+		context.compiled_trigger.resize(static_cast<size_t>(new_size));
+	} else {
+		context.compiled_trigger.clear();
+	}
 
 	auto tkey = context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 	context.compiled_trigger.clear();
