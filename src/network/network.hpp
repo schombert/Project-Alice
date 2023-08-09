@@ -34,6 +34,9 @@ struct network_state {
 		std::atomic<bool> active = false;
 		std::atomic<bool> wait_write = false;
 		rigtorp::SPSCQueue<command::payload> worker_commands;
+		dcon::nation_id player_nation;
+		char player_name[16]; //15 characters
+
 		client_data() : worker_commands(1024) {};
 	} clients[max_clients];
 #ifdef _WIN64

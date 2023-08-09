@@ -89,7 +89,9 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 
-	advance_tick = 127,
+	connect = 120,
+	disconnect = 121,
+	advance_tick = 122,
 
 	// console cheats
 	switch_nation = 128,
