@@ -102,6 +102,14 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 #else
 		int client_fd;
 #endif
+		fd_set rfds;
+		FD_ZERO(&rfds);
+		FD_SET(socket_fd, &rfds);
+		struct timeval  tv = {};
+		tv.tv_usec = 200000;
+		if(select(socket_fd + 1, &rfds, NULL, NULL, &tv) <= 0)
+			continue;
+
 		if((client_fd = accept(socket_fd, (struct sockaddr *)&server_address, &addr_len)) < 0)
 			continue;
 		// TODO: Notify other clients  std::fprintf(stderr, "client connected\n");
