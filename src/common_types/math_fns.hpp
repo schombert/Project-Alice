@@ -51,12 +51,10 @@ inline float acos(float v) noexcept {
 	assert(v >= -1.f - acos_input_err && v <= 1.f + acos_input_err);
 	if(v >= 1.f) { // clamp max
 		assert(v <= 1.f + acos_input_err);
-		v = 1.f;
+		return 0.f;
 	} else if(v <= -1.f) { // clamp min
 		assert(v >= -1.f - acos_input_err);
-		v = -1.f;
-	} else if(v == 1.f) {
-		return 0.f;
+		return pi;
 	}
 	float r = ((0.4643653210307f * v * v * v + 0.921784152891457f * v * v - 2.0178302343512f * v - 0.939115566365855f) * v + 1.5707963267949f) / ((0.295624144969963f * v * v - 1.28459062446908f) * (v * v) + 1.f);
 	assert((v >= 1.f) ? r == 0.f : r > 0.f); //we need not to give 0 on distances
