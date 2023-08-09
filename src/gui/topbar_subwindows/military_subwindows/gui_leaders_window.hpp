@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "prng.hpp"
+#include "gui_leader_tooltip.hpp"
 
 namespace ui {
 
@@ -29,6 +30,14 @@ class leader_portrait : public image_element_base {
 			}
 		}
 		
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		display_leader_attributes(state, retrieve<dcon::leader_id>(state, parent), contents, 0);
 	}
  };
 
