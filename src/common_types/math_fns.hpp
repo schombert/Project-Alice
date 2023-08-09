@@ -48,8 +48,8 @@ inline float cos(float v) noexcept {
 inline float acos(float v) noexcept {
 	// Lagrange polynomial - https://stackoverflow.com/questions/3380628/fast-arc-cos-algorithm
 	// Maximum absolute error of 0.017
-	constexpr float acos_input_err = 0.0001f;
-	assert(v >= -1.f - acos_input_err && v <= 1.f + acos_input_err);
+	constexpr float acos_input_err = 0.001f;
+	assert(v + acos_input_err >= -1.f && v - acos_input_err <= 1.f);
 	float r = ((0.4643653210307f * v * v * v + 0.921784152891457f * v * v - 2.0178302343512f * v - 0.939115566365855f) * v + 1.5707963267949f) / ((0.295624144969963f * v * v - 1.28459062446908f) * (v * v) + 1.f);
 	internal_check(r, 0.017f, 0.f, pi);
 	return r;
