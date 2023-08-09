@@ -691,8 +691,11 @@ int32_t simplify_trigger(uint16_t* source) {
 }
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	tr_scope_and(gen, err, context);
-	if(err.accumulated_errors.empty()) {
+	error_handler t_err(err);
+	tr_scope_and(gen, t_err, context);
+	err.accumulated_errors += t_err.accumulated_errors;
+	err.accumulated_warnings += t_err.accumulated_warnings;
+	if(t_err.accumulated_errors.empty()) {
 		auto const new_size = simplify_trigger(context.compiled_trigger.data());
 		context.compiled_trigger.resize(static_cast<size_t>(new_size));
 	} else {
@@ -704,11 +707,16 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 void make_value_modifier_segment(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	auto old_factor = context.factor;
 	context.factor = 0.0f;
-	tr_scope_and(gen, err, context);
+
+	error_handler t_err(err);
+	tr_scope_and(gen, t_err, context);
+	err.accumulated_errors += t_err.accumulated_errors;
+	err.accumulated_warnings += t_err.accumulated_warnings;
+
 	auto new_factor = context.factor;
 	context.factor = old_factor;
 
-	if(err.accumulated_errors.empty()) {
+	if(t_err.accumulated_errors.empty()) {
 		auto const new_size = simplify_trigger(context.compiled_trigger.data());
 		context.compiled_trigger.resize(static_cast<size_t>(new_size));
 	} else {

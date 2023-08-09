@@ -968,7 +968,10 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 	e_context.limit_position = e_context.compiled_effect.size();
 	e_context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
 
-	auto opt_result = parse_event_option(gen, err, e_context);
+	error_handler e_err(err);
+	auto opt_result = parse_event_option(gen, e_err, e_context);
+	err.accumulated_errors += e_err.accumulated_errors;
+	err.accumulated_warnings += e_err.accumulated_warnings;
 
 	e_context.compiled_effect[payload_size_offset] = uint16_t(e_context.compiled_effect.size() - payload_size_offset);
 
@@ -979,7 +982,7 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
 	}
 
-	if(err.accumulated_errors.empty()) {
+	if(e_err.accumulated_errors.empty()) {
 		auto const new_size = simplify_effect(e_context.compiled_effect.data());
 		e_context.compiled_effect.resize(static_cast<size_t>(new_size));
 	} else {

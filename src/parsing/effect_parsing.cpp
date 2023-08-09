@@ -1094,7 +1094,10 @@ void recurse_over_effects(uint16_t* source, T const& f) {
 }
 
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context) {
-	ef_scope_hidden_tooltip(gen, err, context);
+	error_handler e_err(err);
+	ef_scope_hidden_tooltip(gen, e_err, context);
+	err.accumulated_errors += e_err.accumulated_errors;
+	err.accumulated_warnings += e_err.accumulated_warnings;
 
 	if(context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
 		err.accumulated_errors += "effect is " + std::to_string(context.compiled_effect.size()) +
@@ -1102,7 +1105,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 		return dcon::effect_key{0};
 	}
 
-	if(err.accumulated_errors.empty()) {
+	if(e_err.accumulated_errors.empty()) {
 		auto const new_size = simplify_effect(context.compiled_effect.data());
 		context.compiled_effect.resize(static_cast<size_t>(new_size));
 	} else {
