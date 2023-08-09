@@ -12,7 +12,6 @@ inline constexpr float pi_2 = pi / 2.f;
 inline void internal_check(float v, float err, float lower, float upper) noexcept {
 	assert(err >= 0.f); // error must be positive
 	assert(lower <= upper); // conflicting definitions
-	assert(fabsf(lower - upper) < err); // error is entire range
 	assert(v + err >= lower && v - err <= upper); // unreasonable
 }
 
