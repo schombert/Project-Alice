@@ -666,6 +666,8 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = simple_fs::open_file(dir, file_name);
+	if(!bool(file))
+		return 0;
 	auto content = simple_fs::view_contents(*file);
 	uint32_t size_x, size_y;
 	uint8_t const* data = (uint8_t const*)(content.data);
