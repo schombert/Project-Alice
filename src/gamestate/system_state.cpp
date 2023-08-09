@@ -1137,6 +1137,8 @@ void state::load_scenario_data() {
 
 	std::thread map_loader([&]() { map_state.load_map_data(context); });
 
+	parsers::make_leader_images(context);
+
 	// Read national tags from countries.txt
 	{
 		auto countries = open_file(common, NATIVE("countries.txt"));

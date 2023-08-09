@@ -102,6 +102,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		state->map_state.load_map_data(context);
 	});
 
+	parsers::make_leader_images(context);
+
 	// COUNTRIES
 	{
 		auto countries = open_file(common, NATIVE("countries.txt"));

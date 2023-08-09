@@ -37,25 +37,10 @@ void culture::radicalism(association_type, int32_t v, error_handler& err, int32_
 
 void culture_group::leader(association_type, std::string_view name, error_handler& err, int32_t line,
 		culture_group_context& context) {
-	if(name == "european")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::european));
-	else if(name == "southamerican")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::southamerican));
-	else if(name == "russian")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::russian));
-	else if(name == "arab")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::arab));
-	else if(name == "asian")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::asian));
-	else if(name == "indian")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::indian));
-	else if(name == "nativeamerican")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::nativeamerican));
-	else if(name == "african")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::african));
-	else if(name == "polar_bear")
-		context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::polar_bear));
-	else {
+
+	if(auto it = context.outer_context.map_of_leader_graphics.find(std::string(name)); it != context.outer_context.map_of_leader_graphics.end()) {
+		context.outer_context.state.world.culture_group_set_leader(context.id, it->second);
+	} else {
 		err.accumulated_errors +=
 				"Unknown leader type " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
@@ -2729,8 +2714,7 @@ void generic_event::option(sys::event_option const& value, error_handler& err, i
 	}
 }
 
-void generic_event::picture(association_type, std::string_view name, error_handler& err, int32_t line,
-		event_building_context& context) {
+void generic_event::picture(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
 
 	auto root = get_root(context.outer_context.state.common_fs);
 	auto gfx = open_directory(root, NATIVE("gfx"));
@@ -2786,6 +2770,70 @@ void history_war_goal::receiver(association_type, std::string_view tag, error_ha
 	} else {
 		err.accumulated_errors +=
 				"invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void make_leader_images(scenario_building_context& outer_context) {
+	auto root = get_root(outer_context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto infa = open_directory(gfx, NATIVE("interface"));
+	auto leaders = open_directory(infa, NATIVE("leaders"));
+
+	auto all_images = simple_fs::list_files(leaders, NATIVE(".dds"));
+	for(auto i : all_images) {
+		auto native_name = simple_fs::get_file_name(i);
+		auto uname = simple_fs::native_to_utf8(native_name);
+
+		bool admiral = false;
+		std::string group_name;
+
+		auto apos = uname.find("_admiral_", 0);
+		if(apos != std::string::npos) {
+			admiral = true;
+			group_name = uname.substr(0, apos);
+		} else {
+			auto gpos = uname.find("_general_", 0);
+			if(gpos != std::string::npos) {
+				group_name = uname.substr(0, gpos);
+			} else {
+				continue; // neither admiral nor general
+			}
+		}
+
+		dcon::leader_images_id category;
+		if(auto it = outer_context.map_of_leader_graphics.find(group_name); it != outer_context.map_of_leader_graphics.end()) {
+			category = it->second;
+		} else {
+			category = outer_context.state.world.create_leader_images();
+			outer_context.map_of_leader_graphics.insert_or_assign(group_name, category);
+		}
+		
+		std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\interface\\leaders\\") + uname);
+
+		auto gfxindex = outer_context.state.ui_defs.gfx.size();
+		outer_context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = outer_context.state.ui_defs.gfx.back();
+		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+		outer_context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+
+		new_obj.number_of_frames = uint8_t(1);
+		if(auto itb = outer_context.gfx_context.map_of_texture_names.find(file_name); itb != outer_context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = outer_context.state.ui_defs.textures.size();
+			outer_context.state.ui_defs.textures.emplace_back(outer_context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+
+		if(admiral) {
+			outer_context.state.world.leader_images_get_admirals(category).push_back(new_id);
+		} else {
+			outer_context.state.world.leader_images_get_generals(category).push_back(new_id);
+		}
+		
 	}
 }
 
