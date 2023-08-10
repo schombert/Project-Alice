@@ -16,31 +16,74 @@ add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 endif()
 
 if(WIN32)
+	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/MDd" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+	# string(REPLACE "/MD" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+	# string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+
 	set(CMAKE_CXX_FLAGS "")
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		if(OPTIMIZE_MODE STREQUAL "On")
+			message(STATUS "Optimizing with PGO data")
 		target_compile_options(tests_project PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -fprofile-instr-use=code.profdata)
+			target_link_options(tests_project PRIVATE /OPT:REF /OPT:ICF /LTCG -fprofile-instr-use=code.profdata)
+		elseif(PROFILE_MODE STREQUAL "On")
+			message(STATUS "Compiling for PGO instrumentation")
+			target_compile_options(tests_project PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
+			target_link_options(tests_project PRIVATE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
+		else()
+			target_compile_options(tests_project PRIVATE
+											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
-		target_link_options(tests_project PRIVATE /SUBSYSTEM:CONSOLE
+			target_link_options(tests_project PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+		endif()
 	else()
+		set_target_properties(tests_project PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
+
+		if(OPTIMIZE_MODE STREQUAL "On")
+			message(STATUS "Optimizing with PGO data")
+			target_compile_options(tests_project PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+			target_link_options(tests_project PRIVATE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
+		elseif(PROFILE_MODE STREQUAL "On")
+			message(STATUS "Compiling for PGO instrumentation")
+			target_compile_options(tests_project PRIVATE
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+			target_link_options(tests_project PRIVATE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
+		else()
+			message(STATUS "Normal, not PGO, build")
 		target_compile_options(tests_project PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
-		target_link_options(tests_project PRIVATE /SUBSYSTEM:CONSOLE
+			target_link_options(tests_project PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
+		endif()
 	endif()
 else() # GCC or CLANG
+	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	target_compile_options(tests_project PRIVATE
-									-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wshadow
-		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
-		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
+			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field
+			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe -D_FORTIFY_SOURCE=2>
+			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+	else()
+		target_compile_options(tests_project PRIVATE
+										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
+			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe -D_FORTIFY_SOURCE=2>
+			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+	endif()
 endif()
 
 FetchContent_MakeAvailable(Catch2)
