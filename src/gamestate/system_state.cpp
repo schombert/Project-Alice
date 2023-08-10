@@ -968,11 +968,11 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
 		if(it != trigger_data_indices.end()) {
 			auto d = std::distance(trigger_data_indices.begin(), it);
-			return dcon::trigger_key(dcon::trigger_key::value_base_t(d));
+			return dcon::trigger_key(dcon::trigger_key::value_base_t(d - 1));
 		} else {
 			trigger_data_indices.push_back(int32_t(start));
 			assert(trigger_data_indices.size() <= std::numeric_limits<uint16_t>::max());
-			return dcon::trigger_key(dcon::trigger_key::value_base_t(trigger_data_indices.size() - 1));
+			return dcon::trigger_key(dcon::trigger_key::value_base_t(trigger_data_indices.size() - 1 - 1));
 		}
 	} else {
 		auto start = trigger_data.size();
@@ -981,7 +981,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 		std::copy_n(data.data(), size, trigger_data.data() + start);
 		trigger_data_indices.push_back(int32_t(start));
 		assert(trigger_data_indices.size() <= std::numeric_limits<uint16_t>::max());
-		return dcon::trigger_key(dcon::trigger_key::value_base_t(trigger_data_indices.size() - 1));
+		return dcon::trigger_key(dcon::trigger_key::value_base_t(trigger_data_indices.size() - 1 - 1));
 	}
 }
 
@@ -1004,11 +1004,11 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 		auto it = std::find(effect_data_indices.begin(), effect_data_indices.end(), int32_t(start));
 		if(it != effect_data_indices.end()) {
 			auto d = std::distance(effect_data_indices.begin(), it);
-			return dcon::effect_key(dcon::effect_key::value_base_t(d));
+			return dcon::effect_key(dcon::effect_key::value_base_t(d - 1));
 		} else {
 			effect_data_indices.push_back(int32_t(start));
 			assert(effect_data_indices.size() <= std::numeric_limits<uint16_t>::max());
-			return dcon::effect_key(dcon::effect_key::value_base_t(effect_data_indices.size() - 1));
+			return dcon::effect_key(dcon::effect_key::value_base_t(effect_data_indices.size() - 1 - 1));
 		}
 	} else {
 		auto start = effect_data.size();
@@ -1017,7 +1017,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 		std::copy_n(data.data(), size, effect_data.data() + start);
 		effect_data_indices.push_back(int32_t(start));
 		assert(effect_data_indices.size() <= std::numeric_limits<uint16_t>::max());
-		return dcon::effect_key(dcon::effect_key::value_base_t(effect_data_indices.size() - 1));
+		return dcon::effect_key(dcon::effect_key::value_base_t(effect_data_indices.size() - 1 - 1));
 	}
 }
 
