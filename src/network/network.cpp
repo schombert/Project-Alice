@@ -107,8 +107,13 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 		FD_SET(socket_fd, &rfds);
 		struct timeval  tv = {};
 		tv.tv_usec = 200000;
+#ifdef _WIN64
+		if(select(static_cast<SOCKET>(static_cast<int>(socket_fd) + 1), &rfds, NULL, NULL, &tv) <= 0)
+			continue;
+#else
 		if(select(socket_fd + 1, &rfds, NULL, NULL, &tv) <= 0)
 			continue;
+#endif
 
 		if((client_fd = accept(socket_fd, (struct sockaddr *)&server_address, &addr_len)) < 0)
 			continue;
