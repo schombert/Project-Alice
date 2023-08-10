@@ -7398,7 +7398,7 @@ void make_trigger_description(sys::state& ws, text::layout_base& layout, uint16_
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot,
 		int32_t this_slot, int32_t from_slot) {
-	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[k.index()],
+	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[k.index() + 1],
 			primary_slot, this_slot, from_slot, 0, true);
 }
 
@@ -7441,7 +7441,7 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index()], primary_slot, this_slot, from_slot,
+					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
 					trigger_tooltip::indentation_amount * 2, true);
 		}
 	}
@@ -7486,7 +7486,7 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index()], primary_slot, this_slot, from_slot,
+					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
 					trigger_tooltip::indentation_amount * 2, true);
 		}
 	}
