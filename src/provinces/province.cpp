@@ -1430,9 +1430,6 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 	auto apos = state.world.province_get_mid_point_b(a);
 	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
-	// TODO: Fix your ranging, should be within [-1, 1]!!!!
-	if(dot < -1.f || dot > 1.f)
-		return 0.f;
 	//return math::acos(dot) * (40075.0f / ((24.0f * 2.0f) * math::pi));
 	return math::acos(dot) * (4007.5f / ((24.0f * 2.0f) * math::pi));
 }
