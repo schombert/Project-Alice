@@ -2035,11 +2035,9 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 		float totals = 0.0f;
 		state.world.for_each_ideology([&](dcon::ideology_id i) {
 			if(state.world.ideology_get_enabled(i)) {
-				auto const i_key = pop_demographics::to_key(state, i);
 				auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+				auto const i_key = pop_demographics::to_key(state, i);
 				auto owner = nations::owner_of_pop(state, np);
-
-				assert(ptrigger);
 				if(state.world.ideology_get_is_civilized_only(i)) {
 					if(state.world.nation_get_is_civilized(owner)) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id),
