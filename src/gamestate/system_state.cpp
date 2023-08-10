@@ -986,19 +986,39 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 }
 
 dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
-	if(data.empty())
- 		return dcon::effect_key();
-	
-	if(effect_data.empty()) { // Create placeholder for invalid effects
+	if(data.empty()) {
+		if(effect_data_indices.empty())
+			effect_data_indices.push_back(int32_t(0));
+		return dcon::effect_key();
+	}
+
+	if(effect_data_indices.empty()) { // Create placeholder for invalid effects
+		effect_data_indices.push_back(0);
 		effect_data.push_back(uint16_t(effect::no_payload));
 	}
 
-	auto start = effect_data.size();
-	auto size = data.size();
-
-	effect_data.resize(start + size, uint16_t(0));
-	std::copy_n(data.data(), size, effect_data.data() + start);
-	return dcon::effect_key(uint16_t(start));
+	auto search_result = std::search(effect_data.data(), effect_data.data() + effect_data.size(),
+			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+	if(search_result != effect_data.data() + effect_data.size()) {
+		auto const start = search_result - effect_data.data();
+		auto it = std::find(effect_data_indices.begin(), effect_data_indices.end(), int32_t(start));
+		if(it != effect_data_indices.end()) {
+			auto d = std::distance(effect_data_indices.begin(), it);
+			return dcon::effect_key(dcon::effect_key::value_base_t(d));
+		} else {
+			effect_data_indices.push_back(int32_t(start));
+			assert(effect_data_indices.size() <= std::numeric_limits<uint16_t>::max());
+			return dcon::effect_key(dcon::effect_key::value_base_t(effect_data_indices.size() - 1));
+		}
+	} else {
+		auto start = effect_data.size();
+		auto size = data.size();
+		effect_data.resize(start + size, uint16_t(0));
+		std::copy_n(data.data(), size, effect_data.data() + start);
+		effect_data_indices.push_back(int32_t(start));
+		assert(effect_data_indices.size() <= std::numeric_limits<uint16_t>::max());
+		return dcon::effect_key(dcon::effect_key::value_base_t(effect_data_indices.size() - 1));
+	}
 }
 
 void state::save_user_settings() const {

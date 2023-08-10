@@ -4304,7 +4304,7 @@ uint32_t internal_execute_effect(EFFECT_PARAMTERS) {
 
 void execute(sys::state& state, dcon::effect_key key, int32_t primary, int32_t this_slot, int32_t from_slot, uint32_t r_lo,
 		uint32_t r_hi) {
-	internal_execute_effect(state.effect_data.data() + key.index(), state, primary, this_slot, from_slot, r_lo, r_hi);
+	internal_execute_effect(state.effect_data.data() + state.effect_data_indices[key.index()], state, primary, this_slot, from_slot, r_lo, r_hi);
 }
 
 void execute(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot, uint32_t r_lo,
