@@ -112,6 +112,8 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
+		state.ui_state.military_subwindow = this;
+
 		// Unit information comes first
 		auto win1 = make_element_by_type<military_units_window<dcon::army_id>>(state,
 				state.ui_state.defs_by_name.find("unit_window")->second.definition);

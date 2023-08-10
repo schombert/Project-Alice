@@ -374,6 +374,7 @@ struct state {
 	element_base* msg_filters_window = nullptr;
 	element_base* outliner_window = nullptr;
 	element_base* technology_subwindow = nullptr;
+	element_base* military_subwindow = nullptr;
 	element_base* election_window = nullptr;
 	element_base* request_window = nullptr;
 	unit_details_window<dcon::army_id>* army_status_window = nullptr;
@@ -389,6 +390,8 @@ struct state {
 
 	element_base* naval_combat_window = nullptr;
 	element_base* army_combat_window = nullptr;
+
+	element_base* change_leader_window = nullptr;
 
 	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
