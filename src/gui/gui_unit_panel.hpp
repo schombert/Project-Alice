@@ -6,6 +6,7 @@
 #include "text.hpp"
 #include "prng.hpp"
 #include "gui_leader_tooltip.hpp"
+#include "gui_leader_select.hpp"
 
 namespace ui {
 
@@ -179,8 +180,15 @@ public:
 	
 
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::changeleader};
-		parent->impl_get(state, payload);
+		auto unit = retrieve<T>(state, parent);
+		auto location = get_absolute_location(*this);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			if(command::can_change_general(state, state.local_player_nation, unit, dcon::leader_id{}))
+				open_leader_selection(state, unit, dcon::navy_id{}, location.x, location.y);
+		} else {
+			if(command::can_change_admiral(state, state.local_player_nation, unit, dcon::leader_id{}))
+				open_leader_selection(state, dcon::army_id{}, unit, location.x, location.y);
+		}
 	}
 };
 
@@ -198,8 +206,10 @@ public:
 		dcon::leader_id lid;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			lid = state.world.army_get_general_from_army_leadership(unit);
+			disabled = !command::can_change_general(state, state.local_player_nation, unit, dcon::leader_id{});
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+			disabled = !command::can_change_admiral(state, state.local_player_nation, unit, dcon::leader_id{});
 		}
 
 		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
@@ -245,8 +255,13 @@ public:
 
 
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{ unitpanel_action::changeleader };
-		parent->impl_get(state, payload);
+		auto unit = retrieve<T>(state, parent);
+		auto location = get_absolute_location(*this);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			open_leader_selection(state, unit, dcon::navy_id{}, location.x + base_data.size.x, location.y);
+		} else {
+			open_leader_selection(state, dcon::army_id{}, unit, location.x + base_data.size.x, location.y);
+		}
 	}
 };
 
@@ -310,20 +325,11 @@ private:
 	simple_text_element_base* totalunitstrength_text = nullptr;
 
 public:
-	window_element_base* leader_change_win = nullptr;
 	window_element_base* reorg_window = nullptr;
 	window_element_base* combat_window = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		{
-			auto win1 = make_element_by_type<leader_selection_window<T>>(state,
-					state.ui_state.defs_by_name.find("leader_selection_panel")->second.definition);
-			win1->base_data.position.y -= 148;
-			win1->set_visible(state, false);
-			leader_change_win = win1.get();
-			add_child_to_front(std::move(win1));
-		}
 		{
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				auto win2 = make_element_by_type<unit_reorg_window<T, dcon::regiment_id>>(state, state.ui_state.defs_by_name.find("reorg_window")->second.definition);
@@ -450,9 +456,7 @@ public:
 				reorg_window->impl_on_update(state);
 				break;
 			} case unitpanel_action::changeleader: {
-				leader_change_win->is_visible() ? leader_change_win->set_visible(state, false)
-																				: leader_change_win->set_visible(state, true);
-				leader_change_win->impl_on_update(state);
+				
 				break;
 			} default: {
 				break;
@@ -1430,8 +1434,10 @@ public:
 		dcon::leader_id lid;
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			lid = state.world.army_get_general_from_army_leadership(std::get<dcon::army_id>(foru));
+			disabled = !command::can_change_general(state, state.local_player_nation, std::get<dcon::army_id>(foru), dcon::leader_id{});
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
+			disabled = !command::can_change_admiral(state, state.local_player_nation, std::get<dcon::navy_id>(foru), dcon::leader_id{});
 		}
 
 		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
@@ -1477,7 +1483,13 @@ public:
 
 
 	void button_action(sys::state& state) noexcept override {
-		// TODO
+		auto foru = retrieve<unit_var>(state, parent);
+		auto location = get_absolute_location(*this);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			open_leader_selection(state, std::get<dcon::army_id>(foru), dcon::navy_id{}, location.x + base_data.size.x, location.y);
+		} else {
+			open_leader_selection(state, dcon::army_id{}, std::get<dcon::navy_id>(foru), location.x + base_data.size.x, location.y);
+		}
 	}
 };
 

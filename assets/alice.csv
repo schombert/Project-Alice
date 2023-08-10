@@ -1039,4 +1039,12 @@ msg_war_join_on;;;;;;;;;;;;;x
 msg_cb_fab_finished;;;;;;;;;;;;;x
 msg_cb_fab_cancelled;;;;;;;;;;;;;x
 msg_crisis_voluntary_join;;;;;;;;;;;;;x
+uv_sort_a;Att
+uv_sort_b;Def
+uv_sort_c;Org
+uv_sort_d;Mor
+uv_sort_e;Spd
+uv_sort_f;Rec
+uv_sort_g;Rel
+uv_sort_h;Exp
 ;;;;;;;;;;;;;x

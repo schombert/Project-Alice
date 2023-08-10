@@ -1199,4 +1199,456 @@ guiTypes = {
 			}
 		}
 	}
+	
+	windowType = {
+		name = "alice_leader_selection_panel"
+		backGround=""
+		position = { x=345 y=210 }	
+		size = { x=584 y=420 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no	
+
+	
+		iconType =
+		{
+			name ="select_leader_bg"
+			spriteType = "GFX_unit_leader_bg"
+			position = { x= -8 y = -64 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "leader_button"
+			position = { x = 10 y = -51 }
+			spriteType ="GFX_alice_unit_select_leader"
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name ="prestige_bar_frame"
+			spriteType = "GFX_prestige_bar_frame"
+			position = { x = 12 y = -52 }
+		}
+		iconType = {
+			name ="current_leader_prestige_bar"
+			spriteType = "GFX_leader_prestige_progress_bar"
+			position = { x = 22 y = -22 }
+			Orientation = "UPPER_LEFT"
+			rotation = 1.5708
+		}
+		iconType =	{
+			name ="selected_photo"
+			spriteType = "GFX_leader_generic0"
+			position = { x= 30 y = -54 }
+			Orientation = "UPPER_LEFT"
+		}
+
+		instantTextBoxType = {
+			name = "selected_leader_name"
+			position = { x = 65 y = -40 }
+			textureFile = ""
+			font = "Arial12_bold_black"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 190
+			maxHeight = 16	
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+			
+		guiButtonType = {
+			name = "sort_prestige"
+			position = { x=10 y=-16}
+			quadTextureSprite ="GFX_sortbutton_20"	
+			buttonText = ""
+			buttonFont = "vic_18_black"
+		}
+		
+		iconType = {
+			name ="sort_prestige_icon"
+			spriteType = "GFX_prestige_icon_2"
+			position = { x=12 y=-8 }
+			Orientation = "UPPER_LEFT"
+		}
+				
+		guiButtonType = {
+			name = "sort_name"
+			position = { x=29 y=-16}
+			quadTextureSprite ="GFX_sortbutton_224"	
+			buttonText = "NAME"
+			buttonFont = "vic_18_black"
+		}
+			
+		guiButtonType = {
+			name = "sort_a"
+			position = { x=250 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_A"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_a"
+			position = { x = 255 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sort_b"
+			position = { x=289 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_B"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_b"
+			position = { x = 294 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sort_c"
+			position = { x=328 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_C"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_c"
+			position = { x = 333 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sort_d"
+			position = { x=367 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_D"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_d"
+			position = { x = 372 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+			
+
+		guiButtonType = {
+			name = "sort_e"
+			position = { x=406 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_E"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_e"
+			position = { x = 411 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sort_f"
+			position = { x=445 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_F"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_f"
+			position = { x = 450 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sort_g"
+			position = { x=484 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_G"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_g"
+			position = { x = 489 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sort_h"
+			position = { x=523 y=-16}
+			quadTextureSprite ="GFX_sortbutton_40"	
+			buttonText = "UV_SORT_H"
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_h"
+			position = { x = 528 y = -40 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+			
+
+		guiButtonType = {
+			name = "back_button"
+			position = { x=367 y=375}
+			quadTextureSprite ="GFX_button_standard_144"	
+			buttonText = "CLOSE"
+			buttonFont = "vic_18_black"
+		}
+
+		guiButtonType = {
+			name = "noleader_button"
+			position = { x=54 y=375}
+			quadTextureSprite ="GFX_button_standard_144"	
+			buttonText = "NO_LEADER"
+			buttonFont = "vic_18_black"
+		}
+
+		listboxType = {
+			name ="leaderlist"
+			position = { x = 4 y = 10 }
+			backGround=""
+			size = { x=543  y =360}
+			Orientation = "UPPER_LEFT"
+			spacing = 2
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 0 y = 0}
+		}
+		
+		
+	}
+
+	windowType = {
+		name = "alice_leader_entry"
+		backGround=""
+		position = { x=0 y=0 }	
+		size = { x=380 y= 36 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no	
+
+		guiButtonType = {
+			name = "leader_button"
+			position = { x = 6 y = 3 }
+			quadTextureSprite ="GFX_alice_unit_select_leader"	
+		}
+
+		iconType = {
+			name ="prestige_bar_frame"
+			spriteType = "GFX_prestige_bar_frame"
+			position = { x = 8 y = 2 }
+		}
+		iconType = {
+			name ="leader_prestige_bar"
+			spriteType = "GFX_leader_prestige_progress_bar"
+			position = { x = 18 y = 32 }
+			Orientation = "UPPER_LEFT"
+			rotation = 1.5708
+		}	
+		
+		iconType =	{
+			name ="photo"
+			spriteType = "GFX_leader_generic0"
+			position = { x = 26 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "leader_name"
+			position = { x = 62 y = 14 }
+			textureFile = ""
+			font = "Arial12_bold_black"
+			borderSize = { x = 0 y = 0 }
+			text = ""	
+			maxWidth = 190
+			maxHeight = 16	
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+			
+		instantTextBoxType = {
+			name = "unitleader_a"
+			position = { x = 252 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_b"
+			position = { x = 291 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_c"
+			position = { x = 330 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_d"
+			position = { x = 369 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+			
+		instantTextBoxType = {
+			name = "unitleader_e"
+			position = { x = 408 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_f"
+			position = { x = 447 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_g"
+			position = { x = 486 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		instantTextBoxType = {
+			name = "unitleader_h"
+			position = { x = 525 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 35
+			maxHeight = 32	
+			Orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+	}
 }

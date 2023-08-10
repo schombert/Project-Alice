@@ -28,6 +28,7 @@
 #include <thread>
 #include "rebels.hpp"
 #include "ai.hpp"
+#include "gui_leader_select.hpp"
 
 namespace sys {
 //
@@ -239,6 +240,16 @@ inline constexpr int32_t tooltip_width = 400;
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
                        // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+
+	if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
+		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
+		if(ui_state.military_subwindow->is_visible() == false
+			&& std::find(selected_armies.begin(), selected_armies.end(), win->a) == selected_armies.end()
+			&& std::find(selected_navies.begin(), selected_navies.end(), win->v) == selected_navies.end()) {
+
+			ui_state.change_leader_window->set_visible(*this, false);
+		}
+	}
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
@@ -797,6 +808,11 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::provincial_event_window>(*this, "event_province_window");
 		ui_state.provincial_event_window = new_elm.get();
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(*this, "alice_leader_selection_panel");
+		ui_state.change_leader_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 

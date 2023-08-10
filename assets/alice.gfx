@@ -105,4 +105,9 @@ spriteTypes = {
 		textureFile1 = "assets\\unit_flag_overlay.png"
 		textureFile2 = "assets\\unit_flag_mask.png"
 	}
+	spriteType = {
+		name = "GFX_alice_unit_select_leader"
+		texturefile = "assets\\leader_select_replacement.png"
+		noOfFrames = 1
+	}
 }
