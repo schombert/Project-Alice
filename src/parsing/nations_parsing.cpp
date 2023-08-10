@@ -968,6 +968,7 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 	e_context.limit_position = e_context.compiled_effect.size();
 	e_context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
 
+	auto old_err_size = err.accumulated_errors.size();
 	auto opt_result = parse_event_option(gen, err, e_context);
 
 	e_context.compiled_effect[payload_size_offset] = uint16_t(e_context.compiled_effect.size() - payload_size_offset);
@@ -978,11 +979,15 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
 		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
 	}
-	auto const new_size = simplify_effect(e_context.compiled_effect.data());
-	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
+
+	if(err.accumulated_errors.size() == old_err_size) {
+		auto const new_size = simplify_effect(e_context.compiled_effect.data());
+		e_context.compiled_effect.resize(static_cast<size_t>(new_size));
+	} else {
+		e_context.compiled_effect.clear();
+	}
 
 	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);
-
 	return sys::event_option{opt_result.name_, opt_result.ai_chance, effect_id};
 }
 void commit_pending_events(error_handler& err, scenario_building_context& context) {
