@@ -553,6 +553,7 @@ struct alignas(64) state {
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
 	               // for vsync
 
+	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
 

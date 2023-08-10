@@ -2248,21 +2248,7 @@ constexpr inline int32_t game_speed[] = {
 		250,	// speed 4 -- 0.25 seconds
 };
 
-void state::game_loop() {
-	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		auto speed = actual_game_speed.load(std::memory_order::acquire);
-		auto upause = ui_pause.load(std::memory_order::acquire);
-		if(speed <= 0 || upause || internally_paused) {
-			command::execute_pending_commands(*this);
-			std::this_thread::sleep_for(std::chrono::milliseconds(15));
-		} else {
-			auto entry_time = std::chrono::steady_clock::now();
-			auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
-
-			command::execute_pending_commands(*this);
-			if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
-				last_update = entry_time;
-
+void state::single_game_tick() {
 				// do update logic
 				province::update_connected_regions(*this);
 				province::update_cached_values(*this);
@@ -2663,6 +2649,22 @@ void state::game_loop() {
 				ui_date = current_date;
 
 				game_state_updated.store(true, std::memory_order::release);
+}
+
+void state::game_loop() {
+	while(quit_signaled.load(std::memory_order::acquire) == false) {
+		auto speed = actual_game_speed.load(std::memory_order::acquire);
+		auto upause = ui_pause.load(std::memory_order::acquire);
+		if(speed <= 0 || upause || internally_paused) {
+			command::execute_pending_commands(*this);
+			std::this_thread::sleep_for(std::chrono::milliseconds(15));
+		} else {
+			auto entry_time = std::chrono::steady_clock::now();
+			auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
+			if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+				command::execute_pending_commands(*this);
+				last_update = entry_time;
+				single_game_tick();
 			} else {
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
