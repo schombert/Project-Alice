@@ -2635,8 +2635,8 @@ void state::single_game_tick() {
 	ai::daily_cleanup(*this);
 
 	/*
-		* END OF DAY: update cached data
-		*/
+	 * END OF DAY: update cached data
+	 */
 
 	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
 	if((current_date.value % 16) == 0) {
