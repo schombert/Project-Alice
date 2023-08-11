@@ -702,7 +702,7 @@ int32_t free_colonial_points(sys::state& state, dcon::nation_id n) {
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
 		if(prov.get_province().get_is_colonial()) {
 			used_points += state.defines.colonization_colony_province_maintainance;
-			used_points += state.economy_definitions.railroad_definition.infrastructure * prov.get_province().get_railroad_level() *
+			used_points += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * prov.get_province().get_railroad_level() *
 										 state.defines.colonization_colony_railway_maintainance;
 		}
 	}
@@ -734,7 +734,7 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 						p.get_province().get_connected_region_id() ==
 								state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
 
-					points += float(state.economy_definitions.naval_base_definition.colonial_points[nb_rank - 1]);
+					points += float(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].colonial_points[nb_rank - 1]);
 				} else {
 					points += state.defines.colonial_points_for_non_core_base;
 				}

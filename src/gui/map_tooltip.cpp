@@ -175,7 +175,7 @@ void colonial_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
             if(fat.get_life_rating() > state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::colonial_life_rating)) {
 			    ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::colonial_life_rating, false);
             }
-            if(distance > state.economy_definitions.naval_base_definition.colonial_range) {
+            if(distance > state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].colonial_range) {
                 auto box2 = text::open_layout_box(contents);
                 text::add_line_break_to_layout_box(state, contents, box2);
                 text::localised_format_box(state, contents, box2, std::string_view("colonize_closest_base_to_far"));

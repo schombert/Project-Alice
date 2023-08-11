@@ -324,7 +324,7 @@ void initialize_ai_tech_weights(sys::state& state) {
 		if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::army)
 			base *= 1.5f;
 
-		if(t.get_increase_naval_base())
+		if(t.get_increase_building(economy::province_building_type::naval_base))
 			base *= 1.1f;
 		else if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::navy)
 			base *= 0.9f;

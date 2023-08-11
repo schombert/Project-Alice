@@ -249,8 +249,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(id.get_is_available_from_start() == true);
 		// REQUIRE(id.get_construction_costs(context.map_of_commodity_names.find(std::string("machine_parts"))->second) == 80.0f);
 
-		REQUIRE(bool(state->economy_definitions.railroad_definition.province_modifier) == true);
-		sys::provincial_modifier_definition pmod = state->world.modifier_get_province_values(state->economy_definitions.railroad_definition.province_modifier);
+		REQUIRE(bool(state->economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier) == true);
+		sys::provincial_modifier_definition pmod = state->world.modifier_get_province_values(state->economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier);
 		REQUIRE(pmod.offsets[0] == sys::provincial_mod_offsets::movement_cost);
 		REQUIRE(pmod.values[0] == Approx(-0.05f));
 	}
@@ -705,6 +705,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	state->world.technology_resize_activate_building(state->world.factory_type_size());
 	state->world.technology_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
+	state->world.technology_resize_increase_building(uint32_t(economy::max_building_types));
 
 	state->world.invention_resize_activate_building(state->world.factory_type_size());
 	state->world.invention_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
@@ -1001,7 +1002,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(bool(fit.get_modifier()) == true);
 		REQUIRE(fit.get_modifier().get_national_values().offsets[0] == sys::national_mod_offsets::dig_in_cap);
 		REQUIRE(fit.get_modifier().get_national_values().values[0] == 1.0f);
-		REQUIRE(fit.get_increase_fort() == true);
+		REQUIRE(fit.get_increase_building(economy::province_building_type::fort) == true);
 	}
 	// read pending inventions
 	{
@@ -1504,8 +1505,8 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(id.get_is_available_from_start() == true);
 	// REQUIRE(id.get_construction_costs(context.map_of_commodity_names.find(std::string("machine_parts"))->second) == 80.0f);
 
-	REQUIRE(bool(state->economy_definitions.railroad_definition.province_modifier) == true);
-	sys::provincial_modifier_definition pmod = state->world.modifier_get_province_values(state->economy_definitions.railroad_definition.province_modifier);
+	REQUIRE(bool(state->economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier) == true);
+	sys::provincial_modifier_definition pmod = state->world.modifier_get_province_values(state->economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier);
 	REQUIRE(pmod.offsets[0] == sys::provincial_mod_offsets::movement_cost);
 	REQUIRE(pmod.values[0] == Approx(-0.05f));
 }
@@ -1854,7 +1855,7 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	REQUIRE(bool(fit.get_modifier()) == true);
 	REQUIRE(fit.get_modifier().get_national_values().offsets[0] == sys::national_mod_offsets::dig_in_cap);
 	REQUIRE(fit.get_modifier().get_national_values().values[0] == 1.0f);
-	REQUIRE(fit.get_increase_fort() == true);
+	REQUIRE(fit.get_increase_building(economy::province_building_type::fort) == true);
 }
 // read pending inventions
 {

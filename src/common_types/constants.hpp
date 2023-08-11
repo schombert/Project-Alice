@@ -299,6 +299,11 @@ namespace culture {
 inline constexpr int32_t max_issue_options = 6;
 }
 
+namespace economy {
+enum class province_building_type : uint8_t { railroad, fort, naval_base, bank, university, province_selector, immigrator };
+constexpr inline int32_t max_building_types = 8;
+}
+
 namespace ui {
 
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };

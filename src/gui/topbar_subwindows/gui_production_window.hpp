@@ -1009,7 +1009,7 @@ class state_infrastructure : public simple_text_element_base {
 			float total = 0.0f;
 			float p_total = 0.0f;
 			province::for_each_province_in_state_instance(state, content, [&](dcon::province_id p) {
-				total += state.economy_definitions.railroad_definition.infrastructure * float(state.world.province_get_railroad_level(p));
+				total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * float(state.world.province_get_railroad_level(p));
 				p_total += 1.0f;
 			});
 			set_text(state, text::format_float(p_total > 0 ? total / p_total : 0.0f, 3));

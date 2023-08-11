@@ -2744,18 +2744,8 @@ object {
 		tag{ scenario }
 	}
 	property {
-		name{ increase_railroad }
-		type{ bitfield }
-		tag{ scenario }
-	}
-	property {
-		name{ increase_fort }
-		type{ bitfield }
-		tag{ scenario }
-	}
-	property {
-		name{ increase_naval_base }
-		type{ bitfield }
+		name{ increase_building }
+		type{ array{economy::province_building_type}{uint8_t} }
 		tag{ scenario }
 	}
 	property{

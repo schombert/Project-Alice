@@ -3509,7 +3509,7 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
 				 (1.0f + state.world.province_get_railroad_level(state.world.army_get_location_from_army_location(a)) *
-										 state.economy_definitions.railroad_definition.infrastructure) *
+										 state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) *
 				 (leader_move + 1.0f);
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {

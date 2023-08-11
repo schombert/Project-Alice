@@ -153,13 +153,13 @@ public:
 			name_text->set_text(state, text::produce_simple_string(state,  province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
 			switch(economy::province_building_type(fat_id.get_type())) {
 			case economy::province_building_type::railroad:
-				needed_commodities = state.economy_definitions.railroad_definition.cost;
+				needed_commodities = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost;
 				break;
 			case economy::province_building_type::fort:
-				needed_commodities = state.economy_definitions.fort_definition.cost;
+				needed_commodities = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].cost;
 				break;
 			case economy::province_building_type::naval_base:
-				needed_commodities = state.economy_definitions.naval_base_definition.cost;
+				needed_commodities = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost;
 				break;
 			}
 			satisfied_commodities = fat_id.get_purchased_goods();

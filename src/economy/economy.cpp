@@ -967,57 +967,20 @@ void populate_construction_consumption(sys::state& state) {
 
 	for(auto c : state.world.in_province_building_construction) {
 		auto owner = c.get_nation().id;
-		if(owner && c.get_province().get_nation_from_province_ownership() == c.get_province().get_nation_from_province_control() &&
-				!c.get_is_pop_project()) {
-			switch(province_building_type(c.get_type())) {
-			case province_building_type::railroad: {
-				auto& base_cost = state.economy_definitions.railroad_definition.cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.economy_definitions.railroad_definition.time);
+		if(owner && c.get_province().get_nation_from_province_ownership() == c.get_province().get_nation_from_province_control() && !c.get_is_pop_project()) {
+			auto t = economy::province_building_type(c.get_type());
+			auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
+			auto& current_purchased = c.get_purchased_goods();
+			float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);
 
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					if(base_cost.commodity_type[i]) {
-						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
-							state.world.nation_get_construction_demand(owner, base_cost.commodity_type[i]) +=
-									base_cost.commodity_amounts[i] / construction_time;
-					} else {
-						break;
-					}
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
+						state.world.nation_get_construction_demand(owner, base_cost.commodity_type[i]) +=
+								base_cost.commodity_amounts[i] / construction_time;
+				} else {
+					break;
 				}
-				break;
-			}
-			case province_building_type::fort: {
-				auto& base_cost = state.economy_definitions.fort_definition.cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.economy_definitions.fort_definition.time);
-
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					if(base_cost.commodity_type[i]) {
-						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
-							state.world.nation_get_construction_demand(owner, base_cost.commodity_type[i]) +=
-									base_cost.commodity_amounts[i] / construction_time;
-					} else {
-						break;
-					}
-				}
-				break;
-			}
-			case province_building_type::naval_base: {
-				auto& base_cost = state.economy_definitions.naval_base_definition.cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.economy_definitions.naval_base_definition.time);
-
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					if(base_cost.commodity_type[i]) {
-						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
-							state.world.nation_get_construction_demand(owner, base_cost.commodity_type[i]) +=
-									base_cost.commodity_amounts[i] / construction_time;
-					} else {
-						break;
-					}
-				}
-				break;
-			}
 			}
 		}
 	}
@@ -1052,11 +1015,11 @@ void populate_private_construction_consumption(sys::state& state) {
 
 	for(auto c : state.world.in_province_building_construction) {
 		auto owner = c.get_nation().id;
-		if(owner && owner == c.get_province().get_nation_from_province_control() && c.get_is_pop_project() && province_building_type(c.get_type()) == province_building_type::railroad) {
-			auto& base_cost = state.economy_definitions.railroad_definition.cost;
+		if(owner && owner == c.get_province().get_nation_from_province_control() && c.get_is_pop_project() && province_building_type(c.get_type()) == economy::province_building_type::railroad) {
+			auto t = economy::province_building_type(c.get_type());
+			auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 			auto& current_purchased = c.get_purchased_goods();
-			float construction_time = float(state.economy_definitions.railroad_definition.time);
-
+			float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
 					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
@@ -1486,75 +1449,31 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 	for(auto c : state.world.nation_get_province_building_construction(n)) {
 		if(c.get_province().get_nation_from_province_ownership() == c.get_province().get_nation_from_province_control()) {
 			if(!c.get_is_pop_project()) {
-				switch(province_building_type(c.get_type())) {
-				case province_building_type::railroad: {
-					auto& base_cost = state.economy_definitions.railroad_definition.cost;
-					auto& current_purchased = c.get_purchased_goods();
-					float construction_time = float(state.economy_definitions.railroad_definition.time);
-
-					for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-						if(base_cost.commodity_type[i]) {
-							if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i]) {
-								auto amount = base_cost.commodity_amounts[i] / construction_time;
-								auto& source = state.world.nation_get_construction_demand(n, base_cost.commodity_type[i]);
-								auto delta = std::max(0.0f, std::min(source, base_cost.commodity_amounts[i] / construction_time));
-
-								current_purchased.commodity_amounts[i] += delta;
-								source -= delta;
-							}
-						} else {
-							break;
-						}
-					}
-					break;
-				}
-				case province_building_type::fort: {
-					auto& base_cost = state.economy_definitions.fort_definition.cost;
-					auto& current_purchased = c.get_purchased_goods();
-					float construction_time = float(state.economy_definitions.fort_definition.time);
-
-					for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-						if(base_cost.commodity_type[i]) {
-							if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i]) {
-								auto amount = base_cost.commodity_amounts[i] / construction_time;
-								auto& source = state.world.nation_get_construction_demand(n, base_cost.commodity_type[i]);
-								auto delta = std::max(0.0f, std::min(source, base_cost.commodity_amounts[i] / construction_time));
-
-								current_purchased.commodity_amounts[i] += delta;
-								source -= delta;
-							}
-						} else {
-							break;
-						}
-					}
-					break;
-				}
-				case province_building_type::naval_base: {
-					auto& base_cost = state.economy_definitions.naval_base_definition.cost;
-					auto& current_purchased = c.get_purchased_goods();
-					float construction_time = float(state.economy_definitions.naval_base_definition.time);
-
-					for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-						if(base_cost.commodity_type[i]) {
-							if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i]) {
-								auto amount = base_cost.commodity_amounts[i] / construction_time;
-								auto& source = state.world.nation_get_construction_demand(n, base_cost.commodity_type[i]);
-								auto delta = std::max(0.0f, std::min(source, base_cost.commodity_amounts[i] / construction_time));
-
-								current_purchased.commodity_amounts[i] += delta;
-								source -= delta;
-							}
-						} else {
-							break;
-						}
-					}
-					break;
-				}
-				}
-			} else if(c.get_is_pop_project() && province_building_type(c.get_type()) == province_building_type::railroad) {
-				auto& base_cost = state.economy_definitions.railroad_definition.cost;
+				auto t = economy::province_building_type(c.get_type());
+				auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.economy_definitions.railroad_definition.time);
+				float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);
+
+				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+					if(base_cost.commodity_type[i]) {
+						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i]) {
+							auto amount = base_cost.commodity_amounts[i] / construction_time;
+							auto& source = state.world.nation_get_construction_demand(n, base_cost.commodity_type[i]);
+							auto delta = std::max(0.0f, std::min(source, base_cost.commodity_amounts[i] / construction_time));
+
+							current_purchased.commodity_amounts[i] += delta;
+							source -= delta;
+						}
+					} else {
+						break;
+					}
+				}
+				break;
+			} else if(c.get_is_pop_project() && province_building_type(c.get_type()) == economy::province_building_type::railroad) {
+				auto t = economy::province_building_type(c.get_type());
+				auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
+				auto& current_purchased = c.get_purchased_goods();
+				float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);
 
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(base_cost.commodity_type[i]) {
@@ -2925,21 +2844,21 @@ construction_status province_building_construction(sys::state& state, dcon::prov
 			switch(t) {
 			case province_building_type::railroad:
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					total += state.economy_definitions.railroad_definition.cost.commodity_amounts[i];
+					total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost.commodity_amounts[i];
 					purchased += pb_con.get_purchased_goods().commodity_amounts[i];
 				}
 				return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
 				break;
 			case province_building_type::fort:
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					total += state.economy_definitions.fort_definition.cost.commodity_amounts[i];
+					total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].cost.commodity_amounts[i];
 					purchased += pb_con.get_purchased_goods().commodity_amounts[i];
 				}
 				return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
 				break;
 			case province_building_type::naval_base:
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					total += state.economy_definitions.naval_base_definition.cost.commodity_amounts[i];
+					total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost.commodity_amounts[i];
 					purchased += pb_con.get_purchased_goods().commodity_amounts[i];
 				}
 				return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
@@ -3181,7 +3100,7 @@ void resolve_constructions(sys::state& state) {
 
 		switch(province_building_type(state.world.province_building_construction_get_type(c))) {
 		case province_building_type::railroad: {
-			auto& base_cost = state.economy_definitions.railroad_definition.cost;
+			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost;
 			auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
 
 			bool all_finished = true;
@@ -3201,7 +3120,7 @@ void resolve_constructions(sys::state& state) {
 			break;
 		}
 		case province_building_type::fort: {
-			auto& base_cost = state.economy_definitions.fort_definition.cost;
+			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].cost;
 			auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
 
 			bool all_finished = true;
@@ -3221,7 +3140,7 @@ void resolve_constructions(sys::state& state) {
 			break;
 		}
 		case province_building_type::naval_base: {
-			auto& base_cost = state.economy_definitions.naval_base_definition.cost;
+			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost;
 			auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
 
 			bool all_finished = true;

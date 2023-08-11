@@ -1604,6 +1604,7 @@ void state::load_scenario_data() {
 
 	world.technology_resize_activate_building(world.factory_type_size());
 	world.technology_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
+	world.technology_resize_increase_building(uint32_t(economy::max_building_types));
 
 	world.invention_resize_activate_building(world.factory_type_size());
 	world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));

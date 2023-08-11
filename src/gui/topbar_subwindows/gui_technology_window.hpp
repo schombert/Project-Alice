@@ -12,43 +12,20 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 	auto mod_id = tech_fat_id.get_modifier().id;
 	if(bool(mod_id))
 		modifier_description(state, contents, mod_id);
-
-	auto increase_naval_base = tech_fat_id.get_increase_naval_base();
-	if(increase_naval_base) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "naval_base"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
-		text::close_layout_box(contents, box);
+	
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::immigrator; t = economy::province_building_type(uint8_t(t) + 1)) {
+		auto increase_building = tech_fat_id.get_increase_building(t);
+		if(increase_building) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, economy::province_building_type_get_name(t)), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
 	}
-
-	auto increase_railroad = tech_fat_id.get_increase_railroad();
-	if(increase_railroad) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "railroad"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
-
-	auto increase_fort = tech_fat_id.get_increase_fort();
-	if(increase_fort) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "fort"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
-
 
 	auto activate_unit_description = [&](dcon::unit_type_id id) {
 		if(tech_fat_id.get_activate_unit(id)) {
