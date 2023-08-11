@@ -589,15 +589,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		auto strength = params->top_left_value;
-		bool is_ship = float(int32_t(strength)) == strength;
+		//bool is_ship = float(int32_t(strength)) == strength;
 		auto layout = text::create_endless_layout(internal_layout,
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
 		auto box = text::open_layout_box(layout, 0);
 
 
 		text::add_to_layout_box(state, layout, box, text::format_float(strength, 1), text::text_color::gold);
-		if(!is_ship)
-			text::add_to_layout_box(state, layout, box, std::string("k"), text::text_color::gold);
+		//if(!is_ship)
+			//text::add_to_layout_box(state, layout, box, std::string("k"), text::text_color::gold);
 
 		text::close_layout_box(layout, box);
 
