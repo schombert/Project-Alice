@@ -11,9 +11,9 @@ int main(int argc, char **argv) {
 			NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
 
 	if(argv && argc > 1) {
-		std::vector<std::string> cmd_args;
+		std::vector<native_string> cmd_args;
 		for(int i = 1; i < argc; ++i)
-			cmd_args.push_back(std::string{ argv[i] });
+			cmd_args.push_back(native_string{ argv[i] });
 		auto root = get_root(game_state->common_fs);
 		for(const auto& cmd_arg : cmd_args) {
 			if(cmd_arg == "-s") {
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 					parsers::error_handler err("");
 					parsers::scenario_building_context context(*game_state);
 					auto content = view_contents(*mod_file);
-					err.file_name = arg;
+					err.file_name = cmd_arg;
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::mod_file_context mod_file_context(context);
 					parsers::parse_mod_file(gen, err, mod_file_context);
