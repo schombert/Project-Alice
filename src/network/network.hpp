@@ -47,7 +47,7 @@ struct network_state {
 
 	network_state() : client_commands(1024), server_commands(1024) {};
 	~network_state();
-	void init(sys::state& state, bool as_server);
+	void init(sys::state& state, bool as_server, std::string_view ip_addr);
 	void server_client_loop(sys::state& state, int worker_id);
 	void perform_pending(sys::state& state);
 	bool is_present();

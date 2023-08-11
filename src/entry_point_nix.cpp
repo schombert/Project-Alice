@@ -11,14 +11,18 @@ int main(int argc, char **argv) {
 			NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
 
 	if(argv && argc > 1) {
-		std::vector<native_string> cmd_args;
-		for(int i = 1; i < argc; ++i)
-			cmd_args.push_back(native_string{ argv[i] });
 		auto root = get_root(game_state->common_fs);
-		for(const auto& cmd_arg : cmd_args) {
-			if(cmd_arg == "-s") {
+		for(int i = 1; i < argc; ++i)
+			if(native_string(argv[i]) == "-s") {
 				game_state->network_state.init(*game_state, true);
-			} else if(cmd_arg == "-c") {
+			} else if(native_string(argv[i]) == "-c") {
+				if(i + 1 >= argc)
+					std::abort();
+				
+				std::string ip_addr = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+				i++;
+
+				game_state->network_state.ip_addr = ip_addr.c_str();
 				game_state->network_state.init(*game_state, false);
 			} else {
 				auto mod_file = open_file(root, cmd_arg);

@@ -43,7 +43,7 @@ static int internal_send(int client_fd, const void *data, size_t n) {
 }
 #endif
 
-void network_state::init(sys::state& state, bool _as_server) {
+void network_state::init(sys::state& state, bool _as_server, std::string_view ip_addr) {
 	as_server = _as_server;
 
 #ifdef _WIN64
@@ -80,7 +80,7 @@ void network_state::init(sys::state& state, bool _as_server) {
 			std::abort();
 		server_address.sin_family = AF_INET;
 		server_address.sin_port = htons(server_port);
-		if(inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr) <= 0)
+		if(inet_pton(AF_INET, std::string(ip_addr).c_str(), &server_address.sin_addr) <= 0)
 			std::abort();
 		if(connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
 			std::abort();
@@ -106,7 +106,8 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 		FD_ZERO(&rfds);
 		FD_SET(socket_fd, &rfds);
 		struct timeval  tv = {};
-		tv.tv_usec = 200000;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
 #ifdef _WIN64
 		if(select(static_cast<SOCKET>(static_cast<int>(socket_fd) + 1), &rfds, NULL, NULL, &tv) <= 0)
 			continue;
