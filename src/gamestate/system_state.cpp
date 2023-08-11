@@ -122,6 +122,14 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			selected_armies.clear();
 			game_state_updated.store(true, std::memory_order_release);
 		}
+		if(selected_navies.size() > 0) {
+			if(ui_state.navy_status_window)
+				ui_state.navy_status_window->set_visible(*this, false);
+			if(ui_state.unit_window_navy)
+				ui_state.unit_window_navy->set_visible(*this, false);
+			selected_navies.clear();
+			game_state_updated.store(true, std::memory_order_release);
+		}
 	}
 }
 
