@@ -322,7 +322,7 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 	state.world.for_each_invention([&](dcon::invention_id id) {
 		auto lim_trigger_k = state.world.invention_get_limit(id);
 		bool activable_by_this_tech = false;
-		trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index()],
+		trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index() + 1],
 				[&](uint16_t* tval) {
 					if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == tech_id)
 						activable_by_this_tech = true;
@@ -1135,7 +1135,7 @@ public:
 			state.world.for_each_invention([&](dcon::invention_id id) {
 				auto lim_trigger_k = state.world.invention_get_limit(id);
 				bool activable_by_this_tech = false;
-				trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index()],
+				trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index() + 1],
 						[&](uint16_t* tval) {
 							if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
 								activable_by_this_tech = true;

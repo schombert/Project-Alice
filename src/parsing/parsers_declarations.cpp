@@ -441,7 +441,7 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 
 	auto pop_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
 	if(def.reb_id) {
-		assert(pop_owner);
+		if(pop_owner) {
 		auto existing_faction = rebel::get_faction_by_type(context.outer_context.state, pop_owner, def.reb_id);
 		if(existing_faction) {
 			context.outer_context.state.world.try_create_pop_rebellion_membership(new_pop, existing_faction);
@@ -450,6 +450,10 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 			new_faction.set_type(def.reb_id);
 			context.outer_context.state.world.try_create_rebellion_within(new_faction, pop_owner);
 			context.outer_context.state.world.try_create_pop_rebellion_membership(new_pop, new_faction);
+		}
+		} else {
+			err.accumulated_errors +=
+				"Rebel specified on a province without owner (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 

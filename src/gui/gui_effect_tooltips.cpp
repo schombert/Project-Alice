@@ -169,7 +169,7 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "where"));
 		text::close_layout_box(layout, box);
 
-		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index()], -1,
+		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index() + 1], -1,
 				this_slot, from_slot, indentation + 2 * indentation_amount, false);
 	}
 }
@@ -6243,7 +6243,7 @@ uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {
 
 void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
 		int32_t from_slot, uint32_t r_lo, uint32_t r_hi) {
-	effect_tooltip::internal_make_effect_description(state, state.effect_data.data() + k.index(), layout, primary_slot, this_slot,
+	effect_tooltip::internal_make_effect_description(state, state.effect_data.data() + state.effect_data_indices[k.index() + 1], layout, primary_slot, this_slot,
 			from_slot, r_lo, r_hi, 0);
 }
 
