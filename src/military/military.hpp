@@ -399,6 +399,12 @@ void recover_org(sys::state& state);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
 
-bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation);
+bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
+bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);
+
+dcon::nation_id get_land_battle_lead_attacker(sys::state& state, dcon::land_battle_id b);
+dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_battle_id b);
+dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_battle_id b);
+dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
 } // namespace military

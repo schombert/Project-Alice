@@ -902,7 +902,7 @@ public:
 
 
 
-		mayretreat_image->set_visible(state, military::can_retreat_from_battle(state, battle.id, state.local_player_nation));
+		mayretreat_image->set_visible(state, military::can_retreat_from_battle(state, battle.id));
 		auto fat = dcon::fatten(state.world, selectednavy);
 
 		navalbattleloc_text->set_text(state, text::produce_simple_string(state, "battle_of") + " " +

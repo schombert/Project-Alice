@@ -1047,4 +1047,7 @@ uv_sort_e;Spd
 uv_sort_f;Rec
 uv_sort_g;Rel
 uv_sort_h;Exp
+alice_retreat;Retreat from battle
+alice_retreat_1;It has been at least $x$ days since the battle started
+alice_retreat_2;You are the lead attacker or defender
 ;;;;;;;;;;;;;x

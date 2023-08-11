@@ -4058,14 +4058,14 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 		}
 
 		if(battle_attacker && result == battle_result::defender_won) {
-			if(state.world.land_battle_get_start_date(b) + military::days_before_retreat < state.current_date) {
+			if(!can_retreat_from_battle(state, b)) {
 				to_delete.push_back(n.get_army());
 			} else {
 				if(!retreat(state, n.get_army()))
 					to_delete.push_back(n.get_army());
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(state.world.land_battle_get_start_date(b) + military::days_before_retreat < state.current_date) {
+			if(!can_retreat_from_battle(state, b)) {
 				to_delete.push_back(n.get_army());
 			} else {
 				if(!retreat(state, n.get_army()))
@@ -4278,14 +4278,14 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		}
 
 		if(battle_attacker && result == battle_result::defender_won) {
-			if(state.world.naval_battle_get_start_date(b) + military::days_before_retreat < state.current_date) {
+			if(!can_retreat_from_battle(state, b)) {
 				to_delete.push_back(n.get_navy());
 			} else {
 				if(!retreat(state, n.get_navy()))
 					to_delete.push_back(n.get_navy());
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(state.world.naval_battle_get_start_date(b) + military::days_before_retreat < state.current_date) {
+			if(!can_retreat_from_battle(state, b)) {
 				to_delete.push_back(n.get_navy());
 			} else {
 				if(!retreat(state, n.get_navy()))
@@ -4662,158 +4662,6 @@ void update_land_battles(sys::state& state) {
 
 		auto reserves = state.world.land_battle_get_reserves(b);
 
-		// prefer slot zero
-		if(!att_back[0]) {
-			std::swap(att_back[0], att_back[1]);
-		}
-		if(!def_back[0]) {
-			std::swap(def_back[0], def_back[1]);
-		}
-		if(!att_front[0]) {
-			std::swap(att_front[0], att_front[1]);
-		}
-		if(!def_front[0]) {
-			std::swap(def_front[0], def_front[1]);
-		}
-
-		// back row
-
-		auto compact = [](std::array<dcon::regiment_id, 30>& a) {
-			int32_t low = 0;
-			while(low < 30 && a[low]) {
-				low += 2;
-			}
-			int32_t high = low + 2;
-			while(high < 30 && !a[high])
-				high += 2;
-
-			while(high < 30) {
-				a[low] = a[high];
-				a[high] = dcon::regiment_id{};
-
-				high += 2;
-				while(high < 30 && !a[high])
-					high += 2;
-
-				low += 2;
-				while(low < 30 && a[low])
-					low += 2;
-			}
-
-			low = 1;
-			while(low < 30 && a[low]) {
-				low += 2;
-			}
-			high = low + 2;
-			while(high < 30 && !a[high])
-				high += 2;
-
-			while(high < 30) {
-				a[low] = a[high];
-				a[high] = dcon::regiment_id{};
-
-				high += 2;
-				while(high < 30 && !a[high])
-					high += 2;
-
-				low += 2;
-				while(low < 30 && a[low])
-					low += 2;
-			}
-		};
-
-		compact(att_back);
-		compact(att_front);
-		compact(def_back);
-		compact(def_front);
-
-		for(int32_t i = 0; i < combat_width; ++i) {
-			if(!att_back[i]) {
-				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support)) {
-						att_back[i] = reserves[j].regiment;
-						std::swap(reserves[j], reserves[reserves.size() - 1]);
-						reserves.pop_back();
-						break;
-					}
-				}
-			}
-
-			if(!def_back[i]) {
-				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_support)) {
-						def_back[i] = reserves[j].regiment;
-						std::swap(reserves[j], reserves[reserves.size() - 1]);
-						reserves.pop_back();
-						break;
-					}
-				}
-			}
-		}
-
-		// front row
-
-		for(int32_t i = 0; i < combat_width; ++i) {
-			if(!att_front[i]) {
-				
-				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry)) {
-						att_front[i] = reserves[j].regiment;
-						std::swap(reserves[j], reserves[reserves.size() - 1]);
-						reserves.pop_back();
-						break;
-					}
-				}
-				
-				if(!att_front[i]) {
-					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_cavalry)) {
-							att_front[i] = reserves[j].regiment;
-							std::swap(reserves[j], reserves[reserves.size() - 1]);
-							reserves.pop_back();
-							break;
-						}
-					}
-				}
-				if(!att_front[i] && att_back[i]) {
-					std::swap(att_front[i], att_back[i]);
-				}
-			}
-
-			if(!def_front[i]) {
-				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_infantry)) {
-						def_front[i] = reserves[j].regiment;
-						std::swap(reserves[j], reserves[reserves.size() - 1]);
-						reserves.pop_back();
-						break;
-					}
-				}
-				
-				if(!def_front[i]) {
-					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::type_cavalry)) {
-							def_front[i] = reserves[j].regiment;
-							std::swap(reserves[j], reserves[reserves.size() - 1]);
-							reserves.pop_back();
-							break;
-						}
-					}
-				}
-				if(!def_front[i] && def_back[i]) {
-					std::swap(def_front[i], def_back[i]);
-				}
-			}
-		}
-
-		if(!def_front[0]) {
-			to_delete.set(b, uint8_t(1));
-			return;
-		} else if(!att_front[0]) {
-			to_delete.set(b, uint8_t(2));
-			return;
-		}
-
 		if((state.current_date.value - state.world.land_battle_get_start_date(b).value) % 5 == 4) {
 			state.world.land_battle_set_dice_rolls(b, make_dice_rolls(state, uint32_t(index)));
 		}
@@ -4919,8 +4767,7 @@ void update_land_battles(sys::state& state) {
 
 				auto str_damage =
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
-						(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation,
-																																				sys::national_mod_offsets::military_tactics)));
+						(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
 				auto org_damage =
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
 						(defender_fort * defender_org_bonus *
@@ -5093,6 +4940,160 @@ void update_land_battles(sys::state& state) {
 					att_front[i] = dcon::regiment_id{};
 				}
 			}
+		}
+
+
+
+		// prefer slot zero
+		if(!att_back[0]) {
+			std::swap(att_back[0], att_back[1]);
+		}
+		if(!def_back[0]) {
+			std::swap(def_back[0], def_back[1]);
+		}
+		if(!att_front[0]) {
+			std::swap(att_front[0], att_front[1]);
+		}
+		if(!def_front[0]) {
+			std::swap(def_front[0], def_front[1]);
+		}
+
+		// back row
+
+		auto compact = [](std::array<dcon::regiment_id, 30>& a) {
+			int32_t low = 0;
+			while(low < 30 && a[low]) {
+				low += 2;
+			}
+			int32_t high = low + 2;
+			while(high < 30 && !a[high])
+				high += 2;
+
+			while(high < 30) {
+				a[low] = a[high];
+				a[high] = dcon::regiment_id{};
+
+				high += 2;
+				while(high < 30 && !a[high])
+					high += 2;
+
+				low += 2;
+				while(low < 30 && a[low])
+					low += 2;
+			}
+
+			low = 1;
+			while(low < 30 && a[low]) {
+				low += 2;
+			}
+			high = low + 2;
+			while(high < 30 && !a[high])
+				high += 2;
+
+			while(high < 30) {
+				a[low] = a[high];
+				a[high] = dcon::regiment_id{};
+
+				high += 2;
+				while(high < 30 && !a[high])
+					high += 2;
+
+				low += 2;
+				while(low < 30 && a[low])
+					low += 2;
+			}
+			};
+
+		compact(att_back);
+		compact(att_front);
+		compact(def_back);
+		compact(def_front);
+
+		for(int32_t i = 0; i < combat_width; ++i) {
+			if(!att_back[i]) {
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support)) {
+						att_back[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
+						break;
+					}
+				}
+			}
+
+			if(!def_back[i]) {
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::type_support)) {
+						def_back[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
+						break;
+					}
+				}
+			}
+		}
+
+		// front row
+
+		for(int32_t i = 0; i < combat_width; ++i) {
+			if(!att_front[i]) {
+
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry)) {
+						att_front[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
+						break;
+					}
+				}
+
+				if(!att_front[i]) {
+					for(uint32_t j = reserves.size(); j-- > 0;) {
+						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_cavalry)) {
+							att_front[i] = reserves[j].regiment;
+							std::swap(reserves[j], reserves[reserves.size() - 1]);
+							reserves.pop_back();
+							break;
+						}
+					}
+				}
+				if(!att_front[i] && att_back[i]) {
+					std::swap(att_front[i], att_back[i]);
+				}
+			}
+
+			if(!def_front[i]) {
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::type_infantry)) {
+						def_front[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
+						break;
+					}
+				}
+
+				if(!def_front[i]) {
+					for(uint32_t j = reserves.size(); j-- > 0;) {
+						if(reserves[j].flags == (reserve_regiment::type_cavalry)) {
+							def_front[i] = reserves[j].regiment;
+							std::swap(reserves[j], reserves[reserves.size() - 1]);
+							reserves.pop_back();
+							break;
+						}
+					}
+				}
+				if(!def_front[i] && def_back[i]) {
+					std::swap(def_front[i], def_back[i]);
+				}
+			}
+		}
+
+		if(!def_front[0]) {
+			to_delete.set(b, uint8_t(1));
+			return;
+		} else if(!att_front[0]) {
+			to_delete.set(b, uint8_t(2));
+			return;
 		}
 	});
 
@@ -6179,8 +6180,11 @@ void advance_mobilizations(sys::state& state) {
 	}
 }
 
-bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation) {
+bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle) {
 	return (state.world.naval_battle_get_start_date(battle) + days_before_retreat < state.current_date);
+}
+bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle) {
+	return (state.world.land_battle_get_start_date(battle) + days_before_retreat < state.current_date);
 }
 
 bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state) {

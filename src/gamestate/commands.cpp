@@ -3825,7 +3825,7 @@ void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::
 	add_to_command_queue(state, p);
 }
 bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	if(state.current_date < state.world.naval_battle_get_start_date(b) + military::days_before_retreat)
+	if(!military::can_retreat_from_battle(state, b))
 		return false;
 	if(source != military::get_naval_battle_lead_attacker(state, b) && source != military::get_naval_battle_lead_defender(state, b))
 		return false;
@@ -3833,7 +3833,7 @@ bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dc
 	return true;
 }
 void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	if(state.current_date < state.world.naval_battle_get_start_date(b) + military::days_before_retreat)
+	if(!military::can_retreat_from_battle(state, b))
 		return;
 
 	if(source == military::get_naval_battle_lead_attacker(state, b)) {
@@ -3853,7 +3853,7 @@ void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::l
 }
 
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
-	if(state.world.land_battle_get_start_date(b) + military::days_before_retreat < state.current_date)
+	if(!military::can_retreat_from_battle(state, b))
 		return false;
 	if(source != military::get_land_battle_lead_attacker(state, b) && source != military::get_land_battle_lead_defender(state, b))
 		return false;
@@ -3861,7 +3861,7 @@ bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dco
 	return true;
 }
 void execute_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
-	if(state.world.land_battle_get_start_date(b) + military::days_before_retreat < state.current_date)
+	if(!military::can_retreat_from_battle(state, b))
 		return;
 
 	if(source == military::get_land_battle_lead_attacker(state, b)) {
