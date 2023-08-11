@@ -29,6 +29,7 @@
 #include "rebels.hpp"
 #include "ai.hpp"
 #include "gui_leader_select.hpp"
+#include "gui_land_combat.hpp"
 
 namespace sys {
 //
@@ -291,6 +292,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	if(game_state_was_updated) {
+		if(ui_state.army_combat_window && ui_state.army_combat_window->is_visible()) {
+			ui::land_combat_window* win = static_cast<ui::land_combat_window*>(ui_state.army_combat_window);
+			if(win->battle && !world.land_battle_is_valid(win->battle)) {
+				ui_state.army_combat_window->set_visible(*this, false);
+			}
+		}
+
 		this->map_state.map_data.update_borders(*this);
 		nations::update_ui_rankings(*this);
 		// Processing of (gamestate <=> ui) queues
@@ -851,7 +859,7 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "land_combat");
+		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "alice_land_combat");
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
@@ -2507,10 +2515,11 @@ void state::single_game_tick() {
 				military::update_war_cleanup(*this);
 				economy::daily_update(*this);
 
-				military::update_movement(*this);
 				military::update_siege_progress(*this);
+				military::update_movement(*this);
 				military::update_naval_battles(*this);
 				military::update_land_battles(*this);
+				
 				military::advance_mobilizations(*this);
 
 				event::update_events(*this);

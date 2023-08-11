@@ -6,6 +6,7 @@
 #include "province.hpp"
 #include "text.hpp"
 #include "unit_tooltip.hpp"
+#include "gui_land_combat.hpp"
 
 namespace ui {
 
@@ -338,6 +339,36 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->battle_progress;
 	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		for(auto b : state.world.province_get_land_battle_location(prov)) {
+			auto w = b.get_battle().get_war_from_land_battle_in_war();
+			if(!w) {
+				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
+				win->battle = b.get_battle();
+				if(state.ui_state.army_combat_window->is_visible()) {
+					state.ui_state.army_combat_window->impl_on_update(state);
+				} else {
+					state.ui_state.army_combat_window->set_visible(state, true);
+				}
+				break;
+			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
+				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
+				win->battle = b.get_battle();
+				if(state.ui_state.army_combat_window->is_visible()) {
+					state.ui_state.army_combat_window->impl_on_update(state);
+				} else {
+					state.ui_state.army_combat_window->set_visible(state, true);
+				}
+				break;
+			}
+		}	
+		
+		return message_result::consumed;
+	}
 };
 
 class prov_map_br_overlay : public image_element_base {
@@ -601,6 +632,9 @@ public:
 
 		text::close_layout_box(layout, box);
 
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
 	}
 };
 

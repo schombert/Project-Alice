@@ -609,11 +609,14 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::army_id>()) {
 			payload.emplace<dcon::army_id>(a);
+			return message_result::consumed;
 		} else if(payload.holds_type<dcon::navy_id>()) {
 			payload.emplace<dcon::navy_id>(v);
+			return message_result::consumed;
 		} else if(payload.holds_type<leader_select_sort>()) {
 			lb->sort_type = any_cast<leader_select_sort>(payload);
 			lb->impl_on_update(state);
+			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);
 	}
