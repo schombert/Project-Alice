@@ -620,11 +620,11 @@ class province_building_window : public window_element_base {
 
 	std::string get_icon_name() noexcept {
 		switch(Value) {
-		case economy::province_building_type::railroad:
-			return "build_icon0";
 		case economy::province_building_type::fort:
-			return "build_icon1";
+			return "build_icon0";
 		case economy::province_building_type::naval_base:
+			return "build_icon1";
+		case economy::province_building_type::rarilroad:
 			return "build_icon2";
 		}
 		return "???";
