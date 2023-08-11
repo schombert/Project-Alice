@@ -417,11 +417,13 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
 	// Draw the rivers
-	load_shader(line_river_shader);
-	glUniform1f(4, 0.001f);
-	glBindVertexArray(river_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
+	if(zoom > 8) {
+		load_shader(line_river_shader);
+		glUniform1f(4, 0.001f);
+		glBindVertexArray(river_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
+	}
 
 	// Draw the borders
 	load_shader(line_border_shader);
@@ -450,7 +452,6 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		glUniform1f(4, 0.0010f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
-
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
 		for(auto& border : borders) {
