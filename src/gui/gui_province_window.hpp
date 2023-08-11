@@ -624,10 +624,12 @@ class province_building_window : public window_element_base {
 			return "build_icon0";
 		case economy::province_building_type::naval_base:
 			return "build_icon1";
-		case economy::province_building_type::rarilroad:
+		case economy::province_building_type::railroad:
 			return "build_icon2";
+		default:
+			return "build_icon0";
 		}
-		return "???";
+		return "build_icon0";
 	}
 
 	bool is_being_built(sys::state& state, dcon::province_id id) noexcept {
