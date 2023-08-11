@@ -199,6 +199,21 @@ class audio_menu_window : public window_element_base {
 
 enum class main_menu_sub_window { controls, audio, graphics, message_settings };
 
+class save_and_exit_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+		window::close_window(state);
+	}
+};
+
+class save_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+	}
+};
+
 class close_application_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -246,6 +261,10 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
 			ptr->target = main_menu_sub_window::message_settings;
 			return ptr;
+		} else if(name == "save_and_exit") {
+			return make_element_by_type<save_and_exit_button>(state, id);
+		} else if(name == "save") {
+			return make_element_by_type<save_button>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "exit") {

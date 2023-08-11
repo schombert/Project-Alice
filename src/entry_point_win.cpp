@@ -57,9 +57,9 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					cmd_args.push_back(native_string{ argv[i] });
 				auto root = get_root(game_state->common_fs);
 				for(const auto& cmd_arg : cmd_args) {
-					if(cmd_arg == "-s") {
+					if(cmd_arg == NATIVE("-s")) {
 						game_state->network_state.init(*game_state, true);
-					} else if(cmd_arg == "-c") {
+					} else if(cmd_arg == NATIVE("-c")) {
 						game_state->network_state.init(*game_state, false);
 					} else {
 						auto mod_file = open_file(root, cmd_arg);
@@ -67,13 +67,14 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 							parsers::error_handler err("");
 							parsers::scenario_building_context context(*game_state);
 							auto content = view_contents(*mod_file);
-							err.file_name = cmd_arg;
+							//err.file_name = cmd_arg;
 							parsers::token_generator gen(content.data, content.data + content.file_size);
 							parsers::mod_file_context mod_file_context(context);
 							parsers::parse_mod_file(gen, err, mod_file_context);
 						}
 					}
 				}
+				LocalFree(argv);
 			}
 		}
 		std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
@@ -85,6 +86,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			game_state->world.nation_set_is_player_controlled(game_state->local_player_nation, true);
 			sys::write_scenario_file(*game_state, NATIVE("development_test_file.bin"));
 		} else {
+			sys::try_read_save_file(*game_state, NATIVE("development_test_save.bin"));
 			game_state->fill_unsaved_data();
 		}
 

@@ -42,8 +42,10 @@ int main(int argc, char **argv) {
 		game_state->world.nation_set_is_player_controlled(game_state->local_player_nation, true);
 		sys::write_scenario_file(*game_state, NATIVE("development_test_file.bin"));
 	} else {
+		sys::try_read_save_file(*game_state, NATIVE("development_test_save.bin"));
 		game_state->fill_unsaved_data();
 	}
+
 	std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
 
 	// scenario loading functions (would have to run these even when scenario is pre-built
