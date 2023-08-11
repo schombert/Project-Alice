@@ -71,7 +71,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 							parsers::error_handler err("");
 							parsers::scenario_building_context context(*game_state);
 							auto content = view_contents(*mod_file);
-							err.file_name = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+							err.file_name = simple_fs::native_to_utf8(native_string(argv[i]));
 							parsers::token_generator gen(content.data, content.data + content.file_size);
 							parsers::mod_file_context mod_file_context(context);
 							parsers::parse_mod_file(gen, err, mod_file_context);
