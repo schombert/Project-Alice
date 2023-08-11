@@ -1327,8 +1327,7 @@ struct effect_body {
 	}
 	void infrastructure(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::building));
-			context.compiled_effect.push_back(trigger::payload(int16_t(economy::province_building_type::railroad)).value);
+			context.compiled_effect.push_back(uint16_t(effect::infrastructure));
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
@@ -1338,8 +1337,7 @@ struct effect_body {
 	}
 	void fort(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::building));
-			context.compiled_effect.push_back(trigger::payload(int16_t(economy::province_building_type::fort)).value);
+			context.compiled_effect.push_back(uint16_t(effect::fort));
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
@@ -1349,8 +1347,7 @@ struct effect_body {
 	}
 	void naval_base(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::building));
-			context.compiled_effect.push_back(trigger::payload(int16_t(economy::province_building_type::naval_base)).value);
+			context.compiled_effect.push_back(uint16_t(effect::naval_base));
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=

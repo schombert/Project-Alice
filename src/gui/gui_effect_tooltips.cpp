@@ -2306,9 +2306,9 @@ uint32_t ef_change_controller_from_province(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
-uint32_t ef_building(EFFECT_DISPLAY_PARAMS) {
-	auto type = economy::province_building_type(trigger::payload(tval[1]).value);
-	auto amount = trigger::payload(tval[2]).signed_value;
+uint32_t ef_infrastructure(EFFECT_DISPLAY_PARAMS) {
+	auto type = economy::province_building_type::railroad;
+	auto amount = trigger::payload(tval[1]).signed_value;
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
@@ -3241,6 +3241,32 @@ uint32_t ef_rgo_size(EFFECT_DISPLAY_PARAMS) {
 	text::add_space_to_layout_box(ws, layout, box);
 	display_value(int64_t(trigger::payload(tval[1]).signed_value), false, ws, layout, box);
 	text::close_layout_box(layout, box);
+	return 0;
+}
+uint32_t ef_fort(EFFECT_DISPLAY_PARAMS) {
+	auto type = economy::province_building_type::fort;
+	auto amount = trigger::payload(tval[1]).signed_value;
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(int64_t(amount), true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_naval_base(EFFECT_DISPLAY_PARAMS) {
+	auto type = economy::province_building_type::naval_base;
+	auto amount = trigger::payload(tval[1]).signed_value;
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(int64_t(amount), true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
 	return 0;
 }
 uint32_t ef_trigger_revolt_nation(EFFECT_DISPLAY_PARAMS) {
@@ -5900,7 +5926,7 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_change_controller_this_province,				// constexpr inline uint16_t change_controller_this_province = 0x0056;
 		ef_change_controller_from_nation,					// constexpr inline uint16_t change_controller_from_nation = 0x0057;
 		ef_change_controller_from_province,				// constexpr inline uint16_t change_controller_from_province = 0x0058;
-		ef_building,												// constexpr inline uint16_t building = 0x0059;
+		ef_infrastructure,												// constexpr inline uint16_t infrastructure = 0x0059;
 		ef_money,																	// constexpr inline uint16_t money = 0x005A;
 		ef_leadership,														// constexpr inline uint16_t leadership = 0x005B;
 		ef_create_vassal,													// constexpr inline uint16_t create_vassal = 0x005C;
@@ -5983,8 +6009,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_consciousness,													// constexpr inline uint16_t consciousness = 0x00A9;
 		ef_militancy,															// constexpr inline uint16_t militancy = 0x00AA;
 		ef_rgo_size,															// constexpr inline uint16_t rgo_size = 0x00AB;
-		ef_none,																	// constexpr inline uint16_t fort = 0x00AC;
-		ef_none,														// constexpr inline uint16_t naval_base = 0x00AD;
+		ef_fort,																	// constexpr inline uint16_t fort = 0x00AC;
+		ef_naval_base,														// constexpr inline uint16_t naval_base = 0x00AD;
 		ef_trigger_revolt_nation,									// constexpr inline uint16_t trigger_revolt_nation = 0x00AE;
 		ef_trigger_revolt_state,									// constexpr inline uint16_t trigger_revolt_state = 0x00AF;
 		ef_trigger_revolt_province,								// constexpr inline uint16_t trigger_revolt_province = 0x00B0;
