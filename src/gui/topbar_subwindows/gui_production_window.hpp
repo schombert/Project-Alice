@@ -1009,7 +1009,7 @@ class state_infrastructure : public simple_text_element_base {
 			float total = 0.0f;
 			float p_total = 0.0f;
 			province::for_each_province_in_state_instance(state, content, [&](dcon::province_id p) {
-				total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * float(state.world.province_get_railroad_level(p));
+				total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * float(state.world.province_get_building_level(p, economy::province_building_type::railroad));
 				p_total += 1.0f;
 			});
 			set_text(state, text::format_float(p_total > 0 ? total / p_total : 0.0f, 3));
@@ -1160,13 +1160,13 @@ void populate_production_states_list(sys::state& state, std::vector<dcon::state_
 		float atotal = 0.0f;
 		float ap_total = 0.0f;
 		province::for_each_province_in_state_instance(state, a, [&](dcon::province_id p) {
-			atotal += float(state.world.province_get_railroad_level(p));
+			atotal += float(state.world.province_get_building_level(p, economy::province_building_type::railroad));
 			ap_total += 1.0f;
 		});
 		float btotal = 0.0f;
 		float bp_total = 0.0f;
 		province::for_each_province_in_state_instance(state, b, [&](dcon::province_id p) {
-			btotal += float(state.world.province_get_railroad_level(p));
+			btotal += float(state.world.province_get_building_level(p, economy::province_building_type::railroad));
 			bp_total += 1.0f;
 		});
 		return atotal / ap_total > btotal / bp_total;

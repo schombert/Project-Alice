@@ -1917,9 +1917,9 @@ uint32_t ef_change_controller_from_province(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
-uint32_t ef_infrastructure(EFFECT_PARAMTERS) {
-	auto& rr_level = ws.world.province_get_railroad_level(trigger::to_prov(primary_slot));
-	rr_level = uint8_t(std::clamp(int32_t(rr_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
+uint32_t ef_building(EFFECT_PARAMTERS) {
+	auto& building_level = ws.world.province_get_building_level(trigger::to_prov(primary_slot), economy::province_building_type(trigger::payload(tval[1]).value));
+	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[2]).signed_value), 0, 255));
 	return 0;
 }
 uint32_t ef_money(EFFECT_PARAMTERS) {
@@ -2511,16 +2511,6 @@ uint32_t ef_militancy(EFFECT_PARAMTERS) {
 uint32_t ef_rgo_size(EFFECT_PARAMTERS) {
 	auto& s = ws.world.province_get_rgo_size(trigger::to_prov(primary_slot));
 	s = std::max(s + float(trigger::payload(tval[2]).signed_value), 0.0f);
-	return 0;
-}
-uint32_t ef_fort(EFFECT_PARAMTERS) {
-	auto& fort_level = ws.world.province_get_fort_level(trigger::to_prov(primary_slot));
-	fort_level = uint8_t(std::clamp(int32_t(fort_level) + int32_t(trigger::payload(tval[2]).signed_value), 0, 255));
-	return 0;
-}
-uint32_t ef_naval_base(EFFECT_PARAMTERS) {
-	auto& naval_base_level = ws.world.province_get_naval_base_level(trigger::to_prov(primary_slot));
-	naval_base_level = uint8_t(std::clamp(int32_t(naval_base_level) + int32_t(trigger::payload(tval[2]).signed_value), 0, 255));
 	return 0;
 }
 uint32_t ef_trigger_revolt_nation(EFFECT_PARAMTERS) {
@@ -3759,7 +3749,7 @@ uint32_t ef_build_railway_in_capital_yes_whole_state_yes_limit(EFFECT_PARAMTERS)
 	auto cs = ws.world.province_get_state_membership(c);
 	province::for_each_province_in_state_instance(ws, cs, [&](dcon::province_id p) {
 		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
-			ws.world.province_get_railroad_level(p) += uint8_t(1);
+			ws.world.province_get_building_level(p, economy::province_building_type::railroad) += uint8_t(1);
 	});
 	return 0;
 }
@@ -3768,7 +3758,7 @@ uint32_t ef_build_railway_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) 
 	auto cs = ws.world.province_get_state_membership(c);
 	province::for_each_province_in_state_instance(ws, cs, [&](dcon::province_id p) {
 		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
-			ws.world.province_get_railroad_level(p) += uint8_t(1);
+			ws.world.province_get_building_level(p, economy::province_building_type::railroad) += uint8_t(1);
 	});
 	return 0;
 }
@@ -3776,7 +3766,7 @@ uint32_t ef_build_railway_in_capital_no_whole_state_yes_limit(EFFECT_PARAMTERS) 
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
 		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
-			ws.world.province_get_railroad_level(c) += uint8_t(1);
+			ws.world.province_get_building_level(c, economy::province_building_type::railroad) += uint8_t(1);
 	}
 	return 0;
 }
@@ -3784,7 +3774,7 @@ uint32_t ef_build_railway_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
 		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
-			ws.world.province_get_railroad_level(c) += uint8_t(1);
+			ws.world.province_get_building_level(c, economy::province_building_type::railroad) += uint8_t(1);
 	}
 	return 0;
 }
@@ -3792,27 +3782,27 @@ uint32_t ef_build_fort_in_capital_yes_whole_state_yes_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	auto cs = ws.world.province_get_state_membership(c);
 	province::for_each_province_in_state_instance(ws, cs,
-			[&](dcon::province_id p) { ws.world.province_get_fort_level(p) += uint8_t(1); });
+			[&](dcon::province_id p) { ws.world.province_get_building_level(p, economy::province_building_type::fort) += uint8_t(1); });
 	return 0;
 }
 uint32_t ef_build_fort_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	auto cs = ws.world.province_get_state_membership(c);
 	province::for_each_province_in_state_instance(ws, cs,
-			[&](dcon::province_id p) { ws.world.province_get_fort_level(p) += uint8_t(1); });
+			[&](dcon::province_id p) { ws.world.province_get_building_level(p, economy::province_building_type::fort) += uint8_t(1); });
 	return 0;
 }
 uint32_t ef_build_fort_in_capital_no_whole_state_yes_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
-		ws.world.province_get_fort_level(c) += uint8_t(1);
+		ws.world.province_get_building_level(c, economy::province_building_type::fort) += uint8_t(1);
 	}
 	return 0;
 }
 uint32_t ef_build_fort_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
-		ws.world.province_get_fort_level(c) += uint8_t(1);
+		ws.world.province_get_building_level(c, economy::province_building_type::fort) += uint8_t(1);
 	}
 	return 0;
 }
@@ -3983,7 +3973,7 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_change_controller_this_province,				// constexpr inline uint16_t change_controller_this_province = 0x0056;
 		ef_change_controller_from_nation,					// constexpr inline uint16_t change_controller_from_nation = 0x0057;
 		ef_change_controller_from_province,				// constexpr inline uint16_t change_controller_from_province = 0x0058;
-		ef_infrastructure,												// constexpr inline uint16_t infrastructure = 0x0059;
+		ef_building,												// constexpr inline uint16_t building = 0x0059;
 		ef_money,																	// constexpr inline uint16_t money = 0x005A;
 		ef_leadership,														// constexpr inline uint16_t leadership = 0x005B;
 		ef_create_vassal,													// constexpr inline uint16_t create_vassal = 0x005C;
@@ -4066,8 +4056,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_consciousness,													// constexpr inline uint16_t consciousness = 0x00A9;
 		ef_militancy,															// constexpr inline uint16_t militancy = 0x00AA;
 		ef_rgo_size,															// constexpr inline uint16_t rgo_size = 0x00AB;
-		ef_fort,																	// constexpr inline uint16_t fort = 0x00AC;
-		ef_naval_base,														// constexpr inline uint16_t naval_base = 0x00AD;
+		ef_none,																	// constexpr inline uint16_t fort = 0x00AC;
+		ef_none,														// constexpr inline uint16_t naval_base = 0x00AD;
 		ef_trigger_revolt_nation,									// constexpr inline uint16_t trigger_revolt_nation = 0x00AE;
 		ef_trigger_revolt_state,									// constexpr inline uint16_t trigger_revolt_state = 0x00AF;
 		ef_trigger_revolt_province,								// constexpr inline uint16_t trigger_revolt_province = 0x00B0;

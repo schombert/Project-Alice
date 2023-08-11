@@ -2840,30 +2840,11 @@ construction_status province_building_construction(sys::state& state, dcon::prov
 		if(pb_con.get_type() == uint8_t(t)) {
 			float total = 0.0f;
 			float purchased = 0.0f;
-
-			switch(t) {
-			case province_building_type::railroad:
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost.commodity_amounts[i];
-					purchased += pb_con.get_purchased_goods().commodity_amounts[i];
-				}
-				return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
-				break;
-			case province_building_type::fort:
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].cost.commodity_amounts[i];
-					purchased += pb_con.get_purchased_goods().commodity_amounts[i];
-				}
-				return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
-				break;
-			case province_building_type::naval_base:
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost.commodity_amounts[i];
-					purchased += pb_con.get_purchased_goods().commodity_amounts[i];
-				}
-				return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
-				break;
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				total += state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i];
+				purchased += pb_con.get_purchased_goods().commodity_amounts[i];
 			}
+			return construction_status{total > 0.0f ? purchased / total : 0.0f, true};
 		}
 	}
 	return construction_status{0.0f, false};
@@ -3098,67 +3079,22 @@ void resolve_constructions(sys::state& state) {
 		dcon::province_building_construction_id c{dcon::province_building_construction_id::value_base_t(i)};
 		auto for_province = state.world.province_building_construction_get_province(c);
 
-		switch(province_building_type(state.world.province_building_construction_get_type(c))) {
-		case province_building_type::railroad: {
-			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost;
-			auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
-
-			bool all_finished = true;
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
-				if(base_cost.commodity_type[j]) {
-					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j]) {
-						all_finished = false;
-					}
-				} else {
-					break;
+		auto t = province_building_type(state.world.province_building_construction_get_type(c));
+		auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost;
+		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
+		bool all_finished = true;
+		for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+			if(base_cost.commodity_type[j]) {
+				if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j]) {
+					all_finished = false;
 				}
+			} else {
+				break;
 			}
-			if(all_finished) {
-				state.world.province_get_railroad_level(for_province) += 1;
-				state.world.delete_province_building_construction(c);
-			}
-			break;
 		}
-		case province_building_type::fort: {
-			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].cost;
-			auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
-
-			bool all_finished = true;
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
-				if(base_cost.commodity_type[j]) {
-					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j]) {
-						all_finished = false;
-					}
-				} else {
-					break;
-				}
-			}
-			if(all_finished) {
-				state.world.province_get_fort_level(for_province) += 1;
-				state.world.delete_province_building_construction(c);
-			}
-			break;
-		}
-		case province_building_type::naval_base: {
-			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost;
-			auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
-
-			bool all_finished = true;
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
-				if(base_cost.commodity_type[j]) {
-					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j]) {
-						all_finished = false;
-					}
-				} else {
-					break;
-				}
-			}
-			if(all_finished) {
-				state.world.province_get_naval_base_level(for_province) += 1;
-				state.world.delete_province_building_construction(c);
-			}
-			break;
-		}
+		if(all_finished) {
+			state.world.province_get_building_level(for_province, t) += 1;
+			state.world.delete_province_building_construction(c);
 		}
 	}
 

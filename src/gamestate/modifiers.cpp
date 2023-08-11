@@ -566,23 +566,17 @@ void recreate_province_modifiers(sys::state& state) {
 		}
 	});
 
-	if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier) {
-		bulk_apply_scaled_modifier_to_provinces(state, state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier,
-				[&](auto ids) { return ve::to_float(state.world.province_get_railroad_level(ids)); });
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(state.economy_definitions.building_definitions[int32_t(t)].province_modifier) {
+			bulk_apply_scaled_modifier_to_provinces(state, state.economy_definitions.building_definitions[int32_t(t)].province_modifier,
+					[&](auto ids) { return ve::to_float(state.world.province_get_building_level(ids, t)); });
+		}
 	}
 	if(state.national_definitions.infrastructure) {
 		bulk_apply_scaled_modifier_to_provinces(state, state.national_definitions.infrastructure, [&](auto ids) {
-			return ve::to_float(state.world.province_get_railroad_level(ids)) *
+			return ve::to_float(state.world.province_get_building_level(ids, economy::province_building_type::railroad)) *
 						 state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure;
 		});
-	}
-	if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].province_modifier) {
-		bulk_apply_scaled_modifier_to_provinces(state, state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].province_modifier,
-				[&](auto ids) { return ve::to_float(state.world.province_get_fort_level(ids)); });
-	}
-	if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].province_modifier) {
-		bulk_apply_scaled_modifier_to_provinces(state, state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].province_modifier,
-				[&](auto ids) { return ve::to_float(state.world.province_get_naval_base_level(ids)); });
 	}
 	if(state.national_definitions.nationalism) {
 		bulk_apply_scaled_modifier_to_provinces(state, state.national_definitions.nationalism, [&](auto ids) {

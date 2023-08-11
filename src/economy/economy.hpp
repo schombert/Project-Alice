@@ -28,6 +28,17 @@ inline std::string_view province_building_type_get_name(economy::province_buildi
 	}
 	return "???";
 }
+inline std::string_view province_building_type_get_level_text(economy::province_building_type v) {
+	switch(v) {
+	case economy::province_building_type::railroad:
+		return "railroad_level";
+	case economy::province_building_type::fort:
+		return "fort_level";
+	case economy::province_building_type::naval_base:
+		return "naval_base_level";
+	}
+	return "???";
+}
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];

@@ -549,7 +549,7 @@ bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source
 		auto overseas_allowed = state.military_definitions.unit_base_definitions[type].can_build_overseas;
 		auto level_req = state.military_definitions.unit_base_definitions[type].min_port_level;
 
-		if(state.world.province_get_naval_base_level(location) < level_req)
+		if(state.world.province_get_building_level(location, economy::province_building_type::naval_base) < level_req)
 			return false;
 
 		if(!overseas_allowed && province::is_overseas(state, location))

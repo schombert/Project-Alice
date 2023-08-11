@@ -569,26 +569,8 @@ class province_building_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
-		switch(Value) {
-			case economy::province_building_type::railroad:
-			{
-				auto fat_id = dcon::fatten(state.world, prov_id);
-				frame = fat_id.get_railroad_level();
-			}
-			break;
-			case economy::province_building_type::fort:
-			{
-				auto fat_id = dcon::fatten(state.world, prov_id);
-				frame = fat_id.get_fort_level();
-			}
-			break;
-			case economy::province_building_type::naval_base:
-			{
-				auto fat_id = dcon::fatten(state.world, prov_id);
-				frame = fat_id.get_naval_base_level();
-			}
-			break;
-		}
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		frame = fat_id.get_building_level(Value);
 	}
 };
 template<economy::province_building_type Value>
@@ -648,18 +630,6 @@ class province_building_window : public window_element_base {
 		return "???";
 	}
 
-	std::string get_description(sys::state& state) noexcept {
-		switch(Value) {
-		case economy::province_building_type::railroad:
-			return text::produce_simple_string(state, "railroad");
-		case economy::province_building_type::fort:
-			return text::produce_simple_string(state, "fort");
-		case economy::province_building_type::naval_base:
-			return text::produce_simple_string(state, "naval_base");
-		}
-		return "???";
-	}
-
 	bool is_being_built(sys::state& state, dcon::province_id id) noexcept {
 		for(auto pb : state.world.province_get_province_building_construction(id))
 			if(economy::province_building_type(pb.get_type()) == Value)
@@ -689,7 +659,7 @@ public:
 			return ptr;
 		} else if(name == "description") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_text(state, get_description(state));
+			ptr->set_text(state, text::produce_simple_string(state, economy::province_building_type_get_name(Value)));
 			return ptr;
 		} else if(name.substr(0, 10) == "build_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);

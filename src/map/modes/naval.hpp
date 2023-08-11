@@ -22,8 +22,8 @@ std::vector<uint32_t> naval_map_from(sys::state& state) {
 				stripe_color = 0x00FF00; // light green
 
 				auto state_has_naval_base = military::state_has_naval_base(state, fat_id.get_state_membership());
-				auto naval_base_lvl = fat_id.get_naval_base_level();
-				auto max_naval_base_lvl = state.world.nation_get_max_naval_base_level(nation);
+				auto naval_base_lvl = fat_id.get_building_level(economy::province_building_type::naval_base);
+				auto max_naval_base_lvl = state.world.nation_get_max_building_level(nation, economy::province_building_type::naval_base);
 
 				if(state_has_naval_base && naval_base_lvl == 0) {
 					stripe_color = ogl::color_from_hash(state_id.get_state().id.index());

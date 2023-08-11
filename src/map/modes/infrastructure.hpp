@@ -10,8 +10,8 @@ std::vector<uint32_t> infrastructure_map_from(sys::state& state) {
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 
-		int32_t current_rails_lvl = state.world.province_get_railroad_level(prov_id);
-		int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(state.local_player_nation);
+		int32_t current_rails_lvl = state.world.province_get_building_level(prov_id, economy::province_building_type::railroad);
+		int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::railroad);
 		bool party_allows_building_railroads =
 				(nation == state.local_player_nation &&
 						(state.world.nation_get_combined_issue_rules(nation) & issue_rule::build_railway) != 0) ||

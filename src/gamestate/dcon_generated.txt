@@ -1260,23 +1260,10 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ fort_level }
-		type{ uint8_t }
+		name{ building_level }
+		type{ array{economy::province_building_type}{uint8_t} }
 		tag{ save }
 	}
-
-	property{
-		name{ naval_base_level }
-		type{ uint8_t }
-		tag{ save }
-	}
-
-	property{
-		name{ railroad_level }
-		type{ uint8_t }
-		tag{ save }
-	}
-
 	property{
 		name{ is_slave }
 		type{ bitfield }
@@ -3065,16 +3052,8 @@ object {
 		type{ bitfield }
 	}
 	property {
-		name{ max_railroad_level }
-		type{ uint8_t }
-	}
-	property {
-		name{ max_fort_level }
-		type{ uint8_t }
-	}
-	property {
-		name{ max_naval_base_level }
-		type{ uint8_t }
+		name{ max_building_level }
+		type{ array{economy::province_building_type}{uint8_t} }
 	}
 	property {
 		name{ current_modifiers }

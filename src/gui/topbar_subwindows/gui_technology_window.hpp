@@ -13,7 +13,7 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 	if(bool(mod_id))
 		modifier_description(state, contents, mod_id);
 	
-	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::immigrator; t = economy::province_building_type(uint8_t(t) + 1)) {
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		auto increase_building = tech_fat_id.get_increase_building(t);
 		if(increase_building) {
 			auto box = text::open_layout_box(contents, 0);
