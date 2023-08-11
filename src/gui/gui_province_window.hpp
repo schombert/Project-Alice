@@ -629,7 +629,6 @@ class province_building_window : public window_element_base {
 		default:
 			return "build_icon0";
 		}
-		return "build_icon0";
 	}
 
 	bool is_being_built(sys::state& state, dcon::province_id id) noexcept {
