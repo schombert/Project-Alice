@@ -7,12 +7,13 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
+#include <shellapi.h>
 #include "Objbase.h"
 #include "window.hpp"
 
 #pragma comment(lib, "Ole32.lib")
 
-int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/
+int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR lpCmdLine, int /*nCmdShow*/
 ) {
 
 #ifdef _DEBUG
@@ -47,6 +48,36 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			RegCloseKey(hKey);
 		}
 
+		if(lpCmdLine) {
+			int argc = 0;
+			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+			if(argv && argc > 1) {
+				std::vector<std::string> cmd_args;
+				for(int i = 1; i < argc; ++i)
+					cmd_args.push_back(std::string{ argv[i] });
+				auto root = get_root(game_state->common_fs);
+				for(const auto& cmd_arg : cmd_args) {
+					if(cmd_arg == "-s") {
+						game_state->network_state.init(*game_state, true);
+					} else if(cmd_arg == "-c") {
+						game_state->network_state.init(*game_state, false);
+					} else {
+						auto mod_file = open_file(root, cmd_arg);
+						if(mod_file) {
+							parsers::error_handler err("");
+							parsers::scenario_building_context context(*game_state);
+							auto content = view_contents(*mod_file);
+							err.file_name = arg;
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::mod_file_context mod_file_context(context);
+							parsers::parse_mod_file(gen, err, mod_file_context);
+						}
+					}
+				}
+			}
+		}
+		std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
+
 		if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
 			game_state->load_scenario_data();
@@ -71,6 +102,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		game_state->quit_signaled.store(true, std::memory_order_release);
 		update_thread.join();
+		client_thread.join();
 		CoUninitialize();
 	}
 	return 0;
