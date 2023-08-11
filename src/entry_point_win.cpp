@@ -62,9 +62,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 						
 						std::string ip_addr = simple_fs::native_to_utf8(native_string(argv[i + 1]));
 						i++;
-
-						game_state->network_state.ip_addr = ip_addr.c_str();
-						game_state->network_state.init(*game_state, false);
+						game_state->network_state.init(*game_state, false, ip_addr.c_str());
 					} else {
 						auto mod_file = open_file(root, native_string(argv[i]));
 						if(mod_file) {
