@@ -8,40 +8,50 @@ namespace math {
 
 inline constexpr float pi = 3.14159265358979323846f;
 
-inline constexpr void internal_check(float v, float err, float lower, float upper) noexcept {
+inline constexpr float internal_check(float v, float err, float lower, float upper) noexcept {
 	assert(err >= 0.f); // error must be positive
 	assert(lower <= upper); // conflicting definitions
 	assert(v + err >= lower && v - err <= upper); // unreasonable
+	if(v < lower) {
+		v = lower;
+	} else if(v > upper) {
+		v = upper;
+	}
+	return v;
 }
 
 inline float sin(float v) noexcept {
 	// Bhaskara formula, expanded for -2*pi <-> pi, error of 0.0016
 	assert(v >= -2.f * pi && v <= 2.f * pi);
+
+	float s;
+	if(v < -pi) {
+		s = 1.f;
+	} else if(v < 0.f) {
+		s = -1.f;
+	} else if(v > pi) {
+		s = -1.f;
+	} else {
+		s = 1.f;
+	}
+
 	if(v < -pi) {
 		v = -v - pi;
 	} else if(v < 0.f) {
 		v = -v;
 	} else if(v > pi) {
 		v = v - pi;
-	}
-	if((v >= -pi && v <= 0.f) || (v >= pi && v <= 2.f * pi)) {
-		float r = -(-16.f * v * (v - pi) / (4.f * v * (v - pi) + 49.3480220054468f));
-		internal_check(r, 0.0016f, -1.f, 1.f);
-		return r;
-	} else if((v >= 0.f && v <= pi) || (v >= -2.f * pi && v <= -pi)) {
-		float r = -16.f * v * (v - pi) / (4.f * v * (v - pi) + 49.3480220054468f);
-		internal_check(r, 0.0016f, -1.f, 1.f);
-		return r;
 	} else {
-		assert(0);
-		return 0.f;
+		//v = v; no op
 	}
+
+	float r = (-16.f * v * (v - pi) / (4.f * v * (v - pi) + 49.3480220054468f)) * s;
+	return internal_check(r, 0.0016f, -1.f, 1.f);
 }
 
 inline float cos(float v) noexcept {
 	float r = math::sin(pi / 2.f - v);
-	internal_check(r, 0.0016f, -1.f, 1.f);
-	return r;
+	return internal_check(r, 0.0016f, -1.f, 1.f);
 }
 
 inline float acos(float v) noexcept {
@@ -58,8 +68,7 @@ inline float acos(float v) noexcept {
 	}
 	float r = ((0.4643653210307f * v * v * v + 0.921784152891457f * v * v - 2.0178302343512f * v - 0.939115566365855f) * v + 1.5707963267949f) / ((0.295624144969963f * v * v - 1.28459062446908f) * (v * v) + 1.f);
 	assert((v >= 1.f) ? r == 0.f : r > 0.f); //we need not to give 0 on distances
-	internal_check(r, 0.017f, 0.f, pi);
-	return r;
+	return internal_check(r, 0.017f, 0.f, pi);
 }
 
 inline float sqrt(float x) noexcept {
