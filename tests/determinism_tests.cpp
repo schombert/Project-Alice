@@ -660,7 +660,7 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	compare_game_states(ws1, ws2);
 }
 
-TEST_CASE("sim_0", "[determinism]") {
+TEST_CASE("sim_none", "[determinism]") {
 	// Test that the game states are equal AFTER loading
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
@@ -668,7 +668,7 @@ TEST_CASE("sim_0", "[determinism]") {
 	compare_game_states(*game_state_1, *game_state_2);
 }
 
-TEST_CASE("sim_1", "[determinism]") {
+TEST_CASE("sim_day", "[determinism]") {
 	// Test that the game states are equal after loading and performing 1 tick
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
@@ -676,12 +676,32 @@ TEST_CASE("sim_1", "[determinism]") {
 	checked_single_tick(*game_state_1, *game_state_2);
 }
 
-TEST_CASE("sim_full", "[determinism]") {
-	// Test that the game states are equal after loading and performing 1 tick
+TEST_CASE("sim_week", "[determinism]") {
+	// Test that the game states are equal after loading and performing 7 tick
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	for(int i = 0; i < 7; i++) {
+		checked_single_tick(*game_state_1, *game_state_2);
+	}
+}
+
+TEST_CASE("sim_month", "[determinism]") {
+	// Test that the game states are equal after loading and performing 31 tick
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
 	for(int i = 0; i < 31; i++) {
+		checked_single_tick(*game_state_1, *game_state_2);
+	}
+}
+
+TEST_CASE("sim_year", "[determinism]") {
+	// Test that the game states are equal after loading and performing 1 tick
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	for(int i = 0; i <= 365; i++) {
 		checked_single_tick(*game_state_1, *game_state_2);
 	}
 }
