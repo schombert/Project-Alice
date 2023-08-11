@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_message_settings_window.hpp"
+#include "serialization.hpp"
 
 namespace ui {
 
@@ -202,7 +203,7 @@ enum class main_menu_sub_window { controls, audio, graphics, message_settings };
 class save_and_exit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+		sys::write_save_file(state, NATIVE("development_test_save.bin"));
 		window::close_window(state);
 	}
 };
@@ -210,7 +211,7 @@ public:
 class save_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+		sys::write_save_file(state, NATIVE("development_test_save.bin"));
 	}
 };
 
