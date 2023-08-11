@@ -448,7 +448,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
 
-	if(zoom > 3.5f) {
+	if(zoom > 5) {
 		glUniform1f(4, 0.0010f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
