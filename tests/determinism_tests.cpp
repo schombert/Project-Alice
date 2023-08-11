@@ -84,8 +84,8 @@ TEST_CASE("math_fns", "[determinism]") {
 	}
 	for(float k = -math::pi; k <= math::pi; k += 0.01f) {
 		UNOPTIMIZABLE_FLOAT(f1, k);
-		REQUIRE(math::cos(f1) == Approx(std::cos(f1)).margin(0.01f));
 		REQUIRE(math::sin(f1) == Approx(std::sin(f1)).margin(0.01f));
+		REQUIRE(math::cos(f1) == Approx(std::cos(f1)).margin(0.01f));
 	}
 }
 

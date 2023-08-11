@@ -12,23 +12,25 @@ int main(int argc, char **argv) {
 
 	if(argv && argc > 1) {
 		auto root = get_root(game_state->common_fs);
-		for(int i = 1; i < argc; ++i)
+		for(int i = 1; i < argc; ++i) {
 			if(native_string(argv[i]) == "-s") {
 				game_state->network_state.init(*game_state, true);
 			} else if(native_string(argv[i]) == "-c") {
-				if(i + 1 >= argc)
-					std::abort();
-				
-				std::string ip_addr = simple_fs::native_to_utf8(native_string(argv[i + 1]));
-				i++;
-				game_state->network_state.init(*game_state, ip_addr.c_str());
+				if(i + 1 >= argc) {
+					// No IP address specified, default to fallback
+					game_state->network_state.init(*game_state, false);
+				} else {
+					std::string ip_addr = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+					i++;
+					game_state->network_state.init(*game_state, false, ip_addr.c_str());
+				}
 			} else {
-				auto mod_file = open_file(root, cmd_arg);
+				auto mod_file = open_file(root, native_string(argv[i]));
 				if(mod_file) {
 					parsers::error_handler err("");
 					parsers::scenario_building_context context(*game_state);
 					auto content = view_contents(*mod_file);
-					err.file_name = cmd_arg;
+					err.file_name = simple_fs::native_to_utf8(native_string(argv[i + 1]));
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::mod_file_context mod_file_context(context);
 					parsers::parse_mod_file(gen, err, mod_file_context);
