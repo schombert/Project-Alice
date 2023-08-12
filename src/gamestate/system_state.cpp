@@ -20,6 +20,7 @@
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
 #include "gui_land_combat.hpp"
+#include "gui_chat_window.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "main_menu/gui_country_selection_window.hpp"

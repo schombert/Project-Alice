@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <deque>
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"

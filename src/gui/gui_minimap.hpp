@@ -6,7 +6,6 @@
 #include "gui_search_window.hpp"
 #include "gui_main_menu.hpp"
 #include "gui_message_filters_window.hpp"
-#include "gui_chat_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
