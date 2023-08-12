@@ -309,7 +309,7 @@ display_data::~display_data() {
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
 	auto shader = simple_fs::open_file(root, name);
 	if(!bool(shader))
-		ogl::notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
+		report::fatal_error("Unable to open a necessary shader file");
 	return shader;
 }
 
