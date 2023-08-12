@@ -312,10 +312,10 @@ float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 }
 float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
-		return text::get_bm_font(state, font_id).GetStringWidth(codepoints, count);
+		return text::get_bm_font(state, font_id).GetStringWidth(state, codepoints, count);
 	} else {
 		return float(
-				fonts[text::font_index_from_font_id(font_id) - 1].text_extent(codepoints, count, text::size_from_font_id(font_id)));
+				fonts[text::font_index_from_font_id(font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
 	}
 }
 
@@ -395,16 +395,21 @@ void font::make_glyph(char ch_in) {
 	}
 }
 
-float font::text_extent(char const* codepoints, uint32_t count, int32_t size) const {
+float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) const {
 	float total = 0.0f;
-	int32_t i_count = int32_t(count);
-	for(; i_count-- > 0;) {
-		auto c = uint8_t(codepoints[i_count]);
+	for(uint32_t i = 0; i < count; i++) {
+		auto c = uint8_t(codepoints[i]);
 		if(c == 0x01 || c == 0x02 || c == 0x40)
 			c = 0x4D;
-		total += this->glyph_advances[c] * size / 64.0f + ((i_count != 0) ? kerning(codepoints[i_count - 1], c) * size / 64.0f : 0.0f);
-		if(c == 0x40) // Handle @TAG
-			i_count -= 3;
+		total += this->glyph_advances[c] * size / 64.0f + ((i != 0) ? kerning(codepoints[i - 1], c) * size / 64.0f : 0.0f);
+		if(uint8_t(codepoints[i]) == 0x40) { // Handle @TAG
+			char tag[3] = { 0, 0, 0 };
+			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
+			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
+			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
+			if(ogl::display_tag_is_valid(state, tag))
+				i += 3;
+		}
 	}
 	return total;
 }
