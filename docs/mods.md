@@ -100,9 +100,7 @@ index f42a1f16..9e90f59f 100644
 ```
 
 What this patch does is that it increments the size of possible modifiers (thus allowing mods to add as many modifiers as they wish, more than it's normally allowed) - this however, incurs a huge penalty on memory size and speed.
-Additionally, all erroneous triggers are discarded and set into a "dummy trigger". This is a bad idea to push upstream because it is only a band-aid to a deeper problem.
 And the roots are added so you can have mods alongside Alice's exe. This is also a bad idea due to the fact it exponentially adds roots, causing worse loading times.
-We also add command line handling to specify your own `.mod` files via the command line, this isn't accepted due to the fact it's an ugly way to skirt around - and should probably be replaced with a more elegant solution.
 So be cautious, this patch isn't on upstream for various good reasons, and should only be used to improve mod compatibility and not to play the mods themselves.
 
 ## Identified issues
@@ -127,21 +125,21 @@ This list may or may not be out of date, it's wise to check the mods yourself fo
 
 | Mod | Works w/o patch | Works with patch | Notes |
 |---|---|---|---|
-| [GFM - Greater Flavour Mod](https://github.com/Historical-Expansion-Mod/Greater-Flavor-Mod/releases/tag/v2.1) | No | No | Crashes when loading |
-| [TGC - The Great Combination](https://github.com/rderekp/The-Grand-Combo/releases/tag/v0.96.4) | No | Somewhat | Loads, crashes when running, requires intricate work to make Universities and Banks work |
-| [Divergences of Darkness](https://www.moddb.com/mods/divergences-of-darkness/downloads/divergences-of-darkness-hungary-patch) | No | Somewhat | Loads, crashes when running |
-| [HPM - Historical Project Mod](https://www.moddb.com/mods/historical-project-mod/downloads/hpm-0463) | No | Somewhat | Loads, crashes when running |
-| [CoE RoI - Concert of Europe: Roar of Industry](https://www.moddb.com/mods/the-concert-of-europe-roi/downloads/coeroi-2-0-1) | No | Somewhat | Loads, crashes when running |
+| [GFM - Greater Flavour Mod](https://github.com/Historical-Expansion-Mod/Greater-Flavor-Mod/releases/tag/v2.1) | Yes | Yes |  |
+| [TGC - The Great Combination](https://github.com/rderekp/The-Grand-Combo/releases/tag/v0.96.4) | Yes | Yes | Requires intricate work to make Universities and Banks work |
+| [Divergences of Darkness](https://www.moddb.com/mods/divergences-of-darkness/downloads/divergences-of-darkness-hungary-patch) | Yes | Yes | |
+| [HPM - Historical Project Mod](https://www.moddb.com/mods/historical-project-mod/downloads/hpm-0463) | Yes | Yes |  |
+| [CoE RoI - Concert of Europe: Roar of Industry](https://www.moddb.com/mods/the-concert-of-europe-roi/downloads/coeroi-2-0-1) | Yes | Yes |  |
 | [BAI - Blood And Iron](https://github.com/antonius117/BAI/releases/tag/Patch_06_11) | No | Somewhat | Loads, crashes when running |
-| [UPM - Universal Project Mod](https://www.moddb.com/mods/universal-project-mod/downloads/universal-project-mod-1-0-first-release) | No | Somewhat | Loads, crashes when running |
-| [AoE Remake - Age of Enlightment Remake](https://www.moddb.com/mods/age-of-enlightenment/downloads/age-of-enlightenment-sp-remake-version-10) | No | Somewhat | Loads, crashes when running |
-| [crimeamod](https://www.moddb.com/mods/crimeamod/downloads/crimeamod-141-unciv-edition) | No | Yes |  |
+| [UPM - Universal Project Mod](https://www.moddb.com/mods/universal-project-mod/downloads/universal-project-mod-1-0-first-release) | Yes | Yes | |
+| [AoE Remake - Age of Enlightment Remake](https://www.moddb.com/mods/age-of-enlightenment/downloads/age-of-enlightenment-sp-remake-version-10) | Yes | Yes | |
+| [crimeamod](https://www.moddb.com/mods/crimeamod/downloads/crimeamod-141-unciv-edition) | Yes | Yes |  |
 | [The Northern Struggle](https://www.moddb.com/mods/the-northern-struggle/downloads/the-northern-struggle-234-the-african-update) | No | Yes |  |
-| [RLWAD - Real Life was a Dream](https://www.moddb.com/mods/real-life-was-a-dream-rlwad/downloads/rlwad-mod) | No | Yes |  |
-| [Victoria Universalis](https://www.moddb.com/mods/victoria-universalis/downloads/victoria-universalis-v077) | No | Somewhat | Loads, crashes when running |
-| [Wackria](https://www.moddb.com/mods/wakracia-steel-and-coal/downloads/wakracia-13-brazil-update) | No | Somewhat | Loads, crashes when running |
-| [Supernations Mod](https://www.moddb.com/mods/victoria-ii-supernations-mod/downloads/victoria-ii-supernations-mod-v151-the-disun) | No | Somewhat | Loads, crashes when running |
-| [Harolds Triumph](https://github.com/FeelsAtlasMan/Harald-s-Triumph) | No | Somewhat | Loads, crashes when running |
-| [Divergences of Darkness Expanded](https://github.com/rileyo92/Divergence-Expanded-MP/releases/tag/2.3.2) | No | Somewhat | Loads, crashes when running |
+| [RLWAD - Real Life was a Dream](https://www.moddb.com/mods/real-life-was-a-dream-rlwad/downloads/rlwad-mod) | Yes | Yes |  |
+| [Victoria Universalis](https://www.moddb.com/mods/victoria-universalis/downloads/victoria-universalis-v077) | Yes | Yes |  |
+| [Wackria](https://www.moddb.com/mods/wakracia-steel-and-coal/downloads/wakracia-13-brazil-update) | No | Yes |  |
+| [Supernations Mod](https://www.moddb.com/mods/victoria-ii-supernations-mod/downloads/victoria-ii-supernations-mod-v151-the-disun) | No | Yes |  |
+| [Harolds Triumph](https://github.com/FeelsAtlasMan/Harald-s-Triumph) | No | Yes |  |
+| [Divergences of Darkness Expanded](https://github.com/rileyo92/Divergence-Expanded-MP/releases/tag/2.3.2) | Yes | Yes |  |
 
 (The links provided are the exact versions being tested).
