@@ -88,6 +88,9 @@ enum class command_type : uint8_t {
 	change_general = 79,
 	toggle_mobilization = 80,
 	give_military_access = 81,
+	
+	advance_tick = 122,
+	chat_message = 123,
 
 	connect = 120,
 	disconnect = 121,
@@ -362,7 +365,8 @@ struct cheat_data {
 };
 
 struct chat_message_data {
-	char body[80];
+	char body[ui::max_chat_message_len];
+	dcon::nation_id target;
 };
 
 struct payload {
@@ -687,6 +691,9 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
@@ -699,6 +706,7 @@ void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
+
 void execute_pending_commands(sys::state& state);
 
 } // namespace command

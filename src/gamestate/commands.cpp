@@ -3477,7 +3477,7 @@ void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dc
 	p.source = source;
 	p.data.merge_army.a = a;
 	p.data.merge_army.b = b;
-	auto x = state.incoming_commands.try_push(p);
+	add_to_command_queue(state, p);
 }
 bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
 	if(state.world.army_get_controller_from_army_control(a) != source)
@@ -3531,7 +3531,7 @@ void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dc
 	p.source = source;
 	p.data.merge_navy.a = a;
 	p.data.merge_navy.b = b;
-	auto x = state.incoming_commands.try_push(p);
+	add_to_command_queue(state, p);
 }
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
 	if(state.world.navy_get_controller_from_navy_control(a) != source)
@@ -3977,6 +3977,41 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::chat_message;
+	p.source = source;
+	memcpy(p.data.chat_message.body, std::string(body).c_str(), ui::max_chat_message_len);
+	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
+	add_to_command_queue(state, p);
+}
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+	if(!can_chat_message(state, source, body, target))
+		return;
+	
+	ui::chat_message m;
+	m.source = source;
+	m.target = target;
+	memcpy(m.body, std::string(body).c_str(), ui::max_chat_message_len);
+	m.body[ui::max_chat_message_len - 1] = '\0';
+
+	// Private message
+	bool can_see = true;
+	if(bool(target)) {
+		can_see = state.local_player_nation == source || state.local_player_nation == target;
+	}
+	if(can_see) {
+		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
+		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
+			state.ui_state.chat_messages_index = 0;
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -4238,6 +4273,11 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::give_military_access:
 			execute_give_military_access(state, c->source, c->data.diplo_action.target);
+			break;
+
+		// common mp commands
+		case command_type::chat_message:
+			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
 			break;
 
 		// console commands
