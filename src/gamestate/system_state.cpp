@@ -20,6 +20,7 @@
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
 #include "gui_land_combat.hpp"
+#include "gui_chat_window.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "main_menu/gui_country_selection_window.hpp"
@@ -224,6 +225,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 					ui::show_main_menu(*this);
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
+			} else if(keycode == virtual_key::TAB) {
+				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
+				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 			map_state.on_key_down(keycode, mod);
 
@@ -786,6 +790,13 @@ void state::on_create() {
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
+		// TODO: don't hide when on an actual multiplayer session
+		new_elm->set_visible(*this, false); // hidden by default
+		ui_state.chat_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
