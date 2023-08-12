@@ -39,3 +39,4 @@ int main(int argc, char **argv) {
 	std::printf("Savefile written\n");
 	return EXIT_SUCCESS;
 }
+
