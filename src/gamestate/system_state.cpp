@@ -854,7 +854,7 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "naval_combat");
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "alice_naval_combat");
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}

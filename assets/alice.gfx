@@ -115,4 +115,9 @@ spriteTypes = {
 		texturefile = "assets\\retreat.png"
 		noOfFrames = 1
 	}
+	spriteType = {
+		name = "GFX_alice_naval_combat_bg"
+		texturefile = "assets\\naval_combat_bg_2.png"
+		noOfFrames = 1
+	}
 }
