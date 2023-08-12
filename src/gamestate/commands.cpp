@@ -3982,6 +3982,7 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::chat_message;
 	p.source = source;
+	p.data.chat_message.target = target;
 	memcpy(p.data.chat_message.body, std::string(body).c_str(), ui::max_chat_message_len);
 	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
 	add_to_command_queue(state, p);
