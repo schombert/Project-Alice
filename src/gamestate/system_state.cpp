@@ -345,6 +345,15 @@ void state::render() { // called to render the frame may (and should) delay retu
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
 			}
+			// land battle reports
+			{
+				auto* lr = land_battle_reports.front();
+				while(lr) {
+					ui::land_combat_end_popup::make_new_report(*this, *lr);
+					land_battle_reports.pop();
+					lr = land_battle_reports.front();
+				}
+			}
 			// Diplomatic messages
 			auto* c5 = new_requests.front();
 			while(c5) {
@@ -849,12 +858,7 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::land_combat_end_popup>(*this, "endoflandcombatpopup");
-		new_elm->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "naval_combat");
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "alice_naval_combat");
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
