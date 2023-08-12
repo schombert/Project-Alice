@@ -92,6 +92,7 @@ enum class command_type : uint8_t {
 	connect = 120,
 	disconnect = 121,
 	advance_tick = 122,
+	chat_message = 123,
 
 	// console cheats
 	switch_nation = 128,
@@ -360,6 +361,10 @@ struct cheat_data {
 	float value;
 };
 
+struct chat_message_data {
+	char body[80];
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -407,6 +412,7 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
+		chat_message_data chat_message;
 
 		dtype() { }
 	} data;
