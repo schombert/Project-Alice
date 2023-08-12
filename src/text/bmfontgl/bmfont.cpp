@@ -207,12 +207,14 @@ float BMFont::GetStringWidth(char const* string, uint32_t count) const {
 
 	for(uint32_t i = 0; i < count; ++i) {
 		auto c = uint8_t(string[i]);
-		if(c == 0x01 || c == 0x02)
+		if(c == 0x01 || c == 0x02 || c == 0x40)
 			c = 0x4D;
 		total += Chars[c].XAdvance;
 		if(i != 0) {
 			total += GetKerningPair(string[i - 1], c);
 		}
+		if(c == 0x40) // Handle @TAG
+			i += 3;
 	}
 	return total;
 }

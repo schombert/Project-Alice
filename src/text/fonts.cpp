@@ -397,11 +397,14 @@ void font::make_glyph(char ch_in) {
 
 float font::text_extent(char const* codepoints, uint32_t count, int32_t size) const {
 	float total = 0.0f;
-	for(; count-- > 0;) {
-		auto c = uint8_t(codepoints[count]);
-		if(c == 0x01 || c == 0x02)
+	int32_t i_count = int32_t(count);
+	for(; i_count-- > 0;) {
+		auto c = uint8_t(codepoints[i_count]);
+		if(c == 0x01 || c == 0x02 || c == 0x40)
 			c = 0x4D;
-		total += this->glyph_advances[c] * size / 64.0f + ((count != 0) ? kerning(codepoints[count - 1], c) * size / 64.0f : 0.0f);
+		total += this->glyph_advances[c] * size / 64.0f + ((i_count != 0) ? kerning(codepoints[i_count - 1], c) * size / 64.0f : 0.0f);
+		if(c == 0x40) // Handle @TAG
+			i_count -= 3;
 	}
 	return total;
 }
