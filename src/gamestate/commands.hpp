@@ -414,6 +414,7 @@ struct payload {
 
 		dtype() { }
 	} data;
+	static_assert(sizeof(dtype) == 40);
 	dcon::nation_id source;
 	command_type type = command_type::invalid;
 

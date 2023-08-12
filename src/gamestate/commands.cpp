@@ -3992,10 +3992,9 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	memcpy(m.body, std::string(body).c_str(), ui::max_chat_message_len);
 	m.body[ui::max_chat_message_len - 1] = '\0';
 
-	state.ui_state.chat_messages.push_back(m);
-	if(state.ui_state.chat_messages.size() >= 30) {
-		state.ui_state.chat_messages.pop_front();
-	}
+	state.ui_state.chat_messages[chat_messages_index++] = m;
+	if(chat_messages_index >= chat_messages.size())
+		chat_messages_index = 0;
 }
 
 void execute_pending_commands(sys::state& state) {

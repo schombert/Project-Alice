@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <deque>
+#include <array>
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
@@ -397,7 +397,8 @@ struct state {
 	element_base* msg_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
 	element_base* chat_window = nullptr;
-	std::deque<chat_message> chat_messages;
+	std::array<chat_message, 32> chat_messages;
+	uint8_t chat_messages_index = 0;
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;
