@@ -70,6 +70,9 @@ file::file(native_string const& full_path) {
 		struct stat sb;
 		if(fstat(file_descriptor, &sb) != -1) {
 			content.file_size = sb.st_size;
+#if _POSIX_C_SOURCE >= 200112L
+			posix_fadvise(file_descriptor, 0, static_cast<off_t>(content.file_size), POSIX_FADV_WILLNEED);
+#endif
 #if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 			mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
 			if(mapping_handle == MAP_FAILED) {
