@@ -6,6 +6,7 @@
 #include "gui_search_window.hpp"
 #include "gui_main_menu.hpp"
 #include "gui_message_filters_window.hpp"
+#include "gui_chat_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
@@ -305,35 +306,6 @@ public:
 	}
 };
 
-class minimap_chat_window : public window_element_base {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "closebutton") {
-			return make_element_by_type<generic_close_button>(state, id);
-		} else if(name == "chat_bg") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "none") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "allies") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "enemies") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "all") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-};
-
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 
@@ -347,7 +319,7 @@ public:
 		} else if(name == "openbutton") {
 			return make_element_by_type<open_msg_log_button>(state, id);
 		} else if(name == "chat_window") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<window_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "menu_button") {
@@ -370,8 +342,6 @@ public:
 			return make_element_by_type<minimap_msg_event_button>(state, id);
 		} else if(name == "menubar_msg_other") {
 			return make_element_by_type<minimap_msg_other_button>(state, id);
-		} else if(name == "chat_window") {
-			return make_element_by_type<minimap_chat_window>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;

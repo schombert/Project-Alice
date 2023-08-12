@@ -336,6 +336,18 @@ class grid_box;
 template<class T>
 class unit_details_window;
 
+struct chat_message {
+	dcon::nation_id source{};
+	char body[max_chat_message_len] = {};
+
+	chat_message() = default;
+    chat_message(const chat_message&) = default;
+    chat_message(chat_message&&) = default;
+    chat_message& operator=(const chat_message&) = default;
+    chat_message& operator=(chat_message&&) = default;
+    ~chat_message() = default;
+};
+
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* scroll_target = nullptr;
@@ -383,6 +395,8 @@ struct state {
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
+	element_base* chat_window = nullptr;
+	std::deque<chat_message> chat_messages;
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;
