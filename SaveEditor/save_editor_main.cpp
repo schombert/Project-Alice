@@ -18,15 +18,17 @@ int main(int argc, char **argv) {
 		std::printf("\t'n' - Output a savefile for each tick.\n");
 		std::printf("\t's' - Skip reading the savefile (if any).\n");
 		std::printf("\t'f' - Do not overwrite original savefile.\n");
+		std::printf("\t'q' - Do not do anything, simply exit without doing anything.\n");
 		std::printf("For example: '%s 10 sn'\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
-	bool output_for_each = false;
-	bool skip_savefile = false;
-	bool save_final = true;
+	static bool output_for_each = false;
+	static bool skip_savefile = false;
+	static bool save_final = true;
+	static int num_ticks = 1;
 	if(argc >= 2) {
-		int num_ticks = atoi(argv[1]);
+		num_ticks = atoi(argv[1]);
 		if(argc >= 3) {
 			const char *p = argv[2];
 			for(; *p != '\0'; ++p) {
@@ -36,6 +38,8 @@ int main(int argc, char **argv) {
 					skip_savefile = true;
 				else if(*p == 'f')
 					save_final = false;
+				else if(*p == 'q')
+					return EXIT_SUCCESS;
 			}
 		}
 	}
@@ -65,9 +69,9 @@ int main(int argc, char **argv) {
 		std::printf("%u.%u.%u\n", (unsigned int)ymd.year, (unsigned int)ymd.month, (unsigned int)ymd.day);
 		if(output_for_each) {
 			native_string s = NATIVE("development_test_save.");
-			s += native_string(std::to_string(ymd.year)) + NATIVE(".");
-			s += native_string(std::to_string(ymd.month)) + NATIVE(".");
-			s += native_string(std::to_string(ymd.day));
+			s += to_native_string(ymd.year) + NATIVE(".");
+			s += to_native_string(ymd.month) + NATIVE(".");
+			s += to_native_string(ymd.day);
 			s += NATIVE(".bin");
 			sys::write_save_file(*game_state, s);
 			std::printf("Savefile written\n");
