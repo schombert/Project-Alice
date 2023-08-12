@@ -1,5 +1,6 @@
 #include "window.hpp"
 #include "map.hpp"
+#include "report.hpp"
 
 #include <GLFW/glfw3.h>
 #include <unordered_map>
@@ -109,7 +110,7 @@ sys::key_modifiers get_current_modifiers(int glfw_mods) {
 }
 
 static void glfw_error_callback(int error, char const* description) {
-	emit_error_message(std::string{ "Glfw Error " } + std::to_string(error) + std::string{ description }, false);
+	report::error(std::string{ "GLFW Error " } + std::to_string(error) + std::string{ description });
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -240,7 +241,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	// Setup window
 	glfwSetErrorCallback(glfw_error_callback);
 	if(!glfwInit())
-		emit_error_message("Failed to init glfw\n", true);
+		report::fatal_error("Failed to init GLFW");
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -251,7 +252,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	// Create window with graphics context
 	auto* window = glfwCreateWindow(params.size_x, params.size_y, "Project Alice", NULL, NULL);
 	if(window == NULL)
-		emit_error_message("Failed to create window\n", true);
+		report::fatal_error("Failed to create window");
 	game_state.win_ptr->window = window;
 
 	glfwSetWindowUserPointer(window, &game_state);
@@ -288,13 +289,6 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-}
-
-void emit_error_message(std::string const& content, bool fatal) {
-	std::fprintf(stderr, "%s", content.c_str());
-	if(fatal) {
-		std::terminate();
-	}
 }
 
 } // namespace window

@@ -11,6 +11,7 @@
 #include "container_types.hpp"
 #include "texture.hpp"
 #include "fonts.hpp"
+#include "report.hpp"
 
 namespace ogl {
 namespace parameters {
@@ -132,12 +133,7 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 	full_message += "; ";
 	full_message += message;
 	full_message += "\n";
-
-#ifdef _WIN64
-	OutputDebugStringA(full_message.c_str());
-#else
-	printf("%s", full_message.c_str());
-#endif
+	report::warning(full_message.c_str());
 }
 #endif
 

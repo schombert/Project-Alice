@@ -59,5 +59,4 @@ bool is_key_depressed(sys::state const& game_state, sys::virtual_key key); // wh
 
 void get_window_size(sys::state const& game_state, int& width, int& height);
 
-void emit_error_message(std::string const& content, bool fatal); // also terminates the program if fatal
 } // namespace window

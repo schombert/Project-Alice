@@ -2,6 +2,7 @@
 #include "glm/fwd.hpp"
 #include "texture.hpp"
 #include "province.hpp"
+#include "report.hpp"
 #include <cmath>
 #include <numbers>
 #include <glm/glm.hpp>
@@ -431,7 +432,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 
-	if(zoom > 8) {
+	if(zoom > 8) { // Province borders
 		glUniform1f(4, 0.00085f);
 		uint8_t visible_borders =
 			(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
@@ -447,8 +448,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		}
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
-
-	if(zoom > 5) {
+	if(zoom > 5) { // State borders
 		glUniform1f(4, 0.0010f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
@@ -462,12 +462,10 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		}
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
-
-	{
-		glUniform1f(4, 0.00145f);
+	{ // National borders
+		glUniform1f(4, 0.0012f);
 		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
 															 province::border::non_adjacent_bit | province::border::impassible_bit);
-
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
 		for(auto& border : borders) {
@@ -476,7 +474,20 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 				count.push_back(border.count);
 			}
 		}
-
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	}
+	if(zoom <= 5) { // Coastal borders
+		glUniform1f(4, 0.0021f);
+		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
+															 province::border::non_adjacent_bit | province::border::impassible_bit);
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if((border.type_flag & visible_borders) && (border.type_flag & province::border::coastal_bit) != 0) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
+		}
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
 
@@ -669,11 +680,7 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	auto file = simple_fs::open_file(dir, file_name);
 	if(!bool(file)) {
 		auto full_message = std::string("Can't load DDS file ") + simple_fs::native_to_utf8(file_name) + "\n";
-#ifdef _WIN64
-		OutputDebugStringA(full_message.c_str());
-#else
-		std::fprintf(stderr, "%s", full_message.c_str());
-#endif
+		report::warning(full_message.c_str());
 		return 0;
 	}
 	auto content = simple_fs::view_contents(*file);

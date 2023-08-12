@@ -3,14 +3,6 @@
 #include "simple_fs.hpp"
 
 namespace ogl {
-void notify_user_of_fatal_opengl_error(std::string message) {
-#ifdef _WIN64
-	MessageBoxA(nullptr, message.c_str(), "OpenGL error", MB_OK);
-#else
-	std::fprintf(stderr, "OpenGL error: %s\n", message.c_str());
-#endif
-	std::abort();
-}
 
 void load_special_icons(sys::state& state) {
 	auto root = get_root(state.common_fs);
@@ -85,7 +77,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 	GLuint return_value = glCreateShader(type);
 
 	if(return_value == 0) {
-		notify_user_of_fatal_opengl_error("shader creation failed");
+		report::fatal_error("Shader creation failed");
 	}
 	GLchar const* texts[] = {source.data()};
 	GLint lengths[] = {GLint(source.length())};
@@ -102,7 +94,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 		char* log = new char[static_cast<size_t>(logLen)];
 		GLsizei written = 0;
 		glGetShaderInfoLog(return_value, logLen, &written, log);
-		notify_user_of_fatal_opengl_error(std::string("Shader failed to compile:\n") + log);
+		report::fatal_error(std::string("Shader failed to compile:\n") + log);
 	}
 	return return_value;
 }
@@ -110,7 +102,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 GLuint create_program(std::string_view vertex_shader, std::string_view fragment_shader) {
 	GLuint return_value = glCreateProgram();
 	if(return_value == 0) {
-		notify_user_of_fatal_opengl_error("program creation failed");
+		report::fatal_error("Program creation failed");
 	}
 
 	auto v_shader = compile_shader(vertex_shader, GL_VERTEX_SHADER);
@@ -129,7 +121,7 @@ GLuint create_program(std::string_view vertex_shader, std::string_view fragment_
 		char* log = new char[static_cast<size_t>(logLen)];
 		GLsizei written;
 		glGetProgramInfoLog(return_value, logLen, &written, log);
-		notify_user_of_fatal_opengl_error(std::string("Program failed to link:\n") + log);
+		report::fatal_error(std::string("Program failed to link:\n") + log);
 	}
 
 	glDeleteShader(v_shader);
@@ -166,7 +158,7 @@ void load_shaders(sys::state& state) {
 		state.open_gl.ui_shader_program = create_program(std::string_view(vertex_content.data, vertex_content.file_size),
 				std::string_view(fragment_content.data, fragment_content.file_size));
 	} else {
-		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
+		report::fatal_error("Unable to open a necessary shader file");
 	}
 }
 

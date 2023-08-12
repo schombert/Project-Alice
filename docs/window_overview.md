@@ -18,7 +18,6 @@ The `size_x` and `size_y` parameters define the default size for the window when
 - `void set_borderless_full_screen(sys::state& game_state, bool fullscreen)` -- also called only from the ui and rendering thread, this function changes whether the window is in borderless full screen mode.
 - `bool is_in_fullscreen(sys::state const& game_state)` -- returns whether the window is in the full screen mode. I don't know if we will ever need this, but it is nice to have just the same.
 - `bool is_key_depressed(sys::state const& game_state, sys::virtual_key key)` -- returns whether the key, as named by the `sys::virtual_key` enumeration is currently being held down. Once again, this will only be called from the ui and rendering thread.
-- `void emit_error_message(std::string const& content, bool fatal)` -- emits an error message and terminates if `fatal` is true.
 
 ### Threading policy
 

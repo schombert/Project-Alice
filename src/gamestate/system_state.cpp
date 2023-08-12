@@ -2145,8 +2145,16 @@ void state::load_scenario_data() {
 
 	military::recover_org(*this);
 
-	if(err.accumulated_errors.length() > 0)
-		window::emit_error_message(err.accumulated_errors, err.fatal);
+	if(!err.accumulated_errors.empty()) {
+		if(err.fatal) {
+			report::fatal_error(err.accumulated_errors.c_str());
+		} else {
+			report::error(err.accumulated_errors.c_str());
+		}
+	}
+	if(!err.accumulated_warnings.empty()) {
+		report::warning(err.accumulated_warnings.c_str());
+	}
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded

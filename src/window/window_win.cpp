@@ -401,12 +401,4 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	}
 }
 
-void emit_error_message(std::string const& content, bool fatal) {
-	MessageBoxA(nullptr, content.c_str(),
-			fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:",
-			MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
-	if(fatal) {
-		std::terminate();
-	}
-}
 } // namespace window
