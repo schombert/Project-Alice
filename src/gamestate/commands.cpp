@@ -3970,7 +3970,7 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	}
 }
 
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body) {
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::chat_message;
@@ -3979,22 +3979,30 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
 	add_to_command_queue(state, p);
 }
-bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body) {
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body) {
-	if(!can_chat_message(state, source, body))
+void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+	if(!can_chat_message(state, source, body, target))
 		return;
 	
 	ui::chat_message m;
 	m.source = source;
+	m.target = target;
 	memcpy(m.body, std::string(body).c_str(), ui::max_chat_message_len);
 	m.body[ui::max_chat_message_len - 1] = '\0';
 
-	state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
-	if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
-		state.ui_state.chat_messages_index = 0;
+	// Private message
+	bool can_see = true;
+	if(bool(target)) {
+		can_see = state.local_player_nation == source || state.local_player_nation == target;
+	}
+	if(can_see) {
+		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
+		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
+			state.ui_state.chat_messages_index = 0;
+	}
 }
 
 void execute_pending_commands(sys::state& state) {
@@ -4262,7 +4270,7 @@ void execute_pending_commands(sys::state& state) {
 
 		// common mp commands
 		case command_type::chat_message:
-			execute_chat_message(state, c->source, c->data.chat_message.body);
+			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
 			break;
 
 		// console commands

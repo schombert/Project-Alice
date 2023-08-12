@@ -361,6 +361,7 @@ struct cheat_data {
 
 struct chat_message_data {
 	char body[ui::max_chat_message_len];
+	dcon::nation_id target;
 };
 
 struct payload {
@@ -414,7 +415,6 @@ struct payload {
 
 		dtype() { }
 	} data;
-	static_assert(sizeof(dtype) == 40);
 	dcon::nation_id source;
 	command_type type = command_type::invalid;
 
@@ -686,8 +686,8 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body);
-bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body);
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

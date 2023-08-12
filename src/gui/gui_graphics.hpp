@@ -339,14 +339,15 @@ class unit_details_window;
 
 struct chat_message {
 	dcon::nation_id source{};
+	dcon::nation_id target{};
 	char body[max_chat_message_len] = {};
 
 	chat_message() = default;
-    chat_message(const chat_message&) = default;
-    chat_message(chat_message&&) = default;
-    chat_message& operator=(const chat_message&) = default;
-    chat_message& operator=(chat_message&&) = default;
-    ~chat_message() = default;
+	chat_message(const chat_message&) = default;
+	chat_message(chat_message&&) = default;
+	chat_message& operator=(const chat_message&) = default;
+	chat_message& operator=(chat_message&&) = default;
+	~chat_message() = default;
 };
 
 struct state {
