@@ -7,14 +7,12 @@ namespace ui {
 class chat_message_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto border = base_data.data.text.border_size;
 		auto content = retrieve<chat_message>(state, parent);
+
+		auto border = base_data.data.text.border_size;
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		if(!black_text) {
-			// Highlight private messages
-			if(content.target) {
-				color = text::text_color::orange;
-			}
+		if(!black_text && content.target) {
+			color = text::text_color::orange;
 		}
 		auto container = text::create_endless_layout(
 			internal_layout,
@@ -31,7 +29,7 @@ public:
 		
 		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
-		text::add_to_layout_box(state, container, box, text_form_msg);
+		text::add_to_layout_box(state, container, box, text_form_msg, color);
 		text::close_layout_box(container, box);
 	}
 };
@@ -65,7 +63,9 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		country_flag->on_update(state);
+		country_flag->set_visible(state, bool(content.source));
+		if(bool(content.source))
+			country_flag->on_update(state);
 	}
 };
 
