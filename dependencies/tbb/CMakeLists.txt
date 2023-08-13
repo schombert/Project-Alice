@@ -22,8 +22,10 @@ set(TBB_ENABLE_IPO OFF)
 set(TBB_STRICT OFF)
 
 FetchContent_Declare(tbb 
-    GIT_REPOSITORY "https://github.com/oneapi-src/oneTBB" 
-    GIT_TAG v2021.8.0
+	GIT_REPOSITORY "https://github.com/oneapi-src/oneTBB" 
+	GIT_TAG v2021.10.0
+	GIT_SHALLOW 1
+	GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(tbb)
 

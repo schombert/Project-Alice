@@ -1,7 +1,16 @@
 #include "sound.hpp"
 #include "system_state.hpp"
 
-#define MINIAUDIO_IMPLEMENTATION
+#define MINIAUDIO_IMPLEMENTATION 1
+#define MA_NO_FLAC 1
+#define MA_NO_OPENSL 1
+#define MA_NO_WEBAUDIO 1
+#define MA_NO_SNDIO 1
+#define MA_NO_AUDIO4 1
+#define MA_NO_WINMM 1
+#define MA_NO_WASAPI 1
+#define MA_NO_WINMM 1
+#define MA_NO_COREAUDIO 1
 #include "miniaudio.h"
 
 namespace sound {
