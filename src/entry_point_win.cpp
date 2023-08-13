@@ -81,7 +81,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				LocalFree(argv);
 			}
 		}
-		std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
 
 		if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
@@ -101,6 +100,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		ui::populate_definitions_map(*game_state);
 
 		std::thread update_thread([&]() { game_state->game_loop(); });
+		std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
 
 		// entire game runs during this line
 		window::create_window(*game_state,

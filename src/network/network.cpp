@@ -126,7 +126,16 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 				command::payload cmd;
 				if(internal_recv(client_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
 					break;
-				server_commands.push(cmd);
+				
+				switch(cmd.type) {
+				case command::command_type::connect:
+					clients[worker_id].player_nation = cmd.source;
+					break;
+				case command::command_type::disconnect:
+					goto close_finish;
+				default:
+					server_commands.push(cmd);
+				}
 			}
 			// send commands to client
 			auto* c = clients[worker_id].worker_commands.front();
@@ -141,6 +150,8 @@ void network_state::server_client_loop(sys::state& state, int worker_id) {
 		}
 close_finish:
 		clients[worker_id].active.store(false, std::memory_order_release);
+		// Tell the other clients this player has disconnected
+		command::disconnect(state, clients[worker_id].player_nation);
 #ifdef _WIN64
 		shutdown(client_fd, SD_BOTH);
 		closesocket(client_fd);

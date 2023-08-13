@@ -50,8 +50,6 @@ int main(int argc, char **argv) {
 		game_state->fill_unsaved_data();
 	}
 
-	std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
-
 	// scenario loading functions (would have to run these even when scenario is pre-built
 	game_state->load_user_settings();
 	text::load_standard_fonts(*game_state);
@@ -59,6 +57,7 @@ int main(int argc, char **argv) {
 	ui::populate_definitions_map(*game_state);
 
 	std::thread update_thread([&]() { game_state->game_loop(); });
+	std::thread client_thread([&]() { game_state->network_state.server_client_loop(*game_state, 0); });
 
 	window::create_window(*game_state, window::creation_parameters());
 
