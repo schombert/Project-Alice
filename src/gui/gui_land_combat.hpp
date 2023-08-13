@@ -3,7 +3,6 @@
 #include "gui_element_types.hpp"
 #include "gui_province_window.hpp"
 #include "military.hpp"
-#include "gui_land_combat_definitions.hpp"
 
 namespace ui {
 

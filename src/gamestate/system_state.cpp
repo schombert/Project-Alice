@@ -358,6 +358,15 @@ void state::render() { // called to render the frame may (and should) delay retu
 					lr = land_battle_reports.front();
 				}
 			}
+			// naval battle reports
+			{
+				auto* lr = naval_battle_reports.front();
+				while(lr) {
+					ui::naval_combat_end_popup::make_new_report(*this, *lr);
+					naval_battle_reports.pop();
+					lr = naval_battle_reports.front();
+				}
+			}
 			// Diplomatic messages
 			auto* c5 = new_requests.front();
 			while(c5) {
