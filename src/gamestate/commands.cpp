@@ -4311,10 +4311,10 @@ void execute_pending_commands(sys::state& state) {
 			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
 			break;
 		case command_type::join_game:
-			execute_connect(state, c->source);
+			execute_join_game(state, c->source);
 			break;
 		case command_type::leave_game:
-			execute_disconnect(state, c->source);
+			execute_leave_game(state, c->source);
 			break;
 
 		// console commands
