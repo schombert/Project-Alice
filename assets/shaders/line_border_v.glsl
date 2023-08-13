@@ -20,7 +20,7 @@ layout (location = 5) uniform mat3 rotation;
 #define PI 3.1415926538
 
 subroutine vec4 calc_gl_position_class(vec2 world_pos);
-layout(location = 0) subroutine uniform calc_gl_position_class calc_gl_position;
+subroutine uniform calc_gl_position_class calc_gl_position;
 
 layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords(vec2 world_pos) {

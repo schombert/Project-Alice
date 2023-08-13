@@ -3,6 +3,10 @@
 #include "gui_graphics.hpp"
 #include "text.hpp"
 
+namespace sys {
+struct state;
+}
+
 namespace ui {
 
 enum class mouse_probe_type { click, tooltip, scroll };

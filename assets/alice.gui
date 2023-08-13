@@ -1227,18 +1227,19 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		
-		iconType = {
-			name ="prestige_bar_frame"
-			spriteType = "GFX_prestige_bar_frame"
-			position = { x = 12 y = -52 }
-		}
-		iconType = {
-			name ="current_leader_prestige_bar"
-			spriteType = "GFX_leader_prestige_progress_bar"
-			position = { x = 22 y = -22 }
-			Orientation = "UPPER_LEFT"
-			rotation = 1.5708
-		}
+		#iconType = {
+		#	name ="prestige_bar_frame"
+		#	spriteType = "GFX_prestige_bar_frame"
+		#	position = { x = 12 y = -52 }
+		#}
+		#iconType = {
+		#	name ="current_leader_prestige_bar"
+		#	spriteType = "GFX_leader_prestige_progress_bar"
+		#	position = { x = 22 y = -22 }
+		#	Orientation = "UPPER_LEFT"
+		#	rotation = 1.5708
+		#}
+		
 		iconType =	{
 			name ="selected_photo"
 			spriteType = "GFX_leader_generic0"
@@ -1506,18 +1507,18 @@ guiTypes = {
 			quadTextureSprite ="GFX_alice_unit_select_leader"	
 		}
 
-		iconType = {
-			name ="prestige_bar_frame"
-			spriteType = "GFX_prestige_bar_frame"
-			position = { x = 8 y = 2 }
-		}
-		iconType = {
-			name ="leader_prestige_bar"
-			spriteType = "GFX_leader_prestige_progress_bar"
-			position = { x = 18 y = 32 }
-			Orientation = "UPPER_LEFT"
-			rotation = 1.5708
-		}	
+		#iconType = {
+		#	name ="prestige_bar_frame"
+		#	spriteType = "GFX_prestige_bar_frame"
+		#	position = { x = 8 y = 2 }
+		#}
+		#iconType = {
+		#	name ="leader_prestige_bar"
+		#	spriteType = "GFX_leader_prestige_progress_bar"
+		#	position = { x = 18 y = 32 }
+		#	Orientation = "UPPER_LEFT"
+		#	rotation = 1.5708
+		#}	
 		
 		iconType =	{
 			name ="photo"
@@ -1649,6 +1650,862 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 			format = left
 			fixedsize = yes
+		}
+	}
+	
+	windowType = {
+		name = "alice_combat_modifier"
+		position = { x=0 y=0 }	
+		size = { x=32 y=58 }
+		moveable = 0
+		fullScreen = no	
+
+		iconType = {
+			name ="modifier_icon"
+			spriteType = "GFX_combat_modifiers"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "modifier_value"
+			position = { x = -2 y = 40 }
+			textureFile = ""
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 34
+			maxHeight = 32	
+			format = centre
+		}
+	}
+	
+	windowType = {
+		name = "alice_land_combat"
+		position = { x=0 y=-536 }	
+		size = { x=512 y=512 }
+		moveable = 0
+		fullScreen = no	
+		Orientation = "LOWER_LEFT"
+
+
+		iconType = {
+			name ="combat_bg"
+			spriteType = "GFX_combat_bg"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="combat_terrain1"
+			spriteType = "GFX_terrainimg_mountain"
+			position = { x= 14 y = 241 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="combat_counter_bg"
+			spriteType = "GFX_combat_counter_bg"
+			position = { x= 9 y = 226 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "label_battlename"
+			position = { x = 3 y = 19 }
+			textureFile = ""
+			font = "vic_22"
+			borderSize = {x = 4 y = 4}
+			text = ""	
+			maxWidth = 400
+			maxHeight = 40
+			format = centre
+		}
+
+		guiButtonType = {
+			name ="combat_retreat"
+			spriteType = "GFX_alice_retreat"
+			position = { x= 13 y = 21 }
+			Orientation = "UPPER_LEFT"
+		}
+
+		guiButtonType = {
+			name = "closebutton"
+			position = { x= 374 y = 6 }
+			quadTextureSprite ="GFX_main_close_button"
+			Orientation = "UPPER_LEFT"
+			shortcut = "ESCAPE"
+			clicksound = close_window
+		}
+
+
+		windowType = {
+			name = "attacker"
+			position = { x=0 y=70 }	
+			size = { x=256 y=160 }
+			moveable = 0
+			fullScreen = no	
+
+			iconType = {
+				name ="shield"
+				spriteType = "GFX_thinshield"
+				position = { x= 12 y = 0 }
+				Orientation = "UPPER_LEFT"
+				rotation = -1.5708
+			}
+			iconType = {
+				name ="leader_icon"
+				spriteType = "GFX_leader_generic0"
+				position = { x= 74 y = -10 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "leader_name"
+				position = { x = 108 y = -7 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 150
+				maxHeight = 32
+				fixedsize = yes
+			}
+			
+			OverlappingElementsBoxType = {
+				name = "modifiers"
+				position = { x = 78 y = 39 }
+				size = { x = 185 y = 60 }
+				Orientation = "UPPER_LEFT"
+				format = left
+				spacing = 1.0
+			}
+			
+			iconType = {
+				name ="morale"
+				spriteType = "GFX_combat_org_progress"
+				position = { x= 76 y = 111 }
+				Orientation = "UPPER_LEFT"
+			}
+			iconType = {
+				name ="strength"
+				spriteType = "GFX_combat_str_progress"
+				position = { x= 76 y = 130 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "morale_text"
+				position = { x = 79 y = 110 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "97%"	
+				maxWidth = 190
+				maxHeight = 32
+				fixedsize = yes
+				format = centre
+			}
+			instantTextBoxType = {
+				name = "strength_text"
+				position = { x = 79 y = 129 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "32,567"	
+				maxWidth = 190
+				maxHeight = 32
+				fixedsize = yes
+				format = centre
+			}
+			iconType = {
+				name ="unit_type_1"
+				spriteType = "GFX_unit_strip"
+				position = { x= 275 y = 1 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			iconType = {
+				name ="unit_type_2"
+				spriteType = "GFX_unit_strip"
+				position = { x= 275 y = 53 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			iconType = {
+				name ="unit_type_3"
+				spriteType = "GFX_unit_strip"
+				position = { x= 275 y = 105 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "unit_type_1_value"
+				position = { x = 294 y = 8 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 80
+				maxHeight = 32	
+				format = right
+			}
+			instantTextBoxType = {
+				name = "unit_type_2_value"
+				position = { x = 294 y = 60 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 80
+				maxHeight = 32	
+				format = right
+			}
+			instantTextBoxType = {
+				name = "unit_type_3_value"
+				position = { x = 294 y = 112 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 80
+				maxHeight = 32	
+				format = right
+			}
+		}
+
+		windowType = {
+			name = "defender"
+			backGround=""
+			position = { x=0 y=368 }	
+			size = { x=256 y=160 }
+			moveable = 0
+			dontRender = ""
+			horizontalBorder= ""
+			verticalBorder= ""
+			fullScreen = no	
+
+			iconType = {
+				name ="shield"
+				spriteType = "GFX_thinshield"
+				position = { x= 12 y = 0 }
+				Orientation = "UPPER_LEFT"
+				rotation = -1.5708
+			}
+			iconType = {
+				name ="leader_icon"
+				spriteType = "GFX_leader_generic0"
+				position = { x= 74 y = -10 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "leader_name"
+				position = { x = 108 y = -7 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 150
+				maxHeight = 32
+				fixedsize = yes
+			}
+			OverlappingElementsBoxType = {
+				name = "modifiers"
+				position = { x = 78 y = 39 }
+				size = { x = 185 y = 60 }
+				Orientation = "UPPER_LEFT"
+				format = left
+				spacing = 1.0
+			}
+			iconType = {
+				name ="morale"
+				spriteType = "GFX_combat_org_progress"
+				position = { x= 76 y = 111 }
+				Orientation = "UPPER_LEFT"
+			}
+			iconType = {
+				name ="strength"
+				spriteType = "GFX_combat_str_progress"
+				position = { x= 76 y = 130 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "morale_text"
+				position = { x = 79 y = 110 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "97%"	
+				maxWidth = 190
+				maxHeight = 32
+				fixedsize = yes
+				format = centre
+			}
+			instantTextBoxType = {
+				name = "strength_text"
+				position = { x = 79 y = 129 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "32,567"	
+				maxWidth = 190
+				maxHeight = 32
+				fixedsize = yes
+				format = centre
+			}
+			iconType = {
+				name ="unit_type_1"
+				spriteType = "GFX_unit_strip"
+				position = { x= 275 y = 1 }
+				Orientation = "UPPER_LEFT"
+			}
+			iconType = {
+				name ="unit_type_2"
+				spriteType = "GFX_unit_strip"
+				position = { x= 275 y = 53 }
+				Orientation = "UPPER_LEFT"
+			}
+			iconType = {
+				name ="unit_type_3"
+				spriteType = "GFX_unit_strip"
+				position = { x= 275 y = 105 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "unit_type_1_value"
+				position = { x = 294 y = 8 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 80
+				maxHeight = 32	
+				format = right
+			}
+			instantTextBoxType = {
+				name = "unit_type_2_value"
+				position = { x = 294 y = 60 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 80
+				maxHeight = 32	
+				format = right
+			}
+			instantTextBoxType = {
+				name = "unit_type_3_value"
+				position = { x = 294 y = 112 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 80
+				maxHeight = 32	
+				format = right
+			}
+		}
+	}
+	
+	windowType = {
+		name = "alice_naval_combat"
+		backGround=""
+		position = { x=0 y=-176 }	
+		size = { x=512 y=512 }
+		moveable = 0
+		fullScreen = no	
+		Orientation = "LOWER_LEFT"
+
+		# Background image
+		iconType = {
+			name ="combat_bg"
+			spriteType = "GFX_alice_naval_combat_bg"
+			position = { x= 0 y = -75 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		
+		instantTextBoxType = {
+			name = "label_battlename"
+			position = { x = 3 y = -47 }
+			textureFile = ""
+			font = "vic_22"
+			borderSize = {x = 4 y = 4}
+			text = ""	
+			maxWidth = 400
+			maxHeight = 40
+			format = centre
+		}
+
+		guiButtonType = {
+			name ="combat_retreat"
+			spriteType = "GFX_alice_retreat"
+			position = { x= 13 y = -44 }
+			Orientation = "UPPER_LEFT"
+		}
+
+		guiButtonType = {
+			name = "closebutton"
+			position = { x= 374 y = -59 }
+			quadTextureSprite ="GFX_main_close_button"
+			Orientation = "UPPER_LEFT"
+			shortcut = "ESCAPE"
+			clicksound = close_window
+		}
+
+		windowType = {
+			name = "attacker"
+			backGround=""
+			position = { x=18 y=-4 }	
+			size = { x=182 y=452 }
+			moveable = 0
+			fullScreen = no	
+
+			iconType = {
+				name ="shield"
+				spriteType = "GFX_thinshield"
+				position = { x=-9 y=-5 }
+				Orientation = "UPPER_LEFT"
+				rotation = -1.5708
+			}
+			OverlappingElementsBoxType = {
+				name = "modifiers"
+				position = { x = 54 y = -1 }
+				size = { x = 125 y = 60 }
+				Orientation = "UPPER_LEFT"
+				format = left
+				spacing = 1.0
+			}
+			iconType = {
+				name ="leader_icon"
+				spriteType = "GFX_leader_generic0"
+				position = { x=-6 y=58 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "leader_name"
+				position = { x=30 y=63 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 148
+				maxHeight = 32
+				fixedsize = yes
+			}
+			
+			iconType = {
+				name ="morale"
+				spriteType = "GFX_combat_org_progress_naval"
+				position = { x=-2 y=99 }
+				Orientation = "UPPER_LEFT"
+			}
+			iconType = {
+				name ="strength"
+				spriteType = "GFX_combat_str_progress_naval"
+				position = { x=-2 y=118 }
+				Orientation = "UPPER_LEFT"
+			}
+		
+			instantTextBoxType = {
+				name = "morale_text"
+				position = { x=-3 y=100 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "0%"
+				maxWidth = 179
+				maxHeight = 32
+				fixedsize = yes
+				format = center
+			}
+			instantTextBoxType = {
+				name = "strength_text"
+				position = { x=3 y=118 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "0"	
+				maxWidth = 179
+				maxHeight = 32
+				fixedsize = yes
+				format = center
+			}
+			
+			iconType = {
+				name ="morale_frame"
+				spriteType = "GFX_combat_org_progress_naval_frame"
+				position = { x=-3 y=98 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			iconType = {
+				name ="strength_frame"
+				spriteType = "GFX_combat_org_progress_naval_frame"
+				position = { x=-3 y=116 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			
+			iconType = {
+				name ="big_ship_icon"
+				spriteType = "GFX_naval_combat_unit_normal_L"
+				position = { x=-8 y=138 }
+				Orientation = "UPPER_LEFT"
+				frame = 1
+			}
+			
+			iconType = {
+				name ="small_ship_icon"
+				spriteType = "GFX_naval_combat_unit_normal_L"
+				position = { x=54 y=138 }
+				Orientation = "UPPER_LEFT"
+				frame = 2
+			}
+			
+			iconType = {
+				name ="trade_ship_icon"
+				spriteType = "GFX_naval_combat_unit_normal_L"
+				position = { x=118 y=138 }
+				Orientation = "UPPER_LEFT"
+				frame = 3
+			}
+			
+			instantTextBoxType = {
+				name = "big_ship_value"
+				position = { x=26 y=150 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = "999"
+				maxWidth = 26
+				maxHeight = 32
+				fixedsize = no
+				format = right
+			}
+			
+			instantTextBoxType = {
+				name = "small_ship_value"
+				position = { x=85 y=150 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = "999"
+				maxWidth = 28
+				maxHeight = 32
+				fixedsize = no
+				format = right
+			}
+			
+			instantTextBoxType = {
+				name = "trade_ship_value"
+				position = { x=150 y=150 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = "999"
+				maxWidth = 27
+				maxHeight = 32
+				fixedsize = no
+				format = right
+			}
+			
+		}
+
+		windowType = {
+			name = "defender"
+			backGround=""
+			position = { x=201 y=-4 }
+			size = { x=182 y=452 }
+			moveable = 0
+			dontRender = ""
+			horizontalBorder= ""
+			verticalBorder= ""
+			fullScreen = no	
+
+			iconType = {
+				name ="shield"
+				spriteType = "GFX_thinshield"
+				position = { x=-2 y=-5 }
+				Orientation = "UPPER_LEFT"
+				rotation = -1.5708
+			}
+			OverlappingElementsBoxType = {
+				name = "modifiers"
+				position = { x = 61 y = -1 }
+				size = { x = 125 y = 60 }
+				Orientation = "UPPER_LEFT"
+				format = left
+				spacing = 1.0
+			}
+			iconType = {
+				name ="leader_icon"
+				spriteType = "GFX_leader_generic0"
+				position = { x=1 y=58 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "leader_name"
+				position = { x=37 y=63 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = ""	
+				maxWidth = 148
+				maxHeight = 32
+				fixedsize = yes
+			}
+			iconType = {
+				name ="morale"
+				spriteType = "GFX_combat_org_progress_naval"
+				position = { x=5 y=99 }
+				Orientation = "UPPER_LEFT"
+			}
+			iconType = {
+				name ="strength"
+				spriteType = "GFX_combat_str_progress_naval"
+				position = { x=6 y=118 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "morale_text"
+				position = { x=5 y=100 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "0%"	
+				maxWidth = 179
+				maxHeight = 32
+				fixedsize = yes
+				format = centre
+			}
+			instantTextBoxType = {
+				name = "strength_text"
+				position = { x=5 y=118 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 0 y = 0}
+				text = "0"	
+				maxWidth = 179
+				maxHeight = 32
+				fixedsize = yes
+				format = centre
+			}
+			
+			iconType = {
+				name ="morale_frame"
+				spriteType = "GFX_combat_org_progress_naval_frame"
+				position = { x=5 y=98 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			iconType = {
+				name ="strength_frame"
+				spriteType = "GFX_combat_org_progress_naval_frame"
+				position = { x=5 y=116 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			
+			iconType = {
+				name ="big_ship_icon"
+				spriteType = "GFX_naval_combat_unit_normal_R"
+				position = { x=2 y=138 }
+				Orientation = "UPPER_LEFT"
+				frame = 1
+			}
+			
+			iconType = {
+				name ="small_ship_icon"
+				spriteType = "GFX_naval_combat_unit_normal_R"
+				position = { x=64 y=138 }
+				Orientation = "UPPER_LEFT"
+				frame = 2
+			}
+			
+			iconType = {
+				name ="trade_ship_icon"
+				spriteType = "GFX_naval_combat_unit_normal_R"
+				position = { x=128 y=138 }
+				Orientation = "UPPER_LEFT"
+				frame = 3
+			}
+			
+			instantTextBoxType = {
+				name = "big_ship_value"
+				position = { x=34 y=150 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = "999"
+				maxWidth = 26
+				maxHeight = 32
+				fixedsize = no
+				format = right
+			}
+			
+			instantTextBoxType = {
+				name = "small_ship_value"
+				position = { x=93 y=150 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = "999"
+				maxWidth = 28
+				maxHeight = 32
+				fixedsize = no
+				format = right
+			}
+			
+			instantTextBoxType = {
+				name = "trade_ship_value"
+				position = { x=158 y=150 }
+				textureFile = ""
+				font = "vic_18_black"
+				borderSize = {x = 0 y = 0}
+				text = "999"
+				maxWidth = 27
+				maxHeight = 32
+				fixedsize = no
+				format = right
+			}
+		
+		}
+	}
+	
+	windowType = {
+		name ="alice_message_settings"
+		backGround=""
+		position = { x = -390 y = -232 }	
+		size = { x = 780 y = 464}
+		Orientation = "CENTER"
+			
+		iconType = {
+			name ="messagesettings_bg"
+			spriteType = "GFX_messagesettings_bg"
+			position = { x = 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		guiButtonType = {
+			name = "close"
+			quadTextureSprite = "GFX_main_close_button"
+			position = { x = -32 y = 0 }
+			Orientation = "UPPER_RIGHT"
+			shortcut = "ESCAPE"
+		}
+
+		instantTextBoxType = {
+			position = {x = 16 y = 16 }
+			name = "messagesettings_label"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 749
+			maxHeight = 24
+			text = "MENU_BAR_MESSAGE_SETTINGS"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+			
+		instantTextBoxType = {
+			position = {x = 30 y = 54 }
+			name = "message_type_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 340
+			maxHeight = 18
+			text = "message_name_text"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+			
+		instantTextBoxType = {
+			position = {x = 370 y = 54 }
+			name = "message_for_us_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 120
+			maxHeight = 18
+			text = "msg_for_us"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType = {
+			position = {x = 490 y = 54 }
+			name = "message_for_interesting_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 120
+			maxHeight = 18
+			text = "msg_for_interesting"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType = {
+			position = {x = 610 y = 54 }
+			name = "message_for_us_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 120
+			maxHeight = 18
+			text = "msg_for_other"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		listboxType = {
+			name = "message_settings_items"
+			position = { x= 30 y = 89}
+				
+			backGround=""
+			size = { x=725 y= 321 }
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 20 y = 5}
+			Orientation = "UPPER_LEFT"
+		}
+		
+	}
+	
+	windowType = {
+		name = "alice_message_setting_item"
+		position = { x=0 y=0 }	
+		size = { x=725 y=20 }
+		moveable = 0
+		fullScreen = no
+
+		iconType = {
+			name ="message_bg"
+			spriteType = "GFX_messagesettings_listbutton"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		
+		instantTextBoxType = {
+			position = {x = 30 y = 4 }
+			name = "entry_text"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 340
+			maxHeight = 18
+			text = "message_name_text"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+			
+		guiButtonType = {
+			position = {x = 370 y = 2 }
+			name = "us_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+		
+		guiButtonType = {
+			position = {x = 490 y = 2 }
+			name = "interesting_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+		
+		guiButtonType = {
+			position = {x = 610 y = 2 }
+			name = "other_button"
+			quadTextureSprite = "GFX_alice_message_type"
 		}
 	}
 }

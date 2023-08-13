@@ -6,6 +6,8 @@
 #include "province.hpp"
 #include "text.hpp"
 #include "unit_tooltip.hpp"
+#include "gui_land_combat.hpp"
+#include "gui_naval_combat.hpp"
 
 namespace ui {
 
@@ -253,8 +255,12 @@ public:
 				}
 
 				for(auto n : state.world.province_get_navy_location(port_for)) {
-					if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation)
+					if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation) {
 						state.select(n.get_navy().id);
+						// Hide province window when navy is clicked.
+						if(state.ui_state.province_window)
+							state.ui_state.province_window->set_visible(state, false);
+					}
 				}
 
 				auto location = get_absolute_location(*this);
@@ -333,6 +339,50 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->battle_progress;
+	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		for(auto b : state.world.province_get_land_battle_location(prov)) {
+			auto w = b.get_battle().get_war_from_land_battle_in_war();
+			if(!w) {
+				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
+				win->battle = b.get_battle();
+				if(state.ui_state.army_combat_window->is_visible()) {
+					state.ui_state.army_combat_window->impl_on_update(state);
+				} else {
+					state.ui_state.army_combat_window->set_visible(state, true);
+				}
+				return message_result::consumed;
+			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
+				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
+				win->battle = b.get_battle();
+				if(state.ui_state.army_combat_window->is_visible()) {
+					state.ui_state.army_combat_window->impl_on_update(state);
+				} else {
+					state.ui_state.army_combat_window->set_visible(state, true);
+				}
+				return message_result::consumed;
+			}
+		}
+		for(auto b : state.world.province_get_naval_battle_location(prov)) {
+			auto w = b.get_battle().get_war_from_naval_battle_in_war();
+
+			 if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
+				naval_combat_window* win = static_cast<naval_combat_window*>(state.ui_state.naval_combat_window);
+				win->battle = b.get_battle();
+				if(state.ui_state.naval_combat_window->is_visible()) {
+					state.ui_state.naval_combat_window->impl_on_update(state);
+				} else {
+					state.ui_state.naval_combat_window->set_visible(state, true);
+				}
+				return message_result::consumed;
+			}
+		}
+		
+		return message_result::consumed;
 	}
 };
 
@@ -580,12 +630,26 @@ public:
 	}
 };
 
-class tl_strength : public color_text_element {
+class tl_strength : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
-		color = text::text_color::gold;
-		set_text(state, text::format_float(params->top_left_value, 1));
+		auto strength = params->top_left_value;
+		//bool is_ship = float(int32_t(strength)) == strength;
+		auto layout = text::create_endless_layout(internal_layout,
+		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
+		auto box = text::open_layout_box(layout, 0);
+
+
+		text::add_to_layout_box(state, layout, box, text::format_float(strength, 1), text::text_color::gold);
+		//if(!is_ship)
+			//text::add_to_layout_box(state, layout, box, std::string("k"), text::text_color::gold);
+
+		text::close_layout_box(layout, box);
+
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
 	}
 };
 
@@ -1378,13 +1442,21 @@ public:
 
 				if(prov.index() >= state.province_definitions.first_sea_province.index()) {
 					for(auto n : state.world.province_get_navy_location(prov)) {
-						if(state.world.navy_get_controller_from_navy_control(n.get_navy()) == state.local_player_nation)
+						if(state.world.navy_get_controller_from_navy_control(n.get_navy()) == state.local_player_nation) {
 							state.select(n.get_navy().id);
+							// Hide province window when navy is clicked.
+							if(state.ui_state.province_window)
+								state.ui_state.province_window->set_visible(state, false);
+						}
 					}
 				} else {
 					for(auto n : state.world.province_get_army_location(prov)) {
-						if(!(n.get_army().get_navy_from_army_transport()) && n.get_army().get_controller_from_army_control() == state.local_player_nation)
+						if(!(n.get_army().get_navy_from_army_transport()) && n.get_army().get_controller_from_army_control() == state.local_player_nation) {
 							state.select(n.get_army().id);
+							// Hide province window when army is clicked.
+							if(state.ui_state.province_window)
+								state.ui_state.province_window->set_visible(state, false);
+						}
 					}
 				}
 

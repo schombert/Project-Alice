@@ -20,6 +20,7 @@
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
 #include "gui_land_combat.hpp"
+#include "gui_chat_window.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "main_menu/gui_country_selection_window.hpp"
@@ -29,6 +30,7 @@
 #include "rebels.hpp"
 #include "ai.hpp"
 #include "gui_leader_select.hpp"
+#include "gui_land_combat.hpp"
 
 namespace sys {
 //
@@ -120,6 +122,14 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			if(ui_state.unit_window_army)
 				ui_state.unit_window_army->set_visible(*this, false);
 			selected_armies.clear();
+			game_state_updated.store(true, std::memory_order_release);
+		}
+		if(selected_navies.size() > 0) {
+			if(ui_state.navy_status_window)
+				ui_state.navy_status_window->set_visible(*this, false);
+			if(ui_state.unit_window_navy)
+				ui_state.unit_window_navy->set_visible(*this, false);
+			selected_navies.clear();
 			game_state_updated.store(true, std::memory_order_release);
 		}
 	}
@@ -215,6 +225,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 					ui::show_main_menu(*this);
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
+			} else if(keycode == virtual_key::TAB) {
+				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
+				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 			map_state.on_key_down(keycode, mod);
 
@@ -283,6 +296,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	if(game_state_was_updated) {
+		if(ui_state.army_combat_window && ui_state.army_combat_window->is_visible()) {
+			ui::land_combat_window* win = static_cast<ui::land_combat_window*>(ui_state.army_combat_window);
+			if(win->battle && !world.land_battle_is_valid(win->battle)) {
+				ui_state.army_combat_window->set_visible(*this, false);
+			}
+		}
+
 		this->map_state.map_data.update_borders(*this);
 		nations::update_ui_rankings(*this);
 		// Processing of (gamestate <=> ui) queues
@@ -328,6 +348,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 						->events.push_back(ui::event_data_wrapper{*c4});
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
+			}
+			// land battle reports
+			{
+				auto* lr = land_battle_reports.front();
+				while(lr) {
+					ui::land_combat_end_popup::make_new_report(*this, *lr);
+					land_battle_reports.pop();
+					lr = land_battle_reports.front();
+				}
+			}
+			// naval battle reports
+			{
+				auto* lr = naval_battle_reports.front();
+				while(lr) {
+					ui::naval_combat_end_popup::make_new_report(*this, *lr);
+					naval_battle_reports.pop();
+					lr = naval_battle_reports.front();
+				}
 			}
 			// Diplomatic messages
 			auto* c5 = new_requests.front();
@@ -764,6 +802,13 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
+		// TODO: don't hide when on an actual multiplayer session
+		new_elm->set_visible(*this, false); // hidden by default
+		ui_state.chat_window = new_elm.get();
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
 		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
 		ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
 		new_elm_army->set_visible(*this, false);
@@ -833,17 +878,12 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::land_combat_end_popup>(*this, "endoflandcombatpopup");
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "alice_naval_combat");
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "naval_combat");
-		new_elm->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "land_combat");
+		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "alice_land_combat");
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
@@ -2499,10 +2539,11 @@ void state::single_game_tick() {
 				military::update_war_cleanup(*this);
 				economy::daily_update(*this);
 
-				military::update_movement(*this);
 				military::update_siege_progress(*this);
+				military::update_movement(*this);
 				military::update_naval_battles(*this);
 				military::update_land_battles(*this);
+				
 				military::advance_mobilizations(*this);
 
 				event::update_events(*this);
