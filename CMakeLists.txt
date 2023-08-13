@@ -48,6 +48,10 @@ if(NOT WIN32)
 	add_compile_definitions(PREFER_ONE_TBB)
 endif()
 
+# Include sub-projects.
+add_subdirectory(dependencies)
+add_subdirectory(ParserGenerator)
+
 add_library(AliceCommon INTERFACE)
 # Used for storing the local path to the Victoria 2 directory
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
@@ -166,10 +170,6 @@ target_include_directories(AliceCommon INTERFACE
 	"ankerl")
 
 target_link_libraries(Alice PRIVATE AliceCommon)
-
-# Include sub-projects.
-add_subdirectory(dependencies)
-add_subdirectory(ParserGenerator)
 
 # System headers
 target_precompile_headers(Alice
