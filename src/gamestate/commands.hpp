@@ -94,11 +94,6 @@ enum class command_type : uint8_t {
 	advance_tick = 122,
 	chat_message = 123,
 
-	connect = 120,
-	disconnect = 121,
-	advance_tick = 122,
-	chat_message = 123,
-
 	// console cheats
 	switch_nation = 128,
 	c_change_diplo_points = 129,
