@@ -197,7 +197,6 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
-	${PROJECT_SOURCE_DIR}/src/text/bmfontgl
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
 	${PROJECT_SOURCE_DIR}/src/nations
@@ -231,8 +230,16 @@ add_custom_command(
   DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/parser_defs.txt
   VERBATIM)
 
+add_custom_command(
+  OUTPUT ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
+  COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
+  DEPENDS ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
+  VERBATIM)
+
 # Sets a dependency on the generated file
-add_custom_target(GENERATE_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp)
+add_custom_target(GENERATE_PARSERS DEPENDS
+	${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp
+	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 
 

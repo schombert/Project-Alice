@@ -113,7 +113,6 @@ target_include_directories(save_editor PUBLIC
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
-	${PROJECT_SOURCE_DIR}/src/text/bmfontgl
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
 	#${PROJECT_SOURCE_DIR}/src/network
