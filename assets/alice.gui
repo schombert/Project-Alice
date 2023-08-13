@@ -2366,4 +2366,146 @@ guiTypes = {
 		
 		}
 	}
+	
+	windowType = {
+		name ="alice_message_settings"
+		backGround=""
+		position = { x = -390 y = -232 }	
+		size = { x = 780 y = 464}
+		Orientation = "CENTER"
+			
+		iconType = {
+			name ="messagesettings_bg"
+			spriteType = "GFX_messagesettings_bg"
+			position = { x = 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		guiButtonType = {
+			name = "close"
+			quadTextureSprite = "GFX_main_close_button"
+			position = { x = -32 y = 0 }
+			Orientation = "UPPER_RIGHT"
+			shortcut = "ESCAPE"
+		}
+
+		instantTextBoxType = {
+			position = {x = 16 y = 16 }
+			name = "messagesettings_label"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 749
+			maxHeight = 24
+			text = "MENU_BAR_MESSAGE_SETTINGS"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+			
+		instantTextBoxType = {
+			position = {x = 30 y = 54 }
+			name = "message_type_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 340
+			maxHeight = 18
+			text = "message_name_text"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+			
+		instantTextBoxType = {
+			position = {x = 370 y = 54 }
+			name = "message_for_us_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 120
+			maxHeight = 18
+			text = "msg_for_us"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType = {
+			position = {x = 490 y = 54 }
+			name = "message_for_interesting_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 120
+			maxHeight = 18
+			text = "msg_for_interesting"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType = {
+			position = {x = 610 y = 54 }
+			name = "message_for_us_header"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 120
+			maxHeight = 18
+			text = "msg_for_other"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		listboxType = {
+			name = "message_settings_items"
+			position = { x= 30 y = 89}
+				
+			backGround=""
+			size = { x=725 y= 321 }
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 20 y = 5}
+			Orientation = "UPPER_LEFT"
+		}
+		
+	}
+	
+	windowType = {
+		name = "alice_message_setting_item"
+		position = { x=0 y=0 }	
+		size = { x=725 y=20 }
+		moveable = 0
+		fullScreen = no
+
+		iconType = {
+			name ="message_bg"
+			spriteType = "GFX_messagesettings_listbutton"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		
+		instantTextBoxType = {
+			position = {x = 30 y = 4 }
+			name = "entry_text"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 340
+			maxHeight = 18
+			text = "message_name_text"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+			
+		guiButtonType = {
+			position = {x = 370 y = 2 }
+			name = "us_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+		
+		guiButtonType = {
+			position = {x = 490 y = 2 }
+			name = "interesting_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+		
+		guiButtonType = {
+			position = {x = 610 y = 2 }
+			name = "other_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+	}
 }
