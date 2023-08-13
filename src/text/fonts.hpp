@@ -56,7 +56,7 @@ public:
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
 	float kerning(char codepoint_first, char codepoint_second) const;
-	float text_extent(char const* codepoints, uint32_t count, int32_t size) const;
+	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) const;
 
 	friend class font_manager;
 };

@@ -89,6 +89,11 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 
+	notify_player_joins = 120,
+	notify_player_leaves = 121,
+	advance_tick = 122,
+	chat_message = 123,
+
 	// console cheats
 	switch_nation = 128,
 	c_change_diplo_points = 129,
@@ -356,6 +361,11 @@ struct cheat_data {
 	float value;
 };
 
+struct chat_message_data {
+	char body[ui::max_chat_message_len];
+	dcon::nation_id target;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -403,6 +413,7 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
+		chat_message_data chat_message;
 
 		dtype() { }
 	} data;
@@ -677,6 +688,13 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+void notify_player_joins(sys::state& state, dcon::nation_id source);
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
+void notify_player_leaves(sys::state& state, dcon::nation_id source);
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
+
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
@@ -689,6 +707,7 @@ void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
+
 void execute_pending_commands(sys::state& state);
 
 } // namespace command

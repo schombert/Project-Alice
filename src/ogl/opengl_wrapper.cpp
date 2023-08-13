@@ -456,22 +456,77 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 	}
 }
 
-void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size,
+GLuint get_flag_texture_handle_from_tag(sys::state& state, char tag[3]) {
+	tag[0] = char(toupper(tag[0]));
+	tag[1] = char(toupper(tag[1]));
+	tag[2] = char(toupper(tag[2]));
+
+	dcon::national_identity_id ident{};
+	state.world.for_each_national_identity([&](dcon::national_identity_id id) {
+		auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+		if(curr[0] == tag[0] && curr[1] == tag[1] && curr[2] == tag[2]) {
+			ident = id;
+		}
+	});
+	if(!bool(ident)) {
+		// QOL: We will print the text instead of displaying the flag, for ease of viewing invalid tags
+		return 0;
+	}
+	auto fat_id = dcon::fatten(state.world, ident);
+	auto nation = fat_id.get_nation_from_identity_holder();
+	culture::flag_type flag_type = culture::flag_type{};
+	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
+		flag_type = culture::get_current_flag_type(state, nation.id);
+	} else {
+		flag_type = culture::get_current_flag_type(state, ident);
+	}
+	return ogl::get_flag_handle(state, ident, flag_type);
+}
+
+bool display_tag_is_valid(sys::state& state, char tag[3]) {
+	tag[0] = char(toupper(tag[0]));
+	tag[1] = char(toupper(tag[1]));
+	tag[2] = char(toupper(tag[2]));
+	dcon::national_identity_id ident{};
+	state.world.for_each_national_identity([&](dcon::national_identity_id id) {
+		auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+		if(curr[0] == tag[0] && curr[1] == tag[1] && curr[2] == tag[2])
+			ident = id;
+	});
+	return bool(ident);
+}
+
+void internal_text_render(sys::state& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size,
 		text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
 	for(uint32_t i = 0; i < count; ++i) {
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
 			// f.make_glyph(codepoints[i]);
-			if(text::win1250toUTF16(codepoints[i]) != u'\u0001' && text::win1250toUTF16(codepoints[i]) != u'\u0002') {
-				glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoints[i]) >> 6]);
-				glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint8_t(codepoints[i])].x * size / 64.0f,
-						baseline_y + f.glyph_positions[uint8_t(codepoints[i])].y * size / 64.0f, size, size);
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			if(text::win1250toUTF16(codepoints[i]) == u'\u0040') {
+				char tag[3] = { 0, 0, 0 };
+				tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
+				tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
+				tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
+				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
+				if(flag_texture_handle != 0) {
+					bind_vertices_by_rotation(state, ui::rotation::upright, false);
+					glActiveTexture(GL_TEXTURE0);
+					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
+					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
+					glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * size / 64.0f,
+							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
+					glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
+					);
+					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-				x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f +
-						 ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
-			} else {
+					x += f.glyph_advances[0x4D] * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
+					
+					i += 3;
+					continue;
+				}
+			}
+			
+			if(text::win1250toUTF16(codepoints[i]) == u'\u0001' || text::win1250toUTF16(codepoints[i]) == u'\u0002') {
 				bind_vertices_by_rotation(state, ui::rotation::upright, false);
 				glActiveTexture(GL_TEXTURE0);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
@@ -486,6 +541,16 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 
 				x +=
 						f.glyph_advances[0x4D] * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
+			} else {
+				glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoints[i]) >> 6]);
+				glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint8_t(codepoints[i])].x * size / 64.0f,
+						baseline_y + f.glyph_positions[uint8_t(codepoints[i])].y * size / 64.0f, size, size);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+				x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f +
+						 ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
 			}
 		} else {
 			x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f +
@@ -494,7 +559,7 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 	}
 }
 
-void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x,
+void render_new_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x,
 		float y, float size, color3f const& c, text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
@@ -505,7 +570,7 @@ void render_new_text(sys::state const& state, char const* codepoints, uint32_t c
 	internal_text_render(state, codepoints, count, x, y + size, size, f, subroutines, icon_subroutines);
 }
 
-void render_classic_text(sys::state const& state, float x, float y, char const* codepoints, uint32_t count,
+void render_classic_text(sys::state& state, float x, float y, char const* codepoints, uint32_t count,
 		color_modification enabled, color3f const& c, text::BMFont const& font) {
 	float adv = (float)1.0 / font.Width; // Font texture atlas spacing.
 
@@ -532,6 +597,44 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 
 	for(uint32_t i = 0; i < count; ++i) {
 		auto f = font.Chars[0];
+		if(uint8_t(codepoints[i]) == 0x40) {
+			char tag[3] = { 0, 0, 0 };
+			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
+			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
+			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
+			GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
+			if(flag_texture_handle != 0) {
+				GLuint flag_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
+				f = font.Chars[0x4D];
+				float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
+				float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
+				float CurX = x + f.XOffset - (float(f.Width) * offset);
+				float CurY = y + f.YOffset - (float(f.Height) * offset);
+				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width) * scaling, float(f.Height) * scaling);
+				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
+				glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+				glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.Width) /* x offset */,
+						float(f.Width) / float(font.Width) /* x width */, float(f.y) / float(font.Width) /* y offset */,
+						float(f.Height) / float(font.Width) /* y height */
+				);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				// Restore affected state
+				glBindTexture(GL_TEXTURE_2D, font.ftexid);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+
+				// Only check kerning if there is greater then 1 character and
+				// if the check character is 1 less then the end of the string.
+				if(i != count - 1) {
+					x += font.GetKerningPair(codepoints[i], codepoints[i + 1]);
+				}
+				x += f.XAdvance;
+
+				i += 3;
+				continue;
+			}
+		}
+
 		if(uint8_t(codepoints[i]) == 0xA4 || uint8_t(codepoints[i]) == 0x01 || uint8_t(codepoints[i]) == 0x02) {
 			GLuint money_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);

@@ -3569,18 +3569,18 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			case unit_type::infantry:
 				reserves.push_back(
 						reserve_regiment{reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_infantry});
-				state.world.land_battle_get_attacker_infantry(b)++;
+				state.world.land_battle_get_attacker_infantry(b) += reg.get_regiment().get_strength();
 				break;
 			case unit_type::cavalry:
 				reserves.push_back(
 						reserve_regiment{reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_cavalry});
-				state.world.land_battle_get_attacker_cav(b)++;
+				state.world.land_battle_get_attacker_cav(b) += reg.get_regiment().get_strength();
 				break;
 			case unit_type::special:
 			case unit_type::support:
 				reserves.push_back(
 						reserve_regiment{reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_support});
-				state.world.land_battle_get_attacker_support(b)++;
+				state.world.land_battle_get_attacker_support(b) += reg.get_regiment().get_strength();
 				break;
 			default:
 				assert(false);
@@ -3602,16 +3602,16 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			switch(type) {
 			case unit_type::infantry:
 				reserves.push_back(reserve_regiment{reg.get_regiment().id, reserve_regiment::type_infantry});
-				state.world.land_battle_get_defender_infantry(b)++;
+				state.world.land_battle_get_defender_infantry(b) += reg.get_regiment().get_strength();
 				break;
 			case unit_type::cavalry:
 				reserves.push_back(reserve_regiment{reg.get_regiment().id, reserve_regiment::type_cavalry});
-				state.world.land_battle_get_defender_cav(b)++;
+				state.world.land_battle_get_defender_cav(b) += reg.get_regiment().get_strength();
 				break;
 			case unit_type::special:
 			case unit_type::support:
 				reserves.push_back(reserve_regiment{reg.get_regiment().id, reserve_regiment::type_support});
-				state.world.land_battle_get_defender_support(b)++;
+				state.world.land_battle_get_defender_support(b) += reg.get_regiment().get_strength();
 				break;
 			default:
 				assert(false);
@@ -4095,8 +4095,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			state.world.war_get_number_of_battles(war)++;
 
 		if(result == battle_result::attacker_won) {
-			auto score = std::max(0.0f,
-					(state.world.land_battle_get_defender_loss_value(b) - state.world.land_battle_get_attacker_loss_value(b)) / 10.0f);
+			auto total_def_loss = state.world.land_battle_get_defender_cav_lost(b) + state.world.land_battle_get_defender_infantry_lost(b) + state.world.land_battle_get_defender_support_lost(b);
+			auto total_att_loss = state.world.land_battle_get_attacker_cav_lost(b) + state.world.land_battle_get_attacker_infantry_lost(b) + state.world.land_battle_get_attacker_support_lost(b);
+			auto score = std::max(0.0f, 3.0f * (total_def_loss - total_att_loss) / 10.0f);
 
 			if(war) {
 				if(state.world.land_battle_get_war_attacker_is_attacker(b)) {
@@ -4163,8 +4164,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			}();
 
 		} else if(result == battle_result::defender_won) {
-			auto score = std::max(0.0f,
-					(state.world.land_battle_get_attacker_loss_value(b) - state.world.land_battle_get_defender_loss_value(b)) / 10.0f);
+			auto total_def_loss = state.world.land_battle_get_defender_cav_lost(b) + state.world.land_battle_get_defender_infantry_lost(b) + state.world.land_battle_get_defender_support_lost(b);
+			auto total_att_loss = state.world.land_battle_get_attacker_cav_lost(b) + state.world.land_battle_get_attacker_infantry_lost(b) + state.world.land_battle_get_attacker_support_lost(b);
+			auto score = std::max(0.0f, 3.0f * (total_att_loss - total_def_loss) / 10.0f);
 
 			if(war) {
 				if(state.world.land_battle_get_war_attacker_is_attacker(b)) {
@@ -4718,13 +4720,8 @@ void update_land_battles(sys::state& state) {
 		auto defender_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
-		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment +
-																														 int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3,
-				0, 19)];
-		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + dig_in_value +
-																														 int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) +
-																														 int32_t(terrain_bonus) + 3,
-				0, 19)];
+		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment +  int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3, 0, 19)];
+		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + dig_in_value +  int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(terrain_bonus) + 3, 0, 19)];
 
 		float defender_fort = 1.0f;
 		auto local_control = state.world.province_get_nation_from_province_control(location);
@@ -4773,11 +4770,25 @@ void update_land_battles(sys::state& state) {
 						(defender_fort * defender_org_bonus *
 								(1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
 
+				auto& cstr = state.world.regiment_get_strength(def_front[i]);
+				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(def_front[i]) += str_damage;
-				state.world.regiment_get_strength(def_front[i]) -= str_damage;
-				state.world.land_battle_get_defender_loss_value(b) += str_damage;
+				cstr -= str_damage;
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
+				switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].type) {
+					case unit_type::infantry:
+						state.world.land_battle_get_defender_infantry_lost(b) += str_damage;
+						break;
+					case unit_type::cavalry:
+						state.world.land_battle_get_defender_cav_lost(b) += str_damage;
+						break;
+					case unit_type::support:
+						// fallthrough
+					case unit_type::special:
+						state.world.land_battle_get_defender_support_lost(b) += str_damage;
+						break;
+				}
 			}
 
 			if(def_back[i] && att_front[i]) {
@@ -4790,11 +4801,25 @@ void update_land_battles(sys::state& state) {
 				auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
 				auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
+				auto& cstr = state.world.regiment_get_strength(att_front[i]);
+				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(att_front[i]) += str_damage;
-				state.world.regiment_get_strength(att_front[i]) -= str_damage;
-				state.world.land_battle_get_attacker_loss_value(b) += str_damage;
+				cstr -= str_damage;
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
+				switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].type) {
+					case unit_type::infantry:
+						state.world.land_battle_get_attacker_infantry_lost(b) += str_damage;
+						break;
+					case unit_type::cavalry:
+						state.world.land_battle_get_attacker_cav_lost(b) += str_damage;
+						break;
+					case unit_type::support:
+						// fallthrough
+					case unit_type::special:
+						state.world.land_battle_get_attacker_support_lost(b) += str_damage;
+						break;
+				}
 			}
 
 			if(att_front[i]) {
@@ -4822,11 +4847,25 @@ void update_land_battles(sys::state& state) {
 							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
 							(defender_fort * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
 
+					auto& cstr = state.world.regiment_get_strength(att_front_target);
+					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
-					state.world.regiment_get_strength(att_front_target) -= str_damage;
-					state.world.land_battle_get_defender_loss_value(b) += str_damage;
+					cstr -= str_damage;
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
+					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front_target)].type) {
+						case unit_type::infantry:
+							state.world.land_battle_get_defender_infantry_lost(b) += str_damage;
+							break;
+						case unit_type::cavalry:
+							state.world.land_battle_get_defender_cav_lost(b) += str_damage;
+							break;
+						case unit_type::support:
+							// fallthrough
+						case unit_type::special:
+							state.world.land_battle_get_defender_support_lost(b) += str_damage;
+							break;
+					}
 				}
 			}
 
@@ -4852,11 +4891,25 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
 					auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / (attacker_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
+					auto& cstr = state.world.regiment_get_strength(def_front_target);
+					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
-					state.world.regiment_get_strength(def_front_target) -= str_damage;
-					state.world.land_battle_get_attacker_loss_value(b) += str_damage;
+					cstr -= str_damage;
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
+					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front_target)].type) {
+						case unit_type::infantry:
+							state.world.land_battle_get_attacker_infantry_lost(b) += str_damage;
+							break;
+						case unit_type::cavalry:
+							state.world.land_battle_get_attacker_cav_lost(b) += str_damage;
+							break;
+						case unit_type::support:
+							// fallthrough
+						case unit_type::special:
+							state.world.land_battle_get_attacker_support_lost(b) += str_damage;
+							break;
+					}
 				}
 			}
 		}

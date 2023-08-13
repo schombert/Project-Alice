@@ -1995,73 +1995,62 @@ object {
 	}
 	property{
 		name{ attacker_infantry }
-		type{ uint16_t }
+		type{ float }
 		tag{ save }
 	}
 	property{
 		name{ attacker_cav }
-		type{ uint16_t }
+		type{ float }
 		tag{ save }
 	}
 	property{
 		name{ attacker_support }
-		type{ uint16_t }
+		type{ float }
 		tag{ save }
 	}
 	property{
 		name{ attacker_infantry_lost }
-		type{ uint16_t }
+		type{ float }
 		tag{ save }
 	}
 	property{
 		name{ attacker_cav_lost }
-		type{ uint16_t }
+		type{ float }
 		tag{ save }
 	}
 	property{
 		name{ attacker_support_lost }
-		type{ uint16_t }
+		type{ float }
 		tag{ save }
 	}
 
 	property{
 		name{ defender_infantry }
-		type{ uint16_t }
-		tag{ save }
-	}
-	property{
-		name{ defender_cav }
-		type{ uint16_t }
-		tag{ save }
-	}
-	property{
-		name{ defender_support }
-		type{ uint16_t }
-		tag{ save }
-	}
-	property{
-		name{ defender_infantry_lost }
-		type{ uint16_t }
-		tag{ save }
-	}
-	property{
-		name{ defender_cav_lost }
-		type{ uint16_t }
-		tag{ save }
-	}
-	property{
-		name{ defender_support_lost }
-		type{ uint16_t }
-		tag{ save }
-	}
-
-	property{
-		name{ attacker_loss_value }
 		type{ float }
 		tag{ save }
 	}
 	property{
-		name{ defender_loss_value }
+		name{ defender_cav }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ defender_support }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ defender_infantry_lost }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ defender_cav_lost }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ defender_support_lost }
 		type{ float }
 		tag{ save }
 	}

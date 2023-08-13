@@ -188,21 +188,21 @@ struct land_battle_report {
 	float warscore_effect = 0.0f;
 	float prestige_effect = 0.0f;
 
-	uint16_t attacker_infantry;
-	uint16_t attacker_cavalry;
-	uint16_t attacker_support;
+	float attacker_infantry;
+	float attacker_cavalry;
+	float attacker_support;
 
-	uint16_t attacker_infantry_losses;
-	uint16_t attacker_cavalry_losses;
-	uint16_t attacker_support_losses;
+	float attacker_infantry_losses;
+	float attacker_cavalry_losses;
+	float attacker_support_losses;
 
-	uint16_t defender_infantry;
-	uint16_t defender_cavalry;
-	uint16_t defender_support;
+	float defender_infantry;
+	float defender_cavalry;
+	float defender_support;
 
-	uint16_t defender_infantry_losses;
-	uint16_t defender_cavalry_losses;
-	uint16_t defender_support_losses;
+	float defender_infantry_losses;
+	float defender_cavalry_losses;
+	float defender_support_losses;
 
 	dcon::leader_id attacking_general;
 	dcon::leader_id defending_general;

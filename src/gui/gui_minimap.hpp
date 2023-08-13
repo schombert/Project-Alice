@@ -318,7 +318,7 @@ public:
 		} else if(name == "openbutton") {
 			return make_element_by_type<open_msg_log_button>(state, id);
 		} else if(name == "chat_window") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<window_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "menu_button") {
