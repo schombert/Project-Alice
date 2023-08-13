@@ -4006,6 +4006,43 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	}
 }
 
+void join_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::join_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+bool can_join_game(sys::state& state, dcon::nation_id source) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_join_game(sys::state& state, dcon::nation_id source) {
+	if(!can_join_game(state, source))
+		return;
+	state.world.nation_set_is_player_controlled(source, true);
+}
+
+void leave_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::leave_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+bool can_leave_game(sys::state& state, dcon::nation_id source) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_leave_game(sys::state& state, dcon::nation_id source) {
+	if(!can_leave_game(state, source))
+		return;
+	if(source == state.local_player_nation) {
+		state.local_player_nation = dcon::nation_id{};
+	}
+	state.world.nation_set_is_player_controlled(source, false);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -4272,6 +4309,12 @@ void execute_pending_commands(sys::state& state) {
 		// common mp commands
 		case command_type::chat_message:
 			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
+			break;
+		case command_type::join_game:
+			execute_connect(state, c->source);
+			break;
+		case command_type::leave_game:
+			execute_disconnect(state, c->source);
 			break;
 
 		// console commands
