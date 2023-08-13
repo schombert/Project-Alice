@@ -3177,27 +3177,36 @@ private:
 					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
 		}
 	}
-
-	template<typename T, typename... Targs>
-	void generate_distribution_windows(sys::state& state) {
-		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win.get());
-		add_child_to_front(std::move(win));
-
-		if constexpr(sizeof...(Targs))
-			generate_distribution_windows<Targs...>(state);
-	}
-
+	
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 
 		{
-			generate_distribution_windows< pop_distribution_window<dcon::pop_type_id, true>,
-					pop_distribution_window<dcon::religion_id, true>, pop_distribution_window<dcon::ideology_id, true>,
-					pop_distribution_window<dcon::culture_id, true>, pop_distribution_window<dcon::issue_option_id, true>,
-					pop_distribution_window<dcon::political_party_id, true>>(state);
+			auto win1 = make_element_by_type<pop_distribution_window<dcon::pop_type_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win1.get());
+			add_child_to_front(std::move(win1));
+
+			auto win2 = make_element_by_type<pop_distribution_window<dcon::religion_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win2.get());
+			add_child_to_front(std::move(win2));
+
+			auto win3 = make_element_by_type<pop_distribution_window<dcon::ideology_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win3.get());
+			add_child_to_front(std::move(win3));
+
+			auto win4 = make_element_by_type<pop_distribution_window<dcon::culture_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win4.get());
+			add_child_to_front(std::move(win4));
+
+			auto win5 = make_element_by_type<pop_distribution_window<dcon::issue_option_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win5.get());
+			add_child_to_front(std::move(win5));
+
+			auto win6 = make_element_by_type<pop_distribution_window<dcon::political_party_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win6.get());
+			add_child_to_front(std::move(win6));
 
 			// It should be proper to reposition the windows now
 			const xy_pair cell_offset =

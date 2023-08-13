@@ -210,21 +210,16 @@ class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	controls_menu_window* controls_menu = nullptr;
 	graphics_menu_window* graphics_menu = nullptr;
 	audio_menu_window* audio_menu = nullptr;
-	message_settings_window* message_settings_menu = nullptr;
+	element_base* message_settings_menu = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		// Message settings isn't a topmost window...
-		for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {
-			auto gdef_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			auto key = state.to_string_view(state.ui_defs.gui[gdef_id].name);
-			if(key == "menu_message_settings") {
-				auto ptr = make_element_by_type<message_settings_window>(state, gdef_id);
-				message_settings_menu = ptr.get();
-				add_child_to_front(std::move(ptr));
-			}
-		}
+
+		auto m = make_element_by_type<message_settings_window>(state, "alice_message_settings");
+		message_settings_menu = m.get();
+		m->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(m));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -297,6 +292,7 @@ public:
 				break;
 			case main_menu_sub_window::message_settings:
 				message_settings_menu->set_visible(state, true);
+				state.ui_state.root->move_child_to_front(message_settings_menu);
 				break;
 			}
 			return message_result::consumed;

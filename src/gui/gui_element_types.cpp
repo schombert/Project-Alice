@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
