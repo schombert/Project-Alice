@@ -3977,14 +3977,26 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+static void post_chat_message(sys::state& state, ui::chat_message& m) {
+	// Private message
+	bool can_see = true;
+	if(bool(m.target)) {
+		can_see = state.local_player_nation == m.source || state.local_player_nation == m.target;
+	}
+	if(can_see) {
+		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
+		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
+			state.ui_state.chat_messages_index = 0;
+	}
+}
+
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::chat_message;
 	p.source = source;
 	p.data.chat_message.target = target;
-	memcpy(p.data.chat_message.body, std::string(body).c_str(), ui::max_chat_message_len);
-	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
+	memcpy(p.data.chat_message.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
 	add_to_command_queue(state, p);
 }
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
@@ -3995,22 +4007,64 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	if(!can_chat_message(state, source, body, target))
 		return;
 	
-	ui::chat_message m;
+	ui::chat_message m{};
 	m.source = source;
 	m.target = target;
-	memcpy(m.body, std::string(body).c_str(), ui::max_chat_message_len);
-	m.body[ui::max_chat_message_len - 1] = '\0';
+	m.body = std::string(body);
+	post_chat_message(state, m);
+}
 
-	// Private message
-	bool can_see = true;
-	if(bool(target)) {
-		can_see = state.local_player_nation == source || state.local_player_nation == target;
+void notify_player_joins(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_joins;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source) {
+	if(!can_notify_player_joins(state, source))
+		return;
+	state.world.nation_set_is_player_controlled(source, true);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
+	post_chat_message(state, m);
+}
+
+void notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_leaves;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	if(!can_notify_player_leaves(state, source))
+		return;
+	if(source == state.local_player_nation) {
+		state.local_player_nation = dcon::nation_id{};
 	}
-	if(can_see) {
-		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
-		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
-			state.ui_state.chat_messages_index = 0;
-	}
+	state.world.nation_set_is_player_controlled(source, false);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
+	post_chat_message(state, m);
 }
 
 void execute_pending_commands(sys::state& state) {
@@ -4277,8 +4331,20 @@ void execute_pending_commands(sys::state& state) {
 			break;
 
 		// common mp commands
-		case command_type::chat_message:
-			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
+		case command_type::chat_message: {
+			size_t count = 0;
+			for(count = 0; count < sizeof(c->data.chat_message.body); count++)
+				if(c->data.chat_message.body[count] == '\0')
+					break;
+			std::string_view sv(c->data.chat_message.body, count);
+			execute_chat_message(state, c->source, sv, c->data.chat_message.target);
+			break;
+		}
+		case command_type::notify_player_joins:
+			execute_notify_player_joins(state, c->source);
+			break;
+		case command_type::notify_player_leaves:
+			execute_notify_player_leaves(state, c->source);
 			break;
 
 		// console commands
