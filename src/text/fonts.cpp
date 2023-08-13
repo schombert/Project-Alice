@@ -4,8 +4,8 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+#include "bmfont.hpp"
 
-#include "bmfont.h"
 namespace text {
 
 constexpr uint16_t pack_font_handle(uint32_t font_index, bool black, uint32_t size) {
@@ -305,14 +305,14 @@ float font::top_adjustment(int32_t size) const {
 
 float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
-		return text::get_bm_font(state, font_id).GetHeight();
+		return text::get_bm_font(state, font_id).get_height();
 	} else {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
 float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
-		return text::get_bm_font(state, font_id).GetStringWidth(state, codepoints, count);
+		return text::get_bm_font(state, font_id).get_string_width(state, codepoints, count);
 	} else {
 		return float(
 				fonts[text::font_index_from_font_id(font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
