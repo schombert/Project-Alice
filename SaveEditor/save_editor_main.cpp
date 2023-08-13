@@ -1,8 +1,7 @@
 #define ALICE_NO_ENTRY_POINT 1
 #include "main.cpp"
 
-namespace sys {
-void write_uncompressed_save_file(sys::state& state, native_string name) {
+static inline void write_uncompressed_save_file(sys::state& state, native_string name) {
 	save_header header;
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size = sizeof_save_header(header) + sizeof_save_section(state);
@@ -15,27 +14,57 @@ void write_uncompressed_save_file(sys::state& state, native_string name) {
 			uint32_t(total_size_used));
 	delete[] buffer;
 }
+
+static inline bool compare_game_states(sys::state& ws1, sys::state& ws2) {
+	auto ymd = ws1.current_date.to_ymd(ws1.start_date);
+	auto tmp1 = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(ws1)]);
+	write_save_section(tmp1.get(), ws1);
+	auto tmp2 = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(ws2)]);
+	write_save_section(tmp2.get(), ws1);
+
+	if(sizeof_save_section(ws1) == sizeof_save_section(ws2)) {
+		if(std::memcmp(tmp1.get(), tmp2.get(), sizeof_save_section(ws1)) == 0) {
+			return true;
+		}
+	}
+	return false;
 }
 
-int main(int argc, char **argv) {
+static inline std::unique_ptr<sys::state> load_prepare_game_state(native_string scenario, native_string save) {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
-
-	assert(
-			std::string("NONE") !=
-			GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
 	add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
 	add_root(game_state->common_fs,
 			NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
+	if(!sys::try_read_scenario_and_save_file(*game_state, scenario)) {
+		// scenario making functions
+		game_state->load_scenario_data();
+		sys::write_scenario_file(*game_state, scenario);
+	} else {
+		std::printf("Reading savefile\n");
+		sys::try_read_save_file(*game_state, save);
+		game_state->fill_unsaved_data();
+	}
+	return game_state;
+}
 
+static inline void compare_savefiles(native_string scenario, native_string save1, native_string save2) {
+	std::unique_ptr<sys::state> game_state_1 = load_prepare_game_state(scenario, save1);
+	std::unique_ptr<sys::state> game_state_2 = load_prepare_game_state(scenario, save2);
+	bool b = compare_game_states(*game_state_1, *game_state_2);
+	std::printf("%s\n", b ? "EQUAL" : "DIFFERENT");
+}
+
+int main(int argc, char **argv) {
 	if(argc <= 1) {
 		std::printf("Please give an argument denoting how many ticks to run for.\n");
-		std::printf("%s [number-of-ticks] [options]\n", argv[0]);
+		std::printf("%s [number-of-ticks] [options] [save1] [save2]\n", argv[0]);
 		std::printf("Options can be either of:\n");
 		std::printf("\t'n' - Output a savefile for each tick.\n");
 		std::printf("\t's' - Skip reading the savefile (if any).\n");
 		std::printf("\t'f' - Do not overwrite original savefile.\n");
 		std::printf("\t'q' - Do not do anything, simply exit without doing anything.\n");
 		std::printf("\t'u' - Save uncompressed\n");
+		std::printf("\t'c' - Compare that two saves are equal\n");
 		std::printf("For example: '%s 10 sn'\n", argv[0]);
 		return EXIT_FAILURE;
 	}
@@ -44,39 +73,50 @@ int main(int argc, char **argv) {
 	static bool skip_savefile = false;
 	static bool save_final = true;
 	static bool save_compress = true;
+	static bool save_compare = false;
 	static int num_ticks = 1;
+
+	native_string save1 = NATIVE("in_test_save.bin");
+	native_string save2 = NATIVE("out_test_save.bin");
+	native_string scenario = NATIVE("development_scenario_file.bin");
+
 	if(argc >= 2) {
 		num_ticks = atoi(argv[1]);
 		if(argc >= 3) {
 			const char *p = argv[2];
 			for(; *p != '\0'; ++p) {
-				if(*p == 'n')
+				if(*p == 'n') {
 					output_for_each = true;
-				else if(*p == 's')
+				} else if(*p == 's') {
 					skip_savefile = true;
-				else if(*p == 'f')
+				} else if(*p == 'f') {
 					save_final = false;
-				else if(*p == 'u')
+				} else if(*p == 'u') {
 					save_compress = false;
-				else if(*p == 'q')
+				} else if(*p == 'c') {
+					save_compare = true;
+				} else if(*p == 'q') {
 					return EXIT_SUCCESS;
+				}
+			}
+			if(argc >= 4) {
+				save1 = simple_fs::utf8_to_native(std::string(argv[3]));
+				if(argc >= 5) {
+					save2 = simple_fs::utf8_to_native(std::string(argv[4]));
+					if(argc >= 6) {
+						scenario = simple_fs::utf8_to_native(std::string(argv[5]));
+					}
+				}
 			}
 		}
 	}
 
-	std::printf("Reading scenario\n");
-	if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
-		// scenario making functions
-		game_state->load_scenario_data();
-		sys::write_scenario_file(*game_state, NATIVE("development_test_file.bin"));
-	} else {
-		if(!skip_savefile) {
-			std::printf("Reading savefile\n");
-			sys::try_read_save_file(*game_state, NATIVE("development_test_save.bin"));
-		}
-		game_state->fill_unsaved_data();
+	if(save_compare) {
+		compare_savefiles(scenario, save1, save2);
+		return EXIT_SUCCESS;
 	}
 
+	std::unique_ptr<sys::state> game_state = load_prepare_game_state(scenario, NATIVE("$invalid$.bin"));
 	{
 		auto ymd = game_state->current_date.to_ymd(game_state->start_date);
 		std::printf("%u.%u.%u\n", (unsigned int)ymd.year, (unsigned int)ymd.month, (unsigned int)ymd.day);
@@ -86,7 +126,7 @@ int main(int argc, char **argv) {
 		auto ymd = game_state->current_date.to_ymd(game_state->start_date);
 		std::printf("%u.%u.%u\n", (unsigned int)ymd.year, (unsigned int)ymd.month, (unsigned int)ymd.day);
 		if(output_for_each) {
-			native_string s = NATIVE("development_test_save.");
+			native_string s = save2;
 			s += to_native_string(ymd.year) + NATIVE(".");
 			s += to_native_string(ymd.month) + NATIVE(".");
 			s += to_native_string(ymd.day);
@@ -95,16 +135,16 @@ int main(int argc, char **argv) {
 				sys::write_save_file(*game_state, s);
 			} else {
 				s += NATIVE(".raw");
-				sys::write_uncompressed_save_file(*game_state, s);
+				write_uncompressed_save_file(*game_state, s);
 			}
 			std::printf("Savefile written\n");
 		}
 	}
 	if(save_final) {
 		if(save_compress) {
-			sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+			sys::write_save_file(*game_state, save2);
 		} else {
-			sys::write_uncompressed_save_file(*game_state, NATIVE("development_test_save.raw"));
+			write_uncompressed_save_file(*game_state, save2);
 		}
 		std::printf("Savefile written\n");
 	}
