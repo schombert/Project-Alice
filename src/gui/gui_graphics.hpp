@@ -340,7 +340,7 @@ class unit_details_window;
 struct chat_message {
 	dcon::nation_id source{};
 	dcon::nation_id target{};
-	char body[max_chat_message_len] = {};
+	std::string body;
 
 	chat_message() = default;
 	chat_message(const chat_message&) = default;
