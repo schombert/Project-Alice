@@ -1,6 +1,22 @@
 #define ALICE_NO_ENTRY_POINT 1
 #include "main.cpp"
 
+namespace sys {
+void write_uncompressed_save_file(sys::state& state, native_string name) {
+	save_header header;
+	// this is an upper bound, since compacting the data may require less space
+	size_t total_size = sizeof_save_header(header) + sizeof_save_section(state);
+	uint8_t* buffer = new uint8_t[total_size];
+	uint8_t* buffer_position = buffer;
+	buffer_position = write_save_header(buffer_position, header);
+	buffer_position = write_save_section(buffer_position, state);
+	auto total_size_used = buffer_position - buffer;
+	simple_fs::write_file(simple_fs::get_or_create_save_game_directory(), name, reinterpret_cast<char*>(buffer),
+			uint32_t(total_size_used));
+	delete[] buffer;
+}
+}
+
 int main(int argc, char **argv) {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
@@ -19,6 +35,7 @@ int main(int argc, char **argv) {
 		std::printf("\t's' - Skip reading the savefile (if any).\n");
 		std::printf("\t'f' - Do not overwrite original savefile.\n");
 		std::printf("\t'q' - Do not do anything, simply exit without doing anything.\n");
+		std::printf("\t'u' - Save uncompressed\n");
 		std::printf("For example: '%s 10 sn'\n", argv[0]);
 		return EXIT_FAILURE;
 	}
@@ -26,6 +43,7 @@ int main(int argc, char **argv) {
 	static bool output_for_each = false;
 	static bool skip_savefile = false;
 	static bool save_final = true;
+	static bool save_compress = true;
 	static int num_ticks = 1;
 	if(argc >= 2) {
 		num_ticks = atoi(argv[1]);
@@ -38,6 +56,8 @@ int main(int argc, char **argv) {
 					skip_savefile = true;
 				else if(*p == 'f')
 					save_final = false;
+				else if(*p == 'u')
+					save_compress = false;
 				else if(*p == 'q')
 					return EXIT_SUCCESS;
 			}
@@ -50,7 +70,7 @@ int main(int argc, char **argv) {
 		game_state->load_scenario_data();
 		sys::write_scenario_file(*game_state, NATIVE("development_test_file.bin"));
 	} else {
-		if(skip_savefile) {
+		if(!skip_savefile) {
 			std::printf("Reading savefile\n");
 			sys::try_read_save_file(*game_state, NATIVE("development_test_save.bin"));
 		}
@@ -70,13 +90,22 @@ int main(int argc, char **argv) {
 			s += to_native_string(ymd.year) + NATIVE(".");
 			s += to_native_string(ymd.month) + NATIVE(".");
 			s += to_native_string(ymd.day);
-			s += NATIVE(".bin");
-			sys::write_save_file(*game_state, s);
+			if(save_compress) {
+				s += NATIVE(".bin");
+				sys::write_save_file(*game_state, s);
+			} else {
+				s += NATIVE(".raw");
+				sys::write_uncompressed_save_file(*game_state, s);
+			}
 			std::printf("Savefile written\n");
 		}
 	}
 	if(save_final) {
-		sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+		if(save_compress) {
+			sys::write_save_file(*game_state, NATIVE("development_test_save.bin"));
+		} else {
+			sys::write_uncompressed_save_file(*game_state, NATIVE("development_test_save.raw"));
+		}
 		std::printf("Savefile written\n");
 	}
 	return EXIT_SUCCESS;
