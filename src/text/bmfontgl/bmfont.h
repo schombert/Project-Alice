@@ -101,6 +101,9 @@ public:
 	int16_t Base = 0;
 	int16_t Width = 0;
 	int16_t Height = 0;
+	int16_t Pages = 0;
+	int16_t ScaleW = 0;
+	int16_t ScaleH = 0;
 
 	bool ParseFont(simple_fs::file& f);
 	int GetKerningPair(char, char) const;

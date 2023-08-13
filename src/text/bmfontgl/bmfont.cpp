@@ -44,10 +44,7 @@ aaedev@gmail.com 2012
 #include <stdio.h>
 #include <stdlib.h>
 #include <glew.h>
-#include <iostream>
-#include <fstream>
 #include <string>
-#include <sstream>
 #include "bmfont.h"
 #include <stdarg.h>
 
@@ -63,134 +60,191 @@ aaedev@gmail.com 2012
 
 namespace text {
 
+const char *skip_whitespace(const char *start, const char *end) {
+	assert(start < end);
+	for(; start != end && (*start == ' ' || *start == '\t' || *start == '\n' || *start == '\r'); start++)
+		;
+	return start;
+}
+
+const char *read_int(const char *start, const char *end, int32_t& v) {
+	assert(start < end);
+	std::from_chars(start, end, v);
+	for(; start != end && (*start >= '0' && *start <= '9'); start++)
+		;
+	return start;
+}
+
 bool BMFont::ParseFont(simple_fs::file& f) {
 	auto content = simple_fs::view_contents(f);
 
-	std::stringstream Stream(std::string(content.data, content.file_size));
-	std::string Line;
-	std::string Read, Key, Value;
-	std::size_t i;
+	auto const* seq = content.data;
+	auto const* end_seq = content.data + content.file_size;
 
-	CharDescriptor C;
-
-	while(!Stream.eof()) {
-		std::stringstream LineStream;
-		std::getline(Stream, Line);
-		LineStream << Line;
-
-		// read the line's type
-		LineStream >> Read;
-		if(Read == "common") {
-			// this holds common data
-			while(!LineStream.eof()) {
-				std::stringstream Converter;
-				LineStream >> Read;
-				i = Read.find('=');
-				Key = Read.substr(0, i);
-				Value = Read.substr(i + 1);
-
-				// assign the correct value
-				Converter << Value;
-				if(Key == "lineHeight") {
-					Converter >> LineHeight;
-				} else if(Key == "base") {
-					Converter >> Base;
-				} else if(Key == "scaleW") {
-					Converter >> Width;
-				} else if(Key == "scaleH") {
-					Converter >> Height;
-				} else if(Key == "pages") {
-					int16_t Pages = 0;
-					Converter >> Pages;
-				} else if(Key == "outline") {
-					int16_t Outline = 0;
-					Converter >> Outline;
-				}
+	int32_t rvalue = 0;
+	uint32_t char_id = 0;
+	int32_t kern_first = 0;
+	int32_t kern_second = 0;
+	int32_t kern_amount = 0;
+	while(seq != end_seq) {
+		assert(seq < end_seq);
+		seq = skip_whitespace(seq, end_seq);
+		if(parsers::has_fixed_suffix_ci(seq, end_seq, "lineheight")) {
+			seq += 10;
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				LineHeight = int16_t(rvalue);
 			}
-		}
-
-		else if(Read == "char") {
-			// This is data for each specific character.
-			int CharID = 0;
-
-			while(!LineStream.eof()) {
-				std::stringstream Converter;
-				LineStream >> Read;
-				i = Read.find('=');
-				Key = Read.substr(0, i);
-				Value = Read.substr(i + 1);
-
-				// Assign the correct value
-				Converter << Value;
-				if(Key == "id") {
-					Converter >> CharID;
-				} else if(Key == "x") {
-					Converter >> C.x;
-				} else if(Key == "y") {
-					Converter >> C.y;
-				} else if(Key == "width") {
-					Converter >> C.Width;
-				} else if(Key == "height") {
-					Converter >> C.Height;
-				} else if(Key == "xoffset") {
-					Converter >> C.XOffset;
-				} else if(Key == "yoffset") {
-					Converter >> C.YOffset;
-				} else if(Key == "xadvance") {
-					Converter >> C.XAdvance;
-				} else if(Key == "page") {
-					Converter >> C.Page;
-				}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "kernings")) {
+			seq += 8;
+			while(seq != end_seq && *seq != '\n')
+				seq++;
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "xadvance")) {
+			seq += 8;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].XAdvance = short(rvalue);
 			}
-
-			Chars[uint8_t(CharID)] = C;
-
-		} else if(Read == "kernings") {
-			while(!LineStream.eof()) {
-				std::stringstream Converter;
-				LineStream >> Read;
-				i = Read.find('=');
-				Key = Read.substr(0, i);
-				Value = Read.substr(i + 1);
-
-				// assign the correct value
-				Converter << Value;
-				if(Key == "count") {
-					int16_t KernCount = 0;
-					Converter >> KernCount;
-				}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "xoffset")) {
+			seq += 7;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].XOffset = short(rvalue);
 			}
-		} else if(Read == "kerning") {
-			int32_t first = 0;
-			int32_t second = 0;
-			int32_t amount = 0;
-
-			while(!LineStream.eof()) {
-				std::stringstream Converter;
-				LineStream >> Read;
-				i = Read.find('=');
-				Key = Read.substr(0, i);
-				Value = Read.substr(i + 1);
-
-				// assign the correct value
-				Converter << Value;
-				if(Key == "first") {
-					Converter >> first;
-				}
-
-				else if(Key == "second") {
-					Converter >> second;
-				}
-
-				else if(Key == "amount") {
-					Converter >> amount;
-				}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "yoffset")) {
+			seq += 7;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].YOffset = short(rvalue);
 			}
-			uint16_t index = uint16_t(uint8_t(first) << 8) | uint16_t((uint8_t(second)));
-			Kern.insert_or_assign(index, amount);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "kerning")) {
+			seq += 7;
+			seq = skip_whitespace(seq, end_seq);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "common")) {
+			seq += 6;
+			seq = skip_whitespace(seq, end_seq);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "height")) {
+			seq += 6;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].Height = short(rvalue);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "amount")) {
+			seq += 6;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				kern_amount = rvalue;
+
+				uint16_t index = uint16_t(uint8_t(kern_first) << 8) | uint16_t((uint8_t(kern_second)));
+				Kern.insert_or_assign(index, kern_amount);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "second")) {
+			seq += 6;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				kern_second = rvalue;
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "scalew")) {
+			seq += 6;
+			seq = read_int(seq, end_seq, rvalue);
+			ScaleW = int16_t(rvalue);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "scaleh")) {
+			seq += 6;
+			seq = read_int(seq, end_seq, rvalue);
+			ScaleH = int16_t(rvalue);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "pages")) {
+			seq += 5;
+			seq = read_int(seq, end_seq, rvalue);
+			Pages = int16_t(rvalue);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "width")) {
+			seq += 5;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].Width = short(rvalue);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "first")) {
+			seq += 5;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				kern_first = short(rvalue);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "base")) {
+			seq += 4;
+			seq = read_int(seq, end_seq, rvalue);
+			Base = int16_t(rvalue);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "info")) {
+			seq += 4;
+			while(seq != end_seq && *seq != '\n')
+				seq++;
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "page")) {
+			seq += 4;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].Page = short(rvalue);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "char")) {
+			seq += 4;
+			seq = skip_whitespace(seq, end_seq);
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "id")) {
+			seq += 2;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				char_id = uint8_t(rvalue);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "x")) {
+			seq += 1;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].x = short(rvalue);
+			}
+		} else if(parsers::has_fixed_suffix_ci(seq, end_seq, "y")) {
+			seq += 1;
+			seq = skip_whitespace(seq, end_seq);
+			if(seq != end_seq && *seq == '=') {
+				++seq;
+				seq = skip_whitespace(seq, end_seq);
+				seq = read_int(seq, end_seq, rvalue);
+				Chars[char_id].y = short(rvalue);
+			}
+		} else if(seq != end_seq) {
+			seq++;
 		}
 	}
-
 	return true;
 }
 
