@@ -121,7 +121,7 @@ bool bm_font::parse_font(sys::state& state, simple_fs::file& f) {
 	auto content = simple_fs::view_contents(f);
 	parsers::error_handler err("");
 	parsers::scenario_building_context context(state);
-	err.file_name = simple_fs::get_full_name(f);
+	err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(f));
 	parsers::token_generator gen(content.data, content.data + content.file_size);
 	parsers::bmfont_file_context bmfont_file_context(context, *this);
 	parsers::parse_bmfont_file(gen, err, bmfont_file_context);
