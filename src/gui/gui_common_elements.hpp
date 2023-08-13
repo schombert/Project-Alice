@@ -94,13 +94,9 @@ template<class T>
 class generic_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T content = any_cast<T>(payload);
-			auto fat_id = dcon::fatten(state.world, content);
-			simple_text_element_base::set_text(state, text::get_name_as_string(state, fat_id));
-		}
+		T content = retrieve<T>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		simple_text_element_base::set_text(state, text::get_name_as_string(state, fat_id));
 	}
 };
 
@@ -108,19 +104,15 @@ template<class T>
 class generic_multiline_name_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T content = any_cast<T>(payload);
-			auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
-			auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
-					text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
-							multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, color, false});
-			auto fat_id = dcon::fatten(state.world, content);
-			auto box = text::open_layout_box(container);
-			text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
-			text::close_layout_box(container, box);
-		}
+		T content = retrieve<T>(state, parent);
+		auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
+				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
+						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, color, false});
+		auto fat_id = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(container);
+		text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
+		text::close_layout_box(container, box);
 	}
 };
 
@@ -132,12 +124,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T content = any_cast<T>(payload);
-			simple_text_element_base::set_text(state, get_text(state, content));
-		}
+		T content = retrieve<T>(state, parent);
+		simple_text_element_base::set_text(state, get_text(state, content));
 	}
 };
 
@@ -270,25 +258,21 @@ public:
 		}
 		auto border = base_data.data.text.border_size;
 
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			auto color = black_text ? text::text_color::black : text::text_color::white;
-			auto container = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{
-					border.x,
-					border.y,
-					int16_t(base_data.size.x - border.x * 2),
-					int16_t(base_data.size.y - border.y * 2),
-					base_data.data.text.font_handle,
-					0,
-					align,
-					color,
-					false});
-			populate_layout(state, container, content);
-		}
+		auto content = retrieve<T>(state, parent);
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{
+				border.x,
+				border.y,
+				int16_t(base_data.size.x - border.x * 2),
+				int16_t(base_data.size.y - border.y * 2),
+				base_data.data.text.font_handle,
+				0,
+				align,
+				color,
+				false});
+		populate_layout(state, container, content);
 	}
 };
 
@@ -336,9 +320,6 @@ public:
 	}
 };
 
-
-
-
 class standard_movement_text : public simple_text_element_base {
 public:
 	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept {
@@ -346,12 +327,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::movement_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::movement_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::movement_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
@@ -384,16 +361,11 @@ public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept { }
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::movement_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::movement_id>(payload);
-
-			auto color = black_text ? text::text_color::black : text::text_color::white;
-			auto container =
-					text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
-			populate_layout(state, container, content);
-		}
+		auto content = retrieve<dcon::movement_id>(state, parent);
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container =
+				text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
+		populate_layout(state, container, content);
 	}
 };
 
@@ -424,12 +396,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::rebel_faction_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::rebel_faction_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::rebel_faction_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
@@ -448,12 +416,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
@@ -920,24 +884,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
 		
-			auto n = retrieve<dcon::nation_id>(state, parent);
-			
+		auto base = state.defines.suppression_points_gain_base;
+		auto nmod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::suppression_points_modifier) + 1.0f;
+		auto bmod = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.bureaucrat)) /
+						std::max(state.world.nation_get_demographics(n, demographics::total), 1.0f) * state.defines.suppress_bureaucrat_factor;
 
-			auto base = state.defines.suppression_points_gain_base;
-			auto nmod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::suppression_points_modifier) + 1.0f;
-			auto bmod = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.bureaucrat)) /
-							std::max(state.world.nation_get_demographics(n, demographics::total), 1.0f) * state.defines.suppress_bureaucrat_factor;
+		text::add_line(state, contents, "sup_point_gain", text::variable_type::val, text::fp_two_places{base * nmod * bmod});
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "sup_point_explain", text::variable_type::x, text::fp_two_places{base},
+				text::variable_type::y, text::fp_three_places{bmod}, text::variable_type::val, text::fp_two_places{nmod});
 
-			text::add_line(state, contents, "sup_point_gain", text::variable_type::val, text::fp_two_places{base * nmod * bmod});
-			text::add_line_break_to_layout(state, contents);
-			text::add_line(state, contents, "sup_point_explain", text::variable_type::x, text::fp_two_places{base},
-					text::variable_type::y, text::fp_three_places{bmod}, text::variable_type::val, text::fp_two_places{nmod});
-
-			text::add_line_break_to_layout(state, contents);
-			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::suppression_points_modifier, true);
-			
-		
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::suppression_points_modifier, true);
 	}
 };
 
@@ -1623,12 +1583,8 @@ public:
 class factory_priority_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_id>(payload);
-			frame = economy::factory_priority(state, content);
-		}
+		auto content = retrieve<dcon::factory_id>(state, parent);
+		frame = economy::factory_priority(state, content);
 	}
 };
 
@@ -1652,18 +1608,10 @@ public:
 class national_focus_icon : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_focus_id{};
-			parent->impl_get(state, payload);
-			auto nfid = any_cast<dcon::national_focus_id>(payload);
-
-			Cyto::Any s_payload = dcon::state_instance_id{};
-			parent->impl_get(state, s_payload);
-			auto sid = any_cast<dcon::state_instance_id>(s_payload);
-
-			disabled = !command::can_set_national_focus(state, state.local_player_nation, sid, nfid);
-			frame = state.world.national_focus_get_icon(nfid) - 1;
-		}
+		auto nfid = retrieve<dcon::national_focus_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		disabled = !command::can_set_national_focus(state, state.local_player_nation, sid, nfid);
+		frame = state.world.national_focus_get_icon(nfid) - 1;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1671,29 +1619,18 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_focus_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::national_focus_id>(payload);
-			if(bool(content)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
-				text::close_layout_box(contents, box);
-			}
+		auto content = retrieve<dcon::national_focus_id>(state, parent);
+		if(bool(content)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
+			text::close_layout_box(contents, box);
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			Cyto::Any nf_payload = dcon::national_focus_id{};
-			parent->impl_get(state, nf_payload);
-			auto nat_focus = any_cast<dcon::national_focus_id>(nf_payload);
-			command::set_national_focus(state, state.local_player_nation, content, nat_focus);
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto nat_focus = retrieve<dcon::national_focus_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, content, nat_focus);
 	}
 };
 
@@ -1757,12 +1694,8 @@ public:
 class national_focus_remove_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
 	}
 };
 
