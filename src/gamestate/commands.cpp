@@ -4006,36 +4006,36 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	}
 }
 
-void join_game(sys::state& state, dcon::nation_id source) {
+void notify_player_joins(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::join_game;
+	p.type = command_type::notify_player_joins;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
-bool can_join_game(sys::state& state, dcon::nation_id source) {
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_join_game(sys::state& state, dcon::nation_id source) {
-	if(!can_join_game(state, source))
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source) {
+	if(!can_notify_player_joins(state, source))
 		return;
 	state.world.nation_set_is_player_controlled(source, true);
 }
 
-void leave_game(sys::state& state, dcon::nation_id source) {
+void notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::leave_game;
+	p.type = command_type::notify_player_leaves;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
-bool can_leave_game(sys::state& state, dcon::nation_id source) {
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_leave_game(sys::state& state, dcon::nation_id source) {
-	if(!can_leave_game(state, source))
+void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	if(!can_notify_player_leaves(state, source))
 		return;
 	if(source == state.local_player_nation) {
 		state.local_player_nation = dcon::nation_id{};
@@ -4310,11 +4310,11 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::chat_message:
 			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
 			break;
-		case command_type::join_game:
-			execute_join_game(state, c->source);
+		case command_type::notify_player_joins:
+			execute_notify_player_joins(state, c->source);
 			break;
-		case command_type::leave_game:
-			execute_leave_game(state, c->source);
+		case command_type::notify_player_leaves:
+			execute_notify_player_leaves(state, c->source);
 			break;
 
 		// console commands

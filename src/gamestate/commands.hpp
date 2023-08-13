@@ -89,8 +89,8 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 
-	join_game = 120,
-	leave_game = 121,
+	notify_player_joins = 120,
+	notify_player_leaves = 121,
 	advance_tick = 122,
 	chat_message = 123,
 
@@ -690,10 +690,10 @@ bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
-void join_game(sys::state& state, dcon::nation_id source);
-bool can_join_game(sys::state& state, dcon::nation_id source);
-void leave_game(sys::state& state, dcon::nation_id source);
-bool can_leave_game(sys::state& state, dcon::nation_id source);
+void notify_player_joins(sys::state& state, dcon::nation_id source);
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
+void notify_player_leaves(sys::state& state, dcon::nation_id source);
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
