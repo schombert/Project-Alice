@@ -2,7 +2,7 @@
 #include "main.cpp"
 
 static inline void write_uncompressed_save_file(sys::state& state, native_string name) {
-	save_header header;
+	sys::save_header header;
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size = sizeof_save_header(header) + sizeof_save_section(state);
 	uint8_t* buffer = new uint8_t[total_size];
@@ -116,7 +116,11 @@ int main(int argc, char **argv) {
 		return EXIT_SUCCESS;
 	}
 
-	std::unique_ptr<sys::state> game_state = load_prepare_game_state(scenario, NATIVE("$invalid$.bin"));
+	if(skip_savefile) {
+		save1 = NATIVE("$invalid$$$.bin");
+	}
+
+	std::unique_ptr<sys::state> game_state = load_prepare_game_state(scenario, save1);
 	{
 		auto ymd = game_state->current_date.to_ymd(game_state->start_date);
 		std::printf("%u.%u.%u\n", (unsigned int)ymd.year, (unsigned int)ymd.month, (unsigned int)ymd.day);
