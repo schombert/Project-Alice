@@ -4026,7 +4026,7 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source) {
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::x, nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source))));
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
 	text::add_to_substitution_map(sub, text::variable_type::playername, source);
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
@@ -4054,7 +4054,7 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::x, nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source))));
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
 	text::add_to_substitution_map(sub, text::variable_type::playername, source);
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
