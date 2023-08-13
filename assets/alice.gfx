@@ -120,4 +120,9 @@ spriteTypes = {
 		texturefile = "assets\\naval_combat_bg_2.png"
 		noOfFrames = 1
 	}
+	spriteType = {
+		name = "GFX_alice_message_type"
+		texturefile = "assets\\message_disp_options.png"
+		noOfFrames = 4
+	}
 }
