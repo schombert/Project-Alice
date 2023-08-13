@@ -686,406 +686,579 @@ public:
 
 //===============================================================================================================================
 
-class naval_combat_end_popup_close_button : public button_element_base {
+class nc_loss_image : public image_element_base {
+	bool visible = true;
+	void on_update(sys::state& state) noexcept override {
+		visible = !(retrieve< military::naval_battle_report*>(state, parent)->player_on_winning_side);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+};
+class nc_win_image : public image_element_base {
+	bool visible = true;
+	void on_update(sys::state& state) noexcept override {
+		visible = (retrieve< military::naval_battle_report*>(state, parent)->player_on_winning_side);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+};
+class nc_result_battle_name : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto loc = retrieve< military::naval_battle_report*>(state, parent)->location;
+		auto name = state.world.province_get_name(loc);
+		auto txt = text::produce_simple_string(state, "battle_of") + " " + text::produce_simple_string(state, name);
+		set_text(state, txt);
+	}
+};
+
+class nc_our_leader_img : public image_element_base {
+	dcon::gfx_object_id def;
+
+	void on_update(sys::state& state) noexcept override {
+		if(!def)
+			def = base_data.data.image.gfx_object;
+
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		dcon::leader_id lid = we_are_attacker ? report->attacking_admiral : report->defending_admiral;
+
+		if(!lid) {
+			base_data.data.image.gfx_object = def;
+			return;
+		}
+
+		auto owner = state.world.leader_get_nation_from_leader_loyalty(lid);
+		auto pculture = state.world.nation_get_primary_culture(owner);
+		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
+
+		if(ltype) {
+			auto grange = ltype.get_admirals();
+			if(grange.size() > 0) {
+				auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+				auto in_range = rng::reduce(uint32_t(rval), grange.size());
+				base_data.data.image.gfx_object = grange[in_range];
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		dcon::leader_id lid = we_are_attacker ? report->attacking_admiral : report->defending_admiral;
+
+		if(lid)
+			display_leader_attributes(state, lid, contents, 0);
+		else
+			text::add_line(state, contents, "no_leader");
+	}
+};
+class nc_our_leader_name : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		dcon::leader_id lid = we_are_attacker ? report->attacking_admiral : report->defending_admiral;
+
+		if(lid) {
+			auto name = state.to_string_view(state.world.leader_get_name(lid));
+			set_text(state, std::string(name));
+		} else {
+			set_text(state, text::produce_simple_string(state, "no_leader"));
+		}
+	}
+};
+class nc_their_leader_img : public image_element_base {
+	dcon::gfx_object_id def;
+
+	void on_update(sys::state& state) noexcept override {
+		if(!def)
+			def = base_data.data.image.gfx_object;
+
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		dcon::leader_id lid = !we_are_attacker ? report->attacking_admiral : report->defending_admiral;
+
+		if(!lid) {
+			base_data.data.image.gfx_object = def;
+			return;
+		}
+
+		auto owner = state.world.leader_get_nation_from_leader_loyalty(lid);
+		auto pculture = state.world.nation_get_primary_culture(owner);
+		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
+
+		if(ltype) {
+			auto grange = ltype.get_admirals();
+			if(grange.size() > 0) {
+				auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
+				auto in_range = rng::reduce(uint32_t(rval), grange.size());
+				base_data.data.image.gfx_object = grange[in_range];
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		dcon::leader_id lid = !we_are_attacker ? report->attacking_admiral : report->defending_admiral;
+
+		if(lid)
+			display_leader_attributes(state, lid, contents, 0);
+		else
+			text::add_line(state, contents, "no_leader");
+	}
+};
+class nc_their_leader_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		dcon::leader_id lid = !we_are_attacker ? report->attacking_admiral : report->defending_admiral;
+
+		if(lid) {
+			auto name = state.to_string_view(state.world.leader_get_name(lid));
+			set_text(state, std::string(name));
+		} else {
+			set_text(state, text::produce_simple_string(state, "no_leader"));
+		}
+	}
+};
+class nc_our_prestige : public color_text_element {
+public:
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		auto prestige_value = report->prestige_effect;
+		set_text(state, text::format_float(prestige_value, 2));
+		if(prestige_value > 0) {
+			color = text::text_color::green;
+		} else if(prestige_value < 0) {
+			color = text::text_color::red;
+		} else {
+			color = text::text_color::white;
+		}
+	}
+};
+class nc_their_prestige : public color_text_element {
+public:
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		auto prestige_value = -report->prestige_effect;
+		set_text(state, text::format_float(prestige_value, 2));
+		if(prestige_value > 0) {
+			color = text::text_color::green;
+		} else if(prestige_value < 0) {
+			color = text::text_color::red;
+		} else {
+			color = text::text_color::white;
+		}
+	}
+};
+class nc_o_initial_bs : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? report->attacker_big_ships : report->defender_big_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_o_initial_ss : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? report->attacker_small_ships : report->defender_small_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_o_initial_ts : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? report->attacker_transport_ships : report->defender_transport_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_initial_bs : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? report->attacker_big_ships : report->defender_big_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_initial_ss : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? report->attacker_small_ships : report->defender_small_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_initial_ts : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? report->attacker_transport_ships : report->defender_transport_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_o_loss_bs : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::min(report->attacker_big_ships, report->attacker_big_losses) : std::min(report->defender_big_ships, report->defender_big_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_o_loss_ss : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::min(report->attacker_small_ships, report->attacker_small_losses) : std::min(report->defender_small_ships, report->defender_small_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_o_loss_ts : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::min(report->attacker_transport_ships, report->attacker_transport_losses) : std::min(report->defender_transport_ships, report->defender_transport_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_t_loss_bs : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::min(report->attacker_big_ships, report->attacker_big_losses) : std::min(report->defender_big_ships, report->defender_big_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_t_loss_ss : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::min(report->attacker_small_ships, report->attacker_small_losses) : std::min(report->defender_small_ships, report->defender_small_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_t_loss_ts : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::min(report->attacker_transport_ships, report->attacker_transport_losses) : std::min(report->defender_transport_ships, report->defender_transport_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_o_rem_bs : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::max(report->attacker_big_ships - report->attacker_big_losses, 0) : std::max(report->defender_big_ships - report->defender_big_losses, 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_o_rem_ss : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::max(report->attacker_small_ships - report->attacker_small_losses, 0) : std::max(report->defender_small_ships - report->defender_small_losses, 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_o_rem_ts : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::max(report->attacker_transport_ships - report->attacker_transport_losses, 0) : std::max(report->defender_transport_ships - report->defender_transport_losses, 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_rem_bs : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::max(report->attacker_big_ships - report->attacker_big_losses, 0) : std::max(report->defender_big_ships - report->defender_big_losses, 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_rem_ss : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::max(report->attacker_small_ships - report->attacker_small_losses, 0) : std::max(report->defender_small_ships - report->defender_small_losses, 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_rem_ts : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::max(report->attacker_transport_ships - report->attacker_transport_losses, 0) : std::max(report->defender_transport_ships - report->defender_transport_losses, 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+
+class nc_o_initial_total : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? report->attacker_big_ships + report->attacker_small_ships + report->attacker_transport_ships : report->defender_big_ships + report->defender_small_ships + report->defender_transport_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_o_loss_total : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::min(report->attacker_big_ships + report->attacker_small_ships + report->attacker_transport_ships, report->attacker_big_losses + report->attacker_small_losses + report->attacker_transport_losses) : std::min(report->defender_big_ships + report->defender_small_ships + report->defender_transport_ships, report->defender_big_losses + report->defender_small_losses + report->defender_transport_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_o_rem_total : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = we_are_attacker ? std::max(report->attacker_big_ships + report->attacker_small_ships + report->attacker_transport_ships - (report->attacker_big_losses + report->attacker_small_losses + report->attacker_transport_losses), 0) : std::max(report->defender_big_ships + report->defender_small_ships + report->defender_transport_ships - (report->defender_big_losses + report->defender_small_losses + report->defender_transport_losses), 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_initial_total : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? report->attacker_big_ships + report->attacker_small_ships + report->attacker_transport_ships : report->defender_big_ships + report->defender_small_ships + report->defender_transport_ships;
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_t_loss_total : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::min(report->attacker_big_ships + report->attacker_small_ships + report->attacker_transport_ships, report->attacker_big_losses + report->attacker_small_losses + report->attacker_transport_losses) : std::min(report->defender_big_ships + report->defender_small_ships + report->defender_transport_ships, report->defender_big_losses + report->defender_small_losses + report->defender_transport_losses);
+		set_text(state, text::prettify(-int64_t(value)));
+	}
+};
+class nc_t_rem_total : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
+		auto value = !we_are_attacker ? std::max(report->attacker_big_ships + report->attacker_small_ships + report->attacker_transport_ships - (report->attacker_big_losses + report->attacker_small_losses + report->attacker_transport_losses), 0) : std::max(report->defender_big_ships + report->defender_small_ships + report->defender_transport_ships - (report->defender_big_losses + report->defender_small_losses + report->defender_transport_losses), 0);
+		set_text(state, text::prettify(int64_t(value)));
+	}
+};
+class nc_goto_location_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{bool{true}};
-			parent->impl_get(state, payload);
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		auto prov = report->location;
+		if(prov) {
+			state.map_state.set_selected_province(prov);
+			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+
+			if(state.map_state.get_zoom() < 8)
+				state.map_state.zoom = 8.0f;
+
+			auto map_pos = state.world.province_get_mid_point(prov);
+			map_pos.x /= float(state.map_state.map_data.size_x);
+			map_pos.y /= float(state.map_state.map_data.size_y);
+			map_pos.y = 1.0f - map_pos.y;
+			state.map_state.set_pos(map_pos);
+		}
+	}
+};
+
+class nc_close_button : public button_element_base {
+	void button_action(sys::state& state) noexcept override;
+};
+class nc_win_lose : public color_text_element {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		if(report->player_on_winning_side) {
+			set_text(state, text::produce_simple_string(state, "you_won"));
+			color = text::text_color::dark_green;
+		} else {
+			set_text(state, text::produce_simple_string(state, "you_lost"));
+			color = text::text_color::dark_red;
+		}
+	}
+};
+class nc_warscore : public color_text_element {
+	void on_update(sys::state& state) noexcept override {
+		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
+		if(report->player_on_winning_side) {
+			set_text(state, std::string("+") + text::format_float(report->warscore_effect, 1));
+			color = text::text_color::green;
+		} else {
+			set_text(state, text::format_float(report->warscore_effect, 1));
+			color = text::text_color::red;
 		}
 	}
 };
 
 class naval_combat_end_popup : public window_element_base {
-private:
-	image_element_base* loss_image = nullptr;
-	image_element_base* win_image = nullptr;
-	simple_text_element_base* battlename_text = nullptr;
-	simple_text_element_base* winorlose_text = nullptr;
-	simple_text_element_base* warscore_text = nullptr;
-	simple_text_element_base* ourleader_text = nullptr;
-	simple_text_element_base* enemyleader_text = nullptr;
-
-	//===============================================================
-
-	simple_text_element_base* left_bigship_initial_text = nullptr;
-	simple_text_element_base* left_bigship_casualties_text = nullptr;
-	simple_text_element_base* left_bigship_survivors_text = nullptr;
-
-	simple_text_element_base* left_smallship_initial_text = nullptr;
-	simple_text_element_base* left_smallship_casualties_text = nullptr;
-	simple_text_element_base* left_smallship_survivors_text = nullptr;
-
-	simple_text_element_base* left_transship_initial_text = nullptr;
-	simple_text_element_base* left_transship_casualties_text = nullptr;
-	simple_text_element_base* left_transship_survivors_text = nullptr;
-
-	//===============================================================
-
-	simple_text_element_base* right_bigship_initial_text = nullptr;
-	simple_text_element_base* right_bigship_casualties_text = nullptr;
-	simple_text_element_base* right_bigship_survivors_text = nullptr;
-
-	simple_text_element_base* right_smallship_initial_text = nullptr;
-	simple_text_element_base* right_smallship_casualties_text = nullptr;
-	simple_text_element_base* right_smallship_survivors_text = nullptr;
-
-	simple_text_element_base* right_transship_initial_text = nullptr;
-	simple_text_element_base* right_transship_casualties_text = nullptr;
-	simple_text_element_base* right_transship_survivors_text = nullptr;
-
-	//===============================================================
-
-	simple_text_element_base* left_total_initial_text = nullptr;
-	simple_text_element_base* left_total_lost_text = nullptr;
-	simple_text_element_base* left_total_left_text = nullptr;
-
-	simple_text_element_base* right_total_initial_text = nullptr;
-	simple_text_element_base* right_total_lost_text = nullptr;
-	simple_text_element_base* right_total_left_text = nullptr;
-
-	//===============================================================
 public:
 	military::naval_battle_report report;
+	static std::vector<std::unique_ptr<ui::naval_combat_end_popup>> naval_reports_pool;
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "background") {
-			auto ptr = make_element_by_type<draggable_target>(state, id);
-			// ptr->base_data.size = base_data.size; // Nudge
-			return ptr;
-		} else if(name == "combat_end_naval_lost") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			loss_image = ptr.get();
-			return ptr;
 
-		} else if(name == "combat_end_naval_won") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			win_image = ptr.get();
-			return ptr;
-
-		} else if(name == "line1") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			battlename_text = ptr.get();
-			return ptr;
-
-		} else if(name == "ourleader_photo") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "ourleader") { // Our great leader, the leader of the universe, Puffy, Puffy the cat, tremble in her might
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ourleader_text = ptr.get();
-			return ptr;
-
-		} else if(name == "prestige_icon") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "prestige_number") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "we_icon") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "we_number") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "initial_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "casualties_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "survivors_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "enemyleader_photo") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "enemyleader") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			enemyleader_text = ptr.get();
-			return ptr;
-
-		} else if(name == "prestige_icon2") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "prestige_number2") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "we_icon2") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "we_number2") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "initial_label2") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "casualties_label2") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "survivors_label2") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "our_unit_type_1") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
-			return ptr;
-
-		} else if(name == "our_unit_type_1_1_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_bigship_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_1_2_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_bigship_casualties_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_1_3_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_bigship_survivors_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_2") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
-			return ptr;
-
-		} else if(name == "our_unit_type_2_1_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_smallship_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_2_2_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_smallship_casualties_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_2_3_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_smallship_survivors_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_3") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
-			return ptr;
-
-		} else if(name == "our_unit_type_3_1_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_transship_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_3_2_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_transship_casualties_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_unit_type_3_3_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_transship_survivors_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_1") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
-			return ptr;
-
-		} else if(name == "enemy_unit_type_1_1_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_bigship_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_1_2_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_bigship_casualties_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_1_3_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_bigship_survivors_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_2") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
-			return ptr;
-
-		} else if(name == "enemy_unit_type_2_1_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_smallship_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_2_2_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_smallship_casualties_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_2_3_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_smallship_survivors_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_3") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = ptr->frame -1;
-			return ptr;
-
-		} else if(name == "enemy_unit_type_3_1_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_transship_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_3_2_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_transship_casualties_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_unit_type_3_3_text") {
-			auto ptr =  make_element_by_type<simple_text_element_base>(state, id);
-			right_transship_survivors_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_total_armies") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_total_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_total_loss") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_total_lost_text = ptr.get();
-			return ptr;
-
-		} else if(name == "our_total_left") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			left_total_left_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_total_armies") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			right_total_initial_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_total_loss") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			right_total_lost_text = ptr.get();
-			return ptr;
-
-		} else if(name == "enemy_total_left") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			right_total_left_text = ptr.get();
-			return ptr;
-
-		} else if(name == "agreebutton") {
-			auto ptr = make_element_by_type<naval_combat_end_popup_close_button>(state, id);
-			ptr->base_data.position.y += 146; // Nudge
-			return ptr;
-		} else if(name == "declinebutton") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->base_data.position.y += 146; // Nudge
-			ptr->set_button_text(state, text::produce_simple_string(state, "navalbattleover_btn3"));
-			return ptr;
-		} else if(name == "centerok") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false); // Disacrd
-			return ptr;
-		} else if(name == "warscore_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "warscore") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			warscore_text = ptr.get();
-			return ptr;
-		} else if(name == "winorlose") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			winorlose_text = ptr.get();
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		battlename_text->set_text(state, (text::produce_simple_string(state, "battle_of") + " " + text::produce_simple_string(state, dcon::fatten(state.world, report.location).get_name())));
-		if(report.player_on_winning_side) {
-			win_image->set_visible(state, true);
-			loss_image->set_visible(state, false);
-		} else {
-			win_image->set_visible(state, false);
-			loss_image->set_visible(state, true);
-		}
-
-		warscore_text->set_text(state, text::format_float(report.warscore_effect, 1));
-		winorlose_text->set_text(state, report.player_on_winning_side ? text::produce_simple_string(state, "you_won") :
-										text::produce_simple_string(state, "you_lost"));
-		auto attack_leader = dcon::fatten(state.world, report.attacking_admiral);
-		auto defend_leader = dcon::fatten(state.world, report.defending_admiral);
-
-		attack_leader.is_valid() ? ourleader_text->set_text(state, text::produce_simple_string(state, state.to_string_view(attack_leader.get_name())))
-					: ourleader_text->set_text(state, text::produce_simple_string(state, "no_leader"));
-		defend_leader.is_valid() ? enemyleader_text->set_text(state, text::produce_simple_string(state, state.to_string_view(defend_leader.get_name())))
-					: enemyleader_text->set_text(state, text::produce_simple_string(state, "no_leader"));
-
-		//============================================================================================
-
-		left_bigship_initial_text->set_text(state, text::format_float(report.attacker_big_ships, 0));
-		left_smallship_initial_text->set_text(state, text::format_float(report.attacker_small_ships, 0));
-		left_transship_initial_text->set_text(state, text::format_float(report.attacker_transport_ships, 0));
-
-		right_bigship_initial_text->set_text(state, text::format_float(report.defender_big_ships, 0));
-		right_smallship_initial_text->set_text(state, text::format_float(report.defender_small_ships, 0));
-		right_transship_initial_text->set_text(state, text::format_float(report.defender_transport_ships, 0));
-
-		//============================================================================================
-
-		left_bigship_casualties_text->set_text(state, text::format_float(report.attacker_big_losses, 0));
-		left_smallship_casualties_text->set_text(state, text::format_float(report.attacker_small_losses, 0));
-		left_transship_casualties_text->set_text(state, text::format_float(report.attacker_transport_losses, 0));	// We stand for the Thin Pink Line
-
-		right_bigship_casualties_text->set_text(state, text::format_float(report.defender_big_losses, 0));
-		right_smallship_casualties_text->set_text(state, text::format_float(report.defender_small_losses, 0));
-		right_transship_casualties_text->set_text(state, text::format_float(report.defender_transport_losses, 0));
-
-		//============================================================================================
-
-		left_bigship_survivors_text->set_text(state, text::format_float(float(report.attacker_big_ships - report.attacker_big_losses), 0));
-		left_smallship_survivors_text->set_text(state, text::format_float(float(report.attacker_small_ships - report.attacker_small_losses), 0));
-		left_transship_survivors_text->set_text(state, text::format_float(float(report.attacker_transport_ships - report.attacker_transport_losses), 0));
-
-		right_bigship_survivors_text->set_text(state, text::format_float(float(report.defender_big_ships - report.defender_big_losses), 0));
-		right_smallship_survivors_text->set_text(state, text::format_float(float(report.defender_small_ships - report.defender_small_losses), 0));
-		right_transship_survivors_text->set_text(state, text::format_float(float(report.defender_transport_ships - report.defender_transport_losses), 0));
-
-		//============================================================================================
-
-		left_total_initial_text->set_text(state, text::format_float(
-					float(report.attacker_big_ships + report.attacker_small_ships + report.attacker_transport_ships), 0));
-		left_total_lost_text->set_text(state, text::format_float(
-					float(report.attacker_big_losses + report.attacker_small_losses + report.attacker_transport_losses), 0));
-		left_total_left_text->set_text(state, text::format_float(float(
-					(report.attacker_big_ships - report.attacker_big_losses) +
-					(report.attacker_small_ships - report.attacker_small_losses) +
-					(report.attacker_transport_ships - report.attacker_transport_losses)
-					), 0));
-		right_total_initial_text->set_text(state, text::format_float(
-					float(report.defender_big_ships + report.defender_small_ships + report.defender_transport_ships), 0));
-		right_total_lost_text->set_text(state, text::format_float(
-					float(report.defender_big_losses + report.defender_small_losses + report.defender_transport_losses), 0));
-		right_total_left_text->set_text(state, text::format_float(float(
-					(report.defender_big_ships - report.defender_big_losses) +
-					(report.defender_small_ships - report.defender_small_losses) +
-					(report.defender_transport_ships - report.defender_transport_losses)
-					), 0));
-
-		//============================================================================================
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<element_selection_wrapper<bool>>()) {
-			auto content = any_cast<element_selection_wrapper<bool>>(payload).data;
-			if(content) {
-					auto root = static_cast<ui::container_base*>(state.ui_state.root.get());
-					if(auto result = std::find_if(root->children.begin(), root->children.end(), [this](std::unique_ptr<element_base>& p){return p.get() == this;});
-							result != root->children.end()) {
-						if(result + 1 != children.end()) { std::rotate(result, result+1, root->children.end());}
-
-						auto temp = std::move(root->children.back());
-						root->children.pop_back();
-						set_visible(state, false);
-						state.ui_state.endof_navalcombat_windows.push_back(std::move(temp));
-					} else {
-						std::abort();	// Failed to move the naavl combat window back out
-					}
-			} else {
-				// TODO - We dont handle this, yet
-			}
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	static void make_new_report(sys::state& state, military::naval_battle_report const& r);
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 };
+
+std::vector<std::unique_ptr<ui::naval_combat_end_popup>> naval_combat_end_popup::naval_reports_pool;
+
+message_result naval_combat_end_popup::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<military::naval_battle_report*>()) {
+		payload.emplace<military::naval_battle_report*>(&report);
+		return message_result::consumed;
+	}
+	return window_element_base::get(state, payload);
+}
+
+void naval_combat_end_popup::make_new_report(sys::state& state, military::naval_battle_report const& r) {
+	if(naval_reports_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_end_popup>(state, "endofnavalcombatpopup");
+		auto ptr = new_elm.get();
+		naval_combat_end_popup* actual = static_cast<naval_combat_end_popup*>(ptr);
+		actual->report = r;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<naval_combat_end_popup> ptr = std::move(naval_reports_pool.back());
+		naval_reports_pool.pop_back();
+		ptr->report = r;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+
+std::unique_ptr<element_base> naval_combat_end_popup::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "background") {
+		return make_element_by_type<draggable_target>(state, id);
+	} else if(name == "combat_end_naval_lost") {
+		return make_element_by_type<nc_loss_image>(state, id);
+	} else if(name == "combat_end_naval_won") {
+		return make_element_by_type<nc_win_image>(state, id);
+	} else if(name == "line1") {
+		return make_element_by_type<nc_result_battle_name>(state, id);
+	} else if(name == "ourleader_photo") {
+		return make_element_by_type<nc_our_leader_img>(state, id);
+	} else if(name == "ourleader") {
+		return make_element_by_type<nc_our_leader_name>(state, id);
+	} else if(name == "prestige_number") {
+		return make_element_by_type<nc_our_prestige>(state, id);
+	} else if(name == "we_number") {
+		return make_element_by_type<lc_empty_text>(state, id);
+	} else if(name == "enemyleader_photo") {
+		return make_element_by_type<nc_their_leader_img>(state, id);
+	} else if(name == "enemyleader") {
+		return make_element_by_type<nc_their_leader_name>(state, id);
+	} else if(name == "prestige_number2") {
+		return make_element_by_type<nc_their_prestige>(state, id);
+	} else if(name == "we_number2") {
+		return make_element_by_type<lc_empty_text>(state, id);
+	} else if(name == "our_unit_type_1") {
+		return make_element_by_type<lc_static_icon<3>>(state, id);
+	} else if(name == "our_unit_type_1_1_text") {
+		return make_element_by_type<nc_o_initial_bs>(state, id);
+	} else if(name == "our_unit_type_1_2_text") {
+		return make_element_by_type<nc_o_loss_bs>(state, id);
+	} else if(name == "our_unit_type_1_3_text") {
+		return make_element_by_type<nc_o_rem_bs>(state, id);
+	} else if(name == "our_unit_type_2") {
+		return make_element_by_type<lc_static_icon<4>>(state, id);
+	} else if(name == "our_unit_type_2_1_text") {
+		return make_element_by_type<nc_o_initial_ss>(state, id);
+	} else if(name == "our_unit_type_2_2_text") {
+		return make_element_by_type<nc_o_loss_ss>(state, id);
+	} else if(name == "our_unit_type_2_3_text") {
+		return make_element_by_type<nc_o_rem_ss>(state, id);
+	} else if(name == "our_unit_type_3") {
+		return make_element_by_type<lc_static_icon<5>>(state, id);
+	} else if(name == "our_unit_type_3_1_text") {
+		return make_element_by_type<nc_o_initial_ts>(state, id);
+	} else if(name == "our_unit_type_3_2_text") {
+		return make_element_by_type<nc_o_loss_ts>(state, id);
+	} else if(name == "our_unit_type_3_3_text") {
+		return make_element_by_type<nc_o_rem_ts>(state, id);
+	} else if(name == "enemy_unit_type_1") {
+		return make_element_by_type<lc_static_icon<3>>(state, id);
+	} else if(name == "enemy_unit_type_1_1_text") {
+		return make_element_by_type<nc_t_initial_bs>(state, id);
+	} else if(name == "enemy_unit_type_1_2_text") {
+		return make_element_by_type<nc_t_loss_bs>(state, id);
+	} else if(name == "enemy_unit_type_1_3_text") {
+		return make_element_by_type<nc_t_rem_bs>(state, id);
+	} else if(name == "enemy_unit_type_2") {
+		return make_element_by_type<lc_static_icon<4>>(state, id);
+	} else if(name == "enemy_unit_type_2_1_text") {
+		return make_element_by_type<nc_t_initial_ss>(state, id);
+	} else if(name == "enemy_unit_type_2_2_text") {
+		return make_element_by_type<nc_t_loss_ss>(state, id);
+	} else if(name == "enemy_unit_type_2_3_text") {
+		return make_element_by_type<nc_t_rem_ss>(state, id);
+	} else if(name == "enemy_unit_type_3") {
+		return make_element_by_type<lc_static_icon<5>>(state, id);
+	} else if(name == "enemy_unit_type_3_1_text") {
+		return make_element_by_type<nc_t_initial_ts>(state, id);
+	} else if(name == "enemy_unit_type_3_2_text") {
+		return make_element_by_type<nc_t_loss_ts>(state, id);
+	} else if(name == "enemy_unit_type_3_3_text") {
+		return make_element_by_type<nc_t_rem_ts>(state, id);
+	} else if(name == "our_total_armies") {
+		return make_element_by_type<nc_o_initial_total>(state, id);
+	} else if(name == "our_total_loss") {
+		return make_element_by_type<nc_o_loss_total>(state, id);
+	} else if(name == "our_total_left") {
+		return make_element_by_type<nc_o_rem_total>(state, id);
+	} else if(name == "enemy_total_armies") {
+		return make_element_by_type<nc_t_initial_total>(state, id);
+	} else if(name == "enemy_total_loss") {
+		return make_element_by_type<nc_t_loss_total>(state, id);
+	} else if(name == "enemy_total_left") {
+		return make_element_by_type<nc_t_rem_total>(state, id);
+	} else if(name == "agreebutton") {
+		auto ptr = make_element_by_type<nc_close_button>(state, id);
+		ptr->base_data.position.y += 146; // Nudge
+		return ptr;
+	} else if(name == "declinebutton") {
+		auto ptr = make_element_by_type<nc_goto_location_button>(state, id);
+		ptr->base_data.position.y += 146; // Nudge
+		ptr->set_button_text(state, text::produce_simple_string(state, "landbattleover_btn3"));
+		return ptr;
+	} else if(name == "centerok") {
+		auto ptr = make_element_by_type<button_element_base>(state, id);
+		ptr->set_visible(state, false); // Disacrd
+		return ptr;
+	} else if(name == "warscore") {
+		auto ptr = make_element_by_type<nc_warscore>(state, id);
+		return ptr;
+	} else if(name == "winorlose") {
+		auto ptr = make_element_by_type<nc_win_lose>(state, id);
+		return ptr;
+	} else {
+		return nullptr;
+	}
+}
+
+void nc_close_button::button_action(sys::state& state) noexcept {
+	parent->set_visible(state, false);
+	auto uptr = state.ui_state.root->remove_child(parent);
+	assert(uptr);
+	std::unique_ptr<naval_combat_end_popup> ptr(static_cast<naval_combat_end_popup*>(uptr.release()));
+	naval_combat_end_popup::naval_reports_pool.push_back(std::move(ptr));
+}
 
 } // namespace ui
