@@ -118,8 +118,17 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		if(mode == sys::game_mode::pick_nation) {
 			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
 			if(owner) {
-				local_player_nation = owner;
-				ui_state.nation_picker->impl_on_update(*this);
+				// On single player we simply set the local player nation
+				// on multiplayer we wait until we get a confirmation that we are
+				// allowed to pick the specified nation as no two players can get on
+				// a nation, at the moment
+				// TODO: Allow Co-op
+				if(network_mode == sys::network_mode::single_player) {
+					local_player_nation = owner;
+					ui_state.nation_picker->impl_on_update(*this);
+				} else {
+					command::notify_player_picks_nation(*this, local_player_nation, owner);
+				}
 			}
 		} else if(mode != sys::game_mode::end_screen) {
 			if(ui_state.province_window) {
@@ -2905,20 +2914,26 @@ void state::single_game_tick() {
 
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		auto speed = actual_game_speed.load(std::memory_order::acquire);
-		auto upause = ui_pause.load(std::memory_order::acquire);
-		if(speed <= 0 || upause || internally_paused) {
+		if(network_mode == sys::network_mode::client) {
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
-			auto entry_time = std::chrono::steady_clock::now();
-			auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
-			if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+			auto speed = actual_game_speed.load(std::memory_order::acquire);
+			auto upause = ui_pause.load(std::memory_order::acquire);
+			if(speed <= 0 || upause || internally_paused) {
 				command::execute_pending_commands(*this);
-				last_update = entry_time;
-				single_game_tick();
+				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				auto entry_time = std::chrono::steady_clock::now();
+				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
+				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+					command::execute_pending_commands(*this);
+					last_update = entry_time;
+					single_game_tick();
+				} else {
+					command::execute_pending_commands(*this);
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				}
 			}
 		}
 	}

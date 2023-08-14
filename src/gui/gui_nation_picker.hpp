@@ -200,10 +200,24 @@ public:
 
 class pick_nation_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode::single_player) {
+			disabled = false;
+		} else {
+			// Prevent (via UI) the player from selecting a nation already selected by someone
+			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, n);
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		state.local_player_nation = n;
-		state.ui_state.nation_picker->impl_on_update(state);
+		if(state.network_mode == sys::network_mode::single_player) {
+			state.local_player_nation = n;
+			state.ui_state.nation_picker->impl_on_update(state);
+		} else {
+			command::notify_player_picks_nation(state, state.local_player_nation, n);
+		}
 	}
 };
 
@@ -351,7 +365,7 @@ class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-		state.mode = sys::game_mode::single_player;
+		state.mode = sys::game_mode::in_game;
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
 };
@@ -367,14 +381,31 @@ public:
 	}
 };
 
+class multiplayer_ping_text : public simple_text_element_base {
+	uint32_t last_ms = 0;
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode::single_player) {
+			set_text(state, "");
+		} else {
+			set_text(state, std::to_string(last_ms) + " ms");
+		}
+	}
+};
+
 class number_of_players_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		int32_t count = 0;
-		state.world.for_each_nation([&](dcon::nation_id n) {
-			if(state.world.nation_get_is_player_controlled(n))
-				count++;
-		});
+		uint32_t count = 0;
+		if(state.network_mode == sys::network_mode::single_player) {
+			count = 1;
+		} else {
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				if(state.world.nation_get_is_player_controlled(n))
+					count++;
+			});
+		}
 		set_text(state, std::to_string(count));
 	}
 };
@@ -387,8 +418,7 @@ public:
 		} else if(name == "name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "save_progress") {
-			// TODO: I would like to repurpouse this for specifying the ping the player has
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<multiplayer_ping_text>(state, id);
 		} else if(name == "button_kick") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "button_ban") {
@@ -407,10 +437,14 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_nation([&](dcon::nation_id n) {
-			if(state.world.nation_get_is_player_controlled(n))
-				row_contents.push_back(n);
-		});
+		if(state.network_mode == sys::network_mode::single_player) {
+			row_contents.push_back(state.local_player_nation);
+		} else {
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				if(state.world.nation_get_is_player_controlled(n))
+					row_contents.push_back(n);
+			});
+		}
 		update(state);
 	}
 };
