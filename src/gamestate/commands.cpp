@@ -2782,18 +2782,24 @@ bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national
 	dcon::nation_id n = state.world.national_identity_get_nation_from_identity_holder(t);
 	if(state.world.nation_get_is_player_controlled(n) || source == n)
 		return false;
+		
 	return true;
 }
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	if(!can_switch_nation(state, source, t))
 		return;
-
-	state.world.nation_set_is_player_controlled(state.local_player_nation, false);
-	if(source == state.local_player_nation) {
-		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(t);
+	
+	dcon::nation_id target = state.world.national_identity_get_nation_from_identity_holder(t);
+	if(bool(source) && source != state.national_definitions.rebel_id) {
+		state.world.nation_set_is_player_controlled(source, false);
 	}
-	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-	ai::remove_ai_data(state, state.local_player_nation);
+	if(bool(target) && target != state.national_definitions.rebel_id) {
+		if(source == state.local_player_nation) {
+			state.local_player_nation = target;
+		}
+		state.world.nation_set_is_player_controlled(target, true);
+		ai::remove_ai_data(state, target);
+	}
 }
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
