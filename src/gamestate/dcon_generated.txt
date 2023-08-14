@@ -2721,7 +2721,7 @@ object {
 	}
 	property {
 		name{ increase_building }
-		type{ array{economy::province_building_type}{uint8_t} }
+		type{ array{economy::province_building_type}{bitfield} }
 		tag{ scenario }
 	}
 	property{
