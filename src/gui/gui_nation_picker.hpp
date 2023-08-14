@@ -150,6 +150,13 @@ public:
 };
 
 class save_game_item : public listbox_row_element_base<save_item> {
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base<save_item>::on_create(state);
+		base_data.position.x += 9; // Nudge
+		base_data.position.y += 7; // Nudge
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "save_game") {
 			return make_element_by_type<select_save_game>(state, id);
@@ -182,6 +189,7 @@ public:
 };
 
 class saves_window : public window_element_base {
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "save_games_list") {
 			return make_element_by_type<saves_listbox>(state, id);
@@ -200,19 +208,38 @@ public:
 };
 
 class playable_nations_item : public listbox_row_element_base<dcon::nation_id> {
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "playable_countries_button") {
-			return make_element_by_type<pick_nation_button>(state, id);
+			auto ptr = make_element_by_type<pick_nation_button>(state, id);
+			ptr->base_data.position.x += 9; // Nudge
+			ptr->base_data.position.y = 0; // Nudge
+			return ptr;
 		} else if(name == "playable_countries_flag") {
-			return make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<picker_flag>(state, id);
+			ptr->base_data.position.x += 9; // Nudge
+			ptr->base_data.position.y = 1; // Nudge
+			return ptr;
 		} else if(name == "country_name") {
-			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			ptr->base_data.position.x += 9; // Nudge
+			ptr->base_data.position.y = 5; // Nudge
+			return ptr;
 		} else if(name == "prestige_rank") {
-			return make_element_by_type<nation_prestige_rank_text>(state, id);
+			auto ptr = make_element_by_type<nation_prestige_rank_text>(state, id);
+			ptr->base_data.position.x += 9; // Nudge
+			ptr->base_data.position.y = 5; // Nudge
+			return ptr;
 		} else if(name == "industry_rank") {
-			return make_element_by_type<nation_industry_rank_text>(state, id);
+			auto ptr = make_element_by_type<nation_industry_rank_text>(state, id);
+			ptr->base_data.position.x += 9; // Nudge
+			ptr->base_data.position.y = 5; // Nudge
+			return ptr;
 		} else if(name == "military_rank") {
-			return make_element_by_type<nation_military_rank_text>(state, id);
+			auto ptr = make_element_by_type<nation_military_rank_text>(state, id);
+			ptr->base_data.position.x += 9; // Nudge
+			ptr->base_data.position.y = 5; // Nudge
+			return ptr;
 		}
 		return nullptr;
 	}
@@ -273,7 +300,9 @@ class playable_nations_window : public window_element_base {
 	picker_sort sort_order = picker_sort::name;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "lobby_sort_countryname") {
-			return make_element_by_type<playable_nations_sort_button<picker_sort::name>>(state, id);
+			auto ptr = make_element_by_type<playable_nations_sort_button<picker_sort::name>>(state, id);
+			ptr->base_data.position.y += 1; // Nudge
+			return ptr;
 		} else if(name == "lobby_sort_prestige") {
 			return make_element_by_type<playable_nations_sort_button<picker_sort::p_rank>>(state, id);
 		} else if(name == "lobby_sort_industry") {
@@ -303,6 +332,7 @@ class playable_nations_window : public window_element_base {
 class nation_picker_hidden : public element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		element_base::on_create(state);
 		set_visible(state, false);
 	}
 };
@@ -337,6 +367,68 @@ public:
 	}
 };
 
+class number_of_players_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		int32_t count = 0;
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			if(state.world.nation_get_is_player_controlled(n))
+				count++;
+		});
+		set_text(state, std::to_string(count));
+	}
+};
+
+class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::nation_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "player_shield") {
+			return make_element_by_type<picker_flag>(state, id);
+		} else if(name == "name") {
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+		} else if(name == "save_progress") {
+			// TODO: I would like to repurpouse this for specifying the ping the player has
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "button_kick") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "button_ban") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class nation_picker_multiplayer_listbox : public listbox_element_base<nation_picker_multiplayer_entry, dcon::nation_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "multiplayer_entry_server";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			if(state.world.nation_get_is_player_controlled(n))
+				row_contents.push_back(n);
+		});
+		update(state);
+	}
+};
+
+class nation_picker_multiplayer_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "multiplayer_list") {
+			return make_element_by_type<nation_picker_multiplayer_listbox>(state, id);
+		} else if(name == "checksum") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "num_players") {
+			return make_element_by_type<number_of_players_text>(state, id);
+		}
+		return nullptr;
+	}
+};
+
 class nation_picker_container : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -351,7 +443,7 @@ public:
 		} else if(name == "year_label") {
 			return make_element_by_type<date_label>(state, id);
 		} else if(name == "multiplayer") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<nation_picker_multiplayer_window>(state, id);
 		} else if(name == "singleplayer") {
 			return make_element_by_type<nation_details_window>(state, id);
 		} else if(name == "save_games") {
