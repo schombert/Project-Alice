@@ -701,6 +701,9 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
 void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
