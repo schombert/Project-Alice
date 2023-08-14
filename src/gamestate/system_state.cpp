@@ -127,7 +127,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					local_player_nation = owner;
 					ui_state.nation_picker->impl_on_update(*this);
 				} else {
-					command::notify_player_selects(*this, local_player_nation, owner);
+					command::notify_player_picks_nation(*this, local_player_nation, owner);
 				}
 			}
 		} else if(mode != sys::game_mode::end_screen) {

@@ -89,7 +89,7 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 
-	notify_player_selects = 119,
+	notify_player_picks_nation = 119,
 	notify_player_joins = 120,
 	notify_player_leaves = 121,
 	advance_tick = 122,
@@ -367,6 +367,10 @@ struct chat_message_data {
 	dcon::nation_id target;
 };
 
+struct nation_pick_data {
+	dcon::nation_id target;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -414,6 +418,7 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
+		nation_pick_data nation_pick;
 		chat_message_data chat_message;
 
 		dtype() { }

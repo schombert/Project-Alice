@@ -8,7 +8,7 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	switch(p.type) {
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
-	case command_type::notify_player_selects:
+	case command_type::notify_player_picks_nation:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
@@ -4086,23 +4086,23 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 }
 
-void notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_selects;
+	p.type = command_type::notify_player_picks_nation;
 	p.source = source;
 	p.data.nation_pick.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	// Can't take an already taken nation
 	if(source == target)
 		return false;
 	// TODO: Support Co-op (one day)
 	return state.world.nation_get_is_player_controlled(target) == false;
 }
-void execute_notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_notify_player_selects(state, source, target))
+void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_picks_nation(state, source, target))
 		return;
 	
 	if(source == state.local_player_nation) {
@@ -4390,8 +4390,8 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::notify_player_leaves:
 			execute_notify_player_leaves(state, c->source);
 			break;
-		case command_type::notify_player_selects:
-			execute_notify_player_selects(state, c->source, c->data.nation_pick.target);
+		case command_type::notify_player_picks_nation:
+			execute_notify_player_picks_nation(state, c->source, c->data.nation_pick.target);
 			break;
 		case command_type::advance_tick:
 			state.single_game_tick();
