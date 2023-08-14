@@ -206,7 +206,7 @@ public:
 			disabled = false;
 		} else {
 			// Prevent (via UI) the player from selecting a nation already selected by someone
-			disabled = !command::can_notify_player_selects(state, state.local_player_nation, n);
+			disabled = !command::can_switch_nation(state, state.local_player_nation, state.world.nation_get_identity_from_identity_holder(n));
 		}
 	}
 
@@ -216,7 +216,7 @@ public:
 			state.local_player_nation = n;
 			state.ui_state.nation_picker->impl_on_update(state);
 		} else {
-			command::notify_player_selects(state, state.local_player_nation, n);
+			command::switch_nation(state, state.local_player_nation, state.world.nation_get_identity_from_identity_holder(n));
 		}
 	}
 };

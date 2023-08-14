@@ -88,8 +88,7 @@ enum class command_type : uint8_t {
 	change_general = 79,
 	toggle_mobilization = 80,
 	give_military_access = 81,
-
-	notify_player_selects = 118,
+	
 	notify_player_ping = 119,
 	notify_player_joins = 120,
 	notify_player_leaves = 121,
@@ -419,7 +418,6 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
-		nation_pick_data nation_pick;
 		chat_message_data chat_message;
 
 		dtype() { }
@@ -701,8 +699,6 @@ void notify_player_joins(sys::state& state, dcon::nation_id source);
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
 void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
-void notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target);
-bool can_notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
