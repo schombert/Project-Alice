@@ -19,8 +19,14 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		break;
 	}
 
-	// TODO: pushes for client/server once available
-	bool b = state.incoming_commands.try_push(p);
+	switch(state.network_mode) {
+	case sys::network_mode::single_player:
+		// TODO: pushes for client/server once available
+		bool b = state.incoming_commands.try_push(p);
+		break;
+	default:
+		break;
+	}
 }
 
 bool console_command(sys::state& state, command_type t) {
