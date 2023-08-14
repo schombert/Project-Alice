@@ -5,8 +5,28 @@
 namespace command {
 
 static void add_to_command_queue(sys::state& state, payload& p) {
-	// TODO: pushes for client/server once available
-	bool b = state.incoming_commands.try_push(p);
+	switch(p.type) {
+	case command_type::notify_player_joins:
+	case command_type::notify_player_leaves:
+	case command_type::notify_player_picks_nation:
+		// Notifications can be sent because it's an-always do thing
+		break;
+	default:
+		// Normal commands
+		if(state.mode != sys::game_mode::in_game)
+			return;
+		break;
+	}
+
+	switch(state.network_mode) {
+	case sys::network_mode::single_player: {
+		// TODO: pushes for client/server once available
+		bool b = state.incoming_commands.try_push(p);
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 bool console_command(sys::state& state, command_type t) {
@@ -2757,20 +2777,26 @@ void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_ide
 }
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	dcon::nation_id n = state.world.national_identity_get_nation_from_identity_holder(t);
-	if(state.world.nation_get_is_player_controlled(n))
+	if(state.world.nation_get_is_player_controlled(n) || source == n)
 		return false;
+		
 	return true;
 }
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	if(!can_switch_nation(state, source, t))
 		return;
-
-	state.world.nation_set_is_player_controlled(state.local_player_nation, false);
-	if(source == state.local_player_nation) {
-		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(t);
+	
+	dcon::nation_id target = state.world.national_identity_get_nation_from_identity_holder(t);
+	if(bool(source) && source != state.national_definitions.rebel_id) {
+		state.world.nation_set_is_player_controlled(source, false);
 	}
-	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-	ai::remove_ai_data(state, state.local_player_nation);
+	if(bool(target) && target != state.national_definitions.rebel_id) {
+		if(source == state.local_player_nation) {
+			state.local_player_nation = target;
+		}
+		state.world.nation_set_is_player_controlled(target, true);
+		ai::remove_ai_data(state, target);
+	}
 }
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
@@ -3199,6 +3225,16 @@ void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 }
 void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 	state.world.nation_get_infamy(source) += value;
+}
+void c_end_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_end_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_end_game(sys::state& state, dcon::nation_id source) {
+	state.mode = sys::game_mode::end_screen;
 }
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
@@ -4058,6 +4094,31 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 }
 
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_picks_nation;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	// Can't take an already taken nation
+	if(source == target)
+		return false;
+	// TODO: Support Co-op (one day)
+	return state.world.nation_get_is_player_controlled(target) == false;
+}
+void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_picks_nation(state, source, target))
+		return;
+	
+	if(source == state.local_player_nation) {
+		state.local_player_nation = dcon::nation_id{};
+	}
+	state.world.nation_set_is_player_controlled(source, true);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -4337,6 +4398,12 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::notify_player_leaves:
 			execute_notify_player_leaves(state, c->source);
 			break;
+		case command_type::notify_player_picks_nation:
+			execute_notify_player_picks_nation(state, c->source, c->data.nation_pick.target);
+			break;
+		case command_type::advance_tick:
+			state.single_game_tick();
+			break;
 
 		// console commands
 		case command_type::switch_nation:
@@ -4368,6 +4435,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::c_change_national_militancy:
 			execute_c_change_national_militancy(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_end_game:
+			execute_c_end_game(state, c->source);
 			break;
 		}
 

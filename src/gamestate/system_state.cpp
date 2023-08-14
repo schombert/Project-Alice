@@ -31,6 +31,8 @@
 #include "ai.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_land_combat.hpp"
+#include "gui_nation_picker.hpp"
+#include "gui_end_window.hpp"
 
 namespace sys {
 //
@@ -113,24 +115,42 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				ui_state.relative_mouse_location.y, mod);
 	} else {
 		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-		if(ui_state.province_window) {
-			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
-		}
-		if(selected_armies.size() > 0) {
-			if(ui_state.army_status_window)
-				ui_state.army_status_window->set_visible(*this, false);
-			if(ui_state.unit_window_army)
-				ui_state.unit_window_army->set_visible(*this, false);
-			selected_armies.clear();
-			game_state_updated.store(true, std::memory_order_release);
-		}
-		if(selected_navies.size() > 0) {
-			if(ui_state.navy_status_window)
-				ui_state.navy_status_window->set_visible(*this, false);
-			if(ui_state.unit_window_navy)
-				ui_state.unit_window_navy->set_visible(*this, false);
-			selected_navies.clear();
-			game_state_updated.store(true, std::memory_order_release);
+
+		if(mode == sys::game_mode::pick_nation) {
+			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
+			if(owner) {
+				// On single player we simply set the local player nation
+				// on multiplayer we wait until we get a confirmation that we are
+				// allowed to pick the specified nation as no two players can get on
+				// a nation, at the moment
+				// TODO: Allow Co-op
+				if(network_mode == sys::network_mode::single_player) {
+					local_player_nation = owner;
+					ui_state.nation_picker->impl_on_update(*this);
+				} else {
+					command::notify_player_picks_nation(*this, local_player_nation, owner);
+				}
+			}
+		} else if(mode != sys::game_mode::end_screen) {
+			if(ui_state.province_window) {
+				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
+			}
+			if(selected_armies.size() > 0) {
+				if(ui_state.army_status_window)
+					ui_state.army_status_window->set_visible(*this, false);
+				if(ui_state.unit_window_army)
+					ui_state.unit_window_army->set_visible(*this, false);
+				selected_armies.clear();
+				game_state_updated.store(true, std::memory_order_release);
+			}
+			if(selected_navies.size() > 0) {
+				if(ui_state.navy_status_window)
+					ui_state.navy_status_window->set_visible(*this, false);
+				if(ui_state.unit_window_navy)
+					ui_state.unit_window_navy->set_visible(*this, false);
+				selected_navies.clear();
+				game_state_updated.store(true, std::memory_order_release);
+			}
 		}
 	}
 }
@@ -216,6 +236,16 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(ui_state.edit_target) {
 		ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
+	} else if(mode == sys::game_mode::pick_nation) {
+		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+			if(keycode == virtual_key::ESCAPE) {
+				ui::show_main_menu(*this);
+			}
+
+			map_state.on_key_down(keycode, mod);
+		}
+	} else if(mode == sys::game_mode::end_screen) {
+		
 	} else {
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
@@ -253,6 +283,309 @@ inline constexpr int32_t tooltip_width = 400;
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
                        // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+
+	if(mode == sys::game_mode::end_screen) {
+		ui_state.end_screen->base_data.size.x = ui_state.root->base_data.size.x;
+		ui_state.end_screen->base_data.size.y = ui_state.root->base_data.size.y;
+
+		auto mouse_probe = ui_state.end_screen->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+		auto tooltip_probe = ui_state.end_screen->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
+		if(game_state_was_updated) {
+			nations::update_ui_rankings(*this);
+			ui_state.end_screen->impl_on_update(*this);
+		
+			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.end_screen->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				}
+			}
+		}
+
+
+
+		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
+			ui_state.last_tooltip = tooltip_probe.under_mouse;
+			if(tooltip_probe.under_mouse) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type != ui::tooltip_behavior::no_tooltip) {
+
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.end_screen->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				} else {
+					ui_state.tooltip->set_visible(*this, false);
+				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
+		} else if(ui_state.last_tooltip &&
+							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.end_screen->base_data.size.y - 20), ui_state.tooltip_font, 0,
+							text::alignment::left,
+							text::text_color::white, true },
+					 10);
+			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0)
+				ui_state.tooltip->set_visible(*this, true);
+			else
+				ui_state.tooltip->set_visible(*this, false);
+		}
+
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+			// reposition tooltip
+			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+			if(ui_state.tooltip->base_data.size.y <=
+					ui_state.end_screen->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.end_screen->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else if(ui_state.tooltip->base_data.size.x <=
+								ui_state.end_screen->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0),
+						int16_t(ui_state.end_screen->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.end_screen->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.end_screen->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else {
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.end_screen->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.end_screen->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			}
+		}
+
+		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		
+		// UI rendering
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0, 1.0);
+
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.scroll_target = ui_state.end_screen->impl_probe_mouse(*this,
+			int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale),
+			ui::mouse_probe_type::scroll).under_mouse;
+
+		ui_state.relative_mouse_location = mouse_probe.relative_location;
+
+		ui_state.end_screen->impl_render(*this, 0, 0);
+		if(ui_state.tooltip->is_visible()) {
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		}
+		return;
+	}
+	if(mode == sys::game_mode::pick_nation) {
+		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
+		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
+
+		auto mouse_probe = ui_state.nation_picker->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+		auto tooltip_probe = ui_state.nation_picker->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
+		if(game_state_was_updated) {
+			this->map_state.map_data.update_borders(*this);
+			nations::update_ui_rankings(*this);
+
+
+
+			ui_state.nation_picker->impl_on_update(*this);
+			map_mode::update_map_mode(*this);
+
+
+			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				}
+			}
+		}
+
+
+
+		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
+			ui_state.last_tooltip = tooltip_probe.under_mouse;
+			if(tooltip_probe.under_mouse) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type != ui::tooltip_behavior::no_tooltip) {
+
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				} else {
+					ui_state.tooltip->set_visible(*this, false);
+				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
+		} else if(ui_state.last_tooltip &&
+							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
+							text::alignment::left,
+							text::text_color::white, true },
+					 10);
+			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0)
+				ui_state.tooltip->set_visible(*this, true);
+			else
+				ui_state.tooltip->set_visible(*this, false);
+		}
+
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+			// reposition tooltip
+			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+			if(ui_state.tooltip->base_data.size.y <=
+					ui_state.nation_picker->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else if(ui_state.tooltip->base_data.size.x <=
+								ui_state.nation_picker->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0),
+						int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else {
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			}
+		}
+
+		glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		if(bg_gfx_id) {
+			// Render default background
+			glUseProgram(open_gl.ui_shader_program);
+			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glViewport(0, 0, x_size, y_size);
+			glDepthRange(-1.0, 1.0);
+			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+			if(gfx_def.primary_texture_handle) {
+				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
+						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						ui::rotation::upright, gfx_def.is_vertically_flipped());
+			}
+		}
+
+		map_state.render(*this, x_size, y_size);
+
+		// UI rendering
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0, 1.0);
+
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.scroll_target = ui_state.nation_picker->impl_probe_mouse(*this,
+			int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale),
+			ui::mouse_probe_type::scroll).under_mouse;
+
+		ui_state.relative_mouse_location = mouse_probe.relative_location;
+
+		ui_state.nation_picker->impl_render(*this, 0, 0);
+		if(ui_state.tooltip->is_visible()) {
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		}
+		return;
+	}
 
 	if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
 		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
@@ -737,6 +1070,12 @@ void state::on_create() {
 	ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(*this, ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
 	ui_state.unit_details_box->set_visible(*this, false);
 
+	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
+	ui_state.end_screen = std::make_unique<ui::container_base>();
+	{
+		auto ewin = ui::make_element_by_type<ui::end_window>(*this, ui_state.defs_by_name.find("back_end")->second.definition);
+		ui_state.end_screen->add_child_to_front(std::move(ewin));
+	}
 	world.for_each_province([&](dcon::province_id id) {
 		if(world.province_get_port_to(id)) {
 			auto ptr = ui::make_element_by_type<ui::port_window>(*this, "alice_port_icon");
@@ -2312,425 +2651,449 @@ constexpr inline int32_t game_speed[] = {
 };
 
 void state::single_game_tick() {
-				// do update logic
-				province::update_connected_regions(*this);
-				province::update_cached_values(*this);
-				nations::update_cached_values(*this);
+	// do update logic
+	province::update_connected_regions(*this);
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
 
-				current_date += 1;
+	current_date += 1;
 
-				auto ymd_date = current_date.to_ymd(start_date);
+	if(!is_playable_date(current_date, start_date, end_date)) {
+		mode = sys::game_mode::end_screen;
+		return;
+	}
 
-				diplomatic_message::update_pending(*this);
+	auto ymd_date = current_date.to_ymd(start_date);
 
-				auto month_start = sys::year_month_day{ymd_date.year, ymd_date.month, uint16_t(1)};
-				auto next_month_start = sys::year_month_day{ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1)};
-				auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
+	diplomatic_message::update_pending(*this);
 
-				// pop update:
-				static demographics::ideology_buffer idbuf(*this);
-				static demographics::issues_buffer isbuf(*this);
-				static demographics::promotion_buffer pbuf;
-				static demographics::assimilation_buffer abuf;
-				static demographics::migration_buffer mbuf;
-				static demographics::migration_buffer cmbuf;
-				static demographics::migration_buffer imbuf;
+	auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
+	auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
+	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
-				// calculate complex changes in parallel where we can, but don't actually apply the results
-				// instead, the changes are saved to be applied only after all triggers have been evaluated
-				concurrency::parallel_for(0, 7, [&](int32_t index) {
-					switch(index) {
-					case 0: {
-						auto o = uint32_t(ymd_date.day);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_ideologies(*this, o, days_in_month, idbuf);
-						break;
-					}
-					case 1: {
-						auto o = uint32_t(ymd_date.day + 1);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_issues(*this, o, days_in_month, isbuf);
-						break;
-					}
-					case 2: {
-						auto o = uint32_t(ymd_date.day + 6);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_type_changes(*this, o, days_in_month, pbuf);
-						break;
-					}
-					case 3: {
-						auto o = uint32_t(ymd_date.day + 7);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_assimilation(*this, o, days_in_month, abuf);
-						break;
-					}
-					case 4: {
-						auto o = uint32_t(ymd_date.day + 8);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_internal_migration(*this, o, days_in_month, mbuf);
-						break;
-					}
-					case 5: {
-						auto o = uint32_t(ymd_date.day + 9);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
-						break;
-					}
-					case 6: {
-						auto o = uint32_t(ymd_date.day + 10);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_immigration(*this, o, days_in_month, imbuf);
-						break;
-					}
-					}
-				});
+	// pop update:
+	static demographics::ideology_buffer idbuf(*this);
+	static demographics::issues_buffer isbuf(*this);
+	static demographics::promotion_buffer pbuf;
+	static demographics::assimilation_buffer abuf;
+	static demographics::migration_buffer mbuf;
+	static demographics::migration_buffer cmbuf;
+	static demographics::migration_buffer imbuf;
 
-				// apply in parallel where we can
-				concurrency::parallel_for(0, 8, [&](int32_t index) {
-					switch(index) {
-					case 0: {
-						auto o = uint32_t(ymd_date.day + 0);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::apply_ideologies(*this, o, days_in_month, idbuf);
-						break;
-					}
-					case 1: {
-						auto o = uint32_t(ymd_date.day + 1);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::apply_issues(*this, o, days_in_month, isbuf);
-						break;
-					}
-					case 2: {
-						auto o = uint32_t(ymd_date.day + 2);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_militancy(*this, o, days_in_month);
-						break;
-					}
-					case 3: {
-						auto o = uint32_t(ymd_date.day + 3);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_consciousness(*this, o, days_in_month);
-						break;
-					}
-					case 4: {
-						auto o = uint32_t(ymd_date.day + 4);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_literacy(*this, o, days_in_month);
-						break;
-					}
-					case 5: {
-						auto o = uint32_t(ymd_date.day + 5);
-						if(o >= days_in_month)
-							o -= days_in_month;
-						demographics::update_growth(*this, o, days_in_month);
-						break;
-					}
-					case 6:
-						province::ve_for_each_land_province(*this,
-								[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
-						break;
-					case 7:
-						province::ve_for_each_land_province(*this,
-								[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
-						break;
-					}
-				});
+	// calculate complex changes in parallel where we can, but don't actually apply the results
+	// instead, the changes are saved to be applied only after all triggers have been evaluated
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
+		switch(index) {
+			case 0:
+			{
+				auto o = uint32_t(ymd_date.day);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_ideologies(*this, o, days_in_month, idbuf);
+				break;
+			}
+			case 1:
+			{
+				auto o = uint32_t(ymd_date.day + 1);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_issues(*this, o, days_in_month, isbuf);
+				break;
+			}
+			case 2:
+			{
+				auto o = uint32_t(ymd_date.day + 6);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_type_changes(*this, o, days_in_month, pbuf);
+				break;
+			}
+			case 3:
+			{
+				auto o = uint32_t(ymd_date.day + 7);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_assimilation(*this, o, days_in_month, abuf);
+				break;
+			}
+			case 4:
+			{
+				auto o = uint32_t(ymd_date.day + 8);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_internal_migration(*this, o, days_in_month, mbuf);
+				break;
+			}
+			case 5:
+			{
+				auto o = uint32_t(ymd_date.day + 9);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
+				break;
+			}
+			case 6:
+			{
+				auto o = uint32_t(ymd_date.day + 10);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_immigration(*this, o, days_in_month, imbuf);
+				break;
+			}
+		}
+	});
 
-				// because they may add pops, these changes must be applied sequentially
-				{
-					auto o = uint32_t(ymd_date.day + 6);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_type_changes(*this, o, days_in_month, pbuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 7);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_assimilation(*this, o, days_in_month, abuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 8);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 9);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
-				}
-				{
-					auto o = uint32_t(ymd_date.day + 10);
-					if(o >= days_in_month)
-						o -= days_in_month;
-					demographics::apply_immigration(*this, o, days_in_month, imbuf);
-				}
+	// apply in parallel where we can
+	concurrency::parallel_for(0, 8, [&](int32_t index) {
+		switch(index) {
+			case 0:
+			{
+				auto o = uint32_t(ymd_date.day + 0);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::apply_ideologies(*this, o, days_in_month, idbuf);
+				break;
+			}
+			case 1:
+			{
+				auto o = uint32_t(ymd_date.day + 1);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::apply_issues(*this, o, days_in_month, isbuf);
+				break;
+			}
+			case 2:
+			{
+				auto o = uint32_t(ymd_date.day + 2);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_militancy(*this, o, days_in_month);
+				break;
+			}
+			case 3:
+			{
+				auto o = uint32_t(ymd_date.day + 3);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_consciousness(*this, o, days_in_month);
+				break;
+			}
+			case 4:
+			{
+				auto o = uint32_t(ymd_date.day + 4);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_literacy(*this, o, days_in_month);
+				break;
+			}
+			case 5:
+			{
+				auto o = uint32_t(ymd_date.day + 5);
+				if(o >= days_in_month)
+					o -= days_in_month;
+				demographics::update_growth(*this, o, days_in_month);
+				break;
+			}
+			case 6:
+				province::ve_for_each_land_province(*this,
+						[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
+				break;
+			case 7:
+				province::ve_for_each_land_province(*this,
+						[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+				break;
+		}
+	});
 
-				demographics::remove_size_zero_pops(*this);
+	// because they may add pops, these changes must be applied sequentially
+	{
+		auto o = uint32_t(ymd_date.day + 6);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 7);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_assimilation(*this, o, days_in_month, abuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 8);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 9);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 10);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_immigration(*this, o, days_in_month, imbuf);
+	}
 
-				// basic repopulation of demographics derived values
-				demographics::regenerate_from_pop_data(*this);
+	demographics::remove_size_zero_pops(*this);
 
-				// values updates pass 1 (mostly trivial things, can be done in parallel)
-				concurrency::parallel_for(0, 16, [&](int32_t index) {
-					switch(index) {
-					case 0:
-						nations::update_administrative_efficiency(*this);
-						break;
-					case 1:
-						nations::update_research_points(*this);
-						break;
-					case 2:
-						military::regenerate_land_unit_average(*this);
-						break;
-					case 3:
-						military::regenerate_ship_scores(*this);
-						break;
-					case 4:
-						nations::update_industrial_scores(*this);
-						break;
-					case 5:
-						military::update_naval_supply_points(*this);
-						break;
-					case 6:
-						economy::update_rgo_employment(*this);
-						break;
-					case 7:
-						economy::update_factory_employment(*this);
-						break;
-					case 8:
-						rebel::daily_update_rebel_organization(*this);
-						break;
-					case 9:
-						military::daily_leaders_update(*this);
-						break;
-					case 10:
-						politics::daily_party_loyalty_update(*this);
-						break;
-					case 11:
-						nations::daily_update_flashpoint_tension(*this);
-						break;
-					case 12:
-						military::update_ticking_war_score(*this);
-						break;
-					case 13:
-						military::increase_dig_in(*this);
-						break;
-					case 14:
-						military::recover_org(*this);
-						break;
-					case 15:
-						ai::refresh_home_ports(*this);
-						break;
-					}
-				});
+	// basic repopulation of demographics derived values
+	demographics::regenerate_from_pop_data(*this);
 
-				military::update_war_cleanup(*this);
-				economy::daily_update(*this);
+	// values updates pass 1 (mostly trivial things, can be done in parallel)
+	concurrency::parallel_for(0, 16, [&](int32_t index) {
+		switch(index) {
+			case 0:
+				nations::update_administrative_efficiency(*this);
+				break;
+			case 1:
+				nations::update_research_points(*this);
+				break;
+			case 2:
+				military::regenerate_land_unit_average(*this);
+				break;
+			case 3:
+				military::regenerate_ship_scores(*this);
+				break;
+			case 4:
+				nations::update_industrial_scores(*this);
+				break;
+			case 5:
+				military::update_naval_supply_points(*this);
+				break;
+			case 6:
+				economy::update_rgo_employment(*this);
+				break;
+			case 7:
+				economy::update_factory_employment(*this);
+				break;
+			case 8:
+				rebel::daily_update_rebel_organization(*this);
+				break;
+			case 9:
+				military::daily_leaders_update(*this);
+				break;
+			case 10:
+				politics::daily_party_loyalty_update(*this);
+				break;
+			case 11:
+				nations::daily_update_flashpoint_tension(*this);
+				break;
+			case 12:
+				military::update_ticking_war_score(*this);
+				break;
+			case 13:
+				military::increase_dig_in(*this);
+				break;
+			case 14:
+				military::recover_org(*this);
+				break;
+			case 15:
+				ai::refresh_home_ports(*this);
+				break;
+		}
+	});
 
-				military::update_siege_progress(*this);
-				military::update_movement(*this);
-				military::update_naval_battles(*this);
-				military::update_land_battles(*this);
-				
-				military::advance_mobilizations(*this);
+	military::update_war_cleanup(*this);
+	economy::daily_update(*this);
 
-				event::update_events(*this);
+	military::update_siege_progress(*this);
+	military::update_movement(*this);
+	military::update_naval_battles(*this);
+	military::update_land_battles(*this);
 
-				culture::update_research(*this, uint32_t(ymd_date.year));
+	military::advance_mobilizations(*this);
 
-				nations::update_military_scores(*this); // depends on ship score, land unit average
-				nations::update_rankings(*this);				// depends on industrial score, military scores
-				nations::update_great_powers(*this);		// depends on rankings
-				nations::update_influence(*this);				// depends on rankings, great powers
+	event::update_events(*this);
 
-				province::update_colonization(*this);
-				military::update_cbs(*this); // may add/remove cbs to a nation
+	culture::update_research(*this, uint32_t(ymd_date.year));
 
-				nations::update_crisis(*this);
-				politics::update_elections(*this);
+	nations::update_military_scores(*this); // depends on ship score, land unit average
+	nations::update_rankings(*this);				// depends on industrial score, military scores
+	nations::update_great_powers(*this);		// depends on rankings
+	nations::update_influence(*this);				// depends on rankings, great powers
 
-				//
-				if(current_date.value % 4 == 0) {
-					ai::update_ai_colonial_investment(*this);
-				}
+	province::update_colonization(*this);
+	military::update_cbs(*this); // may add/remove cbs to a nation
 
-				// Once per month updates, spread out over the month
-				switch(ymd_date.day) {
-				case 1:
-					nations::update_monthly_points(*this);
-					break;
-				case 2:
-					sys::update_modifier_effects(*this);
-					break;
-				case 3:
-					military::monthly_leaders_update(*this);
-					ai::add_gw_goals(*this);
-					break;
-				case 4:
-					military::reinforce_regiments(*this);
-					ai::make_defense(*this);
-					break;
-				case 5:
-					rebel::update_movements(*this);
-					rebel::update_factions(*this);
-					break;
-				case 6:
-					ai::form_alliances(*this);
-					ai::make_attacks(*this);
-					break;
-				case 7:
-					ai::update_ai_general_status(*this);
-					break;
-				case 8:
-					military::apply_attrition(*this);
-					break;
-				case 9:
-					military::repair_ships(*this);
-					break;
-				case 10:
-					province::update_crimes(*this);
-					break;
-				case 11:
-					province::update_nationalism(*this);
-					break;
-				case 12:
-					ai::update_ai_research(*this);
-					break;
-				case 13:
-					ai::perform_influence_actions(*this);
-					break;
-				case 14:
-					ai::update_focuses(*this);
-					break;
-				case 15:
-					culture::discover_inventions(*this);
-					break;
-				case 16:
-					ai::take_ai_decisions(*this);
-					break;
-				case 17:
-					ai::build_ships(*this);
-					ai::update_land_constructions(*this);
-					break;
-				case 18:
-					ai::update_ai_econ_construction(*this);
-					break;
-				case 19:
-					ai::update_budget(*this);
-				case 20:
-					nations::monthly_flashpoint_update(*this);
-					ai::make_defense(*this);
-					break;
-				case 21:
-					ai::update_ai_colony_starting(*this);
-					break;
-				case 22:
-					ai::take_reforms(*this);
-					break;
-				case 23:
-					ai::civilize(*this);
-					ai::make_war_decs(*this);
-					break;
-				case 24:
-					rebel::execute_rebel_victories(*this);
-					ai::make_attacks(*this);
-					break;
-				case 25:
-					rebel::execute_province_defections(*this);
-					break;
-				case 26:
-					ai::make_peace_offers(*this);
-					break;
-				case 27:
-					ai::update_crisis_leaders(*this);
-					break;
-				case 28:
-					rebel::rebel_risings_check(*this);
-					break;
-				case 29:
-					ai::update_war_intervention(*this);
-					break;
-				case 30:
-					ai::update_ships(*this);
-					break;
-				case 31:
-					ai::update_cb_fabrication(*this);
-					break;
-				default:
-					break;
-				}
+	nations::update_crisis(*this);
+	politics::update_elections(*this);
 
-				military::apply_regiment_damage(*this);
+	//
+	if(current_date.value % 4 == 0) {
+		ai::update_ai_colonial_investment(*this);
+	}
 
-				if(ymd_date.day == 1) {
-					if(ymd_date.month == 1) {
-						// yearly update : redo the upper house
-						for(auto n : world.in_nation) {
-							politics::recalculate_upper_house(*this, n);
-						}
+	// Once per month updates, spread out over the month
+	switch(ymd_date.day) {
+		case 1:
+			nations::update_monthly_points(*this);
+			break;
+		case 2:
+			sys::update_modifier_effects(*this);
+			break;
+		case 3:
+			military::monthly_leaders_update(*this);
+			ai::add_gw_goals(*this);
+			break;
+		case 4:
+			military::reinforce_regiments(*this);
+			ai::make_defense(*this);
+			break;
+		case 5:
+			rebel::update_movements(*this);
+			rebel::update_factions(*this);
+			break;
+		case 6:
+			ai::form_alliances(*this);
+			ai::make_attacks(*this);
+			break;
+		case 7:
+			ai::update_ai_general_status(*this);
+			break;
+		case 8:
+			military::apply_attrition(*this);
+			break;
+		case 9:
+			military::repair_ships(*this);
+			break;
+		case 10:
+			province::update_crimes(*this);
+			break;
+		case 11:
+			province::update_nationalism(*this);
+			break;
+		case 12:
+			ai::update_ai_research(*this);
+			break;
+		case 13:
+			ai::perform_influence_actions(*this);
+			break;
+		case 14:
+			ai::update_focuses(*this);
+			break;
+		case 15:
+			culture::discover_inventions(*this);
+			break;
+		case 16:
+			ai::take_ai_decisions(*this);
+			break;
+		case 17:
+			ai::build_ships(*this);
+			ai::update_land_constructions(*this);
+			break;
+		case 18:
+			ai::update_ai_econ_construction(*this);
+			break;
+		case 19:
+			ai::update_budget(*this);
+		case 20:
+			nations::monthly_flashpoint_update(*this);
+			ai::make_defense(*this);
+			break;
+		case 21:
+			ai::update_ai_colony_starting(*this);
+			break;
+		case 22:
+			ai::take_reforms(*this);
+			break;
+		case 23:
+			ai::civilize(*this);
+			ai::make_war_decs(*this);
+			break;
+		case 24:
+			rebel::execute_rebel_victories(*this);
+			ai::make_attacks(*this);
+			break;
+		case 25:
+			rebel::execute_province_defections(*this);
+			break;
+		case 26:
+			ai::make_peace_offers(*this);
+			break;
+		case 27:
+			ai::update_crisis_leaders(*this);
+			break;
+		case 28:
+			rebel::rebel_risings_check(*this);
+			break;
+		case 29:
+			ai::update_war_intervention(*this);
+			break;
+		case 30:
+			ai::update_ships(*this);
+			break;
+		case 31:
+			ai::update_cb_fabrication(*this);
+			break;
+		default:
+			break;
+	}
 
-						ai::update_influence_priorities(*this);
-					}
-					if(ymd_date.month == 6) {
-						ai::update_influence_priorities(*this);
-					}
-					if(ymd_date.month == 2) {
-						ai::upgrade_colonies(*this);
-					}
-				}
+	military::apply_regiment_damage(*this);
 
-				ai::general_ai_unit_tick(*this);
+	if(ymd_date.day == 1) {
+		if(ymd_date.month == 1) {
+			// yearly update : redo the upper house
+			for(auto n : world.in_nation) {
+				politics::recalculate_upper_house(*this, n);
+			}
 
-				ai::daily_cleanup(*this);
+			ai::update_influence_priorities(*this);
+		}
+		if(ymd_date.month == 6) {
+			ai::update_influence_priorities(*this);
+		}
+		if(ymd_date.month == 2) {
+			ai::upgrade_colonies(*this);
+		}
+	}
 
-				/*
-				 * END OF DAY: update cached data
-				 */
+	ai::general_ai_unit_tick(*this);
 
-				player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-				if((current_date.value % 16) == 0) {
-					auto index = economy::most_recent_price_record_index(*this);
-					for(auto c : world.in_commodity) {
-						c.set_price_record(index, c.get_current_price());
-					}
-				}
+	ai::daily_cleanup(*this);
 
-				ui_date = current_date;
+	/*
+	 * END OF DAY: update cached data
+	 */
 
-				game_state_updated.store(true, std::memory_order::release);
+	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
+	if((current_date.value % 16) == 0) {
+		auto index = economy::most_recent_price_record_index(*this);
+		for(auto c : world.in_commodity) {
+			c.set_price_record(index, c.get_current_price());
+		}
+	}
+
+	ui_date = current_date;
+
+	game_state_updated.store(true, std::memory_order::release);
 }
 
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		auto speed = actual_game_speed.load(std::memory_order::acquire);
-		auto upause = ui_pause.load(std::memory_order::acquire);
-		if(speed <= 0 || upause || internally_paused) {
+		if(network_mode == sys::network_mode::client) {
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
-			auto entry_time = std::chrono::steady_clock::now();
-			auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
-			if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+			auto speed = actual_game_speed.load(std::memory_order::acquire);
+			auto upause = ui_pause.load(std::memory_order::acquire);
+			if(speed <= 0 || upause || internally_paused) {
 				command::execute_pending_commands(*this);
-				last_update = entry_time;
-				single_game_tick();
+				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				auto entry_time = std::chrono::steady_clock::now();
+				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
+				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+					command::execute_pending_commands(*this);
+					last_update = entry_time;
+					single_game_tick();
+				} else {
+					command::execute_pending_commands(*this);
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				}
 			}
 		}
 	}

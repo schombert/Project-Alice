@@ -293,6 +293,18 @@ constexpr inline uint8_t standard_pause = log | popup | pause;
 
 }
 
+enum class game_mode {
+	pick_nation,
+	in_game,
+	end_screen
+};
+
+enum class network_mode {
+	single_player,
+	client,
+	host
+};
+
 } // namespace sys
 
 namespace culture {

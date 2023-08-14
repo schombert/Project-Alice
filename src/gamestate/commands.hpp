@@ -89,6 +89,7 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 
+	notify_player_picks_nation = 119,
 	notify_player_joins = 120,
 	notify_player_leaves = 121,
 	advance_tick = 122,
@@ -105,6 +106,7 @@ enum class command_type : uint8_t {
 	c_change_infamy = 135,
 	c_force_crisis = 136,
 	c_change_national_militancy = 137,
+	c_end_game = 138
 };
 
 struct national_focus_data {
@@ -366,6 +368,10 @@ struct chat_message_data {
 	dcon::nation_id target;
 };
 
+struct nation_pick_data {
+	dcon::nation_id target;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -413,6 +419,7 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
+		nation_pick_data nation_pick;
 		chat_message_data chat_message;
 
 		dtype() { }
@@ -695,9 +702,11 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
 void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
 void c_change_money(sys::state& state, dcon::nation_id source, float value);
 void c_westernize(sys::state& state, dcon::nation_id source);
@@ -707,6 +716,7 @@ void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
+void c_end_game(sys::state& state, dcon::nation_id source);
 
 void execute_pending_commands(sys::state& state);
 
