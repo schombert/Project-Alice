@@ -1503,7 +1503,7 @@ void technology_contents::area(association_type, std::string_view value, error_h
 
 void technology_contents::max_fort(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
 	if(value == 1) {
-		context.outer_context.state.world.technology_set_increase_fort(context.id, true);
+		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::fort, true);
 	} else {
 		err.accumulated_errors += "max_fort may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
@@ -1511,7 +1511,7 @@ void technology_contents::max_fort(association_type, int32_t value, error_handle
 
 void technology_contents::max_railroad(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
 	if(value == 1) {
-		context.outer_context.state.world.technology_set_increase_railroad(context.id, true);
+		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::railroad, true);
 	} else {
 		err.accumulated_errors += "max_railroad may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
@@ -1520,7 +1520,7 @@ void technology_contents::max_railroad(association_type, int32_t value, error_ha
 void technology_contents::max_naval_base(association_type, int32_t value, error_handler& err, int32_t line,
 		tech_context& context) {
 	if(value == 1) {
-		context.outer_context.state.world.technology_set_increase_naval_base(context.id, true);
+		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::naval_base, true);
 	} else {
 		err.accumulated_errors += "max_naval_base may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
@@ -1545,11 +1545,11 @@ void technology_contents::activate_unit(association_type, std::string_view value
 void technology_contents::activate_building(association_type, std::string_view value, error_handler& err, int32_t line,
 		tech_context& context) {
 	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fort")) {
-		context.outer_context.state.world.technology_set_increase_fort(context.id, true);
+		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::fort, true);
 	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "railroad")) {
-		context.outer_context.state.world.technology_set_increase_railroad(context.id, true);
+		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::railroad, true);
 	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval_base")) {
-		context.outer_context.state.world.technology_set_increase_naval_base(context.id, true);
+		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::naval_base, true);
 	} else if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
 						it != context.outer_context.map_of_factory_names.end()) {
 		context.outer_context.state.world.technology_set_activate_building(context.id, it->second, true);

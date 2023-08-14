@@ -106,6 +106,7 @@ enum class command_type : uint8_t {
 	c_change_infamy = 135,
 	c_force_crisis = 136,
 	c_change_national_militancy = 137,
+	c_end_game = 138
 };
 
 struct national_focus_data {
@@ -429,6 +430,8 @@ struct payload {
 	payload() { }
 };
 
+bool is_console_command(command_type t);
+
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
 bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
 
@@ -715,7 +718,9 @@ void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
+void c_end_game(sys::state& state, dcon::nation_id source);
 
+void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
 
 } // namespace command

@@ -30,16 +30,6 @@ protected:
 		return distrib;
 	}
 
-public:
-	/*void on_create(sys::state& state) noexcept override {
-		piechart<dcon::pop_type_id>::on_create(state);
-		// piechart<dcon::pop_type_id>::base_data.position.x -= piechart<dcon::pop_type_id>::base_data.size.x;
-		piechart<dcon::pop_type_id>::base_data.position.x -= 17;
-		piechart<dcon::pop_type_id>::radius = float(piechart<dcon::pop_type_id>::base_data.size.x);
-		piechart<dcon::pop_type_id>::base_data.size.x *= 2;
-		piechart<dcon::pop_type_id>::base_data.size.y *= 2;
-		piechart<dcon::pop_type_id>::on_update(state);
-	}*/
 };
 
 class nation_details_window : public window_element_base {
@@ -367,6 +357,9 @@ public:
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 		state.mode = sys::game_mode::in_game;
 		state.game_state_updated.store(true, std::memory_order::release);
+	}
+	void on_update(sys::state& state) noexcept override {
+		disabled = !bool(state.local_player_nation);
 	}
 };
 

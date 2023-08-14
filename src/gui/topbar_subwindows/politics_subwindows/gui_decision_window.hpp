@@ -137,13 +137,9 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::decision_id{};
-			parent->impl_get(state, payload);
-			auto id = any_cast<dcon::decision_id>(payload);
-			auto fat_id = dcon::fatten(state.world, id);
-			description = fat_id.get_description();
-		}
+		auto id = retrieve<dcon::decision_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, id);
+		description = fat_id.get_description();
 		auto container = text::create_endless_layout(delegate->internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});

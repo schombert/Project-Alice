@@ -49,26 +49,14 @@ void repopulate_technology_effects(sys::state& state) {
 		}
 		*/
 
-		if(tech_id.get_increase_railroad()) {
-			state.world.execute_serial_over_nation([&](auto nation_indices) {
-				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
-				auto old_rr_value = state.world.nation_get_max_railroad_level(nation_indices);
-				state.world.nation_set_max_railroad_level(nation_indices, ve::select(has_tech_mask, old_rr_value + 1, old_rr_value));
-			});
-		}
-		if(tech_id.get_increase_fort()) {
-			state.world.execute_serial_over_nation([&](auto nation_indices) {
-				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
-				auto old_fort_value = state.world.nation_get_max_fort_level(nation_indices);
-				state.world.nation_set_max_fort_level(nation_indices, ve::select(has_tech_mask, old_fort_value + 1, old_fort_value));
-			});
-		}
-		if(tech_id.get_increase_naval_base()) {
-			state.world.execute_serial_over_nation([&](auto nation_indices) {
-				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
-				auto old_nb_value = state.world.nation_get_max_naval_base_level(nation_indices);
-				state.world.nation_set_max_naval_base_level(nation_indices, ve::select(has_tech_mask, old_nb_value + 1, old_nb_value));
-			});
+		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+			if(tech_id.get_increase_building(t)) {
+				state.world.execute_serial_over_nation([&](auto nation_indices) {
+					auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
+					auto old_rr_value = state.world.nation_get_max_building_level(nation_indices, t);
+					state.world.nation_set_max_building_level(nation_indices, t, ve::select(has_tech_mask, old_rr_value + 1, old_rr_value));
+				});
+			}
 		}
 
 		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
@@ -265,14 +253,10 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 		}
 	}
 
-	if(tech_id.get_increase_railroad()) {
-		state.world.nation_get_max_railroad_level(target_nation) += 1;
-	}
-	if(tech_id.get_increase_fort()) {
-		state.world.nation_get_max_fort_level(target_nation) += 1;
-	}
-	if(tech_id.get_increase_naval_base()) {
-		state.world.nation_get_max_naval_base_level(target_nation) += 1;
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(tech_id.get_increase_building(t)) {
+			state.world.nation_get_max_building_level(target_nation, t) += 1;
+		}
 	}
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
@@ -336,14 +320,10 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 		}
 	}
 
-	if(tech_id.get_increase_railroad()) {
-		state.world.nation_get_max_railroad_level(target_nation) -= 1;
-	}
-	if(tech_id.get_increase_fort()) {
-		state.world.nation_get_max_fort_level(target_nation) -= 1;
-	}
-	if(tech_id.get_increase_naval_base()) {
-		state.world.nation_get_max_naval_base_level(target_nation) -= 1;
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(tech_id.get_increase_building(t)) {
+			state.world.nation_get_max_building_level(target_nation, t) -= 1;
+		}
 	}
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {

@@ -1,0 +1,231 @@
+#ifdef _WIN64 // WINDOWS
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
+#ifndef WINSOCK2_IMPORTED
+#define WINSOCK2_IMPORTED
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+#include <windows.h>
+#else // NIX
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <unistd.h>
+#endif // ...
+#include "system_state.hpp"
+#include "commands.hpp"
+#include "SPSCQueue.h"
+#include "network.hpp"
+
+namespace network {
+
+//
+// platform specific
+//
+
+static int socket_recv(socket_t client_fd, void *data, size_t n) {
+#ifdef _WIN64
+	u_long has_pending = 0;
+	auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
+	if(has_pending)
+		return (int)recv(client_fd, (char *)data, (int)n, 0);
+	return 0;
+#else
+	return recv(client_fd, data, n, MSG_DONTWAIT);
+#endif
+}
+
+static int socket_send(socket_t client_fd, const void *data, size_t n) {
+#ifdef _WIN64
+	return (int)send(client_fd, (const char *)data, (int)n, 0);
+#else
+	return send(client_fd, data, n, MSG_NOSIGNAL);
+#endif
+}
+
+static void socket_shutdown(socket_t socket_fd) {
+	if(socket_fd > 0) {
+#ifdef _WIN64
+		shutdown(socket_fd, SD_BOTH);
+		closesocket(socket_fd);
+#else
+		shutdown(socket_fd, SHUT_RDWR);
+		close(socket_fd);
+#endif
+	}
+}
+
+static socket_t socket_init_server(struct sockaddr_in& server_address) {
+	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
+	if(socket_fd < 0)
+		std::abort();
+
+	int opt = 1;
+#ifdef _WIN64
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)))
+		std::abort();
+#else
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+		std::abort();
+#endif
+
+	server_address.sin_family = AF_INET;
+	server_address.sin_addr.s_addr = INADDR_ANY;
+	server_address.sin_port = htons(1984);
+	if(bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+		std::abort();
+	if(listen(socket_fd, 3) < 0)
+		std::abort();
+	
+#ifdef _WIN64
+	u_long mode = 1; // 1 to enable non-blocking socket
+	ioctlsocket(socket_fd, FIONBIO, &mode);
+#endif
+	return socket_fd;
+}
+
+static socket_t socket_init_client(struct sockaddr_in& server_address, const char *ip_address) {
+	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
+	if(socket_fd < 0)
+		std::abort();
+	server_address.sin_family = AF_INET;
+	server_address.sin_port = htons(1984);
+	if(inet_pton(AF_INET, ip_address, &server_address.sin_addr) <= 0)
+		std::abort();
+	if(connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
+		std::abort();
+	return socket_fd;
+}
+
+//
+// non-platform specific
+//
+
+void init(sys::state& state) {
+	if(state.network_mode == sys::network_mode::single_player)
+		return; // Do nothing in singleplayer
+
+#ifdef _WIN64
+    WSADATA data;
+    if(WSAStartup(MAKEWORD(2, 2), &data) != 0)
+		std::abort();
+#endif
+	if(state.network_mode == sys::network_mode::host) {
+		state.network_state.socket_fd = socket_init_server(state.network_state.server_address);
+	} else {
+		assert(state.network_state.ip_address.size() > 0);
+		state.network_state.socket_fd = socket_init_client(state.network_state.server_address, state.network_state.ip_address.c_str());
+	}
+}
+
+static void disconnect_client(sys::state& state, client_data& client) {
+	command::notify_player_leaves(state, client.playing_as);
+	socket_shutdown(client.socket_fd);
+	client.socket_fd = 0;
+}
+
+static void accept_new_clients(sys::state& state) {
+	// Check if any new clients are to join us
+	fd_set rfds;
+	FD_ZERO(&rfds);
+	FD_SET(state.network_state.socket_fd, &rfds);
+	struct timeval tv{};
+	tv.tv_sec = 0;
+	tv.tv_usec = 1000;
+	if(select(socket_t(int(state.network_state.socket_fd) + 1), &rfds, nullptr, nullptr, &tv) <= 0)
+		return;
+	
+	// Find available slot for client
+	for(auto& client : state.network_state.clients) {
+		if(!client.is_active()) {
+			socklen_t addr_len = sizeof(state.network_state.server_address);
+			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr *)&state.network_state.server_address, &addr_len);
+			return;
+		}
+	}
+}
+
+static void receive_from_clients(sys::state& state) {
+	for(auto& client : state.network_state.clients) {
+		if(client.is_active()) {
+			command::payload cmd{};
+			auto r = socket_recv(client.socket_fd, &cmd, sizeof(cmd));
+			if(r == sizeof(cmd)) { // got command
+				state.network_state.outgoing_commands.push(cmd);
+			} else if(r < 0) { // error
+				disconnect_client(state, client);
+			}
+		}
+	}
+}
+
+static void broadcast_to_clients(sys::state& state, command::payload& c) {
+	// propagate to all the clients
+	for(auto& client : state.network_state.clients) {
+		if(client.is_active()) {
+			auto r = socket_send(client.socket_fd, &c, sizeof(c));
+			if(r < 0) { // error
+				disconnect_client(state, client);
+			}
+		}
+	}
+}
+
+void send_and_receive_commands(sys::state& state) {
+	if(state.network_mode == sys::network_mode::host) {
+		accept_new_clients(state); // accept new connections
+		receive_from_clients(state); // receive new commands
+		// send the commands of the server to all the clients
+		auto* c = state.network_state.outgoing_commands.front();
+		while(c) {
+			if(command::is_console_command(c->type) == false) {
+				broadcast_to_clients(state, *c);
+				command::execute_command(state, *c);
+			}
+			state.network_state.outgoing_commands.pop();
+			c = state.network_state.outgoing_commands.front();
+		}
+	} else if(state.network_mode == sys::network_mode::client) {
+		// receive commands from the server and immediately execute them
+		while(1) {
+			command::payload cmd{};
+			int r = socket_recv(state.network_state.socket_fd, &cmd, sizeof(cmd));
+			if(r == sizeof(cmd)) { // got command
+				command::execute_command(state, cmd);
+			} else if(r == 0) { // nothing
+				break;
+			} else if(r < 0) { // error
+				std::abort();
+			}
+		}
+		// send the outgoing commands to the server and flush the entire queue
+		auto* c = state.network_state.outgoing_commands.front();
+		while(c) {
+			command::payload cmd{};
+			int r = socket_send(state.network_state.socket_fd, &cmd, sizeof(cmd));
+			if(r == sizeof(cmd)) { // sent command
+				// ...
+			} else if(r < 0) { // error
+				std::abort();
+			}
+			state.network_state.outgoing_commands.pop();
+			c = state.network_state.outgoing_commands.front();
+		}
+	}
+}
+
+void finish(sys::state& state) {
+	if(state.network_mode == sys::network_mode::single_player)
+		return; // Do nothing in singleplayer
+	
+	socket_shutdown(state.network_state.socket_fd);
+#ifdef _WIN64
+	WSACleanup();
+#endif
+}
+
+}
