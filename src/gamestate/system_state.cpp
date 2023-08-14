@@ -2931,6 +2931,7 @@ void state::game_loop() {
 					last_update = entry_time;
 					single_game_tick();
 				} else {
+					command::execute_pending_commands(*this);
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				}
 			}
