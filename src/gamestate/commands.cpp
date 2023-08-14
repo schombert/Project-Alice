@@ -8,8 +8,8 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	switch(p.type) {
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
+	case command_type::notify_player_selects:
 	case command_type::notify_player_ping:
-	case command_type::switch_nation:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
@@ -4111,6 +4111,31 @@ void execute_notify_player_ping(sys::state& state, dcon::nation_id source, uint3
 		state.ui_state.ping_data_index = 0;
 }
 
+void notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_selects;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	// Can't take an already taken nation
+	if(source == target)
+		return false;
+	// TODO: Support Co-op (one day)
+	return state.world.nation_get_is_player_controlled(target) == false;
+}
+void execute_notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_selects(state, source, target))
+		return;
+	
+	if(source == state.local_player_nation) {
+		state.local_player_nation = dcon::nation_id{};
+	}
+	state.world.nation_set_is_player_controlled(source, true);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -4389,6 +4414,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::notify_player_leaves:
 			execute_notify_player_leaves(state, c->source);
+			break;
+		case command_type::notify_player_selects:
+			execute_notify_player_selects(state, c->source, c->data.nation_pick.target);
 			break;
 		case command_type::notify_player_ping:
 			execute_notify_player_ping(state, c->source, c->data.ping.ms);
