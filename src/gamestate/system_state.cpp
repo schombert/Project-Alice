@@ -118,8 +118,17 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		if(mode == sys::game_mode::pick_nation) {
 			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
 			if(owner) {
-				local_player_nation = owner;
-				ui_state.nation_picker->impl_on_update(*this);
+				// On single player we simply set the local player nation
+				// on multiplayer we wait until we get a confirmation that we are
+				// allowed to pick the specified nation as no two players can get on
+				// a nation, at the moment
+				// TODO: Allow Co-op
+				if(network_mode == sys::network_mode::single_player) {
+					local_player_nation = owner;
+					ui_state.nation_picker->impl_on_update(*this);
+				} else {
+					command::notify_player_selects(*this, local_player_nation, owner);
+				}
 			}
 		} else if(mode != sys::game_mode::end_screen) {
 			if(ui_state.province_window) {

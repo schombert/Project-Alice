@@ -200,10 +200,24 @@ public:
 
 class pick_nation_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode::single_player) {
+			disabled = false;
+		} else {
+			// Prevent (via UI) the player from selecting a nation already selected by someone
+			disabled = !command::can_notify_player_selects(state, state.local_player_nation, n);
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		state.local_player_nation = n;
-		state.ui_state.nation_picker->impl_on_update(state);
+		if(state.network_mode == sys::network_mode::single_player) {
+			state.local_player_nation = n;
+			state.ui_state.nation_picker->impl_on_update(state);
+		} else {
+			command::notify_player_selects(state, state.local_player_nation, n);
+		}
 	}
 };
 
@@ -351,7 +365,7 @@ class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-		state.mode = sys::game_mode::single_player;
+		state.mode = sys::game_mode::in_game;
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
 };
