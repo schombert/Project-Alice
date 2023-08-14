@@ -832,7 +832,7 @@ class nation_population_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
-		return text::prettify(int32_t(total_pop));
+		return text::prettify(int64_t(total_pop));
 	}
 };
 

@@ -31,6 +31,7 @@
 #include "ai.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_land_combat.hpp"
+#include "gui_nation_picker.hpp"
 
 namespace sys {
 //
@@ -113,24 +114,33 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				ui_state.relative_mouse_location.y, mod);
 	} else {
 		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-		if(ui_state.province_window) {
-			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
-		}
-		if(selected_armies.size() > 0) {
-			if(ui_state.army_status_window)
-				ui_state.army_status_window->set_visible(*this, false);
-			if(ui_state.unit_window_army)
-				ui_state.unit_window_army->set_visible(*this, false);
-			selected_armies.clear();
-			game_state_updated.store(true, std::memory_order_release);
-		}
-		if(selected_navies.size() > 0) {
-			if(ui_state.navy_status_window)
-				ui_state.navy_status_window->set_visible(*this, false);
-			if(ui_state.unit_window_navy)
-				ui_state.unit_window_navy->set_visible(*this, false);
-			selected_navies.clear();
-			game_state_updated.store(true, std::memory_order_release);
+
+		if(mode == sys::game_mode::pick_nation) {
+			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
+			if(owner) {
+				local_player_nation = owner;
+				ui_state.nation_picker->impl_on_update(*this);
+			}
+		} else if(mode != sys::game_mode::end_screen) {
+			if(ui_state.province_window) {
+				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
+			}
+			if(selected_armies.size() > 0) {
+				if(ui_state.army_status_window)
+					ui_state.army_status_window->set_visible(*this, false);
+				if(ui_state.unit_window_army)
+					ui_state.unit_window_army->set_visible(*this, false);
+				selected_armies.clear();
+				game_state_updated.store(true, std::memory_order_release);
+			}
+			if(selected_navies.size() > 0) {
+				if(ui_state.navy_status_window)
+					ui_state.navy_status_window->set_visible(*this, false);
+				if(ui_state.unit_window_navy)
+					ui_state.unit_window_navy->set_visible(*this, false);
+				selected_navies.clear();
+				game_state_updated.store(true, std::memory_order_release);
+			}
 		}
 	}
 }
@@ -216,6 +226,17 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(ui_state.edit_target) {
 		ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
+	} else if(mode == sys::game_mode::pick_nation) {
+		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+			if(keycode == virtual_key::ESCAPE) {
+				// TODO: show appropriate menu
+				// ui::show_main_menu(*this);
+			}
+
+			map_state.on_key_down(keycode, mod);
+		}
+	} else if(mode == sys::game_mode::end_screen) {
+		
 	} else {
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
@@ -253,6 +274,174 @@ inline constexpr int32_t tooltip_width = 400;
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
                        // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+
+	if(mode == sys::game_mode::pick_nation) {
+		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
+		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
+
+		auto mouse_probe = ui_state.nation_picker->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+		auto tooltip_probe = ui_state.nation_picker->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
+		if(game_state_was_updated) {
+			this->map_state.map_data.update_borders(*this);
+			nations::update_ui_rankings(*this);
+
+			
+
+			ui_state.nation_picker->impl_on_update(*this);
+			map_mode::update_map_mode(*this);
+			
+
+			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				}
+			}
+		}
+
+
+
+		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
+			ui_state.last_tooltip = tooltip_probe.under_mouse;
+			if(tooltip_probe.under_mouse) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type != ui::tooltip_behavior::no_tooltip) {
+
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				} else {
+					ui_state.tooltip->set_visible(*this, false);
+				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
+		} else if(ui_state.last_tooltip &&
+							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
+							text::alignment::left,
+							text::text_color::white, true },
+					 10);
+			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0)
+				ui_state.tooltip->set_visible(*this, true);
+			else
+				ui_state.tooltip->set_visible(*this, false);
+		}
+
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+			// reposition tooltip
+			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+			if(ui_state.tooltip->base_data.size.y <=
+					ui_state.nation_picker->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else if(ui_state.tooltip->base_data.size.x <=
+								ui_state.nation_picker->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0),
+						int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else {
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			}
+		}
+
+		glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		if(bg_gfx_id) {
+			// Render default background
+			glUseProgram(open_gl.ui_shader_program);
+			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glViewport(0, 0, x_size, y_size);
+			glDepthRange(-1.0, 1.0);
+			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+			if(gfx_def.primary_texture_handle) {
+				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
+						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						ui::rotation::upright, gfx_def.is_vertically_flipped());
+			}
+		}
+
+		map_state.render(*this, x_size, y_size);
+
+		// UI rendering
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0, 1.0);
+
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.scroll_target = ui_state.nation_picker->impl_probe_mouse(*this,
+			int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale),
+			ui::mouse_probe_type::scroll).under_mouse;
+
+		ui_state.relative_mouse_location = mouse_probe.relative_location;
+
+		ui_state.nation_picker->impl_render(*this, 0, 0);
+		if(ui_state.tooltip->is_visible()) {
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		}
+		return;
+	}
+	if(mode == sys::game_mode::end_screen) {
+
+		return;
+	}
 
 	if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
 		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
@@ -736,6 +925,8 @@ void state::on_create() {
 
 	ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(*this, ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
 	ui_state.unit_details_box->set_visible(*this, false);
+
+	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
 
 	world.for_each_province([&](dcon::province_id id) {
 		if(world.province_get_port_to(id)) {

@@ -484,6 +484,7 @@ struct alignas(64) state {
 	// current program / ui state
 	//
 
+	game_mode mode = game_mode::pick_nation;
 	dcon::nation_id local_player_nation;
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};

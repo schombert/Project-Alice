@@ -6,7 +6,8 @@ namespace command {
 
 static void add_to_command_queue(sys::state& state, payload& p) {
 	// TODO: pushes for client/server once available
-	bool b = state.incoming_commands.try_push(p);
+	if(state.mode == sys::game_mode::single_player)
+		bool b = state.incoming_commands.try_push(p);
 }
 
 bool console_command(sys::state& state, command_type t) {
