@@ -4393,6 +4393,9 @@ void execute_pending_commands(sys::state& state) {
 		case command_type::notify_player_selects:
 			execute_notify_player_selects(state, c->source, c->data.nation_pick.target);
 			break;
+		case command_type::advance_tick:
+			state.single_game_tick();
+			break;
 
 		// console commands
 		case command_type::switch_nation:
