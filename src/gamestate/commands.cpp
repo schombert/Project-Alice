@@ -4100,7 +4100,7 @@ void execute_notify_player_ping(sys::state& state, dcon::nation_id source, uint3
 	// where the data can be arbitrarily overwritten, while this isn't a good solution
 	// I'm 100% sure the usecases for "ping ms" do not require airplane-like timing
 	// but rather a general overview of what's going on
-	state.ui_state.ping_data[state.ui_state.ping_data_index++] = ping_data{ source, ms };
+	state.ui_state.ping_data[state.ui_state.ping_data_index++] = ui::ping_data{ source, ms };
 	if(state.ui_state.ping_data_index >= state.ui_state.ping_data.size())
 		state.ui_state.ping_data_index = 0;
 }

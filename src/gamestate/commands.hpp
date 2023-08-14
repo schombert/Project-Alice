@@ -703,7 +703,6 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
 void c_change_money(sys::state& state, dcon::nation_id source, float value);
 void c_westernize(sys::state& state, dcon::nation_id source);
