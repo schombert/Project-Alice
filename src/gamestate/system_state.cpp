@@ -2914,7 +2914,7 @@ void state::single_game_tick() {
 
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		if(state.network_mode == sys::network_mode::client) {
+		if(network_mode == sys::network_mode::client) {
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
