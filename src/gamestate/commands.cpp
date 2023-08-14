@@ -19,10 +19,11 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		break;
 	}
 
+	bool b;
 	switch(state.network_mode) {
 	case sys::network_mode::single_player:
 		// TODO: pushes for client/server once available
-		bool b = state.incoming_commands.try_push(p);
+		b = state.incoming_commands.try_push(p);
 		break;
 	default:
 		break;
