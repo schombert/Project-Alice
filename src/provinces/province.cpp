@@ -1769,9 +1769,15 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 					return path_result;
 				} else if(nearest.province.index() < state.province_definitions.first_sea_province.index() && state.world.province_get_port_to(nearest.province) == other_prov.id) { // case: leaving port
 
-					path_heap.push_back(province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
-					std::push_heap(path_heap.begin(), path_heap.end());
-					origins_vector.set(other_prov, nearest.province);
+					if(other_prov == end) {
+						fill_path_result(nearest.province);
+						assert_path_result(path_result);
+						return path_result;
+					} else {
+						path_heap.push_back(province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					}
 				}
 			}
 		}
