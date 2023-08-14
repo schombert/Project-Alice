@@ -2307,11 +2307,12 @@ uint32_t ef_change_controller_from_province(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_infrastructure(EFFECT_DISPLAY_PARAMS) {
+	auto type = economy::province_building_type::railroad;
 	auto amount = trigger::payload(tval[1]).signed_value;
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "railroad_level", m);
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
 		text::add_space_to_layout_box(ws, layout, box);
 		display_value(int64_t(amount), true, ws, layout, box);
 		text::close_layout_box(layout, box);
@@ -3243,21 +3244,29 @@ uint32_t ef_rgo_size(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_fort(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::substitution_map m;
-	text::localised_format_box(ws, layout, box, "fort_level", m);
-	text::add_space_to_layout_box(ws, layout, box);
-	display_value(int64_t(trigger::payload(tval[1]).signed_value), false, ws, layout, box);
-	text::close_layout_box(layout, box);
+	auto type = economy::province_building_type::fort;
+	auto amount = trigger::payload(tval[1]).signed_value;
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(int64_t(amount), true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
 	return 0;
 }
 uint32_t ef_naval_base(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::substitution_map m;
-	text::localised_format_box(ws, layout, box, "naval_base_level", m);
-	text::add_space_to_layout_box(ws, layout, box);
-	display_value(int64_t(trigger::payload(tval[1]).signed_value), false, ws, layout, box);
-	text::close_layout_box(layout, box);
+	auto type = economy::province_building_type::naval_base;
+	auto amount = trigger::payload(tval[1]).signed_value;
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(int64_t(amount), true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
 	return 0;
 }
 uint32_t ef_trigger_revolt_nation(EFFECT_DISPLAY_PARAMS) {

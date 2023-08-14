@@ -143,8 +143,8 @@ void infrastructure_map_tt_box(sys::state& state, text::columnar_layout& content
 	if(prov.value < state.province_definitions.first_sea_province.value) {
         auto box = text::open_layout_box(contents);
         text::add_to_layout_box(state, contents, box, fat.get_rgo().get_name(), text::text_color::yellow);
-		int32_t current_rails_lvl = state.world.province_get_railroad_level(prov);
-		int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(fat.get_nation_from_province_ownership().id);
+		int32_t current_rails_lvl = state.world.province_get_building_level(prov, economy::province_building_type::railroad);
+		int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(fat.get_nation_from_province_ownership().id, economy::province_building_type::railroad);
         text::add_line_break_to_layout_box(state, contents, box);
         text::localised_single_sub_box(state, contents, box, std::string_view("infra_level_here"), text::variable_type::val, uint16_t(float(current_rails_lvl) / float(max_local_rails_lvl)));
         text::close_layout_box(contents, box);
@@ -175,7 +175,7 @@ void colonial_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
             if(fat.get_life_rating() > state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::colonial_life_rating)) {
 			    ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::colonial_life_rating, false);
             }
-            if(distance > state.economy_definitions.naval_base_definition.colonial_range) {
+            if(distance > state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].colonial_range) {
                 auto box2 = text::open_layout_box(contents);
                 text::add_line_break_to_layout_box(state, contents, box2);
                 text::localised_format_box(state, contents, box2, std::string_view("colonize_closest_base_to_far"));
@@ -606,10 +606,10 @@ void naval_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
     && fat.get_nation_from_province_ownership().id.value == state.local_player_nation.value
     && fat.get_is_coast()) {
         auto box = text::open_layout_box(contents);
-        if(fat.get_naval_base_level() == 0) {
+        if(fat.get_building_level(economy::province_building_type::naval_base) == 0) {
             dcon::province_id navalprov{};
             for(auto p : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
-                if(dcon::fatten(state.world, p).get_province().get_naval_base_level() != 0) {
+                if(dcon::fatten(state.world, p).get_province().get_building_level(economy::province_building_type::naval_base) != 0) {
                     navalprov = p.get_province().id;
                     break;
                 }
@@ -624,7 +624,7 @@ void naval_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
                 }
             }
         } else {
-            text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_naval_tooltip_level"), text::variable_type::lvl, fat.get_naval_base_level());
+            text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_naval_tooltip_level"), text::variable_type::lvl, fat.get_building_level(economy::province_building_type::naval_base));
             text::substitution_map sub;
             text::add_to_substitution_map(sub, text::variable_type::cap, military::naval_supply_from_naval_base(state, prov, state.local_player_nation));
             text::add_to_substitution_map(sub, text::variable_type::tot, military::naval_supply_points(state, state.local_player_nation));

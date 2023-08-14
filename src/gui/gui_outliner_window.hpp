@@ -67,7 +67,7 @@ public:
 		} else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 			//auto pbcid = std::get<dcon::province_building_construction_id>(content);
 			//auto btid = state.world.province_building_construction_get_type(pbcid);
-			//auto name = province_building_type_get_name(economy::province_building_type(btid));
+			//auto name = economy::province_building_type_get_name(economy::province_building_type(btid));
 
 		} else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 			//auto plcid = std::get<dcon::province_land_construction_id>(content);
@@ -232,7 +232,7 @@ public:
 			} else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 				auto pbcid = std::get<dcon::province_building_construction_id>(content);
 				auto btid = state.world.province_building_construction_get_type(pbcid);
-				auto name = province_building_type_get_name(economy::province_building_type(btid));
+				auto name = economy::province_building_type_get_name(economy::province_building_type(btid));
 				info_text->set_text(state, text::produce_simple_string(state, name));
 				// TODO: Entry displays time left to build building
 				entry_text->set_text(state, "");

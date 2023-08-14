@@ -243,17 +243,17 @@ void province_history_file::life_rating(association_type, uint32_t value, error_
 
 void province_history_file::fort(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
-	context.outer_context.state.world.province_set_fort_level(context.id, uint8_t(value));
+	context.outer_context.state.world.province_set_building_level(context.id, economy::province_building_type::fort, uint8_t(value));
 }
 
 void province_history_file::naval_base(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
-	context.outer_context.state.world.province_set_naval_base_level(context.id, uint8_t(value));
+	context.outer_context.state.world.province_set_building_level(context.id, economy::province_building_type::naval_base, uint8_t(value));
 }
 
 void province_history_file::railroad(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
-	context.outer_context.state.world.province_set_railroad_level(context.id, uint8_t(value));
+	context.outer_context.state.world.province_set_building_level(context.id, economy::province_building_type::railroad, uint8_t(value));
 }
 
 void province_history_file::colony(association_type, uint32_t value, error_handler& err, int32_t line,

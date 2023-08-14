@@ -163,21 +163,15 @@ void acting_modifiers_description_province(sys::state& state, text::layout_base&
 		if(auto m = state.culture_definitions.crimes[c].modifier; m)
 			active_single_modifier_description(state, layout, m, identation, header, nmid);
 	}
-	if(state.economy_definitions.railroad_definition.province_modifier) {
-		active_single_modifier_description(state, layout, state.economy_definitions.railroad_definition.province_modifier, identation,
-				header, nmid, state.world.province_get_railroad_level(p));
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(state.economy_definitions.building_definitions[int32_t(t)].province_modifier) {
+			active_single_modifier_description(state, layout, state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier, identation,
+					header, nmid, state.world.province_get_building_level(p, t));
+		}
 	}
 	if(state.national_definitions.infrastructure) {
 		active_single_modifier_description(state, layout, state.national_definitions.infrastructure, identation, header, nmid,
-				state.world.province_get_railroad_level(p) * state.economy_definitions.railroad_definition.infrastructure);
-	}
-	if(state.economy_definitions.fort_definition.province_modifier) {
-		active_single_modifier_description(state, layout, state.economy_definitions.fort_definition.province_modifier, identation,
-				header, nmid, state.world.province_get_fort_level(p));
-	}
-	if(state.economy_definitions.naval_base_definition.province_modifier) {
-		active_single_modifier_description(state, layout, state.economy_definitions.naval_base_definition.province_modifier,
-				identation, header, nmid, state.world.province_get_naval_base_level(p));
+				state.world.province_get_building_level(p, economy::province_building_type::railroad) * state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure);
 	}
 	if(state.national_definitions.nationalism) {
 		active_single_modifier_description(state, layout, state.national_definitions.nationalism, identation, header, nmid,

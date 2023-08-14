@@ -1955,6 +1955,7 @@ void state::load_scenario_data() {
 	world.political_party_resize_party_issues(uint32_t(culture_definitions.party_issues.size()));
 
 	world.province_resize_party_loyalty(world.ideology_size());
+	world.province_resize_building_level(economy::max_building_types);
 
 	world.pop_type_resize_everyday_needs(world.commodity_size());
 	world.pop_type_resize_luxury_needs(world.commodity_size());
@@ -1967,6 +1968,7 @@ void state::load_scenario_data() {
 
 	world.technology_resize_activate_building(world.factory_type_size());
 	world.technology_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
+	world.technology_resize_increase_building(uint32_t(economy::max_building_types));
 
 	world.invention_resize_activate_building(world.factory_type_size());
 	world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
@@ -1974,6 +1976,7 @@ void state::load_scenario_data() {
 
 	world.rebel_type_resize_government_change(uint32_t(culture_definitions.governments.size()));
 
+	world.nation_resize_max_building_level(economy::max_building_types);
 	world.nation_resize_active_inventions(world.invention_size());
 	world.nation_resize_active_technologies(world.technology_size());
 	world.nation_resize_upper_house(world.ideology_size());
