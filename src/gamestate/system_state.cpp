@@ -239,8 +239,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	} else if(mode == sys::game_mode::pick_nation) {
 		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
-				// TODO: show appropriate menu
-				// ui::show_main_menu(*this);
+				ui::show_main_menu(*this);
 			}
 
 			map_state.on_key_down(keycode, mod);

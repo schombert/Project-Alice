@@ -6,13 +6,24 @@
 namespace ui {
 
 void show_main_menu(sys::state& state) {
-	if(!state.ui_state.main_menu) {
-		auto new_mm = make_element_by_type<main_menu_window>(state, "alice_main_menu");
-		state.ui_state.main_menu = new_mm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_mm));
-	} else {
-		state.ui_state.main_menu->set_visible(state, true);
-		state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
+	if(state.mode == sys::game_mode::pick_nation) {
+		if(!state.ui_state.r_main_menu) {
+			auto new_mm = make_element_by_type<restricted_main_menu_window>(state, "alice_main_menu");
+			state.ui_state.r_main_menu = new_mm.get();
+			state.ui_state.nation_picker->add_child_to_front(std::move(new_mm));
+		} else {
+			state.ui_state.r_main_menu->set_visible(state, true);
+			state.ui_state.nation_picker->move_child_to_front(state.ui_state.r_main_menu);
+		}
+	} else if(state.mode == sys::game_mode::in_game) {
+		if(!state.ui_state.main_menu) {
+			auto new_mm = make_element_by_type<main_menu_window>(state, "alice_main_menu");
+			state.ui_state.main_menu = new_mm.get();
+			state.ui_state.root->add_child_to_front(std::move(new_mm));
+		} else {
+			state.ui_state.main_menu->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
+		}
 	}
 }
 
