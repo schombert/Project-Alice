@@ -89,6 +89,7 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 
+	notify_player_selects = 119,
 	notify_player_joins = 120,
 	notify_player_leaves = 121,
 	advance_tick = 122,
