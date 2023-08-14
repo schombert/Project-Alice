@@ -121,40 +121,34 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 }
 
 void event_option_button::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = event_data_wrapper{};
-		parent->impl_get(state, payload);
-		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
-
-		
-		
-		text::substitution_map sub;
-		sys::event_option opt;
-		if(std::holds_alternative<event::pending_human_n_event>(content)) {
-			auto phe = std::get<event::pending_human_n_event>(content);
-			opt = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-			auto phe = std::get<event::pending_human_f_n_event>(content);
-			opt = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			opt = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
-			populate_event_submap(state, sub, phe);
-		}
-
-		if(!bool(opt.name) && !bool(opt.effect)) {
-			visible = false;
-			return;
-		}
-		visible = true;
-		set_button_text(state, text::resolve_string_substitution(state, opt.name, sub));
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	
+	text::substitution_map sub;
+	sys::event_option opt;
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto phe = std::get<event::pending_human_n_event>(content);
+		opt = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		opt = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto phe = std::get<event::pending_human_p_event>(content);
+		opt = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
+		populate_event_submap(state, sub, phe);
 	}
+
+	if(!bool(opt.name) && !bool(opt.effect)) {
+		visible = false;
+		return;
+	}
+	visible = true;
+	set_button_text(state, text::resolve_string_substitution(state, opt.name, sub));
 }
 
 void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -201,16 +195,12 @@ void event_option_button::button_action(sys::state& state) noexcept {
 }
 
 void event_image::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = event_data_wrapper{};
-		parent->impl_get(state, payload);
-		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
-		if(std::holds_alternative<event::pending_human_n_event>(content))
-			base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
-		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
-			base_data.data.image.gfx_object =
-					state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
-	}
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	if(std::holds_alternative<event::pending_human_n_event>(content))
+		base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
+	else if(std::holds_alternative<event::pending_human_f_n_event>(content))
+		base_data.data.image.gfx_object =
+				state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
 }
 
 void event_desc_text::on_create(sys::state& state) noexcept {
@@ -221,131 +211,112 @@ void event_desc_text::on_create(sys::state& state) noexcept {
 }
 
 void event_desc_text::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = event_data_wrapper{};
-		parent->impl_get(state, payload);
-		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 
-		auto contents = text::create_endless_layout(delegate->internal_layout,
-				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						delegate->base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+	auto contents = text::create_endless_layout(delegate->internal_layout,
+			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+					delegate->base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub{};
-		dcon::text_sequence_id description{};
-		if(std::holds_alternative<event::pending_human_n_event>(content)) {
-			auto phe = std::get<event::pending_human_n_event>(content);
-			description = state.world.national_event_get_description(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-			auto phe = std::get<event::pending_human_f_n_event>(content);
-			description = state.world.free_national_event_get_description(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			description = state.world.provincial_event_get_description(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			description = state.world.free_provincial_event_get_description(phe.e);
-			populate_event_submap(state, sub, phe);
-		}
-		text::add_to_layout_box(state, contents, box, description, sub);
-		text::close_layout_box(contents, box);
+	auto box = text::open_layout_box(contents);
+	text::substitution_map sub{};
+	dcon::text_sequence_id description{};
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto phe = std::get<event::pending_human_n_event>(content);
+		description = state.world.national_event_get_description(phe.e);
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		description = state.world.free_national_event_get_description(phe.e);
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto phe = std::get<event::pending_human_p_event>(content);
+		description = state.world.provincial_event_get_description(phe.e);
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		description = state.world.free_provincial_event_get_description(phe.e);
+		populate_event_submap(state, sub, phe);
 	}
+	text::add_to_layout_box(state, contents, box, description, sub);
+	text::close_layout_box(contents, box);
 	calibrate_scrollbar(state);
 }
 
 void event_name_text::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = event_data_wrapper{};
-		parent->impl_get(state, payload);
-		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 
-		auto contents = text::create_endless_layout(internal_layout,
-				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.text.font_handle, -15, text::alignment::center, text::text_color::black, false});
+	auto contents = text::create_endless_layout(internal_layout,
+			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+					base_data.data.text.font_handle, -15, text::alignment::center, text::text_color::black, false});
 
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub{};
-		dcon::text_sequence_id name{};
-		if(std::holds_alternative<event::pending_human_n_event>(content)) {
-			auto phe = std::get<event::pending_human_n_event>(content);
-			name = state.world.national_event_get_name(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-			auto phe = std::get<event::pending_human_f_n_event>(content);
-			name = state.world.free_national_event_get_name(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			name = state.world.provincial_event_get_name(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			name = state.world.free_provincial_event_get_name(phe.e);
-			populate_event_submap(state, sub, phe);
-		}
-		text::add_to_layout_box(state, contents, box, name, sub);
-		text::close_layout_box(contents, box);
+	auto box = text::open_layout_box(contents);
+	text::substitution_map sub{};
+	dcon::text_sequence_id name{};
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto phe = std::get<event::pending_human_n_event>(content);
+		name = state.world.national_event_get_name(phe.e);
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		name = state.world.free_national_event_get_name(phe.e);
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto phe = std::get<event::pending_human_p_event>(content);
+		name = state.world.provincial_event_get_name(phe.e);
+		populate_event_submap(state, sub, phe);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		name = state.world.free_provincial_event_get_name(phe.e);
+		populate_event_submap(state, sub, phe);
 	}
+	text::add_to_layout_box(state, contents, box, name, sub);
+	text::close_layout_box(contents, box);
 }
 
 void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(parent) {
-		Cyto::Any payload = event_data_wrapper{};
-		parent->impl_get(state, payload);
-		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	{
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, std::string_view("event_show_requirements"));
+		text::close_layout_box(contents, box);
+	}
 
-		{
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("event_show_requirements"));
-			text::close_layout_box(contents, box);
-		}
-
-		if(std::holds_alternative<event::pending_human_p_event>(content) ||
-				std::holds_alternative<event::pending_human_n_event>(content)) {
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
-			text::close_layout_box(contents, box);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			trigger_description(state, contents, state.world.free_provincial_event_get_trigger(phe.e), trigger::to_generic(phe.p),
-					trigger::to_generic(phe.p), -1);
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-			auto phe = std::get<event::pending_human_f_n_event>(content);
-			trigger_description(state, contents, state.world.free_national_event_get_trigger(phe.e), trigger::to_generic(phe.n),
-					trigger::to_generic(phe.n), -1);
-		}
+	if(std::holds_alternative<event::pending_human_p_event>(content) ||
+			std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
+		text::close_layout_box(contents, box);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		trigger_description(state, contents, state.world.free_provincial_event_get_trigger(phe.e), trigger::to_generic(phe.p),
+				trigger::to_generic(phe.p), -1);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		trigger_description(state, contents, state.world.free_national_event_get_trigger(phe.e), trigger::to_generic(phe.n),
+				trigger::to_generic(phe.n), -1);
 	}
 }
 
 void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(parent) {
-		Cyto::Any payload = event_data_wrapper{};
-		parent->impl_get(state, payload);
-		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
-
-		{
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("event_show_odds"));
-			text::close_layout_box(contents, box);
-		}
-
-		if(std::holds_alternative<event::pending_human_p_event>(content) ||
-				std::holds_alternative<event::pending_human_n_event>(content)) {
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
-			text::close_layout_box(contents, box);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			multiplicative_value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e),
-					trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-			auto phe = std::get<event::pending_human_f_n_event>(content);
-			multiplicative_value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e),
-					trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
-		}
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	{
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, std::string_view("event_show_odds"));
+		text::close_layout_box(contents, box);
+	}
+	if(std::holds_alternative<event::pending_human_p_event>(content) ||
+			std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
+		text::close_layout_box(contents, box);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		multiplicative_value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e),
+				trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		multiplicative_value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e),
+				trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
 	}
 }
 

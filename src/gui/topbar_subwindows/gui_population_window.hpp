@@ -380,12 +380,8 @@ public:
 class pop_cash_reserve_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-			set_text(state, text::format_money(state.world.pop_get_savings(content)));
-		}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		set_text(state, text::format_money(state.world.pop_get_savings(content)));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -393,26 +389,22 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val,
-					text::fp_currency{state.world.pop_get_savings(fat_id.id)});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val,
-					text::fp_currency{1984});
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val,
-					text::fp_currency{1984});
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("available_in_bank"), text::variable_type::val,
-					text::fp_currency{1984});
-			text::close_layout_box(contents, box);
-		}
+		auto fat_id = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val,
+				text::fp_currency{state.world.pop_get_savings(fat_id.id)});
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val,
+				text::fp_currency{1984});
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val,
+				text::fp_currency{1984});
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_single_sub_box(state, contents, box, std::string_view("available_in_bank"), text::variable_type::val,
+				text::fp_currency{1984});
+		text::close_layout_box(contents, box);
 	}
 };
 class pop_size_text : public simple_text_element_base {

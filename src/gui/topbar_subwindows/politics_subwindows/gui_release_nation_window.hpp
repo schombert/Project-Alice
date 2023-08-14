@@ -19,44 +19,28 @@ struct release_emplace_wrapper {
 class release_play_as_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
-			disabled = !command::can_release_and_play_as(state, state.local_player_nation, niid);
-		}
+		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
+		disabled = !command::can_release_and_play_as(state, state.local_player_nation, niid);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
-			command::release_and_play_as(state, state.local_player_nation, niid);
-			parent->set_visible(state, false);
-		}
+		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
+		command::release_and_play_as(state, state.local_player_nation, niid);
+		parent->set_visible(state, false);
 	}
 };
 
 class release_agree_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
-			disabled = !command::can_make_vassal(state, state.local_player_nation, niid);
-		}
+		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
+		disabled = !command::can_make_vassal(state, state.local_player_nation, niid);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
-			command::make_vassal(state, state.local_player_nation, niid);
-			parent->set_visible(state, false); // Close parent window automatically
-		}
+		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
+		command::make_vassal(state, state.local_player_nation, niid);
+		parent->set_visible(state, false); // Close parent window automatically
 	}
 };
 

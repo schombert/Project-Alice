@@ -896,35 +896,22 @@ public:
 
 class production_national_focus_button : public button_element_base {
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			return bool(state.world.state_instance_get_owner_focus(content).id)
-								 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-								 : 0;
-		}
-		return 0;
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		return bool(state.world.state_instance_get_owner_focus(content).id)
+								? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+								: 0;
 	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-
-			disabled = n != state.local_player_nation;
-			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
-			});
-			frame = get_icon_frame(state);
-		}
+		disabled = n != state.local_player_nation;
+		state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
+		});
+		frame = get_icon_frame(state);
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -941,79 +928,54 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, focus.get_name());
-			text::close_layout_box(contents, box);
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, focus.get_name());
+		text::close_layout_box(contents, box);
 	}
 };
 
 class per_state_primary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			set_text(state, text::prettify(int64_t(state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker)))));
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		set_text(state, text::prettify(int64_t(state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker)))));
 	}
 };
 
 class per_state_secondary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			set_text(state, text::prettify(int64_t(state.world.state_instance_get_demographics(content,
-													demographics::to_key(state, state.culture_definitions.secondary_factory_worker)))));
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		set_text(state, text::prettify(int64_t(state.world.state_instance_get_demographics(content,
+												demographics::to_key(state, state.culture_definitions.secondary_factory_worker)))));
 	}
 };
 
 class per_state_capitalist_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			auto total = state.world.state_instance_get_demographics(content,
-					demographics::total);
-			if(total > 0)
-				set_text(state, text::format_percentage(
-					state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.capitalists)) / total,
-					1));
-			else
-				set_text(state, "0.0%");
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto total = state.world.state_instance_get_demographics(content,
+				demographics::total);
+		if(total > 0)
+			set_text(state, text::format_percentage(
+				state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.capitalists)) / total,
+				1));
+		else
+			set_text(state, "0.0%");
 	}
 };
 
 
 class state_infrastructure : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			float total = 0.0f;
-			float p_total = 0.0f;
-			province::for_each_province_in_state_instance(state, content, [&](dcon::province_id p) {
-				total += state.economy_definitions.railroad_definition.infrastructure * float(state.world.province_get_railroad_level(p));
-				p_total += 1.0f;
-			});
-			set_text(state, text::format_float(p_total > 0 ? total / p_total : 0.0f, 3));
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		float total = 0.0f;
+		float p_total = 0.0f;
+		province::for_each_province_in_state_instance(state, content, [&](dcon::province_id p) {
+			total += state.economy_definitions.railroad_definition.infrastructure * float(state.world.province_get_railroad_level(p));
+			p_total += 1.0f;
+		});
+		set_text(state, text::format_float(p_total > 0 ? total / p_total : 0.0f, 3));
 	}
 };
 

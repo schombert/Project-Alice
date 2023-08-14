@@ -54,28 +54,20 @@ template<class T>
 class unit_selection_split_in_half_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				command::split_army(state, state.local_player_nation, content);
-			} else {
-				command::split_navy(state, state.local_player_nation, content);
-			}
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			command::split_army(state, state.local_player_nation, content);
+		} else {
+			command::split_navy(state, state.local_player_nation, content);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				disabled = !command::can_split_army(state, state.local_player_nation, content);
-			} else {
-				disabled = !command::can_split_navy(state, state.local_player_nation, content);
-			}
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			disabled = !command::can_split_army(state, state.local_player_nation, content);
+		} else {
+			disabled = !command::can_split_navy(state, state.local_player_nation, content);
 		}
 	}
 
@@ -109,15 +101,11 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				disabled = !command::can_delete_army(state, state.local_player_nation, content);
-			} else {
-				disabled = !command::can_delete_navy(state, state.local_player_nation, content);
-			}
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			disabled = !command::can_delete_army(state, state.local_player_nation, content);
+		} else {
+			disabled = !command::can_delete_navy(state, state.local_player_nation, content);
 		}
 	}
 
@@ -901,10 +889,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = T{};
-		parent->impl_get(state, payload);
-		auto content = any_cast<T>(payload);
-
+		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			navytransport_button->set_visible(state, false);
 			navytransport_text->set_visible(state, false);

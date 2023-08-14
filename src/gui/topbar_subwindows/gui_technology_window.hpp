@@ -1072,21 +1072,14 @@ public:
 class technology_selected_invention_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
-
-			frame = 0; // inactive
-			if(state.world.nation_get_active_inventions(state.local_player_nation, content))
-				frame = 1; // This invention's been discovered
-			else {
-				Cyto::Any tech_payload = dcon::technology_id{};
-				parent->impl_get(state, tech_payload);
-				auto tech_id = any_cast<dcon::technology_id>(tech_payload);
-				if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
-					frame = 2; // Active technology but not invention
-			}
+		auto content = retrieve<dcon::invention_id>(state, parent);
+		frame = 0; // inactive
+		if(state.world.nation_get_active_inventions(state.local_player_nation, content)) {
+			frame = 1; // This invention's been discovered
+		} else {
+			auto tech_id = retrieve<dcon::technology_id>(state, parent);
+			if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
+				frame = 2; // Active technology but not invention
 		}
 	}
 
@@ -1220,21 +1213,13 @@ public:
 class technology_start_research : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-			disabled = !command::can_start_research(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		disabled = !command::can_start_research(state, state.local_player_nation, content);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-			command::start_research(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		command::start_research(state, state.local_player_nation, content);
 	}
 };
 
