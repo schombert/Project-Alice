@@ -421,10 +421,14 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_nation([&](dcon::nation_id n) {
-			if(state.world.nation_get_is_player_controlled(n))
-				row_contents.push_back(n);
-		});
+		if(state.network_mode == sys::network_mode::single_player) {
+			row_contents.push_back(state.local_player_nation);
+		} else {
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				if(state.world.nation_get_is_player_controlled(n))
+					row_contents.push_back(n);
+			});
+		}
 		update(state);
 	}
 };
