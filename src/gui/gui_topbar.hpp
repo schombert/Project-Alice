@@ -918,7 +918,11 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
+		if(state.network_mode == sys::network_mode::client) {
+			disabled = true;
+		} else {
+			disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
+		}
 	}
 };
 

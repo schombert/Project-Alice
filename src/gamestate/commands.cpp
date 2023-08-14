@@ -5,8 +5,28 @@
 namespace command {
 
 static void add_to_command_queue(sys::state& state, payload& p) {
-	// TODO: pushes for client/server once available
-	bool b = state.incoming_commands.try_push(p);
+	switch(p.type) {
+	case command_type::notify_player_joins:
+	case command_type::notify_player_leaves:
+	case command_type::notify_player_picks_nation:
+		// Notifications can be sent because it's an-always do thing
+		break;
+	default:
+		// Normal commands
+		if(state.mode != sys::game_mode::in_game)
+			return;
+		break;
+	}
+
+	switch(state.network_mode) {
+	case sys::network_mode::single_player: {
+		// TODO: pushes for client/server once available
+		bool b = state.incoming_commands.try_push(p);
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 bool console_command(sys::state& state, command_type t) {
@@ -2759,20 +2779,26 @@ void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_ide
 }
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	dcon::nation_id n = state.world.national_identity_get_nation_from_identity_holder(t);
-	if(state.world.nation_get_is_player_controlled(n))
+	if(state.world.nation_get_is_player_controlled(n) || source == n)
 		return false;
+		
 	return true;
 }
 void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 	if(!can_switch_nation(state, source, t))
 		return;
-
-	state.world.nation_set_is_player_controlled(state.local_player_nation, false);
-	if(source == state.local_player_nation) {
-		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(t);
+	
+	dcon::nation_id target = state.world.national_identity_get_nation_from_identity_holder(t);
+	if(bool(source) && source != state.national_definitions.rebel_id) {
+		state.world.nation_set_is_player_controlled(source, false);
 	}
-	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-	ai::remove_ai_data(state, state.local_player_nation);
+	if(bool(target) && target != state.national_definitions.rebel_id) {
+		if(source == state.local_player_nation) {
+			state.local_player_nation = target;
+		}
+		state.world.nation_set_is_player_controlled(target, true);
+		ai::remove_ai_data(state, target);
+	}
 }
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
@@ -3201,6 +3227,16 @@ void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 }
 void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 	state.world.nation_get_infamy(source) += value;
+}
+void c_end_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_end_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_end_game(sys::state& state, dcon::nation_id source) {
+	state.mode = sys::game_mode::end_screen;
 }
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
@@ -3970,14 +4006,26 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+static void post_chat_message(sys::state& state, ui::chat_message& m) {
+	// Private message
+	bool can_see = true;
+	if(bool(m.target)) {
+		can_see = state.local_player_nation == m.source || state.local_player_nation == m.target;
+	}
+	if(can_see) {
+		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
+		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
+			state.ui_state.chat_messages_index = 0;
+	}
+}
+
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::chat_message;
 	p.source = source;
 	p.data.chat_message.target = target;
-	memcpy(p.data.chat_message.body, std::string(body).c_str(), ui::max_chat_message_len);
-	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
+	memcpy(p.data.chat_message.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
 	add_to_command_queue(state, p);
 }
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
@@ -3988,22 +4036,89 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	if(!can_chat_message(state, source, body, target))
 		return;
 	
-	ui::chat_message m;
+	ui::chat_message m{};
 	m.source = source;
 	m.target = target;
-	memcpy(m.body, std::string(body).c_str(), ui::max_chat_message_len);
-	m.body[ui::max_chat_message_len - 1] = '\0';
+	m.body = std::string(body);
+	post_chat_message(state, m);
+}
 
-	// Private message
-	bool can_see = true;
-	if(bool(target)) {
-		can_see = state.local_player_nation == source || state.local_player_nation == target;
+void notify_player_joins(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_joins;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source) {
+	if(!can_notify_player_joins(state, source))
+		return;
+	state.world.nation_set_is_player_controlled(source, true);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
+	post_chat_message(state, m);
+}
+
+void notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_leaves;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	// TODO: bans, kicks, mutes?
+	return true;
+}
+void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
+	if(!can_notify_player_leaves(state, source))
+		return;
+	if(source == state.local_player_nation) {
+		state.local_player_nation = dcon::nation_id{};
 	}
-	if(can_see) {
-		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
-		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
-			state.ui_state.chat_messages_index = 0;
+	state.world.nation_set_is_player_controlled(source, false);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
+	post_chat_message(state, m);
+}
+
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_picks_nation;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	// Can't take an already taken nation
+	if(source == target)
+		return false;
+	// TODO: Support Co-op (one day)
+	return state.world.nation_get_is_player_controlled(target) == false;
+}
+void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_picks_nation(state, source, target))
+		return;
+	
+	if(source == state.local_player_nation) {
+		state.local_player_nation = dcon::nation_id{};
 	}
+	state.world.nation_set_is_player_controlled(source, true);
 }
 
 void execute_pending_commands(sys::state& state) {
@@ -4270,8 +4385,26 @@ void execute_pending_commands(sys::state& state) {
 			break;
 
 		// common mp commands
-		case command_type::chat_message:
-			execute_chat_message(state, c->source, c->data.chat_message.body, c->data.chat_message.target);
+		case command_type::chat_message: {
+			size_t count = 0;
+			for(count = 0; count < sizeof(c->data.chat_message.body); count++)
+				if(c->data.chat_message.body[count] == '\0')
+					break;
+			std::string_view sv(c->data.chat_message.body, count);
+			execute_chat_message(state, c->source, sv, c->data.chat_message.target);
+			break;
+		}
+		case command_type::notify_player_joins:
+			execute_notify_player_joins(state, c->source);
+			break;
+		case command_type::notify_player_leaves:
+			execute_notify_player_leaves(state, c->source);
+			break;
+		case command_type::notify_player_picks_nation:
+			execute_notify_player_picks_nation(state, c->source, c->data.nation_pick.target);
+			break;
+		case command_type::advance_tick:
+			state.single_game_tick();
 			break;
 
 		// console commands
@@ -4304,6 +4437,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::c_change_national_militancy:
 			execute_c_change_national_militancy(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_end_game:
+			execute_c_end_game(state, c->source);
 			break;
 		}
 

@@ -1050,4 +1050,112 @@ uv_sort_h;Exp
 alice_retreat;Retreat from battle
 alice_retreat_1;It has been at least $x$ days since the battle started
 alice_retreat_2;You are the lead attacker or defender
+chat_player_joins;@$x$ $playername$ has joined the game;;;@$x$ $playername$ se ha unido;;;;;;;;;x
+chat_player_leaves;@$x$ $playername$ has left the game;;;@$x$ $playername$ se ha ido;;;;;;;;;x
+message_name_text;Message
+msg_for_us;About: your nation
+msg_for_interesting;Interesting nation
+msg_for_other;Other nation
+msg_handling_ignore;Ignore the message
+msg_handling_log;Log the message
+msg_handling_popup;Pop up a notification for the message
+msg_handling_pause;Pop up a notification for the message and pause the game until it is dismissed
+amsg_revolt;A revolt happens in the nation
+amsg_war_on_nation;War is declared on the nation
+amsg_war_by_nation;War is declared by the nation
+amsg_wargoal_added;The nation adds a war goal
+amsg_siegeover_by_nation;The nation completes a siege
+amsg_siegeover_on_nation;A siege finishes on a province the nation controls
+amsg_colony_finished;The nation finishes a colony
+amsg_reform_gained;The nation passes a reform
+amsg_reform_lost;The nation loses a reform
+amsg_ruling_party_change;The ruling party of the nation changes
+amsg_upperhouse;The composition of the upper house of the nation changes
+amsg_electionstart;An election starts in the nation
+amsg_electiondone;An election ends in the nation
+amsg_breakcountry;Rebels enforce their demands on the nation
+amsg_peace_accepted_from_nation;The nation's peace offer is accepted
+amsg_peace_rejected_from_nation;The nation's peace offer is rejected
+amsg_peace_accepted_by_nation;The nation accepts a peace offer
+amsg_peace_rejected_by_nation;The nation rejects a peace offer
+amsg_mobilization_start;The nation mobilizes
+amsg_mobilization_end;The nation ends its mobilization
+amsg_factory_complete;The nation finishes building a factory
+amsg_rr_complete;The nation finishes building a railroad
+amsg_fort_complete;The nation finishes building a fort
+amsg_naval_base_complete;The nation finishes building a naval base
+amsg_province_event;A province event happens to the nation
+amsg_national_event;A national event happens to the nation
+amsg_major_event;A major event happens to the nation
+amsg_invention;The nation discovers an invention
+amsg_tech;The nation finishes researching a technology
+amsg_leader_dies;One of the nation's military leaders dies
+amsg_land_combat_starts_on_nation;One of the nation's armies is attacked
+amsg_naval_combat_starts_on_nation;One of the nation's navies is attacked
+amsg_land_combat_starts_by_nation;One of the nation's armies makes an attack
+amsg_naval_combat_starts_by_nation;One of the nation's navies makes an attack
+amsg_movement_finishes;One of the nation's units finishes moving
+amsg_decision;The nation takes a decision
+amsg_lose_great_power;The nation loses great power status
+amsg_become_great_power;The nation gains great power status
+amsg_war_subsidies_start_by_nation;The nation starts providing war subsidies
+amsg_war_subsidies_start_on_nation;The nation starts being given war subsidies
+amsg_war_subsidies_end_by_nation;The nation stops providing war subsidies
+amsg_war_subsidies_end_on_nation;The nation stops being provided with war subsidies
+amsg_reparations_start_by_nation;The nation starts paying reparations
+amsg_reparations_start_on_nation;The nation starts being paid reparations
+amsg_reparations_end_by_nation;The nation stops paying reparations
+amsg_reparations_end_on_nation;Reparations stop being paid to the nation
+amsg_mil_access_start_by_nation;The nation starts giving military access
+amsg_mil_access_start_on_nation;The nation starts receiving military access
+amsg_mil_access_end_by_nation;The nation stops giving military access
+amsg_mil_access_end_on_nation;The nation stops receiving military access
+amsg_mil_access_declined_by_nation;The nation's military access request is declined
+amsg_mil_access_declined_on_nation;The nation declines a military access request
+amsg_alliance_starts;The nation enters into a new alliance
+amsg_alliance_ends;The nation ends an alliance
+amsg_alliance_declined_by_nation;The nation declines an alliance offer
+amsg_alliance_declined_on_nation;The nation's alliance offer is declined
+amsg_ally_called_accepted_by_nation;The nation honors a call to arms
+amsg_ally_called_declined_by_nation;The nation declines a call to arms
+amsg_discredit_by_nation;The nation discredits another nation
+amsg_ban_by_nation;The nation bans the embassy of another nation
+amsg_expell_by_nation;The nation expels the advisors of another nation
+amsg_discredit_on_nation;The nation is discredited
+amsg_ban_on_nation;The nation's embassy is banned
+amsg_expell_on_nation;The nation's advisors are expelled
+amsg_increase_opinion;The nation increases another nation's opinion of them
+amsg_decrease_opinion_by_nation;The nation causes the opinion of another nation to decrease
+amsg_decrease_opinion_on_nation;The opinion of this nation is caused to decrease
+amsg_rem_sphere_by_nation;The nation removes another nation from a sphere of influence
+amsg_rem_sphere_on_nation;The nation has another nation removed from its sphere of influence
+amsg_removed_from_sphere;The nation is removed from a sphere of influence
+amsg_add_sphere;The nation adds another nation to their sphere of influence
+amsg_added_to_sphere;The nation is added to a sphere of influence
+amsg_increase_relation_by_nation;The nation increases another nation's relationship with it
+amsg_increase_relation_on_nation;The nation has its relationship with someone else increased
+amsg_decrease_relation_by_nation;The nation decreases another nation's relationship with it
+amsg_decrease_relation_on_nation;The nation has its relationship with someone else decreased
+amsg_join_war_by_nation;The nation joins an existing war
+amsg_join_war_on_nation;A new nation joins an existing war against this nation
+amsg_gw_unlocked;Great wars are unlocked
+amsg_war_becomes_great;A war involving this nation becomes great
+amsg_cb_detected_on_nation;CB justification targeting this nation is detected
+amsg_cb_detected_by_nation;This nation is detected justifying a CB
+amsg_crisis_join_offer_accepted_by_nation;The nation accepts an offer to join a crisis
+amsg_crisis_join_offer_declined_by_nation;The nation declines an offer to join a crisis
+amsg_crisis_join_offer_accepted_from_nation;An offer to join a crisis from this nation is accepted
+amsg_crisis_join_offer_declined_from_nation;An offer to join a crisis from this nation is declined
+amsg_crisis_resolution_accepted;A crisis resolution is accepted
+amsg_crisis_becomes_war;A crisis becomes a war
+amsg_crisis_resolution_declined_from_nation;An crisis resolution offer from this nation is declined
+amsg_crisis_starts;A new crisis starts
+amsg_crisis_attacker_backer;A great power becomes the primary attacker in a crisis
+amsg_crisis_defender_backer;A great power becomes the primary defender in a crisis
+amsg_crisis_fizzle;A crisis fails to attract great power interest
+amsg_war_join_by;The nation joins a war
+amsg_war_join_on;A nation joins a war against this nation
+amsg_cb_fab_finished;The nation finished fabricating a CB
+amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
+amsg_crisis_voluntary_join;The nation joins a crisis without an offer
 ;;;;;;;;;;;;;x
