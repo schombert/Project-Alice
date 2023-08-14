@@ -9,7 +9,6 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
 	case command_type::notify_player_selects:
-	case command_type::notify_player_ping:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
@@ -4087,30 +4086,6 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 }
 
-void notify_player_ping(sys::state& state, dcon::nation_id source, uint32_t ms) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_ping;
-	p.source = source;
-	p.data.ping.ms = ms;
-	add_to_command_queue(state, p);
-}
-bool can_notify_player_ping(sys::state& state, dcon::nation_id source, uint32_t ms) {
-	return true;
-}
-void execute_notify_player_ping(sys::state& state, dcon::nation_id source, uint32_t ms) {
-	if(!can_notify_player_ping(state, source, ms))
-		return;
-	
-	// Ping information isn't very important to keep up-to-date, so we use a circular buffer
-	// where the data can be arbitrarily overwritten, while this isn't a good solution
-	// I'm 100% sure the usecases for "ping ms" do not require airplane-like timing
-	// but rather a general overview of what's going on
-	state.ui_state.ping_data[state.ui_state.ping_data_index++] = ui::ping_data{ source, ms };
-	if(state.ui_state.ping_data_index >= state.ui_state.ping_data.size())
-		state.ui_state.ping_data_index = 0;
-}
-
 void notify_player_selects(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4417,9 +4392,6 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::notify_player_selects:
 			execute_notify_player_selects(state, c->source, c->data.nation_pick.target);
-			break;
-		case command_type::notify_player_ping:
-			execute_notify_player_ping(state, c->source, c->data.ping.ms);
 			break;
 
 		// console commands

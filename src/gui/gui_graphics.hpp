@@ -350,11 +350,6 @@ struct chat_message {
 	~chat_message() = default;
 };
 
-struct ping_data {
-	dcon::nation_id source{};
-	uint32_t ms = 0;
-};
-
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* scroll_target = nullptr;
@@ -407,8 +402,6 @@ struct state {
 	element_base* chat_window = nullptr;
 	std::array<chat_message, 32> chat_messages;
 	uint8_t chat_messages_index = 0;
-	std::array<ping_data, 8> ping_data;
-	uint8_t ping_data_index = 0;
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;

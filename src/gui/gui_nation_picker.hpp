@@ -382,16 +382,13 @@ public:
 };
 
 class multiplayer_ping_text : public simple_text_element_base {
-	uint32_t last_ms;
+	uint32_t last_ms = 0;
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode::single_player) {
 			set_text(state, "");
 		} else {
-			for(auto const& p : state.ui_state.ping_data)
-				if(p.source == n)
-					last_ms = p.ms;
 			set_text(state, std::to_string(last_ms) + " ms");
 		}
 	}
