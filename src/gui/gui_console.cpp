@@ -470,13 +470,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			if(tag.size() == 3) {
 				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 				log_to_console(state, parent,
-						"Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
+						"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
 								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
 								std::to_string(closest_tag_match.second.value));
 			} else {
 				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
 				log_to_console(state, parent,
-						"Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
+						"Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
 								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
 								std::to_string(closest_name_match.second.value));
 			}
@@ -486,7 +486,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			else
 				log_to_console(state, parent, "Is this what you meant?");
 		} else {
-			log_to_console(state, parent, "Switching to \xA7Y" + std::string(tag) + "\xA7W");
+			log_to_console(state, parent, "Switching to @" + std::string(tag) +" \xA7Y" + std::string(tag) + "\xA7W");
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;

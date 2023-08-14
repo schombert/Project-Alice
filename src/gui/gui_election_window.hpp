@@ -55,21 +55,15 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::issue_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::issue_id>(payload);
+		auto content = retrieve<dcon::issue_id>(state, parent);
 
-			row_contents.clear();
-
-			state.world.for_each_issue_option([&](dcon::issue_option_id id) {
-				if(content == dcon::fatten(state.world, id).get_parent_issue().id) {
-					row_contents.push_back(id);
-				}
-			});
-
-			update(state);
-		}
+		row_contents.clear();
+		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
+			if(content == dcon::fatten(state.world, id).get_parent_issue().id) {
+				row_contents.push_back(id);
+			}
+		});
+		update(state);
 	}
 };
 
@@ -102,10 +96,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::issue_id{};
-		parent->impl_get(state, payload);
-		auto issid = any_cast<dcon::issue_id>(payload);
-
+		auto issid = retrieve<dcon::issue_id>(state, parent);
 		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
 		partyvalue->set_text(state,
 				text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
