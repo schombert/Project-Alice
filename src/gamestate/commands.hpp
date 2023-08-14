@@ -88,7 +88,7 @@ enum class command_type : uint8_t {
 	change_general = 79,
 	toggle_mobilization = 80,
 	give_military_access = 81,
-	
+
 	notify_player_ping = 119,
 	notify_player_joins = 120,
 	notify_player_leaves = 121,
@@ -367,8 +367,8 @@ struct chat_message_data {
 	dcon::nation_id target;
 };
 
-struct nation_pick_data {
-	dcon::nation_id target;
+struct ping_data {
+	uint32_t ms;
 };
 
 struct payload {
@@ -418,6 +418,7 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
+		ping_data ping;
 		chat_message_data chat_message;
 
 		dtype() { }
