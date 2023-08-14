@@ -3228,6 +3228,16 @@ void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
 	state.world.nation_get_infamy(source) += value;
 }
+void c_end_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_end_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_end_game(sys::state& state, dcon::nation_id source) {
+	state.mode = sys::game_mode::end_screen;
+}
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4427,6 +4437,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::c_change_national_militancy:
 			execute_c_change_national_militancy(state, c->source, c->data.cheat.value);
+			break;
+		case command_type::c_end_game:
+			execute_c_end_game(state, c->source);
 			break;
 		}
 

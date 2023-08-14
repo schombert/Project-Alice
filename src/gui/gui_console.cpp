@@ -31,6 +31,7 @@ struct command_info {
 		debug,
 		cb_progress,
 		crisis,
+		end_game,
 		militancy
 	} mode = type::none;
 	std::string_view desc;
@@ -104,6 +105,9 @@ static const std::vector<command_info> possible_commands = {
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"crisis", command_info::type::crisis, "Force a crisis to occur",
+				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"end_game", command_info::type::end_game, "ends the game",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"angry", command_info::type::militancy, "Makes everyone in your nation very militant",
@@ -975,6 +979,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::crisis:
 		command::c_force_crisis(state, state.local_player_nation);
+		break;
+	case command_info::type::end_game:
+		command::c_end_game(state, state.local_player_nation);
 		break;
 	case command_info::type::militancy:
 		command::c_change_national_militancy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));

@@ -683,8 +683,12 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto gov_type_id = fat_id.get_government_type();
-		auto gov_name_seq = state.culture_definitions.governments[gov_type_id].name;
-		return text::produce_simple_string(state, gov_name_seq);
+		if(gov_type_id) {
+			auto gov_name_seq = state.culture_definitions.governments[gov_type_id].name;
+			return text::produce_simple_string(state, gov_name_seq);
+		} else {
+			return "";
+		}
 	}
 };
 
@@ -815,7 +819,7 @@ class nation_literacy_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto literacy = state.world.nation_get_demographics(nation_id, demographics::literacy);
-		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		auto total_pop = std::max(1.0f, state.world.nation_get_demographics(nation_id, demographics::total));
 		return text::format_percentage(literacy / total_pop, 1);
 	}
 };
