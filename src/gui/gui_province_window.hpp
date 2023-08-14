@@ -902,22 +902,17 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-
-			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-			auto nation_id = fat_id.get_nation_from_province_ownership();
-			if(!bool(nation_id) || nation_id.id == state.local_player_nation) {
-				set_visible(state, false);
-			} else {
-				country_flag_button->impl_on_update(state);
-				culture_chart->impl_on_update(state);
-				workforce_chart->impl_on_update(state);
-				ideology_chart->impl_on_update(state);
-				set_visible(state, true);
-			}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
+		auto nation_id = fat_id.get_nation_from_province_ownership();
+		if(!bool(nation_id) || nation_id.id == state.local_player_nation) {
+			set_visible(state, false);
+		} else {
+			country_flag_button->impl_on_update(state);
+			culture_chart->impl_on_update(state);
+			workforce_chart->impl_on_update(state);
+			ideology_chart->impl_on_update(state);
+			set_visible(state, true);
 		}
 	}
 };
@@ -927,12 +922,8 @@ void province_owner_rgo_draw_tooltip(sys::state& state, text::columnar_layout& c
 class province_owner_rgo : public province_rgo {
 public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			province_owner_rgo_draw_tooltip(state, contents, prov_id);
-		}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		province_owner_rgo_draw_tooltip(state, contents, prov_id);
 	}
 };
 
@@ -942,12 +933,8 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			province_owner_rgo_draw_tooltip(state, contents, prov_id);
-		}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		province_owner_rgo_draw_tooltip(state, contents, prov_id);
 	}
 };
 
@@ -957,12 +944,8 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			province_owner_rgo_draw_tooltip(state, contents, prov_id);
-		}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		province_owner_rgo_draw_tooltip(state, contents, prov_id);
 	}
 };
 
@@ -1055,17 +1038,13 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
-			// substitute.
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value,
-					text::fp_one_place{province::revolt_risk(state, content) * 100});
-			text::close_layout_box(contents, box);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
+		// substitute.
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value,
+				text::fp_one_place{province::revolt_risk(state, content) * 100});
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1161,20 +1140,16 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-			auto nation_id = fat_id.get_nation_from_province_ownership();
-			if(bool(nation_id) && nation_id.id == state.local_player_nation) {
-				culture_chart->impl_on_update(state);
-				workforce_chart->impl_on_update(state);
-				ideology_chart->impl_on_update(state);
-				set_visible(state, true);
-			} else {
-				set_visible(state, false);
-			}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
+		auto nation_id = fat_id.get_nation_from_province_ownership();
+		if(bool(nation_id) && nation_id.id == state.local_player_nation) {
+			culture_chart->impl_on_update(state);
+			workforce_chart->impl_on_update(state);
+			ideology_chart->impl_on_update(state);
+			set_visible(state, true);
+		} else {
+			set_visible(state, false);
 		}
 	}
 };
@@ -1233,17 +1208,13 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-			auto nation_id = fat_id.get_nation_from_province_ownership();
-			if(bool(nation_id) && nation_id.id == state.local_player_nation) {
-				set_visible(state, true);
-			} else {
-				set_visible(state, false);
-			}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
+		auto nation_id = fat_id.get_nation_from_province_ownership();
+		if(bool(nation_id) && nation_id.id == state.local_player_nation) {
+			set_visible(state, true);
+		} else {
+			set_visible(state, false);
 		}
 	}
 };
@@ -1268,68 +1239,40 @@ public: // goto hell;
 class province_protectorate_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-
-			command::finish_colonization(state, state.local_player_nation, content);
-			state.ui_state.province_window->set_visible(state, false);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		command::finish_colonization(state, state.local_player_nation, content);
+		state.ui_state.province_window->set_visible(state, false);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			disabled = !command::can_finish_colonization(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_finish_colonization(state, state.local_player_nation, content);
 	}
 };
 
 class province_withdraw_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-
-			command::abandon_colony(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		command::abandon_colony(state, state.local_player_nation, content);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			disabled = !command::can_abandon_colony(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_abandon_colony(state, state.local_player_nation, content);
 	}
 };
 
 class colony_invest_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-
-			command::invest_in_colony(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		command::invest_in_colony(state, state.local_player_nation, content);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-
-			disabled = !command::can_invest_in_colony(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_invest_in_colony(state, state.local_player_nation, content);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1489,9 +1432,7 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::colonization_id{};
-		parent->impl_get(state, payload);
-		auto content = any_cast<dcon::colonization_id>(payload);
+		auto content = retrieve<dcon::colonization_id>(state, parent);
 		
 		row_contents.clear();
 
@@ -1598,9 +1539,7 @@ public:
 class province_colonisation_temperature : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::state_instance_id{};
-		parent->impl_get(state, payload);
-		auto content = any_cast<dcon::state_instance_id>(payload);
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		progress = dcon::fatten(state.world, content).get_definition().get_colonization_temperature();
 	}
 };
@@ -1639,22 +1578,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-			auto nation_id = fat_id.get_nation_from_province_ownership();
-			if(bool(nation_id)) {
-				set_visible(state, false);
-			} else {
-				rgo_icon->frame = fat_id.get_rgo().get_icon();
-				rgo_icon->rgo_name = fat_id.get_rgo().get_name();
-				auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
-				population_box->set_text(state, text::prettify(int32_t(total_pop)));
-				culture_chart->on_update(state);
-				set_visible(state, true);
-			}
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
+		auto nation_id = fat_id.get_nation_from_province_ownership();
+		if(bool(nation_id)) {
+			set_visible(state, false);
+		} else {
+			rgo_icon->frame = fat_id.get_rgo().get_icon();
+			rgo_icon->rgo_name = fat_id.get_rgo().get_name();
+			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
+			population_box->set_text(state, text::prettify(int32_t(total_pop)));
+			culture_chart->on_update(state);
+			set_visible(state, true);
 		}
 	}
 };

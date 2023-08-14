@@ -329,9 +329,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = T{};
-		parent->impl_get(state, payload);
-		unitToReorg = any_cast<T>(payload);
+		unitToReorg = retrieve<T>(state, parent);
 		auto fat = dcon::fatten(state.world, unitToReorg);
 		orginialunit_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
 	}

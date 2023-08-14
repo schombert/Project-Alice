@@ -527,42 +527,38 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto n = any_cast<dcon::nation_id>(payload);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			float w_subsidies_amount =
-					economy::estimate_war_subsidies_income(state, n) - economy::estimate_war_subsidies_spending(state, n);
-			float reparations_amount = economy::estimate_reparations_income(state, n) - economy::estimate_reparations_spending(state, n);
+		float w_subsidies_amount =
+				economy::estimate_war_subsidies_income(state, n) - economy::estimate_war_subsidies_spending(state, n);
+		float reparations_amount = economy::estimate_reparations_income(state, n) - economy::estimate_reparations_spending(state, n);
 
-			if(w_subsidies_amount > 0.0f) {
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "warsubsidies_income", m);
-				text::close_layout_box(contents, box);
-			} else if(w_subsidies_amount < 0.0f) {
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "warsubsidies_expense", m);
-				text::close_layout_box(contents, box);
-			}
+		if(w_subsidies_amount > 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warsubsidies_income", m);
+			text::close_layout_box(contents, box);
+		} else if(w_subsidies_amount < 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warsubsidies_expense", m);
+			text::close_layout_box(contents, box);
+		}
 
-			if(reparations_amount > 0.0f) {
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "warindemnities_income", m);
-				text::close_layout_box(contents, box);
-			} else if(reparations_amount < 0.0f) {
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "warindemnities_expense", m);
-				text::close_layout_box(contents, box);
-			}
+		if(reparations_amount > 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warindemnities_income", m);
+			text::close_layout_box(contents, box);
+		} else if(reparations_amount < 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{w_subsidies_amount});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warindemnities_expense", m);
+			text::close_layout_box(contents, box);
 		}
 	}
 };
@@ -1040,12 +1036,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-			frame = get_icon_frame(state, nation_id);
-		}
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		frame = get_icon_frame(state, n);
 	}
 };
 
@@ -1056,12 +1048,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-			progress = get_progress(state, nation_id);
-		}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		progress = get_progress(state, nation_id);
 	}
 };
 
@@ -1075,17 +1063,12 @@ public:
 class nation_technology_research_progress : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto tech_id = nations::current_research(state, nation_id);
-			if(bool(tech_id)) {
-				progress = state.world.nation_get_research_points(nation_id) / state.world.technology_get_cost(tech_id);
-			} else {
-				progress = 0.f;
-			}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto tech_id = nations::current_research(state, nation_id);
+		if(bool(tech_id)) {
+			progress = state.world.nation_get_research_points(nation_id) / state.world.technology_get_cost(tech_id);
+		} else {
+			progress = 0.f;
 		}
 	}
 };
@@ -1097,12 +1080,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto state_instance_id = any_cast<dcon::state_instance_id>(payload);
-			frame = get_icon_frame(state, state_instance_id);
-		}
+		auto state_instance_id = retrieve<dcon::state_instance_id>(state, parent);
+		frame = get_icon_frame(state, state_instance_id);
 	}
 };
 
@@ -1113,12 +1092,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-			frame = get_icon_frame(state, nation_id);
-		}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		frame = get_icon_frame(state, nation_id);
 	}
 };
 
@@ -1191,13 +1166,8 @@ public:
 class ideology_plupp : public tinted_image_element_base {
 public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::ideology_id{};
-			parent->impl_get(state, payload);
-			auto ideology_id = any_cast<dcon::ideology_id>(payload);
-			return state.world.ideology_get_color(ideology_id);
-		}
-		return 0;
+		auto ideology_id = retrieve<dcon::ideology_id>(state, parent);
+		return state.world.ideology_get_color(ideology_id);
 	}
 };
 
@@ -1227,14 +1197,9 @@ public:
 class pop_type_icon : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_type_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, content);
-			frame = int32_t(fat_id.get_sprite() - 1);
-		}
+		auto content = retrieve<dcon::pop_type_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		frame = int32_t(fat_id.get_sprite() - 1);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1242,49 +1207,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_type_id>(payload);
-
-			auto name = state.world.pop_type_get_name(content);
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, name);
-				text::close_layout_box(contents, box);
-			}
+		auto content = retrieve<dcon::pop_type_id>(state, parent);
+		auto name = state.world.pop_type_get_name(content);
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, name);
+			text::close_layout_box(contents, box);
 		}
 	}
 };
 class religion_type_icon : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::religion_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::religion_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, content);
-			frame = int32_t(fat_id.get_icon() - 1);
-		}
+		auto content = retrieve<dcon::religion_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		frame = int32_t(fat_id.get_icon() - 1);
 	}
 };
 
 class nation_ideology_percentage_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			Cyto::Any i_payload = dcon::ideology_id{};
-			parent->impl_get(state, i_payload);
-			auto ideology_id = any_cast<dcon::ideology_id>(i_payload);
-			if(nation_id && ideology_id) {
-				auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
-				set_text(state, text::format_percentage(percentage, 1));
-			}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto ideology_id = retrieve<dcon::ideology_id>(state, parent);
+		if(nation_id && ideology_id) {
+			auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
+			set_text(state, text::format_percentage(percentage, 1));
 		}
 	}
 };
@@ -1354,12 +1302,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
@@ -1509,12 +1453,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::factory_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 class factory_state_name_text : public standard_factory_text {
@@ -1565,23 +1505,19 @@ public:
 class factory_profit_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_id>(payload);
+		auto content = retrieve<dcon::factory_id>(state, parent);
 
-			auto profit = state.world.factory_get_full_profit(content);
-			bool is_positive = profit >= 0.f;
-			auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
-			// Create colour
-			auto contents = text::create_endless_layout(internal_layout,
-					text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-							base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true});
-			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, text,
-					is_positive ? text::text_color::dark_green : text::text_color::dark_red);
-			text::close_layout_box(contents, box);
-		}
+		auto profit = state.world.factory_get_full_profit(content);
+		bool is_positive = profit >= 0.f;
+		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
+		// Create colour
+		auto contents = text::create_endless_layout(internal_layout,
+				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true});
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text,
+				is_positive ? text::text_color::dark_green : text::text_color::dark_red);
+		text::close_layout_box(contents, box);
 	}
 };
 class factory_priority_image : public image_element_base {
