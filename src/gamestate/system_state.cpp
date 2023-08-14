@@ -2522,6 +2522,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.nation_resize_active_crime(uint32_t(culture_definitions.crimes.size()));
 	world.nation_resize_active_building(world.factory_type_size());
 	world.nation_resize_unit_stats(uint32_t(military_definitions.unit_base_definitions.size()));
+	world.nation_resize_max_building_level(economy::max_building_types);
 
 	world.province_resize_modifier_values(provincial_mod_offsets::count);
 
