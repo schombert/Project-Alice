@@ -29,6 +29,7 @@
 #include <thread>
 #include "rebels.hpp"
 #include "ai.hpp"
+#include "effects.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_land_combat.hpp"
 #include "gui_nation_picker.hpp"
@@ -2304,6 +2305,7 @@ void state::load_scenario_data() {
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
 
+	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
 	{
 		auto country_dir = open_directory(history, NATIVE("countries"));
@@ -2326,7 +2328,7 @@ void state::load_scenario_data() {
 						it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
-					parsers::country_history_context new_context{context, it->second, holder};
+					parsers::country_history_context new_context{context, it->second, holder, pending_decisions};
 
 					auto opened_file = open_file(country_file);
 					if(opened_file) {
@@ -2453,6 +2455,14 @@ void state::load_scenario_data() {
 	});
 
 	fill_unsaved_data(); // we need this to run triggers
+
+	// run pending triggers and effects
+	for(auto pending_decision : pending_decisions) {
+		dcon::nation_id n = pending_decision.first;
+		dcon::decision_id d = pending_decision.second;
+		if(auto e = world.decision_get_effect(d); e)
+			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
 
 	demographics::regenerate_from_pop_data(*this);
 	economy::initialize(*this);
