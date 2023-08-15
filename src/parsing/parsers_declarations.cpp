@@ -2679,6 +2679,25 @@ void country_history_file::ruling_party(association_type, std::string_view value
 														std::to_string(line) + ")\n";
 }
 
+void country_history_file::decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	auto value_key = [&]() {
+		auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value));
+		if(it != context.outer_context.state.key_to_text_sequence.end()) {
+			return it->second;
+		}
+		return dcon::text_sequence_id();
+	}();
+
+	dcon::decision_id d;
+	context.outer_context.state.world.for_each_decision([&](dcon::decision_id d) {
+		auto name = context.outer_context.state.world.decision_get_name(d);
+		if(name == value_key) {
+			if(auto e = context.outer_context.state.world.decision_get_effect(d); e)
+				effect::execute(context.outer_context.state, e, trigger::to_generic(context.holder_id), trigger::to_generic(context.holder_id), 0, uint32_t(context.outer_context.state.current_date.value), uint32_t(context.holder_id.index() << 4 ^ d.index()));
+		}
+	});
+}
+
 void commodity_array::finish(scenario_building_context& context) {
 	data.resize(context.state.world.commodity_size());
 }
