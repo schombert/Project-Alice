@@ -409,11 +409,13 @@ public:
 class nation_picker_kick_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode != sys::network_mode::host);
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-	
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::notify_player_kick(state, state.local_player_nation, n);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -430,11 +432,13 @@ public:
 class nation_picker_ban_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode != sys::network_mode::host);
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_ban(state, state.local_player_nation, n);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::notify_player_ban(state, state.local_player_nation, n);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
