@@ -4445,10 +4445,10 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	}
 	case command_type::notify_player_ban:
-		execute_notify_player_ban(state, c.source);
+		execute_notify_player_ban(state, c.source, c.data.nation_pick.target);
 		break;
 	case command_type::notify_player_kick:
-		execute_notify_player_kick(state, c.source);
+		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
 		break;
 	case command_type::notify_player_joins:
 		execute_notify_player_joins(state, c.source);
