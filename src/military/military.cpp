@@ -3729,8 +3729,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 						2, 30)));
 
 				add_army_to_battle(state, a, new_battle, par.role);
-				add_army_to_battle(state, o.get_army(), new_battle,
-						par.role == war_role::attacker ? war_role::defender : war_role::attacker);
+				add_army_to_battle(state, o.get_army(), new_battle, par.role == war_role::attacker ? war_role::defender : war_role::attacker);
 
 				gather_to_battle = new_battle.id;
 				battle_in_war = par.w;
@@ -5627,8 +5626,9 @@ void update_movement(sys::state& state) {
 					path.clear();
 				}
 			}
-
-			if(path.size() > 0) {
+			if(a.get_battle_from_army_battle_participation()) {
+				// nothing -- movement paused
+			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));
 			} else {
@@ -5681,7 +5681,9 @@ void update_movement(sys::state& state) {
 				}
 			}
 
-			if(path.size() > 0) {
+			if(n.get_battle_from_navy_battle_participation()) {
+				// nothing, movement paused
+			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				n.set_arrival_time(arrival_time_to(state, n, next_dest));
 			} else {
