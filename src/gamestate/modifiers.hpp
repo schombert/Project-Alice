@@ -33,7 +33,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(23, number_of_voters, true, modifier_display_type::percent, "modifier_number_of_voters")                      \
 	MOD_LIST_ELEMENT(24, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand")                              \
 	MOD_LIST_ELEMENT(25, assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate")                    \
-	MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::integer, "modifier_life_rating")                                \
+	MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::percent, "modifier_life_rating")                                \
 	MOD_LIST_ELEMENT(27, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_efficiency")                           \
 	MOD_LIST_ELEMENT(28, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_efficiency")                           \
 	MOD_LIST_ELEMENT(29, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_size")                                \

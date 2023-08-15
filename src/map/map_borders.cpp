@@ -266,8 +266,9 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		std::fill(current_row.begin(), current_row.end(), BorderDirection{});
 	}
 
+	/*
 	// identify and filter out lakes
-	// TODO: unfortunately, this isn't enough to remove the Michigan lakes, since there are two touching lake tiles there
+	// this has been superseded by a more general connectivity algorithm where only the connected set of water provinces of the greatest size counts as the ocean
 
 	for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
 		dcon::province_id p{ dcon::province_id::value_base_t(k) };
@@ -287,6 +288,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			}
 		}
 	}
+	*/
 
 	for(auto p : context.state.world.in_province) {
 		auto rng = p.get_province_adjacency();

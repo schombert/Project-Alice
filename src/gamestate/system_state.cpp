@@ -2442,6 +2442,71 @@ void state::load_scenario_data() {
 		world.province_set_terrain(id, context.ocean_terrain);
 	}
 
+	/*
+	Lake removal
+	-- this is basically using the connected region algorithm on the water provinces
+	*/
+	{
+		world.for_each_province([&](dcon::province_id id) { world.province_set_connected_region_id(id, 0); });
+		
+		std::vector<dcon::province_id> to_fill_list;
+		std::vector<int32_t> region_sizes;
+
+		uint16_t current_fill_id = 0;
+		province_definitions.connected_region_is_coastal.clear();
+
+		to_fill_list.reserve(world.province_size());
+		
+		for(int32_t i = int32_t(world.province_size()); i-- > province_definitions.first_sea_province.index();) {
+			dcon::province_id id{ dcon::province_id::value_base_t(i) };
+
+			if(world.province_get_connected_region_id(id) == 0) {
+				++current_fill_id;
+
+				region_sizes.push_back(0);
+				to_fill_list.push_back(id);
+
+				while(!to_fill_list.empty()) {
+					auto current_id = to_fill_list.back();
+					to_fill_list.pop_back();
+					region_sizes.back() += 1;
+
+					world.province_set_connected_region_id(current_id, current_fill_id);
+					for(auto rel : world.province_get_province_adjacency(current_id)) {
+						if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) == 0) { // not leaving sea, not impassible
+							if(rel.get_connected_provinces(0).get_connected_region_id() == 0)
+								to_fill_list.push_back(rel.get_connected_provinces(0));
+							if(rel.get_connected_provinces(1).get_connected_region_id() == 0)
+								to_fill_list.push_back(rel.get_connected_provinces(1));
+						}
+					}
+				}
+
+				to_fill_list.clear();
+			}
+		}
+
+		int32_t max = 0;
+		for(int32_t i = 0; i < int32_t(region_sizes.size()); ++i) {
+			if(region_sizes[max] < region_sizes[i])
+				max = i;
+		}
+
+		if(!region_sizes.empty()) {
+			for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
+				dcon::province_id p{ dcon::province_id::value_base_t(k) };
+				if(world.province_get_connected_region_id(p) != int16_t(max + 1)) {
+					for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+						other.set_is_coast(false);
+						adj.get_type() |= province::border::impassible_bit;
+					}
+				}
+			}
+		}
+	}
+
+
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
@@ -2449,6 +2514,7 @@ void state::load_scenario_data() {
 			auto bits = adj.get_type();
 			if((bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
 				world.province_set_port_to(p, other.id);
+				world.province_set_is_coast(p, true);
 				return;
 			}
 		}

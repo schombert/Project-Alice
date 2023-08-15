@@ -267,49 +267,6 @@ void restore_unsaved_values(sys::state& state) {
 	restore_cached_values(state);
 }
 
-/*
-// We can probably do without this
-void update_state_administrative_efficiency(sys::state& state) {
-
-	//- state administrative efficiency: = define:NONCORE_TAX_PENALTY x number-of-non-core-provinces + (bureaucrat-tax-efficiency
-x total-number-of-primary-or-accepted-culture-bureaucrats / population-of-state)v1 / x
-(sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT +
-define:MAX_BUREAUCRACY_PERCENTAGE)), all clamped between 0 and 1.
-
-	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
-		auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
-
-		auto admin_mod = state.world.nation_get_static_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency
-- sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(owner,
-sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count);
-
-		float issue_sum = 0.0f;
-		for(auto i : state.culture_definitions.social_issues) {
-			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner,
-i));
-		}
-		auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
-		float non_core_effect = 0.0f;
-		float bsum = 0.0f;
-		for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-			if(!state.world.province_get_is_owner_core(p)) {
-				non_core_effect += state.defines.noncore_tax_penalty;
-			}
-			for(auto po : state.world.province_get_pop_location(p)) {
-				if(po.get_pop().get_is_primary_or_accepted_culture()) {
-					bsum += po.get_pop().get_size();
-				}
-			}
-		});
-		auto total_pop = state.world.state_instance_get_demographics(si, demographics::total);
-		auto total = total_pop > 0 ? std::clamp((non_core_effect + state.culture_definitions.bureaucrat_tax_efficiency * bsum /
-total_pop) / from_issues, 0.0f, 1.0f) : 0.0f;
-
-		state.world.state_instance_set_administrative_efficiency(si, total);
-
-	});
-}
-*/
 bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
 	for(auto pb : state.world.province_get_province_building_construction(id)) {
 		if(economy::province_building_type(pb.get_type()) == economy::province_building_type::railroad)
@@ -411,7 +368,6 @@ bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_
 }
 
 bool has_an_owner(sys::state& state, dcon::province_id id) {
-	// TODO: not sure if this is the most efficient way
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
@@ -432,15 +388,14 @@ float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	float growth_factor = life_rating + state.defines.base_popgrowth;
 
 	float life_needs = state.world.province_get_demographics(id, demographics::poor_everyday_needs) +
-										 state.world.province_get_demographics(id, demographics::middle_everyday_needs) +
-										 state.world.province_get_demographics(id, demographics::rich_everyday_needs);
+		 state.world.province_get_demographics(id, demographics::middle_everyday_needs) +
+		 state.world.province_get_demographics(id, demographics::rich_everyday_needs);
 
 	life_needs /= total_pops;
 
 	float growth_modifier_sum = ((life_needs - state.defines.life_need_starvation_limit) * growth_factor * 4 +
-															 state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) +
-															 state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) *
-																	 0.1f); // /state.defines.slave_growth_divisor;
+			state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) +
+				 state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) * 0.1f); // /state.defines.slave_growth_divisor;
 
 	// TODO: slaves growth
 
