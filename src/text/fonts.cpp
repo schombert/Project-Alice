@@ -408,7 +408,7 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
 			if(ogl::display_tag_is_valid(state, tag)) {
-				total += glyph_advances[0x4D] * size / 64.0f; // double-size
+				total += (glyph_advances[0x4D] * size / 64.0f) / 2.f; // double-size
 				i += 3;
 			}
 		}

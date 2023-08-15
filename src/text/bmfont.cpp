@@ -137,8 +137,7 @@ int bm_font::get_kerning_pair(char first, char second) const {
 }
 
 float bm_font::get_string_width(sys::state& state, char const* string, uint32_t count) const {
-	float total = 0;
-
+	float total = 0.f;
 	for(uint32_t i = 0; i < count; ++i) {
 		auto c = uint8_t(string[i]);
 		if(c == 0x01 || c == 0x02 || c == 0x40)
@@ -153,7 +152,7 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 			tag[1] = (i + 2 < count) ? char(string[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(string[i + 3]) : 0;
 			if(ogl::display_tag_is_valid(state, tag)) {
-				total += chars[0x4D].x_advance;
+				total += chars[0x4D].x_advance / 2.f;
 				i += 3;
 			}
 		}
