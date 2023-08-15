@@ -4094,6 +4094,63 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 }
 
+void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_ban;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(source == target) // can't perform on self
+		return false;
+	return state.network_mode == sys::network_mode::host;
+}
+void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_ban(state, source, target))
+		return;
+	if(state.network_mode == sys::network_mode::host) {
+		// TODO: add to banned MAC/IP list
+	}
+	state.world.nation_set_is_player_controlled(target, false);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
+	post_chat_message(state, m);
+}
+
+void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_kick;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(source == target) // can't perform on self
+		return false;
+	return state.network_mode == sys::network_mode::host;
+}
+void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_kick(state, source, target))
+		return;
+	state.world.nation_set_is_player_controlled(target, false);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
+	post_chat_message(state, m);
+}
+
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4387,6 +4444,12 @@ void execute_command(sys::state& state, payload& c) {
 		execute_chat_message(state, c.source, sv, c.data.chat_message.target);
 		break;
 	}
+	case command_type::notify_player_ban:
+		execute_notify_player_ban(state, c.source, c.data.nation_pick.target);
+		break;
+	case command_type::notify_player_kick:
+		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
+		break;
 	case command_type::notify_player_joins:
 		execute_notify_player_joins(state, c.source);
 		break;
