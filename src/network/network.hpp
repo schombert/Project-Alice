@@ -21,6 +21,8 @@ struct state;
 
 namespace network {
 
+inline constexpr short default_server_port = 1984;
+
 #ifdef _WIN64
 typedef SOCKET socket_t;
 #else
@@ -31,6 +33,7 @@ struct client_data {
 	dcon::nation_id playing_as{};
 	std::string player_name;
 	socket_t socket_fd = 0;
+	struct sockaddr_in address;
 
 	inline bool is_active() {
 		return socket_fd > 0;
@@ -39,12 +42,12 @@ struct client_data {
 
 struct network_state {
 	bool as_server = false;
-	struct sockaddr_in server_address;
+	struct sockaddr_in address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
 	std::array<client_data, 16> clients;
+	std::vector<struct in_addr> banlist;
 	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
-	short server_port = 1984;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}

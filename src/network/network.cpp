@@ -75,7 +75,7 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = INADDR_ANY;
-	server_address.sin_port = htons(1984);
+	server_address.sin_port = htons(default_server_port);
 	if(bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
 		std::abort();
 	if(listen(socket_fd, 3) < 0)
@@ -88,15 +88,15 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 	return socket_fd;
 }
 
-static socket_t socket_init_client(struct sockaddr_in& server_address, const char *ip_address) {
+static socket_t socket_init_client(struct sockaddr_in& client_address, const char *ip_address) {
 	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
 	if(socket_fd < 0)
 		std::abort();
-	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(1984);
-	if(inet_pton(AF_INET, ip_address, &server_address.sin_addr) <= 0)
+	client_address.sin_family = AF_INET;
+	client_address.sin_port = htons(default_server_port);
+	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0)
 		std::abort();
-	if(connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
+	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0)
 		std::abort();
 	return socket_fd;
 }
@@ -115,10 +115,10 @@ void init(sys::state& state) {
 		std::abort();
 #endif
 	if(state.network_mode == sys::network_mode::host) {
-		state.network_state.socket_fd = socket_init_server(state.network_state.server_address);
+		state.network_state.socket_fd = socket_init_server(state.network_state.address);
 	} else {
 		assert(state.network_state.ip_address.size() > 0);
-		state.network_state.socket_fd = socket_init_client(state.network_state.server_address, state.network_state.ip_address.c_str());
+		state.network_state.socket_fd = socket_init_client(state.network_state.address, state.network_state.ip_address.c_str());
 	}
 }
 
@@ -142,8 +142,14 @@ static void accept_new_clients(sys::state& state) {
 	// Find available slot for client
 	for(auto& client : state.network_state.clients) {
 		if(!client.is_active()) {
-			socklen_t addr_len = sizeof(state.network_state.server_address);
-			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr *)&state.network_state.server_address, &addr_len);
+			socklen_t addr_len = sizeof(client.address);
+			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr *)&client.address, &addr_len);
+			// enforce bans
+			if(std::find_if(state.network_state.banlist.begin(), state.network_state.banlist.end(), [&](auto const a) {
+				return memcmp(&client.address.sin_addr, &a, sizeof(a)) == 0;
+			}) != state.network_state.banlist.end()) {
+				disconnect_client(state, client);
+			}
 			return;
 		}
 	}
