@@ -2304,6 +2304,7 @@ void state::load_scenario_data() {
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
 
+	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
 	{
 		auto country_dir = open_directory(history, NATIVE("countries"));
@@ -2334,6 +2335,9 @@ void state::load_scenario_data() {
 						auto content = view_contents(*opened_file);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
 						parsers::parse_country_history_file(gen, err, new_context);
+						
+						for(auto& e : new_context.pending_decisions)
+							pending_decisions.push_back(e);
 					}
 
 				} else {
@@ -2453,6 +2457,14 @@ void state::load_scenario_data() {
 	});
 
 	fill_unsaved_data(); // we need this to run triggers
+
+	// run pending triggers and effects
+	for(auto pending_decision : pending_decisions) {
+		dcon::nation_id n = pending_decision.first;
+		dcon::decision_id d = pending_decision.second;
+		if(auto e = world.decision_get_effect(d); e)
+			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
 
 	demographics::regenerate_from_pop_data(*this);
 	economy::initialize(*this);

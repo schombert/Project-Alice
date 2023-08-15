@@ -2692,8 +2692,7 @@ void country_history_file::decision(association_type, std::string_view value, er
 	context.outer_context.state.world.for_each_decision([&](dcon::decision_id d) {
 		auto name = context.outer_context.state.world.decision_get_name(d);
 		if(name == value_key) {
-			if(auto e = context.outer_context.state.world.decision_get_effect(d); e)
-				effect::execute(context.outer_context.state, e, trigger::to_generic(context.holder_id), trigger::to_generic(context.holder_id), 0, uint32_t(context.outer_context.state.current_date.value), uint32_t(context.holder_id.index() << 4 ^ d.index()));
+			context.pending_decisions.emplace_back(context.holder_id, d);
 		}
 	});
 }

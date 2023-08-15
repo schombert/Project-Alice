@@ -2387,6 +2387,7 @@ struct country_history_context {
 	scenario_building_context& outer_context;
 	dcon::national_identity_id nat_ident;
 	dcon::nation_id holder_id;
+	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 };
 
 struct govt_flag_block {
