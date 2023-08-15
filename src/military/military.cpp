@@ -2542,6 +2542,19 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 			}
 		}
 	}
+	for(auto p : state.world.nation_get_province_control(n)) {
+		if(auto c = p.get_province().get_nation_from_province_ownership(); c && c != n) {
+			if(!military::are_at_war(state, c, n)) {
+				state.world.province_set_rebel_faction_from_province_rebel_control(p.get_province(), dcon::rebel_faction_id{});
+				state.world.province_set_last_control_change(p.get_province(), state.current_date);
+				state.world.province_set_nation_from_province_control(p.get_province(), c);
+				state.world.province_set_siege_progress(p.get_province(), 0.0f);
+
+				military::eject_ships(state, p.get_province());
+				military::update_blackflag_status(state, p.get_province());
+			}
+		}
+	}
 
 	if(as_loss) {
 		state.world.nation_set_last_war_loss(n, state.current_date);

@@ -1020,7 +1020,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 namespace impl {
 
-std::string lb_resolve_substitution(sys::state& state, substitution sub) {
+std::string lb_resolve_substitution(sys::state& state, substitution sub, substitution_map const& mp) {
 	if(std::holds_alternative<std::string_view>(sub)) {
 		return std::string(std::get<std::string_view>(sub));
 	} else if(std::holds_alternative<dcon::text_key>(sub)) {
@@ -1085,7 +1085,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 	} else if(std::holds_alternative<int_wholenum>(sub)) {
 		return text::format_wholenum(std::get<int_wholenum>(sub).value);
 	} else if(std::holds_alternative<dcon::text_sequence_id>(sub)) {
-		return produce_simple_string(state, std::get<dcon::text_sequence_id>(sub));
+		return text::resolve_string_substitution(state, std::get<dcon::text_sequence_id>(sub), mp);
 	} else if(std::holds_alternative<dcon::state_definition_id>(sub)) {
 		return produce_simple_string(state, state.world.state_definition_get_name(std::get<dcon::state_definition_id>(sub)));
 	} else {
@@ -1095,8 +1095,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub) {
 
 } // namespace impl
 
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text,
-		substitution_map const& mp) {
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
 	if(!source_text)
 		return;
 
@@ -1123,7 +1122,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
 			auto var_type = std::get<text::variable_type>(state.text_components[i]);
 			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
-				auto txt = impl::lb_resolve_substitution(state, it->second);
+				auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 				add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
 			} else {
 				add_to_layout_box(state, dest, box, std::string_view("???"), current_color, std::monostate{});
@@ -1133,7 +1132,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 }
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, substitution val, text_color color) {
-	auto txt = impl::lb_resolve_substitution(state, val);
+	auto txt = impl::lb_resolve_substitution(state, val, substitution_map{});
 	add_to_layout_box(state, dest, box, std::string_view(txt), color, val);
 }
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string const& val, text_color color) {
@@ -1430,7 +1429,7 @@ std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_i
 			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
 				auto var_type = std::get<text::variable_type>(state.text_components[i]);
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
-					auto txt = impl::lb_resolve_substitution(state, it->second);
+					auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 					// add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
 					result += txt;
 				} else {

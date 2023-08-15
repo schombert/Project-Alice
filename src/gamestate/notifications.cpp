@@ -10,6 +10,7 @@ void post(sys::state& state, message&& m) {
 	//
 
 	bool v = state.new_messages.try_emplace(std::move(m));
+	assert(v);
 }
 
 bool nation_is_interesting(sys::state& state, dcon::nation_id n) {

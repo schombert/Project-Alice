@@ -164,9 +164,9 @@ diplomatic_influence_with;diplomatic influence with $text$;;;Influencia diplomat
 relations_with;relationship with $text$;;;Relacion con $text$;;;;;;;;;x
 add_modifier_until;Gets $text$ until $date$;;;Obtiene $text$ hasta $date$;;;;;;;;;x
 add_modifier;Gets $text$;;;Obtiene $text$;;;;;;;;;x
-add_cb_months;Gets a $name$ casus belli against $text$ for $value$ months;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
+add_cb_months;Gets a $name$ casus belli against $text$ until $date$;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
 add_cb_no_months;Gets a $name$ casus belli against $text$;;;Obitene un cassus belli de $name$ en contra de $text$;;;;;;;;;x
-add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope for $value$ months;;;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses;;;;;;;;;x
+add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope until $date$;;;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses;;;;;;;;;x
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope;;;$text$ obtiene un cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
 remove_cb_reversed;Loses any $name$ casus bellis against $text$;;;Pierde el cassus belli de $name$ en contra de $text$;;;;;;;;;x
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope;;;$text$ pierde el cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
