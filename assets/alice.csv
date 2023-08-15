@@ -1158,4 +1158,5 @@ amsg_war_join_on;A nation joins a war against this nation
 amsg_cb_fab_finished;The nation finished fabricating a CB
 amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
 amsg_crisis_voluntary_join;The nation joins a crisis without an offer
+a_alert_reb;One or more of our sphere members has active rebels:
 ;;;;;;;;;;;;;x

@@ -1402,6 +1402,20 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 	text::add_line_break_to_layout_box(state, dest, box);
 }
 
+void nation_name_and_flag(sys::state& state, dcon::nation_id n, layout_base& dest, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+	auto ident = state.world.nation_get_identity_from_identity_holder(n);
+	auto flag_str = std::string("@");
+	if(ident)
+		flag_str += nations::int_to_tag(state.world.national_identity_get_identifying_int(ident));
+	else
+		flag_str += "REB";
+	add_to_layout_box(state, dest, box, std::string_view{flag_str});
+	add_space_to_layout_box(state, dest, box);
+	add_to_layout_box(state, dest, box, state.world.nation_get_name(n));
+	text::close_layout_box(dest, box);
+}
+
 std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id source_text, substitution_map const& mp) {
 	std::string result;
 

@@ -1567,28 +1567,58 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			auto box = text::open_layout_box(contents, 0);
-			if(!nations::is_great_power(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
-			} else {
-				if(nations::sphereing_progress_is_possible(state, nation_id)) {
-					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"),
-							text::substitution_map{});
-				} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-					text::add_to_layout_box(state, contents, box,
-							std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then
-																																	// we might have to display text -breizh
-				} else {
-					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"),
-							text::substitution_map{});
+		if(!nations::is_great_power(state, n)) {
+			text::add_line(state, contents, std::string_view("countryalert_no_gpstatus"));
+		} else {
+			bool added_increase_header = false;
+
+			for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
+				if((it.get_status() & nations::influence::is_banned) == 0) {
+					if(it.get_influence() >= state.defines.increaseopinion_influence_cost
+						&& (nations::influence::level_mask & it.get_status()) != nations::influence::level_in_sphere
+						&& (nations::influence::level_mask & it.get_status()) != nations::influence::level_friendly) {
+
+						if(!added_increase_header)
+							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+						added_increase_header = true;
+						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
+					} else if(!(it.get_influence_target().get_in_sphere_of()) &&
+										it.get_influence() >= state.defines.addtosphere_influence_cost) {
+						if(!added_increase_header)
+							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+						added_increase_header = true;
+						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
+					} else if(it.get_influence_target().get_in_sphere_of()
+						&& (nations::influence::level_mask & it.get_status()) == nations::influence::level_friendly &&
+										it.get_influence() >= state.defines.removefromsphere_influence_cost) {
+						if(!added_increase_header)
+							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+						added_increase_header = true;
+						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
+					}
 				}
 			}
-			text::close_layout_box(contents, box);
+			bool added_reb_header = false;
+			for(auto m : state.world.in_nation) {
+				if(state.world.nation_get_in_sphere_of(m) == n) {
+					[&]() {
+						for(auto fac : state.world.nation_get_rebellion_within(m)) {
+							if(rebel::get_faction_brigades_active(state, fac.get_rebels()) > 0) {
+								if(!added_reb_header)
+									text::add_line(state, contents, std::string_view("a_alert_reb"));
+								added_reb_header = true;
+								text::nation_name_and_flag(state, m, contents, 15);
+								return;
+							}
+						}
+						}();
+				}
+			}
+
+			if(!added_increase_header && !added_reb_header)
+				text::add_line(state, contents, std::string_view("remove_countryalert_no_canincreaseopinion"));
 		}
 	}
 };

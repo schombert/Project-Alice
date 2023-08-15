@@ -691,6 +691,8 @@ void localised_format_box(sys::state& state, layout_base& dest, layout_box& box,
 void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey,
 		substitution value);
 
+void nation_name_and_flag(sys::state& state, dcon::nation_id n, layout_base& dest, int32_t indent = 0);
+
 void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_t indent = 0);
 void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
 		int32_t indent = 0);
