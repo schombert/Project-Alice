@@ -407,7 +407,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glViewport(0.f, 0.f, x_size, y_size);
+		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
@@ -570,7 +570,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glViewport(0.f, 0.f, x_size, y_size);
+		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
@@ -977,7 +977,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glViewport(0.f, 0.f, x_size, y_size);
+		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
 		auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
@@ -996,7 +996,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glViewport(0.f, 0.f, x_size, y_size);
+	glViewport(0, 0, x_size, y_size);
 	glDepthRange(-1.0f, 1.0f);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
