@@ -434,7 +434,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		
+
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -467,7 +467,7 @@ public:
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "button_kick") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<nation_picker_kick_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
