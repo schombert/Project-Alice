@@ -6014,7 +6014,8 @@ void recover_org(sys::state& state) {
 		auto modified_regen = regen_mod * spending_level / 150.0f;
 
 		for(auto reg : ar.get_army_membership()) {
-			reg.get_regiment().set_org(std::min(reg.get_regiment().get_org() + modified_regen, 0.25f + 0.75f * spending_level));
+			auto c_org = reg.get_regiment().get_org();
+			reg.get_regiment().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
 		}
 	}
 
@@ -6036,7 +6037,8 @@ void recover_org(sys::state& state) {
 		auto modified_regen = regen_mod * spending_level / 150.0f;
 
 		for(auto reg : ar.get_navy_membership()) {
-			reg.get_ship().set_org(std::min(reg.get_ship().get_org() + modified_regen, 0.25f + 0.75f * spending_level));
+			auto c_org = reg.get_ship().get_org();
+			reg.get_ship().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
 		}
 	}
 }

@@ -2959,10 +2959,20 @@ void daily_cleanup(sys::state& state) {
 
 
 bool navy_needs_repair(sys::state& state, dcon::navy_id n) {
+	auto in_nation = fatten(state.world, state.world.navy_get_controller_from_navy_control(n));
+	auto base_spending_level = in_nation.get_effective_naval_spending();
+	float oversize_amount =
+		in_nation.get_naval_supply_points() > 0
+		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
+		: 1.75f;
+	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
+	auto spending_level = base_spending_level * over_size_penalty;
+	auto max_org = 0.25f + 0.75f * spending_level;
+
 	for(auto shp : state.world.navy_get_navy_membership(n)) {
 		if(shp.get_ship().get_strength() < 0.5f)
 			return true;
-		if(shp.get_ship().get_org() < 0.5f)
+		if(shp.get_ship().get_org() < 0.75f * max_org)
 			return true;
 	}
 	return false;
@@ -3042,11 +3052,11 @@ bool set_fleet_target(sys::state& state, dcon::nation_id n, dcon::province_id st
 		auto existing_path = state.world.navy_get_path(for_navy);
 		auto path = province::make_naval_path(state, start, result);
 		if(path.size() > 0) {
-			auto new_size = std::min(uint32_t(path.size()), uint32_t(2));
+			auto new_size = std::min(uint32_t(path.size()), uint32_t(4));
 			existing_path.resize(new_size);
 			for(uint32_t i = new_size; i-- > 0;) {
 				assert(path[path.size() - 1 - i]);
-				existing_path[i] = path[path.size() - 1 - i];
+				existing_path[new_size - 1 - i] = path[path.size() - 1 - i];
 			}
 			state.world.navy_set_arrival_time(for_navy, military::arrival_time_to(state, for_navy, path.back()));
 			state.world.navy_set_ai_activity(for_navy, uint8_t(fleet_activity::attacking));
