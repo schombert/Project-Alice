@@ -152,8 +152,10 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 			tag[0] = (i + 1 < count) ? char(string[i + 1]) : 0;
 			tag[1] = (i + 2 < count) ? char(string[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(string[i + 3]) : 0;
-			if(ogl::display_tag_is_valid(state, tag))
+			if(ogl::display_tag_is_valid(state, tag)) {
+				total += chars[0x4D].x_advance;
 				i += 3;
+			}
 		}
 	}
 	return total;

@@ -512,14 +512,14 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 					glActiveTexture(GL_TEXTURE0);
 					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
 					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-					glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * size / 64.0f,
-							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
+					glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * 2.f * size / 64.0f,
+							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, float(size) * 2.f, size);
 					glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 					);
 					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-					x += f.glyph_advances[0x4D] * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
+					x += f.glyph_advances[0x4D] * 2.f * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
 					
 					i += 3;
 					continue;
@@ -607,15 +607,15 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				GLuint flag_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
 				f = font.chars[0x4D];
-				float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
-				float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
-				float CurX = x + f.x_offset - (float(f.width) * offset);
+				float scaling = 1.f;
+				float offset = 0.f;
+				float CurX = x + f.x_offset - (float(f.width) * 2.f * offset);
 				float CurY = y + f.y_offset - (float(f.height) * offset);
-				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
+				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * 2.f * scaling, float(f.height) * scaling);
 				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
 				glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 				glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-						float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
+						(float(f.width) * 2.f) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
 						float(f.height) / float(font.width) /* y height */
 				);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -628,7 +628,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				if(i != count - 1) {
 					x += font.get_kerning_pair(codepoints[i], codepoints[i + 1]);
 				}
-				x += f.x_advance;
+				x += float(f.x_advance) * 2.f;
 
 				i += 3;
 				continue;
