@@ -397,7 +397,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 		}
 
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
 		// UI rendering
@@ -407,8 +407,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0, 1.0);
+		glViewport(0.f, 0.f, x_size, y_size);
+		glDepthRange(-1.0f, 1.0f);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.scroll_target = ui_state.end_screen->impl_probe_mouse(*this,
@@ -542,7 +542,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 		}
 
-		glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		if(bg_gfx_id) {
 			// Render default background
@@ -552,7 +552,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glViewport(0, 0, x_size, y_size);
-			glDepthRange(-1.0, 1.0);
+			glDepthRange(-1.0f, 1.0f);
 			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 			if(gfx_def.primary_texture_handle) {
 				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
@@ -570,8 +570,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0, 1.0);
+		glViewport(0.f, 0.f, x_size, y_size);
+		glDepthRange(-1.0f, 1.0f);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.scroll_target = ui_state.nation_picker->impl_probe_mouse(*this,
@@ -968,7 +968,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	if(bg_gfx_id) {
 		// Render default background
@@ -977,8 +977,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0, 1.0);
+		glViewport(0.f, 0.f, x_size, y_size);
+		glDepthRange(-1.0f, 1.0f);
 		auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
@@ -996,8 +996,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glViewport(0, 0, x_size, y_size);
-	glDepthRange(-1.0, 1.0);
+	glViewport(0.f, 0.f, x_size, y_size);
+	glDepthRange(-1.0f, 1.0f);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
 	ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this,

@@ -229,7 +229,7 @@ void update_pop_movement_membership(sys::state& state) {
 		auto lit = state.world.pop_get_literacy(p);
 
 		// a pop with a consciousness of at least 1.5 or a literacy of at least 0.25 may join a movement
-		if(con >= 1.5 || lit >= 0.25) {
+		if(con >= 1.5f || lit >= 0.25f) {
 			/*
 			- If there are one or more issues that the pop supports by at least define:ISSUE_MOVEMENT_JOIN_LIMIT, then the pop has
 			a chance to join an issue-based movement at probability: issue-support x 9 x define:MOVEMENT_LIT_FACTOR x pop-literacy

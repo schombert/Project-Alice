@@ -1090,7 +1090,7 @@ public:
 						auto prov = abstract.get_province();
 						for(auto factloc : prov.get_factory_location()) {
 							auto scale = factloc.get_factory().get_production_scale();
-							if(scale < 0.05) {
+							if(scale < 0.05f) {
 								if(new_staat) {
 									text::add_to_layout_box(state, contents, box, staat.get_name(), text::text_color::yellow);
 									// text::add_divider_to_layout_box(state, contents, box);		// TODO - Parity needed!

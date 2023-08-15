@@ -376,7 +376,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 		if(cartesian_coords.y > 0) {
 			return false;
 		}
-		cartesian_coords += glm::vec3(0.5);
+		cartesian_coords += glm::vec3(0.5f);
 
 		screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.z);
 		screen_pos = (2.f * screen_pos - glm::vec2(1.f));
