@@ -79,7 +79,7 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) { // TODO
 		auto prov = prov_owner.get_province();
 		for(auto factloc : prov.get_factory_location()) {
 			auto scale = factloc.get_factory().get_production_scale();
-			if(scale < 0.05) {
+			if(scale < 0.05f) {
 				return true;
 			}
 		}
@@ -1755,7 +1755,7 @@ void daily_update(sys::state& state) {
 
 			// step 2: limit to actual budget
 			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
-			float spending_scale = (total < 0.001 || total <= budget) ? 1.0f : budget / total;
+			float spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
 
 			assert(spending_scale >= 0);
 			assert(budget >= 0);
@@ -2404,7 +2404,7 @@ void daily_update(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		auto nation_rules = n.get_combined_issue_rules();
 
-		if(n.get_private_investment() > 0.001 &&
+		if(n.get_private_investment() > 0.001f &&
 				(nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) != 0) {
 
 			bool found_investment = false;

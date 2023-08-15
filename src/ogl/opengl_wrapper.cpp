@@ -571,7 +571,7 @@ void render_new_text(sys::state& state, char const* codepoints, uint32_t count, 
 
 void render_classic_text(sys::state& state, float x, float y, char const* codepoints, uint32_t count,
 		color_modification enabled, color3f const& c, text::bm_font const& font) {
-	float adv = (float)1.0 / font.width; // Font texture atlas spacing.
+	float adv = 1.0f / font.width; // Font texture atlas spacing.
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
