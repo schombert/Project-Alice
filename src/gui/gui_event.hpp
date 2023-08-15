@@ -106,4 +106,6 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
+void populate_event_submap(sys::state& state, text::substitution_map& sub, std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> const& phe) noexcept;
+
 } // namespace ui

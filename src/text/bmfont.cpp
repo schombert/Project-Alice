@@ -141,20 +141,35 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 
 	for(uint32_t i = 0; i < count; ++i) {
 		auto c = uint8_t(string[i]);
-		if(c == 0x01 || c == 0x02 || c == 0x40)
-			c = 0x4D;
-		total += chars[c].x_advance;
-		if(i != 0) {
-			total += get_kerning_pair(string[i - 1], c);
-		}
+
 		if(uint8_t(string[i]) == 0x40) { // Handle @TAG
+			auto f = chars[0x4D];
+			float scaling = uint8_t(string[i]) == 0xA4 ? 1.5f : 1.f;
+			float offset = uint8_t(string[i]) == 0xA4 ? 0.25f : 0.f;
 			char tag[3] = { 0, 0, 0 };
 			tag[0] = (i + 1 < count) ? char(string[i + 1]) : 0;
 			tag[1] = (i + 2 < count) ? char(string[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(string[i + 3]) : 0;
-			if(ogl::display_tag_is_valid(state, tag))
+			if(ogl::display_tag_is_valid(state, tag)) {
+				total += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
 				i += 3;
+				continue;
+			}
 		}
+
+		if(c == 0x01 || c == 0x02 || c == 0x40) {
+			auto f = chars[0x4D];
+			float scaling = uint8_t(string[i]) == 0xA4 ? 1.5f : 1.f;
+			float offset = uint8_t(string[i]) == 0xA4 ? 0.25f : 0.f;
+			total += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
+			continue;
+		}
+
+		total += chars[c].x_advance;
+		if(i != 0) {
+			total += get_kerning_pair(string[i - 1], c);
+		}
+		
 	}
 	return total;
 }
