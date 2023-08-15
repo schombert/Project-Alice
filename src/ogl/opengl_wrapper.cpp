@@ -509,13 +509,13 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
 				if(flag_texture_handle != 0) {
 					constexpr float flag_scaling = 1.5f;
-					
+
 					bind_vertices_by_rotation(state, ui::rotation::upright, false);
 					glActiveTexture(GL_TEXTURE0);
 					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
 					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
 					glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * flag_scaling * size / 64.0f,
-							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, float(size) * 2.f, size);
+							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, float(size) * flag_scaling, size);
 					glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 					);
 					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
