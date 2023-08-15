@@ -29,6 +29,7 @@
 #include <thread>
 #include "rebels.hpp"
 #include "ai.hpp"
+#include "effects.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_land_combat.hpp"
 #include "gui_nation_picker.hpp"
@@ -2327,7 +2328,7 @@ void state::load_scenario_data() {
 						it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
-					parsers::country_history_context new_context{context, it->second, holder};
+					parsers::country_history_context new_context{context, it->second, holder, pending_decisions};
 
 					auto opened_file = open_file(country_file);
 					if(opened_file) {
@@ -2335,9 +2336,6 @@ void state::load_scenario_data() {
 						auto content = view_contents(*opened_file);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
 						parsers::parse_country_history_file(gen, err, new_context);
-						
-						for(auto& e : new_context.pending_decisions)
-							pending_decisions.push_back(e);
 					}
 
 				} else {
