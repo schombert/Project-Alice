@@ -2663,7 +2663,7 @@ uint32_t ef_release_vassal(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, holder);
-		text::localised_format_box(ws, layout, box, "become_independent", m);
+		text::localised_format_box(ws, layout, box, "becomes_independent", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -2681,7 +2681,7 @@ uint32_t ef_release_vassal_this_nation(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
-		text::localised_format_box(ws, layout, box, "become_independent", m);
+		text::localised_format_box(ws, layout, box, "becomes_independent", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -2699,7 +2699,7 @@ uint32_t ef_release_vassal_this_province(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
-		text::localised_format_box(ws, layout, box, "become_independent", m);
+		text::localised_format_box(ws, layout, box, "becomes_independent", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -2717,7 +2717,7 @@ uint32_t ef_release_vassal_from_nation(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
-		text::localised_format_box(ws, layout, box, "become_independent", m);
+		text::localised_format_box(ws, layout, box, "becomes_independent", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -2735,7 +2735,7 @@ uint32_t ef_release_vassal_from_province(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
-		text::localised_format_box(ws, layout, box, "become_independent", m);
+		text::localised_format_box(ws, layout, box, "becomes_independent", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;

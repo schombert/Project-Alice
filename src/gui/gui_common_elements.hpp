@@ -276,6 +276,33 @@ public:
 	}
 };
 
+class expanded_hitbox_text : public simple_text_element_base {
+public:
+	ui::xy_pair bottom_right_extension{ 0,0 };
+	ui::xy_pair top_left_extension{ 0,0 };
+
+	void on_reset_text(sys::state& state) noexcept override {
+		auto actual_size = base_data.size.x;
+		base_data.size.x -= int16_t(top_left_extension.x + bottom_right_extension.x);
+		simple_text_element_base::on_reset_text(state);
+		base_data.size.x = actual_size;
+	}
+	void on_create(sys::state& state) noexcept override {
+		if(base_data.get_element_type() == element_type::button) {
+			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		} else if(base_data.get_element_type() == element_type::text) {
+			black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		}
+		base_data.size.x += int16_t(top_left_extension.x + bottom_right_extension.x);
+		base_data.size.y += int16_t(top_left_extension.y + bottom_right_extension.y);
+		base_data.position.x -= int16_t(top_left_extension.x);
+		base_data.position.y -= int16_t(top_left_extension.y);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		simple_text_element_base::render(state, x + top_left_extension.x, y + top_left_extension.y);
+	}
+};
+
 class state_name_text : public generic_simple_text<dcon::state_instance_id> {
 public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
@@ -849,14 +876,6 @@ public:
 };
 
 class nation_daily_research_points_text : public standard_nation_text {
-protected:
-	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		auto fat_pop = dcon::fatten(state.world, pop);
-
-		float sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) /state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum()));
-		return sum;
-	}
-
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
@@ -872,11 +891,18 @@ public:
 	}
 };
 
-class nation_suppression_points_text : public standard_nation_text {
+class nation_suppression_points_text : public expanded_hitbox_text {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto points = nations::suppression_points(state, nation_id);
-		return text::format_float(points, 1);
+
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ -10, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto points = nations::suppression_points(state, retrieve<dcon::nation_id>(state, parent));
+		set_text(state, text::format_float(points, 1));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
