@@ -3552,8 +3552,11 @@ void move_idle_guards(sys::state& state) {
 
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
-			auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination);
-			if(fleet_path.empty()) { // this essentially should be impossible ...
+			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
+				state.world.navy_get_path(transport_fleet).clear();
+				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
+				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
+			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) { // this essentially should be impossible ...
 				continue;
 			} else {
 				auto existing_path = state.world.navy_get_path(transport_fleet);
@@ -3639,7 +3642,7 @@ void update_naval_transport(sys::state& state) {
 			if(state.world.navy_get_arrival_time(transports) || state.world.navy_get_battle_from_navy_battle_participation(transports))
 				continue; // still moving
 
-			auto army_location = ar.get_location_from_army_location();
+ 			auto army_location = ar.get_location_from_army_location();
 			auto transport_location = state.world.navy_get_location_from_navy_location(transports);
 			if(transport_location  == army_location) {
 				ar.set_navy_from_army_transport(transports);
@@ -4138,9 +4141,7 @@ void move_gathered_attackers(sys::state& state) {
 		}
 
 		if(!state.world.province_get_is_coast(coastal_target_prov)) {
-			auto path = state.world.army_get_black_flag(require_transport[i])
-				? province::make_unowned_path_to_nearest_coast(state, coastal_target_prov)
-				: province::make_path_to_nearest_coast(state, controller, coastal_target_prov);
+			auto path = province::make_path_to_nearest_coast(state, controller, coastal_target_prov);
 			if(path.empty()) {
 				state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::on_guard));
 				state.world.army_set_ai_province(require_transport[i], dcon::province_id{});
@@ -4163,8 +4164,11 @@ void move_gathered_attackers(sys::state& state) {
 
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
-			auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination);
-			if(fleet_path.empty()) {
+			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
+				state.world.navy_get_path(transport_fleet).clear();
+				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
+				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
+			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) {
 				continue;
 			} else {
 				auto existing_path = state.world.navy_get_path(transport_fleet);

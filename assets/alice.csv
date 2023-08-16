@@ -180,6 +180,7 @@ attacker_yes_allies;Attacker's allies will be called in;;;Los aliados del atacan
 event_fires;Event $text$ is triggered;;;Sucede el evento $text$;;;;;;;;;x
 event_fires_in_days;Event $text$ is triggered in $value$ days;;;Sucede el evento $text$;;;;;;;;;x
 support_for_blank;Support for $text$;;;Soporte para $text$;;;;;;;;;x
+uh_support_for_blank;Upper house support for $text$;;;Soporte para $text$;;;;;;;;;x
 up_to;up to ;;;Hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
@@ -286,7 +287,7 @@ num_of_vassals;number of vassals;;;Numero de subyugados;;;;;;;;;x
 owned_by;owned by;;;Propiedad de;;;;;;;;;x
 exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
-set;Set;;;Establece;;;;;;;;;x
+set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;Un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;Acceso militar con;;;;;;;;;x
