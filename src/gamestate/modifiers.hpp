@@ -10,7 +10,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(0, supply_limit, true, modifier_display_type::integer, "modifier_supply_limit")                               \
 	MOD_LIST_ELEMENT(1, attrition, false, modifier_display_type::percent, "modifier_attrition")                                    \
 	MOD_LIST_ELEMENT(2, max_attrition, false, modifier_display_type::integer, "modifier_max_attrition")                            \
-	MOD_LIST_ELEMENT(3, local_ruling_party_support, true, modifier_display_type::percent, "modifier_local_ruling_party_support")   \
+	MOD_LIST_ELEMENT(3, local_ruling_party_support, true, modifier_display_type::percent, "modifier_ruling_party_support")   \
 	MOD_LIST_ELEMENT(4, poor_life_needs, false, modifier_display_type::percent, "modifier_poor_life_needs")                        \
 	MOD_LIST_ELEMENT(5, rich_life_needs, false, modifier_display_type::percent, "modifier_rich_life_needs")                        \
 	MOD_LIST_ELEMENT(6, middle_life_needs, false, modifier_display_type::percent, "modifier_middle_life_needs")                    \
@@ -21,15 +21,15 @@ namespace sys {
 	MOD_LIST_ELEMENT(11, middle_luxury_needs, false, modifier_display_type::percent, "modifier_middle_luxury_needs")               \
 	MOD_LIST_ELEMENT(12, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs")                   \
 	MOD_LIST_ELEMENT(13, population_growth, true, modifier_display_type::fp_three_places, "modifier_population_growth")            \
-	MOD_LIST_ELEMENT(14, local_factory_input, false, modifier_display_type::percent, "modifier_local_factory_input")               \
-	MOD_LIST_ELEMENT(15, local_factory_output, true, modifier_display_type::percent, "modifier_local_factory_output")              \
-	MOD_LIST_ELEMENT(16, local_factory_throughput, true, modifier_display_type::percent, "modifier_local_factory_throughput")      \
-	MOD_LIST_ELEMENT(17, local_rgo_input, true, modifier_display_type::percent, "modifier_local_rgo_input")                        \
-	MOD_LIST_ELEMENT(18, local_rgo_output, true, modifier_display_type::percent, "modifier_local_rgo_output")                      \
-	MOD_LIST_ELEMENT(19, local_rgo_throughput, true, modifier_display_type::percent, "modifier_local_rgo_throughput")              \
-	MOD_LIST_ELEMENT(20, local_artisan_input, false, modifier_display_type::percent, "modifier_local_artisan_input")               \
-	MOD_LIST_ELEMENT(21, local_artisan_output, true, modifier_display_type::percent, "modifier_local_artisan_output")              \
-	MOD_LIST_ELEMENT(22, local_artisan_throughput, true, modifier_display_type::percent, "modifier_local_artisan_throughput")      \
+	MOD_LIST_ELEMENT(14, local_factory_input, false, modifier_display_type::percent, "modifier_factory_input")               \
+	MOD_LIST_ELEMENT(15, local_factory_output, true, modifier_display_type::percent, "modifier_factory_output")              \
+	MOD_LIST_ELEMENT(16, local_factory_throughput, true, modifier_display_type::percent, "modifier_factory_throughput")      \
+	MOD_LIST_ELEMENT(17, local_rgo_input, true, modifier_display_type::percent, "modifier_rgo_input")                        \
+	MOD_LIST_ELEMENT(18, local_rgo_output, true, modifier_display_type::percent, "modifier_rgo_output")                      \
+	MOD_LIST_ELEMENT(19, local_rgo_throughput, true, modifier_display_type::percent, "modifier_rgo_throughput")              \
+	MOD_LIST_ELEMENT(20, local_artisan_input, false, modifier_display_type::percent, "modifier_artisan_input")               \
+	MOD_LIST_ELEMENT(21, local_artisan_output, true, modifier_display_type::percent, "modifier_artisan_output")              \
+	MOD_LIST_ELEMENT(22, local_artisan_throughput, true, modifier_display_type::percent, "modifier_artisan_throughput")      \
 	MOD_LIST_ELEMENT(23, number_of_voters, true, modifier_display_type::percent, "modifier_number_of_voters")                      \
 	MOD_LIST_ELEMENT(24, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand")                              \
 	MOD_LIST_ELEMENT(25, assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate")                    \

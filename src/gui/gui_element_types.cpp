@@ -483,33 +483,33 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(stored_text.length() == 0)
 		return;
 	float extent = 0.f;
-	if(base_data.get_element_type() == element_type::button) {
-		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				base_data.data.button.font_handle);
-	} else if(base_data.get_element_type() == element_type::text) {
-		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				base_data.data.text.font_handle);
-	}
-	if(int16_t(extent) > base_data.size.x) {
-		// You could improve logic for ... by figuring out the width of ... and when there isn't enough room for all the text,
-		// figuring out how much can fit exactly in the width minus the width of ... and then appending ... (rather than figuring
-		// out how much fits in the space and subtracting 3 characters, which is what happens now)
-		auto width_of_ellipsis = state.font_collection.text_extent(state, "\x85", uint32_t(1), base_data.data.text.font_handle);
+	uint16_t font_handle = 0;
+	if(base_data.get_element_type() == element_type::button)
+		font_handle = base_data.data.button.font_handle;
+	else if(base_data.get_element_type() == element_type::text)
+		font_handle = base_data.data.text.font_handle;
 
-		auto overshoot = 1.f - float(base_data.size.x) / (extent + width_of_ellipsis);
-		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
+	extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle);
+	
+	if(stored_text.back() != '\x85' && int16_t(extent) > base_data.size.x) {
+		auto width_of_ellipsis = 0.5f * state.font_collection.text_extent(state, "\x85", uint32_t(1), font_handle);
 
-		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars, size_t(0)));
-		stored_text += "\x85";
+		uint32_t m = 1;
+		for(; m < stored_text.length(); ++m) {
+			if(state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(m), font_handle) + width_of_ellipsis > base_data.size.x)
+				break;
+		}
+		
+		stored_text = stored_text.substr(0, m - 1) + "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle)) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle));
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle));
 			break;
 		case alignment::left:
 			text_offset = 0.0f;
@@ -519,10 +519,10 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x) / 2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle) - base_data.data.text.border_size.x) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) -  base_data.data.text.border_size.x);
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle) -  base_data.data.text.border_size.x);
 			break;
 		case alignment::left:
 			text_offset = base_data.data.text.border_size.x;

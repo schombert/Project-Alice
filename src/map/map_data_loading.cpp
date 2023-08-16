@@ -52,12 +52,15 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	// Gets rid of any stray land terrain that has been painted outside the borders
 	for(uint32_t y = 0; y < size_y; ++y) {
 		for(uint32_t x = 0; x < size_x; ++x) {
-			// If there is no province define at that location
-			if(province_id_map[y * size_x + x] == 0)
+			if(province_id_map[y * size_x + x] == 0) { // If there is no province define at that location
 				terrain_id_map[y * size_x + x] = uint8_t(255);
-			// If the province defined there is a sea province
-			if(province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province))
+			} else if(province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) { // sea province
 				terrain_id_map[y * size_x + x] = uint8_t(255);
+			} else { // land province
+				if(terrain_id_map[y * size_x + x] >= 64) {
+					terrain_id_map[y * size_x + x] = uint8_t(5); //  ocean terrain -> plains
+				}
+			}
 		}
 	}
 
