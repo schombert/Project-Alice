@@ -151,6 +151,51 @@ void event_option_button::on_update(sys::state& state) noexcept {
 	set_button_text(state, text::resolve_string_substitution(state, opt.name, sub));
 }
 
+void event_auto_button::on_update(sys::state& state) noexcept {
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+
+	sys::event_option opt;
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		opt = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		opt = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		opt = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
+	}
+
+	if(!bool(opt.name) && !bool(opt.effect)) {
+		visible = false;
+		return;
+	}
+	visible = true;
+}
+
+void event_auto_button::button_action(sys::state& state) noexcept {
+
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto phe = std::get<event::pending_human_n_event>(content);
+		state.world.national_event_set_auto_choice(phe.e, uint8_t(index + 1));
+		command::make_event_choice(state, phe, index);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		state.world.free_national_event_set_auto_choice(phe.e, uint8_t(index + 1));
+		command::make_event_choice(state, phe, index);
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto phe = std::get<event::pending_human_p_event>(content);
+		state.world.provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
+		command::make_event_choice(state, phe, index);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		state.world.free_provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
+		command::make_event_choice(state, phe, index);
+	}
+	Cyto::Any n_payload = option_taken_notification{};
+	parent->impl_get(state, n_payload);
+}
+
 void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	if(visible) {
 		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
@@ -330,11 +375,23 @@ void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
 	xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(s1)->second.definition].position;
 	xy_pair offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(s2)->second.definition].position;
 	for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
+
 		auto ptr = make_element_by_type<event_option_button>(state, state.ui_state.defs_by_name.find(s3)->second.definition);
 		ptr->base_data.position = cur_offset;
 		ptr->index = uint8_t(i);
 		option_buttons[i] = ptr.get();
+		
+		
+
+		auto ptrb = make_element_by_type<event_auto_button>(state, state.ui_state.defs_by_name.find("alice_event_auto_button")->second.definition);
+		ptrb->index = uint8_t(i);
+		ptrb->base_data.position.y = cur_offset.y;
+		ptrb->base_data.position.x = int16_t(cur_offset.x + ptr->base_data.size.x - ptrb->base_data.size.x);
+		auto_buttons[i] = ptrb.get();
+
 		add_child_to_front(std::move(ptr));
+		add_child_to_front(std::move(ptrb));
+
 		cur_offset.x += offset.x;
 		cur_offset.y += offset.y;
 	}
@@ -444,6 +501,9 @@ void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
 	for(auto e : option_buttons) {
 		e->set_visible(state, true);
 	}
+	for(auto e : auto_buttons) {
+		e->set_visible(state, true);
+	}
 
 	auto it = std::remove_if(events.begin(), events.end(), [&](auto& e) {
 		sys::date date{};
@@ -515,7 +575,17 @@ void provincial_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.y -= 150; // Omega nudge??
 		ptr->index = uint8_t(i);
 		option_buttons[i] = ptr.get();
+
+		auto ptrb = make_element_by_type<event_auto_button>(state, state.ui_state.defs_by_name.find("alice_event_auto_button")->second.definition);
+		ptrb->index = uint8_t(i);
+		ptrb->base_data.position.y = cur_offset.y;
+		ptrb->base_data.position.y -= 150; // Omega nudge??
+		ptrb->base_data.position.x = int16_t(cur_offset.x + ptr->base_data.size.x - ptrb->base_data.size.x);
+		auto_buttons[i] = ptrb.get();
+
 		add_child_to_front(std::move(ptr));
+		add_child_to_front(std::move(ptrb));
+
 		cur_offset.x += offset.x;
 		cur_offset.y += offset.y;
 	}
@@ -642,6 +712,8 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 }
 void provincial_event_window::on_update(sys::state& state) noexcept {
 	for(auto e : option_buttons)
+		e->set_visible(state, true);
+	for(auto e : auto_buttons)
 		e->set_visible(state, true);
 
 	auto it = std::remove_if(events.begin(), events.end(), [&](auto& e) {

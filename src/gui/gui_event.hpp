@@ -42,6 +42,23 @@ public:
 			button_element_base::render(state, x, y);
 	}
 };
+class event_auto_button : public button_element_base {
+public:
+	bool visible = true;
+	uint8_t index = 0;
+	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "event_auto");
+	}
+	void button_action(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
+	}
+};
 class event_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
@@ -84,6 +101,7 @@ public:
 template<bool IsMajor>
 class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
+	element_base* auto_buttons[sys::max_event_options];
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 
@@ -101,6 +119,7 @@ public:
 //
 class provincial_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
+	element_base* auto_buttons[sys::max_event_options];
 	simple_text_element_base* count_text = nullptr;
 	image_element_base* divider_image = nullptr;
 	int32_t index = 0;

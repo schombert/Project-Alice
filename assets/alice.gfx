@@ -125,4 +125,9 @@ spriteTypes = {
 		texturefile = "assets\\message_disp_options.png"
 		noOfFrames = 4
 	}
+	spriteType = {
+		name = "GFX_alice_event_auto"
+		texturefile = "assets\\event_auto.png"
+		noOfFrames = 1
+	}
 }

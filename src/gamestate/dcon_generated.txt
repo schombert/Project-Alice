@@ -4247,6 +4247,10 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
+	}
 }
 
 object {
@@ -4269,6 +4273,10 @@ object {
 		name{ options }
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
+	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
 	}
 }
 
@@ -4334,6 +4342,10 @@ object {
 		type{ uint16_t }
 		tag{ scenario }
 	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
+	}
 }
 
 object {
@@ -4377,6 +4389,10 @@ object {
 		name{ options }
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
+	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
 	}
 }
 

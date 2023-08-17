@@ -648,7 +648,7 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 }
 
 message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	auto const* chunk = internal_layout.get_chunk_from_position(x, y);
+	auto const* chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
 	if(chunk != nullptr) {
 		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
 			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -740,11 +740,24 @@ message_result multiline_text_element_base::on_rbutton_down(sys::state& state, i
 message_result multiline_text_element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
 	switch(type) {
 	case mouse_probe_type::click:
-		return (internal_layout.get_chunk_from_position(x, y) != nullptr) ? message_result::consumed : message_result::unseen;
+	{
+		auto chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
+		if(!chunk)
+			return message_result::unseen;
+		if(std::holds_alternative<dcon::nation_id>(chunk->source)
+			|| std::holds_alternative<dcon::province_id>(chunk->source)
+			|| std::holds_alternative<dcon::state_instance_id>(chunk->source)
+			|| std::holds_alternative<dcon::national_identity_id>(chunk->source)
+			|| std::holds_alternative<dcon::state_definition_id>(chunk->source)) {
+
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 	case mouse_probe_type::tooltip:
-		return (has_tooltip(state) != tooltip_behavior::no_tooltip) ? message_result::consumed : message_result::unseen;
+		return message_result::unseen;
 	case mouse_probe_type::scroll:
-		break;
+		return message_result::unseen;
 	}
 	return message_result::unseen;
 }

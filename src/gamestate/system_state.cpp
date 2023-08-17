@@ -644,12 +644,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// National events
 			auto* c1 = new_n_event.front();
 			while(c1) {
-				if(world.national_event_get_is_major(c1->e)) {
-					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-							->events.push_back(ui::event_data_wrapper{*c1});
+				auto auto_choice = world.national_event_get_auto_choice(c1->e);
+				if(auto_choice == 0) {
+					if(world.national_event_get_is_major(c1->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c1 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c1 });
+					}
 				} else {
-					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-							->events.push_back(ui::event_data_wrapper{*c1});
+					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
 				}
 				new_n_event.pop();
 				c1 = new_n_event.front();
@@ -657,12 +662,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Free national events
 			auto* c2 = new_f_n_event.front();
 			while(c2) {
-				if(world.free_national_event_get_is_major(c2->e)) {
-					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-							->events.push_back(ui::event_data_wrapper{*c2});
+				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
+				if(auto_choice == 0) {
+					if(world.free_national_event_get_is_major(c2->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c2 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c2 });
+					}
 				} else {
-					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-							->events.push_back(ui::event_data_wrapper{*c2});
+					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
 				}
 				new_f_n_event.pop();
 				c2 = new_f_n_event.front();
@@ -670,16 +680,26 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Provincial events
 			auto* c3 = new_p_event.front();
 			while(c3) {
-				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-						->events.push_back(ui::event_data_wrapper{*c3});
+				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
+				if(auto_choice == 0) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
+						->events.push_back(ui::event_data_wrapper{ *c3 });
+				} else {
+					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
+				}
 				new_p_event.pop();
 				c3 = new_p_event.front();
 			}
 			// Free provincial events
 			auto* c4 = new_f_p_event.front();
 			while(c4) {
-				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-						->events.push_back(ui::event_data_wrapper{*c4});
+				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
+				if(auto_choice == 0) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
+						->events.push_back(ui::event_data_wrapper{ *c4 });
+				} else {
+					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
+				}
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
 			}
@@ -2685,22 +2705,38 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		// reshow pending events, messages, etc
 		for(auto const& e : pending_n_event) {
 			if(e.n == local_player_nation) {
-				new_n_event.push(e);
+				auto auto_choice = world.national_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_n_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& e : pending_f_n_event) {
 			if(e.n == local_player_nation) {
-				new_f_n_event.push(e);
+				auto auto_choice = world.free_national_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_f_n_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& e : pending_p_event) {
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
-				new_p_event.push(e);
+				auto auto_choice = world.provincial_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_p_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& e : pending_f_p_event) {
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
-				new_f_p_event.push(e);
+				auto auto_choice = world.free_provincial_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_f_p_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& m : pending_messages) {
