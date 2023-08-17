@@ -109,7 +109,8 @@ enum class command_type : uint8_t {
 	c_change_infamy = 135,
 	c_force_crisis = 136,
 	c_change_national_militancy = 137,
-	c_end_game = 138
+	c_end_game = 138,
+	c_event = 139
 };
 
 struct national_focus_data {
@@ -371,6 +372,9 @@ struct split_ships_data {
 struct cheat_data {
 	float value;
 };
+struct cheat_data_int {
+	int32_t value;
+};
 
 struct chat_message_data {
 	char body[ui::max_chat_message_len];
@@ -431,6 +435,7 @@ struct payload {
 		nation_pick_data nation_pick;
 		chat_message_data chat_message;
 		rally_point_data rally_point;
+		cheat_data_int cheat_int;
 
 		dtype() { }
 	} data;
@@ -733,6 +738,7 @@ void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
 void c_end_game(sys::state& state, dcon::nation_id source);
+void c_event(sys::state& state, dcon::nation_id source, int32_t id);
 
 void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);

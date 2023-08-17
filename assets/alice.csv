@@ -116,7 +116,7 @@ change_ruling_party;Change ruling party to $text$;;;Cambiar el partido electo a 
 remove_prov_mod;Remove provincial modifier $text$;;;Quitar el modificador provincial $text$;;;;;;;;;x
 remove_nat_mod;Remove national modifier $text$;;;Quitar el modificador nacional $text$;;;;;;;;;x
 make_alliance;Enter into an alliance with $text$;;;Entrar en una alianza con $text$;;;;;;;;;x
-become_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
+becomes_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
 release_as_independent;Release $text$ as an independent nation;;;Liberar $text$ como una nacion independiente;;;;;;;;;x
 enable_canal;Enable the $text$;;;Habilitar $text$;;;;;;;;;x
 set_global_flag;Set $text$ globally;;;Establecer $text$ globalmente;;;;;;;;;x
@@ -709,9 +709,10 @@ ally_explain_1;You cannot form an alliance with yourself
 ally_explain_2;You have at least $x$ diplomatic point(s)
 ally_explain_3;You are not currently allied
 ally_explain_4;You are not both great powers while a crisis is ongoing
-ally_explain_5;You are not a vassal of a nation other than the target
+ally_explain_5;You are not a subject nation
 ally_explain_6;You are not currently at war with the target
 ally_explain_7;The AI will accept
+ally_explain_8;The target is not a subject nation
 call_ally_explain_1;You have an alliance with this nation
 call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You are at war

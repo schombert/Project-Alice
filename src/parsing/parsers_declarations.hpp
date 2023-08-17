@@ -2119,6 +2119,7 @@ struct event_building_context {
 };
 
 struct generic_event {
+	int32_t id = 0;
 	dcon::trigger_key trigger;
 	dcon::value_modifier_key mean_time_to_happen;
 	std::array<sys::event_option, sys::max_event_options> options;

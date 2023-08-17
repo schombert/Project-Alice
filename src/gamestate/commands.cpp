@@ -2363,7 +2363,10 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	}
 
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
-	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
+	if(state.world.overlord_get_ruler(ol))
+		return false;
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+	if(state.world.overlord_get_ruler(ol2))
 		return false;
 
 	if(military::are_at_war(state, asker, target))
@@ -3258,6 +3261,29 @@ void c_end_game(sys::state& state, dcon::nation_id source) {
 }
 void execute_c_end_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode::end_screen;
+}
+void c_event(sys::state& state, dcon::nation_id source, int32_t id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_event;
+	p.source = source;
+	p.data.cheat_int.value = id;
+	add_to_command_queue(state, p);
+}
+void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
+	if(!source)
+		return;
+	dcon::free_national_event_id e;
+	for(auto v : state.world.in_free_national_event) {
+		if(v.get_legacy_id() == id) {
+			e = v;
+			break;
+		}
+	}
+	if(!e)
+		return;
+
+	event::trigger_national_event(state, e, source, 0, 0);
 }
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
@@ -4522,6 +4548,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_end_game:
 		execute_c_end_game(state, c.source);
+		break;
+	case command_type::c_event:
+		execute_c_event(state, c.source, c.data.cheat_int.value);
 		break;
 	}
 }

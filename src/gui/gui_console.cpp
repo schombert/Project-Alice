@@ -32,6 +32,7 @@ struct command_info {
 		cb_progress,
 		crisis,
 		end_game,
+		event,
 		militancy
 	} mode = type::none;
 	std::string_view desc;
@@ -109,6 +110,9 @@ static const std::vector<command_info> possible_commands = {
 						command_info::argument_info{}}},
 		command_info{"end_game", command_info::type::end_game, "ends the game",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"event", command_info::type::event, "Triggers a random country event by its legacy id",
+				{command_info::argument_info{"id", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"angry", command_info::type::militancy, "Makes everyone in your nation very militant",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
@@ -982,6 +986,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::end_game:
 		command::c_end_game(state, state.local_player_nation);
+		break;
+	case command_info::type::event:
+		command::c_event(state, state.local_player_nation, std::get<int32_t>(pstate.arg_slots[0]));
 		break;
 	case command_info::type::militancy:
 		command::c_change_national_militancy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));

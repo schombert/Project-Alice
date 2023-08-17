@@ -161,7 +161,7 @@ void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
-					trigger::to_generic(phe.n), -1, -1, phe.r_lo, phe.r_hi);
+					trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
 		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 			auto phe = std::get<event::pending_human_p_event>(content);
 			effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,

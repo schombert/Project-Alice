@@ -1737,7 +1737,7 @@ event_option
 	ai_chance                       extern     make_option_ai_chance             member
 
 generic_event
-	id                              value      int                               discard
+	id                              value      int                               member
 	is_triggered_only               value      bool                              discard
 	title                           value      text                              member_fn
 	desc                            value      text                              member_fn

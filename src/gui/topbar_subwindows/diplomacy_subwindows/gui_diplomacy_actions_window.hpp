@@ -366,7 +366,10 @@ public:
 				text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis == sys::crisis_type::none);
 
 				auto ol = state.world.nation_get_overlord_as_subject(asker);
-				text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol) == target);
+				text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
+				auto ol2 = state.world.nation_get_overlord_as_subject(target);
+				text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
+
 				text::add_line_with_condition(state, contents, "ally_explain_6", !military::are_at_war(state, asker, target));
 
 				if(!state.world.nation_get_is_player_controlled(content)) {

@@ -4329,6 +4329,11 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
+	property{
+		name{ legacy_id }
+		type{ uint16_t }
+		tag{ scenario }
+	}
 }
 
 object {
