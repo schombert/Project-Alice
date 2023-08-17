@@ -33,6 +33,29 @@ bool console_command(sys::state& state, command_type t) {
 	return (uint8_t(t) & 0x80) != 0;
 }
 
+void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::set_rally_point;
+	p.source = source;
+	p.data.rally_point.location = location;
+	p.data.rally_point.naval = naval;
+	p.data.rally_point.enable = enable;
+	add_to_command_queue(state, p);
+}
+
+void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return;
+	if(naval) {
+		if(state.world.province_get_is_coast(location))
+			state.world.province_set_naval_rally_point(location, enable);
+	} else {
+		state.world.province_set_land_rally_point(location, enable);
+	}
+		
+}
+
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 		dcon::national_focus_id focus) {
 	payload p;
@@ -4432,6 +4455,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::give_military_access:
 		execute_give_military_access(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::set_rally_point:
+		execute_set_rally_point(state, c.source, c.data.rally_point.location, c.data.rally_point.naval, c.data.rally_point.enable);
 		break;
 
 	// common mp commands

@@ -3236,9 +3236,10 @@ uint32_t ef_ideology(EFFECT_PARAMTERS) {
 
 	auto& s = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i));
 	s = std::max(0.0f, s + factor);
+	float new_total = 1.0f + s;
 
 	for(auto j : ws.world.in_ideology) {
-		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j)) /= (1.0f + factor);
+		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j)) /= (new_total);
 	}
 
 	return 0;
@@ -3249,10 +3250,11 @@ uint32_t ef_upper_house(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 
 	auto& u = ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), i);
-	u = std::max(0.0f, u + amount);
+	u = std::max(0.0f, u + 100.0f * amount);
+	float new_total = 100.0f + u;
 
 	for(auto j : ws.world.in_ideology) {
-		ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), j) *= 100.0f / (100.0f + amount);
+		ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), j) *= 100.0f / (new_total);
 	}
 
 	return 0;

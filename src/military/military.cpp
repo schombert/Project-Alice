@@ -5581,7 +5581,10 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 
 void update_movement(sys::state& state) {
 	for(auto a : state.world.in_army) {
-		if(auto path = a.get_path(); a.get_arrival_time() == state.current_date && path.size() > 0) {
+		auto arrival = a.get_arrival_time();
+		assert(!arrival || arrival >= state.current_date);
+		if(auto path = a.get_path(); arrival == state.current_date) {
+			assert(path.size() > 0);
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 			auto from = state.world.army_get_location_from_army_location(a);
@@ -5626,6 +5629,7 @@ void update_movement(sys::state& state) {
 					path.clear();
 				}
 			}
+
 			if(a.get_battle_from_army_battle_participation()) {
 				// nothing -- movement paused
 			} else if(path.size() > 0) {
@@ -5640,6 +5644,20 @@ void update_movement(sys::state& state) {
 									province::border::river_crossing_bit) != 0
 									? military::crossing_type::river
 									: military::crossing_type::none, dcon::land_battle_id{});
+				}
+				if(a.get_moving_to_merge()) {
+					a.set_moving_to_merge(false);
+					[&]() {
+						for(auto ar : state.world.province_get_army_location(dest)) {
+							if(ar.get_army().get_controller_from_army_control() == a.get_controller_from_army_control() && ar.get_army() != a && !ar.get_army().get_moving_to_merge()) {
+								auto regs = state.world.army_get_army_membership(a);
+								while(regs.begin() != regs.end()) {
+									(*regs.begin()).set_army(ar.get_army());
+								}
+								return;
+							}
+						}
+					}();
 				}
 			}
 		}
@@ -5692,6 +5710,20 @@ void update_movement(sys::state& state) {
 					if(dest.index() >= state.province_definitions.first_sea_province.index())
 						navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 					n.set_is_retreating(false);
+				}
+				if(n.get_moving_to_merge()) {
+					n.set_moving_to_merge(false);
+					[&]() {
+						for(auto ar : state.world.province_get_navy_location(dest)) {
+							if(ar.get_navy().get_controller_from_navy_control() == n.get_controller_from_navy_control() && ar.get_navy() != n && !ar.get_navy().get_moving_to_merge()) {
+								auto regs = state.world.navy_get_navy_membership(n);
+								while(regs.begin() != regs.end()) {
+									(*regs.begin()).set_navy(ar.get_navy());
+								}
+								return;
+							}
+						}
+					}();
 				}
 			}
 		}

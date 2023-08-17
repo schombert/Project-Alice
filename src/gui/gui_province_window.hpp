@@ -867,6 +867,18 @@ public:
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
 			return make_element_by_type<province_supply_limit_text>(state, id);
+		} else if(name == "rally_land_icon"
+			|| name == "rallypoint_merge_icon"
+			|| name == "rally_naval_icon"
+			|| name == "rallypoint_merge_icon_naval"
+			|| name == "rallypoint_checkbox"
+			|| name == "rallypoint_merge_checkbox"
+			|| name == "rallypoint_checkbox_naval"
+			|| name == "rallypoint_merge_checkbox_naval") {
+
+			auto ptr = make_element_by_type<element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -1125,6 +1137,43 @@ public:
 	}
 };
 
+class land_rally_point : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		frame = (state.world.province_get_land_rally_point(retrieve<dcon::province_id>(state, parent))) ? 1 : 0;
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::set_rally_point(state, state.local_player_nation, p, false,  !state.world.province_get_land_rally_point(p));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "rally_point_enable_info");
+	}
+};
+
+class naval_rally_point : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		frame = state.world.province_get_naval_rally_point(p) ? 1 : 0;
+		disabled = !(state.world.province_get_is_coast(p));
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::set_rally_point(state, state.local_player_nation, p, true, !state.world.province_get_naval_rally_point(p));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "rally_point_enable_info");
+	}
+};
+
+
 class province_view_buildings : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1173,6 +1222,18 @@ public:
 			return ptr;
 		} else if(name == "army_size") {
 			return make_element_by_type<province_army_size_text>(state, id);
+		} else if(name == "rallypoint_checkbox") {
+			return make_element_by_type< land_rally_point>(state, id);
+		} else if(name == "rallypoint_checkbox_naval") {
+			return make_element_by_type< naval_rally_point>(state, id);
+		} else if(name == "rallypoint_merge_icon"
+			|| name == "rallypoint_merge_icon_naval"
+			|| name == "rallypoint_merge_checkbox"
+			|| name == "rallypoint_merge_checkbox_naval") {
+
+			auto ptr = make_element_by_type<element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -1543,6 +1604,18 @@ public:
 			return make_element_by_type<colonist_listbox>(state, id);
 		} else if(name == "crisis_temperature") {
 			return make_element_by_type<province_colonisation_temperature>(state, id);
+		} else if(name == "rally_land_icon"
+			|| name == "rallypoint_merge_icon"
+			|| name == "rally_naval_icon"
+			|| name == "rallypoint_merge_icon_naval"
+			|| name == "rallypoint_checkbox"
+			|| name == "rallypoint_merge_checkbox"
+			|| name == "rallypoint_checkbox_naval"
+			|| name == "rallypoint_merge_checkbox_naval") {
+
+			auto ptr = make_element_by_type<element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}

@@ -1269,6 +1269,16 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ naval_rally_point }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ land_rally_point }
+		type{ bitfield }
+		tag{ save }
+	}
 
 	property{
 		name{ is_colonial }
@@ -1565,6 +1575,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ moving_to_merge }
+		type{ bitfield }
+		tag{ save }
+	}
 	property {
 		name{ dig_in }
 		type{ uint8_t }
@@ -1616,6 +1631,11 @@ object {
 	}
 	property{
 		name{ is_retreating }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ moving_to_merge }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -3796,6 +3816,11 @@ relationship{
 		type{ unit_type_id }
 		tag{ save }
 	}
+	property{
+		name{ template_province }
+		type{ province_id }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -3825,6 +3850,11 @@ relationship{
 	property{
 		name{ type }
 		type{ unit_type_id }
+		tag{ save }
+	}
+	property{
+		name{ template_province }
+		type{ province_id }
 		tag{ save }
 	}
 }

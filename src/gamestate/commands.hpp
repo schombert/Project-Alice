@@ -88,6 +88,7 @@ enum class command_type : uint8_t {
 	change_general = 79,
 	toggle_mobilization = 80,
 	give_military_access = 81,
+	set_rally_point = 82,
 	
 	notify_player_ban = 117,
 	notify_player_kick = 118,
@@ -142,6 +143,12 @@ struct diplo_action_data {
 struct naval_unit_construction_data {
 	dcon::province_id location;
 	dcon::unit_type_id type;
+};
+
+struct rally_point_data {
+	dcon::province_id location;
+	bool naval = false;
+	bool enable = false;
 };
 
 struct land_unit_construction_data {
@@ -423,6 +430,7 @@ struct payload {
 		new_admiral_data new_admiral;
 		nation_pick_data nation_pick;
 		chat_message_data chat_message;
+		rally_point_data rally_point;
 
 		dtype() { }
 	} data;
@@ -431,6 +439,8 @@ struct payload {
 
 	payload() { }
 };
+
+void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
 bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);

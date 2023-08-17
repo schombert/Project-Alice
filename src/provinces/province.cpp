@@ -777,6 +777,11 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
+	// remove rally points
+	state.world.province_set_naval_rally_point(id, false);
+	state.world.province_set_land_rally_point(id, false);
+
+
 	// cancel constructions
 
 	{
