@@ -901,7 +901,7 @@ void update_ai_econ_construction(sys::state& state) {
 							if(p.get_is_upgrade() == false)
 								++num_factories;
 						}
-						if(num_factories <= int32_t(state.defines.factories_per_state)) {
+						if(num_factories < int32_t(state.defines.factories_per_state)) {
 							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 							new_up.set_is_pop_project(false);
 							new_up.set_is_upgrade(false);

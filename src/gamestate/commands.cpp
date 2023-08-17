@@ -526,7 +526,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 
 		int32_t num_factories = economy::state_factory_count(state, location, owner);
-		return num_factories <= int32_t(state.defines.factories_per_state);
+		return num_factories < int32_t(state.defines.factories_per_state);
 	}
 }
 

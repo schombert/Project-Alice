@@ -485,6 +485,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_get_upper_house(n, i) *= scale_factor;
 			}
+		} else {
+			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_set_upper_house(n, i, 0.0f);
+			}
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	} else if((rules & issue_rule::rich_only) != 0) {
 		for(auto i : state.world.in_ideology) {
@@ -516,6 +522,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_get_upper_house(n, i) *= scale_factor;
 			}
+		} else {
+			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_set_upper_house(n, i, 0.0f);
+			}
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	} else {
 		for(auto i : state.world.in_ideology) {
@@ -545,6 +557,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_get_upper_house(n, i) *= scale_factor;
 			}
+		} else {
+			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_set_upper_house(n, i, 0.0f);
+			}
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	}
 

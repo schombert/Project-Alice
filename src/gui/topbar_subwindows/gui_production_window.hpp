@@ -879,7 +879,7 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories <= int32_t(state.defines.factories_per_state)) {
+			if(num_factories < int32_t(state.defines.factories_per_state)) {
 				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
 			} else {
 				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
