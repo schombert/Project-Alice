@@ -5827,7 +5827,7 @@ void update_siege_progress(sys::state& state) {
 			// Garrison recovers at 10% per day when not being sieged (to 100%)
 
 			auto& progress = state.world.province_get_siege_progress(prov);
-			progress = std::max(progress, progress - 0.1f);
+			progress = std::max(0.0f, progress - 0.1f);
 		} else {
 			/*
 			We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
