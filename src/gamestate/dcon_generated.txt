@@ -80,6 +80,11 @@ object{
 		tag{ scenario }
 	}
 	property{
+		name{ government_name }
+		type{ array{government_type_id}{text_sequence_id} }
+		tag{ scenario }
+	}
+	property{
 		name{ primary_culture }
 		type{ culture_id }
 		tag{ scenario }

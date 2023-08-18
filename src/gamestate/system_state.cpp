@@ -2003,6 +2003,25 @@ void state::load_scenario_data() {
 	world.nation_resize_upper_house(world.ideology_size());
 
 	world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
+	world.national_identity_resize_government_name(uint32_t(culture_definitions.governments.size()));
+
+	// add special names
+	for(auto ident : world.in_national_identity) {
+		auto tagi = ident.get_identifying_int();
+		auto tag = nations::int_to_tag(tagi);
+		tag[0] = char(std::tolower(tag[0]));
+		tag[1] = char(std::tolower(tag[1]));
+		tag[2] = char(std::tolower(tag[2]));
+		tag += "_";
+		for(auto& named_gov : context.map_of_governments) {
+			auto special_ident = tag + named_gov.first;
+			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
+				ident.set_government_name(named_gov.second, it->second);
+			} else {
+				ident.set_government_name(named_gov.second, ident.get_name());
+			}
+		}
+	}
 
 	// load country files
 	world.for_each_national_identity([&](dcon::national_identity_id i) {
@@ -2387,8 +2406,7 @@ void state::load_scenario_data() {
 	world.nation_resize_stockpiles(world.commodity_size());
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_demographics(pop_demographics::size(*this));
-	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8,
-			dcon::bitfield_type{0});
+	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 	world.for_each_ideology([&](dcon::ideology_id id) {
 		if(!bool(world.ideology_get_activation_date(id))) {
