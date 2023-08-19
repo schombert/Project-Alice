@@ -1,5 +1,3 @@
-#version 430 core
-
 in vec2 tex_coord;
 layout (location = 0) out vec4 frag_color;
 layout (binding = 0) uniform sampler2D provinces_texture_sampler;
