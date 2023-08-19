@@ -595,7 +595,7 @@ message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any&
 		if(events.empty()) {
 			payload.emplace<event_data_wrapper>(event_data_wrapper{});
 		} else {
-			payload.emplace<event_data_wrapper>(events[index]);
+			payload.emplace<event_data_wrapper>(events[std::min(size_t(index), events.size() - 1)]);
 		}
 		return message_result::consumed;
 	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
@@ -800,7 +800,7 @@ message_result provincial_event_window::get(sys::state& state, Cyto::Any& payloa
 		if(events.empty()) {
 			payload.emplace<event_data_wrapper>(event_data_wrapper{});
 		} else {
-			payload.emplace<event_data_wrapper>(events[index]);
+			payload.emplace<event_data_wrapper>(events[std::min(size_t(index), events.size() - 1)]);
 		}
 		return message_result::consumed;
 	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {

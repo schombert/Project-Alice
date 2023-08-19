@@ -706,6 +706,8 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 
 		auto money_made = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
 		if(!fac.get_subsidized()) {
+			auto& scale = state.world.factory_get_production_scale(f);
+			scale =  (scale + scale* min_input) / 2.0f;
 			state.world.factory_set_full_profit(f, money_made);
 		} else {
 			float min_wages = expected_min_wage * fac.get_level() * fac.get_primary_employment() *
@@ -3343,6 +3345,42 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 
 		auto& v = state.world.nation_get_social_spending(n);
 		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
+	}
+}
+
+void prune_factories(sys::state& state) {
+	for(auto si : state.world.in_state_instance) {
+		auto owner = si.get_nation_from_state_ownership();
+		auto rules = owner.get_combined_issue_rules();
+
+		if(owner.get_is_player_controlled() && (rules & issue_rule::destroy_factory) != 0) // not for players who can manually destroy
+			continue;
+
+		dcon::factory_id deletion_choice;
+		int32_t factory_count = 0;
+
+		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			for(auto f : state.world.province_get_factory_location(p)) {
+				++factory_count;
+				auto scale = f.get_factory().get_production_scale();
+				bool unprofitable = f.get_factory().get_unprofitable();
+				if(scale < 0.05f && unprofitable && (!deletion_choice || state.world.factory_get_level(deletion_choice) > f.get_factory().get_level())) {
+					deletion_choice = f.get_factory();
+				}
+			}
+		});
+
+		if(deletion_choice && factory_count >= int32_t(state.defines.factories_per_state)) {
+			auto production_type = state.world.factory_get_building_type(deletion_choice);
+			state.world.delete_factory(deletion_choice);
+
+			for(auto proj : si.get_state_building_construction()) {
+				if(proj.get_type() == production_type) {
+					state.world.delete_state_building_construction(proj);
+					break;
+				}
+			}
+		}
 	}
 }
 

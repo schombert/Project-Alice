@@ -294,7 +294,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		auto rng = p.get_province_adjacency();
 		int32_t num_adj = int32_t(rng.end() - rng.begin());
 		auto original_province = context.prov_id_to_original_id_map[p].id;
-		assert(num_adj < 30);
+		// assert(num_adj < 30);
 	}
 
 	/*

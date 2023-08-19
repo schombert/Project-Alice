@@ -3061,6 +3061,7 @@ void state::single_game_tick() {
 	switch(ymd_date.day) {
 		case 1:
 			nations::update_monthly_points(*this);
+			economy::prune_factories(*this);
 			break;
 		case 2:
 			sys::update_modifier_effects(*this);
