@@ -181,7 +181,7 @@ void add_border(
 			borders_list_vertices.resize(border_index + 1);
 		auto& current_border_vertices = borders_list_vertices[border_index];
 		if(!extend_if_possible(x0, border_index, dir, last_row, current_row, map_size, current_border_vertices))
-			add_line(map_pos, map_size, pos1, pos2, border_index, x0, dir, current_border_vertices, current_row, 0.5);
+			add_line(map_pos, map_size, pos1, pos2, border_index, x0, dir, current_border_vertices, current_row, 0.5f);
 		};
 
 	if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
@@ -266,8 +266,9 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		std::fill(current_row.begin(), current_row.end(), BorderDirection{});
 	}
 
+	/*
 	// identify and filter out lakes
-	// TODO: unfortunately, this isn't enough to remove the Michigan lakes, since there are two touching lake tiles there
+	// this has been superseded by a more general connectivity algorithm where only the connected set of water provinces of the greatest size counts as the ocean
 
 	for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
 		dcon::province_id p{ dcon::province_id::value_base_t(k) };
@@ -287,12 +288,13 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			}
 		}
 	}
+	*/
 
 	for(auto p : context.state.world.in_province) {
 		auto rng = p.get_province_adjacency();
 		int32_t num_adj = int32_t(rng.end() - rng.begin());
 		auto original_province = context.prov_id_to_original_id_map[p].id;
-		assert(num_adj < 30);
+		// assert(num_adj < 30);
 	}
 
 	/*
@@ -313,7 +315,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		auto mid_point_a = world.province_get_mid_point(prov_a.id);
 		auto mid_point_b = world.province_get_mid_point(prov_b.id);
 		add_line(glm::vec2(0), map_size, mid_point_a, mid_point_b, 0, 0, direction::UP_RIGHT, borders_list_vertices[last],
-				current_row, 0.5);
+				current_row, 0.5f);
 	});
 	*/
 
@@ -409,7 +411,7 @@ std::vector<border_vertex> create_river_vertices(display_data const& data,
 
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
 			// if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, river_vertices))
-			add_line(map_pos, map_size, pos1, pos2, 0, x0, dir, river_vertices, current_row, 0.0);
+			add_line(map_pos, map_size, pos1, pos2, 0, x0, dir, river_vertices, current_row, 0.0f);
 			};
 
 		if(river_l && river_u && !river_r && !river_d) { // Upper left

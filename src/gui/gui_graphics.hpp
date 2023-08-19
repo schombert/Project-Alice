@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
@@ -336,6 +337,19 @@ class grid_box;
 template<class T>
 class unit_details_window;
 
+struct chat_message {
+	dcon::nation_id source{};
+	dcon::nation_id target{};
+	std::string body;
+
+	chat_message() = default;
+	chat_message(const chat_message&) = default;
+	chat_message(chat_message&&) = default;
+	chat_message& operator=(const chat_message&) = default;
+	chat_message& operator=(chat_message&&) = default;
+	~chat_message() = default;
+};
+
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* scroll_target = nullptr;
@@ -350,12 +364,15 @@ struct state {
 	std::unique_ptr<element_base> units_root;
 	std::unique_ptr<element_base> rgos_root;
 	std::unique_ptr<element_base> root;
+	std::unique_ptr<element_base> nation_picker;
+	std::unique_ptr<element_base> end_screen;
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;
 	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 	// elements we are keeping track of
 	element_base* main_menu = nullptr; // Settings window
+	element_base* r_main_menu = nullptr; // Settings window for non-in-game modes
 	element_base* fps_counter = nullptr;
 	element_base* console_window = nullptr; // console window
 	element_base* topbar_window = nullptr;
@@ -383,6 +400,9 @@ struct state {
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
+	element_base* chat_window = nullptr;
+	std::array<chat_message, 32> chat_messages;
+	uint8_t chat_messages_index = 0;
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;

@@ -4,7 +4,7 @@
 #include "freetype/freetype.h"
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
-#include "bmfont.h"
+#include "bmfont.hpp"
 
 namespace sys {
 struct state;
@@ -56,7 +56,7 @@ public:
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
 	float kerning(char codepoint_first, char codepoint_second) const;
-	float text_extent(char const* codepoints, uint32_t count, int32_t size) const;
+	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) const;
 
 	friend class font_manager;
 };
@@ -68,7 +68,7 @@ public:
 
 	font fonts[2];
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
-	ankerl::unordered_dense::map<uint16_t, BMFont> bitmap_fonts;
+	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
 
 	void load_font(font& fnt, char const* file_data, uint32_t file_size);

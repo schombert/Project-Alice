@@ -1,7 +1,3 @@
-#version 430 core
-		
-#define M_PI 3.1415926535897932384626433832795
-
 subroutine vec4 color_function_class(vec4 color_in);
 layout(location = 0) subroutine uniform color_function_class coloring_function;
 		

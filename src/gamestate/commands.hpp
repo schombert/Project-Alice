@@ -88,6 +88,15 @@ enum class command_type : uint8_t {
 	change_general = 79,
 	toggle_mobilization = 80,
 	give_military_access = 81,
+	set_rally_point = 82,
+	
+	notify_player_ban = 117,
+	notify_player_kick = 118,
+	notify_player_picks_nation = 119,
+	notify_player_joins = 120,
+	notify_player_leaves = 121,
+	advance_tick = 122,
+	chat_message = 123,
 
 	// console cheats
 	switch_nation = 128,
@@ -100,6 +109,9 @@ enum class command_type : uint8_t {
 	c_change_infamy = 135,
 	c_force_crisis = 136,
 	c_change_national_militancy = 137,
+	c_end_game = 138,
+	c_event = 139,
+	c_event_as = 140
 };
 
 struct national_focus_data {
@@ -133,6 +145,12 @@ struct diplo_action_data {
 struct naval_unit_construction_data {
 	dcon::province_id location;
 	dcon::unit_type_id type;
+};
+
+struct rally_point_data {
+	dcon::province_id location;
+	bool naval = false;
+	bool enable = false;
 };
 
 struct land_unit_construction_data {
@@ -355,6 +373,22 @@ struct split_ships_data {
 struct cheat_data {
 	float value;
 };
+struct cheat_data_int {
+	int32_t value;
+};
+struct cheat_event_data {
+	int32_t value;
+	dcon::nation_id as;
+};
+
+struct chat_message_data {
+	char body[ui::max_chat_message_len];
+	dcon::nation_id target;
+};
+
+struct nation_pick_data {
+	dcon::nation_id target;
+};
 
 struct payload {
 	union dtype {
@@ -403,6 +437,11 @@ struct payload {
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
+		nation_pick_data nation_pick;
+		chat_message_data chat_message;
+		rally_point_data rally_point;
+		cheat_data_int cheat_int;
+		cheat_event_data cheat_event;
 
 		dtype() { }
 	} data;
@@ -411,6 +450,8 @@ struct payload {
 
 	payload() { }
 };
+
+void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
 bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
@@ -677,9 +718,22 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+
+void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+void notify_player_joins(sys::state& state, dcon::nation_id source);
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
+void notify_player_leaves(sys::state& state, dcon::nation_id source);
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
 void c_change_money(sys::state& state, dcon::nation_id source, float value);
 void c_westernize(sys::state& state, dcon::nation_id source);
@@ -689,6 +743,11 @@ void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
+void c_end_game(sys::state& state, dcon::nation_id source);
+void c_event(sys::state& state, dcon::nation_id source, int32_t id);
+void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id);
+
+void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
 
 } // namespace command

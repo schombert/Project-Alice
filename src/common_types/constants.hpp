@@ -293,16 +293,34 @@ constexpr inline uint8_t standard_pause = log | popup | pause;
 
 }
 
+enum class game_mode {
+	pick_nation,
+	in_game,
+	end_screen
+};
+
+enum class network_mode {
+	single_player,
+	client,
+	host
+};
+
 } // namespace sys
 
 namespace culture {
 inline constexpr int32_t max_issue_options = 6;
 }
 
+namespace economy {
+enum class province_building_type : uint8_t { railroad, fort, naval_base, last };
+constexpr inline int32_t max_building_types = 3;
+}
+
 namespace ui {
 
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
+constexpr inline uint32_t max_chat_message_len = 24;
 
 }
 

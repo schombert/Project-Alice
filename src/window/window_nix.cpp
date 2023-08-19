@@ -267,6 +267,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwSetWindowIconifyCallback(window, window_iconify_callback);
 	glfwSetWindowMaximizeCallback(window, window_maximize_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetWindowSizeLimits(window, 640, 400, 2400, 1800);
 
 	ogl::initialize_opengl(game_state);
 

@@ -702,7 +702,7 @@ int32_t free_colonial_points(sys::state& state, dcon::nation_id n) {
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
 		if(prov.get_province().get_is_colonial()) {
 			used_points += state.defines.colonization_colony_province_maintainance;
-			used_points += state.economy_definitions.railroad_definition.infrastructure * prov.get_province().get_railroad_level() *
+			used_points += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * prov.get_province().get_building_level(economy::province_building_type::railroad) *
 										 state.defines.colonization_colony_railway_maintainance;
 		}
 	}
@@ -728,13 +728,13 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 		the capital.
 		*/
 		for(auto p : state.world.nation_get_province_ownership(n)) {
-			auto nb_rank = state.world.province_get_naval_base_level(p.get_province());
+			auto nb_rank = state.world.province_get_building_level(p.get_province(), economy::province_building_type::naval_base);
 			if(nb_rank > 0) {
 				if(p.get_province().get_is_owner_core() ||
 						p.get_province().get_connected_region_id() ==
 								state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
 
-					points += float(state.economy_definitions.naval_base_definition.colonial_points[nb_rank - 1]);
+					points += float(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].colonial_points[nb_rank - 1]);
 				} else {
 					points += state.defines.colonial_points_for_non_core_base;
 				}
@@ -823,10 +823,10 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
-		auto act_date = it.get_penalty_expires_date();
 		if((it.get_status() & influence::is_banned) == 0) {
-			if(it.get_influence() >= state.defines.increaseopinion_influence_cost &&
-					(influence::level_mask & it.get_status()) != influence::level_in_sphere) {
+			if(it.get_influence() >= state.defines.increaseopinion_influence_cost
+				&& (influence::level_mask & it.get_status()) != influence::level_in_sphere
+				&& (influence::level_mask & it.get_status()) != influence::level_friendly) {
 				return true;
 			} else if(!(it.get_influence_target().get_in_sphere_of()) &&
 								it.get_influence() >= state.defines.addtosphere_influence_cost) {
@@ -1192,9 +1192,9 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	});
 	state.world.nation_set_has_gas_attack(n, state.world.nation_get_has_gas_attack(base));
 	state.world.nation_set_has_gas_defense(n, state.world.nation_get_has_gas_defense(base));
-	state.world.nation_set_max_railroad_level(n, state.world.nation_get_max_railroad_level(base));
-	state.world.nation_set_max_fort_level(n, state.world.nation_get_max_fort_level(base));
-	state.world.nation_set_max_naval_base_level(n, state.world.nation_get_max_naval_base_level(base));
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		state.world.nation_set_max_building_level(n, t, state.world.nation_get_max_building_level(base, t));
+	}
 	state.world.nation_set_election_ends(n, sys::date{0});
 	state.world.nation_set_education_spending(n, int8_t(100));
 	state.world.nation_set_military_spending(n, int8_t(100));

@@ -380,12 +380,8 @@ public:
 class pop_cash_reserve_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-			set_text(state, text::format_money(state.world.pop_get_savings(content)));
-		}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		set_text(state, text::format_money(state.world.pop_get_savings(content)));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -393,26 +389,22 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val,
-					text::fp_currency{state.world.pop_get_savings(fat_id.id)});
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val,
-					text::fp_currency{1984});
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val,
-					text::fp_currency{1984});
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, std::string_view("available_in_bank"), text::variable_type::val,
-					text::fp_currency{1984});
-			text::close_layout_box(contents, box);
-		}
+		auto fat_id = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val,
+				text::fp_currency{state.world.pop_get_savings(fat_id.id)});
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val,
+				text::fp_currency{1984});
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val,
+				text::fp_currency{1984});
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_single_sub_box(state, contents, box, std::string_view("available_in_bank"), text::variable_type::val,
+				text::fp_currency{1984});
+		text::close_layout_box(contents, box);
 	}
 };
 class pop_size_text : public simple_text_element_base {
@@ -3177,27 +3169,36 @@ private:
 					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
 		}
 	}
-
-	template<typename T, typename... Targs>
-	void generate_distribution_windows(sys::state& state) {
-		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win.get());
-		add_child_to_front(std::move(win));
-
-		if constexpr(sizeof...(Targs))
-			generate_distribution_windows<Targs...>(state);
-	}
-
+	
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 
 		{
-			generate_distribution_windows< pop_distribution_window<dcon::pop_type_id, true>,
-					pop_distribution_window<dcon::religion_id, true>, pop_distribution_window<dcon::ideology_id, true>,
-					pop_distribution_window<dcon::culture_id, true>, pop_distribution_window<dcon::issue_option_id, true>,
-					pop_distribution_window<dcon::political_party_id, true>>(state);
+			auto win1 = make_element_by_type<pop_distribution_window<dcon::pop_type_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win1.get());
+			add_child_to_front(std::move(win1));
+
+			auto win2 = make_element_by_type<pop_distribution_window<dcon::religion_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win2.get());
+			add_child_to_front(std::move(win2));
+
+			auto win3 = make_element_by_type<pop_distribution_window<dcon::ideology_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win3.get());
+			add_child_to_front(std::move(win3));
+
+			auto win4 = make_element_by_type<pop_distribution_window<dcon::culture_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win4.get());
+			add_child_to_front(std::move(win4));
+
+			auto win5 = make_element_by_type<pop_distribution_window<dcon::issue_option_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win5.get());
+			add_child_to_front(std::move(win5));
+
+			auto win6 = make_element_by_type<pop_distribution_window<dcon::political_party_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			dist_windows.push_back(win6.get());
+			add_child_to_front(std::move(win6));
 
 			// It should be proper to reposition the windows now
 			const xy_pair cell_offset =

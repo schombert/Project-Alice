@@ -5,23 +5,9 @@
 
 namespace economy {
 
-struct fort_information {
-	economy::commodity_set cost;
-	int32_t max_level = 6;
-	int32_t time = 1080;
-	dcon::modifier_id province_modifier;
-	dcon::text_sequence_id name;
-};
-struct railroad_information {
+struct building_information {
 	economy::commodity_set cost;
 	float infrastructure = 0.16f;
-	int32_t max_level = 6;
-	int32_t time = 1080;
-	dcon::modifier_id province_modifier;
-	dcon::text_sequence_id name;
-};
-struct naval_base_information {
-	economy::commodity_set cost;
 	int32_t naval_capacity = 1;
 	int32_t colonial_range = 50;
 	int32_t colonial_points[8] = {30, 50, 70, 90, 110, 130, 150, 170};
@@ -31,7 +17,6 @@ struct naval_base_information {
 	dcon::text_sequence_id name;
 };
 
-enum class province_building_type : uint8_t { railroad, fort, naval_base };
 inline std::string_view province_building_type_get_name(economy::province_building_type v) {
 	switch(v) {
 	case economy::province_building_type::railroad:
@@ -43,12 +28,20 @@ inline std::string_view province_building_type_get_name(economy::province_buildi
 	}
 	return "???";
 }
+inline std::string_view province_building_type_get_level_text(economy::province_building_type v) {
+	switch(v) {
+	case economy::province_building_type::railroad:
+		return "railroad_level";
+	case economy::province_building_type::fort:
+		return "fort_level";
+	case economy::province_building_type::naval_base:
+		return "naval_base_level";
+	}
+	return "???";
+}
 
 struct global_economy_state {
-	fort_information fort_definition;
-	railroad_information railroad_definition;
-	naval_base_information naval_base_definition;
-
+	building_information building_definitions[max_building_types];
 	float craftsmen_fraction = 0.8f;
 };
 
@@ -164,5 +157,7 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
 int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
+
+void prune_factories(sys::state& state); // get rid of closed factories in full states
 
 } // namespace economy

@@ -65,8 +65,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto prov = retrieve<dcon::province_id>(state, parent);
-		auto port_level = state.world.province_get_naval_base_level(prov);
-
+		auto port_level = state.world.province_get_building_level(prov, economy::province_building_type::naval_base);
 		visible = port_level >= level;
 		frame = int32_t(retrieve<outline_color>(state, parent));
 	}
@@ -151,7 +150,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 
 		auto navies = state.world.province_get_navy_location(port_for);
-		if(state.world.province_get_naval_base_level(port_for) == 0 && navies.begin() == navies.end()) {
+		if(state.world.province_get_building_level(port_for, economy::province_building_type::naval_base) == 0 && navies.begin() == navies.end()) {
 			populated = false;
 			return;
 		}

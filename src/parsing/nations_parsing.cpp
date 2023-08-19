@@ -940,6 +940,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 		fid.set_only_once(event_result.fire_only_once);
 		fid.set_trigger(event_result.trigger);
 		fid.get_options() = event_result.options;
+		fid.set_legacy_id(uint16_t(event_result.id));
 	}
 }
 

@@ -54,28 +54,20 @@ template<class T>
 class unit_selection_split_in_half_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				command::split_army(state, state.local_player_nation, content);
-			} else {
-				command::split_navy(state, state.local_player_nation, content);
-			}
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			command::split_army(state, state.local_player_nation, content);
+		} else {
+			command::split_navy(state, state.local_player_nation, content);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				disabled = !command::can_split_army(state, state.local_player_nation, content);
-			} else {
-				disabled = !command::can_split_navy(state, state.local_player_nation, content);
-			}
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			disabled = !command::can_split_army(state, state.local_player_nation, content);
+		} else {
+			disabled = !command::can_split_navy(state, state.local_player_nation, content);
 		}
 	}
 
@@ -109,15 +101,11 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				disabled = !command::can_delete_army(state, state.local_player_nation, content);
-			} else {
-				disabled = !command::can_delete_navy(state, state.local_player_nation, content);
-			}
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			disabled = !command::can_delete_army(state, state.local_player_nation, content);
+		} else {
+			disabled = !command::can_delete_navy(state, state.local_player_nation, content);
 		}
 	}
 
@@ -787,140 +775,195 @@ public:
 	}
 };
 
-class unit_details_load_button : public button_element_base {
+class unit_details_load_army_button : public button_element_base {
 public:
+	bool visible = false;
+
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::army_id{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<dcon::army_id>(payload);
-		}
+		auto n = retrieve<dcon::army_id>(state, parent);
+		command::embark_army(state, state.local_player_nation, n);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::army_id>(state, parent);
+		auto tprted = state.world.army_get_navy_from_army_transport(n);
+		auto loc = state.world.army_get_location_from_army_location(n);
+
+		visible = !bool(tprted);
+
+		disabled = !military::can_embark_onto_sea_tile(state, state.local_player_nation, loc, n);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::army_id>(state, parent);
+		auto loc = state.world.army_get_location_from_army_location(n);
+
+		text::add_line(state, contents, "uw_load_is_valid");
+		text::add_line_with_condition(state, contents, "alice_load_unload_1", military::can_embark_onto_sea_tile(state, state.local_player_nation, loc, n));
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
+		if(visible)
+			return button_element_base::test_mouse(state, x, y, t);
+		else
+			return message_result::unseen;
 	}
 };
-class unit_details_unload_button : public button_element_base {
+class unit_details_unload_army_button : public button_element_base {
 public:
+	bool visible = false;
+
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::army_id{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<dcon::army_id>(payload);
+		auto n = retrieve<dcon::army_id>(state, parent);
+		command::embark_army(state, state.local_player_nation, n);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::army_id>(state, parent);
+		auto tprted = state.world.army_get_navy_from_army_transport(n);
+		auto loc = state.world.army_get_location_from_army_location(n);
+
+		visible = bool(tprted);
+
+		if(loc.index() >= state.province_definitions.first_sea_province.index()) {
+			disabled = true;
+		} else {
+			disabled = false;
 		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::army_id>(state, parent);
+		auto tprted = state.world.army_get_navy_from_army_transport(n);
+		auto loc = state.world.army_get_location_from_army_location(n);
+
+		text::add_line(state, contents, "uw_unload_valid");
+		text::add_line_with_condition(state, contents, "alice_load_unload_2", bool(tprted));
+		text::add_line_with_condition(state, contents, "alice_load_unload_3", loc.index() < state.province_definitions.first_sea_province.index());
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
+		if(visible)
+			return button_element_base::test_mouse(state, x, y, t);
+		else
+			return message_result::unseen;
 	}
 };
-class unit_details_enable_rebel_button : public button_element_base {
+class unit_details_unload_navy_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::army_id{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<dcon::army_id>(payload);
+		auto n = retrieve<dcon::navy_id>(state, parent);
+		auto tprted = state.world.navy_get_army_transport(n);
+		std::vector<dcon::army_id> tmp;
+		for(auto t : tprted)
+			tmp.push_back(t.get_army());
+		for(auto a : tmp)
+			command::embark_army(state, state.local_player_nation, a);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::navy_id>(state, parent);
+		auto tprted = state.world.navy_get_army_transport(n);
+		auto loc = state.world.navy_get_location_from_navy_location(n);
+
+		if(tprted.begin() == tprted.end() || loc.index() >= state.province_definitions.first_sea_province.index()) {
+			disabled = true;
+		} else {
+			disabled = false;
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::navy_id>(state, parent);
+		auto tprted = state.world.navy_get_army_transport(n);
+		auto loc = state.world.navy_get_location_from_navy_location(n);
+
+		text::add_line(state, contents, "alice_unload_fleet");
+		text::add_line_with_condition(state, contents, "alice_load_unload_4", tprted.begin() != tprted.end());
+		text::add_line_with_condition(state, contents, "alice_load_unload_5", loc.index() < state.province_definitions.first_sea_province.index());
 	}
 };
-class unit_details_disable_rebel_button : public button_element_base {
+
+class navy_transport_text : public simple_text_element_base {
 public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::army_id{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<dcon::army_id>(payload);
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.x -= int16_t(50);
+		simple_text_element_base::on_create(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::navy_id>(state, parent);
+
+		auto tcap = military::transport_capacity(state, n);
+		auto tfree = military::free_transport_capacity(state, n);
+		text::substitution_map sub;
+		if(tcap != tfree) {
+			auto txt = std::to_string(tfree) + " (" + std::to_string(tcap) + ")";
+			text::add_to_substitution_map(sub, text::variable_type::num, std::string_view(txt));
+			set_text(state, text::resolve_string_substitution(state, std::string_view("load_capacity_label"), sub));
+		} else {
+			text::add_to_substitution_map(sub, text::variable_type::num, tcap);
+			set_text(state, text::resolve_string_substitution(state, std::string_view("load_capacity_label"), sub));
 		}
 	}
-};
-class unit_details_select_land_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::navy_id{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<dcon::navy_id>(payload);
-		}
-	}
-};
-template<class T>
-class unit_details_attach_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<T>(payload);
-		}
-	}
-};
-template<class T>
-class unit_details_detach_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			// auto content = any_cast<T>(payload);
-		}
-	}
+
 };
 
 template<class T>
 class unit_details_buttons : public window_element_base {
 private:
-	button_element_base* navytransport_button = nullptr;
 	simple_text_element_base* navytransport_text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "load_button" && std::is_same_v<T, dcon::army_id>) {
-			return make_element_by_type<unit_details_load_button>(state, id);
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<unit_details_load_army_button>(state, id);
+			} else {
+				auto ptr = make_element_by_type<element_base>(state, id);
+				ptr->set_visible(state, false);
+				return ptr;
+			}
+		} else if(name == "unload_button") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<unit_details_unload_army_button>(state, id);
+			} else {
+				return make_element_by_type<unit_details_unload_navy_button>(state, id);
+			}
+		} else if(name == "enable_rebel_button"
+			|| name == "disable_rebel_button"
+			|| name == "attach_unit_button"
+			|| name == "detach_unit_button"
+			|| name == "select_land") {
 
-		} else if(name == "unload_button" && std::is_same_v<T, dcon::army_id>) {
-			return make_element_by_type<unit_details_unload_button>(state, id);
-
-		} else if(name == "enable_rebel_button" && std::is_same_v<T, dcon::army_id>) {
-			return make_element_by_type<unit_details_enable_rebel_button>(state, id);
-
-		} else if(name == "disable_rebel_button" && std::is_same_v<T, dcon::army_id>) {
-			return make_element_by_type<unit_details_disable_rebel_button>(state, id);
-
-		} else if(name == "attach_unit_button") {
-			return make_element_by_type<unit_details_attach_button<T>>(state, id);
-
-		} else if(name == "detach_unit_button") {
-			return make_element_by_type<unit_details_detach_button<T>>(state, id);
-
-		} else if(name == "select_land") {
-			auto ptr = make_element_by_type<unit_details_select_land_button>(state, id);
-			navytransport_button = ptr.get();
+			auto ptr = make_element_by_type<element_base>(state, id);
+			ptr->set_visible(state, false);
 			return ptr;
+
+	
 
 		} else if(name == "header") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			navytransport_text = ptr.get();
-			return ptr;
-
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				auto ptr = make_element_by_type<element_base>(state, id);
+				ptr->set_visible(state, false);
+				return ptr;
+			} else {
+				return make_element_by_type< navy_transport_text>(state, id);
+			}
 		} else {
 			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = T{};
-		parent->impl_get(state, payload);
-		auto content = any_cast<T>(payload);
-
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			navytransport_button->set_visible(state, false);
-			navytransport_text->set_visible(state, false);
-		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
-			navytransport_button->set_visible(state, true);
-			navytransport_text->set_visible(state, true);
-
-			text::substitution_map sub;
-			if(military::transport_capacity(state, content) != military::free_transport_capacity(state, content)) {
-				text::add_to_substitution_map(sub, text::variable_type::num, 
-				std::string_view((std::to_string(military::free_transport_capacity(state, content)) + " (" + std::to_string(military::transport_capacity(state, content)) + ")")));
-				navytransport_text->set_text(state, text::resolve_string_substitution(state, std::string_view("load_capacity_label"), sub));
-			} else {
-				text::add_to_substitution_map(sub, text::variable_type::num, military::transport_capacity(state, content));
-				navytransport_text->set_text(state, text::resolve_string_substitution(state, std::string_view("load_capacity_label"), sub));
-			}
 		}
 	}
 };

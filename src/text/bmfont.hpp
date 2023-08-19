@@ -1,5 +1,5 @@
 /*
-BMFont example implementation with Kerning, for C++ and OpenGL 2.0
+bm_font example implementation with Kerning, for C++ and OpenGL 2.0
 
 This is free and unencumbered software released into the public domain.
 
@@ -40,72 +40,66 @@ struct state;
 
 namespace text {
 
-class CharDescriptor {
-
-public:
-	short x;
-	short y;
-	short Width;
-	short Height;
-	short XOffset;
-	short YOffset;
-	short XAdvance;
-	short Page;
-
-	CharDescriptor() : x(0), y(0), Width(0), Height(0), XOffset(0), YOffset(0), XAdvance(0), Page(0) { }
+struct char_descriptor {
+	int32_t x = 0;
+	int32_t y = 0;
+	int32_t width = 0;
+	int32_t height = 0;
+	int32_t x_offset = 0;
+	int32_t y_offset = 0;
+	int32_t x_advance = 0;
+	int32_t page = 0;
 };
 
-class BMFont {
-
+class bm_font {
 public:
-	GLuint ftexid = 0;
-
-	float GetHeight() const { return LineHeight; }
-	float GetStringWidth(char const*, uint32_t) const;
-
-	BMFont(simple_fs::file& font_metrics, simple_fs::file& font_image) {
+	bm_font(sys::state& state, simple_fs::file& font_metrics, simple_fs::file& font_image) {
 		auto font_result = ogl::make_font_texture(font_image);
 		ftexid = font_result.handle;
-		ParseFont(font_metrics);
+		parse_font(state, font_metrics);
 		assert(ftexid != 0);
-		Width = int16_t(font_result.size);
+		width = int16_t(font_result.size);
 	};
-	BMFont(BMFont&& src) noexcept {
+	bm_font(bm_font&& src) noexcept {
 		ftexid = src.ftexid;
-		Chars = src.Chars;
-		Kern = std::move(src.Kern);
-		Width = src.Width;
-		Height = src.Height;
-		Base = src.Base;
-		LineHeight = src.LineHeight;
+		chars = src.chars;
+		kernings = std::move(src.kernings);
+		width = src.width;
+		height = src.height;
+		base = src.base;
+		line_height = src.line_height;
 		src.ftexid = 0;
 	}
-	BMFont& operator=(BMFont&& src) noexcept {
+	bm_font& operator=(bm_font&& src) noexcept {
 		ftexid = src.ftexid;
-		Chars = src.Chars;
-		Kern = std::move(src.Kern);
-		Width = src.Width;
-		Height = src.Height;
-		Base = src.Base;
-		LineHeight = src.LineHeight;
+		chars = src.chars;
+		kernings = std::move(src.kernings);
+		width = src.width;
+		height = src.height;
+		base = src.base;
+		line_height = src.line_height;
 		src.ftexid = 0;
-
 		return *this;
 	}
-	~BMFont();
+	~bm_font();
 
-	std::array<CharDescriptor, 256> Chars;
-	ankerl::unordered_dense::map<uint16_t, int32_t> Kern;
+	std::array<char_descriptor, 256> chars;
+	ankerl::unordered_dense::map<uint16_t, int32_t> kernings;
+	int32_t line_height = 0;
+	int32_t base = 0;
+	int32_t width = 0;
+	int32_t height = 0;
+	int32_t pages = 0;
+	int32_t scale_w = 0;
+	int32_t scale_h = 0;
+	GLuint ftexid = 0;
 
-	int16_t LineHeight = 0;
-	int16_t Base = 0;
-	int16_t Width = 0;
-	int16_t Height = 0;
-
-	bool ParseFont(simple_fs::file& f);
-	int GetKerningPair(char, char) const;
+	float get_height() const { return float(line_height); }
+	float get_string_width(sys::state& state, char const*, uint32_t) const;
+	bool parse_font(sys::state& state, simple_fs::file& f);
+	int get_kerning_pair(char, char) const;
 };
 
-BMFont const& get_bm_font(sys::state& state, uint16_t font_handle);
+bm_font const& get_bm_font(sys::state& state, uint16_t font_handle);
 
 } // namespace text

@@ -76,6 +76,7 @@ add_core_to;Add core to;;;A�adir nucleo a;;;;;;;;;x
 rebel;Rebel;;;Rebelde(s);;;;;;;;;x
 remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
+flashpoint_tension_label;Flashpoint tension;
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
 change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
@@ -116,7 +117,7 @@ change_ruling_party;Change ruling party to $text$;;;Cambiar el partido electo a 
 remove_prov_mod;Remove provincial modifier $text$;;;Quitar el modificador provincial $text$;;;;;;;;;x
 remove_nat_mod;Remove national modifier $text$;;;Quitar el modificador nacional $text$;;;;;;;;;x
 make_alliance;Enter into an alliance with $text$;;;Entrar en una alianza con $text$;;;;;;;;;x
-become_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
+becomes_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
 release_as_independent;Release $text$ as an independent nation;;;Liberar $text$ como una nacion independiente;;;;;;;;;x
 enable_canal;Enable the $text$;;;Habilitar $text$;;;;;;;;;x
 set_global_flag;Set $text$ globally;;;Establecer $text$ globalmente;;;;;;;;;x
@@ -164,9 +165,9 @@ diplomatic_influence_with;diplomatic influence with $text$;;;Influencia diplomat
 relations_with;relationship with $text$;;;Relacion con $text$;;;;;;;;;x
 add_modifier_until;Gets $text$ until $date$;;;Obtiene $text$ hasta $date$;;;;;;;;;x
 add_modifier;Gets $text$;;;Obtiene $text$;;;;;;;;;x
-add_cb_months;Gets a $name$ casus belli against $text$ for $value$ months;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
+add_cb_months;Gets a $name$ casus belli against $text$ until $date$;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
 add_cb_no_months;Gets a $name$ casus belli against $text$;;;Obitene un cassus belli de $name$ en contra de $text$;;;;;;;;;x
-add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope for $value$ months;;;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses;;;;;;;;;x
+add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope until $date$;;;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses;;;;;;;;;x
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope;;;$text$ obtiene un cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
 remove_cb_reversed;Loses any $name$ casus bellis against $text$;;;Pierde el cassus belli de $name$ en contra de $text$;;;;;;;;;x
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope;;;$text$ pierde el cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
@@ -180,6 +181,7 @@ attacker_yes_allies;Attacker's allies will be called in;;;Los aliados del atacan
 event_fires;Event $text$ is triggered;;;Sucede el evento $text$;;;;;;;;;x
 event_fires_in_days;Event $text$ is triggered in $value$ days;;;Sucede el evento $text$;;;;;;;;;x
 support_for_blank;Support for $text$;;;Soporte para $text$;;;;;;;;;x
+uh_support_for_blank;Upper house support for $text$;;;Soporte para $text$;;;;;;;;;x
 up_to;up to ;;;Hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
@@ -286,7 +288,7 @@ num_of_vassals;number of vassals;;;Numero de subyugados;;;;;;;;;x
 owned_by;owned by;;;Propiedad de;;;;;;;;;x
 exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
-set;Set;;;Establece;;;;;;;;;x
+set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;Un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;Acceso militar con;;;;;;;;;x
@@ -708,9 +710,10 @@ ally_explain_1;You cannot form an alliance with yourself
 ally_explain_2;You have at least $x$ diplomatic point(s)
 ally_explain_3;You are not currently allied
 ally_explain_4;You are not both great powers while a crisis is ongoing
-ally_explain_5;You are not a vassal of a nation other than the target
+ally_explain_5;You are not a subject nation
 ally_explain_6;You are not currently at war with the target
 ally_explain_7;The AI will accept
+ally_explain_8;The target is not a subject nation
 call_ally_explain_1;You have an alliance with this nation
 call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You are at war
@@ -1050,4 +1053,122 @@ uv_sort_h;Exp
 alice_retreat;Retreat from battle
 alice_retreat_1;It has been at least $x$ days since the battle started
 alice_retreat_2;You are the lead attacker or defender
+chat_player_joins;@$x$ $playername$ has joined the game;;;@$x$ $playername$ se ha unido;;;;;;;;;x
+chat_player_leaves;@$x$ $playername$ has left the game;;;@$x$ $playername$ se ha ido;;;;;;;;;x
+chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ ha sido baneado;;;;;;;;;x
+chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ ha sido vetado;;;;;;;;;x
+message_name_text;Message
+msg_for_us;About: your nation
+msg_for_interesting;Interesting nation
+msg_for_other;Other nation
+msg_handling_ignore;Ignore the message
+msg_handling_log;Log the message
+msg_handling_popup;Pop up a notification for the message
+msg_handling_pause;Pop up a notification for the message and pause the game until it is dismissed
+amsg_revolt;A revolt happens in the nation
+amsg_war_on_nation;War is declared on the nation
+amsg_war_by_nation;War is declared by the nation
+amsg_wargoal_added;The nation adds a war goal
+amsg_siegeover_by_nation;The nation completes a siege
+amsg_siegeover_on_nation;A siege finishes on a province the nation controls
+amsg_colony_finished;The nation finishes a colony
+amsg_reform_gained;The nation passes a reform
+amsg_reform_lost;The nation loses a reform
+amsg_ruling_party_change;The ruling party of the nation changes
+amsg_upperhouse;The composition of the upper house of the nation changes
+amsg_electionstart;An election starts in the nation
+amsg_electiondone;An election ends in the nation
+amsg_breakcountry;Rebels enforce their demands on the nation
+amsg_peace_accepted_from_nation;The nation's peace offer is accepted
+amsg_peace_rejected_from_nation;The nation's peace offer is rejected
+amsg_peace_accepted_by_nation;The nation accepts a peace offer
+amsg_peace_rejected_by_nation;The nation rejects a peace offer
+amsg_mobilization_start;The nation mobilizes
+amsg_mobilization_end;The nation ends its mobilization
+amsg_factory_complete;The nation finishes building a factory
+amsg_rr_complete;The nation finishes building a railroad
+amsg_fort_complete;The nation finishes building a fort
+amsg_naval_base_complete;The nation finishes building a naval base
+amsg_province_event;A province event happens to the nation
+amsg_national_event;A national event happens to the nation
+amsg_major_event;A major event happens to the nation
+amsg_invention;The nation discovers an invention
+amsg_tech;The nation finishes researching a technology
+amsg_leader_dies;One of the nation's military leaders dies
+amsg_land_combat_starts_on_nation;One of the nation's armies is attacked
+amsg_naval_combat_starts_on_nation;One of the nation's navies is attacked
+amsg_land_combat_starts_by_nation;One of the nation's armies makes an attack
+amsg_naval_combat_starts_by_nation;One of the nation's navies makes an attack
+amsg_movement_finishes;One of the nation's units finishes moving
+amsg_decision;The nation takes a decision
+amsg_lose_great_power;The nation loses great power status
+amsg_become_great_power;The nation gains great power status
+amsg_war_subsidies_start_by_nation;The nation starts providing war subsidies
+amsg_war_subsidies_start_on_nation;The nation starts being given war subsidies
+amsg_war_subsidies_end_by_nation;The nation stops providing war subsidies
+amsg_war_subsidies_end_on_nation;The nation stops being provided with war subsidies
+amsg_reparations_start_by_nation;The nation starts paying reparations
+amsg_reparations_start_on_nation;The nation starts being paid reparations
+amsg_reparations_end_by_nation;The nation stops paying reparations
+amsg_reparations_end_on_nation;Reparations stop being paid to the nation
+amsg_mil_access_start_by_nation;The nation starts giving military access
+amsg_mil_access_start_on_nation;The nation starts receiving military access
+amsg_mil_access_end_by_nation;The nation stops giving military access
+amsg_mil_access_end_on_nation;The nation stops receiving military access
+amsg_mil_access_declined_by_nation;The nation's military access request is declined
+amsg_mil_access_declined_on_nation;The nation declines a military access request
+amsg_alliance_starts;The nation enters into a new alliance
+amsg_alliance_ends;The nation ends an alliance
+amsg_alliance_declined_by_nation;The nation declines an alliance offer
+amsg_alliance_declined_on_nation;The nation's alliance offer is declined
+amsg_ally_called_accepted_by_nation;The nation honors a call to arms
+amsg_ally_called_declined_by_nation;The nation declines a call to arms
+amsg_discredit_by_nation;The nation discredits another nation
+amsg_ban_by_nation;The nation bans the embassy of another nation
+amsg_expell_by_nation;The nation expels the advisors of another nation
+amsg_discredit_on_nation;The nation is discredited
+amsg_ban_on_nation;The nation's embassy is banned
+amsg_expell_on_nation;The nation's advisors are expelled
+amsg_increase_opinion;The nation increases another nation's opinion of them
+amsg_decrease_opinion_by_nation;The nation causes the opinion of another nation to decrease
+amsg_decrease_opinion_on_nation;The opinion of this nation is caused to decrease
+amsg_rem_sphere_by_nation;The nation removes another nation from a sphere of influence
+amsg_rem_sphere_on_nation;The nation has another nation removed from its sphere of influence
+amsg_removed_from_sphere;The nation is removed from a sphere of influence
+amsg_add_sphere;The nation adds another nation to their sphere of influence
+amsg_added_to_sphere;The nation is added to a sphere of influence
+amsg_increase_relation_by_nation;The nation increases another nation's relationship with it
+amsg_increase_relation_on_nation;The nation has its relationship with someone else increased
+amsg_decrease_relation_by_nation;The nation decreases another nation's relationship with it
+amsg_decrease_relation_on_nation;The nation has its relationship with someone else decreased
+amsg_join_war_by_nation;The nation joins an existing war
+amsg_join_war_on_nation;A new nation joins an existing war against this nation
+amsg_gw_unlocked;Great wars are unlocked
+amsg_war_becomes_great;A war involving this nation becomes great
+amsg_cb_detected_on_nation;CB justification targeting this nation is detected
+amsg_cb_detected_by_nation;This nation is detected justifying a CB
+amsg_crisis_join_offer_accepted_by_nation;The nation accepts an offer to join a crisis
+amsg_crisis_join_offer_declined_by_nation;The nation declines an offer to join a crisis
+amsg_crisis_join_offer_accepted_from_nation;An offer to join a crisis from this nation is accepted
+amsg_crisis_join_offer_declined_from_nation;An offer to join a crisis from this nation is declined
+amsg_crisis_resolution_accepted;A crisis resolution is accepted
+amsg_crisis_becomes_war;A crisis becomes a war
+amsg_crisis_resolution_declined_from_nation;An crisis resolution offer from this nation is declined
+amsg_crisis_starts;A new crisis starts
+amsg_crisis_attacker_backer;A great power becomes the primary attacker in a crisis
+amsg_crisis_defender_backer;A great power becomes the primary defender in a crisis
+amsg_crisis_fizzle;A crisis fails to attract great power interest
+amsg_war_join_by;The nation joins a war
+amsg_war_join_on;A nation joins a war against this nation
+amsg_cb_fab_finished;The nation finished fabricating a CB
+amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
+amsg_crisis_voluntary_join;The nation joins a crisis without an offer
+a_alert_reb;One or more of our sphere members has active rebels:
+event_auto;Automatically choose this option for the remainder of the session
+alice_load_unload_1;A navy docked here has sufficient capacity
+alice_load_unload_2;The army is being transported
+alice_load_unload_3;The transporting fleet is docked
+alice_load_unload_4;One or more armies is being transported
+alice_load_unload_5;The fleet is docked
+alice_unload_fleet;Unload all armies transported by the fleet
 ;;;;;;;;;;;;;x

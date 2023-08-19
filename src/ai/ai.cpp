@@ -324,7 +324,7 @@ void initialize_ai_tech_weights(sys::state& state) {
 		if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::army)
 			base *= 1.5f;
 
-		if(t.get_increase_naval_base())
+		if(t.get_increase_building(economy::province_building_type::naval_base))
 			base *= 1.1f;
 		else if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::navy)
 			base *= 0.9f;
@@ -901,7 +901,7 @@ void update_ai_econ_construction(sys::state& state) {
 							if(p.get_is_upgrade() == false)
 								++num_factories;
 						}
-						if(num_factories <= int32_t(state.defines.factories_per_state)) {
+						if(num_factories < int32_t(state.defines.factories_per_state)) {
 							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 							new_up.set_is_pop_project(false);
 							new_up.set_is_upgrade(false);
@@ -930,11 +930,11 @@ void update_ai_econ_construction(sys::state& state) {
 					continue;
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
-				if(o.get_province().get_naval_base_level() == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
+				if(o.get_province().get_building_level(economy::province_building_type::naval_base) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
 					continue;
 
-				int32_t current_lvl = o.get_province().get_naval_base_level();
-				int32_t max_local_lvl = n.get_max_naval_base_level();
+				int32_t current_lvl = o.get_province().get_building_level(economy::province_building_type::naval_base);
+				int32_t max_local_lvl = n.get_max_building_level(economy::province_building_type::naval_base);
 				int32_t min_build = int32_t(o.get_province().get_modifier_values(sys::provincial_mod_offsets::min_build_naval_base));
 
 				if(max_local_lvl - current_lvl - min_build <= 0)
@@ -973,8 +973,8 @@ void update_ai_econ_construction(sys::state& state) {
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 
-				int32_t current_rails_lvl = state.world.province_get_railroad_level(o.get_province());
-				int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(n);
+				int32_t current_rails_lvl = state.world.province_get_building_level(o.get_province(), economy::province_building_type::railroad);
+				int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::railroad);
 				int32_t min_build_railroad =
 					int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_railroad));
 
@@ -1014,8 +1014,8 @@ void update_ai_econ_construction(sys::state& state) {
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 
-				int32_t current_lvl = state.world.province_get_fort_level(o.get_province());
-				int32_t max_local_lvl = state.world.nation_get_max_fort_level(n);
+				int32_t current_lvl = state.world.province_get_building_level(o.get_province(), economy::province_building_type::railroad);
+				int32_t max_local_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::railroad);
 				int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_fort));
 
 				if(max_local_lvl - current_lvl - min_build <= 0)
@@ -2845,7 +2845,7 @@ void build_ships(sys::state& state) {
 
 				for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < n.get_naval_supply_points(); ++j) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_naval_base_level(owned_ports[j]) >= level_req) {
+						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
 
 						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 						c.set_type(best_transport);
@@ -2859,7 +2859,7 @@ void build_ships(sys::state& state) {
 
 				for(uint32_t j = 0; j < owned_ports.size() && num_transports < 10; ++j) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_naval_base_level(owned_ports[j]) >= level_req) {
+						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
 
 						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 						c.set_type(best_transport);
@@ -2881,7 +2881,7 @@ void build_ships(sys::state& state) {
 
 				for(uint32_t j = 0; j < owned_ports.size() && supply_pts <= free_small_points; ++j) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_naval_base_level(owned_ports[j]) >= level_req) {
+						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
 
 						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 						c.set_type(best_light);
@@ -2896,7 +2896,7 @@ void build_ships(sys::state& state) {
 
 				for(uint32_t j = 0; j < owned_ports.size() && supply_pts <= free_big_points; ++j) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_naval_base_level(owned_ports[j]) >= level_req) {
+						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
 
 						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 						c.set_type(best_big);
@@ -2915,11 +2915,11 @@ dcon::province_id get_home_port(sys::state& state, dcon::nation_id n) {
 	float current_distance = 1.0f;
 	for(auto p : state.world.nation_get_province_ownership(n)) {
 		if(p.get_province().get_is_coast() && p.get_province().get_nation_from_province_control() == n) {
-			if(p.get_province().get_naval_base_level() > max_level) {
-				max_level = p.get_province().get_naval_base_level();
+			if(p.get_province().get_building_level(economy::province_building_type::naval_base) > max_level) {
+				max_level = p.get_province().get_building_level(economy::province_building_type::naval_base);
 				result = p.get_province();
 				current_distance = province::sorting_distance(state, cap, p.get_province());
-			} else if(result && p.get_province().get_naval_base_level() == max_level && province::sorting_distance(state, cap, p.get_province()) < current_distance) {
+			} else if(result && p.get_province().get_building_level(economy::province_building_type::naval_base) == max_level && province::sorting_distance(state, cap, p.get_province()) < current_distance) {
 				current_distance = province::sorting_distance(state, cap, p.get_province());
 				result = p.get_province();
 			}
@@ -2941,7 +2941,7 @@ void daily_cleanup(sys::state& state) {
 		dcon::navy_id n{dcon::navy_id::value_base_t(i)};
 		if(state.world.navy_is_valid(n)) {
 			auto rng = state.world.navy_get_navy_membership(n);
-			if(rng.begin() == rng.end()) {
+			if(rng.begin() == rng.end() && !state.world.navy_get_battle_from_navy_battle_participation(n)) {
 				military::cleanup_navy(state, n);
 			}
 		}
@@ -2950,7 +2950,7 @@ void daily_cleanup(sys::state& state) {
 		dcon::army_id n{dcon::army_id::value_base_t(i)};
 		if(state.world.army_is_valid(n)) {
 			auto rng = state.world.army_get_army_membership(n);
-			if(rng.begin() == rng.end()) {
+			if(rng.begin() == rng.end() && !state.world.army_get_battle_from_army_battle_participation(n)) {
 				military::cleanup_army(state, n);
 			}
 		}
@@ -2959,10 +2959,20 @@ void daily_cleanup(sys::state& state) {
 
 
 bool navy_needs_repair(sys::state& state, dcon::navy_id n) {
+	auto in_nation = fatten(state.world, state.world.navy_get_controller_from_navy_control(n));
+	auto base_spending_level = in_nation.get_effective_naval_spending();
+	float oversize_amount =
+		in_nation.get_naval_supply_points() > 0
+		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
+		: 1.75f;
+	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
+	auto spending_level = base_spending_level * over_size_penalty;
+	auto max_org = 0.25f + 0.75f * spending_level;
+
 	for(auto shp : state.world.navy_get_navy_membership(n)) {
 		if(shp.get_ship().get_strength() < 0.5f)
 			return true;
-		if(shp.get_ship().get_org() < 0.5f)
+		if(shp.get_ship().get_org() < 0.75f * max_org)
 			return true;
 	}
 	return false;
@@ -3042,11 +3052,11 @@ bool set_fleet_target(sys::state& state, dcon::nation_id n, dcon::province_id st
 		auto existing_path = state.world.navy_get_path(for_navy);
 		auto path = province::make_naval_path(state, start, result);
 		if(path.size() > 0) {
-			auto new_size = std::min(uint32_t(path.size()), uint32_t(2));
+			auto new_size = std::min(uint32_t(path.size()), uint32_t(4));
 			existing_path.resize(new_size);
 			for(uint32_t i = new_size; i-- > 0;) {
 				assert(path[path.size() - 1 - i]);
-				existing_path[i] = path[path.size() - 1 - i];
+				existing_path[new_size - 1 - i] = path[path.size() - 1 - i];
 			}
 			state.world.navy_set_arrival_time(for_navy, military::arrival_time_to(state, for_navy, path.back()));
 			state.world.navy_set_ai_activity(for_navy, uint8_t(fleet_activity::attacking));
@@ -3542,8 +3552,11 @@ void move_idle_guards(sys::state& state) {
 
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
-			auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination);
-			if(fleet_path.empty()) { // this essentially should be impossible ...
+			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
+				state.world.navy_get_path(transport_fleet).clear();
+				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
+				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
+			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) { // this essentially should be impossible ...
 				continue;
 			} else {
 				auto existing_path = state.world.navy_get_path(transport_fleet);
@@ -3629,7 +3642,7 @@ void update_naval_transport(sys::state& state) {
 			if(state.world.navy_get_arrival_time(transports) || state.world.navy_get_battle_from_navy_battle_participation(transports))
 				continue; // still moving
 
-			auto army_location = ar.get_location_from_army_location();
+ 			auto army_location = ar.get_location_from_army_location();
 			auto transport_location = state.world.navy_get_location_from_navy_location(transports);
 			if(transport_location  == army_location) {
 				ar.set_navy_from_army_transport(transports);
@@ -4128,9 +4141,7 @@ void move_gathered_attackers(sys::state& state) {
 		}
 
 		if(!state.world.province_get_is_coast(coastal_target_prov)) {
-			auto path = state.world.army_get_black_flag(require_transport[i])
-				? province::make_unowned_path_to_nearest_coast(state, coastal_target_prov)
-				: province::make_path_to_nearest_coast(state, controller, coastal_target_prov);
+			auto path = province::make_path_to_nearest_coast(state, controller, coastal_target_prov);
 			if(path.empty()) {
 				state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::on_guard));
 				state.world.army_set_ai_province(require_transport[i], dcon::province_id{});
@@ -4153,8 +4164,11 @@ void move_gathered_attackers(sys::state& state) {
 
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
-			auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination);
-			if(fleet_path.empty()) {
+			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
+				state.world.navy_get_path(transport_fleet).clear();
+				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
+				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
+			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) {
 				continue;
 			} else {
 				auto existing_path = state.world.navy_get_path(transport_fleet);

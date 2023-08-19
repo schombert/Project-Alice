@@ -31,6 +31,8 @@ struct command_info {
 		debug,
 		cb_progress,
 		crisis,
+		end_game,
+		event,
 		militancy
 	} mode = type::none;
 	std::string_view desc;
@@ -41,7 +43,7 @@ struct command_info {
 	} args[max_arg_slots] = {};
 };
 
-static const std::vector<command_info> possible_commands = {
+inline constexpr command_info possible_commands[] = {
 		command_info{"none", command_info::type::none, "Dummy command",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
@@ -106,12 +108,17 @@ static const std::vector<command_info> possible_commands = {
 		command_info{"crisis", command_info::type::crisis, "Force a crisis to occur",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
+		command_info{"end_game", command_info::type::end_game, "ends the game",
+				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"event", command_info::type::event, "Triggers a random country event by its legacy id",
+				{command_info::argument_info{"id", command_info::argument_info::type::numeric, false}, command_info::argument_info{"target", command_info::argument_info::type::tag, true}}},
 		command_info{"angry", command_info::type::militancy, "Makes everyone in your nation very militant",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}}},
 	};
 
-static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
+uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 	// NOTE: Change parameters as you wish - but these work fine for the majority of mods
 	constexpr uint32_t insertion_cost = 1;
 	constexpr uint32_t deletion_cost = 1;
@@ -137,7 +144,7 @@ static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 // the needle DOES NOT have spaces or else the algorithm will not work properly.
 // This is for being able to match country names which might be matchable iff treated as individual
 // words instead of a big giant text.
-static uint32_t levenshtein_tokenized_distance(std::string_view needle, std::string_view haystack) {
+uint32_t levenshtein_tokenized_distance(std::string_view needle, std::string_view haystack) {
 	assert(needle.find(" ") == std::string::npos);
 	uint32_t dist = std::numeric_limits<uint32_t>::max();
 	std::string str{haystack};
@@ -150,7 +157,7 @@ static uint32_t levenshtein_tokenized_distance(std::string_view needle, std::str
 	return std::min<uint32_t>(dist, levenshtein_distance(needle, str));
 }
 
-static bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
+bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
 	bool found = false;
 	state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 		auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
@@ -162,7 +169,7 @@ static bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
 	return found;
 }
 
-static void log_to_console(sys::state& state, ui::element_base* parent, std::string_view s) noexcept {
+void log_to_console(sys::state& state, ui::element_base* parent, std::string_view s) noexcept {
 	Cyto::Any output = std::string(s);
 	parent->impl_get(state, output);
 }
@@ -175,7 +182,59 @@ struct parser_state {
 			>
 			arg_slots[command_info::max_arg_slots] = {};
 };
-static parser_state parse_command(sys::state& state, std::string_view text) {
+
+dcon::national_identity_id smart_get_national_identity_from_tag(sys::state& state, ui::element_base* parent, std::string_view tag) noexcept {
+	dcon::national_identity_id nid{};
+	for(auto id : state.world.in_national_identity) {
+		if(nations::int_to_tag(state.world.national_identity_get_identifying_int(id)) == tag) {
+			nid = id;
+			break;
+		}
+	}
+
+	// print entire schema arguing for the tag and the autosuggester
+	if(!bool(nid)) {
+		std::pair<uint32_t, dcon::national_identity_id> closest_tag_match{}; // schombert notes: using pair in this way is an abomination
+		closest_tag_match.first = std::numeric_limits<uint32_t>::max();
+		std::pair<uint32_t, dcon::national_identity_id> closest_name_match{};
+		closest_name_match.first = std::numeric_limits<uint32_t>::max();
+		for(auto fat_id : state.world.in_national_identity) {
+			{ // Tags
+				auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(fat_id));
+				uint32_t dist = levenshtein_distance(tag, name);
+				if(dist < closest_tag_match.first) {
+					closest_tag_match.first = dist;
+					closest_tag_match.second = fat_id;
+				}
+			}
+			{ // Names
+				auto name = text::produce_simple_string(state, fat_id.get_name());
+				std::transform(name.begin(), name.end(), name.begin(), [](auto c) { return char(toupper(char(c))); });
+				uint32_t dist = levenshtein_tokenized_distance(tag, name);
+				if(dist < closest_name_match.first) {
+					closest_name_match.first = dist;
+					closest_name_match.second = fat_id;
+				}
+			}
+		}
+		// Print results of search
+		if(tag.size() == 3) {
+			auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
+			log_to_console(state, parent,
+			"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
+		} else {
+			auto fat_id = dcon::fatten(state.world, closest_name_match.second);
+			log_to_console(state, parent, "Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
+		}
+		if(tag.size() != 3)
+			log_to_console(state, parent, "You need to use \xA7Ytags\xA7W (3-letters) instead of the full name");
+		else
+			log_to_console(state, parent, "Is this what you meant?");
+	}
+	return nid;
+}
+
+parser_state parse_command(sys::state& state, std::string_view text) {
 	std::string s{text};
 	// Makes all text lowercase for proper processing
 	std::transform(s.begin(), s.end(), s.begin(), [](auto c) { return char(tolower(char(c))); });
@@ -466,13 +525,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			if(tag.size() == 3) {
 				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 				log_to_console(state, parent,
-						"Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
+						"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
 								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
 								std::to_string(closest_tag_match.second.value));
 			} else {
 				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
 				log_to_console(state, parent,
-						"Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
+						"Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
 								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
 								std::to_string(closest_name_match.second.value));
 			}
@@ -482,7 +541,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			else
 				log_to_console(state, parent, "Is this what you meant?");
 		} else {
-			log_to_console(state, parent, "Switching to \xA7Y" + std::string(tag) + "\xA7W");
+			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
+			if(bool(nid)) {
+				command::switch_nation(state, state.local_player_nation, nid);
+				log_to_console(state, parent, "Switching to @" + std::string(tag) + " \xA7Y" + std::string(tag) + "\xA7W");
+				state.game_state_updated.store(true, std::memory_order::release);
+			}
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
@@ -975,6 +1039,22 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::crisis:
 		command::c_force_crisis(state, state.local_player_nation);
+		break;
+	case command_info::type::end_game:
+		command::c_end_game(state, state.local_player_nation);
+		break;
+	case command_info::type::event:
+	{
+		dcon::national_identity_id nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+		}
+		if(nid)
+			command::c_event_as(state, state.local_player_nation, state.world.national_identity_get_nation_from_identity_holder(nid), std::get<int32_t>(pstate.arg_slots[0]));
+		else
+			command::c_event(state, state.local_player_nation, std::get<int32_t>(pstate.arg_slots[0]));
+	}
 		break;
 	case command_info::type::militancy:
 		command::c_change_national_militancy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));

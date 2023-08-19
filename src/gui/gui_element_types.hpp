@@ -738,7 +738,10 @@ public:
 	void calibrate_scrollbar(sys::state& state) noexcept;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
+		if(type == mouse_probe_type::scroll)
+			return message_result::consumed;
+		else
+			return message_result::unseen;
 	}
 };
 
@@ -932,8 +935,7 @@ int32_t status_frame(sys::state& state, dcon::navy_id a) {
 		return false;
 	};
 
-	auto nb_level = state.world.province_get_naval_base_level(state.world.navy_get_location_from_navy_location(a));
-
+	auto nb_level = state.world.province_get_building_level(state.world.navy_get_location_from_navy_location(a), economy::province_building_type::naval_base);
 	if(state.world.navy_get_is_retreating(a)) {
 		return 2;
 	} else if(state.world.navy_get_battle_from_navy_battle_participation(a)) {

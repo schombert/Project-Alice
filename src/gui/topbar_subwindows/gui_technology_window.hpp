@@ -12,43 +12,20 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 	auto mod_id = tech_fat_id.get_modifier().id;
 	if(bool(mod_id))
 		modifier_description(state, contents, mod_id);
-
-	auto increase_naval_base = tech_fat_id.get_increase_naval_base();
-	if(increase_naval_base) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "naval_base"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
-		text::close_layout_box(contents, box);
+	
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		auto increase_building = tech_fat_id.get_increase_building(t);
+		if(increase_building) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, economy::province_building_type_get_name(t)), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
 	}
-
-	auto increase_railroad = tech_fat_id.get_increase_railroad();
-	if(increase_railroad) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "railroad"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
-
-	auto increase_fort = tech_fat_id.get_increase_fort();
-	if(increase_fort) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "fort"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{":"}, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "+1"), text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
-
 
 	auto activate_unit_description = [&](dcon::unit_type_id id) {
 		if(tech_fat_id.get_activate_unit(id)) {
@@ -1072,21 +1049,14 @@ public:
 class technology_selected_invention_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
-
-			frame = 0; // inactive
-			if(state.world.nation_get_active_inventions(state.local_player_nation, content))
-				frame = 1; // This invention's been discovered
-			else {
-				Cyto::Any tech_payload = dcon::technology_id{};
-				parent->impl_get(state, tech_payload);
-				auto tech_id = any_cast<dcon::technology_id>(tech_payload);
-				if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
-					frame = 2; // Active technology but not invention
-			}
+		auto content = retrieve<dcon::invention_id>(state, parent);
+		frame = 0; // inactive
+		if(state.world.nation_get_active_inventions(state.local_player_nation, content)) {
+			frame = 1; // This invention's been discovered
+		} else {
+			auto tech_id = retrieve<dcon::technology_id>(state, parent);
+			if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
+				frame = 2; // Active technology but not invention
 		}
 	}
 
@@ -1220,21 +1190,13 @@ public:
 class technology_start_research : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-			disabled = !command::can_start_research(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		disabled = !command::can_start_research(state, state.local_player_nation, content);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-			command::start_research(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		command::start_research(state, state.local_player_nation, content);
 	}
 };
 
