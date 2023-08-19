@@ -76,6 +76,7 @@ add_core_to;Add core to;;;A�adir nucleo a;;;;;;;;;x
 rebel;Rebel;;;Rebelde(s);;;;;;;;;x
 remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
+flashpoint_tension_label;Flashpoint tension;
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
 change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x

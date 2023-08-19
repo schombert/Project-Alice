@@ -4000,11 +4000,6 @@ object {
 		type{ float }
 		tag{ save }
 	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
 }
 
 relationship{

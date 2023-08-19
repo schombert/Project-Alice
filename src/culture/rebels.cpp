@@ -671,6 +671,13 @@ void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
 	while(armies.begin() != armies.end()) {
 		military::cleanup_army(state, (*armies.begin()).get_army());
 	}
+	auto control = state.world.rebel_faction_get_province_rebel_control(reb);
+	for(auto p : control) {
+		auto prov = p.get_province();
+		prov.set_nation_from_province_control(prov.get_nation_from_province_ownership());
+		prov.set_last_control_change(state.current_date);
+		// we let the deletion of the rebel faction undo the rebel control itself
+	}
 	state.world.delete_rebel_faction(reb);
 }
 
@@ -736,26 +743,56 @@ void daily_update_rebel_organization(sys::state& state) {
 	});
 }
 
+void damage_pops_on_rebel_victory(sys::state& state, dcon:: province_id p) {
+	for(auto pop : state.world.province_get_pop_location(p)) {
+		pop.get_pop().get_size() *= 0.995f; // 0.5% reduction in size on rebel victory
+	}
+}
+
 void rebel_risings_check(sys::state& state) {
+	static auto province_damage = state.world.province_make_vectorizable_float_buffer();
+
 	for(auto rf : state.world.in_rebel_faction) {
 		auto revolt_chance = get_faction_revolt_risk(state, rf);
 		auto rval = rng::get_random(state, uint32_t(rf.id.value));
 		float p_val = float(rval & 0xFFFF) / float(0x10000);
 		if(p_val < revolt_chance) {
+			auto const faction_owner = rf.get_ruler_from_rebellion_within();
 			auto const new_to_make = get_faction_brigades_ready(state, rf);
-			auto counter = new_to_make;
+			// auto counter = new_to_make;
+
+			if(new_to_make == 0)
+				continue;
+
+			ve::execute_serial_fast<dcon::province_id>(state.world.province_size(), [&](auto index) {
+				province_damage.set(index, ve::fp_vector{});
+			});
 
 			/*
 			- When a rising happens, pops with at least define:MILITANCY_TO_JOIN_RISING will spawn faction-organization x
 			max-possible-supported-regiments, to a minimum of 1 (if any more regiments are possible).
 			*/
 
+			float total_damage = 0.0f;
+
 			for(auto pop : rf.get_pop_rebellion_membership()) {
-				if(counter == 0)
-					break;
+				//if(counter == 0)
+				//	break;
 
 				if(pop.get_pop().get_militancy() >= state.defines.mil_to_join_rising) {
+					auto location = pop.get_pop().get_province_from_pop_location();
+					if(location.get_nation_from_province_control() == faction_owner) { // only in a province controlled by the owner
+						auto& sz = pop.get_pop().get_size();
+						province_damage.get(location) += sz;
+						total_damage += sz;
+						sz *= 0.98f; // 2% damage to pops that attempt a rising
+					}
+
+					/*
+					// this is the logic we would use if we were creating rebel regiments
 					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) / state.defines.pop_size_per_regiment);
+
+					
 					auto cregs = pop.get_pop().get_regiment_source();
 					auto used_count = int32_t(cregs.end() - cregs.begin());
 
@@ -778,10 +815,64 @@ void rebel_risings_check(sys::state& state) {
 
 						--counter;
 					}
+					*/
 				}
 			}
 
-			if(counter != new_to_make) {
+			// this is the new logic to do rebel occupation and damage on a rising
+			if(total_damage == 0)
+				continue;
+
+			float scale_factor = float(new_to_make) * 0.25f / total_damage; // 0.25 damage per regiment that would have been raised
+			for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0;) {
+				dcon::province_id p{dcon::province_id::value_base_t(i) };
+				if(auto dmg = province_damage.get(p) * scale_factor; dmg > 0.05f) { // threshold for flipping a province
+					float total_army_strength = 0.0f;
+
+					// first, sum up all strength in province
+					for(auto ar : state.world.province_get_army_location(p)) {
+						if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport())) {
+
+							for(auto r : ar.get_army().get_army_membership()) {
+								total_army_strength += r.get_regiment().get_strength();
+							}
+						}
+					}
+
+					auto damage_fraction = total_army_strength > 0 ? dmg / total_army_strength : 1.0f;
+					if(damage_fraction >= 1.0f) {
+						damage_fraction = 1.0f;
+
+						damage_pops_on_rebel_victory(state, p);
+						state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
+						state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
+						state.world.province_set_last_control_change(p, state.current_date);
+
+						military::eject_ships(state, p);
+					}
+
+					// deal damage to any armies present
+					for(auto ar : state.world.province_get_army_location(p)) {
+						if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport())) {
+
+							for(auto r : ar.get_army().get_army_membership()) {
+								auto& str = r.get_regiment().get_strength();
+								auto damage = str * damage_fraction;
+								str -= damage;
+								r.get_regiment().get_pending_damage() += damage;
+							}
+						}
+					}
+
+					if(damage_fraction >= 1.0f) {
+						military::update_blackflag_status(state, p);
+					}
+				}
+			}
+
+			// end of new logic
+			
+			//if(counter != new_to_make) {
 				notification::post(state, notification::message{
 					[reb = rf.id](sys::state& state, text::layout_base& contents) {
 						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, state.world.rebel_faction_get_type(reb).get_title());
@@ -789,7 +880,7 @@ void rebel_risings_check(sys::state& state) {
 					"msg_revolt_title",
 					rf.get_ruler_from_rebellion_within(),
 					sys::message_setting_type::revolt });
-			}
+			//}
 
 			/*
 			- Faction organization is reduced to 0 after an initial rising (for later contributory risings, it may instead be reduced by
@@ -797,9 +888,6 @@ void rebel_risings_check(sys::state& state) {
 			*/
 			rf.set_organization(0);
 
-			if(counter != new_to_make) {
-				// TODO: Notify
-			}
 		}
 	}
 }
@@ -810,7 +898,8 @@ bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n) {
 		dcon::nation_id m{dcon::nation_id::value_base_t(i)};
 		if(state.world.nation_get_in_sphere_of(m) == n) {
 			for(auto fac : state.world.nation_get_rebellion_within(m)) {
-				if(get_faction_brigades_active(state, fac.get_rebels()) > 0)
+				auto control = fac.get_rebels().get_province_rebel_control();
+				if(control.begin() != control.end())
 					return true;
 			}
 		}
@@ -863,8 +952,7 @@ void execute_province_defections(sys::state& state) {
 			assert(!bool(state.world.province_get_nation_from_province_control(p)));
 			auto reb_type = state.world.rebel_faction_get_type(reb_controller);
 			culture::rebel_defection def_type = culture::rebel_defection(reb_type.get_defection());
-			if(def_type != culture::rebel_defection::none &&
-					state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
+			if(def_type != culture::rebel_defection::none && state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
 
 				// defection time
 
@@ -978,6 +1066,9 @@ void execute_province_defections(sys::state& state) {
 				}();
 
 				if(defection_tag) {
+					// TODO: if rebel armies were still a thing, you would probably want to delete the ones that did
+					// the work of causing the province to defect or to send them back to the original country or something
+					// but ...
 					province::change_province_owner(state, p, defection_tag);
 				}
 			}
@@ -992,9 +1083,9 @@ float get_suppression_point_cost(sys::state& state, dcon::movement_id m) {
 	movement's support / define:POPULATION_SUPPRESSION_FACTOR
 	*/
 	if(state.defines.population_suppression_factor > 0.0f) {
-		return std::max(state.world.movement_get_radicalism(m) + 1.0f, state.world.movement_get_radicalism(m) *
-																																			 state.world.movement_get_pop_support(m) /
-																																			 state.defines.population_suppression_factor);
+		return std::max(
+			state.world.movement_get_radicalism(m) + 1.0f,
+			state.world.movement_get_radicalism(m) * state.world.movement_get_pop_support(m) / state.defines.population_suppression_factor);
 	} else {
 		return state.world.movement_get_radicalism(m) + 1.0f;
 	}
@@ -1004,9 +1095,9 @@ void execute_rebel_victories(sys::state& state) {
 	for(uint32_t i = state.world.rebel_faction_size(); i-- > 0;) {
 		auto reb = dcon::rebel_faction_id{dcon::rebel_faction_id::value_base_t(i)};
 		auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
-		auto is_active = state.world.rebel_faction_get_is_active(reb);
+		auto control = state.world.rebel_faction_get_province_rebel_control(reb);
 		auto enforce_trigger = state.world.rebel_faction_get_type(reb).get_demands_enforced_trigger();
-		if(is_active && enforce_trigger &&
+		if(control.begin() != control.end() && enforce_trigger &&
 				trigger::evaluate(state, enforce_trigger, trigger::to_generic(within), trigger::to_generic(within),
 						trigger::to_generic(reb))) {
 			// rebel victory
