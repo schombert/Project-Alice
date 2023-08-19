@@ -1,4 +1,3 @@
-#version 430 core
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
 // layout (location = 1) in vec2 v_tex_coord;
@@ -12,8 +11,6 @@ layout (location = 2) uniform float zoom;
 // The size of the map in pixels
 layout (location = 3) uniform vec2 map_size;
 layout (location = 5) uniform mat3 rotation;
-
-#define PI 3.1415926538
 
 subroutine vec4 calc_gl_position_class();
 subroutine uniform calc_gl_position_class calc_gl_position;

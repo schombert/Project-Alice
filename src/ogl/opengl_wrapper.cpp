@@ -3,11 +3,38 @@
 #include "simple_fs.hpp"
 
 namespace ogl {
+
+std::string_view opengl_get_error_name(GLenum t) {
+	switch(t) {
+		case GL_INVALID_ENUM:
+			return "GL_INVALID_ENUM";
+		case GL_INVALID_VALUE:
+			return "GL_INVALID_VALUE";
+		case GL_INVALID_OPERATION:
+			return "GL_INVALID_OPERATION";
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			return "GL_INVALID_FRAMEBUFFER_OPERATION";
+		case GL_OUT_OF_MEMORY:
+			return "GL_OUT_OF_MEMORY";
+		case GL_STACK_UNDERFLOW:
+			return "GL_STACK_UNDERFLOW";
+		case GL_STACK_OVERFLOW:
+			return "GL_STACK_OVERFLOW";
+		case GL_NO_ERROR:
+			return "GL_NO_ERROR";
+		default:
+			return "Unknown";
+	}
+}
+
 void notify_user_of_fatal_opengl_error(std::string message) {
+	std::string full_message = message;
+	full_message += "\n";
+	full_message += opengl_get_error_name(glGetError());
 #ifdef _WIN64
-	MessageBoxA(nullptr, message.c_str(), "OpenGL error", MB_OK);
+	MessageBoxA(nullptr, full_message.c_str(), "OpenGL error", MB_OK);
 #else
-	std::fprintf(stderr, "OpenGL error: %s\n", message.c_str());
+	std::fprintf(stderr, "OpenGL error: %s\n", full_message.c_str());
 #endif
 	std::abort();
 }
@@ -87,22 +114,29 @@ GLint compile_shader(std::string_view source, GLenum type) {
 	if(return_value == 0) {
 		notify_user_of_fatal_opengl_error("shader creation failed");
 	}
-	GLchar const* texts[] = {source.data()};
-	GLint lengths[] = {GLint(source.length())};
 
-	glShaderSource(return_value, 1, texts, lengths);
+	std::string s_source(source);
+	GLchar const* texts[] = {
+		"#version 430 core\r\n",
+		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
+		"#extension GL_ARB_shader_subroutine : enable\r\n",
+		"#define M_PI 3.1415926535897932384626433832795\r\n",
+		"#define PI 3.1415926535897932384626433832795\r\n",
+		s_source.c_str()
+	};
+	glShaderSource(return_value, 6, texts, nullptr);
 	glCompileShader(return_value);
 
 	GLint result;
 	glGetShaderiv(return_value, GL_COMPILE_STATUS, &result);
 	if(result == GL_FALSE) {
-		GLint logLen;
-		glGetShaderiv(return_value, GL_INFO_LOG_LENGTH, &logLen);
+		GLint log_length = 0;
+		glGetShaderiv(return_value, GL_INFO_LOG_LENGTH, &log_length);
 
-		char* log = new char[static_cast<size_t>(logLen)];
+		auto log = std::unique_ptr<char[]>(new char[static_cast<size_t>(log_length)]);
 		GLsizei written = 0;
-		glGetShaderInfoLog(return_value, logLen, &written, log);
-		notify_user_of_fatal_opengl_error(std::string("Shader failed to compile:\n") + log);
+		glGetShaderInfoLog(return_value, log_length, &written, log.get());
+		notify_user_of_fatal_opengl_error(std::string("Shader failed to compile:\n") + log.get());
 	}
 	return return_value;
 }
