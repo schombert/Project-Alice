@@ -1944,7 +1944,7 @@ uint32_t ef_badboy(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "prestige", m);
+		text::localised_format_box(ws, layout, box, "infamy", m);
 		text::add_space_to_layout_box(ws, layout, box);
 		display_value(text::fp_one_place{amount}, false, ws, layout, box);
 		text::close_layout_box(layout, box);

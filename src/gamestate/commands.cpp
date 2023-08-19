@@ -3285,6 +3285,30 @@ void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 
 	event::trigger_national_event(state, e, source, 0, 0);
 }
+void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_event_as;
+	p.source = source;
+	p.data.cheat_event.as = as;
+	p.data.cheat_event.value = id;
+	add_to_command_queue(state, p);
+}
+void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
+	if(!as)
+		return;
+	dcon::free_national_event_id e;
+	for(auto v : state.world.in_free_national_event) {
+		if(v.get_legacy_id() == id) {
+			e = v;
+			break;
+		}
+	}
+	if(!e)
+		return;
+
+	event::trigger_national_event(state, e, as, 0, 0);
+}
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4551,6 +4575,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_event:
 		execute_c_event(state, c.source, c.data.cheat_int.value);
+		break;
+	case command_type::c_event_as:
+		execute_c_event_as(state, c.source, c.data.cheat_event.as, c.data.cheat_event.value);
 		break;
 	}
 }
