@@ -399,17 +399,23 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 	float total = 0.0f;
 	for(uint32_t i = 0; i < count; i++) {
 		auto c = uint8_t(codepoints[i]);
-		if(c == 0x01 || c == 0x02 || c == 0x40)
-			c = 0x4D;
-		total += this->glyph_advances[c] * size / 64.0f + ((i != 0) ? kerning(codepoints[i - 1], c) * size / 64.0f : 0.0f);
-		if(uint8_t(codepoints[i]) == 0x40) { // Handle @TAG
+
+		if(c == 0x01 || c == 0x02) {
+			total += size;
+			continue;
+		} else if(uint8_t(codepoints[i]) == 0x40) {
 			char tag[3] = { 0, 0, 0 };
 			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
 			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
-			if(ogl::display_tag_is_valid(state, tag))
+			if(ogl::display_tag_is_valid(state, tag)) {
 				i += 3;
-		}
+				total += size * 1.5f;
+				continue;
+			}
+		} 
+
+		total += this->glyph_advances[c] * size / 64.0f + ((i != 0) ? kerning(codepoints[i - 1], c) * size / 64.0f : 0.0f);
 	}
 	return total;
 }

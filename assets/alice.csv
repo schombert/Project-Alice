@@ -76,6 +76,7 @@ add_core_to;Add core to;;;A�adir nucleo a;;;;;;;;;x
 rebel;Rebel;;;Rebelde(s);;;;;;;;;x
 remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
+flashpoint_tension_label;Flashpoint tension;
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
 change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
@@ -116,7 +117,7 @@ change_ruling_party;Change ruling party to $text$;;;Cambiar el partido electo a 
 remove_prov_mod;Remove provincial modifier $text$;;;Quitar el modificador provincial $text$;;;;;;;;;x
 remove_nat_mod;Remove national modifier $text$;;;Quitar el modificador nacional $text$;;;;;;;;;x
 make_alliance;Enter into an alliance with $text$;;;Entrar en una alianza con $text$;;;;;;;;;x
-become_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
+becomes_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
 release_as_independent;Release $text$ as an independent nation;;;Liberar $text$ como una nacion independiente;;;;;;;;;x
 enable_canal;Enable the $text$;;;Habilitar $text$;;;;;;;;;x
 set_global_flag;Set $text$ globally;;;Establecer $text$ globalmente;;;;;;;;;x
@@ -164,9 +165,9 @@ diplomatic_influence_with;diplomatic influence with $text$;;;Influencia diplomat
 relations_with;relationship with $text$;;;Relacion con $text$;;;;;;;;;x
 add_modifier_until;Gets $text$ until $date$;;;Obtiene $text$ hasta $date$;;;;;;;;;x
 add_modifier;Gets $text$;;;Obtiene $text$;;;;;;;;;x
-add_cb_months;Gets a $name$ casus belli against $text$ for $value$ months;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
+add_cb_months;Gets a $name$ casus belli against $text$ until $date$;;;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses;;;;;;;;;x
 add_cb_no_months;Gets a $name$ casus belli against $text$;;;Obitene un cassus belli de $name$ en contra de $text$;;;;;;;;;x
-add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope for $value$ months;;;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses;;;;;;;;;x
+add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope until $date$;;;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses;;;;;;;;;x
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope;;;$text$ obtiene un cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
 remove_cb_reversed;Loses any $name$ casus bellis against $text$;;;Pierde el cassus belli de $name$ en contra de $text$;;;;;;;;;x
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope;;;$text$ pierde el cassus belli de $name$ contra la nacion en el contexto;;;;;;;;;x
@@ -180,6 +181,7 @@ attacker_yes_allies;Attacker's allies will be called in;;;Los aliados del atacan
 event_fires;Event $text$ is triggered;;;Sucede el evento $text$;;;;;;;;;x
 event_fires_in_days;Event $text$ is triggered in $value$ days;;;Sucede el evento $text$;;;;;;;;;x
 support_for_blank;Support for $text$;;;Soporte para $text$;;;;;;;;;x
+uh_support_for_blank;Upper house support for $text$;;;Soporte para $text$;;;;;;;;;x
 up_to;up to ;;;Hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
@@ -286,7 +288,7 @@ num_of_vassals;number of vassals;;;Numero de subyugados;;;;;;;;;x
 owned_by;owned by;;;Propiedad de;;;;;;;;;x
 exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
-set;Set;;;Establece;;;;;;;;;x
+set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;Un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;Acceso militar con;;;;;;;;;x
@@ -708,9 +710,10 @@ ally_explain_1;You cannot form an alliance with yourself
 ally_explain_2;You have at least $x$ diplomatic point(s)
 ally_explain_3;You are not currently allied
 ally_explain_4;You are not both great powers while a crisis is ongoing
-ally_explain_5;You are not a vassal of a nation other than the target
+ally_explain_5;You are not a subject nation
 ally_explain_6;You are not currently at war with the target
 ally_explain_7;The AI will accept
+ally_explain_8;The target is not a subject nation
 call_ally_explain_1;You have an alliance with this nation
 call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You are at war
@@ -1052,6 +1055,8 @@ alice_retreat_1;It has been at least $x$ days since the battle started
 alice_retreat_2;You are the lead attacker or defender
 chat_player_joins;@$x$ $playername$ has joined the game;;;@$x$ $playername$ se ha unido;;;;;;;;;x
 chat_player_leaves;@$x$ $playername$ has left the game;;;@$x$ $playername$ se ha ido;;;;;;;;;x
+chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ ha sido baneado;;;;;;;;;x
+chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ ha sido vetado;;;;;;;;;x
 message_name_text;Message
 msg_for_us;About: your nation
 msg_for_interesting;Interesting nation
@@ -1158,4 +1163,12 @@ amsg_war_join_on;A nation joins a war against this nation
 amsg_cb_fab_finished;The nation finished fabricating a CB
 amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
 amsg_crisis_voluntary_join;The nation joins a crisis without an offer
+a_alert_reb;One or more of our sphere members has active rebels:
+event_auto;Automatically choose this option for the remainder of the session
+alice_load_unload_1;A navy docked here has sufficient capacity
+alice_load_unload_2;The army is being transported
+alice_load_unload_3;The transporting fleet is docked
+alice_load_unload_4;One or more armies is being transported
+alice_load_unload_5;The fleet is docked
+alice_unload_fleet;Unload all armies transported by the fleet
 ;;;;;;;;;;;;;x

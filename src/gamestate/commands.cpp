@@ -38,6 +38,28 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	}
 }
 
+void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::set_rally_point;
+	p.source = source;
+	p.data.rally_point.location = location;
+	p.data.rally_point.naval = naval;
+	p.data.rally_point.enable = enable;
+	add_to_command_queue(state, p);
+}
+
+void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return;
+	if(naval) {
+		if(state.world.province_get_is_coast(location))
+			state.world.province_set_naval_rally_point(location, enable);
+	} else {
+		state.world.province_set_land_rally_point(location, enable);
+	}
+}
+
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 		dcon::national_focus_id focus) {
 	payload p;
@@ -508,7 +530,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 
 		int32_t num_factories = economy::state_factory_count(state, location, owner);
-		return num_factories <= int32_t(state.defines.factories_per_state);
+		return num_factories < int32_t(state.defines.factories_per_state);
 	}
 }
 
@@ -2345,7 +2367,10 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	}
 
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
-	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
+	if(state.world.overlord_get_ruler(ol))
+		return false;
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+	if(state.world.overlord_get_ruler(ol2))
 		return false;
 
 	if(military::are_at_war(state, asker, target))
@@ -3241,6 +3266,53 @@ void c_end_game(sys::state& state, dcon::nation_id source) {
 void execute_c_end_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode::end_screen;
 }
+void c_event(sys::state& state, dcon::nation_id source, int32_t id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_event;
+	p.source = source;
+	p.data.cheat_int.value = id;
+	add_to_command_queue(state, p);
+}
+void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
+	if(!source)
+		return;
+	dcon::free_national_event_id e;
+	for(auto v : state.world.in_free_national_event) {
+		if(v.get_legacy_id() == id) {
+			e = v;
+			break;
+		}
+	}
+	if(!e)
+		return;
+
+	event::trigger_national_event(state, e, source, 0, 0);
+}
+void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_event_as;
+	p.source = source;
+	p.data.cheat_event.as = as;
+	p.data.cheat_event.value = id;
+	add_to_command_queue(state, p);
+}
+void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
+	if(!as)
+		return;
+	dcon::free_national_event_id e;
+	for(auto v : state.world.in_free_national_event) {
+		if(v.get_legacy_id() == id) {
+			e = v;
+			break;
+		}
+	}
+	if(!e)
+		return;
+
+	event::trigger_national_event(state, e, as, 0, 0);
+}
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4099,6 +4171,63 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 }
 
+void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_ban;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(source == target) // can't perform on self
+		return false;
+	return state.network_mode == sys::network_mode::host;
+}
+void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_ban(state, source, target))
+		return;
+	if(state.network_mode == sys::network_mode::host) {
+		// TODO: add to banned MAC/IP list
+	}
+	state.world.nation_set_is_player_controlled(target, false);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
+	post_chat_message(state, m);
+}
+
+void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_kick;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(source == target) // can't perform on self
+		return false;
+	return state.network_mode == sys::network_mode::host;
+}
+void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_notify_player_kick(state, source, target))
+		return;
+	state.world.nation_set_is_player_controlled(target, false);
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)))));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
+	post_chat_message(state, m);
+}
+
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4381,6 +4510,9 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::give_military_access:
 		execute_give_military_access(state, c.source, c.data.diplo_action.target);
 		break;
+	case command_type::set_rally_point:
+		execute_set_rally_point(state, c.source, c.data.rally_point.location, c.data.rally_point.naval, c.data.rally_point.enable);
+		break;
 
 	// common mp commands
 	case command_type::chat_message: {
@@ -4392,6 +4524,12 @@ void execute_command(sys::state& state, payload& c) {
 		execute_chat_message(state, c.source, sv, c.data.chat_message.target);
 		break;
 	}
+	case command_type::notify_player_ban:
+		execute_notify_player_ban(state, c.source, c.data.nation_pick.target);
+		break;
+	case command_type::notify_player_kick:
+		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
+		break;
 	case command_type::notify_player_joins:
 		execute_notify_player_joins(state, c.source);
 		break;
@@ -4438,6 +4576,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_end_game:
 		execute_c_end_game(state, c.source);
+		break;
+	case command_type::c_event:
+		execute_c_event(state, c.source, c.data.cheat_int.value);
+		break;
+	case command_type::c_event_as:
+		execute_c_event_as(state, c.source, c.data.cheat_event.as, c.data.cheat_event.value);
 		break;
 	}
 }

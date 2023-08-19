@@ -193,7 +193,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode::single_player) {
-			disabled = false;
+			disabled = n == state.local_player_nation;
 		} else {
 			// Prevent (via UI) the player from selecting a nation already selected by someone
 			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, n);
@@ -390,7 +390,7 @@ public:
 class number_of_players_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		uint32_t count = 0;
+		int32_t count = 0;
 		if(state.network_mode == sys::network_mode::single_player) {
 			count = 1;
 		} else {
@@ -399,7 +399,56 @@ public:
 					count++;
 			});
 		}
-		set_text(state, std::to_string(count));
+
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::num, count);
+		set_text(state, text::resolve_string_substitution(state, "fe_num_players", sub));
+	}
+};
+
+class nation_picker_kick_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::notify_player_kick(state, state.local_player_nation, n);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("tip_kick"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class nation_picker_ban_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_ban(state, state.local_player_nation, n);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::notify_player_ban(state, state.local_player_nation, n);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("tip_ban"));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -407,15 +456,35 @@ class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::na
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			return make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<picker_flag>(state, id);
+			ptr->base_data.position.x += 10; // Nudge
+			ptr->base_data.position.y += 7; // Nudge
+			return ptr;
 		} else if(name == "name") {
-			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			ptr->base_data.position.x += 10; // Nudge
+			ptr->base_data.position.y += 7; // Nudge
+			return ptr;
 		} else if(name == "save_progress") {
-			return make_element_by_type<multiplayer_ping_text>(state, id);
+			auto ptr = make_element_by_type<multiplayer_ping_text>(state, id);
+			ptr->base_data.position.x += 10; // Nudge
+			ptr->base_data.position.y += 7; // Nudge
+			return ptr;
 		} else if(name == "button_kick") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<nation_picker_kick_button>(state, id);
+			ptr->base_data.position.x += 10; // Nudge
+			ptr->base_data.position.y += 7; // Nudge
+			return ptr;
 		} else if(name == "button_ban") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<nation_picker_ban_button>(state, id);
+			ptr->base_data.position.x += 10; // Nudge
+			ptr->base_data.position.y += 7; // Nudge
+			return ptr;
+		} else if(name == "frontend_player_entry") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 10; // Nudge
+			ptr->base_data.position.y += 7; // Nudge
+			return ptr;
 		} else {
 			return nullptr;
 		}

@@ -79,7 +79,7 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) { // TODO
 		auto prov = prov_owner.get_province();
 		for(auto factloc : prov.get_factory_location()) {
 			auto scale = factloc.get_factory().get_production_scale();
-			if(scale < 0.05) {
+			if(scale < 0.05f) {
 				return true;
 			}
 		}
@@ -706,6 +706,8 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 
 		auto money_made = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
 		if(!fac.get_subsidized()) {
+			auto& scale = state.world.factory_get_production_scale(f);
+			scale =  (scale + scale* min_input) / 2.0f;
 			state.world.factory_set_full_profit(f, money_made);
 		} else {
 			float min_wages = expected_min_wage * fac.get_level() * fac.get_primary_employment() *
@@ -1755,7 +1757,7 @@ void daily_update(sys::state& state) {
 
 			// step 2: limit to actual budget
 			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
-			float spending_scale = (total < 0.001 || total <= budget) ? 1.0f : budget / total;
+			float spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
 
 			assert(spending_scale >= 0);
 			assert(budget >= 0);
@@ -2404,7 +2406,7 @@ void daily_update(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		auto nation_rules = n.get_combined_issue_rules();
 
-		if(n.get_private_investment() > 0.001 &&
+		if(n.get_private_investment() > 0.001f &&
 				(nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) != 0) {
 
 			bool found_investment = false;
@@ -2993,6 +2995,114 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 	state.world.try_create_factory_location(new_fac, state_cap);
 }
 
+dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
+	float distance = 2.0f;
+	dcon::province_id closest;
+	auto region = state.world.province_get_connected_region_id(start);
+
+	for(auto p : state.world.nation_get_province_ownership(by)) {
+		if(!p.get_province().get_land_rally_point())
+			continue;
+		if(p.get_province().get_connected_region_id() != region)
+			continue;
+		if(p.get_province().get_nation_from_province_control() != by)
+			continue;
+		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
+			distance = dist;
+			closest = p.get_province();
+		}
+	}
+
+	return closest;
+}
+dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
+	float distance = 2.0f;
+	dcon::province_id closest;
+
+	for(auto p : state.world.nation_get_province_ownership(by)) {
+		if(!p.get_province().get_naval_rally_point())
+			continue;
+		if(p.get_province().get_nation_from_province_control() != by)
+			continue;
+		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
+			distance = dist;
+			closest = p.get_province();
+		}
+	}
+
+	return closest;
+}
+void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest) {
+	if(state.world.nation_get_is_player_controlled(by) == false)
+		return; // AI doesn't use rally points or templates
+	if(!dest)
+		dest = find_land_rally_pt(state, by, start);
+	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
+		return;
+
+	if(dest == start) { // merge in place
+		for(auto ar : state.world.province_get_army_location(start)) {
+			if(ar.get_army().get_controller_from_army_control() == by && ar.get_army() != a) {
+				auto regs = state.world.army_get_army_membership(a);
+				while(regs.begin() != regs.end()) {
+					(*regs.begin()).set_army(ar.get_army());
+				}
+				return;
+			}
+		}
+	} else {
+		auto path = province::make_land_path(state, start, dest, by, a);
+		if(path.empty())
+			return;
+
+		auto existing_path = state.world.army_get_path(a);
+		auto new_size = uint32_t(path.size());
+		existing_path.resize(new_size);
+
+		for(uint32_t k = 0; k < new_size; ++k) {
+			assert(path[k]);
+			existing_path[k] = path[k];
+		}
+		state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		state.world.army_set_moving_to_merge(a, true);
+	}
+}
+void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
+	if(state.world.nation_get_is_player_controlled(by) == false)
+		return; // AI doesn't use rally points or templates
+	if(!dest)
+		dest = find_naval_rally_pt(state, by, start);
+	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
+		return;
+
+	if(dest == start) { // merge in place
+		for(auto ar : state.world.province_get_navy_location(start)) {
+			if(ar.get_navy().get_controller_from_navy_control() == by && ar.get_navy() != a) {
+				auto regs = state.world.navy_get_navy_membership(a);
+				while(regs.begin() != regs.end()) {
+					(*regs.begin()).set_navy(ar.get_navy());
+				}
+				return;
+			}
+		}
+	} else {
+		auto path = province::make_naval_path(state, start, dest);
+		if(path.empty())
+			return;
+
+		auto existing_path = state.world.navy_get_path(a);
+		auto new_size = uint32_t(path.size());
+		existing_path.resize(new_size);
+
+		for(uint32_t k = 0; k < new_size; ++k) {
+			assert(path[k]);
+			existing_path[k] = path[k];
+		}
+		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		state.world.navy_set_moving_to_merge(a, true);
+	}
+}
+
 void resolve_constructions(sys::state& state) {
 
 	for(uint32_t i = state.world.province_land_construction_size(); i-- > 0;) {
@@ -3018,7 +3128,7 @@ void resolve_constructions(sys::state& state) {
 
 			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
 			auto a = [&]() {
-				// auto merge elimiated: this makes it easier for the ai to handle merging
+				// auto merge eliminated: this makes it easier for the ai to handle merging
 				//for(auto ar : state.world.province_get_army_location(pop_location)) {
 				//	if(ar.get_army().get_controller_from_army_control() == c.get_nation())
 				//		return ar.get_army().id;
@@ -3030,6 +3140,7 @@ void resolve_constructions(sys::state& state) {
 			}();
 			state.world.try_create_army_membership(new_reg, a);
 			state.world.try_create_regiment_source(new_reg, c.get_pop());
+			move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
 
 			state.world.delete_province_land_construction(c);
 		}
@@ -3058,16 +3169,18 @@ void resolve_constructions(sys::state& state) {
 				if(all_finished) {
 					auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
 					auto a = [&]() {
-						auto navies = state.world.province_get_navy_location(p);
-						if(navies.begin() != navies.end()) {
-							return navies.begin().operator*().get_navy().id;
-						}
+						// auto merge eliminated: this makes it easier for the ai to handle merging
+						//auto navies = state.world.province_get_navy_location(p);
+						//if(navies.begin() != navies.end()) {
+						//	return navies.begin().operator*().get_navy().id;
+						//}
 						auto new_navy = fatten(state.world, state.world.create_navy());
 						new_navy.set_controller_from_navy_control(c.get_nation());
 						new_navy.set_location_from_navy_location(p);
 						return new_navy.id;
 					}();
 					state.world.try_create_navy_membership(new_ship, a);
+					move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
 					state.world.delete_province_naval_construction(c);
 				}
@@ -3232,6 +3345,42 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 
 		auto& v = state.world.nation_get_social_spending(n);
 		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
+	}
+}
+
+void prune_factories(sys::state& state) {
+	for(auto si : state.world.in_state_instance) {
+		auto owner = si.get_nation_from_state_ownership();
+		auto rules = owner.get_combined_issue_rules();
+
+		if(owner.get_is_player_controlled() && (rules & issue_rule::destroy_factory) != 0) // not for players who can manually destroy
+			continue;
+
+		dcon::factory_id deletion_choice;
+		int32_t factory_count = 0;
+
+		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			for(auto f : state.world.province_get_factory_location(p)) {
+				++factory_count;
+				auto scale = f.get_factory().get_production_scale();
+				bool unprofitable = f.get_factory().get_unprofitable();
+				if(scale < 0.05f && unprofitable && (!deletion_choice || state.world.factory_get_level(deletion_choice) > f.get_factory().get_level())) {
+					deletion_choice = f.get_factory();
+				}
+			}
+		});
+
+		if(deletion_choice && factory_count >= int32_t(state.defines.factories_per_state)) {
+			auto production_type = state.world.factory_get_building_type(deletion_choice);
+			state.world.delete_factory(deletion_choice);
+
+			for(auto proj : si.get_state_building_construction()) {
+				if(proj.get_type() == production_type) {
+					state.world.delete_state_building_construction(proj);
+					break;
+				}
+			}
+		}
 	}
 }
 

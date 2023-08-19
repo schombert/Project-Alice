@@ -2119,6 +2119,7 @@ struct event_building_context {
 };
 
 struct generic_event {
+	int32_t id = 0;
 	dcon::trigger_key trigger;
 	dcon::value_modifier_key mean_time_to_happen;
 	std::array<sys::event_option, sys::max_event_options> options;
@@ -2387,6 +2388,7 @@ struct country_history_context {
 	scenario_building_context& outer_context;
 	dcon::national_identity_id nat_ident;
 	dcon::nation_id holder_id;
+	std::vector<std::pair<dcon::nation_id, dcon::decision_id>>& pending_decisions;
 };
 
 struct govt_flag_block {
@@ -2447,6 +2449,7 @@ struct country_history_file {
 	void nonstate_consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
 	void govt_flag(govt_flag_block const& value, error_handler& err, int32_t line, country_history_context& context);
 	void ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 };
 
 void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err,

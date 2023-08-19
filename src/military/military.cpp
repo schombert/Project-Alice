@@ -2543,6 +2543,25 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 		}
 	}
 
+	static std::vector<dcon::province_id> to_reset;
+	to_reset.clear();
+
+	for(auto p : state.world.nation_get_province_control(n)) {
+		if(auto c = p.get_province().get_nation_from_province_ownership(); c && c != n) {
+			if(!military::are_at_war(state, c, n)) {
+				state.world.province_set_last_control_change(p.get_province(), state.current_date);
+				state.world.province_set_siege_progress(p.get_province(), 0.0f);
+				to_reset.push_back(p.get_province());
+			}
+		}
+	}
+
+	for(auto p : to_reset) {
+		state.world.province_set_nation_from_province_control(p, state.world.province_get_nation_from_province_ownership(p));
+		military::update_blackflag_status(state, p);
+		military::eject_ships(state, p);
+	}
+
 	if(as_loss) {
 		state.world.nation_set_last_war_loss(n, state.current_date);
 	}
@@ -3710,8 +3729,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 						2, 30)));
 
 				add_army_to_battle(state, a, new_battle, par.role);
-				add_army_to_battle(state, o.get_army(), new_battle,
-						par.role == war_role::attacker ? war_role::defender : war_role::attacker);
+				add_army_to_battle(state, o.get_army(), new_battle, par.role == war_role::attacker ? war_role::defender : war_role::attacker);
 
 				gather_to_battle = new_battle.id;
 				battle_in_war = par.w;
@@ -5563,7 +5581,10 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 
 void update_movement(sys::state& state) {
 	for(auto a : state.world.in_army) {
-		if(auto path = a.get_path(); a.get_arrival_time() == state.current_date && path.size() > 0) {
+		auto arrival = a.get_arrival_time();
+		assert(!arrival || arrival >= state.current_date);
+		if(auto path = a.get_path(); arrival == state.current_date) {
+			assert(path.size() > 0);
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 			auto from = state.world.army_get_location_from_army_location(a);
@@ -5609,7 +5630,9 @@ void update_movement(sys::state& state) {
 				}
 			}
 
-			if(path.size() > 0) {
+			if(a.get_battle_from_army_battle_participation()) {
+				// nothing -- movement paused
+			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));
 			} else {
@@ -5621,6 +5644,20 @@ void update_movement(sys::state& state) {
 									province::border::river_crossing_bit) != 0
 									? military::crossing_type::river
 									: military::crossing_type::none, dcon::land_battle_id{});
+				}
+				if(a.get_moving_to_merge()) {
+					a.set_moving_to_merge(false);
+					[&]() {
+						for(auto ar : state.world.province_get_army_location(dest)) {
+							if(ar.get_army().get_controller_from_army_control() == a.get_controller_from_army_control() && ar.get_army() != a && !ar.get_army().get_moving_to_merge()) {
+								auto regs = state.world.army_get_army_membership(a);
+								while(regs.begin() != regs.end()) {
+									(*regs.begin()).set_army(ar.get_army());
+								}
+								return;
+							}
+						}
+					}();
 				}
 			}
 		}
@@ -5662,7 +5699,9 @@ void update_movement(sys::state& state) {
 				}
 			}
 
-			if(path.size() > 0) {
+			if(n.get_battle_from_navy_battle_participation()) {
+				// nothing, movement paused
+			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				n.set_arrival_time(arrival_time_to(state, n, next_dest));
 			} else {
@@ -5671,6 +5710,20 @@ void update_movement(sys::state& state) {
 					if(dest.index() >= state.province_definitions.first_sea_province.index())
 						navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 					n.set_is_retreating(false);
+				}
+				if(n.get_moving_to_merge()) {
+					n.set_moving_to_merge(false);
+					[&]() {
+						for(auto ar : state.world.province_get_navy_location(dest)) {
+							if(ar.get_navy().get_controller_from_navy_control() == n.get_controller_from_navy_control() && ar.get_navy() != n && !ar.get_navy().get_moving_to_merge()) {
+								auto regs = state.world.navy_get_navy_membership(n);
+								while(regs.begin() != regs.end()) {
+									(*regs.begin()).set_navy(ar.get_navy());
+								}
+								return;
+							}
+						}
+					}();
 				}
 			}
 		}
@@ -5774,7 +5827,7 @@ void update_siege_progress(sys::state& state) {
 			// Garrison recovers at 10% per day when not being sieged (to 100%)
 
 			auto& progress = state.world.province_get_siege_progress(prov);
-			progress = std::max(progress, progress - 0.1f);
+			progress = std::max(0.0f, progress - 0.1f);
 		} else {
 			/*
 			We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
@@ -5995,7 +6048,8 @@ void recover_org(sys::state& state) {
 		auto modified_regen = regen_mod * spending_level / 150.0f;
 
 		for(auto reg : ar.get_army_membership()) {
-			reg.get_regiment().set_org(std::min(reg.get_regiment().get_org() + modified_regen, 0.25f + 0.75f * spending_level));
+			auto c_org = reg.get_regiment().get_org();
+			reg.get_regiment().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
 		}
 	}
 
@@ -6017,7 +6071,8 @@ void recover_org(sys::state& state) {
 		auto modified_regen = regen_mod * spending_level / 150.0f;
 
 		for(auto reg : ar.get_navy_membership()) {
-			reg.get_ship().set_org(std::min(reg.get_ship().get_org() + modified_regen, 0.25f + 0.75f * spending_level));
+			auto c_org = reg.get_ship().get_org();
+			reg.get_ship().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
 		}
 	}
 }

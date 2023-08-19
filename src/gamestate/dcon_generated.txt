@@ -80,6 +80,11 @@ object{
 		tag{ scenario }
 	}
 	property{
+		name{ government_name }
+		type{ array{government_type_id}{text_sequence_id} }
+		tag{ scenario }
+	}
+	property{
 		name{ primary_culture }
 		type{ culture_id }
 		tag{ scenario }
@@ -1269,6 +1274,16 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ naval_rally_point }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ land_rally_point }
+		type{ bitfield }
+		tag{ save }
+	}
 
 	property{
 		name{ is_colonial }
@@ -1565,6 +1580,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ moving_to_merge }
+		type{ bitfield }
+		tag{ save }
+	}
 	property {
 		name{ dig_in }
 		type{ uint8_t }
@@ -1616,6 +1636,11 @@ object {
 	}
 	property{
 		name{ is_retreating }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ moving_to_merge }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -3796,6 +3821,11 @@ relationship{
 		type{ unit_type_id }
 		tag{ save }
 	}
+	property{
+		name{ template_province }
+		type{ province_id }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -3825,6 +3855,11 @@ relationship{
 	property{
 		name{ type }
 		type{ unit_type_id }
+		tag{ save }
+	}
+	property{
+		name{ template_province }
+		type{ province_id }
 		tag{ save }
 	}
 }
@@ -3963,11 +3998,6 @@ object {
 	property{
 		name{ organization }
 		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -4217,6 +4247,10 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
+	}
 }
 
 object {
@@ -4239,6 +4273,10 @@ object {
 		name{ options }
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
+	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
 	}
 }
 
@@ -4299,6 +4337,15 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
+	property{
+		name{ legacy_id }
+		type{ uint16_t }
+		tag{ scenario }
+	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
+	}
 }
 
 object {
@@ -4342,6 +4389,10 @@ object {
 		name{ options }
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
+	}
+	property{
+		name{ auto_choice }
+		type{ uint8_t }
 	}
 }
 

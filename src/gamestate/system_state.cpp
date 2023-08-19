@@ -29,6 +29,7 @@
 #include <thread>
 #include "rebels.hpp"
 #include "ai.hpp"
+#include "effects.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_land_combat.hpp"
 #include "gui_nation_picker.hpp"
@@ -396,7 +397,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 		}
 
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
 		// UI rendering
@@ -407,7 +408,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0, 1.0);
+		glDepthRange(-1.0f, 1.0f);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.scroll_target = ui_state.end_screen->impl_probe_mouse(*this,
@@ -541,7 +542,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 		}
 
-		glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		if(bg_gfx_id) {
 			// Render default background
@@ -551,7 +552,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glViewport(0, 0, x_size, y_size);
-			glDepthRange(-1.0, 1.0);
+			glDepthRange(-1.0f, 1.0f);
 			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 			if(gfx_def.primary_texture_handle) {
 				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
@@ -570,7 +571,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0, 1.0);
+		glDepthRange(-1.0f, 1.0f);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.scroll_target = ui_state.nation_picker->impl_probe_mouse(*this,
@@ -643,12 +644,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// National events
 			auto* c1 = new_n_event.front();
 			while(c1) {
-				if(world.national_event_get_is_major(c1->e)) {
-					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-							->events.push_back(ui::event_data_wrapper{*c1});
+				auto auto_choice = world.national_event_get_auto_choice(c1->e);
+				if(auto_choice == 0) {
+					if(world.national_event_get_is_major(c1->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c1 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c1 });
+					}
 				} else {
-					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-							->events.push_back(ui::event_data_wrapper{*c1});
+					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
 				}
 				new_n_event.pop();
 				c1 = new_n_event.front();
@@ -656,12 +662,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Free national events
 			auto* c2 = new_f_n_event.front();
 			while(c2) {
-				if(world.free_national_event_get_is_major(c2->e)) {
-					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-							->events.push_back(ui::event_data_wrapper{*c2});
+				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
+				if(auto_choice == 0) {
+					if(world.free_national_event_get_is_major(c2->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c2 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
+							->events.push_back(ui::event_data_wrapper{ *c2 });
+					}
 				} else {
-					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-							->events.push_back(ui::event_data_wrapper{*c2});
+					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
 				}
 				new_f_n_event.pop();
 				c2 = new_f_n_event.front();
@@ -669,16 +680,26 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Provincial events
 			auto* c3 = new_p_event.front();
 			while(c3) {
-				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-						->events.push_back(ui::event_data_wrapper{*c3});
+				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
+				if(auto_choice == 0) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
+						->events.push_back(ui::event_data_wrapper{ *c3 });
+				} else {
+					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
+				}
 				new_p_event.pop();
 				c3 = new_p_event.front();
 			}
 			// Free provincial events
 			auto* c4 = new_f_p_event.front();
 			while(c4) {
-				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-						->events.push_back(ui::event_data_wrapper{*c4});
+				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
+				if(auto_choice == 0) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
+						->events.push_back(ui::event_data_wrapper{ *c4 });
+				} else {
+					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
+				}
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
 			}
@@ -967,7 +988,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	if(bg_gfx_id) {
 		// Render default background
@@ -977,7 +998,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0, 1.0);
+		glDepthRange(-1.0f, 1.0f);
 		auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
@@ -996,7 +1017,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glViewport(0, 0, x_size, y_size);
-	glDepthRange(-1.0, 1.0);
+	glDepthRange(-1.0f, 1.0f);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
 	ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this,
@@ -1982,6 +2003,25 @@ void state::load_scenario_data() {
 	world.nation_resize_upper_house(world.ideology_size());
 
 	world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
+	world.national_identity_resize_government_name(uint32_t(culture_definitions.governments.size()));
+
+	// add special names
+	for(auto ident : world.in_national_identity) {
+		auto tagi = ident.get_identifying_int();
+		auto tag = nations::int_to_tag(tagi);
+		tag[0] = char(std::tolower(tag[0]));
+		tag[1] = char(std::tolower(tag[1]));
+		tag[2] = char(std::tolower(tag[2]));
+		tag += "_";
+		for(auto& named_gov : context.map_of_governments) {
+			auto special_ident = tag + named_gov.first;
+			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
+				ident.set_government_name(named_gov.second, it->second);
+			} else {
+				ident.set_government_name(named_gov.second, ident.get_name());
+			}
+		}
+	}
 
 	// load country files
 	world.for_each_national_identity([&](dcon::national_identity_id i) {
@@ -2304,6 +2344,7 @@ void state::load_scenario_data() {
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
 
+	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
 	{
 		auto country_dir = open_directory(history, NATIVE("countries"));
@@ -2326,7 +2367,7 @@ void state::load_scenario_data() {
 						it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
-					parsers::country_history_context new_context{context, it->second, holder};
+					parsers::country_history_context new_context{context, it->second, holder, pending_decisions};
 
 					auto opened_file = open_file(country_file);
 					if(opened_file) {
@@ -2365,8 +2406,7 @@ void state::load_scenario_data() {
 	world.nation_resize_stockpiles(world.commodity_size());
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_demographics(pop_demographics::size(*this));
-	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8,
-			dcon::bitfield_type{0});
+	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 	world.for_each_ideology([&](dcon::ideology_id id) {
 		if(!bool(world.ideology_get_activation_date(id))) {
@@ -2440,6 +2480,71 @@ void state::load_scenario_data() {
 		world.province_set_terrain(id, context.ocean_terrain);
 	}
 
+	/*
+	Lake removal
+	-- this is basically using the connected region algorithm on the water provinces
+	*/
+	{
+		world.for_each_province([&](dcon::province_id id) { world.province_set_connected_region_id(id, 0); });
+		
+		std::vector<dcon::province_id> to_fill_list;
+		std::vector<int32_t> region_sizes;
+
+		uint16_t current_fill_id = 0;
+		province_definitions.connected_region_is_coastal.clear();
+
+		to_fill_list.reserve(world.province_size());
+		
+		for(int32_t i = int32_t(world.province_size()); i-- > province_definitions.first_sea_province.index();) {
+			dcon::province_id id{ dcon::province_id::value_base_t(i) };
+
+			if(world.province_get_connected_region_id(id) == 0) {
+				++current_fill_id;
+
+				region_sizes.push_back(0);
+				to_fill_list.push_back(id);
+
+				while(!to_fill_list.empty()) {
+					auto current_id = to_fill_list.back();
+					to_fill_list.pop_back();
+					region_sizes.back() += 1;
+
+					world.province_set_connected_region_id(current_id, current_fill_id);
+					for(auto rel : world.province_get_province_adjacency(current_id)) {
+						if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) == 0) { // not leaving sea, not impassible
+							if(rel.get_connected_provinces(0).get_connected_region_id() == 0)
+								to_fill_list.push_back(rel.get_connected_provinces(0));
+							if(rel.get_connected_provinces(1).get_connected_region_id() == 0)
+								to_fill_list.push_back(rel.get_connected_provinces(1));
+						}
+					}
+				}
+
+				to_fill_list.clear();
+			}
+		}
+
+		int32_t max = 0;
+		for(int32_t i = 0; i < int32_t(region_sizes.size()); ++i) {
+			if(region_sizes[max] < region_sizes[i])
+				max = i;
+		}
+
+		if(!region_sizes.empty()) {
+			for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
+				dcon::province_id p{ dcon::province_id::value_base_t(k) };
+				if(world.province_get_connected_region_id(p) != int16_t(max + 1)) {
+					for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+						other.set_is_coast(false);
+						adj.get_type() |= province::border::impassible_bit;
+					}
+				}
+			}
+		}
+	}
+
+
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
@@ -2447,12 +2552,21 @@ void state::load_scenario_data() {
 			auto bits = adj.get_type();
 			if((bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
 				world.province_set_port_to(p, other.id);
+				world.province_set_is_coast(p, true);
 				return;
 			}
 		}
 	});
 
 	fill_unsaved_data(); // we need this to run triggers
+
+	// run pending triggers and effects
+	for(auto pending_decision : pending_decisions) {
+		dcon::nation_id n = pending_decision.first;
+		dcon::decision_id d = pending_decision.second;
+		if(auto e = world.decision_get_effect(d); e)
+			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
 
 	demographics::regenerate_from_pop_data(*this);
 	economy::initialize(*this);
@@ -2609,22 +2723,38 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		// reshow pending events, messages, etc
 		for(auto const& e : pending_n_event) {
 			if(e.n == local_player_nation) {
-				new_n_event.push(e);
+				auto auto_choice = world.national_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_n_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& e : pending_f_n_event) {
 			if(e.n == local_player_nation) {
-				new_f_n_event.push(e);
+				auto auto_choice = world.free_national_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_f_n_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& e : pending_p_event) {
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
-				new_p_event.push(e);
+				auto auto_choice = world.provincial_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_p_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& e : pending_f_p_event) {
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
-				new_f_p_event.push(e);
+				auto auto_choice = world.free_provincial_event_get_auto_choice(e.e);
+				if(auto_choice == 0)
+					new_f_p_event.push(e);
+				else
+					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& m : pending_messages) {
@@ -2931,6 +3061,7 @@ void state::single_game_tick() {
 	switch(ymd_date.day) {
 		case 1:
 			nations::update_monthly_points(*this);
+			economy::prune_factories(*this);
 			break;
 		case 2:
 			sys::update_modifier_effects(*this);

@@ -738,7 +738,10 @@ public:
 	void calibrate_scrollbar(sys::state& state) noexcept;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
+		if(type == mouse_probe_type::scroll)
+			return message_result::consumed;
+		else
+			return message_result::unseen;
 	}
 };
 

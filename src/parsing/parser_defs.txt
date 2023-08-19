@@ -1737,7 +1737,7 @@ event_option
 	ai_chance                       extern     make_option_ai_chance             member
 
 generic_event
-	id                              value      int                               discard
+	id                              value      int                               member
 	is_triggered_only               value      bool                              discard
 	title                           value      text                              member_fn
 	desc                            value      text                              member_fn
@@ -1890,6 +1890,7 @@ country_history_file
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               discard
 	set_country_flag                value      text                              member_fn
+	decision                        value      text                              member_fn
 
 history_war_goal
 	casus_belli                     value      text                              member_fn

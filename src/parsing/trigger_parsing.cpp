@@ -25,7 +25,7 @@ void tr_scope_or(token_generator& gen, error_handler& err, trigger_building_cont
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
 void tr_scope_not(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	context.compiled_trigger.push_back(uint16_t(trigger::placeholder_not_scope));
+	context.compiled_trigger.push_back(uint16_t(trigger::placeholder_not_scope | trigger::is_disjunctive_scope));
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -648,6 +648,13 @@ int32_t simplify_trigger(uint16_t* source) {
 		if((source[0] & trigger::code_mask) == trigger::placeholder_not_scope) { // remove not scopes
 			invert_trigger(source);
 			source[0] &= ~trigger::code_mask;
+			/*
+			if((source[0] & trigger::is_disjunctive_scope) != 0) {
+				source[0] &= ~trigger::is_disjunctive_scope;
+			} else {
+				source[0] |= trigger::is_disjunctive_scope;
+			}
+			*/
 			source[0] |= trigger::generic_scope;
 		}
 

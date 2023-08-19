@@ -823,10 +823,10 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
-		auto act_date = it.get_penalty_expires_date();
 		if((it.get_status() & influence::is_banned) == 0) {
-			if(it.get_influence() >= state.defines.increaseopinion_influence_cost &&
-					(influence::level_mask & it.get_status()) != influence::level_in_sphere) {
+			if(it.get_influence() >= state.defines.increaseopinion_influence_cost
+				&& (influence::level_mask & it.get_status()) != influence::level_in_sphere
+				&& (influence::level_mask & it.get_status()) != influence::level_friendly) {
 				return true;
 			} else if(!(it.get_influence_target().get_in_sphere_of()) &&
 								it.get_influence() >= state.defines.addtosphere_influence_cost) {

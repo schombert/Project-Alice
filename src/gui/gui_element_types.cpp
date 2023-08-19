@@ -483,33 +483,33 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(stored_text.length() == 0)
 		return;
 	float extent = 0.f;
-	if(base_data.get_element_type() == element_type::button) {
-		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				base_data.data.button.font_handle);
-	} else if(base_data.get_element_type() == element_type::text) {
-		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				base_data.data.text.font_handle);
-	}
-	if(int16_t(extent) > base_data.size.x) {
-		// You could improve logic for ... by figuring out the width of ... and when there isn't enough room for all the text,
-		// figuring out how much can fit exactly in the width minus the width of ... and then appending ... (rather than figuring
-		// out how much fits in the space and subtracting 3 characters, which is what happens now)
-		auto width_of_ellipsis = state.font_collection.text_extent(state, "\x85", uint32_t(1), base_data.data.text.font_handle);
+	uint16_t font_handle = 0;
+	if(base_data.get_element_type() == element_type::button)
+		font_handle = base_data.data.button.font_handle;
+	else if(base_data.get_element_type() == element_type::text)
+		font_handle = base_data.data.text.font_handle;
 
-		auto overshoot = 1.f - float(base_data.size.x) / (extent + width_of_ellipsis);
-		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
+	extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle);
+	
+	if(stored_text.back() != '\x85' && int16_t(extent) > base_data.size.x) {
+		auto width_of_ellipsis = 0.5f * state.font_collection.text_extent(state, "\x85", uint32_t(1), font_handle);
 
-		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars, size_t(0)));
-		stored_text += "\x85";
+		uint32_t m = 1;
+		for(; m < stored_text.length(); ++m) {
+			if(state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(m), font_handle) + width_of_ellipsis > base_data.size.x)
+				break;
+		}
+		
+		stored_text = stored_text.substr(0, m - 1) + "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle)) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle));
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle));
 			break;
 		case alignment::left:
 			text_offset = 0.0f;
@@ -519,10 +519,10 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x) / 2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle) - base_data.data.text.border_size.x) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) -  base_data.data.text.border_size.x);
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle) -  base_data.data.text.border_size.x);
 			break;
 		case alignment::left:
 			text_offset = base_data.data.text.border_size.x;
@@ -648,7 +648,7 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 }
 
 message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	auto const* chunk = internal_layout.get_chunk_from_position(x, y);
+	auto const* chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
 	if(chunk != nullptr) {
 		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
 			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -740,11 +740,24 @@ message_result multiline_text_element_base::on_rbutton_down(sys::state& state, i
 message_result multiline_text_element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
 	switch(type) {
 	case mouse_probe_type::click:
-		return (internal_layout.get_chunk_from_position(x, y) != nullptr) ? message_result::consumed : message_result::unseen;
+	{
+		auto chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
+		if(!chunk)
+			return message_result::unseen;
+		if(std::holds_alternative<dcon::nation_id>(chunk->source)
+			|| std::holds_alternative<dcon::province_id>(chunk->source)
+			|| std::holds_alternative<dcon::state_instance_id>(chunk->source)
+			|| std::holds_alternative<dcon::national_identity_id>(chunk->source)
+			|| std::holds_alternative<dcon::state_definition_id>(chunk->source)) {
+
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 	case mouse_probe_type::tooltip:
-		return (has_tooltip(state) != tooltip_behavior::no_tooltip) ? message_result::consumed : message_result::unseen;
+		return message_result::unseen;
 	case mouse_probe_type::scroll:
-		break;
+		return message_result::unseen;
 	}
 	return message_result::unseen;
 }

@@ -2508,4 +2508,10 @@ guiTypes = {
 			quadTextureSprite = "GFX_alice_message_type"
 		}
 	}
+	
+	guiButtonType = {
+		name = "alice_event_auto_button"
+		position = { x = 0 y = 0 }
+		quadTextureSprite = "GFX_alice_event_auto"
+	}
 }

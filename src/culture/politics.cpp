@@ -337,7 +337,11 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 
 void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	auto ident = state.world.nation_get_identity_from_identity_holder(id);
-	state.world.nation_set_name(id, state.world.national_identity_get_name(ident));
+	auto gov_id = state.world.nation_get_government_type(id);
+	if(gov_id)
+		state.world.nation_set_name(id, state.world.national_identity_get_government_name(ident, gov_id));
+	else
+		state.world.nation_set_name(id, state.world.national_identity_get_name(ident));
 	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
 	state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
 }
@@ -485,6 +489,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_get_upper_house(n, i) *= scale_factor;
 			}
+		} else {
+			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_set_upper_house(n, i, 0.0f);
+			}
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	} else if((rules & issue_rule::rich_only) != 0) {
 		for(auto i : state.world.in_ideology) {
@@ -516,6 +526,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_get_upper_house(n, i) *= scale_factor;
 			}
+		} else {
+			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_set_upper_house(n, i, 0.0f);
+			}
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	} else {
 		for(auto i : state.world.in_ideology) {
@@ -545,6 +561,12 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_get_upper_house(n, i) *= scale_factor;
 			}
+		} else {
+			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_set_upper_house(n, i, 0.0f);
+			}
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	}
 

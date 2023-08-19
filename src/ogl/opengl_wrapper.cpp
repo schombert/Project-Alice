@@ -3,11 +3,38 @@
 #include "simple_fs.hpp"
 
 namespace ogl {
+
+std::string_view opengl_get_error_name(GLenum t) {
+	switch(t) {
+		case GL_INVALID_ENUM:
+			return "GL_INVALID_ENUM";
+		case GL_INVALID_VALUE:
+			return "GL_INVALID_VALUE";
+		case GL_INVALID_OPERATION:
+			return "GL_INVALID_OPERATION";
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			return "GL_INVALID_FRAMEBUFFER_OPERATION";
+		case GL_OUT_OF_MEMORY:
+			return "GL_OUT_OF_MEMORY";
+		case GL_STACK_UNDERFLOW:
+			return "GL_STACK_UNDERFLOW";
+		case GL_STACK_OVERFLOW:
+			return "GL_STACK_OVERFLOW";
+		case GL_NO_ERROR:
+			return "GL_NO_ERROR";
+		default:
+			return "Unknown";
+	}
+}
+
 void notify_user_of_fatal_opengl_error(std::string message) {
+	std::string full_message = message;
+	full_message += "\n";
+	full_message += opengl_get_error_name(glGetError());
 #ifdef _WIN64
-	MessageBoxA(nullptr, message.c_str(), "OpenGL error", MB_OK);
+	MessageBoxA(nullptr, full_message.c_str(), "OpenGL error", MB_OK);
 #else
-	std::fprintf(stderr, "OpenGL error: %s\n", message.c_str());
+	std::fprintf(stderr, "OpenGL error: %s\n", full_message.c_str());
 #endif
 	std::abort();
 }
@@ -87,22 +114,29 @@ GLint compile_shader(std::string_view source, GLenum type) {
 	if(return_value == 0) {
 		notify_user_of_fatal_opengl_error("shader creation failed");
 	}
-	GLchar const* texts[] = {source.data()};
-	GLint lengths[] = {GLint(source.length())};
 
-	glShaderSource(return_value, 1, texts, lengths);
+	std::string s_source(source);
+	GLchar const* texts[] = {
+		"#version 430 core\r\n",
+		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
+		"#extension GL_ARB_shader_subroutine : enable\r\n",
+		"#define M_PI 3.1415926535897932384626433832795\r\n",
+		"#define PI 3.1415926535897932384626433832795\r\n",
+		s_source.c_str()
+	};
+	glShaderSource(return_value, 6, texts, nullptr);
 	glCompileShader(return_value);
 
 	GLint result;
 	glGetShaderiv(return_value, GL_COMPILE_STATUS, &result);
 	if(result == GL_FALSE) {
-		GLint logLen;
-		glGetShaderiv(return_value, GL_INFO_LOG_LENGTH, &logLen);
+		GLint log_length = 0;
+		glGetShaderiv(return_value, GL_INFO_LOG_LENGTH, &log_length);
 
-		char* log = new char[static_cast<size_t>(logLen)];
+		auto log = std::unique_ptr<char[]>(new char[static_cast<size_t>(log_length)]);
 		GLsizei written = 0;
-		glGetShaderInfoLog(return_value, logLen, &written, log);
-		notify_user_of_fatal_opengl_error(std::string("Shader failed to compile:\n") + log);
+		glGetShaderInfoLog(return_value, log_length, &written, log.get());
+		notify_user_of_fatal_opengl_error(std::string("Shader failed to compile:\n") + log.get());
 	}
 	return return_value;
 }
@@ -512,14 +546,14 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 					glActiveTexture(GL_TEXTURE0);
 					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
 					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-					glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * size / 64.0f,
-							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
+					glUniform4f(parameters::drawing_rectangle, x,
+							baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size * 1.5f, size);
 					glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 					);
 					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-					x += f.glyph_advances[0x4D] * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
+					x += size * 1.5f;
 					
 					i += 3;
 					continue;
@@ -532,15 +566,14 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
 				glBindTexture(GL_TEXTURE_2D,
 						text::win1250toUTF16(codepoints[i]) == u'\u0001' ? state.open_gl.cross_icon_tex : state.open_gl.checkmark_icon_tex);
-				glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * size / 64.0f,
+				glUniform4f(parameters::drawing_rectangle, x,
 						baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
 				glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 				);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-				x +=
-						f.glyph_advances[0x4D] * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
+				x += size;
 			} else {
 				glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
 				glActiveTexture(GL_TEXTURE0);
@@ -572,7 +605,7 @@ void render_new_text(sys::state& state, char const* codepoints, uint32_t count, 
 
 void render_classic_text(sys::state& state, float x, float y, char const* codepoints, uint32_t count,
 		color_modification enabled, color3f const& c, text::bm_font const& font) {
-	float adv = (float)1.0 / font.width; // Font texture atlas spacing.
+	float adv = 1.0f / font.width; // Font texture atlas spacing.
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
@@ -611,7 +644,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
 				float CurX = x + f.x_offset - (float(f.width) * offset);
 				float CurY = y + f.y_offset - (float(f.height) * offset);
-				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
+				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
 				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
 				glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 				glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
@@ -623,12 +656,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				glBindTexture(GL_TEXTURE_2D, font.ftexid);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-				// Only check kerning if there is greater then 1 character and
-				// if the check character is 1 less then the end of the string.
-				if(i != count - 1) {
-					x += font.get_kerning_pair(codepoints[i], codepoints[i + 1]);
-				}
-				x += f.x_advance;
+				x += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
 
 				i += 3;
 				continue;
@@ -656,6 +684,9 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			// Restore affected state
 			glBindTexture(GL_TEXTURE_2D, font.ftexid);
 			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+
+			x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
+			continue;
 		} else {
 			f = font.chars[uint8_t(codepoints[i])];
 			float CurX = x + f.x_offset;

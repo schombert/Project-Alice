@@ -20,14 +20,6 @@
 
 namespace ui {
 
-/*
- * NOTE -
- * 	None of the classes in here are "redundant" or "pointless",
- * 	there existence is to prevent tooltip cross contamination
- * 	DO NOT REMOVE THEM, its was enough of a issue having
- * 	to re-add them the last time they got removed.
- */
-
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -46,8 +38,11 @@ class topbar_flag_button : public flag_button {
 public:
 };
 
-class topbar_nation_prestige_text : public nation_prestige_text {
+class topbar_nation_prestige_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, std::to_string(int32_t(nations::prestige_score(state, retrieve<dcon::nation_id>(state, parent)))));
+	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -335,8 +330,21 @@ class topbar_nation_technology_research_progress : public nation_technology_rese
 public:
 };
 
-class topbar_nation_literacy_text : public nation_literacy_text {
+class topbar_nation_literacy_text : public expanded_hitbox_text {
 public:
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ -10, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
+		auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
+		set_text(state, text::format_percentage(literacy / total_pop, 1));
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -398,8 +406,16 @@ public:
 };
 
 
-class topbar_nation_infamy_text : public nation_infamy_text {
+class topbar_nation_infamy_text : public expanded_hitbox_text {
 public:
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ 0, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_float(state.world.nation_get_infamy(retrieve<dcon::nation_id>(state, parent)), 2));
+	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -490,10 +506,22 @@ public:
 
 };
 
-class topbar_nation_focus_allocation_text : public nation_focus_allocation_text {
+class topbar_nation_focus_allocation_text : public expanded_hitbox_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ 0, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto available = nations::max_national_focuses(state, nation_id);
+		auto in_use = nations::national_focuses_in_use(state, nation_id);
+		set_text(state, text::format_ratio(in_use, available));
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -547,8 +575,21 @@ public:
 	}
 };
 
-class topbar_nation_militancy_text : public nation_militancy_text {
+class topbar_nation_militancy_text : public expanded_hitbox_text {
 public:
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ 0, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto militancy = state.world.nation_get_demographics(nation_id, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		set_text(state, text::format_float(militancy / total_pop));
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -583,10 +624,23 @@ public:
 	}
 };
 
-class topbar_nation_consciousness_text : public nation_consciousness_text {
+class topbar_nation_consciousness_text : public expanded_hitbox_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ 0, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto militancy = state.world.nation_get_demographics(nation_id, demographics::consciousness);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		set_text(state, text::format_float(militancy / total_pop));
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -621,8 +675,19 @@ public:
 	}
 };
 
-class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
+class topbar_nation_diplomatic_points_text : public expanded_hitbox_text {
 public:
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ 0, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto points = nations::diplomatic_points(state, retrieve<dcon::nation_id>(state, parent));
+		set_text(state, text::format_float(points, 1));
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -1090,7 +1155,7 @@ public:
 						auto prov = abstract.get_province();
 						for(auto factloc : prov.get_factory_location()) {
 							auto scale = factloc.get_factory().get_production_scale();
-							if(scale < 0.05) {
+							if(scale < 0.05f) {
 								if(new_staat) {
 									text::add_to_layout_box(state, contents, box, staat.get_name(), text::text_color::yellow);
 									// text::add_divider_to_layout_box(state, contents, box);		// TODO - Parity needed!
@@ -1567,36 +1632,78 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			auto box = text::open_layout_box(contents, 0);
-			if(!nations::is_great_power(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
-			} else {
-				if(nations::sphereing_progress_is_possible(state, nation_id)) {
-					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"),
-							text::substitution_map{});
-				} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-					text::add_to_layout_box(state, contents, box,
-							std::string_view("FIXME: gui/gui_topbar.hpp:404")); // TODO - if a sphere member is having a revolt then
-																																	// we might have to display text -breizh
-				} else {
-					text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"),
-							text::substitution_map{});
+		if(!nations::is_great_power(state, n)) {
+			text::add_line(state, contents, std::string_view("countryalert_no_gpstatus"));
+		} else {
+			bool added_increase_header = false;
+
+			for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
+				if((it.get_status() & nations::influence::is_banned) == 0) {
+					if(it.get_influence() >= state.defines.increaseopinion_influence_cost
+						&& (nations::influence::level_mask & it.get_status()) != nations::influence::level_in_sphere
+						&& (nations::influence::level_mask & it.get_status()) != nations::influence::level_friendly) {
+
+						if(!added_increase_header)
+							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+						added_increase_header = true;
+						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
+					} else if(!(it.get_influence_target().get_in_sphere_of()) &&
+										it.get_influence() >= state.defines.addtosphere_influence_cost) {
+						if(!added_increase_header)
+							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+						added_increase_header = true;
+						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
+					} else if(it.get_influence_target().get_in_sphere_of()
+						&& (nations::influence::level_mask & it.get_status()) == nations::influence::level_friendly &&
+										it.get_influence() >= state.defines.removefromsphere_influence_cost) {
+						if(!added_increase_header)
+							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+						added_increase_header = true;
+						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
+					}
 				}
 			}
-			text::close_layout_box(contents, box);
+			bool added_reb_header = false;
+			for(auto m : state.world.in_nation) {
+				if(state.world.nation_get_in_sphere_of(m) == n) {
+					[&]() {
+						for(auto fac : state.world.nation_get_rebellion_within(m)) {
+							auto control = fac.get_rebels().get_province_rebel_control();
+							if(control.begin() != control.end()) {
+								if(!added_reb_header)
+									text::add_line(state, contents, std::string_view("a_alert_reb"));
+								added_reb_header = true;
+								text::nation_name_and_flag(state, m, contents, 15);
+								return;
+							}
+						}
+						}();
+				}
+			}
+
+			if(!added_increase_header && !added_reb_header)
+				text::add_line(state, contents, std::string_view("remove_countryalert_no_canincreaseopinion"));
 		}
 	}
 };
 
-class topbar_nation_daily_research_points_text : public nation_daily_research_points_text {
+class topbar_nation_daily_research_points_text : public expanded_hitbox_text {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		top_left_extension = ui::xy_pair{ 25, 3 };
+		bottom_right_extension = ui::xy_pair{ 0, 2 };
+		expanded_hitbox_text::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto points = nations::daily_research_points(state, retrieve<dcon::nation_id>(state, parent));
+		set_text(state, text::format_float(points, 2));
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -1608,55 +1715,33 @@ public:
 
 			auto tech_id = nations::current_research(state, nation_id);
 
-			auto box = text::open_layout_box(contents, 0);
-			bool clergy_passed = false; // Ugly fix but it should work -breizh
-			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))) >
-					1.0f) {
-				text::substitution_map sub1;
-				clergy_passed = true;
-				text::add_to_substitution_map(sub1, text::variable_type::poptype,
-						state.world.pop_type_get_name(state.culture_definitions.clergy));
-				text::add_to_substitution_map(sub1, text::variable_type::value,
-						text::fp_two_places{get_research_points_from_pop(state, state.culture_definitions.clergy, nation_id)});
-				text::add_to_substitution_map(sub1, text::variable_type::fraction,
-						text::fp_two_places{
-								(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy)) /
-										state.world.nation_get_demographics(nation_id, demographics::total)) *
-								100});
-				text::add_to_substitution_map(sub1, text::variable_type::optimal,
-						text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.clergy) * 100)});
-				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
-			}
+			auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+			for(auto pt : state.world.in_pop_type) {
+				auto rp = state.world.pop_type_get_research_points(pt);
+				if(rp > 0 && state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) > 0.0f) {
+					auto amount = rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) / (total_pop * state.world.pop_type_get_research_optimum(pt)));
 
-			if(ceil(state.world.nation_get_demographics(nation_id,
-						 demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
-				text::substitution_map sub2;
-				if(clergy_passed) {
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::substitution_map sub1;
+					text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(pt));
+					text::add_to_substitution_map(sub1, text::variable_type::value, text::fp_two_places{ amount });
+					text::add_to_substitution_map(sub1, text::variable_type::fraction,
+							text::fp_two_places{ (state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) / total_pop) * 100 });
+					text::add_to_substitution_map(sub1, text::variable_type::optimal,
+						text::fp_two_places{ (state.world.pop_type_get_research_optimum(pt) * 100) });
+
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
+					text::close_layout_box(contents, box);
 				}
-				text::add_to_substitution_map(sub2, text::variable_type::poptype,
-						state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
-				text::add_to_substitution_map(sub2, text::variable_type::value,
-						text::fp_two_places{
-								get_research_points_from_pop(state, state.culture_definitions.secondary_factory_worker, nation_id)});
-				text::add_to_substitution_map(sub2, text::variable_type::fraction,
-						text::fp_two_places{(state.world.nation_get_demographics(nation_id,
-																		 demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) /
-																		state.world.nation_get_demographics(nation_id, demographics::total)) *
-																100});
-				text::add_to_substitution_map(sub2, text::variable_type::optimal,
-						text::fp_two_places{
-								(state.world.pop_type_get_research_optimum(state.culture_definitions.secondary_factory_worker) * 100)});
-				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub2);
 			}
-			text::close_layout_box(contents, box);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+			text::add_line_break_to_layout(state, contents);
 
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+			text::add_line_break_to_layout(state, contents);
 
 			if(!bool(tech_id)) {
 				auto box2 = text::open_layout_box(contents, 0);
-				text::add_divider_to_layout_box(state, contents, box2);
 				text::localised_single_sub_box(state, contents, box2, std::string_view("rp_accumulated"), text::variable_type::val,
 						text::fp_one_place{fat.get_research_points()});
 
