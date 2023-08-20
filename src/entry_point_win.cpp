@@ -14,12 +14,38 @@
 
 static sys::state game_state; // too big for the stack
 
+void signal_abort_handler(int) {
+	STARTUPINFO si;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&pi, sizeof(pi));
+	// Start the child process. 
+	CreateProcessW(
+		L".\\DbgAlice\\dbg_alice.exe",   // Module name
+		NULL, // Command line
+		NULL, // Process handle not inheritable
+		NULL, // Thread handle not inheritable
+		FALSE, // Set handle inheritance to FALSE
+		0, // No creation flags
+		NULL, // Use parent's environment block
+		NULL, // Use parent's starting directory 
+		&si, // Pointer to STARTUPINFO structure
+		&pi); // Pointer to PROCESS_INFORMATION structure
+	// Wait until child process exits.
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+}
+
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/
 ) {
 
 #ifdef _DEBUG
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 #endif
+	signal(SIGABRT, signal_abort_handler);
 
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
