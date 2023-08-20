@@ -248,7 +248,6 @@ public:
 		if(bool(controller_id)) {
 			auto controller_name = state.world.nation_get_name(controller_id);
 			text::add_to_layout_box(state, contents, box, controller_name);
-			text::close_layout_box(contents, box);
 		} else {
 			auto rebel_faction_id = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
 			auto fat_id = dcon::fatten(state.world, rebel_faction_id);

@@ -38,20 +38,26 @@ void create_opengl_context(sys::state& state) {
 
 	if(glewInit() != 0) {
 		MessageBoxW(state.win_ptr->hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
+		std::abort();
 	}
 
-	static const int attribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB, 4, WGL_CONTEXT_MINOR_VERSION_ARB, 5, WGL_CONTEXT_FLAGS_ARB,
+	if(!wglewIsSupported("WGL_ARB_create_context")) {
+		MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
+		std::abort();
+	}
+
+	// Explicitly request for OpenGL 4.5
+	static const int attribs[] = { WGL_CONTEXT_MAJOR_VERSION_ARB, 4, WGL_CONTEXT_MINOR_VERSION_ARB, 5, WGL_CONTEXT_FLAGS_ARB,
 #ifndef NDEBUG
 			WGL_CONTEXT_DEBUG_BIT_ARB |
 #endif
 					0,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0};
-
-	if(wglewIsSupported("WGL_ARB_create_context") != 1) {
-		MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0 };
+	state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
+	if(state.open_gl.context == nullptr) {
+		MessageBoxW(state.win_ptr->hwnd, L"Unable to create WGL context", L"OpenGL error", MB_OK);
 		std::abort();
-	} else {
-		state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
+	}
 
 		wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
 		wglDeleteContext(handle_to_ogl_dc);
@@ -72,7 +78,6 @@ void create_opengl_context(sys::state& state) {
 					MB_OK);
 		}
 	}
-}
 
 void shutdown_opengl(sys::state& state) {
 	assert(state.win_ptr && state.win_ptr->hwnd && state.open_gl.context);

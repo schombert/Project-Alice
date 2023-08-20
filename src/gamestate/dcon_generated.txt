@@ -1592,7 +1592,7 @@ object {
 	}
 	property{
 		name{ path }
-		type{vector_pool{2500}{province_id}}
+		type{vector_pool{5000}{province_id}}
 		tag{ save }
 	}
 	property{
@@ -1626,7 +1626,7 @@ object {
 
 	property{
 		name{ path }
-		type{vector_pool{2500}{province_id}}
+		type{vector_pool{5000}{province_id}}
 		tag{ save }
 	}
 	property{
@@ -2431,7 +2431,7 @@ object {
 relationship{
 	name{ war_participant }
 	storage_type{ compactable }
-	size{ 2000 }
+	size{ 3000 }
 	tag{ save }
 
 	link{
