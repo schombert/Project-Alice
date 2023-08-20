@@ -5,7 +5,7 @@
 namespace command {
 
 bool is_console_command(command_type t) {
-	return uint8_t(t) >= uint8_t(command_type::switch_nation);
+	return uint8_t(t) >= 0x80;
 }
 
 static void add_to_command_queue(sys::state& state, payload& p) {
@@ -16,7 +16,7 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
-		// Normal commands
+		// Normal commands are discarded iff we are not in the game
 		if(state.mode != sys::game_mode::in_game)
 			return;
 		break;
@@ -24,7 +24,6 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 
 	switch(state.network_mode) {
 	case sys::network_mode::single_player: {
-		// TODO: pushes for client/server once available
 		bool b = state.incoming_commands.try_push(p);
 		break;
 	}
@@ -4176,19 +4175,23 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_i
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_ban;
 	p.source = source;
-	p.data.nation_pick.target = target;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target) // can't perform on self
 		return false;
-	return state.network_mode == sys::network_mode::host;
+	return true;
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_notify_player_ban(state, source, target))
 		return;
+
 	if(state.network_mode == sys::network_mode::host) {
-		// TODO: add to banned MAC/IP list
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active() && client.playing_as == target) {
+				network::ban_player(state, client);
+			}
+		}
 	}
 	state.world.nation_set_is_player_controlled(target, false);
 
@@ -4206,17 +4209,24 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_kick;
 	p.source = source;
-	p.data.nation_pick.target = target;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target) // can't perform on self
 		return false;
-	return state.network_mode == sys::network_mode::host;
+	return true;
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_notify_player_kick(state, source, target))
 		return;
+
+	if(state.network_mode == sys::network_mode::host) {
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active() && client.playing_as == target) {
+				network::kick_player(state, client);
+			}
+		}
+	}
 	state.world.nation_set_is_player_controlled(target, false);
 
 	ui::chat_message m{};
@@ -4237,8 +4247,8 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	// Can't take an already taken nation
-	if(source == target)
+	// Invalid OR rebel nation
+	if(!bool(target) || target == state.national_definitions.rebel_id)
 		return false;
 	// TODO: Support Co-op (one day)
 	return state.world.nation_get_is_player_controlled(target) == false;
@@ -4246,11 +4256,17 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_notify_player_picks_nation(state, source, target))
 		return;
-	
-	if(source == state.local_player_nation) {
-		state.local_player_nation = dcon::nation_id{};
+
+	if(bool(source) && source != state.national_definitions.rebel_id) {
+		state.world.nation_set_is_player_controlled(source, false);
 	}
-	state.world.nation_set_is_player_controlled(source, true);
+	state.world.nation_set_is_player_controlled(target, true);
+	// TODO: To avoid abuse, clients will be given a random nation when they join the server
+	// that isn't occupied already by a player, this allows us to effectively use nation_id
+	// as a player identifier!
+	if(state.local_player_nation == source) {
+		state.local_player_nation = target;
+	}
 }
 
 void execute_command(sys::state& state, payload& c) {

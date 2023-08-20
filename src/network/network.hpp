@@ -56,5 +56,7 @@ struct network_state {
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
 void finish(sys::state& state);
+void ban_player(sys::state& state, client_data& client);
+void kick_player(sys::state& state, client_data& client);
 
 }

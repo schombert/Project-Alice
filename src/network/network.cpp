@@ -150,6 +150,19 @@ static void accept_new_clients(sys::state& state) {
 			}) != state.network_state.banlist.end()) {
 				disconnect_client(state, client);
 			}
+			// notify the client of all current players
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				if(state.world.nation_get_is_player_controlled(n)) {
+					command::payload c;
+					c.type = command::command_type::notify_player_picks_nation;
+					c.source = n;
+					c.data.nation_pick.target = n;
+					auto r = socket_send(client.socket_fd, &c, sizeof(c));
+					if(r < 0) { // error
+						disconnect_client(state, client);
+					}
+				}
+			});
 			return;
 		}
 	}
@@ -161,7 +174,9 @@ static void receive_from_clients(sys::state& state) {
 			command::payload cmd{};
 			auto r = socket_recv(client.socket_fd, &cmd, sizeof(cmd));
 			if(r == sizeof(cmd)) { // got command
-				state.network_state.outgoing_commands.push(cmd);
+				if(cmd.type != command::command_type::invalid) { // has to be valid
+					state.network_state.outgoing_commands.push(cmd);
+				}
 			} else if(r < 0) { // error
 				disconnect_client(state, client);
 			}
@@ -182,6 +197,7 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 }
 
 void send_and_receive_commands(sys::state& state) {
+	bool command_executed = false;
 	if(state.network_mode == sys::network_mode::host) {
 		accept_new_clients(state); // accept new connections
 		receive_from_clients(state); // receive new commands
@@ -191,6 +207,7 @@ void send_and_receive_commands(sys::state& state) {
 			if(command::is_console_command(c->type) == false) {
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
+				command_executed = true;
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
@@ -202,25 +219,35 @@ void send_and_receive_commands(sys::state& state) {
 			int r = socket_recv(state.network_state.socket_fd, &cmd, sizeof(cmd));
 			if(r == sizeof(cmd)) { // got command
 				command::execute_command(state, cmd);
+				command_executed = true;
 			} else if(r == 0) { // nothing
 				break;
 			} else if(r < 0) { // error
+#ifdef _WIN64
+				MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+#endif
 				std::abort();
 			}
 		}
 		// send the outgoing commands to the server and flush the entire queue
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			command::payload cmd{};
-			int r = socket_send(state.network_state.socket_fd, &cmd, sizeof(cmd));
-			if(r == sizeof(cmd)) { // sent command
+			int r = socket_send(state.network_state.socket_fd, c, sizeof(*c));
+			if(r == sizeof(*c)) { // sent command
 				// ...
 			} else if(r < 0) { // error
+#ifdef _WIN64
+				MessageBoxA(NULL, "Network client send error", "Network error", MB_OK);
+#endif
 				std::abort();
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
 		}
+	}
+
+	if(command_executed) {
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 }
 
@@ -232,6 +259,20 @@ void finish(sys::state& state) {
 #ifdef _WIN64
 	WSACleanup();
 #endif
+}
+
+void ban_player(sys::state& state, client_data& client) {
+	if(client.is_active()) {
+		network::disconnect_client(state, client);
+		state.network_state.banlist.push_back(client.address.sin_addr);
+	}
+}
+
+void kick_player(sys::state& state, client_data& client) {
+	if(client.is_active()) {
+		network::disconnect_client(state, client);
+		state.network_state.banlist.push_back(client.address.sin_addr);
+	}
 }
 
 }
