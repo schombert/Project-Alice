@@ -98,7 +98,7 @@ public:
 			text::add_to_substitution_map(wsub, text::variable_type::third, war.get_over_tag());
 			text::add_to_substitution_map(wsub, text::variable_type::state, war.get_over_state());
 			auto war_name = text::resolve_string_substitution(state, state.world.war_get_name(war), wsub);
-			text::add_to_substitution_map(sub, text::variable_type::list, war_name);
+			text::add_to_substitution_map(sub, text::variable_type::list, std::string_view(war_name.c_str()));
 			text::localised_format_box(state, contents, box, std::string_view("callally_offer"), sub);
 			break;
 		}
