@@ -427,7 +427,7 @@ public:
 		auto previous_day_record = state.player_data_cache.treasury_record[(state.ui_date.value + 31) % 32];
 		auto change = current_day_record - previous_day_record;
 
-		text::add_to_layout_box(state, layout, box, text::fp_currency(nations::get_treasury(state, n)));
+		text::add_to_layout_box(state, layout, box, text::fp_currency{ nations::get_treasury(state, n) });
 		text::add_to_layout_box(state, layout, box, std::string(" ("));
 		if(change > 0) {
 			text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
