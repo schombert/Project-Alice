@@ -14,29 +14,77 @@
 
 static sys::state game_state; // too big for the stack
 
+
+static CRITICAL_SECTION guard_abort_handler;
+
 void signal_abort_handler(int) {
-	STARTUPINFO si;
-	ZeroMemory(&si, sizeof(si));
-	si.cb = sizeof(si);
-	PROCESS_INFORMATION pi;
-	ZeroMemory(&pi, sizeof(pi));
-	// Start the child process. 
-	CreateProcessW(
-		L".\\DbgAlice\\dbg_alice.exe",   // Module name
-		NULL, // Command line
-		NULL, // Process handle not inheritable
-		NULL, // Thread handle not inheritable
-		FALSE, // Set handle inheritance to FALSE
-		0, // No creation flags
-		NULL, // Use parent's environment block
-		NULL, // Use parent's starting directory 
-		&si, // Pointer to STARTUPINFO structure
-		&pi); // Pointer to PROCESS_INFORMATION structure
-	// Wait until child process exits.
-	WaitForSingleObject(pi.hProcess, INFINITE);
-	// Close process and thread handles. 
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
+	static bool run_once = false;
+
+	EnterCriticalSection(&guard_abort_handler);
+	if(run_once == false) {
+		run_once = true;
+
+		STARTUPINFO si;
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		PROCESS_INFORMATION pi;
+		ZeroMemory(&pi, sizeof(pi));
+		// Start the child process. 
+		CreateProcessW(
+			L".\\DbgAlice\\dbg_alice.exe",   // Module name
+			NULL, // Command line
+			NULL, // Process handle not inheritable
+			NULL, // Thread handle not inheritable
+			FALSE, // Set handle inheritance to FALSE
+			0, // No creation flags
+			NULL, // Use parent's environment block
+			NULL, // Use parent's starting directory 
+			&si, // Pointer to STARTUPINFO structure
+			&pi); // Pointer to PROCESS_INFORMATION structure
+		// Wait until child process exits.
+		WaitForSingleObject(pi.hProcess, INFINITE);
+		// Close process and thread handles. 
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
+	LeaveCriticalSection(&guard_abort_handler);
+}
+
+LONG WINAPI uef_wrapper( struct _EXCEPTION_POINTERS* lpTopLevelExceptionFilter) {
+	signal_abort_handler(0);
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void generic_wrapper() {
+	signal_abort_handler(0);
+}
+void invalid_parameter_wrapper(
+   const wchar_t* expression,
+   const wchar_t* function,
+   const wchar_t* file,
+   unsigned int line,
+   uintptr_t pReserved
+) {
+	signal_abort_handler(0);
+}
+
+void EnableCrashingOnCrashes() {
+	typedef BOOL(WINAPI* tGetPolicy)(LPDWORD lpFlags);
+	typedef BOOL(WINAPI* tSetPolicy)(DWORD dwFlags);
+	const DWORD EXCEPTION_SWALLOWING = 0x1;
+
+	HMODULE kernel32 = LoadLibraryA("kernel32.dll");
+	tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy");
+	tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy");
+	if(pGetPolicy && pSetPolicy) {
+		DWORD dwFlags;
+		if(pGetPolicy(&dwFlags)) {
+			// Turn off the filter
+			pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING);
+		}
+	}
+	BOOL insanity = FALSE;
+	SetUserObjectInformationA(GetCurrentProcess(), UOI_TIMERPROC_EXCEPTION_SUPPRESSION, &insanity, sizeof(insanity));
 }
 
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/
@@ -45,7 +93,17 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 #ifdef _DEBUG
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 #endif
-	signal(SIGABRT, signal_abort_handler);
+
+	InitializeCriticalSection(&guard_abort_handler);
+
+	if(!IsDebuggerPresent()) {
+		EnableCrashingOnCrashes();
+		_set_purecall_handler(generic_wrapper);
+		_set_invalid_parameter_handler(invalid_parameter_wrapper);
+		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+		SetUnhandledExceptionFilter(uef_wrapper);
+		signal(SIGABRT, signal_abort_handler);
+	}
 
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
