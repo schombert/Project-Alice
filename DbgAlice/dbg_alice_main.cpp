@@ -89,7 +89,16 @@ static void minidump_generate(HANDLE hProcess) {
 				| MiniDumpWithTokenInformation),
 			NULL, NULL, NULL);
 		if(bResult == TRUE) {
-			wprintf(L"Created mini-dump successfully!\n");
+			std::wstring full_message = L"The program has aborted and a crash dump has been generated\n";
+			full_message += L"It will be saved on ";
+			full_message += full_path;
+			full_message += L"\n";
+			full_message += L"Compress the crash dump with an archiver of your choice\n";
+			full_message += L"Send the crash dump and report the bug\n";
+			full_message += L"We're sorry for the inconvenience\n";
+			MessageBoxW(NULL,
+				full_message.c_str(),
+				L"Crash dump", MB_OK);
 		} else {
 			wprintf(L"Failed to make mini dump!\n");
 		}
