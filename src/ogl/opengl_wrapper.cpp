@@ -4,6 +4,7 @@
 
 namespace ogl {
 
+#if 0
 std::string_view opengl_get_error_name(GLenum t) {
 	switch(t) {
 		case GL_INVALID_ENUM:
@@ -26,18 +27,7 @@ std::string_view opengl_get_error_name(GLenum t) {
 			return "Unknown";
 	}
 }
-
-void notify_user_of_fatal_opengl_error(std::string message) {
-	std::string full_message = message;
-	full_message += "\n";
-	full_message += opengl_get_error_name(glGetError());
-#ifdef _WIN64
-	MessageBoxA(nullptr, full_message.c_str(), "OpenGL error", MB_OK);
-#else
-	std::fprintf(stderr, "OpenGL error: %s\n", full_message.c_str());
 #endif
-	std::abort();
-}
 
 void load_special_icons(sys::state& state) {
 	auto root = get_root(state.common_fs);
@@ -135,8 +125,8 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 		auto log = std::unique_ptr<char[]>(new char[static_cast<size_t>(log_length)]);
 		GLsizei written = 0;
-		glGetShaderInfoLog(return_value, logLen, &written, log);
-		notify_user_of_fatal_opengl_error(std::string("Shader failed to compile:\n") + log);
+		glGetShaderInfoLog(return_value, log_length, &written, log.get());
+		report::fatal_error(std::string("Shader failed to compile:\n") + log.get());
 	}
 	return return_value;
 }

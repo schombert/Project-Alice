@@ -7,12 +7,18 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
+#include <signal.h>
 #include "Objbase.h"
 #include "window.hpp"
+#include "report.hpp"
 
 #pragma comment(lib, "Ole32.lib")
 
 static sys::state game_state; // too big for the stack
+
+void signal_abort_handler(int) {
+	report::debug("Abort called");
+}
 
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/
 ) {
@@ -20,6 +26,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 #ifdef _DEBUG
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 #endif
+	signal(SIGABRT, signal_abort_handler);
 
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
