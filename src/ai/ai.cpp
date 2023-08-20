@@ -1819,7 +1819,7 @@ void update_cb_fabrication(sys::state& state) {
 		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {
 			if(n.get_is_at_war())
 				continue;
-			if(n.get_infamy() > state.defines.badboy_limit / 2.f)
+			if(n.get_infamy() > state.defines.badboy_limit / 2.5f)
 				continue;
 			if(n.get_constructing_cb_type())
 				continue;
