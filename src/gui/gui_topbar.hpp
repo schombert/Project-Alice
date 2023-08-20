@@ -179,98 +179,6 @@ class topbar_nation_flag_frame : public nation_flag_frame {
 public:
 };
 
-class topbar_nation_budget_funds_text : public nation_budget_funds_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
-		auto box = text::open_layout_box(contents, 0);
-
-		text::substitution_map sub{};
-
-		auto total_income = economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor);
-		total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle);
-		total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich);
-		total_income += economy::estimate_gold_income(state, nation_id);
-
-		auto total_expense = economy::estimate_construction_spending(state, nation_id);
-		total_expense += economy::estimate_land_spending(state, nation_id);
-		total_expense += economy::estimate_naval_spending(state, nation_id);
-		total_expense += economy::estimate_social_spending(state, nation_id);
-		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education);
-		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration);
-		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military);
-		total_expense += economy::estimate_loan_payments(state, nation_id);
-		total_expense += economy::estimate_subsidy_spending(state, nation_id);
-
-		text::add_to_substitution_map(sub, text::variable_type::yesterday,
-				text::fp_one_place{nations::get_yesterday_income(state, nation_id)});
-		text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_one_place{nations::get_treasury(state, nation_id)});
-
-		text::localised_format_box(state, contents, box, std::string_view("topbar_funds"), sub); // $YESTERDAY && $CASH
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_income"), text::variable_type::val,
-				text::fp_three_places{total_income}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_poor"), text::variable_type::val,
-				text::fp_one_place{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_middle"), text::variable_type::val,
-				text::fp_one_place{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_rich"), text::variable_type::val,
-				text::fp_one_place{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("tariffs_income"), text::variable_type::val,
-				text::fp_one_place{economy::estimate_tariff_income(state, nation_id)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("budget_exports"), text::substitution_map{}); // $VAL	TODO
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_gold"), text::variable_type::val,
-				text::fp_one_place{economy::estimate_gold_income(state, nation_id)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_expense"), text::variable_type::val,
-				text::fp_three_places{-total_expense}); // $VAL	TODO
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_expense_slider_education"),
-				text::variable_type::val,
-				text::fp_three_places{
-						-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_administration"),
-				text::variable_type::val,
-				text::fp_three_places{
-						-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_social_spending"),
-				text::variable_type::val,
-				text::fp_three_places{
-						-economy::estimate_social_spending(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_military_spending"),
-				text::variable_type::val,
-				text::fp_two_places{
-						-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military)}); // $VAL
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_interest"), text::variable_type::val,
-				text::fp_one_place{
-						-economy::estimate_loan_payments(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_imports"), text::variable_type::val,
-				text::fp_one_place{-economy::nation_total_imports(state,
-						nation_id)}); // $VAL - presumably nation_total_imports is for national stockpile (?)
-		text::add_line_break_to_layout_box(state, contents, box); // Intentional, theres meant to be two new lines here.
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("topbar_projected_income"), text::variable_type::val,
-				text::fp_two_places{economy::estimate_daily_income(state, nation_id)}); // $VAL	TODO
-
-		text::close_layout_box(contents, box);
-	}
-};
 
 class topbar_budget_line_graph : public line_graph {
 public:
@@ -468,7 +376,7 @@ public:
 		text::add_to_layout_box(state, layout, box, text::pretty_integer{pop_change}, color);
 		text::add_to_layout_box(state, layout, box, std::string(")"));
 
-		
+		text::close_layout_box(layout, box);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -502,6 +410,111 @@ public:
 			
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
 		}
+	}
+
+};
+
+class topbar_treasury_text : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+
+		auto layout = text::create_endless_layout(internal_layout,
+		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black, false });
+		auto box = text::open_layout_box(layout, 0);
+
+		auto current_day_record = state.player_data_cache.treasury_record[state.ui_date.value % 32];
+		auto previous_day_record = state.player_data_cache.treasury_record[(state.ui_date.value + 31) % 32];
+		auto change = current_day_record - previous_day_record;
+
+		text::add_to_layout_box(state, layout, box, text::fp_currency(nations::get_treasury(state, n)));
+		text::add_to_layout_box(state, layout, box, std::string(" ("));
+		if(change > 0) {
+			text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
+			text::add_to_layout_box(state, layout, box, text::fp_currency{ change }, text::text_color::green);
+		} else if(change == 0) {
+			text::add_to_layout_box(state, layout, box, text::fp_currency{ change }, text::text_color::white);
+		} else {
+			text::add_to_layout_box(state, layout, box, text::fp_currency{ change }, text::text_color::red);
+		}
+		text::add_to_layout_box(state, layout, box, std::string(")"));
+
+		text::close_layout_box(layout, box);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+
+		text::substitution_map sub{};
+
+		auto total_income = economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor);
+		total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle);
+		total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich);
+		total_income += economy::estimate_gold_income(state, nation_id);
+
+		auto total_expense = economy::estimate_construction_spending(state, nation_id);
+		total_expense += economy::estimate_land_spending(state, nation_id);
+		total_expense += economy::estimate_naval_spending(state, nation_id);
+		total_expense += economy::estimate_social_spending(state, nation_id);
+		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education);
+		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration);
+		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military);
+		total_expense += economy::estimate_loan_payments(state, nation_id);
+		total_expense += economy::estimate_subsidy_spending(state, nation_id);
+
+		text::add_to_substitution_map(sub, text::variable_type::yesterday,
+				text::fp_one_place{ nations::get_yesterday_income(state, nation_id) });
+		text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_one_place{ nations::get_treasury(state, nation_id) });
+
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("topbar_funds"), sub); // $YESTERDAY && $CASH
+			text::close_layout_box(contents, box);
+		}
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, std::string_view("budget_total_income"), text::variable_type::val, text::fp_three_places{ total_income }); // $VAL
+		text::add_line(state, contents, std::string_view("taxes_poor"), text::variable_type::val, text::fp_one_place{ economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor) }); // $VAL
+		text::add_line(state, contents, std::string_view("taxes_middle"), text::variable_type::val,
+					text::fp_one_place{ economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle) }); // $VAL
+		text::add_line(state, contents, std::string_view("taxes_rich"), text::variable_type::val,
+				text::fp_one_place{ economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich) }); // $VAL
+		text::add_line(state, contents, std::string_view("tariffs_income"), text::variable_type::val,
+					text::fp_one_place{ economy::estimate_tariff_income(state, nation_id) }); // $VAL
+		text::add_line(state, contents, std::string_view("budget_exports")); // $VAL	TODO
+		text::add_line(state, contents, std::string_view("budget_gold"), text::variable_type::val, text::fp_one_place{ economy::estimate_gold_income(state, nation_id) }); // $VAL
+		text::add_line(state, contents, std::string_view("budget_total_expense"), text::variable_type::val,
+					text::fp_three_places{ -total_expense }); // $VAL TODO
+		text::add_line(state, contents, std::string_view("budget_expense_slider_education"),
+					text::variable_type::val,
+					text::fp_three_places{
+							-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education) }); // $VAL
+		text::add_line(state, contents, std::string_view("budget_slider_administration"),
+					text::variable_type::val,
+					text::fp_three_places{
+							-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration) }); // $VAL
+		text::add_line(state, contents, std::string_view("budget_slider_social_spending"),
+					text::variable_type::val,
+					text::fp_three_places{
+							-economy::estimate_social_spending(state, nation_id) }); // $VAL - presumably loan payments == interest (?)
+		text::add_line(state, contents, std::string_view("budget_slider_military_spending"),
+				text::variable_type::val,
+				text::fp_two_places{
+						-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military) }); // $VAL
+		text::add_line(state, contents, std::string_view("budget_interest"), text::variable_type::val,
+				text::fp_one_place{
+						-economy::estimate_loan_payments(state, nation_id) }); // $VAL - presumably loan payments == interest (?)
+		text::add_line(state, contents, std::string_view("budget_imports"), text::variable_type::val,
+				text::fp_one_place{ -economy::nation_total_imports(state,
+						nation_id) }); // $VAL - presumably nation_total_imports is for national stockpile (?)
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, std::string_view("topbar_projected_income"), text::variable_type::val,
+				text::fp_two_places{ economy::estimate_daily_income(state, nation_id) });
 	}
 
 };
@@ -1898,7 +1911,7 @@ public:
 		} else if(name == "budget_linechart") {
 			return make_element_by_type<topbar_budget_line_graph>(state, id);
 		} else if(name == "budget_funds") {
-			return make_element_by_type<topbar_nation_budget_funds_text>(state, id);
+			return make_element_by_type<topbar_treasury_text>(state, id);
 		} else if(name == "topbar_tech_progress") {
 			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "tech_current_research") {
@@ -1924,7 +1937,7 @@ public:
 		} else if(name == "alert_have_rebels") {
 			return make_element_by_type<topbar_rebels_icon>(state, id);
 		} else if(name == "population_total_value") {
-			return make_element_by_type<topbar_nation_population_text>(state, id); // TODO: display daily change alongside total
+			return make_element_by_type<topbar_nation_population_text>(state, id);
 		} else if(name == "topbar_focus_value") {
 			return make_element_by_type<topbar_nation_focus_allocation_text>(state, id);
 		} else if(name == "population_avg_mil_value") {
