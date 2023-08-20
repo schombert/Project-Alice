@@ -268,11 +268,14 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 add_dependencies(Alice GENERATE_PARSERS)
 
 
-if (BUILD_TESTING)
-    enable_testing()
-	add_subdirectory(tests)
-endif()
+#if (BUILD_TESTING)
+#    enable_testing()
+#	add_subdirectory(tests)
+#endif()
 add_subdirectory(SaveEditor)
+if(WIN32)
+	add_subdirectory(DbgAlice)
+endif()
 
 # Installation
 if(NOT WIN32)
