@@ -136,22 +136,9 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			if(ui_state.province_window) {
 				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 			}
-			if(selected_armies.size() > 0) {
-				if(ui_state.army_status_window)
-					ui_state.army_status_window->set_visible(*this, false);
-				if(ui_state.unit_window_army)
-					ui_state.unit_window_army->set_visible(*this, false);
-				selected_armies.clear();
-				game_state_updated.store(true, std::memory_order_release);
-			}
-			if(selected_navies.size() > 0) {
-				if(ui_state.navy_status_window)
-					ui_state.navy_status_window->set_visible(*this, false);
-				if(ui_state.unit_window_navy)
-					ui_state.unit_window_navy->set_visible(*this, false);
-				selected_navies.clear();
-				game_state_updated.store(true, std::memory_order_release);
-			}
+			selected_armies.clear();
+			selected_navies.clear();
+			game_state_updated.store(true, std::memory_order_release);
 		}
 	}
 }
@@ -423,8 +410,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 		return;
-	}
-	if(mode == sys::game_mode::pick_nation) {
+	} else if(mode == sys::game_mode::pick_nation) {
 		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -2621,6 +2607,8 @@ void state::load_scenario_data() {
 
 	military::recover_org(*this);
 
+	military::set_initial_leaders(*this);
+
 	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
@@ -2774,11 +2762,11 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 }
 
 constexpr inline int32_t game_speed[] = {
-		0,		// speed 0
-		2000, // speed 1 -- 2 seconds
-		1000, // speed 2 -- 1 second
-		500,	// speed 3 -- 0.5 seconds
-		250,	// speed 4 -- 0.25 seconds
+	0,		// speed 0
+	1000,	// speed 1 -- 1 second
+	500,		// speed 2 -- 0.5 seconds
+	250,		// speed 3 -- 0.25 seconds
+	125,		// speed 4 -- 0.125 seconds
 };
 
 void state::single_game_tick() {

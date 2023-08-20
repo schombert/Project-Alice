@@ -186,9 +186,12 @@ public:
 	dcon::gfx_object_id default_img;
 
 	void on_update(sys::state& state) noexcept override {
-		if(!default_img)
-			default_img = base_data.data.image.gfx_object;
-
+		if(!default_img) {
+			if(base_data.get_element_type() == ui::element_type::image)
+				default_img = base_data.data.image.gfx_object;
+			else if(base_data.get_element_type() == ui::element_type::button)
+				default_img = base_data.data.button.button_image;
+		}
 
 		auto unit = retrieve<T>(state, parent);
 		dcon::leader_id lid;
@@ -210,18 +213,27 @@ public:
 				if(arange.size() > 0) {
 					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
 					auto in_range = rng::reduce(uint32_t(rval), arange.size());
-					base_data.data.image.gfx_object = arange[in_range];
+					if(base_data.get_element_type() == ui::element_type::image)
+						base_data.data.image.gfx_object = arange[in_range];
+					else if(base_data.get_element_type() == ui::element_type::button)
+						base_data.data.button.button_image = arange[in_range];
 				}
 			} else {
 				auto grange = ltype.get_generals();
 				if(grange.size() > 0) {
 					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
 					auto in_range = rng::reduce(uint32_t(rval), grange.size());
-					base_data.data.image.gfx_object = grange[in_range];
+					if(base_data.get_element_type() == ui::element_type::image)
+						base_data.data.image.gfx_object = grange[in_range];
+					else if(base_data.get_element_type() == ui::element_type::button)
+						base_data.data.button.button_image = grange[in_range];
 				}
 			}
 		} else {
-			base_data.data.image.gfx_object = default_img;
+			if(base_data.get_element_type() == ui::element_type::image)
+				base_data.data.image.gfx_object = default_img;
+			else if(base_data.get_element_type() == ui::element_type::button)
+				base_data.data.button.button_image = default_img;
 		}
 	}
 
@@ -1470,8 +1482,12 @@ public:
 	dcon::gfx_object_id default_img;
 
 	void on_update(sys::state& state) noexcept override {
-		if(!default_img)
-			default_img = base_data.data.image.gfx_object;
+		if(!default_img) {
+			if(base_data.get_element_type() == ui::element_type::image)
+				default_img = base_data.data.image.gfx_object;
+			else if(base_data.get_element_type() == ui::element_type::button)
+				default_img = base_data.data.button.button_image;
+		}
 
 		auto foru = retrieve<unit_var>(state, parent);
 		dcon::leader_id lid;
@@ -1493,18 +1509,29 @@ public:
 				if(arange.size() > 0) {
 					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
 					auto in_range = rng::reduce(uint32_t(rval), arange.size());
-					base_data.data.image.gfx_object = arange[in_range];
+
+					if(base_data.get_element_type() == ui::element_type::image)
+						base_data.data.image.gfx_object = arange[in_range];
+					else if(base_data.get_element_type() == ui::element_type::button)
+						base_data.data.button.button_image = arange[in_range];
 				}
 			} else {
 				auto grange = ltype.get_generals();
 				if(grange.size() > 0) {
 					auto rval = rng::get_random(state, uint32_t(state.world.leader_get_since(lid).value), uint32_t(lid.value));
 					auto in_range = rng::reduce(uint32_t(rval), grange.size());
-					base_data.data.image.gfx_object = grange[in_range];
+
+					if(base_data.get_element_type() == ui::element_type::image)
+						base_data.data.image.gfx_object = grange[in_range];
+					else if(base_data.get_element_type() == ui::element_type::button)
+						base_data.data.button.button_image = grange[in_range];
 				}
 			}
 		} else {
-			base_data.data.image.gfx_object = default_img;
+			if(base_data.get_element_type() == ui::element_type::image)
+				base_data.data.image.gfx_object = default_img;
+			else if(base_data.get_element_type() == ui::element_type::button)
+				base_data.data.button.button_image = default_img;
 		}
 	}
 
