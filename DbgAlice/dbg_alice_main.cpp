@@ -127,7 +127,3 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 	}
 	return EXIT_SUCCESS;
 }
-
-int main(void) {
-	return wWinMain(0, 0, (LPWSTR)NULL, 0);
-}

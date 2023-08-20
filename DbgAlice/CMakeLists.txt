@@ -1,4 +1,4 @@
-add_executable(dbg_alice "${PROJECT_SOURCE_DIR}/DbgAlice/dbg_alice_main.cpp")
+add_executable(dbg_alice WIN32 "${PROJECT_SOURCE_DIR}/DbgAlice/dbg_alice_main.cpp")
 
 target_link_libraries(dbg_alice PRIVATE AliceCommon)
 target_link_libraries(dbg_alice PRIVATE dbghelp)
