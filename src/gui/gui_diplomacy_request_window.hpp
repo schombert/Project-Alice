@@ -58,7 +58,7 @@ public:
 		case diplomatic_message::type_t::be_crisis_primary_attacker:
 			return text::produce_simple_string(state, "crisis_offer_button");
 		case diplomatic_message::type_t::peace_offer:
-			return text::produce_simple_string(state, "peace_offer");
+			return text::produce_simple_string(state, "peace_di");
 		case diplomatic_message::type_t::take_crisis_side_offer:
 			return text::produce_simple_string(state, "crisis_take_side_offer");
 		case diplomatic_message::type_t::crisis_peace_offer:
@@ -86,9 +86,22 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("alliance_offer"), sub);
 			break;
 		case diplomatic_message::type_t::call_ally_request:
-			// TODO: War name on data.war, in $LIST$
+		{
+			auto war = dcon::fatten(state.world, diplomacy_request.data.war);
+			dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+			dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+			text::substitution_map wsub;
+			text::add_to_substitution_map(wsub, text::variable_type::order, std::string_view(""));
+			text::add_to_substitution_map(wsub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
+			text::add_to_substitution_map(wsub, text::variable_type::second_country, primary_defender);
+			text::add_to_substitution_map(wsub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
+			text::add_to_substitution_map(wsub, text::variable_type::third, war.get_over_tag());
+			text::add_to_substitution_map(wsub, text::variable_type::state, war.get_over_state());
+			auto war_name = text::resolve_string_substitution(state, state.world.war_get_name(war), wsub);
+			text::add_to_substitution_map(sub, text::variable_type::list, war_name);
 			text::localised_format_box(state, contents, box, std::string_view("callally_offer"), sub);
 			break;
+		}
 		case diplomatic_message::type_t::be_crisis_primary_defender:
 			text::localised_format_box(state, contents, box, std::string_view("back_crisis_offer"), sub);
 			break;
@@ -96,8 +109,24 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("crisis_offer_offer"), sub);
 			break;
 		case diplomatic_message::type_t::peace_offer:
-			text::localised_format_box(state, contents, box, "peace_offer_offer");
+		{
+			text::add_to_substitution_map(sub, text::variable_type::country, state.world.peace_offer_get_nation_from_pending_peace_offer(diplomacy_request.data.peace));
+			text::localised_format_box(state, contents, box, std::string_view("peaceofferdesc"), sub);
+			state.world.peace_offer_for_each_peace_offer_item_as_peace_offer(diplomacy_request.data.peace, [&state, &contents, &box](dcon::peace_offer_item_id poiid) {
+				dcon::wargoal_id wg = state.world.peace_offer_item_get_wargoal(poiid);
+				dcon::cb_type_id cbt = state.world.wargoal_get_type(wg);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::recipient, state.world.wargoal_get_target_nation(wg));
+				text::add_to_substitution_map(sub, text::variable_type::from, state.world.wargoal_get_added_by(wg));
+				if(state.world.wargoal_get_secondary_nation(wg))
+					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_secondary_nation(wg));
+				else if(state.world.wargoal_get_associated_tag(wg))
+					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_associated_tag(wg));
+				text::add_to_substitution_map(sub, text::variable_type::state, state.world.wargoal_get_associated_state(wg));
+				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(cbt), sub);
+			});
 			break;
+		}
 		case diplomatic_message::type_t::take_crisis_side_offer:
 			text::localised_format_box(state, contents, box, "crisis_take_side_offer_offer");
 			break;
@@ -114,6 +143,43 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		simple_text_element_base::on_create(state);
 		black_text = false;
+	}
+};
+
+class diplomacy_request_flag_button : public flag_button {
+public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.y -= 6;
+		base_data.size.y += 32;
+
+		base_data.position.x += 8;
+		base_data.size.x -= 16;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid && flag_texture_handle > 0) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
+			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
+					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+					gfx_def.is_vertically_flipped());
+		}
+		image_element_base::render(state, x, y);
+	}
+};
+
+class diplomacy_request_player_flag_button : public diplomacy_request_flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
+		return fat_id.get_identity_from_identity_holder();
 	}
 };
 
@@ -163,9 +229,9 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<diplomacy_request_reply_button<false>>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<nation_player_flag>(state, id);
+			return make_element_by_type<diplomacy_request_player_flag_button>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<flag_button>(state, id);
+			return make_element_by_type<diplomacy_request_flag_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
