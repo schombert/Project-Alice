@@ -2606,6 +2606,31 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 	state.world.delete_war(w);
 }
 
+void set_initial_leaders(sys::state& state) {
+	for(auto a : state.world.in_army) {
+		if(!bool(a.get_general_from_army_leadership())) {
+			auto controller = a.get_controller_from_army_control();
+			for(auto l : controller.get_leader_loyalty()) {
+				if(l.get_leader().get_is_admiral() == false && !bool(l.get_leader().get_army_from_army_leadership())) {
+					a.set_general_from_army_leadership(l.get_leader());
+					break;
+				}
+			}
+		}
+	}
+	for(auto a : state.world.in_navy) {
+		if(!bool(a.get_admiral_from_navy_leadership())) {
+			auto controller = a.get_controller_from_navy_control();
+			for(auto l : controller.get_leader_loyalty()) {
+				if(l.get_leader().get_is_admiral() == true && !bool(l.get_leader().get_navy_from_navy_leadership())) {
+					a.set_admiral_from_navy_leadership(l.get_leader());
+					break;
+				}
+			}
+		}
+	}
+}
+
 void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id new_gp) {
 	auto existing_sphere_leader = state.world.nation_get_in_sphere_of(member);
 	if(existing_sphere_leader) {

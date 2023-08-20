@@ -2607,6 +2607,8 @@ void state::load_scenario_data() {
 
 	military::recover_org(*this);
 
+	military::set_initial_leaders(*this);
+
 	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
@@ -2760,11 +2762,11 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 }
 
 constexpr inline int32_t game_speed[] = {
-		0,		// speed 0
-		2000, // speed 1 -- 2 seconds
-		1000, // speed 2 -- 1 second
-		500,	// speed 3 -- 0.5 seconds
-		250,	// speed 4 -- 0.25 seconds
+	0,		// speed 0
+	1000,	// speed 1 -- 1 second
+	500,		// speed 2 -- 0.5 seconds
+	250,		// speed 3 -- 0.25 seconds
+	125,		// speed 4 -- 0.125 seconds
 };
 
 void state::single_game_tick() {

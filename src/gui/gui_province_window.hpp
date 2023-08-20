@@ -1196,31 +1196,7 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "army_progress") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "army_progress_overlay") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "navy_progress") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "navy_progress_overlay") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "army_text") { // this seems to be unused
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "navy_text") { // this seems to be unused
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "army_size") {
+		if(name == "army_size") {
 			return make_element_by_type<province_army_size_text>(state, id);
 		} else if(name == "rallypoint_checkbox") {
 			return make_element_by_type< land_rally_point>(state, id);
@@ -1229,7 +1205,16 @@ public:
 		} else if(name == "rallypoint_merge_icon"
 			|| name == "rallypoint_merge_icon_naval"
 			|| name == "rallypoint_merge_checkbox"
-			|| name == "rallypoint_merge_checkbox_naval") {
+			|| name == "rallypoint_merge_checkbox_naval"
+			|| name == "army_progress"
+			|| name == "army_progress_overlay"
+			|| name == "navy_progress"
+			|| name == "navy_progress_overlay"
+			|| name == "army_text"
+			|| name == "navy_text"
+			|| name == "build_army"
+			|| name == "build_navy"
+			|| name == "navy_icon") {
 
 			auto ptr = make_element_by_type<element_base>(state, id);
 			ptr->set_visible(state, false);
