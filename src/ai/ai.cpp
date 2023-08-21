@@ -70,6 +70,13 @@ void update_ai_general_status(sys::state& state) {
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
 		state.world.nation_set_ai_is_threatened(n, threatened);
 
+		// account for domestic rebel threats
+		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
+		if(total_pop / militancy >= state.defines.mil_to_join_rebel * 0.75f) {
+			state.world.nation_set_ai_is_threatened(n, true);
+		}
+
 		if(!n.get_ai_rival()) {
 			float min_relation = 200.0f;
 			dcon::nation_id potential;
@@ -697,11 +704,11 @@ void update_ai_econ_construction(sys::state& state) {
 		// Before, the AI would keep appointing parties repeatedly
 		// causing massive incursions of militancy amongst the population
 		// so stop appointing political parties if we have too much militancy
-		// so we stop at 75% of the military cap for nationalist movements, to not trigger them
+		// so we stop at 75% of the defines:MIL_TO_JOIN_REBEL, to not trigger them
 		// hopefully...
 		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
 		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
-		if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
+		if(total_pop / militancy >= state.defines.mil_to_join_rebel * 0.75f) {
 			can_appoint = false;
 		}
 
@@ -4357,6 +4364,13 @@ void update_land_constructions(sys::state& state) {
 					r.get_regiment().set_type(state.military_definitions.infantry);
 				}
 			}
+		}
+
+		// mobilize if we feel threatened
+		if(state.world.nation_get_ai_is_threatened(n)) {
+			military::start_mobilization(state, n);
+		} else if(state.world.nation_get_is_mobilized(n)) {
+			military::start_mobilization(state, n);
 		}
 
 		const std::function<dcon::unit_type_id()> decide_type = can_make_art
