@@ -247,7 +247,6 @@ public:
 	ui::simple_text_element_base* build_time = nullptr;
 	ui::simple_text_element_base* pop_size = nullptr;
 	ui::simple_text_element_base* brigades = nullptr;
-	int pass = 0;
 
 	std::string pop_size_text;
 
@@ -281,19 +280,13 @@ public:
 			build_time = ptr.get();
 			return ptr;
 		} else if(name == "popsize") {
-			if(pass == 0) {
-				auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-				pop_size = ptr.get();
-				pass += 1;
-				make_child(state, name, id);
-				return ptr;
-			} else {
-				auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-				ptr->base_data.position.y += 14;
-				brigades = ptr.get();
-				add_child_to_back(std::move(ptr));
-				return ptr;
-			}
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			pop_size = ptr.get();
+			auto ptr2 = make_element_by_type<simple_text_element_base>(state, id);
+			ptr2->base_data.position.y += 14;
+			brigades = ptr2.get();
+			add_child_to_back(std::move(ptr2));
+			return ptr;
 		} else {
 			return nullptr;
 		}
