@@ -1701,7 +1701,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 	 with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 	*/
 	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n));
-	state.world.nation_get_infamy(n) += ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy;
+	auto adj_infamy = ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy;
+	state.world.nation_get_infamy(n) += adj_infamy;
 
 	auto target = state.world.nation_get_constructing_cb_target(n);
 
@@ -1715,9 +1716,9 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 	}
 
 	notification::post(state, notification::message{
-		[n, target, infamy](sys::state& state, text::layout_base& contents) {
+		[n, target, adj_infamy](sys::state& state, text::layout_base& contents) {
 			if(n == state.local_player_nation) {
-				text::add_line(state, contents, "msg_fab_discovered_1", text::variable_type::x, text::fp_one_place{infamy});
+				text::add_line(state, contents, "msg_fab_discovered_1", text::variable_type::x, text::fp_one_place{ adj_infamy });
 			} else {
 				text::add_line(state, contents, "msg_fab_discovered_2", text::variable_type::x, n, text::variable_type::y, target);
 			}
@@ -1727,9 +1728,9 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		sys::message_setting_type::cb_detected_by_nation
 	});
 	notification::post(state, notification::message{
-		[n, target, infamy](sys::state& state, text::layout_base& contents) {
+		[n, target, adj_infamy](sys::state& state, text::layout_base& contents) {
 			if(n == state.local_player_nation) {
-				text::add_line(state, contents, "msg_fab_discovered_1", text::variable_type::x, text::fp_one_place{infamy});
+				text::add_line(state, contents, "msg_fab_discovered_1", text::variable_type::x, text::fp_one_place{ adj_infamy });
 			} else {
 				text::add_line(state, contents, "msg_fab_discovered_2", text::variable_type::x, n, text::variable_type::y, target);
 			}
