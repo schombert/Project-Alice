@@ -649,6 +649,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				break;
 			}
 		}
+		bool was_slave_state = !old_owner || state.world.province_get_is_slave(id);
 		if(!new_si) {
 			new_si = state.world.create_state_instance();
 			state.world.state_instance_set_definition(new_si, state_def);
@@ -673,6 +674,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					state.world.state_instance_set_naval_base_is_taken(new_si, true);
 				}
 			}
+		}
+		if(was_slave_state) {
+			culture::fix_slaves_in_province(state, new_owner, id);
 		}
 
 		int32_t factories_in_new_state = 0;
