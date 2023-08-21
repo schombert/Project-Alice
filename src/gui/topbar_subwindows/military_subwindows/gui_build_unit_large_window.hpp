@@ -250,7 +250,6 @@ public:
 	int pass = 0;
 
 	std::string pop_size_text;
-	std::string brigades_text;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -314,6 +313,7 @@ public:
 			//popsize
 			if(content.is_navy) {
 				pop_size->set_text(state, "");
+				brigades->set_text(state, "");
 			} else {
 				pop_size_text = text::format_float(state.world.pop_get_size(content.pop_info) / 1000, 1);
 				int num_of_brigades = 0;
