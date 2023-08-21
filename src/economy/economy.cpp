@@ -1470,7 +1470,6 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 						break;
 					}
 				}
-				break;
 			} else if(c.get_is_pop_project() && province_building_type(c.get_type()) == economy::province_building_type::railroad) {
 				auto t = economy::province_building_type(c.get_type());
 				auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
