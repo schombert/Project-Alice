@@ -3207,11 +3207,17 @@ void state::game_loop() {
 				auto entry_time = std::chrono::steady_clock::now();
 				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
-					command::execute_pending_commands(*this);
 					last_update = entry_time;
-					single_game_tick();
+					if(network_mode == sys::network_mode::host) {
+						/*
+						command::payload c;
+						c.type = command::command_type::advance_tick;
+						network_state.outgoing_commands.push(c);
+						*/
+					} else {
+						single_game_tick();
+					}
 				} else {
-					command::execute_pending_commands(*this);
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				}
 			}
