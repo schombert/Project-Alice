@@ -25,8 +25,8 @@ public:
 				0,
 				text::alignment::left,
 				color,
-				false});
-		
+				false });
+
 		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
 		text::add_to_layout_box(state, container, box, text_form_msg, color);
@@ -148,7 +148,7 @@ public:
 					target = state.world.national_identity_get_nation_from_identity_holder(id);
 			});
 		}
-		
+
 		char body[max_chat_message_len];
 		size_t len = s.length() >= max_chat_message_len ? max_chat_message_len : s.length();
 		memcpy(body, s.data(), len);
