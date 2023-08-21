@@ -2586,6 +2586,13 @@ void state::load_scenario_data() {
 			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
 	});
 
+	// fix slaves in non-slave owning nations
+	for(auto p : world.in_province) {
+		if(p.get_nation_from_province_ownership()) {
+			culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
+		}
+	}
+
 	// run the economy for three days on scenario creation
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);

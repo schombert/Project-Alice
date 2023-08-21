@@ -188,6 +188,7 @@ void restore_unsaved_values(sys::state& state);
 float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id);
 void update_research(sys::state& state, uint32_t current_year);
 void discover_inventions(sys::state& state);
+void fix_slaves_in_province(sys::state& state, dcon::nation_id owner, dcon::province_id p);
 
 void replace_cores(sys::state& state, dcon::national_identity_id old_tag, dcon::national_identity_id new_tag);
 

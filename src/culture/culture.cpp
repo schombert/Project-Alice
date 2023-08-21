@@ -582,6 +582,18 @@ flag_type get_current_flag_type(sys::state const& state, dcon::national_identity
 		return flag_type::default_flag;
 	}
 }
+void fix_slaves_in_province(sys::state& state, dcon::nation_id owner, dcon::province_id p) {
+	auto rules = state.world.nation_get_combined_issue_rules(owner);
+	if((rules & issue_rule::slavery_allowed) == 0) {
+		state.world.province_set_is_slave(p, false);
+		bool mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.slaves) {
+				pop.get_pop().set_poptype(mine ? state.culture_definitions.laborers : state.culture_definitions.farmers);
+			}
+		}
+	}
+}
 
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id) {
 	auto old_rules = state.world.nation_get_combined_issue_rules(n_id);
