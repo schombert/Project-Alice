@@ -391,7 +391,7 @@ public:
 							info.is_navy = false;
 							for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 								if(pl.get_pop().get_culture() == c) {
-									if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+									if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= 1000.0f) {
 										info.pop_info = pl.get_pop();
 										break;
 									}
@@ -537,9 +537,11 @@ public:
 			return ptr;
 		} else if(name == "build_army_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "build_navy_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "close") {
 			auto ptr = make_element_by_type<build_unit_close_button>(state, id);
