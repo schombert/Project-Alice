@@ -2670,9 +2670,9 @@ void update_budget(sys::state& state) {
 		n.set_construction_spending(int8_t(100));
 		n.set_tariffs(int8_t(0));
 
-		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / state.world.nation_get_demographics(n, demographics::poor_total)) / 10.f;
-		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / state.world.nation_get_demographics(n, demographics::middle_total)) / 10.f;
-		float rich_militancy = (state.world.nation_get_demographics(n, demographics::rich_militancy) / state.world.nation_get_demographics(n, demographics::rich_total)) / 10.f;
+		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::poor_total))) / 10.f;
+		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::middle_total))) / 10.f;
+		float rich_militancy = (state.world.nation_get_demographics(n, demographics::rich_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::rich_total))) / 10.f;
 
 		auto rules = n.get_combined_issue_rules();
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {

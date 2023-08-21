@@ -14,7 +14,18 @@ namespace ui {
 void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::reform_option_id ref) {
 	auto reform = fatten(state.world, ref);
 
-	text::add_line(state, contents, "reform_research_cost", text::variable_type::cost, int64_t(reform.get_technology_cost()));
+	float cost = 0.0f;
+	if(state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(ref)) == uint8_t(culture::issue_type::military)) {
+		float base_cost = float(state.world.reform_option_get_technology_cost(ref));
+		float reform_factor = politics::get_military_reform_multiplier(state, state.local_player_nation);
+		cost = base_cost * reform_factor;
+	} else {
+		float base_cost = float(state.world.reform_option_get_technology_cost(ref));
+		float reform_factor = politics::get_economic_reform_multiplier(state, state.local_player_nation);
+		cost = base_cost * reform_factor;
+	}
+
+	text::add_line(state, contents, "reform_research_cost", text::variable_type::cost, int64_t(cost + 0.99f));
 	text::add_line_break_to_layout(state, contents);
 
 	auto mod_id = reform.get_modifier();
