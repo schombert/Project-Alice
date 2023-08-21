@@ -244,6 +244,13 @@ public:
 	ui::unit_build_button* build_button;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
+	ui::simple_text_element_base* build_time = nullptr;
+	ui::simple_text_element_base* pop_size = nullptr;
+	ui::simple_text_element_base* brigades = nullptr;
+	int pass = 0;
+
+	std::string pop_size_text;
+	std::string brigades_text;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -252,6 +259,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "build_button") {
 			auto ptr = make_element_by_type<unit_build_button>(state, id);
+			ptr->set_button_text(state, "");
 			build_button = ptr.get();
 			return ptr;
 		} else if(name == "build_button_group") {
@@ -269,6 +277,24 @@ public:
 		} else if(name == "province") {
 			auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 			return ptr;
+		} else if(name == "time_to_build") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			build_time = ptr.get();
+			return ptr;
+		} else if(name == "popsize") {
+			if(pass == 0) {
+				auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+				pop_size = ptr.get();
+				pass += 1;
+				make_child(state, name, id);
+				return ptr;
+			} else {
+				auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+				ptr->base_data.position.y += 14;
+				brigades = ptr.get();
+				add_child_to_back(std::move(ptr));
+				return ptr;
+			}
 		} else {
 			return nullptr;
 		}
@@ -279,31 +305,50 @@ public:
 			Cyto::Any payload = dcon::unit_type_id{};
 			parent->impl_get(state, payload);
 			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
+			//unit_strip
 			unit_icon->frame = int32_t(state.military_definitions.unit_base_definitions[utid].icon - 1);
+			//time_to_build
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::x, state.military_definitions.unit_base_definitions[utid].build_time);
+			build_time->set_text(state, text::resolve_string_substitution(state, "alice_build_time", m));
+			//popsize
+			if(content.is_navy) {
+				pop_size->set_text(state, "");
+			} else {
+				pop_size_text = text::format_float(state.world.pop_get_size(content.pop_info) / 1000, 1);
+				int num_of_brigades = 0;
 
+				state.world.pop_get_province_from_pop_location(content.pop_info);
+
+				for(auto pl : state.world.province_get_pop_location_as_province(state.world.pop_get_province_from_pop_location(content.pop_info))) {
+					if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						for(auto i : state.world.pop_get_regiment_source(pl.get_pop())) {
+							num_of_brigades += 1;
+						}
+					}
+				}
+
+				text::substitution_map n;
+				text::add_to_substitution_map(n, text::variable_type::x, std::string_view(pop_size_text));
+				pop_size->set_text(state, text::resolve_string_substitution(state, "alice_build_unit_pop_size", n));
+
+				text::substitution_map p;
+				text::add_to_substitution_map(p, text::variable_type::x, num_of_brigades);
+				text::add_to_substitution_map(p, text::variable_type::y, military::regiments_max_possible_from_province(state, state.world.pop_get_province_from_pop_location(content.pop_info)));
+				brigades->set_text(state, text::resolve_string_substitution(state, "alice_build_unit_brigades", p));
+			}
+
+			//name
 			build_button->is_navy = content.is_navy;
 			if(content.is_navy == false) {
+				build_button->frame = 0;
 				auto culture_id = state.world.pop_get_culture(content.pop_info);
 				auto culture_content = text::produce_simple_string(state, culture_id.get_name());
 				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
 				unit_name->set_text(state, culture_content + " " + unit_type_name);
-
-				/* if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].primary_culture) {
-					if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
-						int cult_it = 0;
-						for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
-							if(culture_id.id == element) {
-								cult_it++;
-							}
-						}
-						if(cult_it == 0) {
-							set_visible(state, false);
-						}
-					}
-				}*/
 			} else {
-				unit_name->set_text(state,
-						text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+				build_button->frame = 1;
+				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 			}
 		}
 	}

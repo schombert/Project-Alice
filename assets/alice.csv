@@ -944,6 +944,9 @@ alice_evasion;Evasion §G$x$%
 alice_siege;Siege §G$x$
 alice_torpedo_attack;Torpedo Attack §G$x$
 alice_unit_folder_unit_name;§Y$x$
+alice_build_time;$x$ days
+alice_build_unit_pop_size;$x$k
+alice_build_unit_brigades;$x$/$y$
 msg_revolt;When a revolt occurs;;;;;;;;;;;;x
 msg_war_on_nation;When we declare war;;;;;;;;;;;;x
 msg_war_by_nation;When we are declared war;;;;;;;;;;;;x
