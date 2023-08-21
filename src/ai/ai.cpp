@@ -2681,7 +2681,8 @@ void update_budget(sys::state& state) {
 			int max_poor_tax = int(30.f * tax_mil_factor);
 			int max_mid_tax = int(60.f * tax_mil_factor);
 			int max_rich_tax = int(90.f * tax_mil_factor);
-			int max_tariff = int(-100.f * spend_mil_factor);
+			int min_tariff = int(-100.f * spend_mil_factor);
+			int max_tariff = int(100.f * tax_mil_factor);
 			int max_military = int(100.f * spend_mil_factor);
 			int max_social = int(100.f * spend_mil_factor);
 
@@ -2697,7 +2698,7 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(100));
+				n.set_tariffs(int8_t(max_tariff));
 			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -2708,7 +2709,7 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(max_tariff));
+				n.set_tariffs(int8_t(min_tariff));
 			}
 		} else {
 			int max_poor_tax = int(90.f * tax_mil_factor);
