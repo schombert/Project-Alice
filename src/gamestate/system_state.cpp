@@ -2969,7 +2969,7 @@ void state::single_game_tick() {
 	demographics::regenerate_from_pop_data(*this);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
-	concurrency::parallel_for(0, 16, [&](int32_t index) {
+	concurrency::parallel_for(0, 18, [&](int32_t index) {
 		switch(index) {
 			case 0:
 				nations::update_administrative_efficiency(*this);
@@ -2990,33 +2990,39 @@ void state::single_game_tick() {
 				military::update_naval_supply_points(*this);
 				break;
 			case 6:
-				economy::update_rgo_employment(*this);
+				military::update_all_recruitable_regiments(*this);
 				break;
 			case 7:
-				economy::update_factory_employment(*this);
+				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				rebel::daily_update_rebel_organization(*this);
+				economy::update_rgo_employment(*this);
 				break;
 			case 9:
-				military::daily_leaders_update(*this);
+				economy::update_factory_employment(*this);
 				break;
 			case 10:
-				politics::daily_party_loyalty_update(*this);
+				rebel::daily_update_rebel_organization(*this);
 				break;
 			case 11:
-				nations::daily_update_flashpoint_tension(*this);
+				military::daily_leaders_update(*this);
 				break;
 			case 12:
-				military::update_ticking_war_score(*this);
+				politics::daily_party_loyalty_update(*this);
 				break;
 			case 13:
-				military::increase_dig_in(*this);
+				nations::daily_update_flashpoint_tension(*this);
 				break;
 			case 14:
-				military::recover_org(*this);
+				military::update_ticking_war_score(*this);
 				break;
 			case 15:
+				military::increase_dig_in(*this);
+				break;
+			case 16:
+				military::recover_org(*this);
+				break;
+			case 17:
 				ai::refresh_home_ports(*this);
 				break;
 		}
