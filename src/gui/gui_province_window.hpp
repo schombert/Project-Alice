@@ -10,7 +10,7 @@
 #include "province.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
-#include <string_view>
+#include "gui_production_window.hpp"
 
 namespace ui {
 
@@ -1116,6 +1116,8 @@ public:
 			return make_element_by_type<province_pop_growth_text>(state, id);
 		} else if(name == "migration") {
 			return make_element_by_type<province_migration_text>(state, id);
+		} else if(name == "build_factory_button") {
+			return make_element_by_type<province_build_new_factory>(state, id);
 		} else {
 			return nullptr;
 		}

@@ -399,9 +399,7 @@ public:
 			factory_to_build = any_cast<element_selection_wrapper<dcon::factory_type_id>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;
-		}
-		//======================================================================================================
-		else if(payload.holds_type<dcon::factory_type_id>()) {
+		} else if(payload.holds_type<dcon::factory_type_id>()) {
 			payload.emplace<dcon::factory_type_id>(factory_to_build);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::commodity_id>()) {

@@ -1751,20 +1751,20 @@ dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_ge
 
 	uint32_t seed_base = (uint32_t(n.index()) << 6) ^ uint32_t(l.id.index());
 
-	auto num_personalities = state.military_definitions.first_background_trait.index() - 1;
-	auto num_backgrounds = (state.world.leader_trait_size() - num_personalities) - 2;
+	auto num_personalities = uint32_t(state.military_definitions.first_background_trait.index() - 1);
+	auto num_backgrounds = uint32_t((state.world.leader_trait_size() - num_personalities) - 2);
 
 	auto trait_pair = rng::get_random_pair(state, seed_base);
 
-	l.set_personality(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(1 + trait_pair.high % num_personalities)});
-	l.set_background(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(
-			state.military_definitions.first_background_trait.index() + 1 + trait_pair.low % num_backgrounds)});
+	l.set_personality(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(1 + rng::reduce(uint32_t(trait_pair.high), num_personalities))});
+	l.set_background(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(state.military_definitions.first_background_trait.index() + 1 + rng::reduce(uint32_t(trait_pair.low), num_backgrounds))});
 
 	auto names_pair = rng::get_random_pair(state, seed_base + 1);
 
 	auto names = state.world.culture_get_last_names(state.world.nation_get_primary_culture(n));
-	if(names.size() > 0)
-		l.set_name(names.at(names_pair.high % names.size()));
+	if(names.size() > 0) {
+		l.set_name(names.at(rng::reduce(uint32_t(names_pair.high), names.size())));
+	}
 
 	l.set_since(state.current_date);
 

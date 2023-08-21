@@ -823,7 +823,7 @@ void rebel_risings_check(sys::state& state) {
 			if(total_damage == 0)
 				continue;
 
-			float scale_factor = float(new_to_make) * 0.25f / total_damage; // 0.25 damage per regiment that would have been raised
+			float scale_factor = float(new_to_make) * 0.1f / total_damage; // 0.1 damage per regiment that would have been raised
 			for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0;) {
 				dcon::province_id p{dcon::province_id::value_base_t(i) };
 				if(auto dmg = province_damage.get(p) * scale_factor; dmg > 0.05f) { // threshold for flipping a province
