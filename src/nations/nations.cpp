@@ -1323,6 +1323,9 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 	{
 		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
 		while(gp_relationships.begin() != gp_relationships.end()) {
+			auto i = (*gp_relationships.begin()).get_influence_target();
+			if(i.get_in_sphere_of() == n)
+				i.set_in_sphere_of(dcon::nation_id{});
 			state.world.delete_gp_relationship(*(gp_relationships.begin()));
 		}
 	}
@@ -1331,6 +1334,7 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		while(gp_relationships.begin() != gp_relationships.end()) {
 			state.world.delete_gp_relationship(*(gp_relationships.begin()));
 		}
+		state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
 	}
 	{
 		for(auto rel : state.world.nation_get_diplomatic_relation(n)) {
