@@ -562,7 +562,10 @@ void update_great_powers(sys::state& state) {
 			// kill gp relationships
 			auto rels = state.world.nation_get_gp_relationship_as_great_power(n);
 			while(rels.begin() != rels.end()) {
-				state.world.delete_gp_relationship(*(rels.begin()));
+				auto rel = *(rels.begin());
+				if(rel.get_influence_target().get_in_sphere_of() == n)
+					rel.get_influence_target().set_in_sphere_of(dcon::nation_id{});
+				state.world.delete_gp_relationship(rel);
 			}
 
 			notification::post(state, notification::message{

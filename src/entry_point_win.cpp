@@ -30,8 +30,8 @@ void signal_abort_handler(int) {
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
 		// Start the child process. 
-		CreateProcessW(
-			L".\\DbgAlice\\dbg_alice.exe",   // Module name
+		if(CreateProcessW(
+			L"dbg_alice.exe",   // Module name
 			NULL, // Command line
 			NULL, // Process handle not inheritable
 			NULL, // Thread handle not inheritable
@@ -40,7 +40,13 @@ void signal_abort_handler(int) {
 			NULL, // Use parent's environment block
 			NULL, // Use parent's starting directory 
 			&si, // Pointer to STARTUPINFO structure
-			&pi); // Pointer to PROCESS_INFORMATION structure
+			&pi) == 0) {
+
+			// create process failed
+			LeaveCriticalSection(&guard_abort_handler);
+			return;
+
+		}
 		// Wait until child process exits.
 		WaitForSingleObject(pi.hProcess, INFINITE);
 		// Close process and thread handles. 

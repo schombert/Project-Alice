@@ -4533,7 +4533,7 @@ float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::prov
 	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
 	auto attrition_mod = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attrition);
 
-	return (supply_limit + prov_attrition_mod) / attrition_mod;
+	return (supply_limit + prov_attrition_mod) / (attrition_mod * 3.0f);
 }
 
 bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
