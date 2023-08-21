@@ -33,7 +33,9 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		case sys::network_mode::client:
 		case sys::network_mode::host:
 		{
+			/*
 			bool b = state.network_state.outgoing_commands.try_push(p);
+			*/
 			break;
 		}
 		default:
