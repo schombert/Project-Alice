@@ -143,20 +143,51 @@ static void accept_new_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(!client.is_active()) {
 			socklen_t addr_len = sizeof(client.address);
-			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr *)&client.address, &addr_len);
+			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
 			// enforce bans
 			if(std::find_if(state.network_state.banlist.begin(), state.network_state.banlist.end(), [&](auto const a) {
 				return memcmp(&client.address.sin_addr, &a, sizeof(a)) == 0;
-			}) != state.network_state.banlist.end()) {
+				}) != state.network_state.banlist.end()) {
 				disconnect_client(state, client);
+				break;
 			}
+
+			dcon::nation_id assigned_nation{};
+			{
+				// give the client a "joining" nation, basically a temporal nation choosen
+				// "randomly" that is tied to the client iself
+				state.world.for_each_nation([&](dcon::nation_id n) {
+					if(!state.world.nation_get_is_player_controlled(n)) {
+						assigned_nation = n;
+					}
+				});
+				assert(bool(assigned_nation));
+				client.playing_as = assigned_nation;
+				state.world.nation_set_is_player_controlled(assigned_nation, false);
+
+				command::payload c;
+				c.type = command::command_type::notify_player_picks_nation;
+				c.source = dcon::nation_id{};
+				c.data.nation_pick.target = assigned_nation;
+				auto r = socket_send(client.socket_fd, &c, sizeof(c));
+				if(r < 0) { // error
+					disconnect_client(state, client);
+				}
+			}
+			{
+				// Tell all the other clients that we have joined
+				command::payload c;
+				c.type = command::command_type::notify_player_joins;
+				c.source = assigned_nation;
+				state.network_state.outgoing_commands.push(c);
+			}
+
 			// notify the client of all current players
 			state.world.for_each_nation([&](dcon::nation_id n) {
 				if(state.world.nation_get_is_player_controlled(n)) {
 					command::payload c;
-					c.type = command::command_type::notify_player_picks_nation;
+					c.type = command::command_type::notify_player_joins;
 					c.source = n;
-					c.data.nation_pick.target = n;
 					auto r = socket_send(client.socket_fd, &c, sizeof(c));
 					if(r < 0) { // error
 						disconnect_client(state, client);
@@ -174,8 +205,19 @@ static void receive_from_clients(sys::state& state) {
 			command::payload cmd{};
 			auto r = socket_recv(client.socket_fd, &cmd, sizeof(cmd));
 			if(r == sizeof(cmd)) { // got command
-				if(cmd.type != command::command_type::invalid) { // has to be valid
+				switch(cmd.type) {
+				case command::command_type::invalid:
+				case command::command_type::notify_player_joins:
+					break; // has to be valid/sendable by client
+				case command::command_type::notify_player_picks_nation:
+					if(command::can_notify_player_picks_nation(state, cmd.source, cmd.data.nation_pick.target)) {
+						client.playing_as = cmd.data.nation_pick.target;
+					}
 					state.network_state.outgoing_commands.push(cmd);
+					break;
+				default:
+					state.network_state.outgoing_commands.push(cmd);
+					break;
 				}
 			} else if(r < 0) { // error
 				disconnect_client(state, client);
@@ -263,15 +305,16 @@ void finish(sys::state& state) {
 
 void ban_player(sys::state& state, client_data& client) {
 	if(client.is_active()) {
-		network::disconnect_client(state, client);
+		socket_shutdown(client.socket_fd);
+		client.socket_fd = 0;
 		state.network_state.banlist.push_back(client.address.sin_addr);
 	}
 }
 
 void kick_player(sys::state& state, client_data& client) {
 	if(client.is_active()) {
-		network::disconnect_client(state, client);
-		state.network_state.banlist.push_back(client.address.sin_addr);
+		socket_shutdown(client.socket_fd);
+		client.socket_fd = 0;
 	}
 }
 
