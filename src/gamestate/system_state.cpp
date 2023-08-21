@@ -228,6 +228,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
+			} else if(keycode == virtual_key::TAB) {
+				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
+				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 
 			map_state.on_key_down(keycode, mod);

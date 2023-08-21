@@ -83,6 +83,29 @@ public:
 	}
 };
 
+class chat_player_kick_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::notify_player_kick(state, state.local_player_nation, n);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("tip_kick"));
+		text::close_layout_box(contents, box);
+	}
+};
+
 class chat_player_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -91,7 +114,7 @@ public:
 		} else if(name == "name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "button_kick") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<chat_player_kick_button>(state, id);
 		} else {
 			return nullptr;
 		}
