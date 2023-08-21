@@ -243,6 +243,7 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n);
 bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
+void set_initial_leaders(sys::state& state);
 
 // war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
 float primary_warscore(sys::state& state, dcon::war_id w);

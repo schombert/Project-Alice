@@ -1751,20 +1751,20 @@ dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_ge
 
 	uint32_t seed_base = (uint32_t(n.index()) << 6) ^ uint32_t(l.id.index());
 
-	auto num_personalities = state.military_definitions.first_background_trait.index() - 1;
-	auto num_backgrounds = (state.world.leader_trait_size() - num_personalities) - 2;
+	auto num_personalities = uint32_t(state.military_definitions.first_background_trait.index() - 1);
+	auto num_backgrounds = uint32_t((state.world.leader_trait_size() - num_personalities) - 2);
 
 	auto trait_pair = rng::get_random_pair(state, seed_base);
 
-	l.set_personality(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(1 + trait_pair.high % num_personalities)});
-	l.set_background(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(
-			state.military_definitions.first_background_trait.index() + 1 + trait_pair.low % num_backgrounds)});
+	l.set_personality(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(1 + rng::reduce(uint32_t(trait_pair.high), num_personalities))});
+	l.set_background(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t(state.military_definitions.first_background_trait.index() + 1 + rng::reduce(uint32_t(trait_pair.low), num_backgrounds))});
 
 	auto names_pair = rng::get_random_pair(state, seed_base + 1);
 
 	auto names = state.world.culture_get_last_names(state.world.nation_get_primary_culture(n));
-	if(names.size() > 0)
-		l.set_name(names.at(names_pair.high % names.size()));
+	if(names.size() > 0) {
+		l.set_name(names.at(rng::reduce(uint32_t(names_pair.high), names.size())));
+	}
 
 	l.set_since(state.current_date);
 
@@ -2604,6 +2604,31 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 	}
 
 	state.world.delete_war(w);
+}
+
+void set_initial_leaders(sys::state& state) {
+	for(auto a : state.world.in_army) {
+		if(!bool(a.get_general_from_army_leadership())) {
+			auto controller = a.get_controller_from_army_control();
+			for(auto l : controller.get_leader_loyalty()) {
+				if(l.get_leader().get_is_admiral() == false && !bool(l.get_leader().get_army_from_army_leadership())) {
+					a.set_general_from_army_leadership(l.get_leader());
+					break;
+				}
+			}
+		}
+	}
+	for(auto a : state.world.in_navy) {
+		if(!bool(a.get_admiral_from_navy_leadership())) {
+			auto controller = a.get_controller_from_navy_control();
+			for(auto l : controller.get_leader_loyalty()) {
+				if(l.get_leader().get_is_admiral() == true && !bool(l.get_leader().get_navy_from_navy_leadership())) {
+					a.set_admiral_from_navy_leadership(l.get_leader());
+					break;
+				}
+			}
+		}
+	}
 }
 
 void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id new_gp) {

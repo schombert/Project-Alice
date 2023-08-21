@@ -823,6 +823,82 @@ public:
 	}
 };
 
+class province_build_new_factory : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
+		const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+
+		bool can_build = false;
+		state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+			can_build =
+				can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
+		});
+		disabled = !can_build;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
+			const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
+			state.ui_state.production_subwindow->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.production_subwindow);
+			state.ui_state.topbar_subwindow = state.ui_state.production_subwindow;
+			send(state, state.ui_state.production_subwindow, production_window_tab::factories);
+			send(state, state.ui_state.production_subwindow, production_selection_wrapper{ sid, true, xy_pair{0, 0} });
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
+		const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+
+		bool non_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
+
+		bool is_civilized = state.world.nation_get_is_civilized(n);
+		int32_t num_factories = economy::state_factory_count(state, sid, n);
+
+		text::add_line(state, contents, "production_build_new_factory_tooltip");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line_with_condition(state, contents, "factory_condition_1", is_civilized);
+		text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+
+		if(n == state.local_player_nation) {
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_condition_3", (rules & issue_rule::build_factory) != 0);
+		} else {
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", state.world.nation_get_is_great_power(state.local_player_nation) && !state.world.nation_get_is_great_power(n));
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
+
+			auto target = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
+					(target & issue_rule::allow_foreign_investment) != 0);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7", !military::are_at_war(state, state.local_player_nation, n));
+		}
+
+		{
+			auto box = text::open_layout_box(contents);
+			if(num_factories < int32_t(state.defines.factories_per_state)) {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
+					int64_t(state.defines.factories_per_state));
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class production_build_new_factory : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -889,8 +965,6 @@ public:
 					int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
-
-		// TODO classic tooltips ?
 	}
 };
 
@@ -1477,8 +1551,7 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		auto win =
-				make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
+		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
 		build_win = win.get();
 		add_child_to_front(std::move(win));
 

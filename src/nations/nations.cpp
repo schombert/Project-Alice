@@ -576,32 +576,30 @@ void update_great_powers(sys::state& state) {
 		}
 	}
 	bool at_least_one_added = false;
-	while(state.great_nations.size() < size_t(state.defines.great_nations_count)) {
-		at_least_one_added = true;
-		for(auto n : state.nations_by_rank) {
-			if(n && !state.world.nation_get_is_great_power(n)) {
-				state.world.nation_set_is_great_power(n, true);
-				state.great_nations.push_back(sys::great_nation(state.current_date, n));
-				state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
+	for(uint32_t i = 0; i < uint32_t(state.nations_by_rank.size()) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
+		auto n = state.nations_by_rank[i];
+		if(n && !state.world.nation_get_is_great_power(n)) {
+			at_least_one_added = true;
+			state.world.nation_set_is_great_power(n, true);
+			state.great_nations.push_back(sys::great_nation(state.current_date, n));
+			state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
 
-				state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
-				auto rng = state.world.nation_get_gp_relationship_as_influence_target(n);
-				while(rng.begin() != rng.end()) {
-					state.world.delete_gp_relationship(*(rng.begin()));
-				}
-
-				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n),
-						event::slot_type::nation, n, -1, event::slot_type::none);
-
-				notification::post(state, notification::message{
-					[n](sys::state& state, text::layout_base& contents) {
-						text::add_line(state, contents, "msg_new_gp_1", text::variable_type::x, n);
-					},
-					"msg_new_gp_title",
-					n,
-					sys::message_setting_type::become_great_power
-				});
+			state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
+			auto rng = state.world.nation_get_gp_relationship_as_influence_target(n);
+			while(rng.begin() != rng.end()) {
+				state.world.delete_gp_relationship(*(rng.begin()));
 			}
+
+			event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n), event::slot_type::nation, n, -1, event::slot_type::none);
+
+			notification::post(state, notification::message{
+				[n](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_new_gp_1", text::variable_type::x, n);
+				},
+				"msg_new_gp_title",
+				n,
+				sys::message_setting_type::become_great_power
+			});
 		}
 	}
 	if(at_least_one_added) {
