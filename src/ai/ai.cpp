@@ -2670,21 +2670,20 @@ void update_budget(sys::state& state) {
 		n.set_construction_spending(int8_t(100));
 		n.set_tariffs(int8_t(0));
 
-		float militancy = state.world.nation_get_demographics(n, demographics::militancy);
-		float total_pop = state.world.nation_get_demographics(n, demographics::total);
-		float spend_mil_factor = (total_pop / militancy) / 10.f;
-		float tax_mil_factor = 1.f - ((total_pop / militancy) / 10.f);
+		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / state.world.nation_get_demographics(n, demographics::poor_total)) / 10.f;
+		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / state.world.nation_get_demographics(n, demographics::middle_total)) / 10.f;
+		float rich_militancy = (state.world.nation_get_demographics(n, demographics::rich_militancy) / state.world.nation_get_demographics(n, demographics::rich_total)) / 10.f;
 
 		auto rules = n.get_combined_issue_rules();
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
-			int max_poor_tax = int(30.f * tax_mil_factor);
-			int max_mid_tax = int(60.f * tax_mil_factor);
-			int max_rich_tax = int(90.f * tax_mil_factor);
-			int min_tariff = int(-100.f * spend_mil_factor);
-			int max_tariff = int(100.f * tax_mil_factor);
-			int max_military = int(100.f * spend_mil_factor);
-			int max_social = int(100.f * spend_mil_factor);
+			int max_poor_tax = int(30.f * (1.f - poor_militancy));
+			int max_mid_tax = int(60.f * (1.f - mid_militancy));
+			int max_rich_tax = int(90.f * (1.f - rich_militancy));
+			int min_tariff = int(-100.f * rich_militancy);
+			int max_tariff = int(100.f * (1.f - rich_militancy));
+			int max_military = int(100.f * mid_militancy);
+			int max_social = int(100.f * poor_militancy);
 
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
 				if(n.get_administrative_efficiency() > 0.98f) {
@@ -2712,12 +2711,12 @@ void update_budget(sys::state& state) {
 				n.set_tariffs(int8_t(min_tariff));
 			}
 		} else {
-			int max_poor_tax = int(90.f * tax_mil_factor);
-			int max_mid_tax = int(60.f * tax_mil_factor);
-			int max_rich_tax = int(30.f * tax_mil_factor);
-			int max_tariff = int(100.f * tax_mil_factor);
-			int max_military = int(100.f * spend_mil_factor);
-			int max_social = int(100.f * spend_mil_factor);
+			int max_poor_tax = int(90.f * (1.f - poor_militancy));
+			int max_mid_tax = int(60.f * (1.f - mid_militancy));
+			int max_rich_tax = int(30.f * (1.f - rich_militancy));
+			int max_tariff = int(100.f * (1.f - rich_militancy));
+			int max_military = int(100.f * mid_militancy);
+			int max_social = int(100.f * poor_militancy);
 
 			// Laissez faire prioritize tax free capitalists
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
