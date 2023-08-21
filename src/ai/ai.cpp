@@ -677,37 +677,37 @@ void update_ai_econ_construction(sys::state& state) {
 		int32_t max_projects = std::max(2, int32_t(treasury / 8000.0f));
 
 		auto rules = n.get_combined_issue_rules();
+
+		bool can_appoint = [&]() {
+			if(!politics::can_appoint_ruling_party(state, n))
+				return false;
+			auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
+			if(last_change && state.current_date < last_change + 365)
+				return false;
+			if(politics::is_election_ongoing(state, n))
+				return false;
+			return true;
+			/*auto gov = state.world.nation_get_government_type(source);
+			auto new_ideology = state.world.political_party_get_ideology(p);
+			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+				return false;
+			}*/
+		}();
+
+		// Before, the AI would keep appointing parties repeatedly
+		// causing massive incursions of militancy amongst the population
+		// so stop appointing political parties if we have too much militancy
+		// so we stop at 75% of the military cap for nationalist movements, to not trigger them
+		// hopefully...
+		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
+		if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
+			can_appoint = false;
+		}
+
 		auto current_iscore = n.get_industrial_score();
-		if(current_iscore < 10) {
+		if(current_iscore < 5) {
 			if((rules & issue_rule::build_factory) == 0) { // try to jumpstart econ
-				bool can_appoint = [&]() {
-
-					if(!politics::can_appoint_ruling_party(state, n))
-						return false;
-					auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
-					if(last_change && state.current_date < last_change + 365)
-						return false;
-					if(politics::is_election_ongoing(state, n))
-						return false;
-					return true;
-					/*auto gov = state.world.nation_get_government_type(source);
-					auto new_ideology = state.world.political_party_get_ideology(p);
-					if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
-						return false;
-					}*/
-				}();
-
-				// Before, the AI would keep appointing parties repeatedly
-				// causing massive incursions of militancy amongst the population
-				// so stop appointing political parties if we have too much militancy
-				// so we stop at 75% of the military cap for nationalist movements, to not trigger them
-				// hopefully...
-				auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
-				auto total_pop = state.world.nation_get_demographics(n, demographics::total);
-				if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
-					can_appoint = false;
-				}
-
 				if(can_appoint) {
 					dcon::political_party_id target;
 
@@ -736,8 +736,39 @@ void update_ai_econ_construction(sys::state& state) {
 					}
 				} // END if(can_appoint)
 			} // END if((rules & issue_rule::build_factory) == 0)
-		} // END if(current_iscore < 10)
+		} else { // END if(current_iscore < 10)
+			// Choose liberals to be able to enact policies to appease pops once we have an economy
+			// TODO: A better way to identify the libs
+			if((rules & issue_rule::build_factory) != 0) {
+				if(can_appoint) {
+					dcon::political_party_id target;
 
+					auto gov = n.get_government_type();
+					auto identity = n.get_identity_from_identity_holder();
+					auto start = state.world.national_identity_get_political_party_first(identity).id.index();
+					auto end = start + state.world.national_identity_get_political_party_count(identity);
+
+					for(int32_t i = start; i < end && !target; i++) {
+						auto pid = dcon::political_party_id(uint16_t(i));
+						if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+
+							for(auto pi : state.culture_definitions.party_issues) {
+								auto issue_rules = state.world.political_party_get_party_issues(pid, pi).get_rules();
+								if((issue_rules & issue_rule::build_factory) == 0) {
+									target = pid;
+									break;
+								}
+							}
+						}
+					}
+
+					if(target) {
+						politics::appoint_ruling_party(state, n, target);
+						rules = n.get_combined_issue_rules();
+					}
+				} // END if(can_appoint)
+			} // END if((rules & issue_rule::build_factory) == 0)
+		}
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			static::std::vector<dcon::factory_type_id> desired_types;
@@ -1179,14 +1210,23 @@ void take_reforms(sys::state& state) {
 			continue;
 
 		if(n.get_is_civilized()) { // political & social
-			float max_support = 0.0f;
+			// Enact social policies to deter Jacobin rebels from overruning the country
+			// Reactionaries will popup in effect but they are MORE weak that Jacobins
 			dcon::issue_option_id iss;
-			for(auto m : n.get_movement_within()) {
-				if(m.get_movement().get_associated_issue_option() && m.get_movement().get_pop_support() > max_support) {
-					max_support = m.get_movement().get_pop_support();
-					iss = m.get_movement().get_associated_issue_option();
+			float max_support = 0.f;
+			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+				if(command::can_enact_issue(state, n, io)) {
+					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+							auto sup = state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io));
+							if(sup > max_support) {
+								iss = io;
+								max_support = sup;
+							}
+						}
+					}
 				}
-			}
+			});
 			if(iss && command::can_enact_issue(state, n, iss)) {
 				nations::enact_issue(state, n, iss);
 			}
@@ -3399,7 +3439,6 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 	provinces.reserve(state.world.province_size());
 
 	auto cap = state.world.nation_get_capital(n);
-
 	for(auto c : state.world.nation_get_province_control(n)) {
 		province_class cls = c.get_province().get_is_coast() ? province_class::coast : province_class::interior;
 		if(c.get_province() == cap)

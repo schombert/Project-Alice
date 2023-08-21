@@ -236,7 +236,7 @@ void update_pop_movement_membership(sys::state& state) {
 			+ issue-support x 9 x define:MOVEMENT_CON_FACTOR x pop-consciousness
 			*/
 			dcon::issue_option_id max_option;
-			float max_support = 0;
+			float max_support = 0.f;
 			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
 				auto parent = state.world.issue_option_get_parent_issue(io);
 				auto co = state.world.nation_get_issues(owner, parent);
