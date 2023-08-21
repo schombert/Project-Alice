@@ -26,4 +26,3 @@ An assigned nation is a "random" nation that the server will hand out to the cli
 ### Out-of-sync (OOS)
 
 No more oos :D
-
