@@ -471,8 +471,7 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size,
-		text::font& f) {
+void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f) {
 	if(text::win1250toUTF16(codepoint) != ' ') {
 		// f.make_glyph(codepoint);
 
