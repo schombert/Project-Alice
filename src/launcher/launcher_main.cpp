@@ -5,6 +5,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <Windowsx.h>
+#include <shellapi.h>
 #include "Objbase.h"
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
@@ -15,6 +16,7 @@
 #include "resource.h"
 
 #pragma comment(lib, "Ole32.lib")
+#pragma comment(lib, "Shell32.lib")
 
 #include "local_user_settings.hpp"
 #include "fonts.hpp"
@@ -22,6 +24,7 @@
 #include "text.hpp"
 #include "simple_fs_win.cpp"
 #include "prng.cpp"
+#include "serialization.hpp"
 
 namespace launcher {
 
@@ -117,6 +120,17 @@ constexpr inline ui_active_rect ui_rects[] = {
 };
 
 std::vector<parsers::mod_file> mod_list;
+
+struct scenario_file {
+	native_string file_name;
+	sys::mod_identifier ident;
+};
+
+std::vector<scenario_file> scenario_files;
+native_string selected_scenario_file;
+uint32_t max_scenario_count = 0;
+std::atomic<bool> file_is_ready = true;
+
 int32_t frame_in_list = 0;
 
 HDC opengl_window_dc = nullptr;
@@ -280,6 +294,96 @@ bool nth_item_can_move_down(int32_t n) {
 	return true;
 }
 
+native_string produce_mod_path() {
+	simple_fs::file_system dummy;
+	simple_fs::add_root(dummy, L".");
+
+	for(int32_t i = 0; i < int32_t(mod_list.size()); ++i) {
+		if(mod_list[i].mod_selected == false)
+			break;
+
+		mod_list[i].add_to_file_system(dummy);
+	}
+
+	return simple_fs::extract_state(dummy);
+}
+
+native_string to_hex(uint64_t v) {
+	native_string ret;
+	constexpr wchar_t digits[] = L"0123456789ABCDEF";
+	
+	do {
+		ret += digits[v & 0x0F];
+		v = v >> 4;
+	} while(v != 0);
+
+	return ret;
+}
+
+void make_mod_file() {
+	file_is_ready.store(false, std::memory_order::memory_order_seq_cst);
+	auto path = produce_mod_path();
+	std::thread file_maker([path]() {
+		auto game_state = std::make_unique<sys::state>();
+		simple_fs::restore_state(game_state->common_fs, path);
+
+		parsers::error_handler err("");
+		game_state->load_scenario_data(err);
+
+		auto sdir = simple_fs::get_or_create_scenario_directory();
+		int32_t append = 0;
+
+		auto time_stamp = uint64_t(std::time(0));
+		auto base_name = to_hex(time_stamp);
+		while(simple_fs::peek_file(sdir, base_name + L"-"  + std::to_wstring(append) + L".bin")) {
+			++append;
+		}
+
+		++max_scenario_count;
+		selected_scenario_file = base_name + L"-" + std::to_wstring(append) + L".bin";
+		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
+
+		if(!err.accumulated_errors.empty()) {
+			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nWarnings:\r\n") + err.accumulated_warnings + "\r\n\r\nErrors:\r\n" + err.accumulated_errors;
+			auto pdir = simple_fs::get_or_create_settings_directory();
+			simple_fs::write_file(pdir, L"scenario_errors.txt", assembled_file.data(), uint32_t(assembled_file.length()));
+
+			auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
+			ShellExecuteW(
+				nullptr,
+				L"open",
+				fname.c_str(),
+				nullptr,
+				nullptr,
+				SW_NORMAL
+			);
+		}
+
+		file_is_ready.store(true, std::memory_order::memory_order_release);
+
+		InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+	});
+
+	file_maker.detach();
+}
+
+void find_scenario_file() {
+	if(!file_is_ready.load(std::memory_order::memory_order_acquire))
+		return;
+
+	file_is_ready.store(false, std::memory_order::memory_order_seq_cst);
+	selected_scenario_file = L"";
+	auto mod_path = produce_mod_path();
+
+	for(auto& f : scenario_files) {
+		if(f.ident.mod_path == mod_path) {
+			selected_scenario_file = f.file_name;
+			break;
+		}
+	}
+	file_is_ready.store(true, std::memory_order::memory_order_release);
+}
+
 void mouse_click() {
 	if(obj_under_mouse == -1)
 		return;
@@ -301,13 +405,47 @@ void mouse_click() {
 			}
 			return;
 		case ui_obj_create_scenario:
-			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			if(file_is_ready.load(std::memory_order::memory_order_acquire)) {
+				make_mod_file();
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
 			return;
 		case ui_obj_play_game:
+			if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+
+				native_string temp_command_line = native_string(L"Alice.exe ") + selected_scenario_file;
+				STARTUPINFO si;
+				ZeroMemory(&si, sizeof(si));
+				si.cb = sizeof(si);
+				PROCESS_INFORMATION pi;
+				ZeroMemory(&pi, sizeof(pi));
+				// Start the child process. 
+				if(CreateProcessW(
+					nullptr,   // Module name
+					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
+					nullptr, // Process handle not inheritable
+					nullptr, // Thread handle not inheritable
+					FALSE, // Set handle inheritance to FALSE
+					0, // No creation flags
+					nullptr, // Use parent's environment block
+					nullptr, // Use parent's starting directory 
+					&si, // Pointer to STARTUPINFO structure
+					&pi) != 0) {
+
+					CloseHandle(pi.hProcess);
+					CloseHandle(pi.hThread);
+				}
+				
+
+				// ready to launch
+			}
 			return;
 		default:
 			break;
 	}
+
+	if(!file_is_ready.load(std::memory_order::memory_order_acquire))
+		return;
 
 	int32_t list_position = (obj_under_mouse - ui_list_first) / 3;
 	int32_t sub_obj = (obj_under_mouse - ui_list_first) - list_position * 3;
@@ -324,6 +462,7 @@ void mouse_click() {
 					recursively_add_to_list(launcher::mod_list[list_offset]);
 				}
 				enforce_list_order();
+				find_scenario_file();
 				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 			}
 			return;
@@ -333,6 +472,7 @@ void mouse_click() {
 			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
 			if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_up(list_offset)) {
 				std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset - 1]);
+				find_scenario_file();
 				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 			}
 			return;
@@ -342,6 +482,7 @@ void mouse_click() {
 			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
 			if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_down(list_offset)) {
 				std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset + 1]);
+				find_scenario_file();
 				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 			}
 			return;
@@ -735,27 +876,77 @@ void render() {
 		}
 	}
 
-	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_create_scenario ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
-		ui_rects[ui_obj_create_scenario].x,
-		ui_rects[ui_obj_create_scenario].y,
-		ui_rects[ui_obj_create_scenario].width,
-		ui_rects[ui_obj_create_scenario].height,
-		big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+	if(file_is_ready.load(std::memory_order::memory_order_acquire)) {
+		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_create_scenario ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_create_scenario].x,
+			ui_rects[ui_obj_create_scenario].y,
+			ui_rects[ui_obj_create_scenario].width,
+			ui_rects[ui_obj_create_scenario].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_play_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
-		ui_rects[ui_obj_play_game].x,
-		ui_rects[ui_obj_play_game].y,
-		ui_rects[ui_obj_play_game].width,
-		ui_rects[ui_obj_play_game].height,
-		big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		if(selected_scenario_file.empty()) {
+			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Create Scenario", 15, 22, font_collection.fonts[1]) / 2.0f;
+			launcher::ogl::render_new_text("Create Scenario", 15, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+		} else {
+			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Recreate Scenario", 17, 22, font_collection.fonts[1]) / 2.0f;
+			launcher::ogl::render_new_text("Recreate Scenario", 17, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+		}
+	} else {
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_create_scenario].x,
+			ui_rects[ui_obj_create_scenario].y,
+			ui_rects[ui_obj_create_scenario].width,
+			ui_rects[ui_obj_create_scenario].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+
+		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
+		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+
+		
+	}
+
+	{
+		/*
+		Create a new scenario file
+		for the selected mods
+		*/
+		auto xoffset = 830.0f - base_text_extent("Create a new scenario file", 26, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("Create a new scenario file", 26, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+
+		xoffset = 830.0f - base_text_extent("for the selected mods", 21, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("for the selected mods", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	}
+
+	if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_play_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_play_game].x,
+			ui_rects[ui_obj_play_game].y,
+			ui_rects[ui_obj_play_game].width,
+			ui_rects[ui_obj_play_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+	} else {
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_play_game].x,
+			ui_rects[ui_obj_play_game].y,
+			ui_rects[ui_obj_play_game].width,
+			ui_rects[ui_obj_play_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+
+		/*830, 250*/
+		// No scenario file found
+
+		auto xoffset = 830.0f - base_text_extent("No scenario file found", 22, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, 250.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	}
+
+	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
-	launcher::ogl::render_new_text("Create Scenario", 15, launcher::ogl::color_modification::none, 623.0f, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
-
-	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, 642.0f, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
-
+	
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
 	for(int32_t i = 0; i < ui_list_count && list_offset + i < int32_t(mod_list.size()); ++i) {
@@ -879,6 +1070,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				mod_list.push_back(parsers::parse_mod_file(gen, err, parsers::mod_file_context{}));
 			}
 		}
+
+		auto sdir = simple_fs::get_or_create_scenario_directory();
+		auto s_files = simple_fs::list_files(sdir, L".bin");
+		for(auto& f : s_files) {
+			auto of = simple_fs::open_file(f);
+			if(of) {
+				auto content = view_contents(*of);
+				auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
+				if(desc.count != 0) {
+					max_scenario_count = std::max(desc.count, max_scenario_count);
+					scenario_files.push_back(scenario_file{simple_fs::get_file_name(f) , desc });
+				}
+			}
+		}
+
+		std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
+			return b.ident.count > a.ident.count;
+		});
+
+		find_scenario_file();
 
 		return 1;
 	} else {

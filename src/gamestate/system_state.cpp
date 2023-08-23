@@ -1474,8 +1474,7 @@ void state::open_diplomacy(dcon::nation_id target) {
 	}
 }
 
-void state::load_scenario_data() {
-	parsers::error_handler err("");
+void state::load_scenario_data(parsers::error_handler& err) {
 
 	parsers::scenario_building_context context(*this);
 
@@ -2615,9 +2614,6 @@ void state::load_scenario_data() {
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
-
-	if(err.accumulated_errors.length() > 0)
-		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded

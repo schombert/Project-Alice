@@ -7,10 +7,12 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
+#include <shellapi.h>
 #include "Objbase.h"
 #include "window.hpp"
 
 #pragma comment(lib, "Ole32.lib")
+#pragma comment(lib, "Shell32.lib")
 
 static sys::state game_state; // too big for the stack
 
@@ -93,7 +95,7 @@ void EnableCrashingOnCrashes() {
 	SetUserObjectInformationA(GetCurrentProcess(), UOI_TIMERPROC_EXCEPTION_SUPPRESSION, &insanity, sizeof(insanity));
 }
 
-int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/
+int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*commandline*/, int /*nCmdShow*/
 ) {
 
 #ifdef _DEBUG
@@ -116,36 +118,66 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 	if(SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) {
 		// do everything here: create a window, read messages
 
-		if(std::string("NONE") != GAME_DIR) {									 // check for user-defined location
-			add_root(game_state.common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
-			add_root(game_state.common_fs, NATIVE("."));				 // for the moment this lets us find the shader files
-		} else { // before exiting, check if they've installed the game and it's told us where via the registry
-			HKEY hKey;
-			LSTATUS res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Paradox Interactive\\Victoria 2", 0, KEY_READ,
-					&hKey); // open key if key exists
-			if(res != ERROR_SUCCESS) {
-				assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
-			}
-			WCHAR szBuffer[256]; // excessive but just in case someone has their game directory NESTED
-			DWORD lnBuffer = 256;
-			res = RegQueryValueEx(hKey, L"path", NULL, NULL, reinterpret_cast<LPBYTE>(szBuffer), &lnBuffer);
-			if(res != ERROR_SUCCESS) {
-				assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
-			}
-			add_root(game_state.common_fs, szBuffer);		// game files directory is overlaid on top of that
-			add_root(game_state.common_fs, NATIVE(".")); // for the moment this lets us find the shader files
-			RegCloseKey(hKey);
-		}
+		int num_params = 0;
+		auto parsed_cmd = CommandLineToArgvW(GetCommandLineW(), &num_params);
 
-		if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
-			// scenario making functions
-			game_state.load_scenario_data();
-			sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"));
+		if(num_params < 2) {
+#ifdef NDEBUG
+			auto msg = std::string("Start Alice.exe using the launcher");
+			window::emit_error_message(msg, true);
+			return 0;
+#else
+			if(std::string("NONE") != GAME_DIR) {									 // check for user-defined location
+				add_root(game_state.common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
+				add_root(game_state.common_fs, NATIVE("."));				 // for the moment this lets us find the shader files
+			} else { // before exiting, check if they've installed the game and it's told us where via the registry
+				HKEY hKey;
+				LSTATUS res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Paradox Interactive\\Victoria 2", 0, KEY_READ,
+						&hKey); // open key if key exists
+				if(res != ERROR_SUCCESS) {
+					assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
+				}
+				WCHAR szBuffer[256]; // excessive but just in case someone has their game directory NESTED
+				DWORD lnBuffer = 256;
+				res = RegQueryValueEx(hKey, L"path", NULL, NULL, reinterpret_cast<LPBYTE>(szBuffer), &lnBuffer);
+				if(res != ERROR_SUCCESS) {
+					assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
+				}
+				add_root(game_state.common_fs, szBuffer);		// game files directory is overlaid on top of that
+				add_root(game_state.common_fs, NATIVE(".")); // for the moment this lets us find the shader files
+				RegCloseKey(hKey);
+			}
+
+			if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
+				// scenario making functions
+				parsers::error_handler err{ "" };
+				game_state.load_scenario_data(err);
+				if(!err.accumulated_errors.empty())
+					window::emit_error_message(err.accumulated_errors, true);
+				sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);
+			} else {
+				game_state.fill_unsaved_data();
+			}
+#endif
 		} else {
-			game_state.fill_unsaved_data();
-		}
+#ifndef NDEBUG
+			{
+				auto msg = std::string("Loading scenario  ") + simple_fs::native_to_utf8(parsed_cmd[1]);
+				window::emit_error_message(msg, false);
+			}
+#endif
 
-		// scenario loading functions (would have to run these even when scenario is pre-built
+			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
+				game_state.fill_unsaved_data();
+			} else {
+				auto msg = std::string("Scenario file ") +  simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
+				window::emit_error_message(msg, true);
+				return 0;
+			}
+		}
+		LocalFree(parsed_cmd);
+
+		// scenario loading functions (would have to run these even when scenario is pre-built)
 		game_state.load_user_settings();
 		text::load_standard_fonts(game_state);
 		text::load_bmfonts(game_state);

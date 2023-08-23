@@ -429,6 +429,9 @@ struct alignas(64) state {
 	std::vector<dcon::nation_id> nations_by_prestige_score;
 	std::vector<great_nation> great_nations;
 
+	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
+	uint32_t scenario_counter = 0;		// as above
+
 	//
 	// Crisis data
 	//
@@ -588,7 +591,7 @@ struct alignas(64) state {
 	void load_user_settings();
 	void update_ui_scale(float new_scale);
 
-	void load_scenario_data();   // loads all scenario files other than map data
+	void load_scenario_data(parsers::error_handler& err);   // loads all scenario files other than map data
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 
 	void console_log(ui::element_base* base, std::string message, bool open_console = true);
