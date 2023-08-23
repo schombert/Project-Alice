@@ -16,6 +16,7 @@
 
 #pragma comment(lib, "Ole32.lib")
 
+#include "local_user_settings.hpp"
 #include "fonts.hpp"
 #include "texture.hpp"
 #include "text.hpp"
@@ -59,6 +60,8 @@ constexpr inline int32_t ui_list_move_down = 2;
 constexpr inline int32_t ui_list_end = ui_list_first + ui_list_count * 3;
 
 constexpr inline int32_t ui_row_height = 32;
+
+constexpr inline float list_text_right_align = 420.0f;
 
 int32_t obj_under_mouse = -1;
 
@@ -112,6 +115,9 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 60 + 383, 75 + 32 * 13 + 4, 24, 24 },
 	ui_active_rect{ 60 + 412, 75 + 32 * 13 + 4, 24, 24 },
 };
+
+std::vector<parsers::mod_file> mod_list;
+int32_t frame_in_list = 0;
 
 HDC opengl_window_dc = nullptr;
 void* opengl_context = nullptr;
@@ -197,6 +203,83 @@ bool update_under_mouse() { // return if the selected object (if any) has change
 	}
 }
 
+void recursively_remove_from_list(parsers::mod_file& mod) {
+	for(int32_t i = 0; i < int32_t(mod_list.size()); ++i) {
+		if(mod_list[i].mod_selected) {
+			if(std::find(mod_list[i].dependent_mods.begin(), mod_list[i].dependent_mods.end(), mod.name_) != mod_list[i].dependent_mods.end()) {
+				mod_list[i].mod_selected = false;
+				recursively_remove_from_list(mod_list[i]);
+			}
+		}
+	}
+}
+void recursively_add_to_list(parsers::mod_file& mod) {
+	for(auto& dep : mod.dependent_mods) {
+		for(int32_t i = 0; i < int32_t(mod_list.size()); ++i) {
+			if(!mod_list[i].mod_selected && mod_list[i].name_ == dep) {
+				mod_list[i].mod_selected = true;
+				recursively_add_to_list(mod_list[i]);
+			}
+		}
+	}
+}
+
+bool transitively_depends_on_internal(parsers::mod_file const& moda, parsers::mod_file const& modb, std::vector<bool>& seen_indices) {
+	for(auto& dep : moda.dependent_mods) {
+		if(dep == modb.name_)
+			return true;
+
+		for(int32_t i = 0; i < int32_t(mod_list.size()); ++i) {
+			if(seen_indices[i] == false && mod_list[i].name_ == dep) {
+				seen_indices[i] = true;
+				if(transitively_depends_on_internal(mod_list[i], modb, seen_indices))
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool transitively_depends_on(parsers::mod_file const& moda, parsers::mod_file const& modb) {
+	std::vector<bool> seen_indices;
+	seen_indices.resize(mod_list.size());
+
+	return transitively_depends_on_internal(moda, modb, seen_indices);
+}
+
+void enforce_list_order() {
+	std::stable_sort(mod_list.begin(), mod_list.end(), [&](parsers::mod_file const& a, parsers::mod_file const& b) {
+		if(a.mod_selected && b.mod_selected) {
+			return transitively_depends_on(b, a);
+		} else if(a.mod_selected && !b.mod_selected) {
+			return true;
+		} else if(!a.mod_selected && b.mod_selected) {
+			return false;
+		} else {
+			return a.name_ < b.name_;
+		}
+	});
+}
+
+bool nth_item_can_move_up(int32_t n) {
+	if(n == 0)
+		return false;
+	if(transitively_depends_on(mod_list[n], mod_list[n - 1]))
+		return false;
+
+	return true;
+}
+bool nth_item_can_move_down(int32_t n) {
+	if(n >= int32_t(mod_list.size()) - 1)
+		return false;
+	if(mod_list[n + 1].mod_selected == false)
+		return false;
+	if(transitively_depends_on(mod_list[n+1], mod_list[n]))
+		return false;
+
+	return true;
+}
+
 void mouse_click() {
 	if(obj_under_mouse == -1)
 		return;
@@ -206,10 +289,16 @@ void mouse_click() {
 			PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
 			return;
 		case ui_obj_list_left :
-			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			if(frame_in_list > 0) {
+				--frame_in_list;
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
 			return;
 		case ui_obj_list_right:
-			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			if((frame_in_list + 1) * ui_list_count < int32_t(mod_list.size())) {
+				++frame_in_list;
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
 			return;
 		case ui_obj_create_scenario:
 			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
@@ -221,18 +310,42 @@ void mouse_click() {
 	}
 
 	int32_t list_position = (obj_under_mouse - ui_list_first) / 3;
-	int32_t sub_obj = obj_under_mouse - list_position * 3;
+	int32_t sub_obj = (obj_under_mouse - ui_list_first) - list_position * 3;
 
 	switch(sub_obj) {
 		case ui_list_checkbox:
-			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		{
+			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
+			if(list_offset < int32_t(launcher::mod_list.size())) {
+				launcher::mod_list[list_offset].mod_selected = !launcher::mod_list[list_offset].mod_selected;
+				if(!launcher::mod_list[list_offset].mod_selected) {
+					recursively_remove_from_list(launcher::mod_list[list_offset]);
+				} else {
+					recursively_add_to_list(launcher::mod_list[list_offset]);
+				}
+				enforce_list_order();
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
 			return;
+		}
 		case ui_list_move_up:
-			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		{
+			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
+			if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_up(list_offset)) {
+				std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset - 1]);
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
 			return;
+		}
 		case ui_list_move_down:
-			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		{
+			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
+			if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_down(list_offset)) {
+				std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset + 1]);
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
 			return;
+		}
 		default:
 			break;
 	}
@@ -549,6 +662,17 @@ void render_new_text(char const* codepoints, uint32_t count, color_modification 
 ::ogl::texture check_tex;
 ::ogl::texture up_tex;
 ::ogl::texture down_tex;
+::ogl::texture line_bg_tex;
+
+
+float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
+	float total = 0.0f;
+	for(uint32_t i = 0; i < count; i++) {
+		auto c = uint8_t(codepoints[i]);
+		total += fnt.glyph_advances[c] * size / 64.0f + ((i != 0) ? fnt.kerning(codepoints[i - 1], c) * size / 64.0f : 0.0f);
+	}
+	return total;
+}
 
 void render() {
 	if(!opengl_context)
@@ -577,19 +701,39 @@ void render() {
 		ui_rects[ui_obj_close].height,
 		close_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_list_left ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
-		ui_rects[ui_obj_list_left].x,
-		ui_rects[ui_obj_list_left].y,
-		ui_rects[ui_obj_list_left].width,
-		ui_rects[ui_obj_list_left].height,
-		left_tex.get_texture_handle(), ui::rotation::upright, false);
+	if(int32_t(mod_list.size()) > ui_list_count) {
+		if(frame_in_list > 0) {
+			launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_list_left ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+				ui_rects[ui_obj_list_left].x,
+				ui_rects[ui_obj_list_left].y,
+				ui_rects[ui_obj_list_left].width,
+				ui_rects[ui_obj_list_left].height,
+				left_tex.get_texture_handle(), ui::rotation::upright, false);
+		} else {
+			launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+				ui_rects[ui_obj_list_left].x,
+				ui_rects[ui_obj_list_left].y,
+				ui_rects[ui_obj_list_left].width,
+				ui_rects[ui_obj_list_left].height,
+				left_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
 
-	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_list_right ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
-		ui_rects[ui_obj_list_right].x,
-		ui_rects[ui_obj_list_right].y,
-		ui_rects[ui_obj_list_right].width,
-		ui_rects[ui_obj_list_right].height,
-		right_tex.get_texture_handle(), ui::rotation::upright, false);
+		if((frame_in_list + 1) * ui_list_count < int32_t(mod_list.size())) {
+			launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_list_right ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+				ui_rects[ui_obj_list_right].x,
+				ui_rects[ui_obj_list_right].y,
+				ui_rects[ui_obj_list_right].width,
+				ui_rects[ui_obj_list_right].height,
+				right_tex.get_texture_handle(), ui::rotation::upright, false);
+		} else {
+			launcher::ogl::render_textured_rect( launcher::ogl::color_modification::disabled,
+				ui_rects[ui_obj_list_right].x,
+				ui_rects[ui_obj_list_right].y,
+				ui_rects[ui_obj_list_right].width,
+				ui_rects[ui_obj_list_right].height,
+				right_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
+	}
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_create_scenario ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_create_scenario].x,
@@ -605,36 +749,78 @@ void render() {
 		ui_rects[ui_obj_play_game].height,
 		big_button_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, 306.0f, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_new_text("Create Scenario", 15, launcher::ogl::color_modification::none, 623.0f, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, 642.0f, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-	for(int32_t i = 0; i < ui_list_count; ++i) {
+	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
-		launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_checkbox ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+	for(int32_t i = 0; i < ui_list_count && list_offset + i < int32_t(mod_list.size()); ++i) {
+		auto& mod_ref = mod_list[list_offset + i];
+
+		if(i % 2 == 1) {
+			launcher::ogl::render_textured_rect(
+				launcher::ogl::color_modification::none,
+				60.0f,
+				75.0f + float(ui_row_height * i),
+				440.0f,
+				float(ui_row_height),
+				launcher::line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
+
+		if(mod_ref.mod_selected) {
+			launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_checkbox ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].x,
 			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].y,
 			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].width,
 			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].height,
 			check_tex.get_texture_handle(), ui::rotation::upright, false);
 
-		launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_move_up ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_up].x,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_up].y,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_up].width,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_up].height,
-			up_tex.get_texture_handle(), ui::rotation::upright, false);
+			if(!nth_item_can_move_up(list_offset + i)) {
+				launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].x,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].y,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].width,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].height,
+					up_tex.get_texture_handle(), ui::rotation::upright, false);
+			} else {
+				launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_move_up ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].x,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].y,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].width,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_up].height,
+					up_tex.get_texture_handle(), ui::rotation::upright, false);
+			}
+			if(!nth_item_can_move_down(list_offset + i)) {
+				launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].x,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].y,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].width,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].height,
+					down_tex.get_texture_handle(), ui::rotation::upright, false);
+			} else {
+				launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_move_down ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].x,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].y,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].width,
+					ui_rects[ui_list_first + 3 * i + ui_list_move_down].height,
+					down_tex.get_texture_handle(), ui::rotation::upright, false);
+			}
+		} else {
+			launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_checkbox ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].x,
+			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].y,
+			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].width,
+			ui_rects[ui_list_first + 3 * i + ui_list_checkbox].height,
+			empty_check_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
 
-		launcher::ogl::render_textured_rect(obj_under_mouse == ui_list_first + 3 * i + ui_list_move_down ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_down].x,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_down].y,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_down].width,
-			ui_rects[ui_list_first + 3 * i + ui_list_move_down].height,
-			down_tex.get_texture_handle(), ui::rotation::upright, false);
+		auto xoffset = list_text_right_align - base_text_extent(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), 14, font_collection.fonts[0]);
 
-		launcher::ogl::render_new_text("Mod Name", 8, launcher::ogl::color_modification::none, 250.0f, 75.0f + 4.0f + i * ui_row_height, 20.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), launcher::ogl::color_modification::none, xoffset, 75.0f + 7.0f + i * ui_row_height, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	SwapBuffers(opengl_window_dc);
@@ -653,6 +839,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		load_global_squares();		// create various squares to drive the shaders with
 
 		simple_fs::file_system fs;
+		add_root(fs, NATIVE_M(GAME_DIR));
 		simple_fs::add_root(fs, L".");
 		auto root = get_root(fs);
 
@@ -678,6 +865,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		::ogl::load_file_and_return_handle(L"assets/launcher_check.png", fs, check_tex, false);
 		::ogl::load_file_and_return_handle(L"assets/launcher_up.png", fs, up_tex, false);
 		::ogl::load_file_and_return_handle(L"assets/launcher_down.png", fs, down_tex, false);
+		::ogl::load_file_and_return_handle(L"assets/launcher_line_bg.png", fs, line_bg_tex, false);
+
+		auto mod_dir = simple_fs::open_directory(root, L"mod");
+		auto mod_files = simple_fs::list_files(mod_dir, L".mod");
+
+		parsers::error_handler err("");
+		for(auto& f : mod_files) {
+			auto of = simple_fs::open_file(f);
+			if(of) {
+				auto content = view_contents(*of);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				mod_list.push_back(parsers::parse_mod_file(gen, err, parsers::mod_file_context{}));
+			}
+		}
 
 		return 1;
 	} else {

@@ -1908,8 +1908,12 @@ war_history_file
 	name                            value      text                              member_fn
 	#any                            extern     enter_war_dated_block             discard
 
+dependencies_list
+	#free          value      text      member_fn
+
 mod_file
 	name                            value      text                              member_fn
 	path                            value      text                              member_fn
 	user_dir                        value      text                              discard
 	replace_path                    value      text                              member_fn
+	dependencies            group       dependencies_list       member_fn

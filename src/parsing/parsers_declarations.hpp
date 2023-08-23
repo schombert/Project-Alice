@@ -2500,19 +2500,38 @@ struct war_history_file {
 void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context);
 
 struct mod_file_context {
-	scenario_building_context& outer_context;
-	std::string name;
-	std::string path;
-	std::string user_dir;
-	std::vector<std::string> replace_paths;
-	mod_file_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
+	
 };
+
+struct dependencies_list {
+	std::vector<std::string> names;
+	template<typename T>
+	void free_value(std::string_view value, error_handler& err, int32_t line, T& context) {
+		names.push_back(std::string(value));
+	}
+	template<typename T>
+	void finish(T& context) { }
+};
+
 struct mod_file {
+	std::string name_;
+	std::string path_;
+	std::string user_dir_;
+	std::vector<std::string> replace_paths;
+	std::vector<std::string> dependent_mods;
+
+	bool mod_selected = false;
+
 	void name(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
 	void path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
 	void user_dir(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
 	void replace_path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
-	void finish(mod_file_context& context);
+	void dependencies(dependencies_list const& value, error_handler& err, int32_t line, mod_file_context& context) {
+		for(auto& s : value.names)
+			dependent_mods.push_back(s);
+	}
+	void finish(mod_file_context& context) { }
+	void add_to_file_system(simple_fs::file_system& fs);
 };
 
 void make_leader_images(scenario_building_context& outer_context);
