@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "serialization.hpp"
 #include <random>
+#include <ctime>
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -45,6 +46,62 @@ size_t sizeof_save_header(save_header const& header_in) {
 	return sizeof(uint32_t) + sizeof(save_header);
 }
 
+void read_mod_path(uint8_t const* ptr_in, uint8_t const* lim, native_string& path_out) {
+	uint32_t length = 0;
+	if(size_t(lim - ptr_in) < sizeof(uint32_t))
+		return;
+
+	memcpy(&length, ptr_in, sizeof(uint32_t));
+	ptr_in += sizeof(uint32_t);
+
+	if(size_t(lim - ptr_in) < sizeof(uint32_t) + length * sizeof(native_char))
+		return;
+
+	path_out = native_string(native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
+}
+uint8_t const* load_mod_path(uint8_t const* ptr_in, sys::state& state) {
+	uint32_t length = 0;
+	memcpy(&length, ptr_in, sizeof(uint32_t));
+	ptr_in += sizeof(uint32_t);
+
+	simple_fs::restore_state(state.common_fs, native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
+	return ptr_in + length * sizeof(native_char);
+}
+uint8_t* write_mod_path(uint8_t* ptr_in, native_string const& path_in) {
+	uint32_t length = uint32_t(path_in.length());
+	memcpy(ptr_in, &length, sizeof(uint32_t));
+	ptr_in += sizeof(uint32_t);
+	memcpy(ptr_in, path_in.c_str(), length * sizeof(native_char));
+	ptr_in += length * sizeof(native_char);
+	return ptr_in;
+}
+size_t sizeof_mod_path(native_string const& path_in) {
+	size_t sz = 0;
+	uint32_t length = uint32_t(path_in.length());
+	sz += sizeof(uint32_t);
+	sz += length * sizeof(native_char);
+	return sz;
+}
+
+mod_identifier extract_mod_information(uint8_t const* ptr_in, uint64_t file_size) {
+	scenario_header h;
+
+	auto file_end = ptr_in + file_size;
+
+	if(file_size > sizeof_scenario_header(h)) {
+		ptr_in = read_scenario_header(ptr_in, h);
+	}
+
+	if(h.version != sys::scenario_file_version) {
+		return mod_identifier{ native_string{}, 0, 0 };
+	}
+
+	native_string mod_path;
+	read_mod_path(ptr_in, file_end, mod_path);
+
+	return mod_identifier{ mod_path, h.timestamp, h.count };
+}
+
 uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
 	uint32_t decompressed_length = uncompressed_size;
 
@@ -86,14 +143,6 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_id_map);
-	}
-	{
-		uint32_t length = 0;
-		memcpy(&length, ptr_in, sizeof(uint32_t));
-		ptr_in += sizeof(uint32_t);
-
-		simple_fs::restore_state(state.common_fs, native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
-		ptr_in += length * sizeof(native_char);
 	}
 	{
 		memcpy(&(state.defines), ptr_in, sizeof(parsing::defines));
@@ -268,14 +317,6 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_id_map);
 	}
 	{
-		auto fs_str = simple_fs::extract_state(state.common_fs);
-		uint32_t length = uint32_t(fs_str.length());
-		memcpy(ptr_in, &length, sizeof(uint32_t));
-		ptr_in += sizeof(uint32_t);
-		memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
-		ptr_in += length * sizeof(native_char);
-	}
-	{
 		memcpy(ptr_in, &(state.defines), sizeof(parsing::defines));
 		ptr_in += sizeof(parsing::defines);
 	}
@@ -446,14 +487,6 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.map_state.map_data.borders);
 		sz += serialize_size(state.map_state.map_data.terrain_id_map);
 		sz += serialize_size(state.map_state.map_data.province_id_map);
-	}
-	{
-		auto fs_str = simple_fs::extract_state(state.common_fs);
-		uint32_t length = uint32_t(fs_str.length());
-		// memcpy(ptr_in, &length, sizeof(uint32_t));
-		sz += sizeof(uint32_t);
-		// memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
-		sz += length * sizeof(native_char);
 	}
 	{ sz += sizeof(parsing::defines); }
 	{ sz += sizeof(economy::global_economy_state); }
@@ -745,20 +778,23 @@ size_t sizeof_save_section(sys::state& state) {
 	return sz;
 }
 
-void write_scenario_file(sys::state& state, native_string_view name) {
+void write_scenario_file(sys::state& state, native_string_view name, uint32_t count) {
 	scenario_header header;
+	header.count = count;
+	header.timestamp = uint64_t(std::time(nullptr));
 
 	size_t scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =
-			sizeof_scenario_header(header) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
+			sizeof_scenario_header(header) + sizeof_mod_path(simple_fs::extract_state(state.common_fs)) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
 
 	uint8_t* temp_buffer = new uint8_t[total_size];
 	uint8_t* buffer_position = temp_buffer;
 
 	buffer_position = write_scenario_header(buffer_position, header);
+	buffer_position = write_mod_path(buffer_position, simple_fs::extract_state(state.common_fs));
 
 	uint8_t* temp_scenario_buffer = new uint8_t[scenario_space];
 	auto last_written = write_scenario_section(temp_scenario_buffer, state);
@@ -800,6 +836,11 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 			return false;
 		}
 
+		state.scenario_counter = header.count;
+		state.scenario_time_stamp = header.timestamp;
+
+		buffer_pos = load_mod_path(buffer_pos, state);
+
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
 
@@ -828,6 +869,11 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 			return false;
 		}
 
+		state.scenario_counter = header.count;
+		state.scenario_time_stamp = header.timestamp;
+
+		buffer_pos = load_mod_path(buffer_pos, state);
+
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
 		buffer_pos = with_decompressed_section(buffer_pos,
@@ -845,6 +891,10 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 
 void write_save_file(sys::state& state, native_string_view name) {
 	save_header header;
+	header.count = state.scenario_counter;
+	header.timestamp = state.scenario_time_stamp;
+	header.tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
 
 	size_t save_space = sizeof_save_section(state);
 

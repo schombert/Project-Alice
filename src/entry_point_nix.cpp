@@ -12,8 +12,11 @@ int main() {
 
 	if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
 		// scenario making functions
-		game_state.load_scenario_data();
-		sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"));
+		parsers::error_handler err{ "" };
+		game_state.load_scenario_data(err);
+		if(!err.accumulated_errors.empty())
+			window::emit_error_message(err.accumulated_errors, true);
+		sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);
 	} else {
 		game_state.fill_unsaved_data();
 	}

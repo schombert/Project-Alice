@@ -111,7 +111,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(49, artisan_throughput, true, modifier_display_type::percent, "modifier_artisan_throughput")                  \
 	MOD_LIST_ELEMENT(50, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand")                              \
 	MOD_LIST_ELEMENT(51, badboy, false, modifier_display_type::fp_two_places, "modifier_badboy")                                   \
-	MOD_LIST_ELEMENT(52, global_assimilation_rate, true, modifier_display_type::percent, "modifier_global_assimilation_rate")      \
+	MOD_LIST_ELEMENT(52, global_assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate")      \
 	MOD_LIST_ELEMENT(53, prestige, true, modifier_display_type::percent, "modifier_prestige")                                      \
 	MOD_LIST_ELEMENT(54, factory_cost, false, modifier_display_type::percent, "modifier_factory_cost")                             \
 	MOD_LIST_ELEMENT(55, farm_rgo_eff, true, modifier_display_type::percent, "tech_farm_output")                              \

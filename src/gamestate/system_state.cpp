@@ -1477,8 +1477,7 @@ void state::open_diplomacy(dcon::nation_id target) {
 	}
 }
 
-void state::load_scenario_data() {
-	parsers::error_handler err("");
+void state::load_scenario_data(parsers::error_handler& err) {
 
 	parsers::scenario_building_context context(*this);
 
@@ -2589,6 +2588,13 @@ void state::load_scenario_data() {
 			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
 	});
 
+	// fix slaves in non-slave owning nations
+	for(auto p : world.in_province) {
+		if(p.get_nation_from_province_ownership()) {
+			culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
+		}
+	}
+
 	// run the economy for three days on scenario creation
 	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
@@ -2611,9 +2617,6 @@ void state::load_scenario_data() {
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
-
-	if(err.accumulated_errors.length() > 0)
-		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
@@ -2965,7 +2968,7 @@ void state::single_game_tick() {
 	demographics::regenerate_from_pop_data(*this);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
-	concurrency::parallel_for(0, 16, [&](int32_t index) {
+	concurrency::parallel_for(0, 18, [&](int32_t index) {
 		switch(index) {
 			case 0:
 				nations::update_administrative_efficiency(*this);
@@ -2986,33 +2989,39 @@ void state::single_game_tick() {
 				military::update_naval_supply_points(*this);
 				break;
 			case 6:
-				economy::update_rgo_employment(*this);
+				military::update_all_recruitable_regiments(*this);
 				break;
 			case 7:
-				economy::update_factory_employment(*this);
+				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				rebel::daily_update_rebel_organization(*this);
+				economy::update_rgo_employment(*this);
 				break;
 			case 9:
-				military::daily_leaders_update(*this);
+				economy::update_factory_employment(*this);
 				break;
 			case 10:
-				politics::daily_party_loyalty_update(*this);
+				rebel::daily_update_rebel_organization(*this);
 				break;
 			case 11:
-				nations::daily_update_flashpoint_tension(*this);
+				military::daily_leaders_update(*this);
 				break;
 			case 12:
-				military::update_ticking_war_score(*this);
+				politics::daily_party_loyalty_update(*this);
 				break;
 			case 13:
-				military::increase_dig_in(*this);
+				nations::daily_update_flashpoint_tension(*this);
 				break;
 			case 14:
-				military::recover_org(*this);
+				military::update_ticking_war_score(*this);
 				break;
 			case 15:
+				military::increase_dig_in(*this);
+				break;
+			case 16:
+				military::recover_org(*this);
+				break;
+			case 17:
 				ai::refresh_home_ports(*this);
 				break;
 		}

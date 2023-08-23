@@ -562,7 +562,10 @@ void update_great_powers(sys::state& state) {
 			// kill gp relationships
 			auto rels = state.world.nation_get_gp_relationship_as_great_power(n);
 			while(rels.begin() != rels.end()) {
-				state.world.delete_gp_relationship(*(rels.begin()));
+				auto rel = *(rels.begin());
+				if(rel.get_influence_target().get_in_sphere_of() == n)
+					rel.get_influence_target().set_in_sphere_of(dcon::nation_id{});
+				state.world.delete_gp_relationship(rel);
 			}
 
 			notification::post(state, notification::message{
@@ -1323,6 +1326,9 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 	{
 		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
 		while(gp_relationships.begin() != gp_relationships.end()) {
+			auto i = (*gp_relationships.begin()).get_influence_target();
+			if(i.get_in_sphere_of() == n)
+				i.set_in_sphere_of(dcon::nation_id{});
 			state.world.delete_gp_relationship(*(gp_relationships.begin()));
 		}
 	}
@@ -1331,6 +1337,7 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		while(gp_relationships.begin() != gp_relationships.end()) {
 			state.world.delete_gp_relationship(*(gp_relationships.begin()));
 		}
+		state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
 	}
 	{
 		for(auto rel : state.world.nation_get_diplomatic_relation(n)) {
@@ -2749,7 +2756,7 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 					++total_military_reforms_count;
 					if(opts[i] == current_option)
 						military_reforms_active_count += int32_t(i);
-				} else {
+				} else if(r.get_reform_type() == uint8_t(culture::issue_type::economic)) {
 					++total_econ_reforms_count;
 					if(opts[i] == current_option)
 						econ_reforms_active_count += int32_t(i);
@@ -2791,7 +2798,7 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 		}
 
 		// try to give the nation proportionally many
-		float target_amount = float(model_tech_count) * (is_military ? mil_tech_fraction : total_econ_reforms_count);
+		float target_amount = float(model_tech_count) * (is_military ? mil_tech_fraction : econ_tech_fraction);
 		int32_t target_count = int32_t(std::ceil(target_amount));
 
 		for(uint32_t sidx = idx; sidx < state.world.technology_size(); ++sidx) {

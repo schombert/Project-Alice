@@ -770,7 +770,7 @@ public:
 class province_supply_limit_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto supply = military::supply_limit_in_province(state, state.local_player_nation, province_id);
+		auto supply = int32_t(military::peacetime_attrition_limit(state, state.local_player_nation, province_id));
 		return std::to_string(supply);
 	}
 

@@ -3004,31 +3004,29 @@ void war_history_file::finish(war_history_context& context) {
 }
 
 void mod_file::name(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.name = std::string(value);
+	name_ = std::string(value);
 }
 
 void mod_file::path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.path = std::string(value);
+	path_ = std::string(value);
 }
 
 void mod_file::user_dir(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
-	context.user_dir = std::string(value);
+	user_dir_ = std::string(value);
 }
 
 void mod_file::replace_path(association_type, std::string_view value, error_handler& err, int32_t line,
 		mod_file_context& context) {
-	context.replace_paths.push_back(std::string(value));
+	replace_paths.push_back(std::string(value));
 }
 
-void mod_file::finish(mod_file_context& context) {
+void mod_file::add_to_file_system(simple_fs::file_system& fs){
 	// If there isn't any path then we aren't required to do anything
-	if(context.path.empty())
+	if(path_.empty())
 		return;
 
-	auto& fs = context.outer_context.state.common_fs;
-
 	// Add root of mod_path
-	for(auto replace_path : context.replace_paths) {
+	for(auto replace_path : replace_paths) {
 		native_string path_block = simple_fs::list_roots(fs)[0];
 		path_block += NATIVE_DIR_SEPARATOR;
 		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
@@ -3040,7 +3038,7 @@ void mod_file::finish(mod_file_context& context) {
 
 	native_string mod_path = simple_fs::list_roots(fs)[0];
 	mod_path += NATIVE_DIR_SEPARATOR;
-	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
+	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(path_));
 	add_root(fs, mod_path);
 }
 

@@ -276,6 +276,7 @@ add_dependencies(Alice GENERATE_PARSERS)
 add_subdirectory(SaveEditor)
 if(WIN32)
 	add_subdirectory(DbgAlice)
+	add_subdirectory(Launcher)
 endif()
 
 # Installation
