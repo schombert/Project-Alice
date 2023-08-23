@@ -48,7 +48,7 @@ size_t sizeof_save_header(save_header const& header_in) {
 
 void read_mod_path(uint8_t const* ptr_in, uint8_t const* lim, native_string& path_out) {
 	uint32_t length = 0;
-	if(lim - ptr_in < sizeof(uint32_t))
+	if(size_t(lim - ptr_in) < sizeof(uint32_t))
 		return;
 
 	memcpy(&length, ptr_in, sizeof(uint32_t));
