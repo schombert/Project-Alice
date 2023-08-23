@@ -166,17 +166,13 @@ enum class key_modifiers : uint8_t {
 constexpr inline float ui_scales[] = {0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
 constexpr inline uint32_t ui_scales_count = 8;
 
-enum class leader_type : uint8_t {
-	european = 0,
-	southamerican,
-	russian,
-	arab,
-	asian,
-	indian,
-	nativeamerican,
-	african,
-	polar_bear
+enum class autosave_frequency : uint8_t {
+	none = 0,
+	yearly = 1,
+	monthly = 2,
+	daily = 3,
 };
+
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, count };
 
 enum class message_setting_type : uint8_t {

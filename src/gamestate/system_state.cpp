@@ -3199,6 +3199,24 @@ void state::single_game_tick() {
 	ui_date = current_date;
 
 	game_state_updated.store(true, std::memory_order::release);
+
+	switch(user_settings.autosaves) {
+		case autosave_frequency::none:
+			break;
+		case autosave_frequency::daily:
+			write_save_file(*this);
+			break;
+		case autosave_frequency::monthly:
+			if(ymd_date.day == 1)
+				write_save_file(*this);
+			break;
+		case autosave_frequency::yearly:
+			if(ymd_date.month == 1 && ymd_date.day == 1)
+				write_save_file(*this);
+			break;
+		default:
+			break;
+	}
 }
 
 void state::game_loop() {

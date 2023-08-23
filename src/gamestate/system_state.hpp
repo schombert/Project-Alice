@@ -46,7 +46,7 @@ struct user_settings_s {
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
 	bool map_is_globe = true;
-	bool dummy_1 = true;
+	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool dummy_2 = true;
 	bool use_classic_fonts = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
@@ -431,6 +431,8 @@ struct alignas(64) state {
 
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
 	uint32_t scenario_counter = 0;		// as above
+	native_string loaded_scenario_file;
+	native_string loaded_save_file;
 
 	//
 	// Crisis data

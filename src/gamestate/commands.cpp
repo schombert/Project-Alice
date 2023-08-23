@@ -65,6 +65,22 @@ void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::pr
 	}
 }
 
+void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::save_game;
+	p.source = source;
+	p.data.save_game.and_quit = and_quit;
+	add_to_command_queue(state, p);
+}
+
+void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
+	sys::write_save_file(state);
+	if(and_quit) {
+		window::close_window(state);
+	}
+}
+
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 		dcon::national_focus_id focus) {
 	payload p;
@@ -4541,6 +4557,9 @@ void execute_command(sys::state& state, payload& c) {
 			break;
 		case command_type::set_rally_point:
 			execute_set_rally_point(state, c.source, c.data.rally_point.location, c.data.rally_point.naval, c.data.rally_point.enable);
+			break;
+		case command_type::save_game:
+			execute_save_game(state, c.source, c.data.save_game.and_quit);
 			break;
 
 			// common mp commands

@@ -3,7 +3,7 @@ alice_save;Save;;;Guardar;;;;;;;;;x
 alice_exit;Exit;;;Salir;;;;;;;;;x
 graphics_options;Graphics Options;;;Opciones graficas;;;;;;;;;x
 sound_options;Sound Options;;;Opciones de audio;;;;;;;;;x
-controls_options;Controls Options;;;Opciones de controles;;;;;;;;;x
+controls_options;Misc. Options;;;Opciones de controles;;;;;;;;;x
 message_settings_options;Message Settings;;;Configuracion de mensajes;;;;;;;;;x
 window_mode;Window mode;;;Modo de ventanilla;;;;;;;;;x
 map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
@@ -1174,4 +1174,9 @@ alice_load_unload_3;The transporting fleet is docked
 alice_load_unload_4;One or more armies is being transported
 alice_load_unload_5;The fleet is docked
 alice_unload_fleet;Unload all armies transported by the fleet
+auto_save_lb;Auto-save frequency
+auto_save_1;Daily
+auto_save_2;Monthly
+auto_save_3;Yearly
+auto_save_0;None
 ;;;;;;;;;;;;;x

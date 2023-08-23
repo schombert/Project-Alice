@@ -155,6 +155,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				if(!err.accumulated_errors.empty())
 					window::emit_error_message(err.accumulated_errors, true);
 				sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);
+				game_state.loaded_scenario_file = NATIVE("development_test_file.bin");
 			} else {
 				game_state.fill_unsaved_data();
 			}

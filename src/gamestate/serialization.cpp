@@ -786,6 +786,9 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	size_t scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
 
+	state.scenario_counter = count;
+	state.scenario_time_stamp = header.timestamp;
+
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =
 			sizeof_scenario_header(header) + sizeof_mod_path(simple_fs::extract_state(state.common_fs)) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
@@ -838,6 +841,8 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
+		state.loaded_save_file = NATIVE("");
+		state.loaded_scenario_file = name;
 
 		buffer_pos = load_mod_path(buffer_pos, state);
 
@@ -872,6 +877,9 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 
+		state.loaded_save_file = NATIVE("");
+		state.loaded_scenario_file = name;
+
 		buffer_pos = load_mod_path(buffer_pos, state);
 
 		buffer_pos = with_decompressed_section(buffer_pos,
@@ -889,12 +897,60 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 	}
 }
 
-void write_save_file(sys::state& state, native_string_view name) {
+bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) {
+	auto dir = simple_fs::get_or_create_scenario_directory();
+	auto save_file = open_file(dir, name);
+	if(save_file) {
+		scenario_header header;
+		header.version = 0;
+
+		auto contents = simple_fs::view_contents(*save_file);
+		uint8_t const* buffer_pos = reinterpret_cast<uint8_t const*>(contents.data);
+		auto file_end = buffer_pos + contents.file_size;
+
+		if(contents.file_size > sizeof_scenario_header(header)) {
+			buffer_pos = read_scenario_header(buffer_pos, header);
+		}
+
+		if(header.version != sys::scenario_file_version) {
+			return false;
+		}
+
+		if(state.scenario_counter != header.count)
+			return false;
+		if(state.scenario_time_stamp != header.timestamp)
+			return false;
+
+		state.loaded_save_file = NATIVE("");
+
+		buffer_pos = load_mod_path(buffer_pos, state);
+
+		buffer_pos = with_decompressed_section(buffer_pos,
+			[&](uint8_t const* ptr_in, uint32_t length) {
+				// DO NOTHING -- this skips over reading the scenario section
+			});
+		buffer_pos = with_decompressed_section(buffer_pos,
+			[&](uint8_t const* ptr_in, uint32_t length) {
+				read_save_section(ptr_in, ptr_in + length, state);
+			});
+
+		state.game_seed = uint32_t(std::random_device()());
+
+		float g1price = state.world.commodity_get_current_price(dcon::commodity_id(1));
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void write_save_file(sys::state& state) {
 	save_header header;
 	header.count = state.scenario_counter;
 	header.timestamp = state.scenario_time_stamp;
 	header.tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
+	header.d = state.current_date;
 
 	size_t save_space = sizeof_save_section(state);
 
@@ -913,7 +969,16 @@ void write_save_file(sys::state& state, native_string_view name) {
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	simple_fs::write_file(simple_fs::get_or_create_save_game_directory(), name, reinterpret_cast<char*>(temp_buffer),
+	auto ymd_date = state.current_date.to_ymd(state.start_date);
+	auto base_str = nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + "v";
+	int32_t count = 0;
+	auto sdir = simple_fs::get_or_create_save_game_directory();
+
+	while(simple_fs::peek_file(sdir, simple_fs::utf8_to_native(base_str + std::to_string(count) + ".bin"))) {
+		++count;
+	}
+
+	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str + std::to_string(count) + ".bin"), reinterpret_cast<char*>(temp_buffer),
 			uint32_t(total_size_used));
 
 	delete[] temp_buffer;
@@ -936,6 +1001,13 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 		if(header.version != sys::save_file_version) {
 			return false;
 		}
+
+		if(state.scenario_counter != header.count)
+			return false;
+		if(state.scenario_time_stamp != header.timestamp)
+			return false;
+
+		state.loaded_save_file = name;
 
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
