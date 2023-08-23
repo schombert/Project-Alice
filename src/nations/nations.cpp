@@ -2756,7 +2756,7 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 					++total_military_reforms_count;
 					if(opts[i] == current_option)
 						military_reforms_active_count += int32_t(i);
-				} else {
+				} else if(r.get_reform_type() == uint8_t(culture::issue_type::economic)) {
 					++total_econ_reforms_count;
 					if(opts[i] == current_option)
 						econ_reforms_active_count += int32_t(i);
@@ -2798,7 +2798,7 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 		}
 
 		// try to give the nation proportionally many
-		float target_amount = float(model_tech_count) * (is_military ? mil_tech_fraction : total_econ_reforms_count);
+		float target_amount = float(model_tech_count) * (is_military ? mil_tech_fraction : econ_tech_fraction);
 		int32_t target_count = int32_t(std::ceil(target_amount));
 
 		for(uint32_t sidx = idx; sidx < state.world.technology_size(); ++sidx) {
