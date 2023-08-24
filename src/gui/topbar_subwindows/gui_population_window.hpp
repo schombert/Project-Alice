@@ -2192,8 +2192,9 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = state.world.pop_location_get_province(pop_loc);
+		auto pop_id = state.world.pop_location_get_pop(pop_loc);
 		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
-		additive_value_modifier_description(state, contents, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+		additive_value_modifier_description(state, contents, mod_key, trigger::to_generic(pop_id), trigger::to_generic(nat_id), 0);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -2645,8 +2646,8 @@ public:
 		state.world.for_each_pop_type([&](dcon::pop_type_id ptid) {
 			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
 			if(mod_key) {
-				auto chance =
-						trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+				auto chance = std::max(0.0f, 
+						trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(fat_id.id), trigger::to_generic(nat_id), 0));
 				distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
 				total += chance;
 			}
@@ -2662,7 +2663,7 @@ public:
 				promotion_windows[index]->impl_set(state, pl_payload);
 				Cyto::Any mod_payload = state.world.pop_get_poptype(fat_id.id).get_promotion(dcon::pop_type_id(e.first));
 				promotion_windows[index]->impl_set(state, mod_payload);
-				Cyto::Any chance_payload = float(e.second / total);
+				Cyto::Any chance_payload = float(total > 0.0f ? e.second / total : 0.0f);
 				promotion_windows[index]->impl_set(state, chance_payload);
 				++index;
 			}
