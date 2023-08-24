@@ -385,7 +385,7 @@ float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 		life_rating = 0;
 	}
 
-	float growth_factor = life_rating + state.defines.base_popgrowth;
+	float growth_factor = life_rating * 0.1f + state.defines.base_popgrowth;
 
 	float life_needs = state.world.province_get_demographics(id, demographics::poor_everyday_needs) +
 		 state.world.province_get_demographics(id, demographics::middle_everyday_needs) +
@@ -394,7 +394,7 @@ float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	life_needs /= total_pops;
 
 	float growth_modifier_sum = ((life_needs - state.defines.life_need_starvation_limit) * growth_factor * 4 +
-			state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) +
+			state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) * 0.1f +
 				 state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) * 0.1f); // /state.defines.slave_growth_divisor;
 
 	// TODO: slaves growth
