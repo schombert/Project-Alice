@@ -103,7 +103,7 @@ public:
 				state.fill_unsaved_data();
 			}
 		}
-		state.game_state_updated.store(true, std::memory_order::memory_order_release);
+		state.game_state_updated.store(true, std::memory_order_release);
 	}
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
