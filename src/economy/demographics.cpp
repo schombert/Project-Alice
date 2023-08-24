@@ -1705,7 +1705,7 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 	return dcon::province_id{};
 }
 
-dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
+dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner, dcon::pop_id p) {
 	/*
 	Country targets for external migration: must be a country with its capital on a different continent from the source country
 	*or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted:
@@ -1731,8 +1731,10 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id n, dco
 			return; // ignore dead nations
 		if(state.world.nation_get_is_civilized(inner) == false)
 			return; // ignore unciv nations
+		if(inner == owner)
+			return; // ignore self
 		if(state.world.province_get_continent(state.world.nation_get_capital(inner)) == home_continent &&
-				!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, inner)) {
+				!state.world.get_nation_adjacency_by_nation_adjacency_pair(owner, inner)) {
 			return; // ignore same continent, non-adjacent nations
 		}
 
@@ -1967,6 +1969,32 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 				},
 				ids, loc, owners, amounts);
 	});
+}
+
+void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::vector<float>& national_amounts) {
+	auto sz = state.world.nation_size();
+	national_amounts.resize(sz);
+	for(auto& v : national_amounts) {
+		v = 0.0f;
+	}
+	for(auto ids : state.world.in_pop) {
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+
+		auto est_amount = get_estimated_emigration(state, ids);
+		if(est_amount > 0.0f) {
+			auto target = impl::get_immigration_target(state, owners, ids);
+			if(owners == n) {
+				if(target && uint32_t(target.index()) < sz) {
+					national_amounts[uint32_t(target.index())] -= est_amount;
+				}
+			} else if(target == n) {
+				if(uint32_t(owners.index()) < sz) {
+					national_amounts[uint32_t(owners.index())] += est_amount;
+				}
+			}
+		}
+	}
 }
 
 float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
