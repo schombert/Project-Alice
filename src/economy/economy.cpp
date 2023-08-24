@@ -3192,7 +3192,7 @@ void resolve_constructions(sys::state& state) {
 		auto for_province = state.world.province_building_construction_get_province(c);
 
 		auto t = province_building_type(state.world.province_building_construction_get_type(c));
-		auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost;
+		auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
 		bool all_finished = true;
 		for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
