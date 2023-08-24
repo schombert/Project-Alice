@@ -1131,7 +1131,7 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) +
 									 state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 
-		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum;
+		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
 		auto old_size = state.world.pop_get_size(ids);
 		auto new_size = old_size * total_factor + old_size;
 
@@ -1161,7 +1161,7 @@ float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
 	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) +
 								 state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 
-	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum;
+	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
 	auto old_size = state.world.pop_get_size(ids);
 
 	return old_size * total_factor;
