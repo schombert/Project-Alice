@@ -128,7 +128,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<u
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-constexpr inline uint32_t save_file_version = 25;
+constexpr inline uint32_t save_file_version = 26;
 constexpr inline uint32_t scenario_file_version = 79 + save_file_version;
 
 struct scenario_header {
@@ -143,6 +143,7 @@ struct save_header {
 	uint64_t timestamp = 0;
 	dcon::national_identity_id tag;
 	dcon::government_type_id cgov;
+	sys::date d;
 };
 
 struct mod_identifier {
@@ -178,8 +179,9 @@ size_t sizeof_save_section(sys::state& state);
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);
 bool try_read_scenario_file(sys::state& state, native_string_view name);
 bool try_read_scenario_and_save_file(sys::state& state, native_string_view name);
+bool try_read_scenario_as_save_file(sys::state& state, native_string_view name);
 
-void write_save_file(sys::state& state, native_string_view name);
+void write_save_file(sys::state& state);
 bool try_read_save_file(sys::state& state, native_string_view name);
 
 } // namespace sys

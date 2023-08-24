@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "serialization.hpp"
 
 namespace ui {
 
@@ -76,57 +77,112 @@ class nation_details_window : public window_element_base {
 
 
 struct save_item {
-	bool is_new_game = false;
-
-	// etc etc -- eventually needs to be populated with data from the possible
-	// save files and to include the file name itself
+	native_string file_name;
 	dcon::national_identity_id save_flag;
+	dcon::government_type_id as_gov;
 	sys::date save_date;
+	bool is_new_game = false;
 };
 
 class select_save_game : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		// TODO: load the save
+		save_item* i = retrieve< save_item*>(state, parent);
+		if(i->is_new_game) {
+			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
+				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
+				window::emit_error_message(msg, false);
+			} else {
+				state.fill_unsaved_data();
+			}
+		} else {
+			if(!sys::try_read_save_file(state, i->file_name)) {
+				auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
+				window::emit_error_message(msg, false);
+			} else {
+				state.fill_unsaved_data();
+			}
+		}
+		state.game_state_updated.store(true, std::memory_order::memory_order_release);
 	}
 	void on_update(sys::state& state) noexcept override {
-		// TODO: switch frame to indicate which save is loaded, if any
+		save_item* i = retrieve< save_item*>(state, parent);
+		frame = i->file_name == state.loaded_save_file ? 1 : 0;
 	}
 };
 
-class save_flag : public flag_button {
-	// TODO: this needs to be improved to a class that can show a *specific* flag, not just an identity
-	// Thus, it can show the appropriate government type flag for *the save* rather than the currently loaded state
-
-public:
+class save_flag : public button_element_base {
+protected:
+	GLuint flag_texture_handle = 0;
 	bool visible = false;
-
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		save_item i = retrieve< save_item>(state, parent);
-		return i.save_flag;
-	}
-	void on_update(sys::state& state) noexcept override {
-		flag_button::on_update(state);
-		save_item i = retrieve< save_item>(state, parent);
-		visible = bool(i.save_flag);
-	}
+public:
 	void button_action(sys::state& state) noexcept override {
-
 	}
+
+
+	void on_update(sys::state& state) noexcept  override {
+		save_item* i = retrieve< save_item*>(state, parent);
+		auto tag = i->save_flag;
+		auto gov = i->as_gov;
+		visible = !i->is_new_game;
+
+		if(!visible)
+			return;
+
+		if(!bool(tag))
+			tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+
+		culture::flag_type ft = culture::flag_type::default_flag;
+		if(gov) {
+			auto id = state.world.national_identity_get_government_flag_type(tag, gov);
+			if(id != 0)
+				ft = culture::flag_type(id - 1);
+			else
+				ft = state.culture_definitions.governments[gov].flag;
+		}
+		flag_texture_handle = ogl::get_flag_handle(state, tag, ft);
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
-			flag_button::render(state, x, y);
+		if(!visible)
+			return;
+
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid && flag_texture_handle > 0) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.type_dependent) {
+				auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
+				auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+				ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+					float(x) + float(base_data.size.x - mask_tex.size_x) * 0.5f,
+					float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
+					float(mask_tex.size_x),
+					float(mask_tex.size_y),
+					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			} else {
+				ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+						float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
+						gfx_def.is_vertically_flipped());
+			}
+		}
+		image_element_base::render(state, x, y);
 	}
 };
 
 class save_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		save_item i = retrieve< save_item>(state, parent);
-		if(i.is_new_game) {
+		save_item* i = retrieve< save_item*>(state, parent);
+		if(i->is_new_game) {
 			set_text(state, text::produce_simple_string(state, "fe_new_game"));
 		} else {
-			// TODO: name save here
+			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
+			set_text(state, text::produce_simple_string(state, name));
 		}
 	}
 };
@@ -134,8 +190,8 @@ public:
 class save_date : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		save_item i = retrieve< save_item>(state, parent);
-		set_text(state, text::date_to_string(state, i.save_date));
+		save_item* i = retrieve< save_item*>(state, parent);
+		set_text(state, text::date_to_string(state, i->save_date));
 	}
 };
 
@@ -159,20 +215,42 @@ public:
 		}
 		return nullptr;
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
+		if(payload.holds_type<save_item*>()) {
+			payload.emplace<save_item*>(&content);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<save_item>::get(state, payload);
+	}
 };
 
 class saves_listbox : public listbox_element_base<save_game_item, save_item> {
 protected:
 	std::string_view get_row_element_name() override {
-		return "savegameentry";
+		return "alice_savegameentry";
 	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base<save_game_item, save_item>::on_create(state);
 
-		row_contents.push_back(save_item{ true, dcon::national_identity_id{}, sys::date(0) });
+		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), true });
 		// TODO -- then we push in all the actual saves
+
+		auto sdir = simple_fs::get_or_create_save_game_directory();
+		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
+			auto of = simple_fs::open_file(f);
+			if(of) {
+				auto content = simple_fs::view_contents(*of);
+				sys::save_header h;
+				if(content.file_size > sys::sizeof_save_header(h))
+					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
+				if(h.count == state.scenario_counter && h.timestamp == state.scenario_time_stamp) {
+					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.tag, h.cgov, h.d, false });
+				}
+			}
+		}
 
 		update(state);
 	}

@@ -305,6 +305,41 @@ guiTypes = {
 				position = { x = 269 y = 115 }
 				quadTextureSprite = "option_next"
 			}
+			
+			instantTextBoxType={
+				position = {x = 58 y = 157 }
+				name = "auto_save_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "auto_save_lb"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			instantTextBoxType={
+				position = {x = 58 y = 175 }
+				name = "auto_save_value"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			guiButtonType = {
+				name = "auto_save_left"
+				position = { x = 51 y = 168 }
+				quadTextureSprite = "option_prev"
+			}
+
+			guiButtonType = {
+				name = "auto_save_right"
+				position = { x = 269 y = 168 }
+				quadTextureSprite = "option_next"
+			}
 		}
 
 		windowType = {
@@ -2513,5 +2548,60 @@ guiTypes = {
 		name = "alice_event_auto_button"
 		position = { x = 0 y = 0 }
 		quadTextureSprite = "GFX_alice_event_auto"
+	}
+	
+	windowType = {
+		name = "alice_savegameentry"
+		position = { x=0 y=0 }	
+		size = { x=212 y= 32 }
+		moveable = 0
+		fullScreen = no
+		
+		checkboxType = {
+			name = "save_game"	
+			quadTextureSprite = "GFX_alice_frontend_campaign_entry"
+			tooltip = ""
+			tooltipText =""	
+			delayedTooltipText = ""
+			position = { x=0 y = 0}
+		}
+		
+		guiButtonType = {
+			name ="shield"
+			position = { x = 6 y = 8 }
+			quadTextureSprite = "GFX_flag_new"
+			Orientation = "UPPER_LEFT"
+			tooltip = ""
+			tooltipText =""	
+			delayedTooltipText = ""
+		}
+		
+		textBoxType = {
+			name = "title"
+			position = { x = 38 y = 1 }
+			textureFile = ""
+			font = "Arial12_bold_black"
+			borderSize = {x = 1 y = 1}
+			text = ""	
+			maxWidth = 160
+			maxHeight = 18	
+			fixedsize = yes
+		
+			Orientation = "UPPER_LEFT"
+		}
+		
+		textBoxType = {
+			name = "date"
+			position = { x = 38 y = 14 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 1 y = 1}
+			text = ""	
+			maxWidth = 160
+			maxHeight = 18	
+			fixedsize = yes
+		
+			Orientation = "UPPER_LEFT"
+		}			
 	}
 }

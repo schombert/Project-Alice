@@ -89,6 +89,7 @@ enum class command_type : uint8_t {
 	toggle_mobilization = 80,
 	give_military_access = 81,
 	set_rally_point = 82,
+	save_game = 83,
 	
 	notify_player_ban = 117,
 	notify_player_kick = 118,
@@ -125,6 +126,10 @@ struct start_research_data {
 
 struct make_leader_data {
 	bool is_general;
+};
+
+struct save_game_data {
+	bool and_quit;
 };
 
 struct province_building_data {
@@ -442,6 +447,7 @@ struct payload {
 		rally_point_data rally_point;
 		cheat_data_int cheat_int;
 		cheat_event_data cheat_event;
+		save_game_data save_game;
 
 		dtype() { }
 	} data;
@@ -450,6 +456,8 @@ struct payload {
 
 	payload() { }
 };
+
+void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
 

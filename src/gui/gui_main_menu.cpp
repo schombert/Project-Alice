@@ -67,6 +67,67 @@ void ui_scale_display::on_update(sys::state& state) noexcept {
 	set_text(state, temp);
 }
 
+
+void autosave_left::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.autosaves);
+	if(scale_index > 0) {
+		state.user_settings.autosaves = sys::autosave_frequency(scale_index - 1);
+		Cyto::Any payload = notify_setting_update{};
+		if(parent)
+			parent->impl_get(state, payload);
+	}
+}
+void autosave_left::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.autosaves);
+	disabled = (scale_index == 0);
+}
+void autosave_right::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.autosaves);
+	if(scale_index < 3) {
+		state.user_settings.autosaves = sys::autosave_frequency(scale_index + 1);
+		Cyto::Any payload = notify_setting_update{};
+		if(parent)
+			parent->impl_get(state, payload);
+	}
+}
+void autosave_right::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.autosaves);
+	disabled = (scale_index >= 3);
+}
+void autosave_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.autosaves) {
+		case sys::autosave_frequency::none:
+			set_text(state, text::produce_simple_string(state, "auto_save_0"));
+			break;
+		case sys::autosave_frequency::daily:
+			set_text(state, text::produce_simple_string(state, "auto_save_1"));
+			break;
+		case sys::autosave_frequency::monthly:
+			set_text(state, text::produce_simple_string(state, "auto_save_2"));
+			break;
+		case sys::autosave_frequency::yearly:
+			set_text(state, text::produce_simple_string(state, "auto_save_3"));
+			break;
+		default:
+			set_text(state, "???");
+			break;
+	}
+}
+/*
+class autosave_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class autosave_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class autosave_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+*/
 void window_mode_left::button_action(sys::state& state) noexcept {
 	state.user_settings.prefer_fullscreen = !state.user_settings.prefer_fullscreen;
 	window::set_borderless_full_screen(state, state.user_settings.prefer_fullscreen);
