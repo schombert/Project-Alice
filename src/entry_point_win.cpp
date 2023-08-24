@@ -167,6 +167,19 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				window::emit_error_message(msg, false);
 			}
 #endif
+			for(int i = 1; i < num_params; ++i) {
+				if(native_string(parsed_cmd[i]) == NATIVE("-host")) {
+					game_state.network_mode = sys::network_mode::host;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-join")) {
+					game_state.network_mode = sys::network_mode::client;
+					game_state.network_state.ip_address = "127.0.0.1";
+					if(i + 1 < num_params) {
+						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						i++;
+					}
+				}
+			}
+			network::init(game_state);
 
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();

@@ -25,6 +25,7 @@
 #include "simple_fs_win.cpp"
 #include "prng.cpp"
 #include "serialization.hpp"
+#include "network.cpp"
 
 namespace launcher {
 
@@ -53,10 +54,12 @@ constexpr inline int32_t ui_obj_list_left = 1;
 constexpr inline int32_t ui_obj_list_right = 2;
 constexpr inline int32_t ui_obj_create_scenario = 3;
 constexpr inline int32_t ui_obj_play_game = 4;
+constexpr inline int32_t ui_obj_host_game = 5;
+constexpr inline int32_t ui_obj_join_game = 6;
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 5;
+constexpr inline int32_t ui_list_first = 7;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -73,7 +76,9 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 26, 208, 21, 93}, // left
 	ui_active_rect{ 511, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
-	ui_active_rect{ 555, 196, 286, 33 }, // play game
+	ui_active_rect{ 555, 196 + 36 * 0, 286, 33 }, // play game
+	ui_active_rect{ 555, 196 + 36 * 1, 286, 33 }, // host game
+	ui_active_rect{ 555, 196 + 36 * 2, 286, 33 }, // join game
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -411,9 +416,15 @@ void mouse_click() {
 			}
 			return;
 		case ui_obj_play_game:
+		case ui_obj_host_game:
+		case ui_obj_join_game:
 			if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-
 				native_string temp_command_line = native_string(L"Alice.exe ") + selected_scenario_file;
+				if(obj_under_mouse == ui_obj_host_game) {
+					temp_command_line += native_string(L" -host");
+				} else if(obj_under_mouse == ui_obj_join_game) {
+					temp_command_line += native_string(L" -join");
+				}
 				STARTUPINFO si;
 				ZeroMemory(&si, sizeof(si));
 				si.cb = sizeof(si);
@@ -435,8 +446,6 @@ void mouse_click() {
 					CloseHandle(pi.hProcess);
 					CloseHandle(pi.hThread);
 				}
-				
-
 				// ready to launch
 			}
 			return;
@@ -924,12 +933,36 @@ void render() {
 			ui_rects[ui_obj_play_game].width,
 			ui_rects[ui_obj_play_game].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_host_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_host_game].x,
+			ui_rects[ui_obj_host_game].y,
+			ui_rects[ui_obj_host_game].width,
+			ui_rects[ui_obj_host_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_join_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_join_game].x,
+			ui_rects[ui_obj_join_game].y,
+			ui_rects[ui_obj_join_game].width,
+			ui_rects[ui_obj_join_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 			ui_rects[ui_obj_play_game].x,
 			ui_rects[ui_obj_play_game].y,
 			ui_rects[ui_obj_play_game].width,
 			ui_rects[ui_obj_play_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_host_game].x,
+			ui_rects[ui_obj_host_game].y,
+			ui_rects[ui_obj_host_game].width,
+			ui_rects[ui_obj_host_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_join_game].x,
+			ui_rects[ui_obj_join_game].y,
+			ui_rects[ui_obj_join_game].width,
+			ui_rects[ui_obj_join_game].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
 
 		/*830, 250*/
@@ -942,6 +975,11 @@ void render() {
 	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
+	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent("Host Game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Host Game", 10, launcher::ogl::color_modification::none, hg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent("Join Game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Join Game", 10, launcher::ogl::color_modification::none, jg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);

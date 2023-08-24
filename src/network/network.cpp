@@ -157,7 +157,7 @@ static void accept_new_clients(sys::state& state) {
 				// give the client a "joining" nation, basically a temporal nation choosen
 				// "randomly" that is tied to the client iself
 				state.world.for_each_nation([&](dcon::nation_id n) {
-					if(!state.world.nation_get_is_player_controlled(n)) {
+					if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
 						assigned_nation = n;
 					}
 				});
