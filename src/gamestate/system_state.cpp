@@ -3227,7 +3227,7 @@ void state::game_loop() {
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
-			if(speed <= 0 || upause || internally_paused) {
+			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode::in_game) {
 				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {

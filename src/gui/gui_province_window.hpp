@@ -592,7 +592,7 @@ public:
 			command::begin_province_building_construction(state, state.local_player_nation, content, Value);
 		}
 	}
-	virtual void button_shift_action(sys::state& state) noexcept {
+	virtual void button_shift_action(sys::state& state) noexcept override {
 		if constexpr(Value == economy::province_building_type::naval_base) {
 			button_action(state);
 		} else {

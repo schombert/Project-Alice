@@ -80,11 +80,9 @@ static void minidump_generate(HANDLE hProcess) {
 	if(file_handle != INVALID_HANDLE_VALUE) {
 		BOOL bResult = MiniDumpWriteDump(hProcess, GetProcessId(hProcess), file_handle,
 			MINIDUMP_TYPE(MiniDumpWithHandleData
-				| MiniDumpWithIndirectlyReferencedMemory
 				| MiniDumpWithProcessThreadData
 				| MiniDumpWithThreadInfo
 				| MiniDumpWithAvxXStateContext
-				| MiniDumpWithFullAuxiliaryState
 				| MiniDumpWithModuleHeaders
 				| MiniDumpWithTokenInformation),
 			NULL, NULL, NULL);
