@@ -694,6 +694,9 @@ public:
 		});
 		progress = bool(total) && bool(discovered) ? float(discovered) / float(total) : 0.f;
 	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
+	}
 };
 
 class technology_num_discovered_text : public simple_text_element_base {
