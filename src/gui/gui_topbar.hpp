@@ -359,7 +359,7 @@ public:
 		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
 
 		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
-		auto pop_change = state.ui_date.value <= 30
+		auto pop_change = state.ui_date.value <= 32
 			? (state.ui_date.value <= 2 ? 0.0f : pop_amount - state.player_data_cache.population_record[2])
 			: (pop_amount - state.player_data_cache.population_record[(state.ui_date.value - 30) % 32]);
 
