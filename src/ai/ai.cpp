@@ -678,65 +678,89 @@ void update_ai_econ_construction(sys::state& state) {
 
 		auto rules = n.get_combined_issue_rules();
 		auto current_iscore = n.get_industrial_score();
-		if(current_iscore < 10) {
-			if((rules & issue_rule::build_factory) == 0) { // try to jumpstart econ
-				bool can_appoint = [&]() {
+		bool can_appoint = [&]() {
+			if(!politics::can_appoint_ruling_party(state, n))
+				return false;
+			auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
+			if(last_change && state.current_date < last_change + 365)
+				return false;
+			if(politics::is_election_ongoing(state, n))
+				return false;
+			return true;
+			/*auto gov = state.world.nation_get_government_type(source);
+			auto new_ideology = state.world.political_party_get_ideology(p);
+			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+				return false;
+			}*/
+		}();
 
-					if(!politics::can_appoint_ruling_party(state, n))
-						return false;
-					auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
-					if(last_change && state.current_date < last_change + 365)
-						return false;
-					if(politics::is_election_ongoing(state, n))
-						return false;
-					return true;
-					/*auto gov = state.world.nation_get_government_type(source);
-					auto new_ideology = state.world.political_party_get_ideology(p);
-					if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
-						return false;
-					}*/
-				}();
+		// Before, the AI would keep appointing parties repeatedly
+		// causing massive incursions of militancy amongst the population
+		// so stop appointing political parties if we have too much militancy
+		// so we stop at 75% of the military cap for nationalist movements, to not trigger them
+		// hopefully...
+		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
+		if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
+			can_appoint = false;
+		}
 
-				// Before, the AI would keep appointing parties repeatedly
-				// causing massive incursions of militancy amongst the population
-				// so stop appointing political parties if we have too much militancy
-				// so we stop at 75% of the military cap for nationalist movements, to not trigger them
-				// hopefully...
-				auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
-				auto total_pop = state.world.nation_get_demographics(n, demographics::total);
-				if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
-					can_appoint = false;
-				}
-
-				if(can_appoint) {
-					dcon::political_party_id target;
-
-					auto gov = n.get_government_type();
-					auto identity = n.get_identity_from_identity_holder();
-					auto start = state.world.national_identity_get_political_party_first(identity).id.index();
-					auto end = start + state.world.national_identity_get_political_party_count(identity);
-
-					for(int32_t i = start; i < end && !target; i++) {
-						auto pid = dcon::political_party_id(uint16_t(i));
-						if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
-
-							for(auto pi : state.culture_definitions.party_issues) {
-								auto issue_rules = state.world.political_party_get_party_issues(pid, pi).get_rules();
-								if((issue_rules & issue_rule::build_factory) != 0) {
-									target = pid;
-									break;
-								}
+		if(can_appoint) {
+			auto gov = n.get_government_type();
+			auto identity = n.get_identity_from_identity_holder();
+			auto start = state.world.national_identity_get_political_party_first(identity).id.index();
+			auto end = start + state.world.national_identity_get_political_party_count(identity);
+			dcon::political_party_id target;
+			if(current_iscore < 5 && (rules & issue_rule::build_factory) == 0) { // try to jumpstart econ
+				for(int32_t i = start; i < end && !target; i++) {
+					auto pid = dcon::political_party_id(uint16_t(i));
+					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+						for(auto pi : state.culture_definitions.party_issues) {
+							auto issue_rules = state.world.political_party_get_party_issues(pid, pi).get_rules();
+							if((issue_rules & issue_rule::build_factory) != 0) {
+								target = pid;
+								break;
 							}
 						}
 					}
-
-					if(target) {
-						politics::appoint_ruling_party(state, n, target);
-						rules = n.get_combined_issue_rules();
+				}
+			} else {
+				// Appoint most popular party!
+				static std::vector<float> ideo_pool;
+				ideo_pool.resize(state.world.ideology_size());
+				for(auto pcid : state.world.nation_get_province_control(n)) {
+					for(auto pop_loc : state.world.province_get_pop_location(pcid.get_province())) {
+						auto pop_id = pop_loc.get_pop();
+						state.world.for_each_ideology([&](dcon::ideology_id iid) {
+							ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(pop_id);
+						});
 					}
-				} // END if(can_appoint)
-			} // END if((rules & issue_rule::build_factory) == 0)
-		} // END if(current_iscore < 10)
+				}
+				std::pair<dcon::ideology_id, float> popular_ideo;
+				for(uint32_t i = 0; i < state.world.ideology_size(); i++) {
+					if(ideo_pool[i] > popular_ideo.second) {
+						popular_ideo.first = dcon::ideology_id(dcon::ideology_id::value_base_t(i));
+						popular_ideo.second = ideo_pool[i];
+					}
+				}
+
+				// Select popular political party
+				for(int32_t i = start; i < end && !target; i++) {
+					auto pid = dcon::political_party_id(uint16_t(i));
+					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+						if(state.world.political_party_get_ideology(pid) == popular_ideo.first) {
+							target = pid;
+							break;
+						}
+					}
+				}
+			}
+
+			if(target) {
+				politics::appoint_ruling_party(state, n, target);
+				rules = n.get_combined_issue_rules();
+			}
+		} // END if(current_iscore < 10 && (rules & issue_rule::build_factory) == 0)
 
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
