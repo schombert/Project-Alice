@@ -3481,13 +3481,14 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 					float nearest_distance = 1.0f;
 					for(uint32_t k = uint32_t(guards_list.size()) ; k-- > 0;) {
 						auto guard_loc = state.world.army_get_location_from_army_location(guards_list[k]);
-						auto g_region = state.world.province_get_connected_region_id(guard_loc);
-						assert(g_region > 0);
 
 						/*
 						// this wont work because a unit could end up in, for example, a subject's region at the end of a war
 						// this region could be landlocked, resulting in this thinking that the unit can only be stationed in that
 						// same region, even though it could walk out to another region
+
+						auto g_region = state.world.province_get_connected_region_id(guard_loc);
+						assert(g_region > 0);
 
 						if(p_region != g_region && !(state.world.army_get_black_flag(guards_list[k]))  && (!p_region_is_coastal || !state.province_definitions.connected_region_is_coastal[g_region - 1]))
 							continue;

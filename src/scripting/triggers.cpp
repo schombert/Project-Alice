@@ -2998,11 +2998,10 @@ TRIGGER_FUNCTION(tf_alliance_with_this_pop) {
 }
 TRIGGER_FUNCTION(tf_has_recently_lost_war) {
 	return compare_to_true(tval[0], ve::apply(
-																			[&](dcon::nation_id n) {
-																				auto d = ws.world.nation_get_last_war_loss(n);
-																				return bool(d) && (d + 365 * 5) <= ws.current_date;
-																			},
-																			to_nation(primary_slot)));
+		[&](dcon::nation_id n) {
+			auto d = ws.world.nation_get_last_war_loss(n);
+			return bool(d) && (d + 365 * 5) <= ws.current_date;
+		}, to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_is_mobilised) {
 	return compare_to_true(tval[0], ws.world.nation_get_is_mobilized(to_nation(primary_slot)));
@@ -3014,22 +3013,19 @@ TRIGGER_FUNCTION(tf_mobilisation_size) {
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_nation) {
 	return compare_to_true(tval[0], ws.world.nation_get_administrative_spending(to_nation(primary_slot)) >=
-																			ws.world.nation_get_education_spending(to_nation(primary_slot)));
+		ws.world.nation_get_education_spending(to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	return compare_to_true(tval[0],
-			ws.world.nation_get_administrative_spending(owner) >= ws.world.nation_get_education_spending(owner));
+	return compare_to_true(tval[0], ws.world.nation_get_administrative_spending(owner) >= ws.world.nation_get_education_spending(owner));
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return compare_to_true(tval[0],
-			ws.world.nation_get_administrative_spending(owner) >= ws.world.nation_get_education_spending(owner));
+	return compare_to_true(tval[0], ws.world.nation_get_administrative_spending(owner) >= ws.world.nation_get_education_spending(owner));
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	return compare_to_true(tval[0],
-			ws.world.nation_get_administrative_spending(owner) >= ws.world.nation_get_education_spending(owner));
+	return compare_to_true(tval[0], ws.world.nation_get_administrative_spending(owner) >= ws.world.nation_get_education_spending(owner));
 }
 TRIGGER_FUNCTION(tf_agree_with_ruling_party) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
@@ -3223,61 +3219,60 @@ TRIGGER_FUNCTION(tf_poor_tax) {
 	return compare_values(tval[0], ws.world.nation_get_poor_tax(to_nation(primary_slot)), payload(tval[1]).signed_value);
 }
 TRIGGER_FUNCTION(tf_social_spending_nation) {
-	return compare_values(tval[0], ws.world.nation_get_social_spending(to_nation(primary_slot)), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_social_spending(to_nation(primary_slot))) * ws.world.nation_get_spending_level(to_nation(primary_slot)), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_social_spending_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_social_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_social_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_social_spending_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_social_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_social_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_military_spending_nation) {
-	return compare_values(tval[0], ws.world.nation_get_military_spending(to_nation(primary_slot)), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_military_spending(to_nation(primary_slot))) * ws.world.nation_get_spending_level(to_nation(primary_slot)), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_military_spending_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_military_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_military_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_military_spending_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_military_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_military_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_military_spending_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_military_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_military_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_administration_spending_nation) {
-	return compare_values(tval[0], ws.world.nation_get_administrative_spending(to_nation(primary_slot)),
-			payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_administrative_spending(to_nation(primary_slot))) * ws.world.nation_get_spending_level(to_nation(primary_slot)), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_administration_spending_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_administrative_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_administrative_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_administration_spending_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_administrative_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_administrative_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_administration_spending_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_administrative_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_administrative_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_education_spending_nation) {
-	return compare_values(tval[0], ws.world.nation_get_education_spending(to_nation(primary_slot)), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_education_spending(to_nation(primary_slot))) * ws.world.nation_get_spending_level(to_nation(primary_slot)), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_education_spending_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_education_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_education_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_education_spending_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_education_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_education_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_education_spending_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	return compare_values(tval[0], ws.world.nation_get_education_spending(owner), payload(tval[1]).signed_value);
+	return compare_values(tval[0], ve::to_float(ws.world.nation_get_education_spending(owner)) * ws.world.nation_get_spending_level(owner), float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_colonial_nation) {
 	return compare_to_true(tval[0], ws.world.nation_get_is_colonial_nation(to_nation(primary_slot)));

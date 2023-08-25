@@ -944,6 +944,14 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 	}
 }
 
+std::string make_time_string(uint64_t value) {
+	std::string result;
+	for(int32_t i = 64 / 4; i --> 0; ) {
+		result += char('a' + (0x0F & (value >> (i * 4))));
+	}
+	return result;
+}
+
 void write_save_file(sys::state& state) {
 	save_header header;
 	header.count = state.scenario_counter;
@@ -970,16 +978,10 @@ void write_save_file(sys::state& state) {
 	auto total_size_used = buffer_position - temp_buffer;
 
 	auto ymd_date = state.current_date.to_ymd(state.start_date);
-	auto base_str = nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + "v";
-	int32_t count = 0;
+	auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+
 	auto sdir = simple_fs::get_or_create_save_game_directory();
-
-	while(simple_fs::peek_file(sdir, simple_fs::utf8_to_native(base_str + std::to_string(count) + ".bin"))) {
-		++count;
-	}
-
-	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str + std::to_string(count) + ".bin"), reinterpret_cast<char*>(temp_buffer),
-			uint32_t(total_size_used));
+	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 
 	delete[] temp_buffer;
 }

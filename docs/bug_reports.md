@@ -2,7 +2,7 @@
 
 ## The actual process
 
-Leave a message in the `#testing` channel in the discord or, if you aren't on the discord, open an issue in the github repo.
+Make a post in the `bug-reports` forum in the discord (preferred) or, if you aren't on the discord, open an issue in the github repo.
 
 ## Making a useful bug report
 
@@ -18,4 +18,4 @@ A bug report that is sufficiently vague (if you describe something as "weird" or
 
 A bug report that is basically a disagreement with either the rules governing the original game or intentional changes we have made to those rules: We are willing to discuss such issues, but they aren't bugs and shouldn't be reported as such.
 
-Crash reports without steps to reproduce them: Such reports contain so little information that they simply aren't actionable. If you want to help us fix crashes, you need to build the project from the source code and run it under a debugger. Then, when you encounter a crash, you can report the stack trace to us as well as the state of the local variables. When you experience a crash under the debugger, try not to close the program or the debugger. Instead, keep it open so that we can ask you questions about the state of the program.
+Crash reports without either steps to reproduce them or the crash dump: Such reports contain so little information that they simply aren't actionable. Note that while the crash dump is helpful, the steps to reproduce the problem, if you can figure them out, are even more useful.

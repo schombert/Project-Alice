@@ -587,7 +587,8 @@ pop_lit_5;The national education-efficiency modifier: $x$
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$
 pop_lit_7;The base literacy change rate: $x$
 pop_lit_8;And 0.01
-pop_growth_topbar;Our population is expected to change by $x$ within the next month
+pop_growth_topbar;Our population is expected to grow by $x$ within the next month
+pop_growth_topbar_2;Our population changed by $x$ last month
 pop_growth_1;Monthly pop growth: ;
 pop_growth_2;Slaves do not grow;
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;

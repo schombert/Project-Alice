@@ -2352,6 +2352,7 @@ void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon
 		urel = state.world.force_create_unilateral_relationship(asker, target);
 	}
 	state.world.unilateral_relationship_set_military_access(urel, true);
+	nations::adjust_relationship(state, asker, target, state.defines.givemilaccess_relation_on_accept);
 }
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {

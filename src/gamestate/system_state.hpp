@@ -376,12 +376,8 @@ struct great_nation {
 };
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
-
-	// float last_budget = 0.f;
-	// float income_30_days[30] = {};
-	// size_t income_cache_i = 0;
-
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
+	std::array<float, 32> population_record = { 0.0f }; // current day's value = date.value & 31
 };
 
 // the state struct will eventually include (at least pointers to)
