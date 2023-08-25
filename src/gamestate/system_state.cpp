@@ -2352,6 +2352,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 						it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
+					if(!holder) {
+						holder = world.create_nation();
+						world.try_create_identity_holder(holder, it->second);
+					}
+
 					parsers::country_history_context new_context{context, it->second, holder, pending_decisions};
 
 					auto opened_file = open_file(country_file);
