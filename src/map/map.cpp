@@ -609,6 +609,10 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 			glm::vec2 next_dir = normalize(pos3 - pos2);
 			glm::vec2 average_direction = normalize(current_dir + next_dir);
 			glm::vec2 current_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
+			if (pos1 == pos3) {
+				prev_normal_dir = -glm::vec2(-current_dir.y, current_dir.x);
+				continue;
+			}
 
 			// Rescale the coordinate to 0-1
 			pos1 /= glm::vec2(size_x, size_y);
@@ -661,7 +665,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 	}
 	if(unit_arrow_vertices.size() > 0) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), &unit_arrow_vertices[0], GL_STATIC_DRAW);
-	} 
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
