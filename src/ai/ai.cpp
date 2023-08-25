@@ -726,29 +726,26 @@ void update_ai_econ_construction(sys::state& state) {
 				}
 			} else {
 				// Appoint most popular party!
-				static std::vector<float> ideo_pool;
-				ideo_pool.resize(state.world.ideology_size());
-				for(auto pcid : state.world.nation_get_province_control(n)) {
-					for(auto pop_loc : state.world.province_get_pop_location(pcid.get_province())) {
-						auto pop_id = pop_loc.get_pop();
-						state.world.for_each_ideology([&](dcon::ideology_id iid) {
-							ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(pop_id);
-						});
+				float max_support = 0.f;
+				dcon::ideology_id popular_ideo;
+				state.world.for_each_ideology([&](dcon::ideology_id iid) {
+					float support = 0.f;
+					for(auto pcid : state.world.nation_get_province_control(n)) {
+						for(auto pop_loc : state.world.province_get_pop_location(pcid.get_province())) {
+							auto pop_id = pop_loc.get_pop();
+							support += state.world.pop_get_demographics(pop_id.id, pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(pop_id);
+						}
 					}
-				}
-				std::pair<dcon::ideology_id, float> popular_ideo;
-				for(uint32_t i = 0; i < state.world.ideology_size(); i++) {
-					if(ideo_pool[i] > popular_ideo.second) {
-						popular_ideo.first = dcon::ideology_id(dcon::ideology_id::value_base_t(i));
-						popular_ideo.second = ideo_pool[i];
+					if(support > max_support) {
+						popular_ideo = iid;
 					}
-				}
+				});
 
 				// Select popular political party
 				for(int32_t i = start; i < end && !target; i++) {
 					auto pid = dcon::political_party_id(uint16_t(i));
 					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
-						if(state.world.political_party_get_ideology(pid) == popular_ideo.first) {
+						if(state.world.political_party_get_ideology(pid) == popular_ideo) {
 							target = pid;
 							break;
 						}
@@ -1203,14 +1200,24 @@ void take_reforms(sys::state& state) {
 			continue;
 
 		if(n.get_is_civilized()) { // political & social
-			float max_support = 0.0f;
+			// Enact social policies to deter Jacobin rebels from overruning the country
+			// Reactionaries will popup in effect but they are MORE weak that Jacobins
 			dcon::issue_option_id iss;
-			for(auto m : n.get_movement_within()) {
-				if(m.get_movement().get_associated_issue_option() && m.get_movement().get_pop_support() > max_support) {
-					max_support = m.get_movement().get_pop_support();
-					iss = m.get_movement().get_associated_issue_option();
+			float max_support = 0.f;
+			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+				if(command::can_enact_issue(state, n, io)) {
+					float support = 0.f;
+					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * state.world.pop_get_militancy(plid.get_pop());
+						}
+					}
+					if(support > max_support) {
+						iss = io;
+						max_support = support;
+					}
 				}
-			}
+			});
 			if(iss && command::can_enact_issue(state, n, iss)) {
 				nations::enact_issue(state, n, iss);
 			}
