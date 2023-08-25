@@ -1097,6 +1097,9 @@ public:
 			progress = 0.f;
 		}
 	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
+	}
 };
 
 class standard_state_instance_button : public button_element_base {
