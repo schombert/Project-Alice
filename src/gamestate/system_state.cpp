@@ -3194,6 +3194,7 @@ void state::single_game_tick() {
 	 */
 
 	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
+	player_data_cache.population_record[current_date.value % 32] = world.nation_get_demographics(local_player_nation, demographics::total);
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
