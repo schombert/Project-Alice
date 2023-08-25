@@ -236,7 +236,6 @@ public:
 		listbox_element_base<save_game_item, save_item>::on_create(state);
 
 		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), true });
-		// TODO -- then we push in all the actual saves
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -251,6 +250,10 @@ public:
 				}
 			}
 		}
+
+		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
+			return b.file_name > a.file_name;
+		});
 
 		update(state);
 	}
