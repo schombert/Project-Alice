@@ -436,6 +436,8 @@ class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+		state.selected_armies.clear();
+		state.selected_navies.clear();
 		state.mode = sys::game_mode::in_game;
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
