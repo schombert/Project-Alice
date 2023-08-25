@@ -573,7 +573,7 @@ public:
 	}
 };
 template<economy::province_building_type Value>
-class province_building_expand_button : public button_element_base {
+class province_building_expand_button : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -590,6 +590,19 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
 			command::begin_province_building_construction(state, state.local_player_nation, content, Value);
+		}
+	}
+	virtual void button_shift_action(sys::state& state) noexcept {
+		if constexpr(Value == economy::province_building_type::naval_base) {
+			button_action(state);
+		} else {
+			auto pid = retrieve<dcon::province_id>(state, parent);
+			auto si = state.world.province_get_state_membership(pid);
+			if(si) {
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+					command::begin_province_building_construction(state, state.local_player_nation, p, Value);
+				});
+			}
 		}
 	}
 };
