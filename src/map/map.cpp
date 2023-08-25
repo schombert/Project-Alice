@@ -165,6 +165,20 @@ void create_unit_arrow_vbo(GLuint& vbo) {
 	glVertexAttribBinding(4, 0);
 }
 
+void create_drag_box_vbo(GLuint& vbo) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(screen_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(screen_vertex, position_));
+	glEnableVertexAttribArray(0);
+	glVertexAttribBinding(0, 0);
+}
+
 void display_data::create_border_ogl_objects() {
 	// Create and bind the VAO
 	glGenVertexArrays(1, &border_vao);
@@ -179,9 +193,9 @@ void display_data::create_border_ogl_objects() {
 	glBindVertexArray(unit_arrow_vao);
 	create_unit_arrow_vbo(unit_arrow_vbo);
 
-	glGenVertexArrays(1, &unit_arrow_head_vao);
-	glBindVertexArray(unit_arrow_head_vao);
-	create_unit_arrow_vbo(unit_arrow_head_vbo);
+	glGenVertexArrays(1, &drag_box_vao);
+	glBindVertexArray(drag_box_vao);
+	create_drag_box_vbo(drag_box_vbo);
 
 	glBindVertexArray(0);
 }
@@ -240,7 +254,7 @@ void display_data::create_meshes() {
 	glBindVertexBuffer(0, land_vbo, 0, sizeof(map_vertex));
 
 	// Set up vertex attribute format for the position
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position));
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position_));
 	glEnableVertexAttribArray(0);
 	glVertexAttribBinding(0, 0);
 
@@ -281,8 +295,6 @@ display_data::~display_data() {
 		glDeleteVertexArrays(1, &border_vao);
 	if(unit_arrow_vao)
 		glDeleteVertexArrays(1, &unit_arrow_vao);
-	if(unit_arrow_head_vao)
-		glDeleteVertexArrays(1, &unit_arrow_head_vao);
 
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
@@ -292,8 +304,6 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &river_vbo);
 	if(unit_arrow_vbo)
 		glDeleteBuffers(1, &unit_arrow_vbo);
-	if(unit_arrow_head_vbo)
-		glDeleteBuffers(1, &unit_arrow_head_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
@@ -303,6 +313,8 @@ display_data::~display_data() {
 		glDeleteProgram(line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
+	if(drag_box_shader)
+		glDeleteProgram(drag_box_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -335,9 +347,13 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
 
+	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
+	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
+
 	line_border_shader = create_program(*line_vshader, *line_border_fshader);
 	line_river_shader = create_program(*line_vshader, *line_river_fshader);
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
+	drag_box_shader = create_program(*screen_vshader, *black_color_fshader);
 }
 
 void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
@@ -506,6 +522,11 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)unit_arrow_vertices.size());
 
+	glUseProgram(drag_box_shader);
+	glBindVertexArray(drag_box_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
 }
@@ -573,9 +594,53 @@ void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 	gen_prov_color_texture(province_color, prov_color, 2);
 }
 
+void add_drag_box_line(std::vector<screen_vertex>& drag_box_vertices, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 size, bool vertical) {
+	if (vertical) {
+		pos1.y -= size.y;
+		pos2.y += size.y;
+		size.y = 0;
+	} else {
+		pos1.x -= size.x;
+		pos2.x += size.x;
+		size.x = 0;
+	}
+	drag_box_vertices.emplace_back(pos1.x + size.x, pos1.y - size.y);
+	drag_box_vertices.emplace_back(pos1.x - size.x, pos1.y + size.y);
+	drag_box_vertices.emplace_back(pos2.x - size.x, pos2.y + size.y);
+
+	drag_box_vertices.emplace_back(pos2.x - size.x, pos2.y + size.y);
+	drag_box_vertices.emplace_back(pos2.x + size.x, pos2.y - size.y);
+	drag_box_vertices.emplace_back(pos1.x + size.x, pos1.y - size.y);
+}
+
+void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size) {
+	drag_box_vertices.clear();
+	if (!draw_box)
+		return;
+
+	if (pos1.x > pos2.x)
+		std::swap(pos1.x, pos2.x);
+	if (pos1.y > pos2.y)
+		std::swap(pos1.y, pos2.y);
+
+	glm::vec2 size = pixel_size;
+	// Vertical lines
+	add_drag_box_line(drag_box_vertices, {pos1.x, pos1.y}, {pos1.x, pos2.y}, size, true);
+	add_drag_box_line(drag_box_vertices, {pos2.x, pos1.y}, {pos2.x, pos2.y}, size, true);
+
+	// Horizontal lines
+	add_drag_box_line(drag_box_vertices, {pos1.x, pos1.y}, {pos2.x, pos1.y}, size, false);
+	add_drag_box_line(drag_box_vertices, {pos1.x, pos2.y}, {pos2.x, pos2.y}, size, false);
+
+	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
+	if(drag_box_vertices.size() > 0) {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertex) * drag_box_vertices.size(), &drag_box_vertices[0], GL_STATIC_DRAW);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows) {
 	unit_arrow_vertices.clear();
-	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
 	for (auto& arrow : arrows) {
 		if (arrow.size() <= 1)
 			continue;
@@ -663,6 +728,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 			unit_arrow_vertices.emplace_back(pos2, normal_direction, direction, glm::vec2(0.0f, 0.0f), 1.0f);
 		}
 	}
+	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
 	if(unit_arrow_vertices.size() > 0) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), &unit_arrow_vertices[0], GL_STATIC_DRAW);
 	}

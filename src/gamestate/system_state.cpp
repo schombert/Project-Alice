@@ -90,7 +90,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				sound::play_interface_sound(*this, sound::get_click_sound(*this),
 				user_settings.interface_volume * user_settings.master_volume);
 				auto fat_id = dcon::fatten(world, province::from_map_id(map_state.map_data.province_id_map[idx]));
-					
+
 				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
 				auto owner = world.province_get_nation_from_province_ownership(prov_id);
 				if(owner)
@@ -149,6 +149,7 @@ void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	map_state.on_mbuttom_up(x, y, mod);
 }
 void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
+	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	is_dragging = false;
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
@@ -233,7 +234,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			map_state.on_key_down(keycode, mod);
 		}
 	} else if(mode == sys::game_mode::end_screen) {
-		
+
 	} else {
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
@@ -284,7 +285,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 			ui_state.end_screen->impl_on_update(*this);
-		
+
 			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
 				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
@@ -386,7 +387,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		
+
 		// UI rendering
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
@@ -747,7 +748,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
-					
+
 				}
 				new_messages.pop();
 				c6 = new_messages.front();
@@ -792,7 +793,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		map_mode::update_map_mode(*this);
 		if(ui_state.unit_details_box->is_visible())
 			ui_state.unit_details_box->impl_on_update(*this);
-		
+
 		ui_state.rgos_root->impl_on_update(*this);
 		ui_state.units_root->impl_on_update(*this);
 
@@ -941,7 +942,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Enable this and tooltip will follow the cursor
 			// ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
 			// ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
-			
+
 
 			ui::populate_map_tooltip(*this, container, prov);
 
@@ -1093,7 +1094,7 @@ void state::on_create() {
 	world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(*this, "alice_map_unit");
 		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
-		ui_state.units_root->add_child_to_front(std::move(ptr));	
+		ui_state.units_root->add_child_to_front(std::move(ptr));
 	});
 	world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
@@ -2476,7 +2477,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	*/
 	{
 		world.for_each_province([&](dcon::province_id id) { world.province_set_connected_region_id(id, 0); });
-		
+
 		std::vector<dcon::province_id> to_fill_list;
 		std::vector<int32_t> region_sizes;
 
@@ -2484,7 +2485,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		province_definitions.connected_region_is_coastal.clear();
 
 		to_fill_list.reserve(world.province_size());
-		
+
 		for(int32_t i = int32_t(world.province_size()); i-- > province_definitions.first_sea_province.index();) {
 			dcon::province_id id{ dcon::province_id::value_base_t(i) };
 

@@ -44,6 +44,8 @@ public:
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
 	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
 			sys::key_modifiers mod);
+	void on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
+			sys::key_modifiers mod);
 	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
 			sys::key_modifiers mod);
 	dcon::province_id get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
@@ -69,9 +71,10 @@ public:
 	// Position and movement
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity = glm::vec2(0.f);
-	glm::vec2 last_camera_drag_pos;
+	glm::vec2 last_camera_drag_pos = glm::vec2(0.5f, 0.5f);
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
-	
+	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
+
 	float zoom = 1.f;
 	float zoom_change = 1.f;
 	bool has_zoom_changed = false;
@@ -79,6 +82,7 @@ public:
 	bool right_arrow_key_down = false;
 	bool up_arrow_key_down = false;
 	bool down_arrow_key_down = false;
+	bool left_mouse_down = false;
 	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
 	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
 

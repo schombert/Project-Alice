@@ -37,8 +37,12 @@ struct image {
 	}
 };
 struct map_vertex {
-	map_vertex(float x, float y) : position(x, y){};
-	glm::vec2 position;
+	map_vertex(float x, float y) : position_(x, y){};
+	glm::vec2 position_;
+};
+struct screen_vertex {
+	screen_vertex(float x, float y) : position_(x, y){};
+	glm::vec2 position_;
 };
 struct border_vertex {
 	border_vertex(){};
@@ -80,6 +84,7 @@ public:
 	void update_borders(sys::state& state);
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
+	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows);
 
 	uint32_t size_x;
@@ -89,7 +94,7 @@ public:
 	std::vector<border_vertex> border_vertices;
 	std::vector<border_vertex> river_vertices;
 	std::vector<unit_arrow_vertex> unit_arrow_vertices;
-	std::vector<unit_arrow_vertex> unit_arrow_head_vertices;
+	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 
@@ -106,8 +111,8 @@ private:
 	GLuint river_vbo = 0;
 	GLuint unit_arrow_vao = 0;
 	GLuint unit_arrow_vbo = 0;
-	GLuint unit_arrow_head_vao = 0;
-	GLuint unit_arrow_head_vbo = 0;
+	GLuint drag_box_vao = 0;
+	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
 
 	// Textures
@@ -129,7 +134,7 @@ private:
 	GLuint line_border_shader = 0;
 	GLuint line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
-	GLuint line_unit_arrow_shader2 = 0;
+	GLuint drag_box_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

@@ -228,14 +228,22 @@ void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int3
 }
 
 void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	if(is_dragging) { // Drag the map with middlemouse
-		auto mouse_pos = glm::vec2(x, y);
-		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 		glm::vec2 map_pos;
 		screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
 
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
-
+	}
+	float dist = glm::length(last_unit_box_drag_pos - mouse_pos);
+	if (left_mouse_down && dist >= 10) {
+		auto pos1 = last_unit_box_drag_pos / screen_size;
+		auto pos2 = mouse_pos / screen_size;
+		auto pixel_size = glm::vec2(1) / screen_size;
+		map_data.set_drag_box(true, pos1, pos2, pixel_size);
+	} else {
+		map_data.set_drag_box(false, {}, {}, {});
 	}
 }
 
@@ -295,27 +303,43 @@ void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
 
 void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
 		sys::key_modifiers mod) {
+	left_mouse_down = true;
+	map_data.set_drag_box(false, {}, {}, {});
+	last_unit_box_drag_pos = glm::vec2(x, y);
+}
+
+void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
+		sys::key_modifiers mod) {
+	left_mouse_down = false;
+	map_data.set_drag_box(false, {}, {}, {});
 	auto mouse_pos = glm::vec2(x, y);
-	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	glm::vec2 map_pos;
-	if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
-		return;
-	}
-	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
-	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
-	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-		sound::play_interface_sound(state, sound::get_click_sound(state),
-				state.user_settings.interface_volume * state.user_settings.master_volume);
-		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
-		if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
-			set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
+	float dist = glm::length(last_unit_box_drag_pos - mouse_pos);
+	if (dist >= 10) {
+		// DO SELECTION HERE
+
+	} else {
+		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+		glm::vec2 map_pos;
+		if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
+			return;
+		}
+		map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
+		auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
+		if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+			if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+				set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
+			} else {
+				set_selected_province(dcon::province_id{});
+			}
 		} else {
 			set_selected_province(dcon::province_id{});
 		}
-	} else {
-		set_selected_province(dcon::province_id{});
 	}
 }
+
 
 void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
 		sys::key_modifiers mod) {
@@ -328,7 +352,7 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
 	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-		
+
 	} else {
 		set_selected_province(dcon::province_id{});
 	}
