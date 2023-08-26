@@ -108,8 +108,8 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
 	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(target_nation)].ruler_name);
 	// TODO: Is this correct? I remember in vanilla it could vary
-	text::add_to_substitution_map(sub, text::variable_type::culture, text::produce_simple_string(state, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation))));
-	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, text::produce_simple_string(state, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation))));
+	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
@@ -128,8 +128,8 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 			state.world.nation_get_adjective(state.primary_crisis_defender));
 	text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_state);
 	// Dates
-	text::add_to_substitution_map(sub, text::variable_type::year, event_date.to_ymd(state.start_date).year);
-	text::add_to_substitution_map(sub, text::variable_type::month, text::localize_month(state, event_date.to_ymd(state.start_date).month));
+	text::add_to_substitution_map(sub, text::variable_type::year, int32_t(event_date.to_ymd(state.start_date).year));
+	//text::add_to_substitution_map(sub, text::variable_type::month, text::localize_month(state, event_date.to_ymd(state.start_date).month));
 	text::add_to_substitution_map(sub, text::variable_type::day, int32_t(event_date.to_ymd(state.start_date).day));
 }
 
