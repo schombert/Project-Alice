@@ -1774,6 +1774,7 @@ oob_leader
 	personality                     value      text                              member_fn
 	background                      value      text                              member_fn
 	prestige                        value      float                             member
+	picture                      value        text                             discard
 
 oob_regiment
 	name                            value      text                              member_fn

@@ -16,6 +16,58 @@ inline constexpr int32_t indentation_amount = 15;
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS);
 
+
+void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::nation_id n) {
+	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
+	if(n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::province_id p) {
+	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
+	if(auto n = ws.world.province_get_nation_from_province_ownership(p); n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::state_instance_id p) {
+	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
+	if(auto n = ws.world.state_instance_get_nation_from_state_ownership(p); n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::pop_id p) {
+	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
+	if(auto n = nations::owner_of_pop(ws, p); n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+void add_adj_from_to_map(sys::state& ws, text::substitution_map& map, dcon::rebel_faction_id p) {
+	static std::string this_nation = text::produce_simple_string(ws, "from_nation");
+	auto fp = fatten(ws.world, p);
+	if(auto n = fp.get_defection_target().get_nation_from_identity_holder(); n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+void add_adj_from_to_map(sys::state& ws, text::substitution_map& map, dcon::nation_id n) {
+	static std::string this_nation = text::produce_simple_string(ws, "from_nation");
+	if(n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+void add_adj_from_to_map(sys::state& ws, text::substitution_map& map, dcon::province_id p) {
+	static std::string this_nation = text::produce_simple_string(ws, "from_nation");
+	if(auto n = ws.world.province_get_nation_from_province_ownership(p); n)
+		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
+	else
+		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{ this_nation });
+}
+
 inline uint32_t display_subeffects(EFFECT_DISPLAY_PARAMS) {
 
 	auto const source_size = 1 + effect::get_effect_scope_payload_size(tval);
@@ -1289,6 +1341,78 @@ uint32_t ef_add_core_tag_state(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+
+uint32_t ef_add_core_state_this_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_this_to_map(ws, m, trigger::to_nation(this_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_core_state_this_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_this_to_map(ws, m, trigger::to_prov(this_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_core_state_this_state(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_this_to_map(ws, m, trigger::to_state(this_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_core_state_this_pop(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_this_to_map(ws, m, trigger::to_pop(this_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_core_state_from_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_from_to_map(ws, m, trigger::to_prov(from_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_core_state_from_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_from_to_map(ws, m, trigger::to_nation(from_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_core_state_reb(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_adj_from_to_map(ws, m, trigger::to_rebel(from_slot));
+		text::localised_format_box(ws, layout, box, "add_x_core", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
 uint32_t ef_add_core_int(EFFECT_DISPLAY_PARAMS) {
 	auto prov = trigger::payload(tval[1]).prov_id;
 	{
@@ -1299,57 +1423,6 @@ uint32_t ef_add_core_int(EFFECT_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 	return 0;
-}
-
-void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::nation_id n) {
-	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
-	if(n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
-}
-void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::province_id p) {
-	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
-	if(auto n = ws.world.province_get_nation_from_province_ownership(p); n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
-}
-void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::state_instance_id p) {
-	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
-	if(auto n = ws.world.state_instance_get_nation_from_state_ownership(p); n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
-}
-void add_adj_this_to_map(sys::state& ws, text::substitution_map& map, dcon::pop_id p) {
-	static std::string this_nation = text::produce_simple_string(ws, "this_nation");
-	if(auto n = nations::owner_of_pop(ws, p); n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
-}
-void add_adj_from_to_map(sys::state& ws, text::substitution_map& map, dcon::rebel_faction_id p) {
-	static std::string this_nation = text::produce_simple_string(ws, "from_nation");
-	auto fp = fatten(ws.world, p);
-	if(auto n = fp.get_defection_target().get_nation_from_identity_holder(); n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
-}
-void add_adj_from_to_map(sys::state& ws, text::substitution_map& map, dcon::nation_id n) {
-	static std::string this_nation = text::produce_simple_string(ws, "from_nation");
-	if(n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
-}
-void add_adj_from_to_map(sys::state& ws, text::substitution_map& map, dcon::province_id p) {
-	static std::string this_nation = text::produce_simple_string(ws, "from_nation");
-	if(auto n = ws.world.province_get_nation_from_province_ownership(p); n)
-		text::add_to_substitution_map(map, text::variable_type::adj, ws.world.nation_get_adjective(n));
-	else
-		text::add_to_substitution_map(map, text::variable_type::adj, std::string_view{this_nation});
 }
 
 uint32_t ef_add_core_this_nation(EFFECT_DISPLAY_PARAMS) {
@@ -6233,6 +6306,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_remove_core_tag_state,											// constexpr inline uint16_t remove_core_tag_state = 0x014B;
 		ef_secede_province_state,											// constexpr inline uint16_t secede_province_state = 0x014C;
 		ef_assimilate_state,													// constexpr inline uint16_t assimilate_state = 0x014D;
+		ef_add_core_state_this_nation, //constexpr inline uint16_t add_core_state_this_nation = 0x014E;
+		ef_add_core_state_this_province, //constexpr inline uint16_t add_core_state_this_province = 0x014F;
+		ef_add_core_state_this_state, //constexpr inline uint16_t add_core_state_this_state = 0x0150;
+		ef_add_core_state_this_pop, //constexpr inline uint16_t add_core_state_this_pop = 0x0151;
+		ef_add_core_state_from_province, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
+		ef_add_core_state_from_nation, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
+		ef_add_core_state_reb, //constexpr inline uint16_t add_core_state_reb = 0x0154;
 		es_generic_scope, // constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or
 											// hidden_tooltip)
 		es_x_neighbor_province_scope,				// constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;
