@@ -155,7 +155,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	auto provinces_image = load_stb_image(*provinces_bmp);
 
 	size_x = uint32_t(provinces_image.size_x);
-	size_y = uint32_t(provinces_image.size_x / 2); // schombert: force the correct map size
+	size_y = uint32_t(provinces_image.size_y * 1.3); // schombert: force the correct map size
 
 	load_province_data(context, provinces_image);
 	load_terrain_data(context);

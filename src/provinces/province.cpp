@@ -549,7 +549,8 @@ bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
 	auto total_size = state.world.state_instance_get_demographics(id, demographics::total);
 	if(bureaucrat_size / total_size >= state.defines.state_creation_admin_limit) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
-		return colony_integration_cost(state, id) <= nations::free_colonial_points(state, owner);
+		auto cost = colony_integration_cost(state, id);
+		return cost == 0.0f || cost <= nations::free_colonial_points(state, owner);
 	} else {
 		return false;
 	}
@@ -561,7 +562,7 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 	COLONIZATION_COLONY_STATE_DISTANCE or 0 if it has a land connection to the capital).
 	*/
 	bool entirely_overseas = true;
-	float prov_count = 0.f;
+	float prov_count = 0.0f;
 	for_each_province_in_state_instance(state, id, [&](dcon::province_id prov) {
 		entirely_overseas &= is_overseas(state, prov);
 		prov_count++;
@@ -571,7 +572,7 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 		float distance = state_distance(state, id, state.world.nation_get_capital(owner).id);
 		return state.defines.colonization_create_state_cost * prov_count * std::max(distance / state.defines.colonization_colony_state_distance, 1.0f);
 	} else {
-		return 0.f;
+		return 0.0f;
 	}
 }
 

@@ -529,6 +529,8 @@ struct alignas(64) state {
 	int32_t mouse_x_position = 0;
 	int32_t mouse_y_position = 0;
 	bool is_dragging = false;
+	int32_t x_drag_start = 0;
+	int32_t y_drag_start = 0;
 
 	// map data
 	map::map_state map_state;

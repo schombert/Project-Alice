@@ -24,6 +24,12 @@ float xx = 1 / map_size.x;
 float yy = 1 / map_size.y;
 vec2 pix = vec2(xx, yy);
 
+vec2 get_corrected_coords(vec2 coords) {
+	coords.y -= (1 - 1 / 1.3) * 3 / 5;
+	coords.y *= 1.3;
+	return coords;
+}
+
 subroutine vec4 get_land_class();
 layout(location = 0) subroutine uniform get_land_class get_land;
 
@@ -44,8 +50,12 @@ vec4 get_water_terrain()
 	const float vColorMapFactor = 1.0f; //how much colormap
 
 	vec2 tex_coord = tex_coord;
-	//vec3 WorldColorColor = texture(colormap_water, tex_coord).rgb;
-	vec3 WorldColorColor = vec3(0.21, 0.38, 0.55);
+	vec2 corrected_coord = get_corrected_coords(tex_coord);
+	vec3 WorldColorColor = texture(colormap_water, corrected_coord).rgb;
+	if (corrected_coord.y > 1)
+		WorldColorColor = vec3(0.14, 0.23, 0.36);
+	if (corrected_coord.y < 0)
+		WorldColorColor = vec3(0.20, 0.35, 0.43);
 	tex_coord *= 100.;
 	tex_coord = tex_coord * 0.25 + time * 0.002;
 
@@ -132,7 +142,7 @@ vec4 get_terrain_mix() {
 	vec4 terrain = mix(colour_u, colour_d, scaling.y);
 
 	// Mixes the terrains from "texturesheet.tga" with the "colormap.dds" background color.
-	vec4 terrain_background = texture(colormap_terrain, tex_coord);
+	vec4 terrain_background = texture(colormap_terrain, get_corrected_coords(tex_coord));
 	terrain.xyz = (terrain.xyz * 2. + terrain_background.xyz) / 3.;
 	return terrain;
 }
@@ -196,8 +206,7 @@ vec4 get_terrain_political_far() {
 	OutColor.b = OverlayColor.b < .5 ? (2. * OverlayColor.b * political.b) : (1. - 2. * (1. - OverlayColor.b) * (1. - political.b));
 	OutColor.a = OverlayColor.a;
 
-	//vec3 background = texture(colormap_political, tex_coord).rgb;
-	vec3 background = vec3(0.5, 0.5, 0.5);
+	vec3 background = texture(colormap_political, get_corrected_coords(tex_coord)).rgb;
 	OutColor.rgb = mix(background, OutColor.rgb, 0.3);
 
 	OutColor.rgb *= 1.5;
