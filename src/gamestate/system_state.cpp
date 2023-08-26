@@ -217,17 +217,15 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	}
 }
 void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
-	if(ui_state.under_mouse != nullptr) {
+	map_state.on_mouse_move(x, y, x_size, y_size, mod);
+	if(map_state.is_dragging) {
+		if(ui_state.mouse_sensitive_target) {
+			ui_state.mouse_sensitive_target->set_visible(*this, false);
+			ui_state.mouse_sensitive_target = nullptr;
+		}
+	} else if(ui_state.under_mouse != nullptr) {
 		auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
-	} else {
-		map_state.on_mouse_move(x, y, x_size, y_size, mod);
-		if(map_state.is_dragging) {
-			if(ui_state.mouse_sensitive_target) {
-				ui_state.mouse_sensitive_target->set_visible(*this, false);
-				ui_state.mouse_sensitive_target = nullptr;
-			}
-		}
 	}
 	if(ui_state.mouse_sensitive_target) {
 		auto mx = int32_t(x / user_settings.ui_scale);
