@@ -440,6 +440,9 @@ struct trigger_body {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_trigger.push_back(
 					uint16_t(trigger::is_disarmed | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.main_slot == trigger::slot_contents::pop) {
+			context.compiled_trigger.push_back(
+					uint16_t(trigger::is_disarmed_pop | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "is_disarmed trigger used in an incorrect scope type " +
 																slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -2705,8 +2708,8 @@ struct trigger_body {
 							uint16_t(trigger::owned_by_this_nation | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "owned_by = this trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -2715,8 +2718,8 @@ struct trigger_body {
 							uint16_t(trigger::owned_by_from_nation | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "owned_by = from trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(value.length() == 3) {
@@ -2726,11 +2729,55 @@ struct trigger_body {
 					context.compiled_trigger.push_back(trigger::payload(it->second).value);
 				} else {
 					err.accumulated_errors +=
-							"owned_by trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"owned_by trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				}
 			} else {
 				err.accumulated_errors +=
-						"owned_by trigger supplied with an invalid value (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"owned_by trigger supplied with an invalid value (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(is_this(value)) {
+				if(context.this_slot == trigger::slot_contents::pop)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::owned_by_state_this_pop | trigger::no_payload | association_to_bool_code(a)));
+				else if(context.this_slot == trigger::slot_contents::state)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::owned_by_state_this_state | trigger::no_payload | association_to_bool_code(a)));
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::owned_by_state_this_province | trigger::no_payload | association_to_bool_code(a)));
+				else if(context.this_slot == trigger::slot_contents::nation)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::owned_by_state_this_nation | trigger::no_payload | association_to_bool_code(a)));
+				else {
+					err.accumulated_errors += "owned_by = this trigger used in an incorrect scope type " +
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_from(value)) {
+				if(context.from_slot == trigger::slot_contents::nation)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::owned_by_state_from_nation | trigger::no_payload | association_to_bool_code(a)));
+				else {
+					err.accumulated_errors += "owned_by = from trigger used in an incorrect scope type " +
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_trigger.push_back(uint16_t(trigger::owned_by_state_tag | association_to_bool_code(a)));
+					context.compiled_trigger.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors +=
+						"owned_by trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors +=
+					"owned_by trigger supplied with an invalid value (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -4003,10 +4050,8 @@ struct trigger_body {
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::controlled_by_reb | trigger::no_payload | association_to_bool_code(a)));
 				else {
-					err.accumulated_errors += "controlled_by = reb trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
-					return;
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::controlled_by_rebels | trigger::no_payload | association_to_bool_code(a)));
 				}
 			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "owner")) {
 				context.compiled_trigger.push_back(

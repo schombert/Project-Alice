@@ -5107,6 +5107,12 @@ void tf_is_disarmed(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "disarmed"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_is_disarmed_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "disarmed_pop"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_big_producer(TRIGGER_DISPLAY_PARAMS) {
 	// stub: used only rarely in ai chances and would be expensive to test
 	auto box = text::open_layout_box(layout, indentation);
@@ -7329,7 +7335,13 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_variable_reform_group_name_state,					 // constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 		tf_variable_reform_group_name_province,				 // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 		tf_variable_reform_group_name_pop,						 // constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
-
+		tf_is_disarmed_pop,  //constexpr inline uint16_t is_disarmed_pop = 0x0276;
+		tf_owned_by_tag, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
+		tf_owned_by_from_nation, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+		tf_owned_by_this_nation, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+		tf_owned_by_this_province, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+		tf_owned_by_this_state, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+		tf_owned_by_this_pop, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 		//
 		// scopes
 		//

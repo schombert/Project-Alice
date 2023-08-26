@@ -1849,6 +1849,30 @@ TRIGGER_FUNCTION(tf_owned_by_this_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
 	return compare_values_eq(tval[0], owner, ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)));
 }
+TRIGGER_FUNCTION(tf_owned_by_state_tag) {
+	auto holders = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	return compare_values_eq(tval[0], holders, ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_owned_by_state_this_nation) {
+	return compare_values_eq(tval[0], to_nation(this_slot),
+			ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_owned_by_state_from_nation) {
+	return compare_values_eq(tval[0], to_nation(from_slot),
+			ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_owned_by_state_this_province) {
+	return compare_values_eq(tval[0], ws.world.province_get_nation_from_province_ownership(to_prov(this_slot)),
+			ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_owned_by_state_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	return compare_values_eq(tval[0], owner, ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_owned_by_state_this_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	return compare_values_eq(tval[0], owner, ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot)));
+}
 TRIGGER_FUNCTION(tf_exists_bool) {
 	return compare_to_true(tval[0], ws.world.nation_get_owned_province_count(to_nation(primary_slot)) != 0);
 }
@@ -3754,12 +3778,16 @@ TRIGGER_FUNCTION(tf_province_control_days) {
 			int32_t(tval[1]));
 }
 TRIGGER_FUNCTION(tf_is_disarmed) {
-	return compare_to_true(tval[0], ve::apply(
-																			[&ws](dcon::nation_id n) {
-																				auto d = ws.world.nation_get_disarmed_until(n);
-																				return bool(d) && d < ws.current_date;
-																			},
-																			to_nation(primary_slot)));
+	return compare_to_true(tval[0], ve::apply([&ws](dcon::nation_id n) {
+			auto d = ws.world.nation_get_disarmed_until(n);
+			return bool(d) && d < ws.current_date;
+		}, to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_is_disarmed_pop) {
+	return compare_to_true(tval[0], ve::apply([&ws](dcon::nation_id n) {
+		auto d = ws.world.nation_get_disarmed_until(n);
+		return bool(d) && d < ws.current_date;
+		}, nations::owner_of_pop(ws, to_pop(primary_slot))));
 }
 TRIGGER_FUNCTION(tf_big_producer) {
 	// stub: used only rarely in ai chances and would be expensive to test
@@ -6087,7 +6115,13 @@ struct trigger_container {
 					from_type>, // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 			tf_variable_reform_group_name_pop<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
-
+			tf_is_disarmed_pop, //constexpr inline uint16_t is_disarmed_pop = 0x0276;
+			tf_owned_by_state_tag, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
+			tf_owned_by_state_from_nation, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+			tf_owned_by_state_this_nation, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+			tf_owned_by_state_this_province, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+			tf_owned_by_state_this_state, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+			tf_owned_by_state_this_pop, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 			//
 			// scopes
 			//

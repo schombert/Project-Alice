@@ -1458,8 +1458,15 @@ constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
 constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+constexpr inline uint16_t is_disarmed_pop = 0x0276;
+constexpr inline uint16_t owned_by_state_tag = 0x0277;
+constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 
-constexpr inline uint16_t first_scope_code = 0x0276;
+constexpr inline uint16_t first_scope_code = 0x027D;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2162,6 +2169,13 @@ inline constexpr int32_t data_sizes[] = {
 		2, // constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 		2, // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 		2, // constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+		0, //constexpr inline uint16_t is_disarmed_pop = 0x0276;
+		1, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
+		0, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+		0, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+		0, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+		0, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+		0, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 
 };
 
