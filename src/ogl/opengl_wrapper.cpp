@@ -67,6 +67,21 @@ void load_special_icons(sys::state& state) {
 		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
 				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
 	}
+
+	auto n_dds = simple_fs::open_file(interface_dir, NATIVE("politics_foreign_naval_units.dds"));
+	if(n_dds) {
+		auto content = simple_fs::view_contents(*n_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.navy_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
+			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+	}
+	auto a_dds = simple_fs::open_file(interface_dir, NATIVE("topbar_army.dds"));
+	if(a_dds) {
+		auto content = simple_fs::view_contents(*a_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.army_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
+			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+	}
 }
 
 void initialize_opengl(sys::state& state) {
@@ -558,16 +573,26 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 					i += 3;
 					continue;
 				}
-			}
-			
+			}  // fallthrough on purpose: if it doesn't match a flag, render it as text
+
 			if(text::win1250toUTF16(codepoints[i]) == u'\u0001' || text::win1250toUTF16(codepoints[i]) == u'\u0002') {
 				bind_vertices_by_rotation(state, ui::rotation::upright, false);
 				glActiveTexture(GL_TEXTURE0);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
-				glBindTexture(GL_TEXTURE_2D,
-						text::win1250toUTF16(codepoints[i]) == u'\u0001' ? state.open_gl.cross_icon_tex : state.open_gl.checkmark_icon_tex);
-				glUniform4f(parameters::drawing_rectangle, x,
-						baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
+				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? state.open_gl.cross_icon_tex : state.open_gl.checkmark_icon_tex);
+				glUniform4f(parameters::drawing_rectangle, x, baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
+				glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
+				);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+
+				x += size;
+			} else if(text::win1250toUTF16(codepoints[i]) == u'\u0003' || text::win1250toUTF16(codepoints[i]) == u'\u0004') {
+				bind_vertices_by_rotation(state, ui::rotation::upright, false);
+				glActiveTexture(GL_TEXTURE0);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
+				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0003' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
+				glUniform4f(parameters::drawing_rectangle, x - size * 0.125f, baseline_y - size * 0.25f + f.glyph_positions[0x4D].y * size / 64.0f, size * 1.5f, size * 1.5f);
 				glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 				);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -663,7 +688,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			}
 		}
 
-		if(uint8_t(codepoints[i]) == 0xA4 || uint8_t(codepoints[i]) == 0x01 || uint8_t(codepoints[i]) == 0x02) {
+		if(uint8_t(codepoints[i]) == 0xA4 || uint8_t(codepoints[i]) == 0x01 || uint8_t(codepoints[i]) == 0x02 || int8_t(codepoints[i]) == 0x03 || uint8_t(codepoints[i]) == 0x04) {
 			GLuint money_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
 			f = font.chars[0x4D];

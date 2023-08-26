@@ -1183,4 +1183,6 @@ auto_save_0;None
 monthly_emigration_lab;Monthly emigration to (top 10)
 monthly_immigration_lab;Monthly immigration from (top 10)
 im_em_header;Immigration/emigration for ;
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$)
+unit_standing_text;$m$ $n$/$x$/$y$
 ;;;;;;;;;;;;;x

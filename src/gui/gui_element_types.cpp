@@ -20,6 +20,7 @@
 #include "opengl_wrapper.hpp"
 #include "text.hpp"
 #include "sound.hpp"
+#include "unit_tooltip.hpp"
 
 namespace ui {
 
@@ -1808,6 +1809,14 @@ message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
 	} else {
 		return message_result::unseen;
 	}
+}
+
+void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto display_unit = retrieve< unit_var>(state, parent);
+	if(std::holds_alternative<dcon::army_id>(display_unit))
+		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
+	else if(std::holds_alternative<dcon::navy_id>(display_unit))
+		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
 }
 
 } // namespace ui

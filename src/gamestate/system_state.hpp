@@ -526,6 +526,7 @@ struct alignas(64) state {
 	// common data for the window
 	int32_t x_size = 0;
 	int32_t y_size = 0;
+	bool drag_selecting = false;
 	int32_t mouse_x_position = 0;
 	int32_t mouse_y_position = 0;
 	bool is_dragging = false;

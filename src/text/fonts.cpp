@@ -403,6 +403,9 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 		if(c == 0x01 || c == 0x02) {
 			total += size;
 			continue;
+		} else if(c == 0x03 || c == 0x04) {
+			total += size * 1.25f;
+			continue;
 		} else if(uint8_t(codepoints[i]) == 0x40) {
 			char tag[3] = { 0, 0, 0 };
 			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;

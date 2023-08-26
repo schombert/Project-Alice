@@ -117,7 +117,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
-
+		
 		if(mode == sys::game_mode::pick_nation) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
@@ -136,6 +136,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				}
 			}
 		} else if(mode != sys::game_mode::end_screen) {
+			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		}
 	}
@@ -155,7 +156,9 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		return;
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
-	if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
+	if(ui_state.under_mouse != nullptr) {
+		drag_selecting = false;
+	} else  if(!drag_selecting || (std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025)))) {
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
@@ -163,6 +166,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		selected_navies.clear();
 		game_state_updated.store(true, std::memory_order_release);
 	} else {
+		drag_selecting = false;
 		if(x < x_drag_start)
 			std::swap(x, x_drag_start);
 		if(y < y_drag_start)
@@ -328,7 +332,7 @@ void state::render() { // called to render the frame may (and should) delay retu
                        // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
-	if(mode == sys::game_mode::end_screen) {
+	if(mode == sys::game_mode::end_screen) { // END SCREEN RENDERING
 		ui_state.end_screen->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.end_screen->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -466,7 +470,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 		return;
-	} else if(mode == sys::game_mode::pick_nation) {
+	} else if(mode == sys::game_mode::pick_nation) {  // NATION PICKER RENDERING
 		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -630,6 +634,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		return;
 	}
 
+	//
+	// MAIN IN-GAME RENDERING
+	//
+
 	if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
 		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
 		if(ui_state.military_subwindow->is_visible() == false
@@ -651,7 +659,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 			ui::mouse_probe_type::click);
 		if(!tooltip_probe.under_mouse) {
-			mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
+			tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 				int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
 				int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 				ui::mouse_probe_type::tooltip);
@@ -664,10 +672,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {
 			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-		}
-		if(!tooltip_probe.under_mouse) {
-			tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			if(!tooltip_probe.under_mouse) {
+				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			}
 		}
 	}
 
