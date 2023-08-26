@@ -2738,6 +2738,14 @@ void tf_units_in_province_value(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "units_in_province"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_units_in_province_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "units_in_the_province"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_units_in_province_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -7342,6 +7350,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_owned_by_this_province, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
 		tf_owned_by_this_state, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
 		tf_owned_by_this_pop, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
+		tf_units_in_province_tag, // constexpr inline uint16_t units_in_province_tag = 0x027D;
 		//
 		// scopes
 		//

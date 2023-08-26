@@ -1702,7 +1702,7 @@ struct trigger_body {
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
 		} else {
 			err.accumulated_errors +=
-					"primary_culture trigger supplied with an invalid culture (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"primary_culture trigger supplied with an invalid culture: " + std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 	void has_crime(association_type a, std::string_view value, error_handler& err, int32_t line,
@@ -3398,9 +3398,20 @@ struct trigger_body {
 																		std::to_string(line) + ")\n";
 					return;
 				}
-			} else {
+			} else if(is_integer(value.data(), value.data() + value.length())) {
 				context.compiled_trigger.push_back(uint16_t(trigger::units_in_province_value | association_to_trigger_code(a)));
 				context.compiled_trigger.push_back(trigger::payload(uint16_t(parse_uint(value, line, err))).value);
+			} else if(value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_trigger.push_back(uint16_t(trigger::units_in_province_tag | association_to_bool_code(a)));
+					context.compiled_trigger.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors +=
+						"units_in_province trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				}
+			} else {
+
 			}
 		} else {
 			err.accumulated_errors += "units_in_province trigger used in an incorrect scope type " +

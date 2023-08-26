@@ -305,6 +305,7 @@ provincial_modifier;provincial modifier;;;;;;;;;;;;x
 part_of;part of;;;;;;;;;;;;x
 a_border_with;a border with;;;;;;;;;;;;x
 units_in_province;units in province;;;;;;;;;;;;x
+units_in_the_province;units in the province;;;;;;;;;;;;x
 at_war_against;at war against;;;;;;;;;;;;x
 num_of_divisions;a number of divisions;;;;;;;;;;;;x
 an_ongoing_battle;an ongoing battle;;;;;;;;;;;;x

@@ -2346,7 +2346,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 						// dead tag
 					}
 				} else {
-					err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 				}
 			}
 		}
@@ -2431,7 +2431,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					}
 
 				} else {
-					err.accumulated_errors +=
+					err.accumulated_warnings +=
 							"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 				}
 			}

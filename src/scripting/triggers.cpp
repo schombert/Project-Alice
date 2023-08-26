@@ -2201,6 +2201,22 @@ TRIGGER_FUNCTION(tf_units_in_province_value) {
 			to_prov(primary_slot));
 	return compare_values(tval[0], result, int32_t(tval[1]));
 }
+TRIGGER_FUNCTION(tf_units_in_province_tag) {
+	auto tag = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	auto result = ve::apply(
+			[&ws, tag](dcon::province_id p) {
+				if(!tag)
+					return false;
+				for(auto a : ws.world.province_get_army_location(p)) {
+					if(a.get_army().get_controller_from_army_control() == tag)
+						return true;
+				}
+				return false;
+			},
+			to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+
 TRIGGER_FUNCTION(tf_units_in_province_from) {
 	auto result = ve::apply(
 			[&ws](dcon::province_id p, dcon::nation_id n) {
@@ -6122,6 +6138,7 @@ struct trigger_container {
 			tf_owned_by_state_this_province, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
 			tf_owned_by_state_this_state, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
 			tf_owned_by_state_this_pop, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
+			tf_units_in_province_tag, // constexpr inline uint16_t units_in_province_tag = 0x027D;
 			//
 			// scopes
 			//
