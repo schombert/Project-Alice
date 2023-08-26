@@ -724,35 +724,7 @@ void update_ai_econ_construction(sys::state& state) {
 						}
 					}
 				}
-			} else {
-				// Appoint most popular party!
-				float max_support = 0.f;
-				dcon::ideology_id popular_ideo;
-				state.world.for_each_ideology([&](dcon::ideology_id iid) {
-					float support = 0.f;
-					for(auto pcid : state.world.nation_get_province_control(n)) {
-						for(auto pop_loc : state.world.province_get_pop_location(pcid.get_province())) {
-							auto pop_id = pop_loc.get_pop();
-							support += state.world.pop_get_demographics(pop_id.id, pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(pop_id);
-						}
-					}
-					if(support > max_support) {
-						popular_ideo = iid;
-					}
-				});
-
-				// Select popular political party
-				for(int32_t i = start; i < end && !target; i++) {
-					auto pid = dcon::political_party_id(uint16_t(i));
-					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
-						if(state.world.political_party_get_ideology(pid) == popular_ideo) {
-							target = pid;
-							break;
-						}
-					}
-				}
 			}
-
 			if(target) {
 				politics::appoint_ruling_party(state, n, target);
 				rules = n.get_combined_issue_rules();
