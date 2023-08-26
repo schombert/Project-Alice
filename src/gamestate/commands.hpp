@@ -395,6 +395,10 @@ struct nation_pick_data {
 	dcon::nation_id target;
 };
 
+struct advance_tick_data {
+	uint32_t checksum;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -447,6 +451,7 @@ struct payload {
 		rally_point_data rally_point;
 		cheat_data_int cheat_int;
 		cheat_event_data cheat_event;
+		advance_tick_data advance_tick;
 		save_game_data save_game;
 
 		dtype() { }

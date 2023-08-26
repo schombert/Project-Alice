@@ -567,6 +567,7 @@ struct alignas(64) state {
 	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
+	uint32_t get_network_checksum();
 
 	// the following function are for interacting with the string pool
 

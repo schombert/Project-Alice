@@ -17,6 +17,11 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_kick:
 		// Notifications can be sent because it's an-always do thing
 		break;
+	case command_type::save_game:
+		// Only in singleplayer or host may save the game
+		if(state.network_mode != sys::network_mode::single_player)
+			return;
+		break;
 	default:
 		// Normal commands are discarded iff we are not in the game
 		if(state.mode != sys::game_mode::in_game)
@@ -31,7 +36,7 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	}
 	case sys::network_mode::client:
 	case sys::network_mode::host: {
-		bool b = state.network_state.outgoing_commands.try_push(p);
+		state.network_state.outgoing_commands.push(p);
 		break;
 	}
 	default:
@@ -4582,8 +4587,23 @@ void execute_command(sys::state& state, payload& c) {
 			execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
 			break;
 		case command_type::advance_tick:
+		{
+#ifndef NDEBUG
+			uint32_t checksum = state.get_network_checksum();
+			if(checksum != c.data.advance_tick.checksum) {
+#ifdef _WIN64
+				std::string msg = "Network has gotten out of sync: ";
+				msg += std::to_string(checksum);
+				msg += " != ";
+				msg += std::to_string(c.data.advance_tick.checksum);
+				MessageBoxA(NULL, "Out of sync", msg.c_str(), MB_OK);
+#endif
+				std::abort();
+			}
+#endif
 			state.single_game_tick();
 			break;
+		}
 
 			// console commands
 		case command_type::switch_nation:

@@ -3293,6 +3293,29 @@ void state::single_game_tick() {
 	}
 }
 
+#ifndef NDEBUG
+uint32_t state::get_network_checksum() {
+	sys::save_header header;
+	// this is an upper bound, since compacting the data may require less space
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(*this)]);
+
+	// write off dcon data
+	dcon::load_record loaded = world.make_serialize_record_store_save();
+	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
+	world.serialize(start, loaded);
+
+	auto buffer_position = reinterpret_cast<uint8_t*>(start);
+	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+
+	// simple checksum algorithma
+	uint32_t checksum = 0;
+	while(--total_size_used >= 0) {
+		checksum ^= buffer[total_size_used];
+	}
+	return checksum;
+}
+#endif
+
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		if(network_mode == sys::network_mode::client) {
@@ -3317,6 +3340,7 @@ void state::game_loop() {
 					if(network_mode == sys::network_mode::host) {
 						command::payload c;
 						c.type = command::command_type::advance_tick;
+						c.data.advance_tick.checksum = get_network_checksum();
 						network_state.outgoing_commands.push(c);
 					} else {
 						single_game_tick();
