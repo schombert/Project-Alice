@@ -156,12 +156,13 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		return;
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
-	if(ui_state.under_mouse != nullptr) {
+	if(ui_state.under_mouse != nullptr || !drag_selecting) {
 		drag_selecting = false;
-	} else  if(!drag_selecting || (std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025)))) {
+	} else  if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
+		drag_selecting = false;
 		selected_armies.clear();
 		selected_navies.clear();
 		game_state_updated.store(true, std::memory_order_release);

@@ -292,6 +292,8 @@ void update_pop_movement_membership(sys::state& state) {
 }
 
 void update_movements(sys::state& state) { // updates cached values and then possibly turns movements into rebels
+	update_pop_movement_membership(state);
+
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
 	for(auto last = state.world.movement_size(); last-- > 0;) {
 		dcon::movement_id m{dcon::movement_id::value_base_t(last)};
