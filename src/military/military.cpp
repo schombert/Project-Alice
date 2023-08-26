@@ -5756,6 +5756,43 @@ void update_movement(sys::state& state) {
 	}
 }
 
+float fractional_distance_covered(sys::state& state, dcon::army_id a) {
+	auto date = state.world.army_get_arrival_time(a);
+	if(!date)
+		return 0.0f;
+	auto p = state.world.army_get_path(a);
+	if(p.size() == 0)
+		return 0.0f;
+	auto dest = *(p.end() - 1);
+	auto full_time = arrival_time_to(state, a, dest);
+
+	auto difference = full_time.value - state.current_date.value;
+	auto covered = date.value - state.current_date.value;
+
+	if(difference <= 0)
+		return 1.0f;
+
+	return 1.0f - float(covered) / float(difference);
+}
+float fractional_distance_covered(sys::state& state, dcon::navy_id a) {
+	auto date = state.world.navy_get_arrival_time(a);
+	if(!date)
+		return 0.0f;
+	auto p = state.world.navy_get_path(a);
+	if(p.size() == 0)
+		return 0.0f;
+	auto dest = *(p.end() - 1);
+	auto full_time = arrival_time_to(state, a, dest);
+
+	auto difference = full_time.value - state.current_date.value;
+	auto covered = date.value - state.current_date.value;
+
+	if(difference <= 0)
+		return 1.0f;
+
+	return 1.0f - float(covered) / float(difference);
+}
+
 int32_t transport_capacity(sys::state& state, dcon::navy_id n) {
 	int32_t total = 0;
 	for(auto s : state.world.navy_get_navy_membership(n)) {

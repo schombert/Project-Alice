@@ -381,6 +381,9 @@ float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::prov
 
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
+float fractional_distance_covered(sys::state& state, dcon::army_id a);
+float fractional_distance_covered(sys::state& state, dcon::navy_id a);
+
 enum class crossing_type { none, river, sea };
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces

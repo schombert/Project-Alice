@@ -2565,15 +2565,15 @@ public:
 			return make_element_by_type<pop_details_migration_label>(state, id);
 		} else if(name == "internal_migration_val") {
 			return make_element_by_type<pop_details_migration_value>(state, id);
-		} else if(name == "external_migration_label") {
+		} else if(name == "colonial_migration_label") {
 			return make_element_by_type<pop_details_colonial_migration_label>(state, id);
-		} else if(name == "external_migration_val") {
+		} else if(name == "colonial_migration_val") {
 			return make_element_by_type<pop_details_colonial_migration_value>(state, id);
 		} else if(name == "growth_indicator") {
 			return make_element_by_type<pop_growth_indicator>(state, id);
-		} else if(name == "colonial_migration_label") {
+		} else if(name == "external_migration_label") {
 			return make_element_by_type<pop_details_emigration_label>(state, id);
-		} else if(name == "colonial_migration_val") {
+		} else if(name == "external_migration_val") {
 			return make_element_by_type<pop_details_emigration_value>(state, id);
 		} else if(name == "promotions_label") {
 			return make_element_by_type<pop_details_promotion_label>(state, id);

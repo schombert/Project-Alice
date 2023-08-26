@@ -119,8 +119,7 @@ uint8_t element_base::get_pixel_opacity(sys::state& state, int32_t x, int32_t y,
 
 mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
 	mouse_probe probe_result = mouse_probe{nullptr, xy_pair{int16_t(x), int16_t(y)}};
-	if(0 <= x && x < base_data.size.x && 0 <= y && y < base_data.size.y &&
-			test_mouse(state, x, y, type) == message_result::consumed) {
+	if(0 <= x && x < base_data.size.x && 0 <= y && y < base_data.size.y && test_mouse(state, x, y, type) == message_result::consumed) {
 		auto elem_type = base_data.get_element_type();
 		if(elem_type == element_type::button || elem_type == element_type::image || elem_type == element_type::listbox) {
 			dcon::gfx_object_id gfx_id;

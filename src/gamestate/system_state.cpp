@@ -115,9 +115,12 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
 	} else {
-		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-
+		x_drag_start = x;
+		y_drag_start = y;
+		
 		if(mode == sys::game_mode::pick_nation) {
+			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
 			if(owner) {
 				// On single player we simply set the local player nation
@@ -133,12 +136,8 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				}
 			}
 		} else if(mode != sys::game_mode::end_screen) {
-			if(ui_state.province_window) {
-				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
-			}
-			selected_armies.clear();
-			selected_navies.clear();
-			game_state_updated.store(true, std::memory_order_release);
+			drag_selecting = true;
+			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		}
 	}
 }
@@ -149,10 +148,72 @@ void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	map_state.on_mbuttom_up(x, y, mod);
 }
 void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
-	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	is_dragging = false;
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
+	}
+	if(mode != sys::game_mode::in_game)
+		return;
+
+	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
+	if(ui_state.under_mouse != nullptr || !drag_selecting) {
+		drag_selecting = false;
+	} else  if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
+		if(ui_state.province_window) {
+			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
+		}
+		drag_selecting = false;
+		selected_armies.clear();
+		selected_navies.clear();
+		game_state_updated.store(true, std::memory_order_release);
+	} else {
+		drag_selecting = false;
+		if(x < x_drag_start)
+			std::swap(x, x_drag_start);
+		if(y < y_drag_start)
+			std::swap(y, y_drag_start);
+
+		if((int32_t(key_modifiers::modifiers_shift) & int32_t(mod)) == 0) {
+			selected_armies.clear();
+			selected_navies.clear();
+		}
+		
+		for(auto a : world.nation_get_army_control(local_player_nation)) {
+			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
+				auto loc = a.get_army().get_location_from_army_location();
+				auto mid_point = world.province_get_mid_point(loc);
+				auto map_pos = map_state.normalize_map_coord(mid_point);
+				auto screen_size = glm::vec2{ float(x_size), float(y_size) };
+				glm::vec2 screen_pos;
+				if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+					if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
+						&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+
+						selected_armies.push_back(a.get_army());
+					}
+				}
+			}
+		}
+		for(auto a : world.nation_get_navy_control(local_player_nation)) {
+			if( !a.get_navy().get_battle_from_navy_battle_participation() && !a.get_navy().get_is_retreating()) {
+				auto loc = a.get_navy().get_location_from_navy_location();
+				auto mid_point = world.province_get_mid_point(loc);
+				auto map_pos = map_state.normalize_map_coord(mid_point);
+				auto screen_size = glm::vec2{ float(x_size), float(y_size) };
+				glm::vec2 screen_pos;
+				if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+					if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
+						&& x_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+
+						selected_navies.push_back(a.get_navy());
+					}
+				}
+			}
+		}
+		if(!selected_armies.empty() && !selected_navies.empty()) {
+			selected_navies.clear();
+		}
+		game_state_updated.store(true, std::memory_order_release);
 	}
 }
 void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
@@ -186,8 +247,7 @@ void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called w
 				int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
 				int32_t(y / user_settings.ui_scale), mod);
 }
-void state::on_drag_finished(int32_t x, int32_t y,
-		key_modifiers mod) { // called when the left button is released after one or more drag events
+void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag_finish(*this);
 		ui_state.drag_target = nullptr;
@@ -276,7 +336,7 @@ void state::render() { // called to render the frame may (and should) delay retu
                        // waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
-	if(mode == sys::game_mode::end_screen) {
+	if(mode == sys::game_mode::end_screen) { // END SCREEN RENDERING
 		ui_state.end_screen->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.end_screen->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -414,7 +474,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 		return;
-	} else if(mode == sys::game_mode::pick_nation) {
+	} else if(mode == sys::game_mode::pick_nation) {  // NATION PICKER RENDERING
 		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -578,6 +638,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		return;
 	}
 
+	//
+	// MAIN IN-GAME RENDERING
+	//
+
 	if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
 		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
 		if(ui_state.military_subwindow->is_visible() == false
@@ -599,7 +663,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 			ui::mouse_probe_type::click);
 		if(!tooltip_probe.under_mouse) {
-			mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
+			tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 				int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
 				int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 				ui::mouse_probe_type::tooltip);
@@ -612,10 +676,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {
 			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-		}
-		if(!tooltip_probe.under_mouse) {
-			tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			if(!tooltip_probe.under_mouse) {
+				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			}
 		}
 	}
 

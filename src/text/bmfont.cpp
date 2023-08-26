@@ -157,7 +157,7 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 			}
 		}
 
-		if(c == 0x01 || c == 0x02 || c == 0x40) {
+		if(c == 0x01 || c == 0x02 || c == 0x03 || c == 0x04 || c == 0x40) {
 			auto f = chars[0x4D];
 			float scaling = uint8_t(string[i]) == 0xA4 ? 1.5f : 1.f;
 			float offset = uint8_t(string[i]) == 0xA4 ? 0.25f : 0.f;

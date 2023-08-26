@@ -160,6 +160,8 @@ struct data {
 	GLuint money_icon_tex = 0;
 	GLuint cross_icon_tex = 0;
 	GLuint checkmark_icon_tex = 0;
+	GLuint navy_icon_tex = 0;
+	GLuint army_icon_tex = 0;
 };
 
 void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort

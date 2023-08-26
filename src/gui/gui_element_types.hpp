@@ -866,6 +866,12 @@ public:
 			}
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 class unit_org_bar : public progress_bar {
@@ -1293,10 +1299,11 @@ public:
 	}
 
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(!std::holds_alternative<std::monostate>(display_unit))
+		if(!std::holds_alternative<std::monostate>(display_unit)) {
 			return window_element_base::impl_probe_mouse(state, x, y, type);
-		else
+		} else {
 			return mouse_probe{ nullptr, ui::xy_pair{} };
+		}
 	}
 };
 

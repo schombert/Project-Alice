@@ -606,6 +606,12 @@ public:
 	void button_shift_action(sys::state& state) noexcept override {
 		send(state, parent, toggle_unit_grid{ true });
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		populate_unit_tooltip(state, contents, retrieve<dcon::province_id>(state, parent));
+	}
 };
 
 class tl_org_bar : public progress_bar {
@@ -1507,7 +1513,6 @@ public:
 		else
 			return mouse_probe{ nullptr, ui::xy_pair{} };
 	}
-
 };
 
 
@@ -1728,8 +1733,7 @@ public:
 		return message_result::unseen;
 	}
 
-	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y,
-			mouse_probe_type type) noexcept override {
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible && province_is_populated)
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else

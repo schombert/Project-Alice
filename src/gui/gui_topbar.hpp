@@ -232,10 +232,10 @@ public:
 		}
 		text::close_layout_box(contents, box);
 	}
-};
 
-class topbar_nation_technology_research_progress : public nation_technology_research_progress {
-public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
 };
 
 class topbar_nation_literacy_text : public expanded_hitbox_text {
@@ -278,10 +278,6 @@ public:
 			text::close_layout_box(contents, box);
 		}
 	}
-};
-
-class topbar_nation_ruling_party_ideology_plupp : public nation_ruling_party_ideology_plupp {
-public:
 };
 
 class topbar_nation_ruling_party_text : public nation_ruling_party_text {
@@ -1914,7 +1910,7 @@ public:
 		} else if(name == "tech_literacy_value") {
 			return make_element_by_type<topbar_nation_literacy_text>(state, id);
 		} else if(name == "politics_party_icon") {
-			return make_element_by_type<topbar_nation_ruling_party_ideology_plupp>(state, id);
+			return make_element_by_type<nation_ruling_party_ideology_plupp>(state, id);
 		} else if(name == "politics_ruling_party") {
 			return make_element_by_type<topbar_nation_ruling_party_text>(state, id);
 		} else if(name == "politics_supressionpoints_value") {
