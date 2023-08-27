@@ -9,8 +9,8 @@ set(SKIP_INSTALL_ALL ON)
 
 FetchContent_Declare(
 	freetype
-	GIT_REPOSITORY https://gitlab.freedesktop.org/freetype/freetype.git
-	GIT_TAG VER-2-13-1
+	GIT_REPOSITORY https://github.com/freetype/freetype.git
+	GIT_TAG VER-2-13-0
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
