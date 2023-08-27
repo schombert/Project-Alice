@@ -48,21 +48,21 @@ public:
 		case diplomatic_message::type_t::none:
 			return std::string("???");
 		case diplomatic_message::type_t::access_request:
-			return text::produce_simple_string(state, "askmilitaryaccess_button");
+			return text::produce_simple_string(state, "askmilitaryaccess_di");
 		case diplomatic_message::type_t::alliance_request:
-			return text::produce_simple_string(state, "alliance_button");
+			return text::produce_simple_string(state, "alliance_di");
 		case diplomatic_message::type_t::call_ally_request:
-			return text::produce_simple_string(state, "callally_button");
+			return text::produce_simple_string(state, "callally_di");
 		case diplomatic_message::type_t::be_crisis_primary_defender:
-			return text::produce_simple_string(state, "back_crisis_button");
+			return text::produce_simple_string(state, "back_crisis_di");
 		case diplomatic_message::type_t::be_crisis_primary_attacker:
-			return text::produce_simple_string(state, "crisis_offer_button");
+			return text::produce_simple_string(state, "back_crisis_di");
 		case diplomatic_message::type_t::peace_offer:
 			return text::produce_simple_string(state, "peace_di");
 		case diplomatic_message::type_t::take_crisis_side_offer:
-			return text::produce_simple_string(state, "crisis_take_side_offer");
+			return text::produce_simple_string(state, "back_crisis_di");
 		case diplomatic_message::type_t::crisis_peace_offer:
-			return text::produce_simple_string(state, "crisis_peace_offer");
+			return text::produce_simple_string(state, "crisis_offer_di");
 		}
 		return std::string("???");
 	}
@@ -112,7 +112,9 @@ public:
 		{
 			text::add_to_substitution_map(sub, text::variable_type::country, state.world.peace_offer_get_nation_from_pending_peace_offer(diplomacy_request.data.peace));
 			text::localised_format_box(state, contents, box, std::string_view("peaceofferdesc"), sub);
-			state.world.peace_offer_for_each_peace_offer_item_as_peace_offer(diplomacy_request.data.peace, [&state, &contents, &box](dcon::peace_offer_item_id poiid) {
+
+			bool is_wp = true;
+			state.world.peace_offer_for_each_peace_offer_item_as_peace_offer(diplomacy_request.data.peace, [&state, &contents, &box, &is_wp](dcon::peace_offer_item_id poiid) {
 				dcon::wargoal_id wg = state.world.peace_offer_item_get_wargoal(poiid);
 				dcon::cb_type_id cbt = state.world.wargoal_get_type(wg);
 				text::substitution_map sub;
@@ -123,15 +125,22 @@ public:
 				else if(state.world.wargoal_get_associated_tag(wg))
 					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_associated_tag(wg));
 				text::add_to_substitution_map(sub, text::variable_type::state, state.world.wargoal_get_associated_state(wg));
+
+				text::add_line_break_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(cbt), sub);
+				is_wp = false;
 			});
+			if(is_wp) {
+				text::add_line_break_to_layout_box(state, contents, box);
+				text::localised_format_box(state, contents, box, std::string_view("peace_whitepeace"), sub);
+			}
 			break;
 		}
 		case diplomatic_message::type_t::take_crisis_side_offer:
-			text::localised_format_box(state, contents, box, "crisis_take_side_offer_offer");
+			text::localised_format_box(state, contents, box, "back_crisis_offer");
 			break;
 		case diplomatic_message::type_t::crisis_peace_offer:
-			text::localised_format_box(state, contents, box, "crisis_peace_offer_offer");
+			text::localised_format_box(state, contents, box, "crisis_offer_offer");
 			break;
 		}
 		text::close_layout_box(contents, box);
