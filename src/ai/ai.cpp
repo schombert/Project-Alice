@@ -667,6 +667,26 @@ void take_ai_decisions(sys::state& state) {
 	}
 }
 
+dcon::issue_option_id find_most_important_issue_option(sys::state& state, dcon::nation_id n) {
+	dcon::issue_option_id iss;
+	float max_support = 0.f;
+	state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+		if(command::can_enact_issue(state, n, io)) {
+			float support = 0.f;
+			for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+				for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+					support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * state.world.pop_get_militancy(plid.get_pop());
+				}
+}
+			if(support > max_support) {
+				iss = io;
+				max_support = support;
+			}
+		}
+	});
+	return iss;
+}
+
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
@@ -686,13 +706,6 @@ void update_ai_econ_construction(sys::state& state) {
 				return false;
 			if(politics::is_election_ongoing(state, n))
 				return false;
-			return true;
-			/*auto gov = state.world.nation_get_government_type(source);
-			auto new_ideology = state.world.political_party_get_ideology(p);
-			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
-				return false;
-			}*/
-		}();
 
 		// Before, the AI would keep appointing parties repeatedly
 		// causing massive incursions of militancy amongst the population
@@ -701,9 +714,18 @@ void update_ai_econ_construction(sys::state& state) {
 		// hopefully...
 		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
 		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
-		if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
-			can_appoint = false;
-		}
+			if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f)
+				return false;
+			// Do not appoint if we are a democracy!
+			if(politics::has_elections(state, n))
+				return false;
+			return true;
+			/*auto gov = state.world.nation_get_government_type(source);
+			auto new_ideology = state.world.political_party_get_ideology(p);
+			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+				return false;
+			}*/
+		}();
 
 		if(can_appoint) {
 			auto gov = n.get_government_type();
@@ -724,8 +746,30 @@ void update_ai_econ_construction(sys::state& state) {
 						}
 					}
 				}
+			} else {
+				auto get_party_support = [&](dcon::political_party_id pid) {
+					auto iid = state.world.political_party_get_ideology(pid);
+					float support = 1.f;
+					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(plid.get_pop());
 			}
-			if(target) {
+					}
+					return support;
+				};
+				float max_support = get_party_support(state.world.nation_get_ruling_party(n));
+				for(int32_t i = start; i < end && !target; i++) {
+					auto pid = dcon::political_party_id(uint16_t(i));
+					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+						if(get_party_support(pid) > max_support) {
+							target = pid;
+							max_support = get_party_support(pid);
+						}
+					}
+				}
+			}
+
+			if(target && target != state.world.nation_get_ruling_party(n)) {
 				politics::appoint_ruling_party(state, n, target);
 				rules = n.get_combined_issue_rules();
 			}
@@ -1178,22 +1222,7 @@ void take_reforms(sys::state& state) {
 		if(n.get_is_civilized()) { // political & social
 			// Enact social policies to deter Jacobin rebels from overruning the country
 			// Reactionaries will popup in effect but they are MORE weak that Jacobins
-			dcon::issue_option_id iss;
-			float max_support = 0.f;
-			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
-				if(command::can_enact_issue(state, n, io)) {
-					float support = 0.f;
-					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
-						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
-							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * state.world.pop_get_militancy(plid.get_pop());
-						}
-					}
-					if(support > max_support) {
-						iss = io;
-						max_support = support;
-					}
-				}
-			});
+			dcon::issue_option_id iss = find_most_important_issue_option(state, n);
 			if(iss && command::can_enact_issue(state, n, iss)) {
 				nations::enact_issue(state, n, iss);
 			}
