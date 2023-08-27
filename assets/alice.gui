@@ -348,7 +348,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
-				text = "tooltip_mode_label"
+				text = "bind_tooltip_mouse_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
