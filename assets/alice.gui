@@ -340,6 +340,41 @@ guiTypes = {
 				position = { x = 269 y = 168 }
 				quadTextureSprite = "option_next"
 			}
+			
+			instantTextBoxType={
+				position = {x = 58 y = 210 }
+				name = "tooltip_mode_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "tooltip_mode_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			instantTextBoxType={
+				position = {x = 58 y = 228 }
+				name = "tooltip_mode_value"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			guiButtonType = {
+				name = "tooltip_mode_left"
+				position = { x = 51 y = 221 }
+				quadTextureSprite = "option_prev"
+			}
+
+			guiButtonType = {
+				name = "tooltip_mode_right"
+				position = { x = 269 y = 221 }
+				quadTextureSprite = "option_next"
+			}
 		}
 
 		windowType = {
