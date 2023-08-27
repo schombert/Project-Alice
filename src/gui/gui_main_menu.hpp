@@ -92,6 +92,20 @@ class autosave_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class tooltip_mode_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class tooltip_mode_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class tooltip_mode_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 struct notify_setting_update { };
 
 class controls_menu_window : public window_element_base {
@@ -107,6 +121,12 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<autosave_left>(state, id);
 		} else if(name == "auto_save_right") {
 			return make_element_by_type<autosave_right>(state, id);
+		} else if(name == "tooltip_mode_value") {
+			return make_element_by_type<tooltip_mode_display>(state, id);
+		} else if(name == "tooltip_mode_left") {
+			return make_element_by_type<tooltip_mode_left>(state, id);
+		} else if(name == "tooltip_mode_right") {
+			return make_element_by_type<tooltip_mode_right>(state, id);
 		} else {
 			return nullptr;
 		}

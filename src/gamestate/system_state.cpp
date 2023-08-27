@@ -1091,7 +1091,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 	static auto tooltip_timer = std::chrono::steady_clock::now();
 	if(ui_state.tooltip->is_visible()) {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	static bool bind_tooltip_mouse = false;                      //TODO: make this accessible by in-game settings
 	static auto tooltip_delay = std::chrono::milliseconds{ 500 };//TODO: make this accessible by in-game settings
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	static auto last_tooltip = ui_state.last_tooltip;
@@ -1109,7 +1108,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			last_tooltip = ui_state.last_tooltip;
 			return;
 		}
-		if(bind_tooltip_mouse) {
+		if(user_settings.bind_tooltip_mouse) {
 			int32_t aim_x = mouse_x_position;
 			int32_t aim_y = mouse_y_position;
 			int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
