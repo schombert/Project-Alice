@@ -846,10 +846,14 @@ void update_ai_econ_construction(sys::state& state) {
 						// check -- either unemployed factory workers or no factory workers
 						auto pw_num = state.world.state_instance_get_demographics(si,
 								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+						pw_num += state.world.state_instance_get_demographics(si,
+								demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
 						auto pw_employed = state.world.state_instance_get_demographics(si,
 								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+						pw_employed += state.world.state_instance_get_demographics(si,
+								demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
 
-						if(pw_employed >= pw_num && pw_num > 0.0f)
+						if(pw_employed >= float(pw_num) * 2.5f && pw_num > 0.0f)
 							continue; // no spare workers
 
 						auto type_selection = desired_types[rng::get_random(state, uint32_t(n.id.index() + max_projects)) % desired_types.size()];
@@ -2683,8 +2687,6 @@ void update_budget(sys::state& state) {
 			int max_poor_tax = int(30.f * (1.f - poor_militancy));
 			int max_mid_tax = int(60.f * (1.f - mid_militancy));
 			int max_rich_tax = int(90.f * (1.f - rich_militancy));
-			int min_tariff = int(-100.f * rich_militancy);
-			int max_tariff = int(100.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
@@ -2699,7 +2701,6 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(max_tariff));
 			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -2714,13 +2715,11 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(min_tariff));
 			}
 		} else {
 			int max_poor_tax = int(90.f * (1.f - poor_militancy));
 			int max_mid_tax = int(60.f * (1.f - mid_militancy));
 			int max_rich_tax = int(30.f * (1.f - rich_militancy));
-			int max_tariff = int(100.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// Laissez faire prioritize tax free capitalists
@@ -2736,7 +2735,6 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(0));
 			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -2751,7 +2749,6 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(max_tariff));
 			}
 		}
 
