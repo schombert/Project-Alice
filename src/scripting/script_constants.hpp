@@ -1483,8 +1483,10 @@ constexpr inline uint16_t owned_by_state_this_province = 0x027A;
 constexpr inline uint16_t owned_by_state_this_state = 0x027B;
 constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 constexpr inline uint16_t units_in_province_tag = 0x027D;
+constexpr inline uint16_t primary_culture_from_nation = 0x027E;
+constexpr inline uint16_t primary_culture_from_province = 0x027F;
 
-constexpr inline uint16_t first_scope_code = 0x027E;
+constexpr inline uint16_t first_scope_code = 0x0280;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2195,6 +2197,8 @@ inline constexpr int32_t data_sizes[] = {
 		0, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
 		0, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 		1, //constexpr inline uint16_t units_in_province_tag = 0x027D;
+		0, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
+		0, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
 
 };
 

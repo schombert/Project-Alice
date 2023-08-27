@@ -1686,16 +1686,50 @@ struct trigger_body {
 					"tech_school trigger supplied with an invalid school (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
-	void primary_culture(association_type a, std::string_view value, error_handler& err, int32_t line,
-			trigger_building_context& context) {
-		if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
-				it != context.outer_context.map_of_culture_names.end()) {
+	void primary_culture(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(is_this(value)) {
+			if(context.main_slot == trigger::slot_contents::nation) {
+				if(context.this_slot == trigger::slot_contents::nation) {
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::is_primary_culture_nation_this_nation | trigger::no_payload | association_to_bool_code(a)));
+				} else if(context.this_slot == trigger::slot_contents::state) {
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::is_primary_culture_nation_this_state | trigger::no_payload | association_to_bool_code(a)));
+				} else if(context.this_slot == trigger::slot_contents::province) {
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::is_primary_culture_nation_this_province | trigger::no_payload | association_to_bool_code(a)));
+				} else if(context.this_slot == trigger::slot_contents::pop) {
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::is_primary_culture_nation_this_pop | trigger::no_payload | association_to_bool_code(a)));
+				} else {
+					err.accumulated_errors += "primary_culture trigger used in an incorrect scope type " +
+						slot_contents_to_string(context.this_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors += "primary_culture = this trigger used in an incorrect scope type " +
+					slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(is_from(value)) {
+			if(context.main_slot == trigger::slot_contents::nation && context.from_slot == trigger::slot_contents::nation)
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::primary_culture_from_nation | trigger::no_payload | association_to_bool_code(a)));
+			else if(context.main_slot == trigger::slot_contents::nation && context.from_slot == trigger::slot_contents::province)
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::primary_culture_from_province | trigger::no_payload | association_to_bool_code(a)));
+			else {
+				err.accumulated_errors += "primary_culture = from trigger used in an incorrect scope type " +
+					slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+					std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::primary_culture | association_to_bool_code(a)));
 			} else {
 				err.accumulated_errors += "primary_culture trigger used in an incorrect scope type " +
-																	slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																	std::to_string(line) + ")\n";
+					slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 
@@ -1858,21 +1892,21 @@ struct trigger_body {
 	void culture(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(is_this(value)) {
 			if(context.main_slot == trigger::slot_contents::pop) {
-				if(context.main_slot == trigger::slot_contents::nation) {
+				if(context.this_slot == trigger::slot_contents::nation) {
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::culture_this_nation | trigger::no_payload | association_to_bool_code(a)));
-				} else if(context.main_slot == trigger::slot_contents::state) {
+				} else if(context.this_slot == trigger::slot_contents::state) {
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::culture_this_state | trigger::no_payload | association_to_bool_code(a)));
-				} else if(context.main_slot == trigger::slot_contents::province) {
+				} else if(context.this_slot == trigger::slot_contents::province) {
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::culture_this_province | trigger::no_payload | association_to_bool_code(a)));
-				} else if(context.main_slot == trigger::slot_contents::pop) {
+				} else if(context.this_slot == trigger::slot_contents::pop) {
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::culture_this_pop | trigger::no_payload | association_to_bool_code(a)));
 				} else {
 					err.accumulated_errors += "culture trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+																		slot_contents_to_string(context.this_slot) + "(" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}

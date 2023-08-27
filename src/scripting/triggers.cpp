@@ -2430,6 +2430,15 @@ TRIGGER_FUNCTION(tf_is_primary_culture_nation_this_pop) {
 	return compare_values_eq(tval[0], ws.world.nation_get_primary_culture(to_nation(primary_slot)),
 			ws.world.pop_get_culture(to_pop(this_slot)));
 }
+TRIGGER_FUNCTION(tf_primary_culture_from_nation) {
+	return compare_values_eq(tval[0], ws.world.nation_get_primary_culture(to_nation(primary_slot)),
+			ws.world.nation_get_primary_culture(to_nation(from_slot)));
+}
+TRIGGER_FUNCTION(tf_primary_culture_from_province) {
+	auto this_owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_primary_culture(to_nation(primary_slot)),
+			ws.world.nation_get_primary_culture(this_owner));
+}
 TRIGGER_FUNCTION(tf_is_primary_culture_nation_this_nation) {
 	return compare_values_eq(tval[0], ws.world.nation_get_primary_culture(to_nation(primary_slot)),
 			ws.world.nation_get_primary_culture(to_nation(this_slot)));
@@ -6127,18 +6136,19 @@ struct trigger_container {
 					from_type>, // constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
 			tf_variable_reform_group_name_state<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
-			tf_variable_reform_group_name_province<return_type, primary_type, this_type,
-					from_type>, // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
+			tf_variable_reform_group_name_province<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 			tf_variable_reform_group_name_pop<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
-			tf_is_disarmed_pop, //constexpr inline uint16_t is_disarmed_pop = 0x0276;
-			tf_owned_by_state_tag, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
-			tf_owned_by_state_from_nation, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
-			tf_owned_by_state_this_nation, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
-			tf_owned_by_state_this_province, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
-			tf_owned_by_state_this_state, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
-			tf_owned_by_state_this_pop, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
-			tf_units_in_province_tag, // constexpr inline uint16_t units_in_province_tag = 0x027D;
+			tf_is_disarmed_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_disarmed_pop = 0x0276;
+			tf_owned_by_state_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
+			tf_owned_by_state_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+			tf_owned_by_state_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+			tf_owned_by_state_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+			tf_owned_by_state_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+			tf_owned_by_state_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
+			tf_units_in_province_tag<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t units_in_province_tag = 0x027D;
+			tf_primary_culture_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
+			tf_primary_culture_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
 			//
 			// scopes
 			//

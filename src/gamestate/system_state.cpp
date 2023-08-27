@@ -1930,74 +1930,28 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// pre parse inventions
 	{
 		auto inventions = open_directory(root, NATIVE("inventions"));
-		{
-			parsers::tech_group_context invention_context{context, culture::tech_category::army};
-			auto i_file = open_file(inventions, NATIVE("army_inventions.txt"));
-			if(i_file) {
-				auto content = view_contents(*i_file);
-				err.file_name = "army_inventions.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_inventions_file(gen, err, invention_context);
-				context.tech_and_invention_files.emplace_back(std::move(*i_file));
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File common/army_inventions.txt could not be opened\n";
+		for(auto& invf : simple_fs::list_files(inventions, NATIVE("*.txt"))) {
+			culture::tech_category cat = culture::tech_category::unknown;
+			if(simple_fs::get_file_name(invf) == NATIVE("army_inventions.txt")) {
+				cat = culture::tech_category::army;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("navy_inventions.txt")) {
+				cat = culture::tech_category::navy;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("commerce_inventions.txt")) {
+				cat = culture::tech_category::commerce;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("culture_inventions.txt")) {
+				cat = culture::tech_category::culture;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("industry_inventions.txt")) {
+				cat = culture::tech_category::industry;
 			}
-		}
-		{
-			parsers::tech_group_context invention_context{context, culture::tech_category::navy};
-			auto i_file = open_file(inventions, NATIVE("navy_inventions.txt"));
+
+			parsers::tech_group_context invention_context{ context, cat };
+			auto i_file = open_file(invf);
 			if(i_file) {
 				auto content = view_contents(*i_file);
-				err.file_name = "navy_inventions.txt";
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(invf));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_inventions_file(gen, err, invention_context);
 				context.tech_and_invention_files.emplace_back(std::move(*i_file));
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File common/navy_inventions.txt could not be opened\n";
-			}
-		}
-		{
-			parsers::tech_group_context invention_context{context, culture::tech_category::commerce};
-			auto i_file = open_file(inventions, NATIVE("commerce_inventions.txt"));
-			if(i_file) {
-				auto content = view_contents(*i_file);
-				err.file_name = "commerce_inventions.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_inventions_file(gen, err, invention_context);
-				context.tech_and_invention_files.emplace_back(std::move(*i_file));
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File common/commerce_inventions.txt could not be opened\n";
-			}
-		}
-		{
-			parsers::tech_group_context invention_context{context, culture::tech_category::culture};
-			auto i_file = open_file(inventions, NATIVE("culture_inventions.txt"));
-			if(i_file) {
-				auto content = view_contents(*i_file);
-				err.file_name = "culture_inventions.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_inventions_file(gen, err, invention_context);
-				context.tech_and_invention_files.emplace_back(std::move(*i_file));
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File common/culture_inventions.txt could not be opened\n";
-			}
-		}
-		{
-			parsers::tech_group_context invention_context{context, culture::tech_category::industry};
-			auto i_file = open_file(inventions, NATIVE("industry_inventions.txt"));
-			if(i_file) {
-				auto content = view_contents(*i_file);
-				err.file_name = "industry_inventions.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_inventions_file(gen, err, invention_context);
-				context.tech_and_invention_files.emplace_back(std::move(*i_file));
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File common/industry_inventions.txt could not be opened\n";
 			}
 		}
 	}
@@ -2239,6 +2193,24 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		err.file_name = "inventions file";
 		for(auto& r : context.map_of_inventions) {
 			parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
+		}
+
+		// fix invention tech category
+		for(auto inv : world.in_invention) {
+			if(inv.get_technology_type() == uint8_t(culture::tech_category::unknown)) {
+				auto lim_trigger = inv.get_limit();
+				if(lim_trigger) {
+					trigger::recurse_over_triggers(trigger_data.data() + trigger_data_indices[lim_trigger.index() + 1],
+					[&](uint16_t* tval) {
+						if((tval[0] & trigger::code_mask) == trigger::technology) {
+							auto findex = this->world.technology_get_folder_index(trigger::payload(tval[1]).tech_id);
+							inv.set_technology_type(uint8_t(this->culture_definitions.tech_folders[findex].category));
+						}
+					});
+				}
+			}
+			if(inv.get_technology_type() == uint8_t(culture::tech_category::unknown))
+				std::abort();
 		}
 	}
 	// parse on_actions.txt

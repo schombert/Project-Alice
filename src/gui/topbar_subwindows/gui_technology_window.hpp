@@ -1313,7 +1313,7 @@ public:
 		generic_tabbed_window::on_create(state);
 
 		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("folder_offset")->second.definition].position;
-		for(auto curr_folder = culture::tech_category::army; curr_folder != culture::tech_category::count;
+		for(auto curr_folder = culture::tech_category::army; curr_folder != culture::tech_category(5);
 				curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
 			auto ptr = make_element_by_type<technology_folder_tab_button>(state,
 					state.ui_state.defs_by_name.find("folder_window")->second.definition);
@@ -1328,7 +1328,7 @@ public:
 		// Order of category
 		// **** Order of folders within category
 		// ******** Order of appearance of technologies that have said folder?
-		std::vector<std::vector<size_t>> folders_by_category(static_cast<size_t>(culture::tech_category::count));
+		std::vector<std::vector<size_t>> folders_by_category(static_cast<size_t>(5));
 		for(size_t i = 0; i < state.culture_definitions.tech_folders.size(); i++) {
 			auto const& folder = state.culture_definitions.tech_folders[i];
 			folders_by_category[static_cast<size_t>(folder.category)].push_back(i);
@@ -1348,7 +1348,7 @@ public:
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
 		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
 
-		for(auto cat = culture::tech_category::army; cat != culture::tech_category::count;
+		for(auto cat = culture::tech_category::army; cat != culture::tech_category(5);
 				cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
 			// Add tech group names
 			int16_t group_count = 0;

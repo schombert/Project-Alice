@@ -1340,6 +1340,33 @@ void tf_primary_culture(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+
+void tf_primary_culture_from_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+	std::string sub;
+	if(from_slot != -1)
+		sub = text::produce_simple_string(ws, ws.world.nation_get_primary_culture(trigger::to_nation(from_slot)).get_name());
+	else
+		sub = text::produce_simple_string(ws, "from_nation");
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"), sub, ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+
+void tf_primary_culture_from_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+	std::string sub;
+	if(from_slot != -1)
+		sub = text::produce_simple_string(ws, ws.world.nation_get_primary_culture(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).get_name());
+	else
+		sub = text::produce_simple_string(ws, "from_nation");
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"), sub, ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+
 void tf_accepted_culture(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
@@ -7351,6 +7378,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_owned_by_this_state, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
 		tf_owned_by_this_pop, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
 		tf_units_in_province_tag, // constexpr inline uint16_t units_in_province_tag = 0x027D;
+		tf_primary_culture_from_nation, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
+		tf_primary_culture_from_province, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
 		//
 		// scopes
 		//

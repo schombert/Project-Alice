@@ -101,7 +101,7 @@ struct crime_info {
 	bool available_by_default = false;
 };
 
-enum class tech_category : uint8_t { army, navy, commerce, culture, industry, count };
+enum class tech_category : uint8_t { army, navy, commerce, culture, industry, unknown };
 
 struct folder_info {
 	dcon::text_sequence_id name;

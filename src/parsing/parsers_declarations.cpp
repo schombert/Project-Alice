@@ -2256,14 +2256,23 @@ void oob_relationship::level(association_type, int32_t v, error_handler& err, in
 	}
 }
 
-void oob_relationship::influence_value(association_type, float v, error_handler& err, int32_t line,
-		oob_file_relation_context& context) {
+void oob_relationship::influence_value(association_type, float v, error_handler& err, int32_t line, oob_file_relation_context& context) {
 	auto rel = context.outer_context.state.world.get_gp_relationship_by_gp_influence_pair(context.nation_with, context.nation_for);
 	if(rel) {
 		context.outer_context.state.world.gp_relationship_set_influence(rel, v);
 	} else {
 		auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
 		context.outer_context.state.world.gp_relationship_set_influence(new_rel, v);
+	}
+}
+
+void oob_relationship::truce_until(association_type, sys::year_month_day v, error_handler& err, int32_t line, oob_file_relation_context& context) {
+	auto rel = context.outer_context.state.world.get_diplomatic_relation_by_diplomatic_pair(context.nation_with, context.nation_for);
+	if(rel) {
+		context.outer_context.state.world.diplomatic_relation_set_truce_until(rel, sys::date(v, context.outer_context.state.start_date));
+	} else {
+		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_with, context.nation_for);
+		context.outer_context.state.world.diplomatic_relation_set_truce_until(rel, sys::date(v, context.outer_context.state.start_date));
 	}
 }
 
@@ -2366,8 +2375,7 @@ void vassal_description::second(association_type, std::string_view tag, error_ha
 	}
 }
 
-void vassal_description::start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line,
-		scenario_building_context& context) {
+void vassal_description::start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(context.state.start_date < sys::absolute_time_point(ymd))
 		invalid = true;
 }
