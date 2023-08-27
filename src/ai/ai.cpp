@@ -2685,7 +2685,6 @@ void update_budget(sys::state& state) {
 			int max_rich_tax = int(90.f * (1.f - rich_militancy));
 			int min_tariff = int(-100.f * rich_militancy);
 			int max_tariff = int(100.f * (1.f - rich_militancy));
-			int max_military = int(100.f * mid_militancy);
 			int max_social = int(100.f * poor_militancy);
 
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
@@ -2693,7 +2692,7 @@ void update_budget(sys::state& state) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
 				if(!n.get_ai_is_threatened()) {
-					n.set_military_spending(int8_t(std::max(0, n.get_military_spending() - 5)));
+					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
@@ -2705,7 +2704,11 @@ void update_budget(sys::state& state) {
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}
-				n.set_military_spending(int8_t(std::min(max_military, n.get_military_spending() + 10)));
+				if(n.get_ai_is_threatened()) {
+					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
+				} else {
+					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
+				}
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 0, max_poor_tax)));
@@ -2718,7 +2721,6 @@ void update_budget(sys::state& state) {
 			int max_mid_tax = int(60.f * (1.f - mid_militancy));
 			int max_rich_tax = int(30.f * (1.f - rich_militancy));
 			int max_tariff = int(100.f * (1.f - rich_militancy));
-			int max_military = int(100.f * mid_militancy);
 			int max_social = int(100.f * poor_militancy);
 
 			// Laissez faire prioritize tax free capitalists
@@ -2727,7 +2729,7 @@ void update_budget(sys::state& state) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
 				if(!n.get_ai_is_threatened()) {
-					n.set_military_spending(int8_t(std::max(0, n.get_military_spending() - 5)));
+					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
@@ -2739,7 +2741,11 @@ void update_budget(sys::state& state) {
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}
-				n.set_military_spending(int8_t(std::min(max_military, n.get_military_spending() + 10)));
+				if(n.get_ai_is_threatened()) {
+					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
+				} else {
+					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
+				}
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 0, max_poor_tax)));
