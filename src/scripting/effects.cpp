@@ -1294,6 +1294,51 @@ uint32_t ef_remove_core_int(EFFECT_PARAMTERS) {
 	province::remove_core(ws, prov, tag);
 	return 0;
 }
+
+uint32_t ef_remove_core_state_this_nation(EFFECT_PARAMTERS) {
+	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot));
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+		[&](dcon::province_id p) { province::remove_core(ws, p, tag);
+	});
+	return 0;
+}
+uint32_t ef_remove_core_state_this_province(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(owner)
+		return ef_remove_core_state_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_remove_core_state_this_state(EFFECT_PARAMTERS) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot));
+	if(owner)
+		return ef_remove_core_state_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_remove_core_state_this_pop(EFFECT_PARAMTERS) {
+	auto owner = nations::owner_of_pop(ws, trigger::to_pop(this_slot));
+	if(owner)
+		return ef_remove_core_state_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_remove_core_state_from_province(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot));
+	if(owner)
+		return ef_remove_core_state_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_hi, r_lo);
+	return 0;
+}
+uint32_t ef_remove_core_state_from_nation(EFFECT_PARAMTERS) {
+	return ef_remove_core_state_this_nation(tval, ws, primary_slot, from_slot, 0, r_hi, r_lo);
+}
+uint32_t ef_remove_core_state_reb(EFFECT_PARAMTERS) {
+	auto tag = ws.world.rebel_faction_get_defection_target(trigger::to_rebel(from_slot));
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+		[&](dcon::province_id p) { province::remove_core(ws, p, tag);});
+	return 0;
+}
+
 uint32_t ef_remove_core_this_nation(EFFECT_PARAMTERS) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot));
 	auto prov = trigger::to_prov(primary_slot);
@@ -2648,6 +2693,18 @@ uint32_t ef_add_province_modifier(EFFECT_PARAMTERS) {
 }
 uint32_t ef_add_province_modifier_no_duration(EFFECT_PARAMTERS) {
 	sys::add_modifier_to_province(ws, trigger::to_prov(primary_slot), trigger::payload(tval[1]).mod_id, sys::date{});
+	return 0;
+}
+uint32_t ef_add_province_modifier_state(EFFECT_PARAMTERS) {
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+		sys::add_modifier_to_province(ws, p, trigger::payload(tval[1]).mod_id, ws.current_date + trigger::payload(tval[2]).signed_value);
+	});
+	return 0;
+}
+uint32_t ef_add_province_modifier_state_no_duration(EFFECT_PARAMTERS) {
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+		sys::add_modifier_to_province(ws, p, trigger::payload(tval[1]).mod_id, sys::date{});
+	});
 	return 0;
 }
 uint32_t ef_add_country_modifier(EFFECT_PARAMTERS) {
@@ -4297,6 +4354,19 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_add_core_state_from_province, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
 		ef_add_core_state_from_nation, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
 		ef_add_core_state_reb, //constexpr inline uint16_t add_core_state_reb = 0x0154;
+		ef_add_province_modifier_state, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
+		ef_add_province_modifier_state_no_duration, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+		ef_remove_core_state_this_nation, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+		ef_remove_core_state_this_province, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+		ef_remove_core_state_this_state, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+		ef_remove_core_state_this_pop, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+		ef_remove_core_state_from_province, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+		ef_remove_core_state_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+		ef_remove_core_state_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
+		
+		//
+		// SCOPES
+		//
 		es_generic_scope, // constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or
 											// hidden_tooltip)
 		es_x_neighbor_province_scope,				// constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;

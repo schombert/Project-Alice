@@ -364,9 +364,18 @@ constexpr inline uint16_t add_core_state_this_pop = 0x0151;
 constexpr inline uint16_t add_core_state_from_province = 0x0152;
 constexpr inline uint16_t add_core_state_from_nation = 0x0153;
 constexpr inline uint16_t add_core_state_reb = 0x0154;
+constexpr inline uint16_t add_province_modifier_state = 0x0155;
+constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+constexpr inline uint16_t remove_core_state_reb = 0x015D;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x0155;
+constexpr inline uint16_t first_scope_code = 0x015E;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -772,7 +781,15 @@ inline constexpr int32_t data_sizes[] = {
 		0, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
 		0, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
 		0, //constexpr inline uint16_t add_core_state_reb = 0x0154;
-
+		2, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
+		1, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+		0, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+		0, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+		0, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+		0, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+		0, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+		0, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+		0, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
