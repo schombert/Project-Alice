@@ -97,6 +97,8 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 
 	// Target
 	text::add_to_substitution_map(sub, text::variable_type::provincename, target_province);
+	text::add_to_substitution_map(sub, text::variable_type::provinceculture, state.world.culture_get_name(state.world.province_get_dominant_culture(target_province)));
+	text::add_to_substitution_map(sub, text::variable_type::provincereligion, state.world.religion_get_name(state.world.province_get_dominant_religion(target_province)));
 	text::add_to_substitution_map(sub, text::variable_type::state, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::statename, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
