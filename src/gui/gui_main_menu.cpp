@@ -117,15 +117,15 @@ void autosave_display::on_update(sys::state& state) noexcept {
 
 void tooltip_mode_left::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
+	send(state, parent, notify_setting_update{});
 }
 void tooltip_mode_left::on_update(sys::state& state) noexcept {
-	send(state, parent, notify_setting_update{});
 }
 void tooltip_mode_right::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
+	send(state, parent, notify_setting_update{});
 }
 void tooltip_mode_right::on_update(sys::state& state) noexcept {
-	send(state, parent, notify_setting_update{});
 }
 void tooltip_mode_display::on_update(sys::state& state) noexcept {
 	if (state.user_settings.bind_tooltip_mouse)set_text(state, "Stick to Mouse");
