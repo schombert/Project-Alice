@@ -1257,11 +1257,11 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, dcon::province
 			if(!nation_allows_investment || (t != state.culture_definitions.aristocrat && t != state.culture_definitions.capitalists))
 				return xn_cost > 0.0f ? std::clamp(total_budget / xn_cost, 0.0f, 1.0f) : 0.0f;
 			else if(t == state.culture_definitions.capitalists) {
-				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.005f : 0.0f;
-				return xn_cost > 0.0f ? std::clamp(total_budget * 0.995f / xn_cost, 0.0f, 1.0f) : 0.0f;
+				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.1f : 0.0f;
+				return xn_cost > 0.0f ? std::clamp(total_budget * 0.9f / xn_cost, 0.0f, 1.0f) : 0.0f;
 			} else {
-				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.05f : 0.0f;
-				return xn_cost > 0.0f ? std::clamp(total_budget * 0.95f / xn_cost, 0.0f, 1.0f) : 0.0f;
+				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.01f : 0.0f;
+				return xn_cost > 0.0f ? std::clamp(total_budget * 0.99f / xn_cost, 0.0f, 1.0f) : 0.0f;
 			}
 		}();
 		assert(std::isfinite(life_needs_fraction));
