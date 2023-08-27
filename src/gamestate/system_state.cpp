@@ -1087,8 +1087,45 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 	ui_state.root->impl_render(*this, 0, 0);
+
+	static auto tooltip_timer = std::chrono::steady_clock::now();
 	if(ui_state.tooltip->is_visible()) {
-		ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	static bool bind_tooltip_mouse = false;                      //TODO: make this accessible by in-game settings
+	static auto tooltip_delay = std::chrono::milliseconds{ 500 };//TODO: make this accessible by in-game settings
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	static auto last_tooltip = ui_state.last_tooltip;
+	static auto last_prov_id = map_state.get_province_under_mouse(*this, mouse_x_position, mouse_y_position, x_size, y_size);
+		if((std::chrono::steady_clock::now() - tooltip_timer) < tooltip_delay) {
+			if(last_tooltip != ui_state.last_tooltip) {
+				tooltip_timer = std::chrono::steady_clock::now();
+			} else if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
+				auto now_prov_id = map_state.get_province_under_mouse(*this, mouse_x_position, mouse_y_position, x_size, y_size);
+				if(last_prov_id != now_prov_id) {
+					tooltip_timer = std::chrono::steady_clock::now();
+				}
+				last_prov_id = now_prov_id;
+			}
+			last_tooltip = ui_state.last_tooltip;
+			return;
+		}
+		if(bind_tooltip_mouse) {
+			int32_t aim_x = mouse_x_position;
+			int32_t aim_y = mouse_y_position;
+			int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
+			int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
+			if(aim_x + ui_state.tooltip->base_data.size.x > wsize_x) {
+				aim_x = wsize_x - ui_state.tooltip->base_data.size.x;
+			}
+			if(aim_y + ui_state.tooltip->base_data.size.y > wsize_y) {
+				aim_y = wsize_y - ui_state.tooltip->base_data.size.y;
+			}
+			ui_state.tooltip->impl_render(*this, aim_x, aim_y);
+		} else {
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		}
+	} else {
+		tooltip_timer = std::chrono::steady_clock::now();
 	}
 }
 void state::on_create() {
