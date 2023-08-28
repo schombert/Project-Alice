@@ -298,6 +298,18 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+	} else if(context.main_slot == trigger::slot_contents::province) { // we parse this as basically a do-nothing scope
+		context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		return;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "random_owned effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -326,6 +338,18 @@ void ef_scope_any_owned(token_generator& gen, error_handler& err, effect_buildin
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::scope_has_limit));
+	} else if(context.main_slot == trigger::slot_contents::province) { // we parse this as basically a do-nothing scope
+		context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		return;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_owned effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -394,6 +418,29 @@ void ef_scope_any_state(token_generator& gen, error_handler& err, effect_buildin
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 	context.limit_position = old_limit_offset;
 	context.main_slot = old_main;
+}
+
+void ef_scope_any_substate(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_effect.push_back(uint16_t(effect::x_substate_scope | effect::scope_has_limit));
+	} else {
+		gen.discard_group();
+		err.accumulated_errors += "any_substate effect scope used in an incorrect scope type (" + err.file_name + ")\n";
+		return;
+	}
+
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
 }
 
 void ef_scope_random_state(token_generator& gen, error_handler& err, effect_building_context& context) {
@@ -1315,6 +1362,100 @@ void effect_body::enable_canal(association_type t, int32_t value, error_handler&
 	} else {
 		err.accumulated_errors +=
 				"canal index " + std::to_string(value) + " out of range (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+	}
+}
+void effect_body::any_value(std::string_view label, association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+	std::string str_label{ label };
+	if(auto it = context.outer_context.map_of_commodity_names.find(str_label);
+			it != context.outer_context.map_of_commodity_names.end()) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_effect.push_back(effect::variable_good_name);
+			context.compiled_effect.push_back(trigger::payload(it->second).value);
+			context.add_float_to_payload(parse_float(value, line, err));
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(effect::variable_good_name_province);
+			context.compiled_effect.push_back(trigger::payload(it->second).value);
+			context.add_float_to_payload(parse_float(value, line, err));
+		} else {
+			err.accumulated_errors += "variable commodity name effect used in an incorrect scope type (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+	} else if(auto itb = context.outer_context.map_of_technologies.find(str_label); itb != context.outer_context.map_of_technologies.end()) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			if(parse_bool(value, line, err))
+				context.compiled_effect.push_back(effect::variable_tech_name_yes);
+			else
+				context.compiled_effect.push_back(effect::variable_tech_name_no);
+			context.compiled_effect.push_back(trigger::payload(itb->second.id).value);
+			context.add_float_to_payload(parse_float(value, line, err));
+		} else {
+			err.accumulated_errors += "variable technology name effect used in an incorrect scope type (" + err.file_name +
+				", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	} else if(auto itc = context.outer_context.map_of_inventions.find(str_label); itc != context.outer_context.map_of_inventions.end()) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			if(parse_bool(value, line, err))
+				context.compiled_effect.push_back(effect::variable_invention_name_yes);
+			else
+				context.compiled_effect.push_back(effect::variable_invention_name_no);
+			context.compiled_effect.push_back(trigger::payload(itc->second.id).value);
+			context.add_float_to_payload(parse_float(value, line, err));
+		} else {
+			err.accumulated_errors += "variable invention name effect used in an incorrect scope type (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+	} else if(auto itf = context.outer_context.map_of_iissues.find(str_label); itf != context.outer_context.map_of_iissues.end()) {
+		if(auto itopt = context.outer_context.map_of_ioptions.find(std::string(value)); itopt != context.outer_context.map_of_ioptions.end()) {
+			if(context.main_slot == trigger::slot_contents::nation) {
+				auto cat = context.outer_context.state.world.issue_get_issue_type(itf->second);
+				if(cat == uint8_t(::culture::issue_category::political)) {
+					context.compiled_effect.push_back(uint16_t(effect::political_reform));
+					context.compiled_effect.push_back(trigger::payload(itopt->second.id).value);
+				} else if(cat == uint8_t(::culture::issue_category::social)) {
+					context.compiled_effect.push_back(uint16_t(effect::social_reform));
+					context.compiled_effect.push_back(trigger::payload(itopt->second.id).value);
+				} else {
+					err.accumulated_errors += "named issue effect used with a party issue (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors += "named issue effect used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors += "named issue effect used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	} else if(auto ith = context.outer_context.map_of_reforms.find(str_label); ith != context.outer_context.map_of_reforms.end()) {
+		if(auto itopt = context.outer_context.map_of_roptions.find(std::string(value));
+				itopt != context.outer_context.map_of_roptions.end()) {
+			if(context.main_slot == trigger::slot_contents::nation) {
+				auto cat = context.outer_context.state.world.reform_get_reform_type(ith->second);
+				if(cat == uint8_t(::culture::issue_category::military)) {
+					context.compiled_effect.push_back(uint16_t(effect::military_reform));
+					context.compiled_effect.push_back(trigger::payload(itopt->second.id).value);
+				} else if(cat == uint8_t(::culture::issue_category::economic)) {
+					context.compiled_effect.push_back(uint16_t(effect::economic_reform));
+					context.compiled_effect.push_back(trigger::payload(itopt->second.id).value);
+				} else {
+					err.accumulated_errors += "named reform effect used with an invalid issue type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors += "named reform effect used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors += "named reform effect used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	} else {
+		err.accumulated_errors +=
+			"unknown effect " + str_label + " encountered (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
 	}
 }
 

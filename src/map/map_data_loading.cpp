@@ -107,7 +107,8 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 
 		glm::vec2 tile_pos;
 
-		assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
+		// OK, so some mods do in fact define provinces that aren't on the map.
+		//assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
 
 		if(tiles_number[i] == 0) {
 			tile_pos = glm::vec2(0, 0);
