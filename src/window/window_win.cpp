@@ -258,11 +258,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_SYSKEYDOWN:
 		if((HIWORD(lParam) & KF_REPEAT) != 0)
 			return 0;
-		state->on_key_down(sys::virtual_key(wParam), get_current_modifiers());
+		state->on_key_down(sys::virtual_key(wParam), get_current_modifiers(), state->ui_state.can_move_map_while_visible);
 		return 0;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
-		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());
+		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers(), state->ui_state.can_move_map_while_visible);
 		return 0;
 	case WM_CHAR: {
 		if(state->ui_state.edit_target) {

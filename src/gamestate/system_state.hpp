@@ -555,8 +555,8 @@ struct alignas(64) state {
 	void on_drag_finished(int32_t x, int32_t y, key_modifiers mod); // called when the left button is released after one or more drag events
 	void on_resize(int32_t x, int32_t y, window::window_state win_state);
 	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
-	void on_key_down(virtual_key keycode, key_modifiers mod);
-	void on_key_up(virtual_key keycode, key_modifiers mod);
+	void on_key_down(virtual_key keycode, key_modifiers mod, bool can_move_map_while_visible);
+	void on_key_up(virtual_key keycode, key_modifiers mod, bool can_move_map_while_visible);
 	void on_text(char c); // c is a win1250 codepage value
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
 	               // for vsync
