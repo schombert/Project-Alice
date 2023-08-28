@@ -1574,6 +1574,9 @@ public:
 
 // -----------------------------------------------------------------------------
 // National focuses
+
+struct close_focus_window_notification { };
+
 class national_focus_icon : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1600,6 +1603,7 @@ public:
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		auto nat_focus = retrieve<dcon::national_focus_id>(state, parent);
 		command::set_national_focus(state, state.local_player_nation, content, nat_focus);
+		send(state, parent, close_focus_window_notification{});
 	}
 };
 
@@ -1665,6 +1669,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
+		send(state, parent, close_focus_window_notification{});
 	}
 };
 
@@ -1699,6 +1704,13 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
+		if(payload.holds_type<close_focus_window_notification>()) {
+			set_visible(state, false);
+			return message_result::consumed;
+		}
+		return window_element_base::get(state, payload);
 	}
 };
 

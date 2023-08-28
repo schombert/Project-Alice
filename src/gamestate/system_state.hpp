@@ -532,6 +532,7 @@ struct alignas(64) state {
 	bool is_dragging = false;
 	int32_t x_drag_start = 0;
 	int32_t y_drag_start = 0;
+	std::chrono::time_point<std::chrono::steady_clock> tooltip_timer = std::chrono::steady_clock::now();
 
 	// map data
 	map::map_state map_state;

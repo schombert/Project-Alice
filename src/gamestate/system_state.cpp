@@ -217,6 +217,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	}
 }
 void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
+	tooltip_timer = std::chrono::steady_clock::now();
 	map_state.on_mouse_move(x, y, x_size, y_size, mod);
 	if(map_state.is_dragging) {
 		if(ui_state.mouse_sensitive_target) {
@@ -328,7 +329,7 @@ void state::on_text(char c) { // c is win1250 codepage value
 inline constexpr int32_t tooltip_width = 400;
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
-                       // waiting for vsync
+	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 	if(mode == sys::game_mode::end_screen) { // END SCREEN RENDERING
@@ -820,7 +821,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c7) {
 				if(ui_state.endof_navalcombat_windows.size() == 0) {
 					ui_state.endof_navalcombat_windows.push_back(ui::make_element_by_type<ui::naval_combat_end_popup>(*this,
-								ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition));
+						ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition));
 				}
 				//static_cast<ui::naval_combat_window*>(ui_state.navalcombat_windows.back().get())->messages.push_back(*c7);
 				static_cast<ui::naval_combat_end_popup*>(ui_state.endof_navalcombat_windows.back().get())->report = *c7;
@@ -893,9 +894,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+						text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
-								text::text_color::white, true},
+								text::text_color::white, true },
 						 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
@@ -909,8 +910,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-
-
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
 		if(tooltip_probe.under_mouse) {
@@ -918,9 +917,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(type != ui::tooltip_behavior::no_tooltip) {
 
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{16, 16, tooltip_width,int16_t( ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+						text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
-								text::text_color::white, true},
+								text::text_color::white, true },
 						 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
@@ -936,12 +935,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {
 			ui_state.tooltip->set_visible(*this, false);
 		}
-	} else if(ui_state.last_tooltip &&
-						ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
 						text::alignment::left,
-						text::text_color::white, true},
+						text::text_color::white, true },
 				 10);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -951,6 +949,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		else
 			ui_state.tooltip->set_visible(*this, false);
 	}
+
+	
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
@@ -998,7 +998,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		if(prov) {
 			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true},
+					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
 					20);
 
 			// Enable this and tooltip will follow the cursor
@@ -1013,18 +1013,18 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(container.used_width > 0) {
 				// This block positions the tooltip somewhat under the province centroid
 
-					auto mid_point = world.province_get_mid_point(prov);
-					auto map_pos = map_state.normalize_map_coord(mid_point);
-					auto screen_size =
-							glm::vec2{float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale)};
-					glm::vec2 screen_pos;
-					if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
-						ui_state.tooltip->set_visible(*this, false);
-					} else {
-						ui_state.tooltip->base_data.position =
-								ui::xy_pair{int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * map_state.get_zoom())};
-						ui_state.tooltip->set_visible(*this, true);
-					}
+				auto mid_point = world.province_get_mid_point(prov);
+				auto map_pos = map_state.normalize_map_coord(mid_point);
+				auto screen_size =
+					glm::vec2{ float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale) };
+				glm::vec2 screen_pos;
+				if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+					ui_state.tooltip->set_visible(*this, false);
+				} else {
+					ui_state.tooltip->base_data.position =
+						ui::xy_pair{ int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * map_state.get_zoom()) };
+					ui_state.tooltip->set_visible(*this, true);
+				}
 
 				// Alternatively: just make it visible
 				// ui_state.tooltip->set_visible(*this, true);
@@ -1088,42 +1088,31 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	ui_state.root->impl_render(*this, 0, 0);
 
-	static auto tooltip_timer = std::chrono::steady_clock::now();
 	if(ui_state.tooltip->is_visible()) {
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	static auto tooltip_delay = std::chrono::milliseconds{ 500 };//TODO: make this accessible by in-game settings
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	static auto last_tooltip = ui_state.last_tooltip;
-	static auto last_prov_id = map_state.get_province_under_mouse(*this, mouse_x_position, mouse_y_position, x_size, y_size);
-		if((std::chrono::steady_clock::now() - tooltip_timer) < tooltip_delay) {
-			if(last_tooltip != ui_state.last_tooltip) {
-				tooltip_timer = std::chrono::steady_clock::now();
-			} else if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
-				auto now_prov_id = map_state.get_province_under_mouse(*this, mouse_x_position, mouse_y_position, x_size, y_size);
-				if(last_prov_id != now_prov_id) {
-					tooltip_timer = std::chrono::steady_clock::now();
-				}
-				last_prov_id = now_prov_id;
-			}
-			last_tooltip = ui_state.last_tooltip;
-			return;
-		}
+		//TODO: make this accessible by in-game settings
+		constexpr auto tooltip_delay = std::chrono::milliseconds{ 500 };
+		
 		if(user_settings.bind_tooltip_mouse) {
-			int32_t aim_x = mouse_x_position;
-			int32_t aim_y = mouse_y_position;
-			int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
-			int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
-			if(aim_x + ui_state.tooltip->base_data.size.x > wsize_x) {
-				aim_x = wsize_x - ui_state.tooltip->base_data.size.x;
+			if((std::chrono::steady_clock::now() - tooltip_timer) < tooltip_delay) {
+				// nothing
+
+			} else { // snap to mouse
+				int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale);
+				int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale);
+				int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
+				int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
+				if(aim_x + ui_state.tooltip->base_data.size.x > wsize_x) {
+					aim_x = wsize_x - ui_state.tooltip->base_data.size.x;
+				}
+				if(aim_y + ui_state.tooltip->base_data.size.y > wsize_y) {
+					aim_y = wsize_y - ui_state.tooltip->base_data.size.y;
+				}
+				ui_state.tooltip->impl_render(*this, aim_x, aim_y );
 			}
-			if(aim_y + ui_state.tooltip->base_data.size.y > wsize_y) {
-				aim_y = wsize_y - ui_state.tooltip->base_data.size.y;
-			}
-			ui_state.tooltip->impl_render(*this, aim_x, aim_y);
 		} else {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
-	} else {
+	} else { // no tooltip, keep counter reset
 		tooltip_timer = std::chrono::steady_clock::now();
 	}
 }
