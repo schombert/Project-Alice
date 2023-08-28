@@ -721,7 +721,6 @@ void update_ai_ruling_party(sys::state& state) {
 			assert(target != state.world.nation_get_ruling_party(n));
 			if(target) {
 				politics::appoint_ruling_party(state, n, target);
-				rules = n.get_combined_issue_rules();
 			}
 		}
 	}
@@ -736,14 +735,14 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 
 		// buy stuff from the global market if we need it
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			n.set_stockpile_targets(c, 10000.f);
-			if(n.get_demand_satisfaction(c) < 1.0f) {
-				n.set_drawing_on_stockpiles(c, true);
-			} else {
-				n.set_drawing_on_stockpiles(c, false);
-			}
-		});
+		//state.world.for_each_commodity([&](dcon::commodity_id c) {
+		//	n.set_stockpile_targets(c, 10000.f);
+		//	if(n.get_demand_satisfaction(c) < 1.0f) {
+		//		n.set_drawing_on_stockpiles(c, true);
+		//	} else {
+		//		n.set_drawing_on_stockpiles(c, false);
+		//	}
+		//});
 
 		auto treasury = n.get_stockpiles(economy::money);
 		int32_t max_projects = std::max(8, int32_t(treasury / 8000.0f));
