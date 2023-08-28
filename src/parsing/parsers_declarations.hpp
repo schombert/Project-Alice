@@ -1249,7 +1249,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 struct tech_group_context {
 	scenario_building_context& outer_context;
-	::culture::tech_category category = ::culture::tech_category::army;
+	::culture::tech_category category = ::culture::tech_category::unknown;
 	tech_group_context(scenario_building_context& outer_context, ::culture::tech_category category)
 			: outer_context(outer_context), category(category) { }
 };
@@ -1280,8 +1280,7 @@ struct inventions_file {
 	void finish(tech_group_context&) { }
 };
 
-void register_invention(std::string_view name, token_generator& gen, error_handler& err,
-		tech_group_context& context); // but not at the patent office
+void register_invention(std::string_view name, token_generator& gen, error_handler& err, tech_group_context& context); // but not at the patent office
 
 struct commodity_set : public economy::commodity_set {
 	int32_t num_added = 0;
@@ -2247,6 +2246,7 @@ struct oob_relationship {
 	void value(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context);
 	void level(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context);
 	void influence_value(association_type, float v, error_handler& err, int32_t line, oob_file_relation_context& context);
+	void truce_until(association_type, sys::year_month_day v, error_handler& err, int32_t line, oob_file_relation_context& context);
 };
 struct oob_file {
 	void finish(oob_file_context&) { }
@@ -2366,8 +2366,7 @@ struct vassal_description {
 	void finish(scenario_building_context&) { }
 	void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
-	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line,
-			scenario_building_context& context);
+	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
 };
 
 struct alliance_file {

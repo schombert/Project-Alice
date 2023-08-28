@@ -48,7 +48,7 @@ struct user_settings_s {
 	bool prefer_fullscreen = false;
 	bool map_is_globe = true;
 	autosave_frequency autosaves = autosave_frequency::yearly;
-	bool dummy_2 = true;
+	bool bind_tooltip_mouse = true;
 	bool use_classic_fonts = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {

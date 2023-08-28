@@ -19,6 +19,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 
 	event::slot_type pt = event::slot_type::none;
 	int32_t primary_slot = -1;
+	sys::date event_date;
 
 	if(std::holds_alternative<event::pending_human_n_event>(phe)) {
 		auto const& e = std::get<event::pending_human_n_event>(phe);
@@ -29,10 +30,12 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		ft = e.ft;
 		primary_slot = e.primary_slot;
 		pt = e.pt;
+		event_date = e.date;
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(phe)) {
 		auto const& e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
+		event_date = e.date;
 	} else if(std::holds_alternative<event::pending_human_p_event>(phe)) {
 		auto const& e = std::get<event::pending_human_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
@@ -42,12 +45,14 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 
 		from_slot = e.from_slot;
 		ft = e.ft;
+		event_date = e.date;
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(phe)) {
 		auto const& e = std::get<event::pending_human_f_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);
 		target_province = e.p;
+		event_date = e.date;
 	}
 
 	switch(ft) {
@@ -91,7 +96,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	}
 
 	// Target
+	text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.province_get_continent(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::provincename, target_province);
+	text::add_to_substitution_map(sub, text::variable_type::provinceculture, state.world.culture_get_name(state.world.province_get_dominant_culture(target_province)));
+	text::add_to_substitution_map(sub, text::variable_type::provincereligion, state.world.religion_get_name(state.world.province_get_dominant_religion(target_province)));
 	text::add_to_substitution_map(sub, text::variable_type::state, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::statename, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
@@ -102,11 +110,14 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 			state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
 	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(target_nation)].ruler_name);
+	// TODO: Is this correct? I remember in vanilla it could vary
+	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
-
+	
 	// Global crisis stuff
 	// TODO: crisisarea
 	// text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_colony);
@@ -118,6 +129,11 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.primary_crisis_defender);
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj,
 			state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_state);
+	// Dates
+	text::add_to_substitution_map(sub, text::variable_type::year, int32_t(event_date.to_ymd(state.start_date).year));
+	//text::add_to_substitution_map(sub, text::variable_type::month, text::localize_month(state, event_date.to_ymd(state.start_date).month));
+	text::add_to_substitution_map(sub, text::variable_type::day, int32_t(event_date.to_ymd(state.start_date).day));
 }
 
 void event_option_button::on_update(sys::state& state) noexcept {

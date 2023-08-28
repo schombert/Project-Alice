@@ -6313,6 +6313,20 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_add_core_state_from_province, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
 		ef_add_core_state_from_nation, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
 		ef_add_core_state_reb, //constexpr inline uint16_t add_core_state_reb = 0x0154;
+		ef_add_province_modifier, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
+		ef_add_province_modifier_no_duration, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+		ef_remove_core_this_nation, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+		ef_remove_core_this_province, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+		ef_remove_core_this_state, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+		ef_remove_core_this_pop, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+		ef_remove_core_from_province, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+		ef_remove_core_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
+		ef_remove_province_modifier, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
+
+		//
+		// SCOPES
+		//
 		es_generic_scope, // constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or
 											// hidden_tooltip)
 		es_x_neighbor_province_scope,				// constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;

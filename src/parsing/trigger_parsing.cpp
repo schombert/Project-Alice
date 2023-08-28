@@ -510,6 +510,17 @@ void tr_crisis_state_scope(token_generator& gen, error_handler& err, trigger_bui
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
 void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::state) {
+		context.compiled_trigger.push_back(uint16_t(trigger::generic_scope));
+		context.compiled_trigger.push_back(uint16_t(1));
+		auto payload_size_offset = context.compiled_trigger.size() - 1;
+
+		parse_trigger_body(gen, err, context);
+
+		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
+		return;
+	}
+
 	if(context.main_slot == trigger::slot_contents::province) {
 		context.compiled_trigger.push_back(uint16_t(trigger::state_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::pop) {

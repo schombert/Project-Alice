@@ -667,6 +667,26 @@ void take_ai_decisions(sys::state& state) {
 	}
 }
 
+dcon::issue_option_id find_most_important_issue_option(sys::state& state, dcon::nation_id n) {
+	dcon::issue_option_id iss;
+	float max_support = 0.f;
+	state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+		if(command::can_enact_issue(state, n, io)) {
+			float support = 0.f;
+			for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+				for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+					support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * state.world.pop_get_militancy(plid.get_pop());
+				}
+}
+			if(support > max_support) {
+				iss = io;
+				max_support = support;
+			}
+		}
+	});
+	return iss;
+}
+
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
@@ -686,13 +706,6 @@ void update_ai_econ_construction(sys::state& state) {
 				return false;
 			if(politics::is_election_ongoing(state, n))
 				return false;
-			return true;
-			/*auto gov = state.world.nation_get_government_type(source);
-			auto new_ideology = state.world.political_party_get_ideology(p);
-			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
-				return false;
-			}*/
-		}();
 
 		// Before, the AI would keep appointing parties repeatedly
 		// causing massive incursions of militancy amongst the population
@@ -701,9 +714,18 @@ void update_ai_econ_construction(sys::state& state) {
 		// hopefully...
 		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
 		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
-		if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f) {
-			can_appoint = false;
-		}
+			if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f)
+				return false;
+			// Do not appoint if we are a democracy!
+			if(politics::has_elections(state, n))
+				return false;
+			return true;
+			/*auto gov = state.world.nation_get_government_type(source);
+			auto new_ideology = state.world.political_party_get_ideology(p);
+			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+				return false;
+			}*/
+		}();
 
 		if(can_appoint) {
 			auto gov = n.get_government_type();
@@ -724,8 +746,30 @@ void update_ai_econ_construction(sys::state& state) {
 						}
 					}
 				}
+			} else {
+				auto get_party_support = [&](dcon::political_party_id pid) {
+					auto iid = state.world.political_party_get_ideology(pid);
+					float support = 1.f;
+					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(plid.get_pop());
 			}
-			if(target) {
+					}
+					return support;
+				};
+				float max_support = get_party_support(state.world.nation_get_ruling_party(n));
+				for(int32_t i = start; i < end && !target; i++) {
+					auto pid = dcon::political_party_id(uint16_t(i));
+					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+						if(get_party_support(pid) > max_support) {
+							target = pid;
+							max_support = get_party_support(pid);
+						}
+					}
+				}
+			}
+
+			if(target && target != state.world.nation_get_ruling_party(n)) {
 				politics::appoint_ruling_party(state, n, target);
 				rules = n.get_combined_issue_rules();
 			}
@@ -846,10 +890,14 @@ void update_ai_econ_construction(sys::state& state) {
 						// check -- either unemployed factory workers or no factory workers
 						auto pw_num = state.world.state_instance_get_demographics(si,
 								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+						pw_num += state.world.state_instance_get_demographics(si,
+								demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
 						auto pw_employed = state.world.state_instance_get_demographics(si,
 								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+						pw_employed += state.world.state_instance_get_demographics(si,
+								demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
 
-						if(pw_employed >= pw_num && pw_num > 0.0f)
+						if(pw_employed >= float(pw_num) * 2.5f && pw_num > 0.0f)
 							continue; // no spare workers
 
 						auto type_selection = desired_types[rng::get_random(state, uint32_t(n.id.index() + max_projects)) % desired_types.size()];
@@ -1174,22 +1222,7 @@ void take_reforms(sys::state& state) {
 		if(n.get_is_civilized()) { // political & social
 			// Enact social policies to deter Jacobin rebels from overruning the country
 			// Reactionaries will popup in effect but they are MORE weak that Jacobins
-			dcon::issue_option_id iss;
-			float max_support = 0.f;
-			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
-				if(command::can_enact_issue(state, n, io)) {
-					float support = 0.f;
-					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
-						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
-							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * state.world.pop_get_militancy(plid.get_pop());
-						}
-					}
-					if(support > max_support) {
-						iss = io;
-						max_support = support;
-					}
-				}
-			});
+			dcon::issue_option_id iss = find_most_important_issue_option(state, n);
 			if(iss && command::can_enact_issue(state, n, iss)) {
 				nations::enact_issue(state, n, iss);
 			}
@@ -2683,9 +2716,6 @@ void update_budget(sys::state& state) {
 			int max_poor_tax = int(30.f * (1.f - poor_militancy));
 			int max_mid_tax = int(60.f * (1.f - mid_militancy));
 			int max_rich_tax = int(90.f * (1.f - rich_militancy));
-			int min_tariff = int(-100.f * rich_militancy);
-			int max_tariff = int(100.f * (1.f - rich_militancy));
-			int max_military = int(100.f * mid_militancy);
 			int max_social = int(100.f * poor_militancy);
 
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
@@ -2693,32 +2723,32 @@ void update_budget(sys::state& state) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
 				if(!n.get_ai_is_threatened()) {
-					n.set_military_spending(int8_t(std::max(0, n.get_military_spending() - 5)));
+					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(max_tariff));
 			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}
-				n.set_military_spending(int8_t(std::min(max_military, n.get_military_spending() + 10)));
+				if(n.get_ai_is_threatened()) {
+					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
+				} else {
+					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
+				}
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(min_tariff));
 			}
 		} else {
 			int max_poor_tax = int(90.f * (1.f - poor_militancy));
 			int max_mid_tax = int(60.f * (1.f - mid_militancy));
 			int max_rich_tax = int(30.f * (1.f - rich_militancy));
-			int max_tariff = int(100.f * (1.f - rich_militancy));
-			int max_military = int(100.f * mid_militancy);
 			int max_social = int(100.f * poor_militancy);
 
 			// Laissez faire prioritize tax free capitalists
@@ -2727,25 +2757,27 @@ void update_budget(sys::state& state) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
 				if(!n.get_ai_is_threatened()) {
-					n.set_military_spending(int8_t(std::max(0, n.get_military_spending() - 5)));
+					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(0));
 			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}
-				n.set_military_spending(int8_t(std::min(max_military, n.get_military_spending() + 10)));
+				if(n.get_ai_is_threatened()) {
+					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
+				} else {
+					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
+				}
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 0, max_rich_tax)));
-				n.set_tariffs(int8_t(max_tariff));
 			}
 		}
 

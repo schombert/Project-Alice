@@ -696,7 +696,39 @@ struct effect_body {
 					return;
 				}
 			} else if(context.main_slot == trigger::slot_contents::state) {
-				if(value.length() == 3) {
+				if(is_reb(value)) {
+					if(context.from_slot == trigger::slot_contents::rebel)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_reb | effect::no_payload));
+					else {
+						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+							std::to_string(line) + ")\n";
+						return;
+					}
+				} else if(is_from(value)) {
+					if(context.from_slot == trigger::slot_contents::nation)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_from_nation | effect::no_payload));
+					else if(context.from_slot == trigger::slot_contents::province)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_from_province | effect::no_payload));
+					else {
+						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+							std::to_string(line) + ")\n";
+						return;
+					}
+				} else if(is_this(value)) {
+					if(context.this_slot == trigger::slot_contents::nation)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_this_nation | effect::no_payload));
+					else if(context.this_slot == trigger::slot_contents::province)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_this_province | effect::no_payload));
+					else if(context.this_slot == trigger::slot_contents::state)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_this_state | effect::no_payload));
+					else if(context.this_slot == trigger::slot_contents::pop)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_this_pop | effect::no_payload));
+					else {
+						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+							std::to_string(line) + ")\n";
+						return;
+					}
+				} else if(value.length() == 3) {
 					if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
 							it != context.outer_context.map_of_ident_names.end()) {
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_tag_state));
@@ -1641,7 +1673,17 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors += "remove_province_modifier effect supplied with invalid modifier name " + std::string(value) +
-																	" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(auto it = context.outer_context.map_of_modifiers.find(std::string(value));
+					it != context.outer_context.map_of_modifiers.end()) {
+				context.compiled_effect.push_back(uint16_t(effect::remove_province_modifier_state));
+				context.compiled_effect.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "remove_province_modifier effect supplied with invalid modifier name " + std::string(value) +
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2188,7 +2230,17 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors += "add_province_modifier effect supplied with invalid modifier name " + std::string(value) +
-																	" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(auto it = context.outer_context.map_of_modifiers.find(std::string(value));
+					it != context.outer_context.map_of_modifiers.end()) {
+				context.compiled_effect.push_back(uint16_t(effect::add_province_modifier_state_no_duration));
+				context.compiled_effect.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "add_province_modifier effect supplied with invalid modifier name " + std::string(value) +
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2388,18 +2440,27 @@ struct effect_body {
 	}
 	void add_province_modifier(ef_add_province_modifier const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
-		if(context.main_slot != trigger::slot_contents::province) {
-			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type (" + err.file_name + ", line " +
-																std::to_string(line) + ")\n";
-			return;
-		}
-		if(value.duration <= 0) {
-			context.compiled_effect.push_back(effect::add_province_modifier_no_duration);
-			context.compiled_effect.push_back(trigger::payload(value.name_).value);
+		if(context.main_slot == trigger::slot_contents::province) {
+			if(value.duration <= 0) {
+				context.compiled_effect.push_back(effect::add_province_modifier_no_duration);
+				context.compiled_effect.push_back(trigger::payload(value.name_).value);
+			} else {
+				context.compiled_effect.push_back(effect::add_province_modifier);
+				context.compiled_effect.push_back(trigger::payload(value.name_).value);
+				context.compiled_effect.push_back(trigger::payload(int16_t(value.duration)).value);
+			}
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(value.duration <= 0) {
+				context.compiled_effect.push_back(effect::add_province_modifier_state_no_duration);
+				context.compiled_effect.push_back(trigger::payload(value.name_).value);
+			} else {
+				context.compiled_effect.push_back(effect::add_province_modifier_state);
+				context.compiled_effect.push_back(trigger::payload(value.name_).value);
+				context.compiled_effect.push_back(trigger::payload(int16_t(value.duration)).value);
+			}
 		} else {
-			context.compiled_effect.push_back(effect::add_province_modifier);
-			context.compiled_effect.push_back(trigger::payload(value.name_).value);
-			context.compiled_effect.push_back(trigger::payload(int16_t(value.duration)).value);
+			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
 		}
 	}
 	void add_country_modifier(ef_add_country_modifier const& value, error_handler& err, int32_t line,

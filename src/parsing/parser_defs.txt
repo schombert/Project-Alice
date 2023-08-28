@@ -813,6 +813,7 @@ trigger_body
 	invention        value           text               member_fn
 	is_vassal        value           bool               member_fn
 	militancy        value           float              member_fn
+	pop_militancy   value           float              member_fn (militancy)
 	neighbour        value           text               member_fn
 	plurality        value           float              member_fn
 	vassal_of        value           text               member_fn
@@ -1765,6 +1766,7 @@ oob_relationship
 	value                           value      int                               member_fn
 	level                           value      int                               member_fn
 	influence_value                 value      float                             member_fn
+	truce_until                            value      date                              member_fn
 	military_access                 value      bool                              discard
 
 oob_leader

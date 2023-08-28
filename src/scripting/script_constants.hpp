@@ -364,9 +364,19 @@ constexpr inline uint16_t add_core_state_this_pop = 0x0151;
 constexpr inline uint16_t add_core_state_from_province = 0x0152;
 constexpr inline uint16_t add_core_state_from_nation = 0x0153;
 constexpr inline uint16_t add_core_state_reb = 0x0154;
+constexpr inline uint16_t add_province_modifier_state = 0x0155;
+constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+constexpr inline uint16_t remove_core_state_reb = 0x015D;
+constexpr inline uint16_t remove_province_modifier_state = 0x015E;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x0155;
+constexpr inline uint16_t first_scope_code = 0x015F;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -772,7 +782,16 @@ inline constexpr int32_t data_sizes[] = {
 		0, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
 		0, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
 		0, //constexpr inline uint16_t add_core_state_reb = 0x0154;
-
+		2, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
+		1, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+		0, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+		0, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+		0, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+		0, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+		0, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+		0, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+		0, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
+		1, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1458,8 +1477,22 @@ constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
 constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+constexpr inline uint16_t is_disarmed_pop = 0x0276;
+constexpr inline uint16_t owned_by_state_tag = 0x0277;
+constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
+constexpr inline uint16_t units_in_province_tag = 0x027D;
+constexpr inline uint16_t primary_culture_from_nation = 0x027E;
+constexpr inline uint16_t primary_culture_from_province = 0x027F;
+constexpr inline uint16_t neighbour_this_province = 0x0280;
+constexpr inline uint16_t neighbour_from_province = 0x0281;
+constexpr inline uint16_t technology_province = 0x0282;
+constexpr inline uint16_t invention_province = 0x0283;
 
-constexpr inline uint16_t first_scope_code = 0x0276;
+constexpr inline uint16_t first_scope_code = 0x0284;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2162,6 +2195,20 @@ inline constexpr int32_t data_sizes[] = {
 		2, // constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 		2, // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 		2, // constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+		0, //constexpr inline uint16_t is_disarmed_pop = 0x0276;
+		1, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
+		0, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
+		0, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
+		0, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
+		0, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
+		0, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
+		1, //constexpr inline uint16_t units_in_province_tag = 0x027D;
+		0, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
+		0, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
+		0, //constexpr inline uint16_t neighbour_this_province = 0x0280;
+		0, //constexpr inline uint16_t neighbour_from_province = 0x0281;
+		1, //constexpr inline uint16_t technology_province = 0x0282;
+		1, //constexpr inline uint16_t invention_province = 0x0283;
 
 };
 
