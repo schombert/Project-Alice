@@ -25,6 +25,8 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		auto const& e = std::get<event::pending_human_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
+		target_province = target_capital;
+		target_state = state.world.province_get_state_membership(target_province);
 
 		from_slot = e.from_slot;
 		ft = e.ft;
@@ -35,6 +37,9 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		auto const& e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
+		target_province = target_capital;
+		target_state = state.world.province_get_state_membership(target_province);
+
 		event_date = e.date;
 	} else if(std::holds_alternative<event::pending_human_p_event>(phe)) {
 		auto const& e = std::get<event::pending_human_p_event>(phe);
