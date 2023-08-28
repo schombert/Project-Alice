@@ -2759,6 +2759,28 @@ void tf_neighbour_from(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
 	text::close_layout_box(layout, box);
 }
+void tf_neighbour_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_neighbour_from_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
+}
 void tf_units_in_province_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -7380,6 +7402,11 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_units_in_province_tag, // constexpr inline uint16_t units_in_province_tag = 0x027D;
 		tf_primary_culture_from_nation, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
 		tf_primary_culture_from_province, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
+		tf_neighbour_this_province, //constexpr inline uint16_t neighbour_this_province = 0x0280;
+		tf_neighbour_from_province, //constexpr inline uint16_t neighbour_from_province = 0x0281;
+		tf_technology, //constexpr inline uint16_t technology_province = 0x0282;
+		tf_invention, //constexpr inline uint16_t invention_province = 0x0283;
+
 		//
 		// scopes
 		//

@@ -6322,6 +6322,7 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_remove_core_from_province, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
 		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
 		ef_remove_core_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
+		ef_remove_province_modifier, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
 
 		//
 		// SCOPES

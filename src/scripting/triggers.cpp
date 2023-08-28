@@ -1056,6 +1056,10 @@ TRIGGER_FUNCTION(tf_technology) {
 	auto tid = trigger::payload(tval[1]).tech_id;
 	return compare_to_true(tval[0], ws.world.nation_get_active_technologies(to_nation(primary_slot), tid));
 }
+TRIGGER_FUNCTION(tf_technology_province) {
+	auto tid = trigger::payload(tval[1]).tech_id;
+	return compare_to_true(tval[0], ws.world.nation_get_active_technologies(ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)), tid));
+}
 TRIGGER_FUNCTION(tf_strata_rich) {
 	auto type = ws.world.pop_get_poptype(to_pop(primary_slot));
 	auto strata = ws.world.pop_type_get_strata(type);
@@ -2185,6 +2189,20 @@ TRIGGER_FUNCTION(tf_neighbour_from) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id o) { return bool(ws.world.get_nation_adjacency_by_nation_adjacency_pair(n, o)); },
 			to_nation(primary_slot), to_nation(from_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_neighbour_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	auto result = ve::apply(
+			[&ws](dcon::nation_id n, dcon::nation_id o) { return bool(ws.world.get_nation_adjacency_by_nation_adjacency_pair(n, o)); },
+			to_nation(primary_slot), owner);
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_neighbour_from_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
+	auto result = ve::apply(
+			[&ws](dcon::nation_id n, dcon::nation_id o) { return bool(ws.world.get_nation_adjacency_by_nation_adjacency_pair(n, o)); },
+			to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_units_in_province_value) {
@@ -4961,6 +4979,10 @@ TRIGGER_FUNCTION(tf_invention) {
 	auto tid = trigger::payload(tval[1]).invt_id;
 	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(to_nation(primary_slot), tid));
 }
+TRIGGER_FUNCTION(tf_invention_province) {
+	auto tid = trigger::payload(tval[1]).invt_id;
+	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)), tid));
+}
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(
@@ -6149,6 +6171,10 @@ struct trigger_container {
 			tf_units_in_province_tag<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t units_in_province_tag = 0x027D;
 			tf_primary_culture_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
 			tf_primary_culture_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
+			tf_neighbour_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t neighbour_this_province = 0x0280;
+			tf_neighbour_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t neighbour_from_province = 0x0281;
+			tf_technology_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t technology_province = 0x0282;
+			tf_invention_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t invention_province = 0x0283;
 			//
 			// scopes
 			//
