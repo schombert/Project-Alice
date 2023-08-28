@@ -690,36 +690,15 @@ bool ai_can_appoint_political_party(sys::state& state, dcon::nation_id n) {
 	// Do not appoint if we are a democracy!
 	if(politics::has_elections(state, n))
 		return false;
-	/*auto gov = state.world.nation_get_government_type(source);
-	auto new_ideology = state.world.political_party_get_ideology(p);
-	if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
-		return false;
-	}*/
 	return true;
 }
 
-void update_ai_econ_construction(sys::state& state) {
+void update_ai_ruling_party(sys::state& state) {
 	for(auto n : state.world.in_nation) {
-		// skip over: non ais, dead nations, and nations that aren't making money
+		// skip over: non ais, dead nations
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			continue;
-		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
-			continue;
 
-		// buy stuff from the global market if we need it
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			n.set_stockpile_targets(c, 10000.f);
-			if(n.get_demand_satisfaction(c) < 1.0f) {
-				n.set_drawing_on_stockpiles(c, true);
-			} else {
-				n.set_drawing_on_stockpiles(c, false);
-			}
-		});
-
-		auto treasury = n.get_stockpiles(economy::money);
-		int32_t max_projects = std::max(2, int32_t(treasury / 8000.0f));
-
-		auto rules = n.get_combined_issue_rules();
 		if(ai_can_appoint_political_party(state, n)) {
 			auto gov = n.get_government_type();
 			auto identity = n.get_identity_from_identity_holder();
@@ -745,6 +724,30 @@ void update_ai_econ_construction(sys::state& state) {
 				rules = n.get_combined_issue_rules();
 			}
 		}
+	}
+}
+
+void update_ai_econ_construction(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		// skip over: non ais, dead nations, and nations that aren't making money
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
+			continue;
+
+		// buy stuff from the global market if we need it
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			n.set_stockpile_targets(c, 10000.f);
+			if(n.get_demand_satisfaction(c) < 1.0f) {
+				n.set_drawing_on_stockpiles(c, true);
+			} else {
+				n.set_drawing_on_stockpiles(c, false);
+			}
+		});
+
+		auto treasury = n.get_stockpiles(economy::money);
+		int32_t max_projects = std::max(8, int32_t(treasury / 8000.0f));
+		auto rules = n.get_combined_issue_rules();
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			static::std::vector<dcon::factory_type_id> desired_types;
@@ -2708,7 +2711,7 @@ void update_budget(sys::state& state) {
 			int max_rich_tax = int(90.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
 				if(n.get_administrative_efficiency() > 0.98f) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
@@ -2720,7 +2723,7 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 0, max_rich_tax)));
-			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
+			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}
