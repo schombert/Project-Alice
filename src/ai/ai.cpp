@@ -703,8 +703,8 @@ void update_ai_econ_construction(sys::state& state) {
 		// skip over: non ais, dead nations, and nations that aren't making money
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			continue;
-		//if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
-		//	continue;
+		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
+			continue;
 
 		// buy stuff from the global market if we need it
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
