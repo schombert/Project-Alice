@@ -3363,6 +3363,9 @@ struct trigger_body {
 				if(context.this_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::neighbour_this | trigger::no_payload | association_to_bool_code(a)));
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::neighbour_this_province | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "neighbour = this trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -3373,6 +3376,9 @@ struct trigger_body {
 				if(context.from_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
 							uint16_t(trigger::neighbour_from | trigger::no_payload | association_to_bool_code(a)));
+				else if(context.from_slot == trigger::slot_contents::province)
+					context.compiled_trigger.push_back(
+							uint16_t(trigger::neighbour_from_province | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "neighbour = from trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -5104,25 +5110,31 @@ struct trigger_body {
 		std::string str_label{label};
 		if(auto it = context.outer_context.map_of_technologies.find(str_label);
 				it != context.outer_context.map_of_technologies.end()) {
-			if(context.main_slot != trigger::slot_contents::nation) {
-				err.accumulated_errors +=
-						"named technology trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-				return;
-			} else {
+			if(context.main_slot == trigger::slot_contents::nation) {
 				bool bvalue = parse_bool(value, line, err);
 				context.compiled_trigger.push_back(uint16_t(trigger::technology | association_to_bool_code(a, bvalue)));
 				context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
-			}
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				bool bvalue = parse_bool(value, line, err);
+				context.compiled_trigger.push_back(uint16_t(trigger::technology_province | association_to_bool_code(a, bvalue)));
+				context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
+			} else  {
+				err.accumulated_errors += "named technology trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			} 
 		} else if(auto itb = context.outer_context.map_of_inventions.find(str_label);
 							itb != context.outer_context.map_of_inventions.end()) {
-			if(context.main_slot != trigger::slot_contents::nation) {
-				err.accumulated_errors +=
-						"named invention trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-				return;
-			} else {
+			if(context.main_slot == trigger::slot_contents::nation) {
 				bool bvalue = parse_bool(value, line, err);
 				context.compiled_trigger.push_back(uint16_t(trigger::invention | association_to_bool_code(a, bvalue)));
 				context.compiled_trigger.push_back(trigger::payload(itb->second.id).value);
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				bool bvalue = parse_bool(value, line, err);
+				context.compiled_trigger.push_back(uint16_t(trigger::invention_province | association_to_bool_code(a, bvalue)));
+				context.compiled_trigger.push_back(trigger::payload(itb->second.id).value);
+			} else {
+				err.accumulated_errors += "named invention trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
 			}
 		} else if(auto itc = context.outer_context.map_of_ideologies.find(str_label);
 							itc != context.outer_context.map_of_ideologies.end()) {

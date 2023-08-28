@@ -2146,6 +2146,13 @@ uint32_t ef_remove_province_modifier(EFFECT_PARAMTERS) {
 	sys::remove_modifier_from_province(ws, trigger::to_prov(primary_slot), trigger::payload(tval[1]).mod_id);
 	return 0;
 }
+uint32_t ef_remove_province_modifier_state(EFFECT_PARAMTERS) {
+	auto mod = trigger::payload(tval[1]).mod_id;
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+		sys::remove_modifier_from_province(ws, p, mod);
+	});
+	return 0;
+}
 uint32_t ef_remove_country_modifier(EFFECT_PARAMTERS) {
 	sys::remove_modifier_from_nation(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).mod_id);
 	return 0;
@@ -4363,7 +4370,7 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_remove_core_state_from_province, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
 		ef_remove_core_state_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
 		ef_remove_core_state_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
-		
+		ef_remove_province_modifier_state, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
 		//
 		// SCOPES
 		//

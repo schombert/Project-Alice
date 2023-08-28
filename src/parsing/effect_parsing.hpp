@@ -1673,7 +1673,17 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors += "remove_province_modifier effect supplied with invalid modifier name " + std::string(value) +
-																	" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(auto it = context.outer_context.map_of_modifiers.find(std::string(value));
+					it != context.outer_context.map_of_modifiers.end()) {
+				context.compiled_effect.push_back(uint16_t(effect::remove_province_modifier_state));
+				context.compiled_effect.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "remove_province_modifier effect supplied with invalid modifier name " + std::string(value) +
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
