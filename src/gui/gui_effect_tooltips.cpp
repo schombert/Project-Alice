@@ -806,6 +806,51 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 																																	indentation + indentation_amount);
 }
+uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		std::vector<dcon::nation_id> rlist;
+
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			for(auto si : ws.world.nation_get_overlord_as_ruler(trigger::to_nation(primary_slot))) {
+				if(si.get_subject().get_is_substate() && trigger::evaluate(ws, limit, trigger::to_generic(si.get_subject().id), this_slot, from_slot))
+					rlist.push_back(si.get_subject().id);
+			}
+		} else {
+			for(auto si : ws.world.nation_get_overlord_as_ruler(trigger::to_nation(primary_slot))) {
+				if(si.get_subject().get_is_substate())
+					rlist.push_back(si.get_subject().id);
+			}
+		}
+		if(rlist.size() != 0) {
+			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+
+			auto box = text::open_layout_box(layout, indentation);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
+			text::close_layout_box(layout, box);
+
+			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
+		}
+		return 0;
+	}
+
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "substate_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		if(primary_slot != -1)
+			text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
+		else
+			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
+		text::close_layout_box(layout, box);
+	}
+	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
+
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo, r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0), indentation + indentation_amount);
+
+}
 uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		if(primary_slot != -1) {
@@ -851,9 +896,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
 
-	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo, r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0), indentation + indentation_amount);
 }
 uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 
@@ -6401,6 +6444,9 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_secede_province_state_from_nation, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
 		ef_secede_province_state_from_province, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
 		ef_secede_province_state_reb, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
+		ef_infrastructure, //constexpr inline uint16_t infrastructure_state = 0x0167;
+		ef_fort, //constexpr inline uint16_t fort_state = 0x0168;
+		ef_naval_base, //constexpr inline uint16_t naval_base_state = 0x0169;
 
 		//
 		// SCOPES
@@ -6455,12 +6501,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		es_crisis_state_scope,							// constexpr inline uint16_t crisis_state_scope = first_scope_code + 0x002E;
 		es_state_scope_pop,									// constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
 		es_state_scope_province,						// constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
-		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0031;
-		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0032;
-		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0033;
-		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0034;
-		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0035;
-		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0036;
+		es_x_substate_scope,
+		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0032;
+		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0033;
+		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0034;
+		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0035;
+		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0036;
+		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0037;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {

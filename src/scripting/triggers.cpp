@@ -3683,6 +3683,58 @@ TRIGGER_FUNCTION(tf_brigades_compare_from) {
 	return compare_values(tval[0], ve::select(from_brigades != 0.0f, main_brigades / from_brigades, 1'000'000.0f),
 			read_float_from_payload(tval + 1));
 }
+TRIGGER_FUNCTION(tf_brigades_compare_province_this) {
+	auto main_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			ws.world.province_get_nation_from_province_control(to_prov(primary_slot)));
+	auto this_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			to_nation(this_slot));
+	return compare_values(tval[0], ve::select(this_brigades != 0.0f, main_brigades / this_brigades, 1'000'000.0f),
+			read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_brigades_compare_province_from) {
+	auto main_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			ws.world.province_get_nation_from_province_control(to_prov(primary_slot)));
+	auto from_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			to_nation(from_slot));
+	return compare_values(tval[0], ve::select(from_brigades != 0.0f, main_brigades / from_brigades, 1'000'000.0f),
+			read_float_from_payload(tval + 1));
+}
 TRIGGER_FUNCTION(tf_constructing_cb_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
 	return compare_to_true(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)) == tag_holder);
@@ -6175,6 +6227,8 @@ struct trigger_container {
 			tf_neighbour_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t neighbour_from_province = 0x0281;
 			tf_technology_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t technology_province = 0x0282;
 			tf_invention_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t invention_province = 0x0283;
+			tf_brigades_compare_province_this<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t brigades_compare_province_this = 0x0284;
+			tf_brigades_compare_province_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t brigades_compare_province_from = 0x0285;
 			//
 			// scopes
 			//

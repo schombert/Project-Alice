@@ -298,6 +298,18 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+	} else if(context.main_slot == trigger::slot_contents::province) { // we parse this as basically a do-nothing scope
+		context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		return;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "random_owned effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -326,6 +338,18 @@ void ef_scope_any_owned(token_generator& gen, error_handler& err, effect_buildin
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::scope_has_limit));
+	} else if(context.main_slot == trigger::slot_contents::province) { // we parse this as basically a do-nothing scope
+		context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		return;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_owned effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -394,6 +418,29 @@ void ef_scope_any_state(token_generator& gen, error_handler& err, effect_buildin
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 	context.limit_position = old_limit_offset;
 	context.main_slot = old_main;
+}
+
+void ef_scope_any_substate(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_effect.push_back(uint16_t(effect::x_substate_scope | effect::scope_has_limit));
+	} else {
+		gen.discard_group();
+		err.accumulated_errors += "any_substate effect scope used in an incorrect scope type (" + err.file_name + ")\n";
+		return;
+	}
+
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
 }
 
 void ef_scope_random_state(token_generator& gen, error_handler& err, effect_building_context& context) {

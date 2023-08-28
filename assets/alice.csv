@@ -387,6 +387,7 @@ crime;crime;;;;;;;;;;;;x
 num_substates;number of substates;;;;;;;;;;;;x
 num_vassals_no_substates;number of non-substate vassals;;;;;;;;;;;;x
 num_regiments;number of regiments;;;;;;;;;;;;x
+owner_num_regiments;owner's number of regiments;;;;;;;;;;;;x
 num_regiments_of;the number of regiments belonging to;;;;;;;;;;;;x
 fabricating_on;fabricating a casus belli on;;;;;;;;;;;;x
 cb_discovered;casus belli fabrication has been discovered;;;;;;;;;;;;x

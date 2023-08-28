@@ -4857,6 +4857,30 @@ void tf_brigades_compare_from(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
 	text::close_layout_box(layout, box);
 }
+void tf_brigades_compare_province_this(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner_num_regiments"),
+			text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_brigades_compare_province_from(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner_num_regiments"),
+			text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
+}
 void tf_constructing_cb_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -7406,6 +7430,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_neighbour_from_province, //constexpr inline uint16_t neighbour_from_province = 0x0281;
 		tf_technology, //constexpr inline uint16_t technology_province = 0x0282;
 		tf_invention, //constexpr inline uint16_t invention_province = 0x0283;
+		tf_brigades_compare_province_this, //constexpr inline uint16_t brigades_compare_province_this = 0x0284;
+		tf_brigades_compare_province_from, //constexpr inline uint16_t brigades_compare_province_from = 0x0285;
 
 		//
 		// scopes
