@@ -865,6 +865,9 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::life_rating));
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::life_rating_state));
+			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
 					"life_rating effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1179,7 +1182,39 @@ struct effect_body {
 				return;
 			}
 		} else if(context.main_slot == trigger::slot_contents::state) {
-			if(value.length() == 3) {
+			if(is_this(value)) {
+				if(context.this_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_nation | effect::no_payload));
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_province | effect::no_payload));
+				else if(context.this_slot == trigger::slot_contents::state)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_state | effect::no_payload));
+				else if(context.this_slot == trigger::slot_contents::pop)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_pop | effect::no_payload));
+				else {
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type (" + err.file_name +
+						", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_from(value)) {
+				if(context.from_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_from_nation | effect::no_payload));
+				else if(context.from_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_from_province | effect::no_payload));
+				else {
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type (" + err.file_name +
+						", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_reb(value)) {
+				if(context.from_slot == trigger::slot_contents::rebel)
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_reb | effect::no_payload));
+				else {
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(value.length() == 3) {
 				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
 						it != context.outer_context.map_of_ident_names.end()) {
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state));
@@ -3202,58 +3237,7 @@ struct effect_body {
 		else
 			context.compiled_effect.push_back(uint16_t(effect::build_fort_in_capital_no_whole_state_no_limit | effect::no_payload));
 	}
-	void any_value(std::string_view label, association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
-		std::string str_label{label};
-		if(auto it = context.outer_context.map_of_commodity_names.find(str_label);
-				it != context.outer_context.map_of_commodity_names.end()) {
-			if(context.main_slot == trigger::slot_contents::nation) {
-				context.compiled_effect.push_back(effect::variable_good_name);
-				context.compiled_effect.push_back(trigger::payload(it->second).value);
-				context.add_float_to_payload(parse_float(value, line, err));
-			} else if(context.main_slot == trigger::slot_contents::province) {
-				context.compiled_effect.push_back(effect::variable_good_name_province);
-				context.compiled_effect.push_back(trigger::payload(it->second).value);
-				context.add_float_to_payload(parse_float(value, line, err));
-			} else {
-				err.accumulated_errors += "variable commodity name effect used in an incorrect scope type (" + err.file_name + ", line " +
-																	std::to_string(line) + ")\n";
-				return;
-			}
-		} else if(auto itb = context.outer_context.map_of_technologies.find(str_label);
-							itb != context.outer_context.map_of_technologies.end()) {
-			if(context.main_slot == trigger::slot_contents::nation) {
-				if(parse_bool(value, line, err))
-					context.compiled_effect.push_back(effect::variable_tech_name_yes);
-				else
-					context.compiled_effect.push_back(effect::variable_tech_name_no);
-				context.compiled_effect.push_back(trigger::payload(itb->second.id).value);
-				context.add_float_to_payload(parse_float(value, line, err));
-			} else {
-				err.accumulated_errors += "variable technology name effect used in an incorrect scope type (" + err.file_name +
-																	", line " + std::to_string(line) + ")\n";
-				return;
-			}
-		} else if(auto itc = context.outer_context.map_of_inventions.find(str_label);
-							itc != context.outer_context.map_of_inventions.end()) {
-			if(context.main_slot == trigger::slot_contents::nation) {
-				if(parse_bool(value, line, err))
-					context.compiled_effect.push_back(effect::variable_invention_name_yes);
-				else
-					context.compiled_effect.push_back(effect::variable_invention_name_no);
-				context.compiled_effect.push_back(trigger::payload(itc->second.id).value);
-				context.add_float_to_payload(parse_float(value, line, err));
-			} else {
-				err.accumulated_errors += "variable invention name effect used in an incorrect scope type (" + err.file_name + ", line " +
-																	std::to_string(line) + ")\n";
-				return;
-			}
-		} else {
-			err.accumulated_errors +=
-					"unknown effect " + str_label + " encountered (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-	}
+	void any_value(std::string_view label, association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) {
 		context.compiled_effect[context.limit_position] = trigger::payload(lim).value;
 	}

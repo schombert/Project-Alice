@@ -1463,6 +1463,15 @@ uint32_t ef_life_rating(EFFECT_PARAMTERS) {
 					0, 255)));
 	return 0;
 }
+uint32_t ef_life_rating_state(EFFECT_PARAMTERS) {
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+		ws.world.province_set_life_rating(
+			p,
+			uint8_t(std::clamp(int32_t(ws.world.province_get_life_rating(p)) + trigger::payload(tval[1]).signed_value, 0, 255)));
+	});
+	
+	return 0;
+}
 uint32_t ef_religion(EFFECT_PARAMTERS) {
 	ws.world.nation_set_religion(trigger::to_nation(primary_slot), trigger::payload(tval[1]).rel_id);
 	return 0;
@@ -1661,6 +1670,82 @@ uint32_t ef_secede_province_state(EFFECT_PARAMTERS) {
 			[&](dcon::province_id p) { province::change_province_owner(ws, p, holder); });
 	return 0;
 }
+uint32_t ef_secede_province_state_this_nation(EFFECT_PARAMTERS) {
+	auto target = trigger::to_nation(this_slot);
+	auto hprovs = ws.world.nation_get_province_ownership(target);
+	if(hprovs.begin() == hprovs.end()) {
+		auto powner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
+		if(powner)
+			nations::create_nation_based_on_template(ws, target, powner);
+	}
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+			[&](dcon::province_id p) { province::change_province_owner(ws, p, target); });
+	return 0;
+}
+uint32_t ef_secede_province_state_this_state(EFFECT_PARAMTERS) {
+	auto target = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot));
+	if(!target)
+		return 0;
+	auto hprovs = ws.world.nation_get_province_ownership(target);
+	if(hprovs.begin() == hprovs.end()) {
+		auto powner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
+		if(powner)
+			nations::create_nation_based_on_template(ws, target, powner);
+	}
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+			[&](dcon::province_id p) { province::change_province_owner(ws, p, target); });
+	return 0;
+}
+uint32_t ef_secede_province_state_this_province(EFFECT_PARAMTERS) {
+	auto target = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(!target)
+		return 0;
+	auto hprovs = ws.world.nation_get_province_ownership(target);
+	if(hprovs.begin() == hprovs.end()) {
+		auto powner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
+		if(powner)
+			nations::create_nation_based_on_template(ws, target, powner);
+	}
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+			[&](dcon::province_id p) { province::change_province_owner(ws, p, target); });
+	return 0;
+}
+uint32_t ef_secede_province_state_this_pop(EFFECT_PARAMTERS) {
+	auto target = nations::owner_of_pop(ws, trigger::to_pop(this_slot));
+	if(!target)
+		return 0;
+	auto hprovs = ws.world.nation_get_province_ownership(target);
+	if(hprovs.begin() == hprovs.end()) {
+		auto powner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
+		if(powner)
+			nations::create_nation_based_on_template(ws, target, powner);
+	}
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+			[&](dcon::province_id p) { province::change_province_owner(ws, p, target); });
+	return 0;
+}
+uint32_t ef_secede_province_state_from_nation(EFFECT_PARAMTERS) {
+	return ef_secede_province_state_this_nation(tval, ws, primary_slot, from_slot, 0, r_hi, r_lo);
+}
+uint32_t ef_secede_province_state_from_province(EFFECT_PARAMTERS) {
+	return ef_secede_province_state_this_province(tval, ws, primary_slot, from_slot, 0, r_hi, r_lo);
+}
+uint32_t ef_secede_province_state_reb(EFFECT_PARAMTERS) {
+	auto target = ws.world.rebel_faction_get_defection_target(trigger::to_rebel(from_slot));
+	auto holder = ws.world.national_identity_get_nation_from_identity_holder(target);
+	if(!holder)
+		return 0;
+	auto hprovs = ws.world.nation_get_province_ownership(holder);
+	if(hprovs.begin() == hprovs.end()) {
+		auto powner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
+		if(powner)
+			nations::create_nation_based_on_template(ws, holder, powner);
+	}
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
+			[&](dcon::province_id p) { province::change_province_owner(ws, p, holder); });
+	return 0;
+}
+
 uint32_t ef_secede_province_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
 	auto hprovs = ws.world.nation_get_province_ownership(target);
@@ -4371,6 +4456,15 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_remove_core_state_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
 		ef_remove_core_state_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
 		ef_remove_province_modifier_state, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
+		ef_life_rating_state, //constexpr inline uint16_t life_rating_state = 0x015F;
+		ef_secede_province_state_this_nation, //constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
+		ef_secede_province_state_this_state, //constexpr inline uint16_t secede_province_state_this_state = 0x0161;
+		ef_secede_province_state_this_province, //constexpr inline uint16_t secede_province_state_this_province = 0x0162;
+		ef_secede_province_state_this_pop, //constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
+		ef_secede_province_state_from_nation, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
+		ef_secede_province_state_from_province, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
+		ef_secede_province_state_reb, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
+
 		//
 		// SCOPES
 		//

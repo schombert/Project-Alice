@@ -374,9 +374,17 @@ constexpr inline uint16_t remove_core_state_from_province = 0x015B;
 constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
 constexpr inline uint16_t remove_core_state_reb = 0x015D;
 constexpr inline uint16_t remove_province_modifier_state = 0x015E;
+constexpr inline uint16_t life_rating_state = 0x015F;
+constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
+constexpr inline uint16_t secede_province_state_this_state = 0x0161;
+constexpr inline uint16_t secede_province_state_this_province = 0x0162;
+constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
+constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
+constexpr inline uint16_t secede_province_state_from_province = 0x0165;
+constexpr inline uint16_t secede_province_state_reb = 0x0166;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x015F;
+constexpr inline uint16_t first_scope_code = 0x0167;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -792,6 +800,14 @@ inline constexpr int32_t data_sizes[] = {
 		0, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
 		0, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
 		1, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
+		1, //constexpr inline uint16_t life_rating_state = 0x015F;
+		0, //constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
+		0, //constexpr inline uint16_t secede_province_state_this_state = 0x0161;
+		0, //constexpr inline uint16_t secede_province_state_this_province = 0x0162;
+		0, //constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
+		0, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
+		0, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
+		0, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {

@@ -1739,6 +1739,10 @@ struct trigger_body {
 					"primary_culture trigger supplied with an invalid culture: " + std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
+	void total_sunk_by_us(association_type a, int32_t value, error_handler& err, int32_t line, trigger_building_context& context) {
+		// this is a trigger we don't support currently, not even in trigger codes
+		context.compiled_trigger.push_back(uint16_t(trigger::always | trigger::no_payload | association_to_bool_code(a, false)));
+	}
 	void has_crime(association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_crimes.find(std::string(value)); it != context.outer_context.map_of_crimes.end()) {
@@ -3696,8 +3700,8 @@ struct trigger_body {
 							uint16_t(trigger::is_primary_culture_nation_this_pop | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "is_primary_culture = this trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(context.main_slot == trigger::slot_contents::state) {
@@ -3715,8 +3719,8 @@ struct trigger_body {
 							uint16_t(trigger::is_primary_culture_state_this_pop | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "is_primary_culture = this trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(context.main_slot == trigger::slot_contents::province) {
@@ -3734,8 +3738,8 @@ struct trigger_body {
 							uint16_t(trigger::is_primary_culture_province_this_pop | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "is_primary_culture = this trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(context.main_slot == trigger::slot_contents::pop) {
@@ -3753,14 +3757,22 @@ struct trigger_body {
 							uint16_t(trigger::is_primary_culture_pop_this_pop | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "is_primary_culture = this trigger used in an incorrect scope type " +
-																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else {
 				err.accumulated_errors += "is_primary_culture = this trigger used in an incorrect scope type " +
-																	slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																	std::to_string(line) + ")\n";
+					slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
+					std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
+			if(context.main_slot == trigger::slot_contents::nation) {
+				context.compiled_trigger.push_back(uint16_t(trigger::primary_culture | association_to_bool_code(a)));
+			} else {
+				err.accumulated_errors += "is_primary_culture (treated as primary_culture) trigger used in an incorrect scope type " +
+					slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -5181,8 +5193,7 @@ struct trigger_body {
 			}
 			context.compiled_trigger.push_back(trigger::payload(ite->second).value);
 			context.add_float_to_payload(parse_float(value, line, err));
-		} else if(auto itg = context.outer_context.map_of_ioptions.find(str_label);
-							itg != context.outer_context.map_of_ioptions.end()) {
+		} else if(auto itg = context.outer_context.map_of_ioptions.find(str_label); itg != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation)
 				context.compiled_trigger.push_back(uint16_t(trigger::variable_issue_name_nation | association_to_trigger_code(a)));
 			else if(context.main_slot == trigger::slot_contents::pop)
@@ -5198,8 +5209,7 @@ struct trigger_body {
 			}
 			context.compiled_trigger.push_back(trigger::payload(itg->second.id).value);
 			context.add_float_to_payload(parse_float(value, line, err) / 100.0f);
-		} else if(auto itf = context.outer_context.map_of_iissues.find(str_label);
-							itf != context.outer_context.map_of_iissues.end()) {
+		} else if(auto itf = context.outer_context.map_of_iissues.find(str_label); itf != context.outer_context.map_of_iissues.end()) {
 			if(auto itopt = context.outer_context.map_of_ioptions.find(std::string(value));
 					itopt != context.outer_context.map_of_ioptions.end()) {
 				if(context.main_slot == trigger::slot_contents::nation)
@@ -5222,8 +5232,7 @@ struct trigger_body {
 						"named issue trigger used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-		} else if(auto ith = context.outer_context.map_of_reforms.find(str_label);
-							ith != context.outer_context.map_of_reforms.end()) {
+		} else if(auto ith = context.outer_context.map_of_reforms.find(str_label); ith != context.outer_context.map_of_reforms.end()) {
 			if(auto itopt = context.outer_context.map_of_roptions.find(std::string(value));
 					itopt != context.outer_context.map_of_roptions.end()) {
 				if(context.main_slot == trigger::slot_contents::nation)
@@ -5231,8 +5240,7 @@ struct trigger_body {
 				else if(context.main_slot == trigger::slot_contents::pop)
 					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_pop | association_to_bool_code(a)));
 				else if(context.main_slot == trigger::slot_contents::province)
-					context.compiled_trigger.push_back(
-							uint16_t(trigger::variable_reform_group_name_province | association_to_bool_code(a)));
+					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_province | association_to_bool_code(a)));
 				else if(context.main_slot == trigger::slot_contents::state)
 					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_state | association_to_bool_code(a)));
 				else {

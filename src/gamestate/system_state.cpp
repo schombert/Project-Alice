@@ -1755,6 +1755,21 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.accumulated_errors += "File common/ideologies.txt could not be opened\n";
 		}
 	}
+	for(auto i : culture_definitions.party_issues) {
+		world.issue_set_issue_type(i, uint8_t(culture::issue_type::party));
+	}
+	for(auto i : culture_definitions.military_issues) {
+		world.reform_set_reform_type(i, uint8_t(culture::issue_type::military));
+	}
+	for(auto i : culture_definitions.economic_issues) {
+		world.reform_set_reform_type(i, uint8_t(culture::issue_type::economic));
+	}
+	for(auto i : culture_definitions.social_issues) {
+		world.issue_set_issue_type(i, uint8_t(culture::issue_type::social));
+	}
+	for(auto i : culture_definitions.political_issues) {
+		world.issue_set_issue_type(i, uint8_t(culture::issue_type::political));
+	}
 	// parse governments.txt
 	{
 		auto governments = open_file(common, NATIVE("governments.txt"));

@@ -2046,6 +2046,76 @@ uint32_t ef_secede_province_state(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_secede_province_state_this_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_secede_province_state_this_state(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_state(this_slot)), "this_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_secede_province_state_this_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_secede_province_state_this_pop(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_pop(this_slot)), "this_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_secede_province_state_from_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_secede_province_state_from_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_secede_province_state_reb(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_rebel(from_slot)), "from_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_owner", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 uint32_t ef_secede_province_this_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -6323,6 +6393,14 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
 		ef_remove_core_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
 		ef_remove_province_modifier, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
+		ef_life_rating, //constexpr inline uint16_t life_rating_state = 0x015F;
+		ef_secede_province_state_this_nation, //constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
+		ef_secede_province_state_this_state, //constexpr inline uint16_t secede_province_state_this_state = 0x0161;
+		ef_secede_province_state_this_province, //constexpr inline uint16_t secede_province_state_this_province = 0x0162;
+		ef_secede_province_state_this_pop, //constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
+		ef_secede_province_state_from_nation, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
+		ef_secede_province_state_from_province, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
+		ef_secede_province_state_reb, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
 
 		//
 		// SCOPES

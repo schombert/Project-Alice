@@ -770,6 +770,7 @@ tr_work_available
     worker           value           text               member_fn
 
 trigger_body
+	total_sunk_by_us    value     int      member_fn
 	ai               value           bool               member_fn
 	tag              value           text               member_fn
 	war              value           bool               member_fn
@@ -812,6 +813,7 @@ trigger_body
 	in_sphere        value           text               member_fn
 	invention        value           text               member_fn
 	is_vassal        value           bool               member_fn
+	is_subject        value           bool               member_fn (is_vassal)
 	militancy        value           float              member_fn
 	pop_militancy   value           float              member_fn (militancy)
 	neighbour        value           text               member_fn
@@ -997,6 +999,7 @@ trigger_body
 	war_countries                extern tr_scope_war_countries          discard
 	any_greater_power            extern tr_scope_any_greater_power      discard
 	any_owned_province           extern tr_scope_any_owned_province     discard
+	any_owned           extern tr_scope_any_owned_province     discard
 	any_core                     extern tr_scope_any_core               discard
 	all_core                     extern tr_scope_all_core               discard
 	any_state                    extern tr_scope_any_state              discard
@@ -1717,6 +1720,7 @@ decision
 	news_desc_long                  value      text                              discard
 	news_desc_medium                value      text                              discard
 	news_desc_short                 value      text                              discard
+	news_title                              value      text                              discard
 	alert                           value      bool                              discard
 	picture                         value      text                              discard
 
