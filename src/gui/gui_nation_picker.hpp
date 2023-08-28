@@ -273,7 +273,7 @@ class pick_nation_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode::single_player) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			disabled = n == state.local_player_nation;
 		} else {
 			// Prevent (via UI) the player from selecting a nation already selected by someone
@@ -283,7 +283,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode::single_player) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			state.local_player_nation = n;
 			state.ui_state.nation_picker->impl_on_update(state);
 		} else {
@@ -438,7 +438,7 @@ public:
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 		state.selected_armies.clear();
 		state.selected_navies.clear();
-		state.mode = sys::game_mode::in_game;
+		state.mode = sys::game_mode_type::in_game;
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
 	void on_update(sys::state& state) noexcept override {
@@ -462,7 +462,7 @@ class multiplayer_ping_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode::single_player) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			set_text(state, "");
 		} else {
 			set_text(state, std::to_string(last_ms) + " ms");
@@ -474,7 +474,7 @@ class number_of_players_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		int32_t count = 0;
-		if(state.network_mode == sys::network_mode::single_player) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			count = 1;
 		} else {
 			state.world.for_each_nation([&](dcon::nation_id n) {
@@ -582,7 +582,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(state.network_mode == sys::network_mode::single_player) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			row_contents.push_back(state.local_player_nation);
 		} else {
 			state.world.for_each_nation([&](dcon::nation_id n) {

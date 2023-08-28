@@ -19,19 +19,19 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 			break;
 		default:
 			// Normal commands are discarded iff we are not in the game
-			if(state.mode != sys::game_mode::in_game)
+			if(state.mode != sys::game_mode_type::in_game)
 				return;
 			break;
 	}
 
 	switch(state.network_mode) {
-		case sys::network_mode::single_player:
+		case sys::network_mode_type::single_player:
 		{
 			bool b = state.incoming_commands.try_push(p);
 			break;
 		}
-		case sys::network_mode::client:
-		case sys::network_mode::host:
+		case sys::network_mode_type::client:
+		case sys::network_mode_type::host:
 		{
 			/*
 			bool b = state.network_state.outgoing_commands.try_push(p);
@@ -3286,7 +3286,7 @@ void c_end_game(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_c_end_game(sys::state& state, dcon::nation_id source) {
-	state.mode = sys::game_mode::end_screen;
+	state.mode = sys::game_mode_type::end_screen;
 }
 void c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 	payload p;
@@ -4209,7 +4209,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	if(!can_notify_player_ban(state, source, target))
 		return;
 
-	if(state.network_mode == sys::network_mode::host) {
+	if(state.network_mode == sys::network_mode_type::host) {
 		/*
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
@@ -4247,7 +4247,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	if(!can_notify_player_kick(state, source, target))
 		return;
 
-	if(state.network_mode == sys::network_mode::host) {
+	if(state.network_mode == sys::network_mode_type::host) {
 		/*
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {

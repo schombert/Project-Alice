@@ -289,13 +289,13 @@ constexpr inline uint8_t standard_pause = log | popup | pause;
 
 }
 
-enum class game_mode {
+enum class game_mode_type {
 	pick_nation,
 	in_game,
 	end_screen
 };
 
-enum class network_mode {
+enum class network_mode_type {
 	single_player,
 	client,
 	host
