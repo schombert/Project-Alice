@@ -710,9 +710,9 @@ void update_ai_econ_construction(sys::state& state) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			n.set_stockpile_targets(c, 10000.f);
 			if(n.get_demand_satisfaction(c) < 1.0f) {
-				n.set_drawing_on_stockpiles(c, false);
-			} else {
 				n.set_drawing_on_stockpiles(c, true);
+			} else {
+				n.set_drawing_on_stockpiles(c, false);
 			}
 		});
 
