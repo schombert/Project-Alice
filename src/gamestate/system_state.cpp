@@ -118,7 +118,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		x_drag_start = x;
 		y_drag_start = y;
 		
-		if(mode == sys::game_mode::pick_nation) {
+		if(mode == sys::game_mode_type::pick_nation) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
@@ -128,14 +128,14 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				// allowed to pick the specified nation as no two players can get on
 				// a nation, at the moment
 				// TODO: Allow Co-op
-				if(network_mode == sys::network_mode::single_player) {
+				if(network_mode == sys::network_mode_type::single_player) {
 					local_player_nation = owner;
 					ui_state.nation_picker->impl_on_update(*this);
 				} else {
 					command::notify_player_picks_nation(*this, local_player_nation, owner);
 				}
 			}
-		} else if(mode != sys::game_mode::end_screen) {
+		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		}
@@ -152,7 +152,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
-	if(mode != sys::game_mode::in_game)
+	if(mode != sys::game_mode_type::in_game)
 		return;
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
@@ -284,7 +284,7 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(ui_state.edit_target) {
 		ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
-	} else if(mode == sys::game_mode::pick_nation) {
+	} else if(mode == sys::game_mode_type::pick_nation) {
 		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
@@ -292,7 +292,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 
 			map_state.on_key_down(keycode, mod);
 		}
-	} else if(mode == sys::game_mode::end_screen) {
+	} else if(mode == sys::game_mode_type::end_screen) {
 
 	} else {
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
@@ -332,7 +332,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
-	if(mode == sys::game_mode::end_screen) { // END SCREEN RENDERING
+	if(mode == sys::game_mode_type::end_screen) { // END SCREEN RENDERING
 		ui_state.end_screen->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.end_screen->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -470,7 +470,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 		return;
-	} else if(mode == sys::game_mode::pick_nation) {  // NATION PICKER RENDERING
+	} else if(mode == sys::game_mode_type::pick_nation) {  // NATION PICKER RENDERING
 		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
 		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
 
@@ -2861,7 +2861,7 @@ void state::single_game_tick() {
 	current_date += 1;
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
-		mode = sys::game_mode::end_screen;
+		mode = sys::game_mode_type::end_screen;
 		return;
 	}
 
@@ -3303,13 +3303,13 @@ void state::single_game_tick() {
 
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		if(network_mode == sys::network_mode::client) {
+		if(network_mode == sys::network_mode_type::client) {
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
-			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode::in_game) {
+			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
 				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
@@ -3319,7 +3319,7 @@ void state::game_loop() {
 				command::execute_pending_commands(*this);
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 					last_update = entry_time;
-					if(network_mode == sys::network_mode::host) {
+					if(network_mode == sys::network_mode_type::host) {
 						/*
 						command::payload c;
 						c.type = command::command_type::advance_tick;
