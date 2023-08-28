@@ -667,114 +667,86 @@ void take_ai_decisions(sys::state& state) {
 	}
 }
 
-dcon::issue_option_id find_most_important_issue_option(sys::state& state, dcon::nation_id n) {
-	dcon::issue_option_id iss;
-	float max_support = 0.f;
-	state.world.for_each_issue_option([&](dcon::issue_option_id io) {
-		if(command::can_enact_issue(state, n, io)) {
-			float support = 0.f;
-			for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
-				for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
-					support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * state.world.pop_get_militancy(plid.get_pop());
-				}
+float estimate_pop_party_support(sys::state& state, dcon::nation_id n, dcon::political_party_id pid) {
+	auto iid = state.world.political_party_get_ideology(pid);
+	/*float v = 0.f;
+	for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+		for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+			float weigth = plid.get_pop().get_size() * 0.001f;
+			v += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, iid)) * weigth;
+		}
+	}*/
+	return state.world.nation_get_demographics(n, demographics::to_key(state, iid));
 }
-			if(support > max_support) {
-				iss = io;
-				max_support = support;
+
+bool ai_can_appoint_political_party(sys::state& state, dcon::nation_id n) {
+	if(!politics::can_appoint_ruling_party(state, n))
+		return false;
+	auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
+	if(last_change && state.current_date < last_change + 365)
+		return false;
+	if(politics::is_election_ongoing(state, n))
+		return false;
+	// Do not appoint if we are a democracy!
+	if(politics::has_elections(state, n))
+		return false;
+	return true;
+}
+
+void update_ai_ruling_party(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		// skip over: non ais, dead nations
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+
+		if(ai_can_appoint_political_party(state, n)) {
+			auto gov = n.get_government_type();
+			auto identity = n.get_identity_from_identity_holder();
+			auto start = state.world.national_identity_get_political_party_first(identity).id.index();
+			auto end = start + state.world.national_identity_get_political_party_count(identity);
+
+			dcon::political_party_id target;
+			float max_support = estimate_pop_party_support(state, n, state.world.nation_get_ruling_party(n));
+			for(int32_t i = start; i < end; i++) {
+				auto pid = dcon::political_party_id(uint16_t(i));
+				if(pid != state.world.nation_get_ruling_party(n) && politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+					auto support = estimate_pop_party_support(state, n, pid);
+					if(support > max_support) {
+						target = pid;
+						max_support = support;
+					}
+				}
+			}
+
+			assert(target != state.world.nation_get_ruling_party(n));
+			if(target) {
+				politics::appoint_ruling_party(state, n, target);
 			}
 		}
-	});
-	return iss;
+	}
 }
 
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
-		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
 			continue;
 
+		// buy stuff from the global market if we need it
+		//state.world.for_each_commodity([&](dcon::commodity_id c) {
+		//	n.set_stockpile_targets(c, 10000.f);
+		//	if(n.get_demand_satisfaction(c) < 1.0f) {
+		//		n.set_drawing_on_stockpiles(c, true);
+		//	} else {
+		//		n.set_drawing_on_stockpiles(c, false);
+		//	}
+		//});
+
 		auto treasury = n.get_stockpiles(economy::money);
-		int32_t max_projects = std::max(2, int32_t(treasury / 8000.0f));
-
+		int32_t max_projects = std::max(8, int32_t(treasury / 8000.0f));
 		auto rules = n.get_combined_issue_rules();
-		auto current_iscore = n.get_industrial_score();
-		bool can_appoint = [&]() {
-			if(!politics::can_appoint_ruling_party(state, n))
-				return false;
-			auto last_change = state.world.nation_get_ruling_party_last_appointed(n);
-			if(last_change && state.current_date < last_change + 365)
-				return false;
-			if(politics::is_election_ongoing(state, n))
-				return false;
-
-		// Before, the AI would keep appointing parties repeatedly
-		// causing massive incursions of militancy amongst the population
-		// so stop appointing political parties if we have too much militancy
-		// so we stop at 75% of the military cap for nationalist movements, to not trigger them
-		// hopefully...
-		auto militancy = state.world.nation_get_demographics(n, demographics::militancy);
-		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
-			if(total_pop / militancy >= state.defines.nationalist_movement_mil_cap * 0.75f)
-				return false;
-			// Do not appoint if we are a democracy!
-			if(politics::has_elections(state, n))
-				return false;
-			return true;
-			/*auto gov = state.world.nation_get_government_type(source);
-			auto new_ideology = state.world.political_party_get_ideology(p);
-			if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
-				return false;
-			}*/
-		}();
-
-		if(can_appoint) {
-			auto gov = n.get_government_type();
-			auto identity = n.get_identity_from_identity_holder();
-			auto start = state.world.national_identity_get_political_party_first(identity).id.index();
-			auto end = start + state.world.national_identity_get_political_party_count(identity);
-			dcon::political_party_id target;
-			if(current_iscore < 5 && (rules & issue_rule::build_factory) == 0) { // try to jumpstart econ
-				for(int32_t i = start; i < end && !target; i++) {
-					auto pid = dcon::political_party_id(uint16_t(i));
-					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
-						for(auto pi : state.culture_definitions.party_issues) {
-							auto issue_rules = state.world.political_party_get_party_issues(pid, pi).get_rules();
-							if((issue_rules & issue_rule::build_factory) != 0) {
-								target = pid;
-								break;
-							}
-						}
-					}
-				}
-			} else {
-				auto get_party_support = [&](dcon::political_party_id pid) {
-					auto iid = state.world.political_party_get_ideology(pid);
-					float support = 1.f;
-					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
-						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
-							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, iid)) * state.world.pop_get_militancy(plid.get_pop());
-			}
-					}
-					return support;
-				};
-				float max_support = get_party_support(state.world.nation_get_ruling_party(n));
-				for(int32_t i = start; i < end && !target; i++) {
-					auto pid = dcon::political_party_id(uint16_t(i));
-					if(politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
-						if(get_party_support(pid) > max_support) {
-							target = pid;
-							max_support = get_party_support(pid);
-						}
-					}
-				}
-			}
-
-			if(target && target != state.world.nation_get_ruling_party(n)) {
-				politics::appoint_ruling_party(state, n, target);
-				rules = n.get_combined_issue_rules();
-			}
-		} // END if(current_iscore < 10 && (rules & issue_rule::build_factory) == 0)
-
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			static::std::vector<dcon::factory_type_id> desired_types;
@@ -1222,7 +1194,23 @@ void take_reforms(sys::state& state) {
 		if(n.get_is_civilized()) { // political & social
 			// Enact social policies to deter Jacobin rebels from overruning the country
 			// Reactionaries will popup in effect but they are MORE weak that Jacobins
-			dcon::issue_option_id iss = find_most_important_issue_option(state, n);
+			dcon::issue_option_id iss;
+			float max_support = 0.f;
+			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+				if(command::can_enact_issue(state, n, io)) {
+					float support = 0.f;
+					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+							float weigth = plid.get_pop().get_size() * 0.001f;
+							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * weigth;
+						}
+					}
+					if(support > max_support) {
+						iss = io;
+						max_support = support;
+					}
+				}
+			});
 			if(iss && command::can_enact_issue(state, n, iss)) {
 				nations::enact_issue(state, n, iss);
 			}
@@ -1810,7 +1798,9 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
 			continue;
-		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c) > state.defines.badboy_limit / 2.f)
+		// Uncivilized nations are more aggressive to westernize faster
+		float infamy_limit = state.world.nation_get_is_civilized(from) ? state.defines.badboy_limit / 2.f : state.defines.badboy_limit;
+		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c) > infamy_limit)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -1866,7 +1856,9 @@ void update_cb_fabrication(sys::state& state) {
 		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {
 			if(n.get_is_at_war())
 				continue;
-			if(n.get_infamy() > state.defines.badboy_limit / 2.5f)
+			// Uncivilized nations are more aggressive to westernize faster
+			float infamy_limit = state.world.nation_get_is_civilized(n) ? state.defines.badboy_limit / 2.5f : state.defines.badboy_limit;
+			if(n.get_infamy() > infamy_limit)
 				continue;
 			if(n.get_constructing_cb_type())
 				continue;
@@ -2718,7 +2710,7 @@ void update_budget(sys::state& state) {
 			int max_rich_tax = int(90.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
 				if(n.get_administrative_efficiency() > 0.98f) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
@@ -2730,7 +2722,7 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 0, max_rich_tax)));
-			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
+			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}

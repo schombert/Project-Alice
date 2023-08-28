@@ -3221,6 +3221,7 @@ void state::single_game_tick() {
 			break;
 		case 31:
 			ai::update_cb_fabrication(*this);
+			ai::update_ai_ruling_party(*this);
 			break;
 		default:
 			break;
