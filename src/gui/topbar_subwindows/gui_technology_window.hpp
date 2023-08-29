@@ -439,6 +439,20 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 	commodity_mod_description(iid.get_factory_goods_output(), "tech_output", "tech_output");
 	commodity_mod_description(iid.get_rgo_goods_output(), "tech_mine_output", "tech_farm_output");
 	commodity_mod_description(iid.get_factory_goods_throughput(), "tech_throughput", "tech_throughput");
+	commodity_mod_description(iid.get_rgo_size(), "tech_mine_size", "tech_farm_size");
+
+	auto colonial_points = iid.get_colonial_points();
+	if(colonial_points != 0) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "colonial_points_tech"),
+				text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		auto color = colonial_points > 0.f ? text::text_color::green : text::text_color::red;
+		text::add_to_layout_box(state, contents, box, (colonial_points > 0.f ? "+" : "") + text::prettify(int64_t(colonial_points)),
+				color);
+		text::close_layout_box(contents, box);
+	}
 
 	auto unit_modifier_description = [&](sys::unit_modifier& mod) {
 		bool is_land = true;

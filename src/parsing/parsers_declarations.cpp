@@ -1340,10 +1340,6 @@ void national_focus::railroads(association_type, float value, error_handler& err
 	context.outer_context.state.world.national_focus_set_railroads(context.id, value);
 }
 
-void national_focus::icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_icon(context.id, uint8_t(value));
-}
-
 void national_focus::limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context) {
 	context.outer_context.state.world.national_focus_set_limit(context.id, value);
 }
@@ -1373,11 +1369,6 @@ void national_focus::ideology(association_type, std::string_view value, error_ha
 void national_focus::loyalty_value(association_type, float value, error_handler& err, int32_t line,
 		national_focus_context& context) {
 	context.outer_context.state.world.national_focus_set_loyalty_value(context.id, value);
-}
-
-void national_focus::immigrant_attract(association_type, float value, error_handler& err, int32_t line,
-		national_focus_context& context) {
-	context.outer_context.state.world.national_focus_set_immigrant_attract(context.id, value);
 }
 
 void national_focus::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line,
@@ -1454,14 +1445,22 @@ void tech_fac_goods_output::any_value(std::string_view label, association_type, 
 	}
 }
 
-void tech_rgo_size::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line,
-		tech_context& context) {
+void tech_rgo_size::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
 	if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label));
 			it != context.outer_context.map_of_commodity_names.end()) {
 		context.outer_context.state.world.technology_get_rgo_size(context.id).push_back(sys::commodity_modifier{value, it->second});
 	} else {
 		err.accumulated_errors +=
 				"Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void tech_rgo_size::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+	if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label));
+			it != context.outer_context.map_of_commodity_names.end()) {
+		context.outer_context.state.world.invention_get_rgo_size(context.id).push_back(sys::commodity_modifier{ value, it->second });
+	} else {
+		err.accumulated_errors +=
+			"Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -1648,6 +1647,10 @@ void inv_effect::shared_prestige(association_type, float value, error_handler& e
 }
 void inv_effect::plurality(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_plurality(context.id, value);
+}
+
+void inv_effect::colonial_points(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	context.outer_context.state.world.invention_set_colonial_points(context.id, int16_t(value));
 }
 
 void inv_effect::enable_crime(association_type, std::string_view value, error_handler& err, int32_t line,
@@ -2437,6 +2440,10 @@ void country_history_file::set_country_flag(association_type, std::string_view v
 	}
 }
 
+void country_history_file::colonial_points(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context) {
+	context.outer_context.state.world.nation_set_permanent_colonial_points(context.holder_id, int16_t(value));
+}
+
 void country_history_file::capital(association_type, int32_t value, error_handler& err, int32_t line,
 		country_history_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
@@ -2683,8 +2690,21 @@ void country_history_file::ruling_party(association_type, std::string_view value
 			return;
 		}
 	}
-	err.accumulated_errors += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " +
-														std::to_string(line) + ")\n";
+	// alright, it didn't bleong to that nation -- try checking everything to help broken mods work anyways
+	err.accumulated_warnings += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	for(auto p : context.outer_context.state.world.in_political_party) {
+		auto name = p.get_name();
+		if(name == value_key) {
+			context.outer_context.state.world.nation_set_ruling_party(context.holder_id, p);
+			for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
+				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
+						context.outer_context.state.world.political_party_get_party_issues(p, p_issue));
+			}
+			return;
+		}
+	}
+
+	err.accumulated_errors += "globally invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
 void country_history_file::decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {

@@ -1171,7 +1171,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 		auto const new_size = simplify_effect(context.compiled_effect.data());
 		context.compiled_effect.resize(static_cast<size_t>(new_size));
 	} else {
-		context.compiled_effect.clear();
+		//context.compiled_effect.clear();
 	}
 	return context.outer_context.state.commit_effect_data(context.compiled_effect);
 }

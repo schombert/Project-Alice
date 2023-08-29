@@ -1505,8 +1505,8 @@ issue_option_body
 	on_execute                group        on_execute_body  member_fn
 
 national_focus
+	#base          modifier_base
 	railroads                 value        float            member_fn
-	icon                      value        int              member_fn
 	limit                     extern       make_focus_limit member_fn
 	own_provinces             value        bool             discard
 	has_flashpoint            value        bool             member_fn
@@ -1514,7 +1514,6 @@ national_focus
 	outliner_show_as_percent  value        bool             discard
 	ideology                  value        text             member_fn
 	loyalty_value             value        float            member_fn
-	immigrant_attract         value        float            member_fn
 	#any                      value        float            member_fn
 
 focus_group
@@ -1547,6 +1546,8 @@ unit_modifier_body
 	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
 	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
 	fire_range            value      float            member  (reconnaissance_or_fire_range)
+	maneuver           value       float          discard
+	evasion              value        float          discard
 
 tech_rgo_goods_output
 	#any                  value      float                  member_fn
@@ -1604,6 +1605,8 @@ inv_effect
 	gas_attack            value      bool                   member_fn
 	gas_defence           value      bool                   member_fn
 	gas_defense           value      bool                   member_fn (gas_defence)
+	colonial_points       value      int                    member_fn
+	rgo_size              group      tech_rgo_size          member
 
 invention_contents
 	#base          modifier_base
@@ -1896,7 +1899,7 @@ country_history_file
 	last_election                   value      date                              discard
 	oob                             value      text                              discard
 	capital                         value      int                               member_fn
-	colonial_points                 value      int                               discard
+	colonial_points                 value      int                               member_fn
 	set_country_flag                value      text                              member_fn
 	decision                        value      text                              member_fn
 

@@ -59,6 +59,15 @@ void repopulate_technology_effects(sys::state& state) {
 			}
 		}
 
+		if(tech_id.get_colonial_points()) {
+			auto amount = tech_id.get_colonial_points();
+			state.world.execute_serial_over_nation([&](auto nation_indices) {
+				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
+				auto old_cp_value = state.world.nation_get_permanent_colonial_points(nation_indices);
+				state.world.nation_set_permanent_colonial_points(nation_indices, ve::select(has_tech_mask, old_cp_value + amount, old_cp_value));
+			});
+		}
+
 		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 			if(tech_id.get_activate_building(id)) {
 				state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -153,6 +162,15 @@ void repopulate_invention_effects(sys::state& state) {
 			});
 		}
 
+		if(inv_id.get_colonial_points()) {
+			auto amount = inv_id.get_colonial_points();
+			state.world.execute_serial_over_nation([&](auto nation_indices) {
+				auto has_tech_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
+				auto old_cp_value = state.world.nation_get_permanent_colonial_points(nation_indices);
+				state.world.nation_set_permanent_colonial_points(nation_indices, ve::select(has_tech_mask, old_cp_value + amount, old_cp_value));
+			});
+		}
+
 		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 			if(inv_id.get_activate_building(id)) {
 				state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -189,6 +207,13 @@ void repopulate_invention_effects(sys::state& state) {
 				auto old_value = state.world.nation_get_rgo_goods_output(nation_indices, cmod.type);
 				state.world.nation_set_rgo_goods_output(nation_indices, cmod.type,
 						ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+			});
+		}
+		for(auto cmod : inv_id.get_rgo_size()) {
+			state.world.execute_serial_over_nation([&](auto nation_indices) {
+				auto has_tech_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
+				auto old_value = state.world.nation_get_rgo_size(nation_indices, cmod.type);
+				state.world.nation_set_rgo_size(nation_indices, cmod.type, ve::select(has_tech_mask, old_value + cmod.amount, old_value));
 			});
 		}
 		for(auto cmod : inv_id.get_factory_goods_output()) {
@@ -258,7 +283,7 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 			state.world.nation_get_max_building_level(target_nation, t) += 1;
 		}
 	}
-
+	state.world.nation_get_permanent_colonial_points(target_nation) += tech_id.get_colonial_points();
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, true);
@@ -325,7 +350,7 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 			state.world.nation_get_max_building_level(target_nation, t) -= 1;
 		}
 	}
-
+	state.world.nation_get_permanent_colonial_points(target_nation) -= tech_id.get_colonial_points();
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, false);
@@ -387,7 +412,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 		}
 	}
-
+	state.world.nation_get_permanent_colonial_points(target_nation) += inv_id.get_colonial_points();
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, true);
 	}
@@ -418,6 +443,9 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 
 	for(auto cmod : inv_id.get_rgo_goods_output()) {
 		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) += cmod.amount;
+	}
+	for(auto cmod : inv_id.get_rgo_size()) {
+		state.world.nation_get_rgo_size(target_nation, cmod.type) += cmod.amount;
 	}
 	for(auto cmod : inv_id.get_factory_goods_output()) {
 		state.world.nation_get_factory_goods_output(target_nation, cmod.type) += cmod.amount;
@@ -484,7 +512,7 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
 		}
 	}
-
+	state.world.nation_get_permanent_colonial_points(target_nation) -= inv_id.get_colonial_points();
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, false);
 	}
@@ -515,6 +543,9 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 
 	for(auto cmod : inv_id.get_rgo_goods_output()) {
 		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto cmod : inv_id.get_rgo_size()) {
+		state.world.nation_get_rgo_size(target_nation, cmod.type) -= cmod.amount;
 	}
 	for(auto cmod : inv_id.get_factory_goods_output()) {
 		state.world.nation_get_factory_goods_output(target_nation, cmod.type) -= cmod.amount;

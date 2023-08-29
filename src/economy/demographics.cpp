@@ -1631,8 +1631,7 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 			if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
 				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id),
 													trigger::to_generic(p), 0) *
-											(loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f) *
-											(loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
+											(loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
 
 				if(weight > 0.0f) {
 					weights_buffer.set(loc.get_province(), weight);
@@ -1678,8 +1677,7 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 					(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id)) {
 				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id),
 													trigger::to_generic(p), 0) *
-											(loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f) *
-											(loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
+											(loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
 
 				if(weight > 0.0f) {
 					if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
