@@ -420,6 +420,8 @@ struct state {
 
 	uint16_t tooltip_font = 0;
 
+	bool can_move_map_while_visible = true;
+
 	state();
 	~state();
 };
