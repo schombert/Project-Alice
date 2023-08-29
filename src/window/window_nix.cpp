@@ -118,10 +118,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	sys::virtual_key virtual_key = glfw_key_to_virtual_key.at(key);
 	switch(action) {
 	case GLFW_PRESS:
-		state->on_key_down(virtual_key, get_current_modifiers(mods), state->ui_state.can_move_map_while_visible);
+		state->on_key_down(virtual_key, get_current_modifiers(mods));
 		break;
 	case GLFW_RELEASE:
-		state->on_key_up(virtual_key, get_current_modifiers(mods), state->ui_state.can_move_map_while_visible);
+		state->on_key_up(virtual_key, get_current_modifiers(mods));
 		break;
 	}
 }
