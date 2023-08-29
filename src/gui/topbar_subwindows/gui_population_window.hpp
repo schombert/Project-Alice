@@ -2968,7 +2968,7 @@ private:
 	pop_details_window* details_win = nullptr;
 	element_base* nf_win = nullptr;
 	std::vector<element_base*> dist_windows;
-	// Whetever or not to show provinces below the state element in the listbox!
+	// Whether or not to show provinces below the state element in the listbox!
 	ankerl::unordered_dense::map<dcon::state_instance_id::value_base_t, bool> view_expanded_state;
 	std::vector<bool> pop_filters;
 	dcon::state_instance_id focus_state{};
@@ -2978,8 +2978,7 @@ private:
 	void update_pop_list(sys::state& state) {
 		country_pop_listbox->row_contents.clear();
 
-		auto nation_id =
-				std::holds_alternative<dcon::nation_id>(filter) ? std::get<dcon::nation_id>(filter) : state.local_player_nation;
+		auto nation_id = std::holds_alternative<dcon::nation_id>(filter) ? std::get<dcon::nation_id>(filter) : state.local_player_nation;
 		std::vector<dcon::state_instance_id> state_list{};
 		for(auto si : state.world.nation_get_state_ownership(nation_id))
 			state_list.push_back(si.get_state().id);

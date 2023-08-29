@@ -1572,8 +1572,10 @@ uint32_t ef_change_tag(EFFECT_PARAMTERS) {
 	auto old_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), trigger::payload(tval[1]).tag_id);
 	politics::update_displayed_identity(ws, trigger::to_nation(primary_slot));
-	if(old_holder)
+	if(old_holder) {
 		ws.world.nation_set_identity_from_identity_holder(old_holder, tag);
+		politics::update_displayed_identity(ws, old_holder);
+	}
 	return 0;
 }
 uint32_t ef_change_tag_culture(EFFECT_PARAMTERS) {
@@ -1587,9 +1589,11 @@ uint32_t ef_change_tag_culture(EFFECT_PARAMTERS) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
 	culture::replace_cores(ws, tag, u);
 	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), u);
-	if(old_holder)
-		ws.world.nation_set_identity_from_identity_holder(old_holder, tag);
 	politics::update_displayed_identity(ws, trigger::to_nation(primary_slot));
+	if(old_holder) {
+		ws.world.nation_set_identity_from_identity_holder(old_holder, tag);
+		politics::update_displayed_identity(ws, old_holder);
+	}
 	return 0;
 }
 uint32_t ef_change_tag_no_core_switch(EFFECT_PARAMTERS) {
@@ -1635,11 +1639,6 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_PARAMTERS) {
 	} else if(ws.local_player_nation == holder) {
 		ws.local_player_nation = trigger::to_nation(primary_slot);
 	}
-
-	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
-	culture::replace_cores(ws, tag, u);
-	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), u);
-	politics::update_displayed_identity(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_set_country_flag(EFFECT_PARAMTERS) {
@@ -2450,7 +2449,7 @@ uint32_t ef_change_province_name(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_enable_canal(EFFECT_PARAMTERS) {
-	province::enable_canal(ws, tval[2] - 1);
+	province::enable_canal(ws, tval[1] - 1);
 	return 0;
 }
 uint32_t ef_set_global_flag(EFFECT_PARAMTERS) {
@@ -2743,7 +2742,7 @@ uint32_t ef_militancy(EFFECT_PARAMTERS) {
 }
 uint32_t ef_rgo_size(EFFECT_PARAMTERS) {
 	auto& s = ws.world.province_get_rgo_size(trigger::to_prov(primary_slot));
-	s = std::max(s + float(trigger::payload(tval[2]).signed_value), 0.0f);
+	s = std::max(s + float(trigger::payload(tval[1]).signed_value), 0.0f);
 	return 0;
 }
 uint32_t ef_fort(EFFECT_PARAMTERS) {

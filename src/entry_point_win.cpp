@@ -161,13 +161,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			}
 #endif
 		} else {
-#ifndef NDEBUG
-			{
-				auto msg = std::string("Loading scenario  ") + simple_fs::native_to_utf8(parsed_cmd[1]);
-				window::emit_error_message(msg, false);
-			}
-#endif
-
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();
 			} else {

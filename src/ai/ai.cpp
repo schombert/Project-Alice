@@ -634,13 +634,13 @@ void take_ai_decisions(sys::state& state) {
 
 		ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 			ve::vbitfield_type filter_a = potential
-				? ve::compress_mask(trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0)) & !state.world.nation_get_is_player_controlled(ids)
-				: !state.world.nation_get_is_player_controlled(ids) ;
+				? (ve::compress_mask(trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0)) & !state.world.nation_get_is_player_controlled(ids)) 
+				: !state.world.nation_get_is_player_controlled(ids);
 
 			if(filter_a.v != 0) {
 				ve::mask_vector filter_c = allow
-					? trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0) && filter_a
-					: ve::mask_vector{ filter_a };
+					? (trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0) && (state.world.nation_get_owned_province_count(ids) != 0) )&& filter_a
+					: ve::mask_vector{ filter_a } && (state.world.nation_get_owned_province_count(ids) != 0);
 				ve::mask_vector filter_b = ai_will_do
 					? filter_c && (trigger::evaluate_multiplicative_modifier(state, ai_will_do, trigger::to_generic(ids), trigger::to_generic(ids), 0) > 0.0f)
 					: filter_c;
