@@ -19,28 +19,32 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		break;
 	case command_type::save_game:
 		// Only in singleplayer or host may save the game
-		if(state.network_mode != sys::network_mode::single_player)
+		if(state.network_mode != sys::network_mode_type::single_player)
 			return;
 		break;
 	default:
 		// Normal commands are discarded iff we are not in the game
-		if(state.mode != sys::game_mode::in_game)
+		if(state.mode != sys::game_mode_type::in_game)
 			return;
 		break;
 	}
 
 	switch(state.network_mode) {
-	case sys::network_mode::single_player: {
-		bool b = state.incoming_commands.try_push(p);
-		break;
-	}
-	case sys::network_mode::client:
-	case sys::network_mode::host: {
-		state.network_state.outgoing_commands.push(p);
-		break;
-	}
-	default:
-		break;
+		case sys::network_mode_type::single_player:
+		{
+			bool b = state.incoming_commands.try_push(p);
+			break;
+		}
+		case sys::network_mode_type::client:
+		case sys::network_mode_type::host:
+		{
+			/*
+			bool b = state.network_state.outgoing_commands.try_push(p);
+			*/
+			break;
+		}
+		default:
+			break;
 	}
 }
 
@@ -3287,7 +3291,7 @@ void c_end_game(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_c_end_game(sys::state& state, dcon::nation_id source) {
-	state.mode = sys::game_mode::end_screen;
+	state.mode = sys::game_mode_type::end_screen;
 }
 void c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 	payload p;

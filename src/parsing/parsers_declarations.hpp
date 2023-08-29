@@ -1768,18 +1768,15 @@ struct national_focus_context {
 	::nations::focus_type type = ::nations::focus_type::unknown;
 };
 
-struct national_focus {
+struct national_focus : public modifier_base {
 	void finish(national_focus_context&) { }
 	void railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
-	void icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context);
 	void limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context);
 	void has_flashpoint(association_type, bool value, error_handler& err, int32_t line, national_focus_context& context);
 	void flashpoint_tension(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
 	void ideology(association_type, std::string_view value, error_handler& err, int32_t line, national_focus_context& context);
 	void loyalty_value(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
-	void immigrant_attract(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
-	void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line,
-			national_focus_context& context);
+	void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
 };
 
 struct focus_group {
@@ -1811,6 +1808,10 @@ struct tech_context {
 	scenario_building_context& outer_context;
 	dcon::technology_id id;
 };
+struct invention_context {
+	scenario_building_context& outer_context;
+	dcon::invention_id id;
+};
 
 struct unit_modifier_body : public sys::unit_modifier {
 	template<typename T>
@@ -1825,9 +1826,12 @@ struct tech_fac_goods_output {
 	void finish(tech_context&) { }
 	void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context);
 };
+
 struct tech_rgo_size {
 	void finish(tech_context&) { }
+	void finish(invention_context&) { }
 	void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context);
+	void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context);
 };
 
 struct technology_contents : public modifier_base {
@@ -1850,13 +1854,9 @@ struct technology_contents : public modifier_base {
 };
 
 dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context);
-void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err,
-		scenario_building_context& context);
+void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 
-struct invention_context {
-	scenario_building_context& outer_context;
-	dcon::invention_id id;
-};
+
 
 struct inv_rgo_goods_output {
 	void finish(invention_context&) { }
@@ -1887,9 +1887,11 @@ struct inv_effect : public modifier_base {
 	inv_rgo_goods_output rgo_goods_output;
 	inv_fac_goods_throughput factory_goods_throughput;
 	inv_fac_goods_output factory_goods_output;
+	tech_rgo_size rgo_size;
 
 	void shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context);
 	void plurality(association_type, float value, error_handler& err, int32_t line, invention_context& context);
+	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 	void enable_crime(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
@@ -2420,8 +2422,8 @@ struct foreign_investment_block {
 
 struct country_history_file {
 	void finish(country_history_context&) { }
-	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line,
-			country_history_context& context);
+	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
 	void capital(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
 	void any_value(std::string_view label, association_type, std::string_view value, error_handler& err, int32_t line,
 			country_history_context& context);

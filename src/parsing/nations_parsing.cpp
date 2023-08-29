@@ -42,6 +42,7 @@ void triggered_modifier::finish(triggered_modifier_context& context) {
 
 void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context) {
 	context.outer_context.set_of_triggered_modifiers.push_back(pending_triggered_modifier_content{gen, context.index});
+	gen.discard_group();
 }
 
 void make_triggered_modifier(std::string_view name, token_generator& gen, error_handler& err,
@@ -747,8 +748,7 @@ dcon::global_flag_id scenario_building_context::get_global_flag(std::string cons
 	}
 }
 
-dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err,
-		scenario_building_context& context) {
+dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	trigger_building_context t_context{context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
@@ -765,7 +765,18 @@ void make_focus(std::string_view name, token_generator& gen, error_handler& err,
 	context.outer_context.state.world.national_focus_set_name(new_focus, name_id);
 	context.outer_context.state.world.national_focus_set_type(new_focus, uint8_t(context.type));
 	context.id = new_focus;
-	parse_national_focus(gen, err, context);
+	auto modifier = parse_national_focus(gen, err, context);
+
+	context.outer_context.state.world.national_focus_set_icon(new_focus, uint8_t(modifier.icon_index));
+
+	if(modifier.next_to_add_n != 0 || modifier.next_to_add_p != 0) {
+		auto new_modifier = context.outer_context.state.world.create_modifier();
+		context.outer_context.state.world.modifier_set_name(new_modifier, name_id);
+		context.outer_context.state.world.modifier_set_icon(new_modifier, uint8_t(modifier.icon_index));
+		context.outer_context.state.world.modifier_set_province_values(new_modifier, modifier.peek_province_mod());
+		context.outer_context.state.world.modifier_set_national_values(new_modifier, modifier.peek_national_mod());
+		context.outer_context.state.world.national_focus_set_modifier(new_focus, new_modifier);
+	}
 }
 void make_focus_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	nations::focus_type t = nations::focus_type::unknown;

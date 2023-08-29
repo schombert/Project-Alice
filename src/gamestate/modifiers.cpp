@@ -558,7 +558,10 @@ void recreate_province_modifiers(sys::state& state) {
 		if(auto m = state.world.province_get_continent(p); m)
 			apply_modifier_values_to_province(state, p, m);
 	});
-
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		if(auto m = state.world.province_get_state_membership(p).get_owner_focus(); m)
+			apply_modifier_values_to_province(state, p, m.get_modifier());
+	});
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		if(auto c = state.world.province_get_crime(p); c) {
 			if(auto m = state.culture_definitions.crimes[c].modifier; m)

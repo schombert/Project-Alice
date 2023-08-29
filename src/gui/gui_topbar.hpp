@@ -904,10 +904,12 @@ public:
 			topbar_subwindow->set_visible(state, true);
 			state.ui_state.root->move_child_to_front(topbar_subwindow);
 			state.ui_state.topbar_subwindow = topbar_subwindow;
+			state.ui_state.can_move_map_while_visible = false;
 		};
 
 		if(state.ui_state.topbar_subwindow->is_visible()) {
 			state.ui_state.topbar_subwindow->set_visible(state, false);
+			state.ui_state.can_move_map_while_visible = true;
 			if(state.ui_state.topbar_subwindow != topbar_subwindow) {
 				override_and_show_tab();
 			}
@@ -973,7 +975,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(state.network_mode == sys::network_mode::client) {
+		if(state.network_mode == sys::network_mode_type::client) {
 			disabled = true;
 		} else {
 			disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);

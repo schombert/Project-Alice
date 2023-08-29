@@ -1596,6 +1596,10 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
 			text::close_layout_box(contents, box);
+
+			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+				modifier_description(state, contents, mid, 15);
+			}
 		}
 	}
 

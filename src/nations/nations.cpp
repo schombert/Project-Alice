@@ -728,6 +728,7 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 		define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to
 		the capital.
 		*/
+		points += float(state.world.nation_get_permanent_colonial_points(n));
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			auto nb_rank = state.world.province_get_building_level(p.get_province(), economy::province_building_type::naval_base);
 			if(nb_rank > 0) {
@@ -757,14 +758,6 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 		points += unit_sum * pts_factor;
 		points *= state.defines.colonial_points_from_supply_factor;
 
-		/*
-		- points from technologies/inventions
-		*/
-		state.world.for_each_technology([&](dcon::technology_id t) {
-			if(state.world.nation_get_active_technologies(n, t)) {
-				points += float(state.world.technology_get_colonial_points(t));
-			}
-		});
 		return int32_t(points);
 	} else {
 		return 0;
