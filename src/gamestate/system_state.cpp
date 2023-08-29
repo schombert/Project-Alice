@@ -3304,7 +3304,6 @@ void state::single_game_tick() {
 	}
 }
 
-#ifndef NDEBUG
 uint32_t state::get_network_checksum() {
 	sys::save_header header;
 	// this is an upper bound, since compacting the data may require less space
@@ -3325,7 +3324,6 @@ uint32_t state::get_network_checksum() {
 	}
 	return checksum;
 }
-#endif
 
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
