@@ -1970,7 +1970,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// pre parse inventions
 	{
 		auto inventions = open_directory(root, NATIVE("inventions"));
-		for(auto& invf : simple_fs::list_files(inventions, NATIVE("*.txt"))) {
+		for(auto& invf : simple_fs::list_files(inventions, NATIVE(".txt"))) {
 			culture::tech_category cat = culture::tech_category::unknown;
 			if(simple_fs::get_file_name(invf) == NATIVE("army_inventions.txt")) {
 				cat = culture::tech_category::army;

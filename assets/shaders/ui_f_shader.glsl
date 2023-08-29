@@ -17,13 +17,13 @@ layout (location = 10) uniform vec4 subrect;
 layout(index = 0) subroutine(font_function_class)
 vec4 border_filter(vec2 tc) {
 	vec4 color_in = texture(texture_sampler, tc);
-	if(color_in.r > 0.5 + border_size / 4.0) {
+	if(color_in.r > 0.5) {
 		return vec4(inner_color, 1.0);
-	} else if(color_in.r > 0.5 - border_size / 2.0) {
-		float sm_val = smoothstep(0.5, 0.5 + border_size / 4.0, color_in.r);
+	} else if(color_in.r > 0.5 - border_size) {
+		float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5, color_in.r);
 		return vec4(mix(vec3(1.0, 1.0, 1.0) - inner_color, inner_color, sm_val), 1.0);
 	} else {
-		float sm_val = smoothstep(0.5 - border_size * 3.0 / 4.0, 0.5 - border_size / 2.0, color_in.r);
+		float sm_val = smoothstep(0.5 - border_size * 1.5, 0.5 - border_size, color_in.r);
 		return vec4(vec3(1.0, 1.0, 1.0) - inner_color, sm_val);
 	}
 }
