@@ -3544,6 +3544,7 @@ object {
 	}
 }
 
+
 relationship{
 	name{ diplomatic_relation }
 	storage_type{ compactable }

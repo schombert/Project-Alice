@@ -252,7 +252,7 @@ public:
 		}
 
 		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
-			return b.file_name > a.file_name;
+			return b.file_name < a.file_name;
 		});
 
 		update(state);

@@ -2133,7 +2133,7 @@ TRIGGER_FUNCTION(tf_has_country_modifier_province) {
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_province_modifier) {
-	auto const mod = trigger::payload(tval[2]).mod_id;
+	auto const mod = trigger::payload(tval[1]).mod_id;
 	auto result = ve::apply(
 			[&ws, mod](dcon::province_id n) {
 				for(auto m : ws.world.province_get_current_modifiers(n)) {

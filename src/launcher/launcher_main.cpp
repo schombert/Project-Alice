@@ -348,20 +348,22 @@ void make_mod_file() {
 		selected_scenario_file = base_name + L"-" + std::to_wstring(append) + L".bin";
 		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 
-		if(!err.accumulated_errors.empty()) {
+		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
 			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nWarnings:\r\n") + err.accumulated_warnings + "\r\n\r\nErrors:\r\n" + err.accumulated_errors;
 			auto pdir = simple_fs::get_or_create_settings_directory();
 			simple_fs::write_file(pdir, L"scenario_errors.txt", assembled_file.data(), uint32_t(assembled_file.length()));
 
-			auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
-			ShellExecuteW(
-				nullptr,
-				L"open",
-				fname.c_str(),
-				nullptr,
-				nullptr,
-				SW_NORMAL
-			);
+			if(!err.accumulated_errors.empty()) {
+				auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
+				ShellExecuteW(
+					nullptr,
+					L"open",
+					fname.c_str(),
+					nullptr,
+					nullptr,
+					SW_NORMAL
+				);
+			}
 		}
 
 		file_is_ready.store(true, std::memory_order::memory_order_release);

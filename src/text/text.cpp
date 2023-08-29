@@ -1200,6 +1200,8 @@ void localised_format_box(sys::state& state, layout_base& dest, layout_box& box,
 		text::substitution_map const& sub) {
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
 		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
 	}
 }
 
@@ -1209,6 +1211,8 @@ void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& 
 	text::add_to_substitution_map(sub, subkey, value);
 	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
 		add_to_layout_box(state, dest, box, k->second, sub);
+	} else {
+		add_to_layout_box(state, dest, box, key);
 	}
 }
 
