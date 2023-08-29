@@ -90,6 +90,7 @@ enum class command_type : uint8_t {
 	give_military_access = 81,
 	set_rally_point = 82,
 	save_game = 83,
+	cancel_factory_building_construction = 84,
 	
 	notify_player_ban = 117,
 	notify_player_kick = 118,
@@ -478,6 +479,9 @@ bool can_begin_province_building_construction(sys::state& state, dcon::nation_id
 
 void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
+
+void cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
+bool can_cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
 
 void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);

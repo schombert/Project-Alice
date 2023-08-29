@@ -516,6 +516,45 @@ public:
 	}
 };
 
+class factory_cancel_new_const_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto v = retrieve<economy::new_factory>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		disabled = !command::can_cancel_factory_building_construction(state, state.local_player_nation, sid, v.type);
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto v = retrieve<economy::new_factory>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		command::cancel_factory_building_construction(state, state.local_player_nation, sid, v.type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "cancel_fac_construction");
+	}
+};
+class factory_cancel_upgrade_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto v = retrieve<economy::upgraded_factory>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		disabled = !command::can_cancel_factory_building_construction(state, state.local_player_nation, sid, v.type);
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto v = retrieve<economy::upgraded_factory>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		command::cancel_factory_building_construction(state, state.local_player_nation, sid, v.type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "cancel_fac_upgrade");
+	}
+};
+
 class production_factory_info : public window_element_base {
 	factory_input_icon* input_icons[economy::commodity_set::set_size] = {nullptr};
 	image_element_base* input_lack_icons[economy::commodity_set::set_size] = {nullptr};
@@ -562,8 +601,15 @@ public:
 			build_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "prod_cancel_progress") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<factory_cancel_new_const_button>(state, id);
 			build_elements.push_back(ptr.get());
+
+			/* // Where should this button go ?
+			auto ptrb = make_element_by_type<factory_cancel_upgrade_button>(state, id);
+			upgrade_elements.push_back(ptrb.get());
+			add_child_to_front(std::move(ptrb));
+			*/
+
 			return ptr;
 		} else if(name == "upgrade_factory_progress") {
 			auto ptr = make_element_by_type<factory_upgrade_progress_bar>(state, id);

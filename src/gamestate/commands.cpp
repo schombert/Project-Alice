@@ -446,6 +446,43 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	new_rr.set_type(uint8_t(type));
 }
 
+
+void cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_factory_building_construction;
+	p.source = source;
+	p.data.start_factory_building.location = location;
+	p.data.start_factory_building.type = type;
+	add_to_command_queue(state, p);
+}
+bool can_cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
+	for(auto c : state.world.state_instance_get_state_building_construction(location)) {
+		if(c.get_type() == type) {
+			if(c.get_is_pop_project())
+				return false;
+			if(c.get_nation() != source)
+				return false;
+			return true;
+		}
+	}
+	return false;
+}
+void execute_cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
+	for(auto c : state.world.state_instance_get_state_building_construction(location)) {
+		if(c.get_type() == type) {
+			if(c.get_is_pop_project())
+				return;
+			if(c.get_nation() != source)
+				return;
+
+			state.world.delete_state_building_construction(c);
+			return;
+		}
+	}
+}
 void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4561,6 +4598,9 @@ void execute_command(sys::state& state, payload& c) {
 			break;
 		case command_type::save_game:
 			execute_save_game(state, c.source, c.data.save_game.and_quit);
+			break;
+		case command_type::cancel_factory_building_construction:
+			execute_cancel_factory_building_construction(state, c.source, c.data.start_factory_building.location, c.data.start_factory_building.type);
 			break;
 
 			// common mp commands

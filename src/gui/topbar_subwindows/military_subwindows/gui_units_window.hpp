@@ -23,6 +23,7 @@ public:
 	}
 };
 
+template<typename T>
 class military_unit_building_progress_bar : public progress_bar {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -30,12 +31,49 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box,
-				std::string_view("UwU")); // TODO - this should only display if the unit is being built,
-																	// it needs to display the goods that are needed before contruction can
-																	// begin, once said goods are found it doesnt display anything
-		text::close_layout_box(contents, box);
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		if(std::holds_alternative<dcon::province_land_construction_id>(container)) {
+			auto c = std::get<dcon::province_land_construction_id>(container);
+
+			auto& goods = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].build_cost;
+			auto& cgoods = state.world.province_land_construction_get_purchased_goods(c);
+
+			float total = 0.0f;
+			float purchased = 0.0f;
+
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(goods.commodity_type[i]) {
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+					text::add_to_layout_box(state, contents, box, std::string_view{": " });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+					text::close_layout_box(contents, box);
+				}
+			}
+		} else if(std::holds_alternative<dcon::province_naval_construction_id>(container)) {
+			auto c = std::get<dcon::province_naval_construction_id>(container);
+
+			auto& goods = state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].build_cost;
+			auto& cgoods = state.world.province_naval_construction_get_purchased_goods(c);
+
+			float total = 0.0f;
+			float purchased = 0.0f;
+
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(goods.commodity_type[i]) {
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+					text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+					text::close_layout_box(contents, box);
+				}
+			}
+		}
+		
 	}
 };
 
@@ -152,7 +190,7 @@ class military_unit_entry : public listbox_row_element_base<military_unit_info<T
 	button_element_base* cancel_button = nullptr;
 	simple_text_element_base* eta_date_text = nullptr;
 	simple_text_element_base* location_text = nullptr;
-	military_unit_building_progress_bar* unit_building_progress = nullptr;
+	military_unit_building_progress_bar<T>* unit_building_progress = nullptr;
 	simple_text_element_base* unit_regiments_text = nullptr;
 	simple_text_element_base* unit_men_text = nullptr;
 	military_unit_morale_progress_bar* unit_morale_progress = nullptr;
@@ -166,7 +204,7 @@ public:
 		if(name == "military_unit_entry_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "unit_progress") {
-			auto ptr = make_element_by_type<military_unit_building_progress_bar>(state, id);
+			auto ptr = make_element_by_type<military_unit_building_progress_bar<T>>(state, id);
 			unit_building_progress = ptr.get();
 			return ptr;
 
