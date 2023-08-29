@@ -1090,7 +1090,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.tooltip->is_visible()) {
 		//TODO: make this accessible by in-game settings
-		constexpr auto tooltip_delay = std::chrono::milliseconds{ 500 };
+		constexpr auto tooltip_delay = std::chrono::milliseconds{ 0 };
 		
 		if(user_settings.bind_tooltip_mouse) {
 			if((std::chrono::steady_clock::now() - tooltip_timer) < tooltip_delay) {
