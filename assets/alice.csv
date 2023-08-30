@@ -1193,4 +1193,6 @@ bind_tooltip_mouse_stick;Stick to Mouse
 bind_tooltip_mouse_static;Place on UI Element
 cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
+kierkegaard_1;Either
+kierkegaard_2;Or
 ;;;;;;;;;;;;;x
