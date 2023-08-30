@@ -286,6 +286,60 @@ public:
 	}
 };
 
+class input_n_amout : public simple_text_element_base {
+public:
+	int32_t n = 0;
+
+	void on_update(sys::state& state) noexcept override {
+		auto type = retrieve<dcon::factory_type_id>(state, parent);
+		if(!type) {
+			set_text(state, "");
+			return;
+		}
+		auto& inputs = state.world.factory_type_get_inputs(type);
+		if(n < int32_t(economy::commodity_set::set_size)) {
+			auto amount = inputs.commodity_amounts[n];
+			if(amount > 0) {
+				set_text(state, text::format_float(amount, 2));
+			} else {
+				set_text(state, "");
+			}
+		}
+	}
+};
+
+class input_n_image : public image_element_base {
+public:
+	int32_t n = 0;
+	dcon::commodity_id c;
+
+	void on_update(sys::state& state) noexcept override {
+		auto type = retrieve<dcon::factory_type_id>(state, parent);
+		if(!type) {
+			c = dcon::commodity_id{};
+			return;
+		}
+		auto& inputs = state.world.factory_type_get_inputs(type);
+		if(n < int32_t(economy::commodity_set::set_size)) {
+			c = inputs.commodity_type[n];
+			frame = int32_t(state.world.commodity_get_icon(c));
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(c)	
+			text::add_line(state, contents, state.world.commodity_get_name(c));
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(c)
+			image_element_base::render(state, x, y);
+	}
+};
+
 class factory_build_window : public window_element_base {
 private:
 	dcon::factory_type_id factory_to_build{};
@@ -296,102 +350,55 @@ public:
 		set_visible(state, false);
 	}
 
-	/*
-	 * There are only two hard things in Computer Science:
-	 * Cache invalidation and naming thing -Phil Karlton
-	 */
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			return make_element_by_type<draggable_target>(state, id);
-
 		} else if(name == "state_name") {
 			return make_element_by_type<state_name_text>(state, id);
-
 		} else if(name == "factory_type") {
 			return make_element_by_type<factory_build_list>(state, id);
-
-		} else if(name == "input_label") {
-			return make_element_by_type<image_element_base>(state, id);
-
-		} else
-			// input_0_amount
-			// input_1_amount
-			// input_2_amount
-			// input_3_amount
-			if(name == "output") {
-				return make_element_by_type<commodity_image>(state, id);
-
-			} else if(name == "building_name") {
-				return make_element_by_type<factory_title>(state, id);
-
-			} else if(name == "output_label") {
-				return make_element_by_type<simple_text_element_base>(state, id);
-
-			} else if(name == "output_amount") {
-				return make_element_by_type<output_amount_text>(state, id);
-
-			} else
-				// input_0
-				// input_1
-				// input_2
-				// input_3
-				if(name == "description_text") {
-					return make_element_by_type<factory_build_description>(state, id);
-
-				} else if(name == "needed_workers") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "needed_workers_count") {
-					return make_element_by_type<needed_workers_count_text>(state, id);
-
-				} else if(name == "available_workers") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "resource_cost_label") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "in_stockpile_label") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "base_price_label") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "input_price_label") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "total_label") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "current_funds_label") {
-					return make_element_by_type<factory_current_funds_text>(state, id);
-
-				} else if(name == "base_price") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "input_price") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "total_price") {
-					return make_element_by_type<factory_build_cost_text>(state, id);
-
-				} else if(name == "you_have") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "prod_label") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "prod_cost") {
-					return make_element_by_type<simple_text_element_base>(state, id);
-
-				} else if(name == "cancel") {
-					return make_element_by_type<factory_build_cancel_button>(state, id);
-
-				} else if(name == "build") {
-					return make_element_by_type<factory_build_button>(state, id);
-
-				} else {
-					return nullptr;
-				}
+		} else if(name == "output") {
+			return make_element_by_type<commodity_image>(state, id);
+		} else if(name == "building_name") {
+			return make_element_by_type<factory_title>(state, id);
+		} else if(name == "output_amount") {
+			return make_element_by_type<output_amount_text>(state, id);
+		} else if(name == "description_text") {
+			return make_element_by_type<factory_build_description>(state, id);
+		} else if(name == "needed_workers") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "needed_workers_count") {
+			return make_element_by_type<needed_workers_count_text>(state, id);
+		} else if(name == "available_workers") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "current_funds_label") {
+			return make_element_by_type<factory_current_funds_text>(state, id);
+		} else if(name == "base_price") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "input_price") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "total_price") {
+			return make_element_by_type<factory_build_cost_text>(state, id);
+		} else if(name == "you_have") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "prod_cost") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "cancel") {
+			return make_element_by_type<factory_build_cancel_button>(state, id);
+		} else if(name == "build") {
+			return make_element_by_type<factory_build_button>(state, id);
+		} else if(name.substr(0, 6) == "input_" && parsers::is_integer(name.data() + 6, name.data() + name.length())) {
+			auto ptr = make_element_by_type<input_n_image>(state, id);
+			std::from_chars(name.data() + 6, name.data() + name.length(), ptr->n);
+			return ptr;
+			//input_0_amount
+		} else if(name.substr(0, 6) == "input_" && name.substr(name.length() - 7) == "_amount" && parsers::is_integer(name.data() + 6, name.data() + name.length() - 7)) {
+			auto ptr = make_element_by_type<input_n_amout>(state, id);
+			std::from_chars(name.data() + 6, name.data() + name.length() - 7, ptr->n);
+			return ptr;
+		} else {
+			return nullptr;
+		}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
