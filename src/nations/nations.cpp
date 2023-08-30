@@ -2996,6 +2996,8 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 
 	culture::update_nation_issue_rules(state, source);
 	sys::update_single_nation_modifiers(state, source);
+
+	state.world.nation_set_last_issue_or_reform_change(source, state.current_date);
 }
 
 } // namespace nations

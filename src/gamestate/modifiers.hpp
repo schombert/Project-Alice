@@ -125,7 +125,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(63, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier")              \
 	MOD_LIST_ELEMENT(64, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier")          \
 	MOD_LIST_ELEMENT(65, poor_income_modifier, true, modifier_display_type::percent, "modifier_poor_income_modifier")              \
-	MOD_LIST_ELEMENT(66, global_immigrant_attract, true, modifier_display_type::percent, "modifier_global_immigrant_attract")      \
+	MOD_LIST_ELEMENT(66, global_immigrant_attract, true, modifier_display_type::percent, "modifier_immigant_attract")      \
 	MOD_LIST_ELEMENT(67, poor_savings_modifier, true, modifier_display_type::percent, "modifier_poor_savings_modifier")            \
 	MOD_LIST_ELEMENT(68, influence_modifier, true, modifier_display_type::percent, "modifier_greatpower_influence_gain")           \
 	MOD_LIST_ELEMENT(69, diplomatic_points_modifier, true, modifier_display_type::percent, "modifier_diplopoints_gain")            \

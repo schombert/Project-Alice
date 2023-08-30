@@ -119,7 +119,9 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 	auto issue = state.world.issue_option_get_parent_issue(issue_option);
 	auto current = state.world.nation_get_issues(nation, issue.id).id;
 	auto allow = state.world.issue_option_get_allow(issue_option);
-	if(current != issue_option &&
+	auto time_limit = state.world.nation_get_last_issue_or_reform_change(nation);
+
+	if(current != issue_option && (!time_limit || (time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) &&
 			(!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() ||
 					current.index() - 1 == issue_option.index()) &&
 			(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))) {
@@ -147,7 +149,9 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 	auto issue = state.world.issue_option_get_parent_issue(o);
 	auto current = state.world.nation_get_issues(n, issue.id).id;
 	auto allow = state.world.issue_option_get_allow(o);
-	if(current != o &&
+	auto time_limit = state.world.nation_get_last_issue_or_reform_change(n);
+
+	if(current != o && (!time_limit || (time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) &&
 			(!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() ||
 					current.index() - 1 == o.index()) &&
 			(!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))) {
