@@ -1349,7 +1349,6 @@ public:
 
 			text::add_line_with_condition(state, contents, "col_start_7", num_colonizers < 4);
 		
-			bool nation_has_port = state.world.nation_get_central_ports(state.local_player_nation) != 0;
 			bool adjacent = [&]() {
 				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 					if(!p.get_province().get_nation_from_province_ownership()) {
@@ -1365,17 +1364,31 @@ public:
 				}
 				return false;
 			}();
-			bool coastal = nation_has_port && [&]() {
+
+			bool reachable_by_sea = false;
+
+			dcon::province_id coastal_target = [&]() {
 				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 					if(!p.get_province().get_nation_from_province_ownership()) {
 						if(p.get_province().get_is_coast())
-							return true;
+							return p.get_province().id;
 					}
 				}
-				return false;
+				return dcon::province_id{};
 			}();
 
-			text::add_line_with_condition(state, contents, "col_start_8", adjacent || coastal);
+			if(!adjacent && coastal_target && state.world.nation_get_central_ports(state.local_player_nation) != 0) {
+				for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+					if(auto nb_level = p.get_province().get_building_level(economy::province_building_type::naval_base); nb_level > 0 && p.get_province().get_nation_from_province_control() == state.local_player_nation) {
+						if(province::direct_distance(state, p.get_province(), coastal_target) <= province::world_circumference * 0.075f * nb_level) {
+							reachable_by_sea = true;
+							break;
+						}
+					}
+				}
+			}
+
+			text::add_line_with_condition(state, contents, "col_start_8", adjacent || reachable_by_sea);
 
 			auto free_points = nations::free_colonial_points(state, state.local_player_nation);
 			auto required_points = int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
