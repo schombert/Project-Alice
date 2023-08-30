@@ -1032,6 +1032,30 @@ guiTypes = {
 		Orientation = "UPPER_LEFT"
 		
 		windowType = {
+			name = "province_values"
+			position = { x = -28 y = -8 }
+			size = { x= 64 y = 16 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+			
+			iconType = {
+				name ="rail_icon"
+				spriteType = "GFX_alice_map_rail"
+				position = { x=0 y=0 }
+			}
+			iconType = {
+				name ="fort_icon"
+				spriteType = "GFX_alice_map_fort"
+				position = { x=32 y=0 }
+			}
+			iconType = {
+				name ="capital_icon"
+				spriteType = "GFX_topbar_prestige"
+				position = { x=22 y=-20 }
+			}
+		}
+		
+		windowType = {
 			name = "small_top_unit_icon"
 			position = { x = -30 y = -10 }
 			size = { x= 60 y = 19 }

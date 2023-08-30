@@ -6,6 +6,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include "system_state.hpp"
+#include "military.hpp"
 #include "parsers_declarations.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
@@ -33,7 +34,7 @@ void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) 
 			state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
 }
 
-glm::vec2 get_port_location(sys::state & state, dcon::province_id p) {
+glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(p, state.world.province_get_port_to(p));
 	assert(adj);
 	auto id = adj.index();
@@ -45,44 +46,49 @@ glm::vec2 get_port_location(sys::state & state, dcon::province_id p) {
 	return vertex.position_ * map_size;
 }
 
-bool is_sea_province(sys::state & state, dcon::province_id prov_id) {
+bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
 	return prov_id.index() >= state.province_definitions.first_sea_province.index();
 }
 
-glm::vec2 get_navy_location(sys::state & state, dcon::province_id prov_id) {
-	if (is_sea_province(state, prov_id))
+glm::vec2 get_navy_location(sys::state& state, dcon::province_id prov_id) {
+	if(is_sea_province(state, prov_id))
 		return state.world.province_get_mid_point(prov_id);
 	else
 		return get_port_location(state, prov_id);
 }
 
-glm::vec2 get_army_location(sys::state & state, dcon::province_id prov_id) {
+glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 
-void update_unit_arrows(sys::state & state, display_data& map_data) {
+void update_unit_arrows(sys::state& state, display_data& map_data) {
 	std::vector<std::vector<glm::vec2>> arrows;
-	for (auto& selected_army : state.selected_armies) {
+	std::vector<float> progresses;
+	for(auto& selected_army : state.selected_armies) {
+		progresses.push_back(military::fractional_distance_covered(state, selected_army));
+
 		auto current_pos = state.world.army_get_location_from_army_location(selected_army);
 		auto path = state.world.army_get_path(selected_army);
 		arrows.push_back(std::vector<glm::vec2>());
 		arrows.back().push_back(get_army_location(state, current_pos));
-		for (auto i = path.size(); i --> 0;) {
+		for(auto i = path.size(); i-- > 0;) {
 			auto army_pos = get_army_location(state, path[i]);
 			arrows.back().push_back(army_pos);
 		}
 	}
-	for (auto& selected_navy : state.selected_navies) {
+	for(auto& selected_navy : state.selected_navies) {
+		progresses.push_back(military::fractional_distance_covered(state, selected_navy));
+
 		auto current_pos = state.world.navy_get_location_from_navy_location(selected_navy);
 		auto path = state.world.navy_get_path(selected_navy);
 		arrows.push_back(std::vector<glm::vec2>());
 		arrows.back().push_back(get_navy_location(state, current_pos));
-		for (auto i = path.size(); i --> 0;) {
+		for(auto i = path.size(); i-- > 0;) {
 			auto navy_pos = get_navy_location(state, path[i]);
 			arrows.back().push_back(navy_pos);
 		}
 	}
-	map_data.set_unit_arrows(arrows);
+	map_data.set_unit_arrows(arrows, progresses);
 }
 
 void map_state::update(sys::state& state) {
@@ -241,7 +247,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
 	}
 	float dist = glm::length(last_unit_box_drag_pos - mouse_pos);
-	if (left_mouse_down && dist >= 10) {
+	if(left_mouse_down && dist >= 10) {
 		auto pos1 = last_unit_box_drag_pos / screen_size;
 		auto pos2 = mouse_pos / screen_size;
 		auto pixel_size = glm::vec2(1) / screen_size;
@@ -267,7 +273,7 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 		glm::vec3 intersection_normal;
 
 		if(glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos,
-					 intersection_normal)) {
+			intersection_normal)) {
 			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
 			float theta = std::acos(std::clamp(intersection_pos.z / glm::length(intersection_pos), -1.f, 1.f));
 			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
@@ -318,7 +324,7 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 	map_data.set_drag_box(false, {}, {}, {});
 	auto mouse_pos = glm::vec2(x, y);
 	float dist = glm::length(last_unit_box_drag_pos - mouse_pos);
-	if (dist >= 10) {
+	if(dist >= 10) {
 		// DO SELECTION HERE
 
 	} else {
@@ -374,7 +380,7 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 		//if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
-			return province::from_map_id(map_data.province_id_map[idx]);
+		return province::from_map_id(map_data.province_id_map[idx]);
 		/*} else {
 			return dcon::province_id{};
 		}*/
@@ -434,7 +440,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 }
 
 glm::vec2 map_state::normalize_map_coord(glm::vec2 p) {
-	auto new_pos = p / glm::vec2{float(map_data.size_x), float(map_data.size_y)};
+	auto new_pos = p / glm::vec2{ float(map_data.size_x), float(map_data.size_y) };
 	new_pos.y = 1.f - new_pos.y;
 	return new_pos;
 }

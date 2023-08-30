@@ -85,7 +85,7 @@ public:
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
-	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows);
+	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses);
 
 	uint32_t size_x;
 	uint32_t size_y;

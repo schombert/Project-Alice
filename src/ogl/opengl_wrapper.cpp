@@ -496,7 +496,7 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 
 		glUniform4f(parameters::drawing_rectangle, x, y, size, size);
 		glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
-		glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
+		glUniform1f(parameters::border_size, 0.06f * 16.0f / size);
 
 		GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::border_filter};
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call

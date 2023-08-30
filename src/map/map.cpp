@@ -595,7 +595,7 @@ void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 }
 
 void add_drag_box_line(std::vector<screen_vertex>& drag_box_vertices, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 size, bool vertical) {
-	if (vertical) {
+	if(vertical) {
 		pos1.y -= size.y;
 		pos2.y += size.y;
 		size.y = 0;
@@ -615,22 +615,22 @@ void add_drag_box_line(std::vector<screen_vertex>& drag_box_vertices, glm::vec2 
 
 void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size) {
 	drag_box_vertices.clear();
-	if (!draw_box)
+	if(!draw_box)
 		return;
 
-	if (pos1.x > pos2.x)
+	if(pos1.x > pos2.x)
 		std::swap(pos1.x, pos2.x);
-	if (pos1.y > pos2.y)
+	if(pos1.y > pos2.y)
 		std::swap(pos1.y, pos2.y);
 
 	glm::vec2 size = pixel_size;
 	// Vertical lines
-	add_drag_box_line(drag_box_vertices, {pos1.x, pos1.y}, {pos1.x, pos2.y}, size, true);
-	add_drag_box_line(drag_box_vertices, {pos2.x, pos1.y}, {pos2.x, pos2.y}, size, true);
+	add_drag_box_line(drag_box_vertices, { pos1.x, pos1.y }, { pos1.x, pos2.y }, size, true);
+	add_drag_box_line(drag_box_vertices, { pos2.x, pos1.y }, { pos2.x, pos2.y }, size, true);
 
 	// Horizontal lines
-	add_drag_box_line(drag_box_vertices, {pos1.x, pos1.y}, {pos2.x, pos1.y}, size, false);
-	add_drag_box_line(drag_box_vertices, {pos1.x, pos2.y}, {pos2.x, pos2.y}, size, false);
+	add_drag_box_line(drag_box_vertices, { pos1.x, pos1.y }, { pos2.x, pos1.y }, size, false);
+	add_drag_box_line(drag_box_vertices, { pos1.x, pos2.y }, { pos2.x, pos2.y }, size, false);
 
 	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
 	if(drag_box_vertices.size() > 0) {
@@ -639,43 +639,92 @@ void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, g
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows) {
+void add_arrow(
+	std::vector<unit_arrow_vertex>& unit_arrow_vertices,
+	glm::vec2 const& pos1,
+	glm::vec2 const& pos2,
+	glm::vec2 const& prev_normal_dir,
+	glm::vec2 const& curr_normal_dir,
+	glm::vec2 const& curr_dir,
+	float const& progress) {
+	if(progress != 0) {
+		auto pos3 = glm::mix(pos1, pos2, progress);
+		auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+
+		// Filled unit arrow
+		float type = 2;
+		// First vertex of the line segment
+		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		unit_arrow_vertices.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
+		unit_arrow_vertices.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		// Second vertex of the line segment
+		unit_arrow_vertices.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		unit_arrow_vertices.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
+		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+
+		// Unfilled unit arrow
+		type = 0;
+		// First vertex of the line segment
+		unit_arrow_vertices.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		unit_arrow_vertices.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
+		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		// Second vertex of the line segment
+		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
+		unit_arrow_vertices.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+	} else {
+		// Unfilled unit arrow
+		float type = 0;
+		// First vertex of the line segment
+		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		unit_arrow_vertices.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
+		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		// Second vertex of the line segment
+		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
+		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+	}
+}
+
+void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses) {
 	unit_arrow_vertices.clear();
-	for (auto& arrow : arrows) {
-		if (arrow.size() <= 1)
+	for(size_t arrow_index = 0; arrow_index < arrows.size(); arrow_index++) {
+		auto arrow = arrows[arrow_index];
+		auto progress = progresses[arrow_index];
+		if(arrow.size() <= 1)
 			continue;
 		glm::vec2 prev_normal_dir;
 		{
 			auto prev_pos = arrow[0];
 			auto next_pos = arrow[1];
-			if (next_pos.x + size_x / 2 < prev_pos.x)
+			if(next_pos.x + size_x / 2 < prev_pos.x)
 				next_pos.x += size_x;
-			if (next_pos.x - size_x / 2 > prev_pos.x)
+			if(next_pos.x - size_x / 2 > prev_pos.x)
 				next_pos.x -= size_x;
 
 			auto direction1 = normalize(next_pos - prev_pos);
 			prev_normal_dir = glm::vec2(-direction1.y, direction1.x);
 		}
-		for (int i = 0; i < static_cast<int>(arrow.size()) - 2; i++) {
+		for(int i = 0; i < static_cast<int>(arrow.size()) - 2; i++) {
 			auto pos1 = arrow[i];
 			auto pos2 = arrow[i + 1];
 			auto pos3 = arrow[i + 2];
-			if (pos2.x + size_x / 2 < pos1.x)
+			if(pos2.x + size_x / 2 < pos1.x)
 				pos2.x += size_x;
-			if (pos2.x - size_x / 2 > pos1.x)
+			if(pos2.x - size_x / 2 > pos1.x)
 				pos2.x -= size_x;
 
-			if (pos3.x + size_x / 2 < pos2.x)
+			if(pos3.x + size_x / 2 < pos2.x)
 				pos3.x += size_x;
-			if (pos3.x - size_x / 2 > pos2.x)
+			if(pos3.x - size_x / 2 > pos2.x)
 				pos3.x -= size_x;
 
-			glm::vec2 current_dir = normalize(pos2 - pos1);
+			glm::vec2 curr_dir = normalize(pos2 - pos1);
 			glm::vec2 next_dir = normalize(pos3 - pos2);
-			glm::vec2 average_direction = normalize(current_dir + next_dir);
-			glm::vec2 current_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
-			if (pos1 == pos3) {
-				prev_normal_dir = -glm::vec2(-current_dir.y, current_dir.x);
+			glm::vec2 average_direction = normalize(curr_dir + next_dir);
+			glm::vec2 curr_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
+			if(pos1 == pos3) {
+				prev_normal_dir = -glm::vec2(-curr_dir.y, curr_dir.x);
 				continue;
 			}
 
@@ -684,16 +733,11 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 			pos2 /= glm::vec2(size_x, size_y);
 
 			int32_t border_index = int32_t(unit_arrow_vertices.size());
-			// First vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos1, prev_normal_dir, current_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos1, -prev_normal_dir, current_dir, glm::vec2(0.0f, 1.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos2, -current_normal_dir, -current_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-			// Second vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos2, -current_normal_dir, -current_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos2, current_normal_dir, -current_dir, glm::vec2(1.0f, 0.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos1, prev_normal_dir, current_dir, glm::vec2(0.0f, 0.0f), 0.0f);
 
-			prev_normal_dir = current_normal_dir;
+			float current_progress = i == 0 ? progress : 0;
+			add_arrow(unit_arrow_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, curr_dir, current_progress);
+
+			prev_normal_dir = curr_normal_dir;
 		}
 		{
 			int i = static_cast<int>(arrow.size()) - 2;
@@ -701,7 +745,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 			auto pos2 = arrow[i + 1];
 
 			glm::vec2 direction = normalize(pos2 - pos1);
-			glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
+			glm::vec2 curr_normal_dir = glm::vec2(-direction.y, direction.x);
 
 			// Rescale the coordinate to 0-1
 			pos1 /= glm::vec2(size_x, size_y);
@@ -709,23 +753,19 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 
 			int32_t border_index = int32_t(unit_arrow_vertices.size());
 
-			// First vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos1, prev_normal_dir, direction, glm::vec2(0.0f, 0.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos1, -prev_normal_dir, direction, glm::vec2(0.0f, 1.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.0f, 1.0f), 0.0f);
-			// Second vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.0f, 1.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.0f, 0.0f), 0.0f);
-			unit_arrow_vertices.emplace_back(pos1, prev_normal_dir, direction, glm::vec2(0.0f, 0.0f), 0.0f);
+			float current_progress = i == 0 ? progress : 0;
+			add_arrow(unit_arrow_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, direction, current_progress);
 
+			// Type for arrow
+			float type = 1;
 			// First vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos2, normal_direction, direction, glm::vec2(0.0f, 0.0f), 1.0f);
-			unit_arrow_vertices.emplace_back(pos2, -normal_direction, direction, glm::vec2(0.0f, 1.0f), 1.0f);
-			unit_arrow_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.0f, 1.0f), 1.0f);
+			unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(0.0f, 0.0f), type);
+			unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, +direction, glm::vec2(0.0f, 1.0f), type);
+			unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(1.0f, 1.0f), type);
 			// Second vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.0f, 1.0f), 1.0f);
-			unit_arrow_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.0f, 0.0f), 1.0f);
-			unit_arrow_vertices.emplace_back(pos2, normal_direction, direction, glm::vec2(0.0f, 0.0f), 1.0f);
+			unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(1.0f, 1.0f), type);
+			unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, -direction, glm::vec2(1.0f, 0.0f), type);
+			unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(0.0f, 0.0f), type);
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);

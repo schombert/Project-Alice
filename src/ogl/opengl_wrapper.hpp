@@ -232,4 +232,5 @@ void render_new_text(sys::state const& state, char const* codepoints, uint32_t c
 		float y, float size, color3f const& c, text::font& f);
 void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id);
+void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f);
 } // namespace ogl

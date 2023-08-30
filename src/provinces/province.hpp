@@ -4,6 +4,8 @@
 
 namespace province {
 
+inline constexpr float world_circumference = 40075.0f / 12.0f; // in arbitrary units
+
 inline constexpr uint16_t to_map_id(dcon::province_id id) {
 	return uint16_t(id.index() + 1);
 }
@@ -87,7 +89,7 @@ void update_crimes(sys::state& state);
 void update_nationalism(sys::state& state);
 
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
-bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, bool state_is_coastal, bool& adjacent);
+bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, dcon::province_id coastal_target, bool& adjacent);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 bool is_colonizing(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 void update_colonization(sys::state& state);

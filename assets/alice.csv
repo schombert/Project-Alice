@@ -923,7 +923,7 @@ col_start_4;You are not participating in a crisis war
 col_start_5;The minimum life rating you can colonize ($x$) is less than or equal to the life rating of the state ($y$)
 col_start_6;Base §Y$x$
 col_start_7;There are at most three other colonizers present
-col_start_8;You are adjacent to the state or it is coastal and you have a port
+col_start_8;You are adjacent to the state or it is within naval range
 col_start_9;You have at least $x$ free colonial points
 col_invest_title;Invest in your colony
 col_invest_1;Your nation is at least rank $x$

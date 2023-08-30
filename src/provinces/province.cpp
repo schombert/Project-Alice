@@ -1064,7 +1064,6 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 	with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
 	*/
 
-	bool nation_has_port = state.world.nation_get_central_ports(n) != 0;
 	bool adjacent = [&]() {
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(!p.get_province().get_nation_from_province_ownership()) {
@@ -1080,7 +1079,11 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		}
 		return false;
 	}();
-	bool coastal = nation_has_port && [&]() {
+
+	/*
+	// OLD WAY: just check if it is coastal
+	bool nation_has_port = state.world.nation_get_central_ports(n) != 0;
+	bool reachable_by_sea = nation_has_port && [&]() {
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(!p.get_province().get_nation_from_province_ownership()) {
 				if(p.get_province().get_is_coast())
@@ -1089,8 +1092,32 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		}
 		return false;
 	}();
+	*/
+	bool reachable_by_sea = false;
 
-	if(!adjacent && !coastal)
+	dcon::province_id coastal_target = [&]() {
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				if(p.get_province().get_is_coast())
+					return p.get_province().id;
+			}
+		}
+		return dcon::province_id{};
+	}();
+
+	if(!adjacent && coastal_target  && state.world.nation_get_central_ports(n) != 0) {
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			if(auto nb_level = p.get_province().get_building_level(economy::province_building_type::naval_base); nb_level > 0 && p.get_province().get_nation_from_province_control() == n) {
+				auto dist = province::direct_distance(state, p.get_province(), coastal_target);
+				if(dist <= province::world_circumference *  0.075f * nb_level) {
+					reachable_by_sea = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if(!adjacent && !reachable_by_sea)
 		return false;
 
 	/*
@@ -1104,7 +1131,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 																(adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
 }
 
-bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, bool state_is_coastal, bool& adjacent) {
+bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, dcon::province_id coastal_target, bool& adjacent) {
 	if(state.world.state_definition_get_colonization_stage(d) > uint8_t(1))
 		return false; // too late
 
@@ -1162,7 +1189,6 @@ bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_def
 	with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
 	*/
 
-	bool nation_has_port = state.world.nation_get_central_ports(n) != 0;
 	adjacent = [&]() {
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(!p.get_province().get_nation_from_province_ownership()) {
@@ -1178,9 +1204,22 @@ bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_def
 		}
 		return false;
 	}();
-	bool coastal = nation_has_port && state_is_coastal;
 
-	if(!adjacent && !coastal)
+	bool reachable_by_sea = false;
+
+	if(!adjacent && coastal_target && state.world.nation_get_central_ports(n) != 0) {
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			if(auto nb_level = p.get_province().get_building_level(economy::province_building_type::naval_base); nb_level > 0 && p.get_province().get_nation_from_province_control() == n) {
+				auto dist = province::direct_distance(state, p.get_province(), coastal_target);
+				if(dist <= province::world_circumference * 0.075f * nb_level) {
+					reachable_by_sea = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if(!adjacent && !reachable_by_sea)
 		return false;
 
 	/*
@@ -1395,9 +1434,7 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 	auto apos = state.world.province_get_mid_point_b(a);
 	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
-	return math::acos(dot) * (40075.0f / ((12.0f * 2.0f) * math::pi));
-	//return math::acos(dot) * (40075.0f / ((24.0f * 2.0f) * math::pi));
-	//return math::acos(dot) * (4007.5f / ((24.0f * 2.0f) * math::pi));
+	return math::acos(dot) * (world_circumference / (2.0f * math::pi));
 }
 
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
