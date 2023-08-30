@@ -106,7 +106,7 @@ static socket_t socket_init_client(struct sockaddr_in& client_address, const cha
 //
 
 void init(sys::state& state) {
-	if(state.network_mode == sys::network_mode::single_player)
+	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
 #ifdef _WIN64
@@ -114,7 +114,7 @@ void init(sys::state& state) {
     if(WSAStartup(MAKEWORD(2, 2), &data) != 0)
 		std::abort();
 #endif
-	if(state.network_mode == sys::network_mode::host) {
+	if(state.network_mode == sys::network_mode_type::host) {
 		state.network_state.socket_fd = socket_init_server(state.network_state.address);
 	} else {
 		assert(state.network_state.ip_address.size() > 0);
@@ -240,7 +240,7 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 
 void send_and_receive_commands(sys::state& state) {
 	bool command_executed = false;
-	if(state.network_mode == sys::network_mode::host) {
+	if(state.network_mode == sys::network_mode_type::host) {
 		accept_new_clients(state); // accept new connections
 		receive_from_clients(state); // receive new commands
 		// send the commands of the server to all the clients
@@ -254,7 +254,7 @@ void send_and_receive_commands(sys::state& state) {
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
 		}
-	} else if(state.network_mode == sys::network_mode::client) {
+	} else if(state.network_mode == sys::network_mode_type::client) {
 		// receive commands from the server and immediately execute them
 		while(1) {
 			command::payload cmd{};
@@ -294,7 +294,7 @@ void send_and_receive_commands(sys::state& state) {
 }
 
 void finish(sys::state& state) {
-	if(state.network_mode == sys::network_mode::single_player)
+	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 	
 	socket_shutdown(state.network_state.socket_fd);

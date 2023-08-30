@@ -4251,7 +4251,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	if(!can_notify_player_ban(state, source, target))
 		return;
 
-	if(state.network_mode == sys::network_mode::host) {
+	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
 				network::ban_player(state, client);
@@ -4287,7 +4287,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	if(!can_notify_player_kick(state, source, target))
 		return;
 
-	if(state.network_mode == sys::network_mode::host) {
+	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
 				network::kick_player(state, client);

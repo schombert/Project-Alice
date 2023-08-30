@@ -169,9 +169,9 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 #endif
 			for(int i = 1; i < num_params; ++i) {
 				if(native_string(parsed_cmd[i]) == NATIVE("-host")) {
-					game_state.network_mode = sys::network_mode::host;
+					game_state.network_mode = sys::network_mode_type::host;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-join")) {
-					game_state.network_mode = sys::network_mode::client;
+					game_state.network_mode = sys::network_mode_type::client;
 					game_state.network_state.ip_address = "127.0.0.1";
 					if(i + 1 < num_params) {
 						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
