@@ -1039,7 +1039,7 @@ pop_history_file
 
 value_modifier_definition
 	factor             value         float                              member
-	base               value         float                              member (factor)
+	base               value         float                              member
 	days               value         float                              member (factor)
 	months             value         float                              member_fn
 	years              value         float                              member_fn

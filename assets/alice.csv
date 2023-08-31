@@ -180,8 +180,8 @@ attacker_no_allies;Attacker's allies will not be called in;;;Los aliados del ata
 attacker_yes_allies;Attacker's allies will be called in;;;Los aliados del atacante seran llamados;;;;;;;;;x
 event_fires;Event $text$ is triggered;;;Sucede el evento $text$;;;;;;;;;x
 event_fires_in_days;Event $text$ is triggered in $value$ days;;;Sucede el evento $text$;;;;;;;;;x
-support_for_blank;Support for $text$;;;Soporte para $text$;;;;;;;;;x
-uh_support_for_blank;Upper house support for $text$;;;Soporte para $text$;;;;;;;;;x
+support_for_blank;support for $text$;;;Soporte para $text$;;;;;;;;;x
+uh_support_for_blank;upper house support for $text$;;;Soporte para $text$;;;;;;;;;x
 up_to;up to ;;;Hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
@@ -460,6 +460,7 @@ event_only_other_requirements;This event is only triggered by other events;;;Est
 event_show_odds;Odds of the event;;;Probabilidades del evento;;;;;;;;;x
 value_mod_product;Value $val$ is the product of:;;;;;;;;;;;;x
 value_mod_sum;Value $val$ is the sum of:;;;;;;;;;;;;x
+value_mod_sum_factor;Value $val$ is $x$ times the sum of:;;;;;;;;;;;;x
 admin_explain_1;Administrative efficiency modifier of $val$
 admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$%
 admin_explain_3;To the required percentage: $val$% (base $x$% + $y$% from reforms)

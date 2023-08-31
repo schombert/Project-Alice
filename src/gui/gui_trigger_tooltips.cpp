@@ -7518,9 +7518,9 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		text::close_layout_box(layout, box);
 	}
 
-	{
+	if(base.factor != 0.0f) {
 		text::substitution_map map{};
-		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base_factor});
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.factor});
 		auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 		text::localised_format_box(state, layout, box, std::string_view("comwid_base"), map);
 		text::close_layout_box(layout, box);
@@ -7554,18 +7554,27 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 		int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 
-	{
+	if(base.factor == 1.0f) {
 		text::substitution_map map{};
 		text::add_to_substitution_map(map, text::variable_type::val,
 				text::fp_two_places{trigger::evaluate_additive_modifier(state, modifier, primary_slot, this_slot, from_slot)});
 		auto box = text::open_layout_box(layout, 0);
 		text::localised_format_box(state, layout, box, std::string_view("value_mod_sum"), map);
 		text::close_layout_box(layout, box);
+	} else {
+		text::substitution_map map{};
+		text::add_to_substitution_map(map, text::variable_type::val,
+				text::fp_two_places{ trigger::evaluate_additive_modifier(state, modifier, primary_slot, this_slot, from_slot) });
+		text::add_to_substitution_map(map, text::variable_type::x,
+				text::fp_two_places{ base.factor });
+		auto box = text::open_layout_box(layout, 0);
+		text::localised_format_box(state, layout, box, std::string_view("value_mod_sum_factor"), map);
+		text::close_layout_box(layout, box);
 	}
 
 	{
 		text::substitution_map map{};
-		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base_factor});
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base});
 		auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 		text::localised_format_box(state, layout, box, std::string_view("comwid_base"), map);
 		text::close_layout_box(layout, box);

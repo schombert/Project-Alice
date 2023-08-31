@@ -37,7 +37,8 @@ struct value_modifier_segment {
 	dcon::trigger_key condition;
 };
 struct value_modifier_description {
-	float base_factor = 0.0f;
+	float factor = 0.0f;
+	float base = 0.0f;
 	uint16_t first_segment_offset = 0;
 	uint16_t segments_count = 0;
 };
