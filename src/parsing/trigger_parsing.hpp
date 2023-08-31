@@ -5310,7 +5310,7 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context);
 
 struct value_modifier_definition {
-	float factor = 0.0f;
+	std::optional<float> factor;
 	float base = 0.0f;
 	void months(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		factor = value * 30.0f;

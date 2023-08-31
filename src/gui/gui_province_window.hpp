@@ -606,6 +606,7 @@ public:
 		}
 	}
 };
+
 template<economy::province_building_type Value>
 class province_building_progress : public progress_bar {
 public:
@@ -622,7 +623,38 @@ public:
 			progress = economy::province_building_construction(state, content, Value).progress;
 		}
 	}
+
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+
+		for(auto pb_con : state.world.province_get_province_building_construction(prov)) {
+			if(pb_con.get_type() == uint8_t(Value)) {
+				auto& goods = state.economy_definitions.building_definitions[int32_t(Value)].cost;
+				auto& cgoods = pb_con.get_purchased_goods();
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(goods.commodity_type[i]) {
+						auto box = text::open_layout_box(contents, 0);
+						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+						text::close_layout_box(contents, box);
+					}
+				}
+
+				return;
+			}
+		}
+	}
 };
+
 template<economy::province_building_type Value>
 class province_building_window : public window_element_base {
 	button_element_base* expand_button = nullptr;
@@ -950,6 +982,21 @@ public:
 		auto province = retrieve<dcon::province_id>(state, parent);
 		auto employment_ratio = state.world.province_get_rgo_employment(province);
 		frame = int32_t(10.f * employment_ratio);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
+		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
+		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
+
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
+		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
+		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
+		text::close_layout_box(contents, box);
 	}
 };
 

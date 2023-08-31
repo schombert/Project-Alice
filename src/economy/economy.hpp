@@ -69,6 +69,8 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p);
 float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p);
 
+float factory_max_employment(sys::state const& state, dcon::factory_id f);
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
