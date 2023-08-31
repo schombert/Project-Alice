@@ -213,6 +213,12 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		if(!selected_armies.empty() && !selected_navies.empty()) {
 			selected_navies.clear();
 		}
+		// Hide province upon selecting multiple armies / navies :)
+		if(!selected_armies.empty() || !selected_navies.empty()) {
+			if(this->ui_state.province_window) {
+				this->ui_state.province_window->set_visible(*this, false);
+			}
+		}
 		game_state_updated.store(true, std::memory_order_release);
 	}
 }
