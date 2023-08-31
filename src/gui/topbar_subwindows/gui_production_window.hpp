@@ -388,6 +388,35 @@ public:
 			progress = any_cast<economy::new_factory>(payload).progress;
 		}
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nf = retrieve< economy::new_factory>(state, parent);
+		auto si = retrieve<dcon::state_instance_id>(state, parent);
+		if(!nf.type)
+			return;
+		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
+			if(p.get_type() == nf.type) {
+				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
+				auto& cgoods = p.get_purchased_goods();
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(goods.commodity_type[i]) {
+						auto box = text::open_layout_box(contents, 0);
+						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+						text::close_layout_box(contents, box);
+					}
+				}
+				return;
+			}
+		}
+	}
 };
 
 class factory_upgrade_progress_bar : public progress_bar {
@@ -397,6 +426,35 @@ public:
 			Cyto::Any payload = economy::upgraded_factory{};
 			parent->impl_get(state, payload);
 			progress = any_cast<economy::upgraded_factory>(payload).progress;
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nf = retrieve<economy::upgraded_factory>(state, parent);
+		auto si = retrieve<dcon::state_instance_id>(state, parent);
+		if(!nf.type)
+			return;
+		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
+			if(p.get_type() == nf.type) {
+				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
+				auto& cgoods = p.get_purchased_goods();
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(goods.commodity_type[i]) {
+						auto box = text::open_layout_box(contents, 0);
+						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+						text::close_layout_box(contents, box);
+					}
+				}
+				return;
+			}
 		}
 	}
 };

@@ -739,7 +739,7 @@ dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler
 	auto old_count = context.outer_context.state.value_modifier_segments.size();
 	value_modifier_definition result = parse_value_modifier_definition(gen, err, context);
 
-	auto multiplier = result.factor > 0 ? result.factor : 1.0f;
+	auto multiplier = result.factor ? *result.factor : 1.0f;
 	auto overall_factor = result.base;
 	auto new_count = context.outer_context.state.value_modifier_segments.size();
 
