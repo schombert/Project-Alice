@@ -728,20 +728,31 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 		define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to
 		the capital.
 		*/
-		points += float(state.world.nation_get_permanent_colonial_points(n));
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			auto nb_rank = state.world.province_get_building_level(p.get_province(), economy::province_building_type::naval_base);
 			if(nb_rank > 0) {
-				if(p.get_province().get_is_owner_core() ||
-						p.get_province().get_connected_region_id() ==
-								state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
-
-					points += float(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].colonial_points[nb_rank - 1]);
-				} else {
-					points += state.defines.colonial_points_for_non_core_base;
+				if(p.get_province().get_connected_region_id() == state.world.province_get_connected_region_id(state.world.nation_get_capital(n))
+					|| p.get_province().get_is_owner_core()) {
+					if(p.get_province().get_is_owner_core()) {
+						points += float(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].colonial_points[nb_rank - 1]);
+					} else {
+						points += state.defines.colonial_points_for_non_core_base;
+					}
 				}
 			}
 		}
+		/*
+		second special cases: overseas coastal states
+		*/
+		for(auto si : state.world.nation_get_state_ownership(n)) {
+			auto scap = si.get_state().get_capital();
+			if(scap.get_connected_region_id() != state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
+				if(province::state_is_coastal_non_core_nb(state, si.get_state())) {
+					points += 1.0f;
+				}
+			}
+		}
+
 		/*
 		- units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided
 		by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
@@ -755,8 +766,10 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 		float base_supply = std::max(1.0f, float(military::naval_supply_points(state, n)));
 		float used_supply = float(military::naval_supply_points_used(state, n));
 		float pts_factor = used_supply > base_supply ? std::max(0.0f, 2.0f - used_supply / base_supply) : 1.0f;
-		points += unit_sum * pts_factor;
-		points *= state.defines.colonial_points_from_supply_factor;
+		points += unit_sum * pts_factor * state.defines.colonial_points_from_supply_factor;
+
+		// points from technology
+		points += float(state.world.nation_get_permanent_colonial_points(n));
 
 		return int32_t(points);
 	} else {

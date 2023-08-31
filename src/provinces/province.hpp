@@ -65,6 +65,7 @@ bool has_naval_base_being_built(sys::state& state, dcon::province_id id);
 bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_id n);
 bool has_an_owner(sys::state& state, dcon::province_id id);
 bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
+bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s);
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si);
 
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);

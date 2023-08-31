@@ -2529,6 +2529,41 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
+	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
+	world.nation_resize_rgo_goods_output(world.commodity_size());
+	world.nation_resize_factory_goods_output(world.commodity_size());
+	world.nation_resize_factory_goods_throughput(world.commodity_size());
+	world.nation_resize_rgo_size(world.commodity_size());
+	world.nation_resize_rebel_org_modifier(world.rebel_type_size());
+	world.nation_resize_active_unit(uint32_t(military_definitions.unit_base_definitions.size()));
+	world.nation_resize_active_crime(uint32_t(culture_definitions.crimes.size()));
+	world.nation_resize_active_building(world.factory_type_size());
+	world.nation_resize_unit_stats(uint32_t(military_definitions.unit_base_definitions.size()));
+	world.nation_resize_max_building_level(economy::max_building_types);
+	world.province_resize_modifier_values(provincial_mod_offsets::count);
+	world.nation_resize_demographics(demographics::size(*this));
+	world.state_instance_resize_demographics(demographics::size(*this));
+	world.province_resize_demographics(demographics::size(*this));
+
+	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
+	nations_by_industrial_score.resize(2000);
+	nations_by_military_score.resize(2000);
+	nations_by_prestige_score.resize(2000);
+	crisis_participants.resize(2000);
+
+	for(auto t : world.in_technology) {
+		for(auto n : world.in_nation) {
+			if(n.get_active_technologies(t))
+				culture::apply_technology(*this, n, t);
+		}
+	}
+	for(auto t : world.in_invention) {
+		for(auto n : world.in_nation) {
+			if(n.get_active_inventions(t))
+				culture::apply_invention(*this, n, t);
+		}
+	}
+
 	map_loader.join();
 
 	// touch up adjacencies
