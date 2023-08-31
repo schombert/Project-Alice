@@ -240,14 +240,6 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept final {
-		int32_t v = 0;
-		if(state.ui_state.drag_target == slider) {
-			v = int32_t(scaled_value());
-		} else {
-			v = get_true_value(state);
-			update_raw_value(state, v);
-		}
-
 		switch(SliderTarget) {
 		case budget_slider_target::poor_tax: {
 			auto min_tax =
@@ -351,6 +343,14 @@ public:
 		} break;
 		default:
 			break;
+		}
+
+		int32_t v = 0;
+		if(state.ui_state.drag_target == slider) {
+			v = int32_t(scaled_value());
+		} else {
+			v = get_true_value(state);
+			update_raw_value(state, v);
 		}
 
 		if(parent) {
@@ -483,7 +483,7 @@ class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs>
 	}
 };
 
-class budget_scaled_monetary_value_text : public standard_nation_text {
+class budget_scaled_monetary_value_text : public color_text_element {
 private:
 	std::array<float, size_t(budget_slider_target::target_count)> values;
 	std::array<float, size_t(budget_slider_target::target_count)> multipliers;
@@ -491,8 +491,11 @@ private:
 public:
 	virtual void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept { }
 
+	bool color_result = false;
+
 	void on_create(sys::state& state) noexcept override {
-		standard_nation_text::on_create(state);
+		color_text_element::on_create(state);
+		color = text::text_color::black;
 		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
 			values[i] = 0.f;
 			multipliers[i] = 1.f;
@@ -503,7 +506,23 @@ public:
 		auto total = 0.f;
 		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i)
 			total += values[i] * multipliers[i];
-		set_text(state, text::format_money(total));
+
+		if(color_result) {
+			if(total < 0.0f) {
+				color = text::text_color::dark_red;
+				set_text(state, text::format_money(total));
+			} else if(total > 0.0f) {
+				color = text::text_color::dark_green;
+				set_text(state, std::string("+") + text::format_money(total));
+			} else {
+				color = text::text_color::black;
+				set_text(state, text::format_money(total));
+			}
+		} else {
+			set_text(state, text::format_money(total));
+		}
+
+		
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -518,9 +537,8 @@ public:
 			if(values[uint8_t(sig.target)] != 0.f)
 				apply_multipliers(state);
 			return message_result::consumed;
-		} else {
-			return standard_nation_text::set(state, payload);
 		}
+		return message_result::unseen;
 	}
 };
 
@@ -994,7 +1012,9 @@ public:
 		} else if(name == "total_exp") {
 			return make_element_by_type<budget_expenditure_projection_text>(state, id);
 		} else if(name == "balance") {
-			return make_element_by_type<budget_balance_projection_text>(state, id);
+			auto ptr = make_element_by_type<budget_balance_projection_text>(state, id);
+			ptr->color_result = true;
+			return ptr;
 		} else if(name == "tax_0_slider") {
 			return make_element_by_type<budget_poor_tax_slider>(state, id);
 		} else if(name == "tax_1_slider") {

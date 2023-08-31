@@ -983,6 +983,21 @@ public:
 		auto employment_ratio = state.world.province_get_rgo_employment(province);
 		frame = int32_t(10.f * employment_ratio);
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
+		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
+		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
+
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
+		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
+		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class province_crime_icon : public image_element_base {

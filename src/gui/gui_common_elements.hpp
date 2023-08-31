@@ -527,7 +527,7 @@ public:
 class nation_tariff_percentage_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return text::format_percentage(state.world.nation_get_tariffs(nation_id));
+		return text::format_percentage(float(state.world.nation_get_tariffs(nation_id)) / 100.0f);
 	}
 };
 
