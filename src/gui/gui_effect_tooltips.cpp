@@ -5369,7 +5369,7 @@ uint32_t ef_scaled_consciousness_ideology(EFFECT_DISPLAY_PARAMS) {
 		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5449,7 +5449,7 @@ uint32_t ef_scaled_consciousness_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5529,7 +5529,7 @@ uint32_t ef_scaled_consciousness_state_ideology(EFFECT_DISPLAY_PARAMS) {
 		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5609,7 +5609,7 @@ uint32_t ef_scaled_consciousness_province_ideology(EFFECT_DISPLAY_PARAMS) {
 		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
-		text::add_to_substitution_map(m, text::variable_type::name, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "scaled_support", m);
 		text::close_layout_box(layout, box);
 	}

@@ -739,11 +739,12 @@ dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler
 	auto old_count = context.outer_context.state.value_modifier_segments.size();
 	value_modifier_definition result = parse_value_modifier_definition(gen, err, context);
 
-	auto overall_factor = result.factor;
+	auto multiplier = result.factor > 0 ? result.factor : 1.0f;
+	auto overall_factor = result.base;
 	auto new_count = context.outer_context.state.value_modifier_segments.size();
 
 	return context.outer_context.state.value_modifiers.push_back(
-			sys::value_modifier_description{overall_factor, uint16_t(old_count), uint16_t(new_count - old_count)});
+			sys::value_modifier_description{ multiplier, overall_factor, uint16_t(old_count), uint16_t(new_count - old_count)});
 }
 
 void trigger_body::is_canal_enabled(association_type a, int32_t value, error_handler& err, int32_t line,

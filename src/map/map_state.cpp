@@ -435,6 +435,14 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 		map_pos *= screen_size;
 		map_pos += screen_size * 0.5f;
 		screen_pos = map_pos;
+		if(screen_pos.x >= float(std::numeric_limits<int16_t>::max() / 2))
+			return false;
+		if(screen_pos.x <= float(std::numeric_limits<int16_t>::min() / 2))
+			return false;
+		if(screen_pos.y >= float(std::numeric_limits<int16_t>::max() / 2))
+			return false;
+		if(screen_pos.y <= float(std::numeric_limits<int16_t>::min() / 2))
+			return false;
 		return true;
 	}
 }
