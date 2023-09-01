@@ -6,8 +6,14 @@ namespace ai {
 
 float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
-	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
-		value += subj.get_subject().get_military_score();
+	if(!state.world.nation_get_is_civilized(n)) // 75% weaker
+		value *= 0.25f;
+	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
+		float subj_value = subj.get_subject().get_military_score();
+		if(!subj.get_subject().get_is_civilized()) // 75% weaker
+			subj_value *= 0.25f;
+		value += subj_value;
+	}
 	return value;
 }
 
@@ -70,6 +76,11 @@ void update_ai_general_status(sys::state& state) {
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
 		state.world.nation_set_ai_is_threatened(n, threatened);
 
+		// provinces owned by rebels -> immediate threat
+		for(const auto po : n.get_province_ownership_as_nation())
+			if(bool(po.get_province().get_province_rebel_control().get_rebel_faction()))
+				state.world.nation_set_ai_is_threatened(n, true);
+
 		if(!n.get_ai_rival()) {
 			float min_relation = 200.0f;
 			dcon::nation_id potential;
@@ -100,6 +111,12 @@ void update_ai_general_status(sys::state& state) {
 			if(ol || n.get_ai_rival().get_in_sphere_of() == n || rival_str * 2 < self_str || self_str * 2 < rival_str) {
 				n.set_ai_rival(dcon::nation_id{});
 			}
+		}
+
+		if(n.get_ai_is_threatened() && !n.get_is_mobilized()) {
+			command::execute_toggle_mobilization(state, n);
+		} else if(n.get_is_mobilized()) {
+			command::execute_toggle_mobilization(state, n);
 		}
 	}
 }
@@ -1897,8 +1914,12 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
-	if(!as_attacker)
+	if(!as_attacker) {
+		// Do not join wars caused by incompetence of nations...
+		if(state.world.nation_get_infamy(state.world.war_get_primary_defender(w)) >= state.defines.badboy_limit)
+			return false;
 		return true;
+	}
 	for(auto par : state.world.war_get_war_participant(w)) {
 		if(par.get_is_attacker() == !as_attacker) {
 			// Could use a CB against this nation?
@@ -2175,6 +2196,11 @@ void sort_avilable_declaration_cbs(std::vector<possible_cb>& result, sys::state&
 		if((state.world.nation_get_ai_rival(n) == a.target) != (state.world.nation_get_ai_rival(n) == b.target)) {
 			return state.world.nation_get_ai_rival(n) == a.target;
 		}
+
+		auto a_civ = state.world.nation_get_is_civilized(a.target);
+		auto b_civ = state.world.nation_get_is_civilized(b.target);
+		if(a_civ != b_civ)
+			return a_civ;
 
 		auto a_annexes = (state.world.cb_type_get_type_bits(a.cb) & military::cb_flag::po_annex) != 0;
 		auto b_annexes = (state.world.cb_type_get_type_bits(b.cb) & military::cb_flag::po_annex) != 0;
@@ -2499,6 +2525,15 @@ void make_peace_offers(sys::state& state) {
 }
 
 bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_id from, dcon::peace_offer_id p) {
+	// meta play
+	if(!state.world.nation_get_is_player_controlled(n) && !state.world.nation_get_is_player_controlled(from)) {
+		// smaller unciv gives in, to allow bigger unciv to be bigger
+		if(!state.world.nation_get_is_civilized(n) && !state.world.nation_get_is_civilized(from)) {
+			if(estimate_strength(state, n) <= estimate_strength(state, from))
+				return true;
+		}
+	}
+
 	auto w = state.world.peace_offer_get_war_from_war_settlement(p);
 	auto prime_attacker = state.world.war_get_primary_attacker(w);
 	auto prime_defender = state.world.war_get_primary_defender(w);
