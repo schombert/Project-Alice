@@ -1752,7 +1752,7 @@ struct trigger_body {
 	}
 	void total_sunk_by_us(association_type a, int32_t value, error_handler& err, int32_t line, trigger_building_context& context) {
 		// this is a trigger we don't support currently, not even in trigger codes
-		context.compiled_trigger.push_back(uint16_t(trigger::always | trigger::no_payload | association_to_bool_code(a, false)));
+		context.compiled_trigger.push_back(uint16_t(trigger::always | trigger::no_payload | association_to_trigger_code(a)));
 	}
 	void has_crime(association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
@@ -3426,16 +3426,16 @@ struct trigger_body {
 			if(is_this(value)) {
 				if(context.this_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::units_in_province_this_nation | trigger::no_payload | association_to_trigger_code(a)));
+							uint16_t(trigger::units_in_province_this_nation | trigger::no_payload | association_to_bool_code(a)));
 				else if(context.this_slot == trigger::slot_contents::state)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::units_in_province_this_state | trigger::no_payload | association_to_trigger_code(a)));
+							uint16_t(trigger::units_in_province_this_state | trigger::no_payload | association_to_bool_code(a)));
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::units_in_province_this_province | trigger::no_payload | association_to_trigger_code(a)));
+							uint16_t(trigger::units_in_province_this_province | trigger::no_payload | association_to_bool_code(a)));
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::units_in_province_this_pop | trigger::no_payload | association_to_trigger_code(a)));
+							uint16_t(trigger::units_in_province_this_pop | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "units_in_province = this trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -3445,7 +3445,7 @@ struct trigger_body {
 			} else if(is_from(value)) {
 				if(context.from_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::units_in_province_from | trigger::no_payload | association_to_trigger_code(a)));
+							uint16_t(trigger::units_in_province_from | trigger::no_payload | association_to_bool_code(a)));
 				else {
 					err.accumulated_errors += "units_in_province = from trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -4655,16 +4655,16 @@ struct trigger_body {
 			if(is_this(value)) {
 				if(context.this_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::industrial_score_this_nation | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::industrial_score_this_nation | trigger::no_payload | association_to_trigger_code(a)));
 				else if(context.this_slot == trigger::slot_contents::state)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::industrial_score_this_state | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::industrial_score_this_state | trigger::no_payload | association_to_trigger_code(a)));
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::industrial_score_this_province | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::industrial_score_this_province | trigger::no_payload | association_to_trigger_code(a)));
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::industrial_score_this_pop | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::industrial_score_this_pop | trigger::no_payload | association_to_trigger_code(a)));
 				else {
 					err.accumulated_errors += "industrial_score = this trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -4674,7 +4674,7 @@ struct trigger_body {
 			} else if(is_from(value)) {
 				if(context.from_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::industrial_score_from_nation | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::industrial_score_from_nation | trigger::no_payload | association_to_trigger_code(a)));
 				else {
 					err.accumulated_errors += "industrial_score = from trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -4682,7 +4682,7 @@ struct trigger_body {
 					return;
 				}
 			} else {
-				context.compiled_trigger.push_back(uint16_t(trigger::industrial_score_value | association_to_bool_code(a)));
+				context.compiled_trigger.push_back(uint16_t(trigger::industrial_score_value | association_to_trigger_code(a)));
 				context.compiled_trigger.push_back(trigger::payload(uint16_t(parse_uint(value, line, err))).value);
 			}
 		} else {
@@ -4698,16 +4698,16 @@ struct trigger_body {
 			if(is_this(value)) {
 				if(context.this_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::military_score_this_nation | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::military_score_this_nation | trigger::no_payload | association_to_trigger_code(a)));
 				else if(context.this_slot == trigger::slot_contents::state)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::military_score_this_state | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::military_score_this_state | trigger::no_payload | association_to_trigger_code(a)));
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::military_score_this_province | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::military_score_this_province | trigger::no_payload | association_to_trigger_code(a)));
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::military_score_this_pop | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::military_score_this_pop | trigger::no_payload | association_to_trigger_code(a)));
 				else {
 					err.accumulated_errors += "military_score = this trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -4717,7 +4717,7 @@ struct trigger_body {
 			} else if(is_from(value)) {
 				if(context.from_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(
-							uint16_t(trigger::military_score_from_nation | trigger::no_payload | association_to_bool_code(a)));
+							uint16_t(trigger::military_score_from_nation | trigger::no_payload | association_to_trigger_code(a)));
 				else {
 					err.accumulated_errors += "military_score = from trigger used in an incorrect scope type " +
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -4725,7 +4725,7 @@ struct trigger_body {
 					return;
 				}
 			} else {
-				context.compiled_trigger.push_back(uint16_t(trigger::military_score_value | association_to_bool_code(a)));
+				context.compiled_trigger.push_back(uint16_t(trigger::military_score_value | association_to_trigger_code(a)));
 				context.compiled_trigger.push_back(trigger::payload(uint16_t(parse_uint(value, line, err))).value);
 			}
 		} else {
