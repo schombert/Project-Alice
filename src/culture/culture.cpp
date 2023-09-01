@@ -59,14 +59,14 @@ void repopulate_technology_effects(sys::state& state) {
 			}
 		}
 
-		if(tech_id.get_colonial_points()) {
-			auto amount = tech_id.get_colonial_points();
-			state.world.execute_serial_over_nation([&](auto nation_indices) {
-				auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
-				auto old_cp_value = state.world.nation_get_permanent_colonial_points(nation_indices);
-				state.world.nation_set_permanent_colonial_points(nation_indices, ve::select(has_tech_mask, old_cp_value + amount, old_cp_value));
-			});
-		}
+		//if(tech_id.get_colonial_points() != 0.0f) {
+		//	auto amount = tech_id.get_colonial_points();
+		//	state.world.execute_serial_over_nation([&](auto nation_indices) {
+		//		auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
+		//		auto old_cp_value = state.world.nation_get_permanent_colonial_points(nation_indices);
+		//		state.world.nation_set_permanent_colonial_points(nation_indices, ve::select(has_tech_mask, old_cp_value + amount, old_cp_value));
+		//	});
+		//}
 
 		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 			if(tech_id.get_activate_building(id)) {
@@ -162,14 +162,14 @@ void repopulate_invention_effects(sys::state& state) {
 			});
 		}
 
-		if(inv_id.get_colonial_points()) {
-			auto amount = inv_id.get_colonial_points();
-			state.world.execute_serial_over_nation([&](auto nation_indices) {
-				auto has_tech_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
-				auto old_cp_value = state.world.nation_get_permanent_colonial_points(nation_indices);
-				state.world.nation_set_permanent_colonial_points(nation_indices, ve::select(has_tech_mask, old_cp_value + amount, old_cp_value));
-			});
-		}
+		//if(inv_id.get_colonial_points() != 0.0f) {
+		//	auto amount = inv_id.get_colonial_points();
+		//	state.world.execute_serial_over_nation([&](auto nation_indices) {
+		//		auto has_tech_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
+		//		auto old_cp_value = state.world.nation_get_permanent_colonial_points(nation_indices);
+		//		state.world.nation_set_permanent_colonial_points(nation_indices, ve::select(has_tech_mask, old_cp_value + amount, old_cp_value));
+		//	});
+		//}
 
 		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 			if(inv_id.get_activate_building(id)) {

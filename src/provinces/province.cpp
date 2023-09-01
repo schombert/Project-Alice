@@ -1379,6 +1379,22 @@ bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {
 	return false;
 }
 
+bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s) {
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+	bool coast = false;
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			if(p.get_province().get_port_to()) {
+				if(p.get_province().get_is_owner_core())
+					return false;
+				coast = true;
+			}
+		}
+	}
+	return coast;
+}
+
 void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
 	if(tag && prov) {
 		state.world.try_create_core(prov, tag);
