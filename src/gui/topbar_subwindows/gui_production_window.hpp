@@ -238,48 +238,44 @@ public:
 
 		
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
-
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
-	
 		text::add_line_break_to_layout(state, contents);
-
 		text::add_line(state, contents, "factory_upgrade_shift_explanation");
 
-		// TODO: classic tooltips ???
 	}
 };
 
-class factory_shutdown_button : public button_element_base {
+class factory_reopen_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
-			auto fat = dcon::fatten(state.world, fid);
-
-			if(fat.get_production_scale() < 0.05f) {
-				frame = 0;
-			} else {
-				frame = 1;
-			}
-		}
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		disabled = !command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true);
 	}
 
 	void on_create(sys::state& state) noexcept override {
-		set_visible(state, false);
+		frame = 0;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::no_tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		if(n == state.local_player_nation) {
+			text::add_line(state, contents, "open_and_sub");
 
+			if(disabled) {
+				text::add_line(state, contents, "production_not_allowed_to_subsidise_tooltip");
+				text::add_line(state, contents, "cant_subsidize_explanation");
+			}
+		}
 	}
 };
 
@@ -298,16 +294,13 @@ public:
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
 		if(fat.get_subsidized()) {
-			if(command::can_change_factory_settings(state, n, fid,
-							uint8_t(economy::factory_priority(state, fid)), false)) {
-				command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)),
+			if(command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
+				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)),
 						false);
 			}
 		} else {
-			if(command::can_change_factory_settings(state, n, fid,
-							uint8_t(economy::factory_priority(state, fid)), true)) {
-				command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)),
-						true);
+			if(command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true)) {
+				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true);
 			}
 		}
 	}
@@ -341,13 +334,13 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_delete_factory(state, n, fid);
+		disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		command::delete_factory(state, n, fid);
+		command::delete_factory(state, state.local_player_nation, fid);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -695,8 +688,8 @@ public:
 			closed_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "open_close") {
-			auto ptr = make_element_by_type<factory_shutdown_button>(state, id);
-			//factory_elements.push_back(ptr.get());
+			auto ptr = make_element_by_type<factory_reopen_button>(state, id);
+			closed_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
@@ -934,7 +927,7 @@ public:
 		bool can_build = false;
 		state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
 			can_build =
-				can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
+				can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
 		});
 		disabled = !can_build;
 	}
@@ -1009,7 +1002,7 @@ public:
 		bool can_build = false;
 		state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
 			can_build =
-					can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
+					can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
 		});
 		disabled = !can_build;
 	}
