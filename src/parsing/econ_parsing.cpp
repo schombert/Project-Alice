@@ -36,7 +36,8 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 
 void building_file::result(std::string_view name, building_definition&& res, error_handler& err, int32_t line,
 		scenario_building_context& context) {
-	res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
+	// no, this messes things up
+	// res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
 	switch(res.stored_type) {
 	case building_type::factory: {
 		auto factory_id = context.state.world.create_factory_type();

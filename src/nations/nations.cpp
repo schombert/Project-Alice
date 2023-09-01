@@ -2742,6 +2742,9 @@ float get_yesterday_income(sys::state& state, dcon::nation_id n) {
 }
 
 void make_civilized(sys::state& state, dcon::nation_id n) {
+	if(state.world.nation_get_is_civilized(n))
+		return;
+
 	/*
 	The nation gains technologies. Specifically take the fraction of military reforms (for land and naval) or econ reforms
 	(otherwise) applied, clamped to the defines:UNCIV_TECH_SPREAD_MIN and defines:UNCIV_TECH_SPREAD_MAX values, and multiply how
@@ -2846,6 +2849,9 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 			event::slot_type::none);
 }
 void make_uncivilized(sys::state& state, dcon::nation_id n) {
+	if(!state.world.nation_get_is_civilized(n))
+		return;
+
 	state.world.nation_set_is_civilized(n, false);
 
 	for(auto o : state.culture_definitions.military_issues) {

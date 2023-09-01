@@ -3364,7 +3364,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<pop_list_filter>()) {
 			filter = any_cast<pop_list_filter>(payload);
-			on_update(state);
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<pop_details_data>()) {
 			move_child_to_front(details_win);
@@ -3376,25 +3376,25 @@ public:
 			auto sid = std::get<dcon::state_instance_id>(expand_action);
 			view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())] =
 					!view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())];
-			on_update(state);
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<pop_filter_data>()) {
 			auto data = any_cast<pop_filter_data>(payload);
 			auto ptid = std::get<dcon::pop_type_id>(data);
 			pop_filters[dcon::pop_type_id::value_base_t(ptid.index())] = !pop_filters[dcon::pop_type_id::value_base_t(ptid.index())];
-			on_update(state);
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<pop_filter_select_action>()) {
 			auto data = any_cast<pop_filter_select_action>(payload);
 			state.world.for_each_pop_type(
 					[&](dcon::pop_type_id id) { pop_filters[dcon::pop_type_id::value_base_t(id.index())] = data.value; });
-			on_update(state);
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<pop_list_sort>()) {
 			auto new_sort = any_cast<pop_list_sort>(payload);
 			sort_ascend = (new_sort == sort) ? !sort_ascend : true;
 			sort = new_sort;
-			on_update(state);
+			impl_on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
