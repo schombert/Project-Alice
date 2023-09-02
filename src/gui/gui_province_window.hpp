@@ -128,7 +128,6 @@ public:
 				state.ui_state.population_subwindow->set_visible(state, true);
 				state.ui_state.root->move_child_to_front(state.ui_state.population_subwindow);
 				// ui_state.population_subwindow->impl_get(*this, fl_payload);
-				state.ui_state.can_move_map_while_visible = false;
 			}
 		}
 	}
@@ -790,7 +789,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
 		if(content) {
-			state.ui_state.can_move_map_while_visible = false;
 			open_build_foreign_factory(state, state.world.province_get_state_membership(content));
 		}
 			

@@ -95,7 +95,6 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				auto owner = world.province_get_nation_from_province_ownership(prov_id);
 				if(owner) {
 					open_diplomacy(owner);
-					state::ui_state.can_move_map_while_visible = false;
 				}
 			}
 		}
@@ -296,8 +295,11 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
 			}
-
-			map_state.on_key_down(keycode, mod, state::ui_state.can_move_map_while_visible);
+			if(state::ui_state.topbar_subwindow->is_visible()) {
+				map_state.on_key_down(keycode, mod, false);
+			} else {
+				map_state.on_key_down(keycode, mod, true);
+			}
 		}
 	} else if(mode == sys::game_mode_type::end_screen) {
 
@@ -314,7 +316,11 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
 				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
-			map_state.on_key_down(keycode, mod, state::ui_state.can_move_map_while_visible);
+			if(state::ui_state.topbar_subwindow->is_visible()) {
+				map_state.on_key_down(keycode, mod, false);
+			} else {
+				map_state.on_key_down(keycode, mod, true);
+			}
 
 			if(keycode == sys::virtual_key::LEFT || keycode == sys::virtual_key::RIGHT || keycode == sys::virtual_key::UP || keycode == sys::virtual_key::DOWN) {
 				if(ui_state.mouse_sensitive_target) {
@@ -326,7 +332,11 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	}
 }
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-	map_state.on_key_up(keycode, mod, state::ui_state.can_move_map_while_visible);
+	if(state::ui_state.topbar_subwindow->is_visible()) {
+		map_state.on_key_up(keycode, mod, false);
+	} else {
+		map_state.on_key_up(keycode, mod, true);
+	}
 }
 void state::on_text(char c) { // c is win1250 codepage value
 	if(ui_state.edit_target)

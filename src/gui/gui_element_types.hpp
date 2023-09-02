@@ -333,9 +333,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			parent->set_visible(state, false);
-			if(!state.ui_state.can_move_map_while_visible) {
-				state.ui_state.can_move_map_while_visible = true;
-			}
 		}
 	}
 };
