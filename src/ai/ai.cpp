@@ -2428,11 +2428,12 @@ void add_gw_goals(sys::state& state) {
 	}
 }
 
+constexpr float po_value_factor = 1.5f;
+
 void make_peace_offers(sys::state& state) {
 	auto send_offer_up_to = [&](dcon::nation_id from, dcon::nation_id to, dcon::war_id w, bool attacker, int32_t score_max, bool concession) {
 		command::execute_start_peace_offer(state, from, to, w, concession);
 		auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(from);
-
 		int32_t current_value = 0;
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
 			if((military::is_attacker(state, w, wg.get_wargoal().get_added_by()) == attacker) == !concession) {
@@ -2443,7 +2444,6 @@ void make_peace_offers(sys::state& state) {
 				}
 			}
 		}
-
 		command::execute_send_peace_offer(state, from);
 	};
 	for(auto w : state.world.in_war) {
@@ -2452,17 +2452,18 @@ void make_peace_offers(sys::state& state) {
 			if(overall_score >= 0) { // attacker winning
 				auto total_po_cost = military::attacker_peace_cost(state, w);
 				if(w.get_primary_attacker().get_is_player_controlled() == false) { // attacker makes offer
-					if(overall_score >= 100 || (overall_score >= 50 && overall_score >= total_po_cost * 2)) {
+					if(overall_score >= 100.f || (overall_score >= 50.f && overall_score >= total_po_cost * po_value_factor)) {
 						send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(overall_score), false);
 						continue;
 					}
 					if(w.get_primary_defender().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
-						if(war_duration >= 365) {
-							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+						if(war_duration >= 365.f) {
+							float willingness_factor = float(war_duration - 365.f) * 10.0f / 365.0f;
 							
-							if(overall_score > (total_po_cost - willingness_factor) && (-overall_score / 2 + total_po_cost - 2 * willingness_factor) < 0)
-								send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(total_po_cost - willingness_factor), false);
+							if(overall_score > (total_po_cost - willingness_factor) && (-overall_score / po_value_factor + total_po_cost - po_value_factor * willingness_factor) < 0)
+								//send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(total_po_cost - willingness_factor), false);
+								send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(overall_score), false);
 						}
 					}
 				} else if(w.get_primary_defender().get_is_player_controlled() == false) { // defender may surrender
@@ -2474,21 +2475,22 @@ void make_peace_offers(sys::state& state) {
 			} else {
 				auto total_po_cost = military::defender_peace_cost(state, w);
 				if(w.get_primary_defender().get_is_player_controlled() == false) { // defender makes offer
-					if(overall_score <= -100 || (overall_score <= -50 && overall_score <= -total_po_cost * 2)) {
+					if(overall_score <= -100.f || (overall_score <= -50.f && overall_score <= -total_po_cost * po_value_factor)) {
 						send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(-overall_score), false);
 						continue;
 					}
 					if(w.get_primary_defender().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
-						if(war_duration >= 365) {
-							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+						if(war_duration >= 365.f) {
+							float willingness_factor = float(war_duration - 365.f) * 10.0f / 365.0f;
 
-							if(-overall_score > (total_po_cost - willingness_factor) && (overall_score / 2 + total_po_cost - 2 * willingness_factor) < 0)
-								send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(total_po_cost - willingness_factor), false);
+							if(-overall_score > (total_po_cost - willingness_factor) && (overall_score / po_value_factor + total_po_cost - 2 * willingness_factor) < 0)
+								//send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(total_po_cost - willingness_factor), false);
+								send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(-overall_score), false);
 						}
 					}
 				} else if(w.get_primary_attacker().get_is_player_controlled() == false) { // attacker may surrender
-					if(overall_score <= -100 || (overall_score <= -50 && overall_score <= -total_po_cost * 2)) {
+					if(overall_score <= -100.f || (overall_score <= -50.f && overall_score <= -total_po_cost * po_value_factor)) {
 						send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(-overall_score), true);
 						continue;
 					}
@@ -2546,35 +2548,33 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		}
 	}
 	auto personal_score_saved = personal_po_value - potential_peace_score_against;
-
 	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
-		if(overall_score <= -50 && overall_score <= overall_po_value * 2)
+		if(overall_score <= -50.f && overall_score <= overall_po_value * po_value_factor)
 			return true;
 
 		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
-		if(war_duration < 365) {
+		if(war_duration < 365.f) {
 			return concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) >= -overall_po_value;
 		}
-		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
-		if(overall_score >= 0) {
-			if(concession && (overall_score * 2 - overall_po_value - willingness_factor) < 0)
+		float willingness_factor = float(war_duration - 365.f) * 1.5f / 365.0f;
+		if(overall_score >= 0.f) {
+			if(concession && (overall_score * po_value_factor - overall_po_value - willingness_factor) < 0.f)
 				return true;
 		} else {
-			if(overall_score <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
+			if(overall_score <= overall_po_value && (overall_score / po_value_factor - overall_po_value - willingness_factor) < 0.f)
 				return true;
 		}
 
 	} else if((prime_attacker == n || prime_defender == n) && concession) {
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
 
-		if(scoreagainst_me > 50)
+		if(scoreagainst_me > 50.f)
 			return true;
 
 		int32_t my_side_against_target = 0;
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
 			if(wg.get_wargoal().get_target_nation() == from) {
 				auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), n, wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-
 				my_side_against_target += wg_value;
 			}
 		}
@@ -2590,7 +2590,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	} else {
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
 
-		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
+		if(scoreagainst_me > 50.f && scoreagainst_me > -overall_po_value * po_value_factor)
 			return true;
 
 		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing	
@@ -3434,7 +3434,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 			cls = province_class::border;
 
 		// provinces with high rebel chance will get distributed guards :)
-		if(c.get_province().get_demographics(demographics::militancy) / c.get_province().get_demographics(demographics::total) >= state.defines.mil_to_join_rising)
+		if(c.get_province().get_demographics(demographics::militancy) / std::max<float>(1.f, c.get_province().get_demographics(demographics::total)) >= state.defines.mil_to_join_rising)
 			cls = province_class::border;
 
 		for(auto padj : c.get_province().get_province_adjacency()) {
