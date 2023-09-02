@@ -1008,22 +1008,34 @@ void update_naval_supply_points(sys::state& state) {
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			auto d = state.world.state_instance_get_definition(si.get_state());
 			bool saw_coastal = false;
+			bool nb_was_core = false;
+			bool coast_was_core = false;
 			int32_t nb_level = 0;
 			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 				if(p.get_province().get_nation_from_province_ownership() == n) {
 					if(p.get_province().get_is_coast()) {
 						saw_coastal = true;
+						coast_was_core = coast_was_core || p.get_province().get_is_owner_core();
 					}
 					nb_level = std::max(nb_level, int32_t(p.get_province().get_building_level(economy::province_building_type::naval_base)));
+					if(nb_level > 0)
+						nb_was_core = p.get_province().get_is_owner_core();
 				}
 			}
-			bool is_core_or_connected = si.get_state().get_capital().get_is_owner_core() ||
-																	si.get_state().get_capital().get_connected_region_id() == cap_region;
-			float core_factor = is_core_or_connected ? 1.0f : state.defines.naval_base_non_core_supply_score;
-			if(nb_level > 0) {
-				total += state.defines.naval_base_supply_score_base * float(1 << (nb_level - 1)) * core_factor;
-			} else if(saw_coastal) {
-				total += state.defines.naval_base_supply_score_empty * core_factor;
+			bool connected = si.get_state().get_capital().get_connected_region_id() == cap_region;
+
+			if(saw_coastal) {
+				if(nb_level > 0) {
+					if(nb_was_core || connected)
+						total += state.defines.naval_base_supply_score_base * float(1 << (nb_level - 1));
+					else
+						total += state.defines.naval_base_supply_score_base * float(1 << (nb_level - 1)) * state.defines.naval_base_non_core_supply_score;
+				} else {
+					if(coast_was_core || connected)
+						total += state.defines.naval_base_supply_score_empty;
+					else
+						total += 1.0f;
+				}
 			}
 		}
 		state.world.nation_set_naval_supply_points(n, uint16_t(total));

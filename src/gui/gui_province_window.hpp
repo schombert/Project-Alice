@@ -77,7 +77,6 @@ public:
 
 class province_rgo : public image_element_base {
 public:
-
 	void on_update(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, retrieve<dcon::province_id>(state, parent));
 		frame = fat_id.get_rgo().get_icon();
@@ -88,18 +87,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-
-			auto rgo_good = state.world.province_get_rgo(prov_id);
-			if(rgo_good) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(rgo_good), text::substitution_map{});
-				text::close_layout_box(contents, box);
-			}
-		}
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto rgo = state.world.province_get_rgo(prov);
+		text::add_line(state, contents, state.world.commodity_get_name(rgo));
 	}
 };
 
@@ -1297,23 +1287,6 @@ public:
 	}
 };
 
-class province_colony_rgo_icon : public image_element_base {
-public: // goto hell;
-				// Seriously hate this code, just no, this is awful and shouldnt be needed
-				// but i refuse to loose my sanity to something to assining
-	dcon::text_sequence_id rgo_name;
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, rgo_name);
-		text::close_layout_box(contents, box);
-	}
-};
-
 class province_protectorate_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1637,7 +1610,6 @@ public:
 
 class province_window_colony : public window_element_base {
 private:
-	province_colony_rgo_icon* rgo_icon = nullptr;
 	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 
@@ -1652,9 +1624,7 @@ public:
 			culture_chart = ptr.get();
 			return ptr;
 		} else if(name == "goods_type") {
-			auto ptr = make_element_by_type<province_colony_rgo_icon>(state, id);
-			rgo_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<province_rgo>(state, id);
 		} else if(name == "colonize_button") {
 			return make_element_by_type<province_protectorate_button>(state, id);
 		} else if(name == "withdraw_button") {
@@ -1687,8 +1657,6 @@ public:
 		if(bool(nation_id)) {
 			set_visible(state, false);
 		} else {
-			rgo_icon->frame = fat_id.get_rgo().get_icon();
-			rgo_icon->rgo_name = fat_id.get_rgo().get_name();
 			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
 			population_box->set_text(state, text::prettify(int32_t(total_pop)));
 			culture_chart->on_update(state);

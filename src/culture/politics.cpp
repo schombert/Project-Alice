@@ -685,8 +685,9 @@ void update_elections(sys::state& state) {
 					}
 				}
 
-				if(party_votes.size() == 0)
-					std::abort(); // ERROR: no valid parties
+				if(party_votes.size() == 0) {
+					continue; // ERROR: no valid parties
+				}
 
 				// - Determine the vote in each province. Note that voting is *by active party* not by ideology.
 				for(auto p : n.get_province_ownership()) {
