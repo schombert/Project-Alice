@@ -592,6 +592,7 @@ float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, d
 }
 
 inline constexpr float production_scale_delta = 0.05f;
+inline constexpr float rgo_production_scale_neg_delta = 0.005f;
 
 void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dcon::nation_id n, dcon::province_id p,
 		dcon::state_instance_id s, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices,
@@ -658,48 +659,45 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 					input_multiplier * throughput_multiplier * input_total * min_input_available) >= 0.0f;
 	state.world.factory_set_unprofitable(f, !profitable);
 
+	float effective_production_scale = 0.0f;
 	if(profitable || state.world.factory_get_subsidized(f)) {
 		// increase production scale ?
 		auto new_production_scale = std::min(1.0f, state.world.factory_get_production_scale(f) + production_scale_delta);
 		state.world.factory_set_production_scale(f, new_production_scale);
-		auto effective_production_scale = std::min(new_production_scale * fac.get_level(), max_production_scale);
-
-		// register real demand : input_multiplier * throughput_multiplier * level * primary_employment
-		float input_scale = input_multiplier * throughput_multiplier * effective_production_scale;
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(inputs.commodity_type[i]) {
-				state.world.nation_get_real_demand(n, inputs.commodity_type[i]) += input_scale * inputs.commodity_amounts[i];
-				assert(std::isfinite(state.world.nation_get_real_demand(n, inputs.commodity_type[i])));
-			} else {
-				break;
-			}
-		}
-
-		// and for efficiency inputs
-		//  the consumption of efficiency inputs is (national-factory-maintenance-modifier + 1) x input-multiplier x
-		//  throughput-multiplier x factory level
-		auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-		for(uint32_t i = 0; i < small_commodity_set::set_size; ++i) {
-			if(e_inputs.commodity_type[i]) {
-				state.world.nation_get_real_demand(n, e_inputs.commodity_type[i]) +=
-						mfactor * input_scale * e_inputs.commodity_amounts[i];
-				assert(std::isfinite(state.world.nation_get_real_demand(n, e_inputs.commodity_type[i])));
-			} else {
-				break;
-			}
-		}
-
-		state.world.factory_set_actual_production(f,
-				fac_type.get_output_amount() * throughput_multiplier * output_multiplier * effective_production_scale);
-		state.world.factory_set_full_profit(f,
-				(output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * effective_production_scale);
+		effective_production_scale = std::min(new_production_scale * fac.get_level(), max_production_scale);
 	} else {
 		// reduce production scale
-		state.world.factory_set_production_scale(f,
-				std::max(0.0f, state.world.factory_get_production_scale(f) - production_scale_delta));
-		state.world.factory_set_actual_production(f, 0.0f);
-		state.world.factory_set_full_profit(f, 0.0f);
+		auto new_production_scale = std::max(0.0f, state.world.factory_get_production_scale(f) - production_scale_delta);
+		state.world.factory_set_production_scale(f,  new_production_scale);
+		effective_production_scale = std::min(new_production_scale * fac.get_level(), max_production_scale);
 	}
+
+	// register real demand : input_multiplier * throughput_multiplier * level * primary_employment
+	float input_scale = input_multiplier * throughput_multiplier * effective_production_scale;
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		if(inputs.commodity_type[i]) {
+			state.world.nation_get_real_demand(n, inputs.commodity_type[i]) += input_scale * inputs.commodity_amounts[i];
+			assert(std::isfinite(state.world.nation_get_real_demand(n, inputs.commodity_type[i])));
+		} else {
+			break;
+		}
+	}
+
+	// and for efficiency inputs
+	//  the consumption of efficiency inputs is (national-factory-maintenance-modifier + 1) x input-multiplier x
+	//  throughput-multiplier x factory level
+	auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
+	for(uint32_t i = 0; i < small_commodity_set::set_size; ++i) {
+		if(e_inputs.commodity_type[i]) {
+			state.world.nation_get_real_demand(n, e_inputs.commodity_type[i]) += mfactor * input_scale * e_inputs.commodity_amounts[i];
+			assert(std::isfinite(state.world.nation_get_real_demand(n, e_inputs.commodity_type[i])));
+		} else {
+			break;
+		}
+	}
+
+	state.world.factory_set_actual_production(f, fac_type.get_output_amount() * throughput_multiplier * output_multiplier * effective_production_scale);
+	state.world.factory_set_full_profit(f, std::max(0.0f, (output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * effective_production_scale));
 }
 
 void update_single_factory_production(sys::state& state, dcon::factory_id f, dcon::nation_id n, float expected_min_wage) {
@@ -768,17 +766,14 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 
-	auto pop_wages = std::min(pops_max, state.world.province_get_demographics(p,
-																					demographics::to_employment_key(state, is_mine ? state.culture_definitions.laborers
-																																												 : state.culture_definitions.farmers))) *
-									 expected_min_wage / needs_scaling_factor;
+	auto pop_wages = std::min(pops_max, state.world.province_get_demographics(p, demographics::to_employment_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers))) * expected_min_wage / needs_scaling_factor;
 	auto max_profit = max_production * state.world.commodity_get_current_price(state.world.province_get_rgo(p));
 
 	if(max_profit >= pop_wages) {
 		auto new_production_scale = std::min(1.0f, state.world.province_get_rgo_production_scale(p) + production_scale_delta);
 		state.world.province_set_rgo_production_scale(p, new_production_scale);
 	} else {
-		auto new_production_scale = std::max(0.0f, state.world.province_get_rgo_production_scale(p) - production_scale_delta);
+		auto new_production_scale = std::max(0.0f, state.world.province_get_rgo_production_scale(p) - rgo_production_scale_neg_delta);
 		state.world.province_set_rgo_production_scale(p, new_production_scale);
 	}
 	// rgos produce all the way down
@@ -826,7 +821,7 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 	float artisan_pop =
 			std::max(0.01f, state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.artisans)));
 
-	float input_multiplier = std::max(0.1f, 0.75f
+	float input_multiplier = std::max(0.1f, 0.85f
 		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_input)
 		+  state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_input));
 	float throughput_multiplier = std::max(0.1f, 1.0f
@@ -863,7 +858,20 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale);
 		state.world.province_set_artisan_full_profit(p, (output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * max_production_scale);
 	} else {
-		state.world.province_set_artisan_actual_production(p, 0.0f);
+		float scale = (output_total * output_multiplier / (input_multiplier * input_total));
+		assert(std::isfinite(scale));
+
+		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+			if(inputs.commodity_type[i]) {
+				state.world.nation_get_real_demand(n, inputs.commodity_type[i]) +=
+					scale * input_multiplier * throughput_multiplier * max_production_scale * inputs.commodity_amounts[i];
+				assert(std::isfinite(state.world.nation_get_real_demand(n, inputs.commodity_type[i])));
+			} else {
+				break;
+			}
+		}
+
+		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale * scale);
 		state.world.province_set_artisan_full_profit(p, 0.0f);
 	}
 
@@ -1830,8 +1838,13 @@ void daily_update(sys::state& state) {
 
 			auto total_supply = dom_pool + sl_pool + sp_pool + wm_pool;
 
+			constexpr float sat_delay_factor = 0.75f;
+
 			auto rd = state.world.nation_get_real_demand(n, c);
-			state.world.nation_set_demand_satisfaction(n, c, rd > 0.0001f ? std::min(1.0f, total_supply / rd) : 1.0f);
+			auto old_sat = state.world.nation_get_demand_satisfaction(n, c);
+			auto new_sat = rd > 0.0001f ? total_supply / rd : total_supply;
+			auto adj_sat = old_sat * sat_delay_factor + new_sat * (1.0f - sat_delay_factor);
+			state.world.nation_set_demand_satisfaction(n, c, std::min(1.0f, adj_sat));
 
 			if(global_price_multiplier >= 1.0f) { // prefer domestic
 				state.world.nation_set_domestic_market_pool(n, c, std::max(0.0f, dom_pool - rd));
