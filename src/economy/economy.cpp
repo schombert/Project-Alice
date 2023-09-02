@@ -548,16 +548,15 @@ float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, d
 	auto c = state.world.province_get_rgo(p);
 	bool is_mine = state.world.commodity_get_is_mine(c);
 
-	auto val = rgo_effective_size(state, n, p) * state.world.commodity_get_rgo_amount(c) *
-						 (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_throughput) +
+	auto eff_size = rgo_effective_size(state, n, p);
+
+	auto val = eff_size * state.world.commodity_get_rgo_amount(c) *
+						 std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_throughput) +
 								 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_throughput) +
-								 state.world.province_get_modifier_values(p,
-										 is_mine ? sys::provincial_mod_offsets::mine_rgo_eff : sys::provincial_mod_offsets::farm_rgo_eff) +
-								 state.world.nation_get_modifier_values(n,
-										 is_mine ? sys::national_mod_offsets::mine_rgo_eff : sys::national_mod_offsets::farm_rgo_eff)) *
-						 (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
+								 state.world.province_get_modifier_values(p,  is_mine ? sys::provincial_mod_offsets::mine_rgo_eff : sys::provincial_mod_offsets::farm_rgo_eff) +  state.world.nation_get_modifier_values(n,  is_mine ? sys::national_mod_offsets::mine_rgo_eff : sys::national_mod_offsets::farm_rgo_eff))) *
+						std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
 								 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output) +
-								 state.world.nation_get_rgo_goods_output(n, c));
+								 state.world.nation_get_rgo_goods_output(n, c)));
 	return val;
 }
 
@@ -752,6 +751,7 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 		state.world.province_set_rgo_production_scale(p, new_production_scale);
 	}
 	// rgos produce all the way down
+	assert(max_production * state.world.province_get_rgo_employment(p) >= 0);
 	state.world.province_set_rgo_actual_production(p, max_production * state.world.province_get_rgo_employment(p));
 }
 
@@ -759,6 +759,7 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 	auto amount = state.world.province_get_rgo_actual_production(p);
 	auto c = state.world.province_get_rgo(p);
 	state.world.nation_get_domestic_market_pool(n, c) += amount;
+	assert(amount * state.world.commodity_get_current_price(c) >= 0);
 	state.world.province_set_rgo_full_profit(p, amount * state.world.commodity_get_current_price(c));
 
 	if(c == money) {

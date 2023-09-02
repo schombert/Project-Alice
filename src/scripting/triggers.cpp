@@ -2358,7 +2358,7 @@ TRIGGER_FUNCTION(tf_lost_national) {
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_is_vassal) {
-	return compare_to_true(tval[0], ws.world.nation_get_overlord_as_subject(to_nation(primary_slot)) != dcon::overlord_id());
+	return compare_to_true(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(to_nation(primary_slot))) != dcon::nation_id());
 }
 TRIGGER_FUNCTION(tf_ruling_party_ideology_nation) {
 	auto rp = ws.world.nation_get_ruling_party(to_nation(primary_slot));

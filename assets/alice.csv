@@ -1196,4 +1196,10 @@ cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
 kierkegaard_1;Either
 kierkegaard_2;Or
+open_and_sub;Subsidize & Reopen Factory
+o_set_national_flag;Set national flag $text$ for the owner
+o_add_modifier_until;Owner of the province gets $text$ until $date$
+o_add_modifier;Owner of the province gets $text$
+o_relations_with;Owner of the province's relation with $text$
+o_add_to_treasury; for the owner of the province
 ;;;;;;;;;;;;;x

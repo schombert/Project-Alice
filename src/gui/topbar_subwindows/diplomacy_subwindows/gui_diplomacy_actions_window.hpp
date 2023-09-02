@@ -761,7 +761,7 @@ public:
 					text::add_line_with_condition(state, contents, "cancel_w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelwarsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.cancelwarsubsidy_diplomatic_cost));
 				}
 			} else {
-				text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_currency{economy::estimate_war_subsidies(state, target)});
+				text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_one_place{economy::estimate_war_subsidies(state, target)});
 				text::add_line_break_to_layout(state, contents);
 
 				if(state.local_player_nation == target) {
