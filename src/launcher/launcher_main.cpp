@@ -25,6 +25,7 @@
 #include "simple_fs_win.cpp"
 #include "prng.cpp"
 #include "serialization.hpp"
+#include "network.cpp"
 
 namespace launcher {
 
@@ -53,10 +54,12 @@ constexpr inline int32_t ui_obj_list_left = 1;
 constexpr inline int32_t ui_obj_list_right = 2;
 constexpr inline int32_t ui_obj_create_scenario = 3;
 constexpr inline int32_t ui_obj_play_game = 4;
+constexpr inline int32_t ui_obj_host_game = 5;
+constexpr inline int32_t ui_obj_join_game = 6;
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 5;
+constexpr inline int32_t ui_list_first = 7;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -73,7 +76,9 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 26, 208, 21, 93}, // left
 	ui_active_rect{ 511, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
-	ui_active_rect{ 555, 196, 286, 33 }, // play game
+	ui_active_rect{ 555, 196 + 36 * 0, 286, 33 }, // play game
+	ui_active_rect{ 555, 196 + 36 * 1, 286, 33 }, // host game
+	ui_active_rect{ 555, 196 + 36 * 2, 286, 33 }, // join game
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -179,7 +184,7 @@ void create_opengl_context() {
 
 	wglMakeCurrent(window_dc, HGLRC(opengl_context));
 	wglDeleteContext(handle_to_ogl_dc);
-	
+
 	if(wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
 		wglSwapIntervalEXT(-1);
 	} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
@@ -288,7 +293,7 @@ bool nth_item_can_move_down(int32_t n) {
 		return false;
 	if(mod_list[n + 1].mod_selected == false)
 		return false;
-	if(transitively_depends_on(mod_list[n+1], mod_list[n]))
+	if(transitively_depends_on(mod_list[n + 1], mod_list[n]))
 		return false;
 
 	return true;
@@ -311,7 +316,7 @@ native_string produce_mod_path() {
 native_string to_hex(uint64_t v) {
 	native_string ret;
 	constexpr wchar_t digits[] = L"0123456789ABCDEF";
-	
+
 	do {
 		ret += digits[v & 0x0F];
 		v = v >> 4;
@@ -335,7 +340,7 @@ void make_mod_file() {
 
 		auto time_stamp = uint64_t(std::time(0));
 		auto base_name = to_hex(time_stamp);
-		while(simple_fs::peek_file(sdir, base_name + L"-"  + std::to_wstring(append) + L".bin")) {
+		while(simple_fs::peek_file(sdir, base_name + L"-" + std::to_wstring(append) + L".bin")) {
 			++append;
 		}
 
@@ -394,7 +399,7 @@ void mouse_click() {
 		case ui_obj_close:
 			PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
 			return;
-		case ui_obj_list_left :
+		case ui_obj_list_left:
 			if(frame_in_list > 0) {
 				--frame_in_list;
 				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
@@ -413,9 +418,15 @@ void mouse_click() {
 			}
 			return;
 		case ui_obj_play_game:
+		case ui_obj_host_game:
+		case ui_obj_join_game:
 			if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-
 				native_string temp_command_line = native_string(L"Alice.exe ") + selected_scenario_file;
+				if(obj_under_mouse == ui_obj_host_game) {
+					temp_command_line += native_string(L" -host");
+				} else if(obj_under_mouse == ui_obj_join_game) {
+					temp_command_line += native_string(L" -join");
+				}
 				STARTUPINFO si;
 				ZeroMemory(&si, sizeof(si));
 				si.cb = sizeof(si);
@@ -437,8 +448,6 @@ void mouse_click() {
 					CloseHandle(pi.hProcess);
 					CloseHandle(pi.hThread);
 				}
-				
-
 				// ready to launch
 			}
 			return;
@@ -835,7 +844,7 @@ void render() {
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 78.0f, 5.0f, 26.0f, launcher::ogl::color3f{255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f}, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 78.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -869,7 +878,7 @@ void render() {
 				ui_rects[ui_obj_list_right].height,
 				right_tex.get_texture_handle(), ui::rotation::upright, false);
 		} else {
-			launcher::ogl::render_textured_rect( launcher::ogl::color_modification::disabled,
+			launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 				ui_rects[ui_obj_list_right].x,
 				ui_rects[ui_obj_list_right].y,
 				ui_rects[ui_obj_list_right].width,
@@ -904,7 +913,7 @@ void render() {
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
 		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-		
+
 	}
 
 	{
@@ -926,6 +935,18 @@ void render() {
 			ui_rects[ui_obj_play_game].width,
 			ui_rects[ui_obj_play_game].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,//obj_under_mouse == ui_obj_host_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_host_game].x,
+			ui_rects[ui_obj_host_game].y,
+			ui_rects[ui_obj_host_game].width,
+			ui_rects[ui_obj_host_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,//obj_under_mouse == ui_obj_join_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_join_game].x,
+			ui_rects[ui_obj_join_game].y,
+			ui_rects[ui_obj_join_game].width,
+			ui_rects[ui_obj_join_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 			ui_rects[ui_obj_play_game].x,
@@ -933,22 +954,39 @@ void render() {
 			ui_rects[ui_obj_play_game].width,
 			ui_rects[ui_obj_play_game].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_host_game].x,
+			ui_rects[ui_obj_host_game].y,
+			ui_rects[ui_obj_host_game].width,
+			ui_rects[ui_obj_host_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_join_game].x,
+			ui_rects[ui_obj_join_game].y,
+			ui_rects[ui_obj_join_game].width,
+			ui_rects[ui_obj_join_game].height,
+			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
 
 		/*830, 250*/
 		// No scenario file found
 
 		auto xoffset = 830.0f - base_text_extent("No scenario file found", 22, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, 250.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, 220.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
+	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent("Host Game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Host Game", 10, launcher::ogl::color_modification::none, hg_x_pos, 199.0f, ui_rects[ui_obj_host_game].y + 4.f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent("Join Game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Join Game", 10, launcher::ogl::color_modification::none, jg_x_pos, 199.0f, ui_rects[ui_obj_join_game].y + 4.f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
-	
+
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
 	for(int32_t i = 0; i < ui_list_count && list_offset + i < int32_t(mod_list.size()); ++i) {
@@ -1082,7 +1120,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
 				if(desc.count != 0) {
 					max_scenario_count = std::max(desc.count, max_scenario_count);
-					scenario_files.push_back(scenario_file{simple_fs::get_file_name(f) , desc });
+					scenario_files.push_back(scenario_file{ simple_fs::get_file_name(f) , desc });
 				}
 			}
 		}
@@ -1351,4 +1389,3 @@ state::~state() {
 #include "zstd/error_private.c"
 #include "zstd/zstd_decompress.c"
 #include "zstd/zstd_compress.c"
-
