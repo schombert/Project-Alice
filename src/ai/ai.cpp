@@ -3433,6 +3433,10 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 		if(c.get_province() == cap)
 			cls = province_class::border;
 
+		// provinces with high rebel chance will get distributed guards :)
+		if(c.get_province().get_demographics(demographics::militancy) / c.get_province().get_demographics(demographics::total) >= state.defines.mil_to_join_rising)
+			cls = province_class::border;
+
 		for(auto padj : c.get_province().get_province_adjacency()) {
 			auto other = padj.get_connected_provinces(0) == c.get_province() ? padj.get_connected_provinces(1) : padj.get_connected_provinces(0);
 			auto n_controller = other.get_nation_from_province_control();
