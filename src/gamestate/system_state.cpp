@@ -93,8 +93,10 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
 				auto owner = world.province_get_nation_from_province_ownership(prov_id);
-				if(owner)
+				if(owner) {
 					open_diplomacy(owner);
+					state::ui_state.can_move_map_while_visible = false;
+				}
 			}
 		}
 

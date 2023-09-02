@@ -941,6 +941,7 @@ public:
 			state.ui_state.topbar_subwindow = state.ui_state.production_subwindow;
 			send(state, state.ui_state.production_subwindow, production_window_tab::factories);
 			send(state, state.ui_state.production_subwindow, production_selection_wrapper{ sid, true, xy_pair{0, 0} });
+			state.ui_state.can_move_map_while_visible = false;
 		}
 	}
 

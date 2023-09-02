@@ -331,8 +331,12 @@ public:
 class generic_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent)
+		if(parent) {
 			parent->set_visible(state, false);
+			if(!state.ui_state.can_move_map_while_visible) {
+				state.ui_state.can_move_map_while_visible = true;
+			}
+		}
 	}
 };
 
