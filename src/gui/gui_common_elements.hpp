@@ -1092,7 +1092,7 @@ public:
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto tech_id = nations::current_research(state, nation_id);
 		if(bool(tech_id)) {
-			progress = state.world.nation_get_research_points(nation_id) / state.world.technology_get_cost(tech_id);
+			progress = state.world.nation_get_research_points(nation_id) / culture::effective_technology_cost(state, state.current_date.to_ymd(state.start_date).year, state.local_player_nation, tech_id);
 		} else {
 			progress = 0.f;
 		}
