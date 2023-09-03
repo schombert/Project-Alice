@@ -36,8 +36,8 @@ public:
 	void set_pos(glm::vec2 pos);
 
 	// Input methods
-	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod, bool can_move_map_while_visible);
-	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod, bool can_move_map_while_visible);
+	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
+	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
 	void on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount);
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);

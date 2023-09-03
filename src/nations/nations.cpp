@@ -1260,26 +1260,6 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
-	auto pending_offer = state.world.nation_get_peace_offer_from_pending_peace_offer(n);
-	if(pending_offer) {
-		state.world.delete_peace_offer(pending_offer);
-	}
-
-	// drop all wg to/from/secondary this nation
-	std::vector<dcon::wargoal_id> to_delete;
-	for(auto w : state.world.nation_get_war_participant(n)) {
-		for(auto wg : w.get_war().get_wargoals_attached()) {
-			if(wg.get_wargoal().get_target_nation() == n || wg.get_wargoal().get_added_by() == n ||
-					wg.get_wargoal().get_secondary_nation() == n) {
-
-				to_delete.push_back(wg.get_wargoal().id);
-			}
-		}
-	}
-	for(auto wg : to_delete) {
-		state.world.delete_wargoal(wg);
-	}
-
 	auto leaders = state.world.nation_get_leader_loyalty(n);
 	while(leaders.begin() != leaders.end()) {
 		state.world.delete_leader((*leaders.begin()).get_leader());

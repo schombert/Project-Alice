@@ -2354,6 +2354,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ is_crisis_offer }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 relationship{
 	name{ pending_peace_offer }

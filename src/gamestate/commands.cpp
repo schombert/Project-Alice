@@ -2977,6 +2977,7 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 	auto offer = fatten(state.world, state.world.create_peace_offer());
 	offer.set_is_concession(is_concession);
 	offer.set_nation_from_pending_peace_offer(source);
+	offer.set_is_crisis_offer(true);
 
 	if(state.current_crisis == sys::crisis_type::liberation) {
 		if((source == state.primary_crisis_attacker && !is_concession) ||

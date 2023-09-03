@@ -364,7 +364,6 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 
 void update_ticking_war_score(sys::state& state);
-void update_war_cleanup(sys::state& state);
 
 void start_mobilization(sys::state& state, dcon::nation_id n);
 void end_mobilization(sys::state& state, dcon::nation_id n);
@@ -402,6 +401,7 @@ void increase_dig_in(sys::state& state);
 void recover_org(sys::state& state);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
+void run_gc(sys::state& state);
 
 bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);

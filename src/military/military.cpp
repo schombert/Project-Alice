@@ -2472,6 +2472,10 @@ void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_atta
 */
 
 void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_loss) {
+	for(auto vas : state.world.nation_get_overlord_as_ruler(n)) {
+		remove_from_war(state, w, vas.get_subject(), as_loss);
+	}
+
 	dcon::war_participant_id par;
 	for(auto p : state.world.nation_get_war_participant(n)) {
 		if(p.get_war() == w) {
@@ -2482,10 +2486,6 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 
 	if(!par)
 		return;
-
-	for(auto vas : state.world.nation_get_overlord_as_ruler(n)) {
-		remove_from_war(state, w, vas.get_subject(), as_loss);
-	}
 
 	/*
 	When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by
@@ -2510,20 +2510,13 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 
 	float pop_militancy = 0.0f;
 
-	std::vector<dcon::wargoal_id> rem_wargoals;
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		if(wg.get_wargoal().get_added_by() == n) {
-			rem_wargoals.push_back(wg.get_wargoal().id);
-
 			float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base, state.defines.war_failed_goal_prestige * nations::prestige_score(state, n)) * wg.get_wargoal().get_type().get_penalty_factor();
 			nations::adjust_prestige(state, n, prestige_loss);
 
 			pop_militancy += state.defines.war_failed_goal_militancy * wg.get_wargoal().get_type().get_penalty_factor();
 		}
-	}
-
-	for(auto g : rem_wargoals) {
-		state.world.delete_wargoal(g);
 	}
 
 	if(pop_militancy > 0) {
@@ -2593,17 +2586,6 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 		} else {
 			remove_from_war(state, w, (*par.begin()).get_nation(), result == war_result::attacker_won);
 		}
-	}
-
-	// NOTE: we don't do this in case any of the peace offers are in flight
-	// auto po = state.world.war_get_war_settlement(w);
-	// while(po.begin() != po.end()) {
-	//	state.world.delete_peace_offer((*po.begin()).get_peace_offer());
-	//}
-
-	auto wg = state.world.war_get_wargoals_attached(w);
-	while(wg.begin() != wg.end()) {
-		state.world.delete_wargoal((*wg.begin()).get_wargoal());
 	}
 
 	auto nbattles = state.world.war_get_naval_battle_in_war(w);
@@ -2973,6 +2955,104 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	nations::adjust_prestige(state, target, -prestige_gain);
 }
 
+void run_gc(sys::state& state) {
+
+	//
+	// peace offers from dead nations
+	//
+
+	auto remove_pending_offer = [&](dcon::peace_offer_id id) {
+		for(auto& m : state.pending_messages) {
+			if(m.type == diplomatic_message::type::peace_offer && m.data.peace == id) {
+				m.type = diplomatic_message::type::none;
+				return;
+			}
+		}
+	};
+	for(auto po : state.world.in_peace_offer) {
+		if(!po.get_nation_from_pending_peace_offer()) {
+			remove_pending_offer(po);
+			state.world.delete_peace_offer(po);
+		} else if(!po.get_war_from_war_settlement() && !po.get_is_crisis_offer()) {
+			remove_pending_offer(po);
+			state.world.delete_peace_offer(po);
+		} else if(state.current_crisis == sys::crisis_type::none && po.get_is_crisis_offer()) {
+			remove_pending_offer(po);
+			state.world.delete_peace_offer(po);
+		}
+	}
+
+	//
+	// war goals from nations that have left the war
+	//
+
+	static std::vector<dcon::wargoal_id> to_delete;
+	to_delete.clear();
+	for(auto w : state.world.in_war) {
+		for(auto wg : w.get_wargoals_attached()) {
+			if(get_role(state, w, wg.get_wargoal().get_added_by()) == war_role::none || get_role(state, w, wg.get_wargoal().get_target_nation()) == war_role::none)
+				to_delete.push_back(wg.get_wargoal());
+		}
+	}
+	for(auto g : to_delete)
+		state.world.delete_wargoal(g);
+
+	// TODO
+	// Find war leaders if a nation has left the war and / or end war
+	//
+	for(auto w : state.world.in_war) {
+		if(get_role(state, w, w.get_primary_attacker()) == war_role::none) {
+			int32_t best_rank = 0;
+			dcon::nation_id n;
+			for(auto par : w.get_war_participant()) {
+				if(par.get_is_attacker()) {
+					if(!n || par.get_nation().get_rank() < best_rank) {
+						best_rank = par.get_nation().get_rank();
+						n = par.get_nation();
+					}
+				}
+			}
+			if(!n) {
+				cleanup_war(state, w, military::war_result::draw);
+				continue;
+			}
+			w.set_primary_attacker(n);
+		}
+		if(get_role(state, w, w.get_primary_defender()) == war_role::none) {
+			int32_t best_rank = 0;
+			dcon::nation_id n;
+			for(auto par : w.get_war_participant()) {
+				if(!par.get_is_attacker()) {
+					if(!n || par.get_nation().get_rank() < best_rank) {
+						best_rank = par.get_nation().get_rank();
+						n = par.get_nation();
+					}
+				}
+			}
+			if(!n) {
+				cleanup_war(state, w, military::war_result::draw);
+				continue;
+			}
+			w.set_primary_defender(n);
+		}
+		auto wg_range = w.get_wargoals_attached();
+		if(wg_range.begin() == wg_range.end()) {
+			cleanup_war(state, w, military::war_result::draw);
+		}
+	}
+
+
+	//
+	// wargoals that do not belong to a peace offer or war
+	//
+	for(auto wg : state.world.in_wargoal) {
+		auto po = wg.get_peace_offer_from_peace_offer_item();
+		auto wr = wg.get_war_from_wargoals_attached();
+		if(!po && !wr)
+			state.world.delete_wargoal(wg);
+	}
+}
+
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	dcon::nation_id from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
 	dcon::nation_id target = state.world.peace_offer_get_target(offer);
@@ -3017,15 +3097,10 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 		});
 	}
 
-	auto wg_range = state.world.peace_offer_get_peace_offer_item(offer);
-	while(wg_range.begin() != wg_range.end()) {
-		auto wg_offered = *(wg_range.begin());
+	for(auto wg_offered : state.world.peace_offer_get_peace_offer_item(offer)) {
 		auto wg = wg_offered.get_wargoal();
 		implement_war_goal(state, state.world.peace_offer_get_war_from_war_settlement(offer), wg.get_type(),
 				wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
-
-		if(state.world.wargoal_is_valid(wg)) // prevent double deletion if the nation has been killed, thereby deleting the wargoal
-			state.world.delete_wargoal(wg);
 	}
 
 	if(war) {
@@ -3378,15 +3453,6 @@ void update_ticking_war_score(sys::state& state) {
 		wg.get_ticking_war_score() =
 				std::clamp(wg.get_ticking_war_score(), -state.defines.tws_cb_limit_default, state.defines.tws_cb_limit_default);
 	}
-}
-
-void update_war_cleanup(sys::state& state) {
-	state.world.for_each_war([&](dcon::war_id w) {
-		if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(w)) == 0)
-			military::cleanup_war(state, w, military::war_result::defender_won);
-		if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(w)) == 0)
-			military::cleanup_war(state, w, military::war_result::attacker_won);
-	});
 }
 
 float primary_warscore(sys::state& state, dcon::war_id w) {

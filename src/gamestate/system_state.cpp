@@ -295,11 +295,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
 			}
-			if(state::ui_state.topbar_subwindow->is_visible()) {
-				map_state.on_key_down(keycode, mod, false);
-			} else {
-				map_state.on_key_down(keycode, mod, true);
-			}
+
+			map_state.on_key_down(keycode, mod);
 		}
 	} else if(mode == sys::game_mode_type::end_screen) {
 
@@ -316,10 +313,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
 				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
-			if(state::ui_state.topbar_subwindow->is_visible()) {
-				map_state.on_key_down(keycode, mod, false);
-			} else {
-				map_state.on_key_down(keycode, mod, true);
+			if(!ui_state.topbar_subwindow->is_visible()) {
+				map_state.on_key_down(keycode, mod);
 			}
 
 			if(keycode == sys::virtual_key::LEFT || keycode == sys::virtual_key::RIGHT || keycode == sys::virtual_key::UP || keycode == sys::virtual_key::DOWN) {
@@ -332,11 +327,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	}
 }
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-	if(state::ui_state.topbar_subwindow->is_visible()) {
-		map_state.on_key_up(keycode, mod, false);
-	} else {
-		map_state.on_key_up(keycode, mod, true);
-	}
+	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
@@ -3174,7 +3165,6 @@ void state::single_game_tick() {
 		}
 	});
 
-	military::update_war_cleanup(*this);
 	economy::daily_update(*this);
 
 	military::update_siege_progress(*this);
@@ -3333,6 +3323,7 @@ void state::single_game_tick() {
 
 	ai::general_ai_unit_tick(*this);
 
+	military::run_gc(*this);
 	ai::daily_cleanup(*this);
 
 	/*
