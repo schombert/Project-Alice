@@ -2284,7 +2284,6 @@ void update_crisis(sys::state& state) {
 		state.crisis_temperature += state.defines.crisis_temperature_increase * state.defines.crisis_temperature_participant_factor *
 																float(participants) / float(total);
 
-		// TODO: start crisis war at temperature 100; set mode to none
 		if(state.crisis_temperature >= 100) {
 			dcon::war_id war;
 			if(state.current_crisis == sys::crisis_type::liberation) {

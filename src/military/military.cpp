@@ -2638,6 +2638,8 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 
 	if(!nations::is_great_power(state, new_gp))
 		return;
+	if(state.world.nation_get_owned_province_count(member))
+		return;
 
 	auto nrel = state.world.get_gp_relationship_by_gp_influence_pair(member, new_gp);
 	if(!nrel) {
@@ -2699,8 +2701,10 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
 			nations::release_vassal(state, sub);
 		}
-		nations::make_vassal(state, target, from);
-		take_from_sphere(state, target, from);
+		if(state.world.nation_get_owned_province_count(target) > 0) {
+			nations::make_vassal(state, target, from);
+			take_from_sphere(state, target, from);
+		}
 	}
 
 	// po_destory_forts: reduces fort levels to zero in any targeted states
@@ -2746,24 +2750,29 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// war again.
 	if((bits & cb_flag::po_disarmament) != 0) {
 		// TODO: destroy units
-		state.world.nation_set_disarmed_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
+		if(state.world.nation_get_owned_province_count(target) > 0)
+			state.world.nation_set_disarmed_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
 	}
 
 	// po_reparations: the nation is set to pay reparations for define:REPARATIONS_YEARS
 	if((bits & cb_flag::po_reparations) != 0) {
-		state.world.nation_set_reparations_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
-		auto urel = state.world.get_unilateral_relationship_by_unilateral_pair(target, from);
-		if(!urel) {
-			urel = state.world.force_create_unilateral_relationship(target, from);
+		if(state.world.nation_get_owned_province_count(target) > 0) {
+			state.world.nation_set_reparations_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
+			auto urel = state.world.get_unilateral_relationship_by_unilateral_pair(target, from);
+			if(!urel) {
+				urel = state.world.force_create_unilateral_relationship(target, from);
+			}
+			state.world.unilateral_relationship_set_reparations(urel, true);
 		}
-		state.world.unilateral_relationship_set_reparations(urel, true);
 	}
 
 	// po_remove_prestige: the target loses (current-prestige x define:PRESTIGE_REDUCTION) + define:PRESTIGE_REDUCTION_BASE
 	// prestige
 	if((bits & cb_flag::po_remove_prestige) != 0) {
-		nations::adjust_prestige(state, target,
-				-(state.defines.prestige_reduction * nations::prestige_score(state, target) + state.defines.prestige_reduction_base));
+		if(state.world.nation_get_owned_province_count(target) > 0) {
+			nations::adjust_prestige(state, target,
+					-(state.defines.prestige_reduction * nations::prestige_score(state, target) + state.defines.prestige_reduction_base));
+		}
 	}
 
 	// po_install_communist_gov: The target switches its government type and ruling ideology (if possible) to that of the nation
@@ -2771,17 +2780,21 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// sphere and enters the actor's sphere if it is a GP. If the war continues, the war leader on the opposite side gains the
 	// appropriate `counter_wargoal_on_install_communist_gov` CB, if any and allowed by the conditions of that CB.
 	if((bits & cb_flag::po_install_communist_gov_type) != 0) {
-		politics::change_government_type(state, target, state.world.nation_get_government_type(from));
-		politics::force_ruling_party_ideology(state, target,
-				state.world.political_party_get_ideology(state.world.nation_get_ruling_party(from)));
-		take_from_sphere(state, target, from);
+		if(state.world.nation_get_owned_province_count(target) > 0) {
+			politics::change_government_type(state, target, state.world.nation_get_government_type(from));
+			politics::force_ruling_party_ideology(state, target,
+					state.world.political_party_get_ideology(state.world.nation_get_ruling_party(from)));
+			take_from_sphere(state, target, from);
+		}
 	}
 
 	// po_uninstall_communist_gov_type: The target switches its government type to that of the nation that added the war goal. The
 	// nation leaves its current sphere and enters the actor's sphere if it is a GP.
 	if((bits & cb_flag::po_uninstall_communist_gov_type) != 0) {
-		politics::change_government_type(state, target, state.world.nation_get_government_type(from));
-		take_from_sphere(state, target, from);
+		if(state.world.nation_get_owned_province_count(target) > 0) {
+			politics::change_government_type(state, target, state.world.nation_get_government_type(from));
+			take_from_sphere(state, target, from);
+		}
 	}
 
 	// po_colony: colonization finishes, with the adder of the war goal getting the colony and all other colonizers being kicked
@@ -2951,8 +2964,10 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// base-prestige-for-that-tag v (nations-current-prestige x prestige-for-that-tag) and then multiplying the result by the CB's
 	// prestige factor. The nation that was targeted by the war goal also loses that much prestige.
 	float prestige_gain = successful_cb_prestige(state, wargoal, from) * (war ? 1.0f : state.defines.crisis_wargoal_prestige_mult);
-	nations::adjust_prestige(state, from, prestige_gain);
-	nations::adjust_prestige(state, target, -prestige_gain);
+	if(state.world.nation_get_owned_province_count(from) > 0)
+		nations::adjust_prestige(state, from, prestige_gain);
+	if(state.world.nation_get_owned_province_count(target) > 0)
+		nations::adjust_prestige(state, target, -prestige_gain);
 }
 
 void run_gc(sys::state& state) {
@@ -3035,10 +3050,17 @@ void run_gc(sys::state& state) {
 			}
 			w.set_primary_defender(n);
 		}
-		auto wg_range = w.get_wargoals_attached();
-		if(wg_range.begin() == wg_range.end()) {
-			cleanup_war(state, w, military::war_result::draw);
+		bool non_sq_war_goal = false;
+		for(auto wg : w.get_wargoals_attached()) {
+			if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0) {
+				// ignore status quo
+			} else {
+				non_sq_war_goal = true;
+				break;
+			}
 		}
+		if(!non_sq_war_goal)
+			cleanup_war(state, w, military::war_result::draw);
 	}
 
 
@@ -3104,9 +3126,6 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	}
 
 	if(war) {
-		// Nothing to implement, war should be already cleaned up
-		if(state.world.nation_get_owned_province_count(from) == 0 || state.world.nation_get_owned_province_count(target) == 0)
-			return;
 		
 		if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
 			if(state.world.war_get_is_great(war)) {
