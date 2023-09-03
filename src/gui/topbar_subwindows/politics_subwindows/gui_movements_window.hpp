@@ -165,8 +165,7 @@ public:
 
 class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_faction_id> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents,
-			dcon::rebel_faction_id rebel_faction_id) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};

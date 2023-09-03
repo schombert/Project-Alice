@@ -2850,6 +2850,24 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	nations::monthly_flashpoint_update(*this);
 
+	//
+	// clear any pending messages from previously loaded saves
+	//
+	while(!new_n_event.empty())
+		new_n_event.pop();
+	while(!new_f_n_event.empty())
+		new_f_n_event.pop();
+	while(!new_p_event.empty())
+		new_p_event.pop();
+	while(!new_f_p_event.empty())
+		new_f_p_event.pop();
+	while(!new_requests.empty())
+		new_requests.pop();
+	while(!naval_battle_reports.empty())
+		naval_battle_reports.pop();
+	while(!land_battle_reports.empty())
+		land_battle_reports.pop();
+
 	if(local_player_nation) {
 		world.nation_set_is_player_controlled(local_player_nation, true);
 		// reshow pending events, messages, etc

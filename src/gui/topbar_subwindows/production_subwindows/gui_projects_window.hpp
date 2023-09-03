@@ -178,7 +178,12 @@ public:
 			input_listbox->update(state);
 		}
 
-		float purchased_cost = get_cost(state, satisfied_commodities);
+		float purchased_cost = 0.0f;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			dcon::commodity_id cid = needed_commodities.commodity_type[i];
+			if(bool(cid))
+				purchased_cost += state.world.commodity_get_current_price(cid) * satisfied_commodities.commodity_amounts[i];
+		}
 		float total_cost = get_cost(state, needed_commodities);
 		cost_text->set_text(state, text::format_money(purchased_cost) + "/" + text::format_money(total_cost));
 	}
