@@ -103,7 +103,9 @@ void generate_national_artisan_prefs(sys::state& state, dcon::nation_id owner, s
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		auto kf = state.world.commodity_get_key_factory(cid);
-		if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(owner, kf))) {
+		if(state.world.commodity_get_artisan_output_amount(cid) > 0
+			&& (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(owner, kf)))) {
+
 			feasible.push_back(cid);
 
 			auto& inputs = state.world.commodity_get_artisan_inputs(cid);
@@ -821,7 +823,7 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 	float artisan_pop =
 			std::max(0.01f, state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.artisans)));
 
-	float input_multiplier = std::max(0.1f, 0.85f
+	float input_multiplier = std::max(0.1f, 0.9f
 		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_artisan_input)
 		+  state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_input));
 	float throughput_multiplier = std::max(0.1f, 1.0f

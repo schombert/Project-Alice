@@ -1202,4 +1202,7 @@ o_add_modifier_until;Owner of the province gets $text$ until $date$
 o_add_modifier;Owner of the province gets $text$
 o_relations_with;Owner of the province's relation with $text$
 o_add_to_treasury; for the owner of the province
+w_rgo_prod;Global RGO production: $x$
+w_artisan_prod;Global artisan production: $x$
+w_fac_prod;Global factory production: $x$
 ;;;;;;;;;;;;;x
