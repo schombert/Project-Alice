@@ -1234,25 +1234,21 @@ object {
 		type{ text_sequence_id }
 		tag{ save }
 	}
-
 	property{
 		name{ continent }
 		type{ modifier_id }
 		tag{ scenario }
 	}
-
 	property{
 		name{ climate }
 		type{ modifier_id }
 		tag{ scenario }
 	}
-
 	property{
 		name{ terrain }
 		type{ modifier_id }
 		tag{ save }
 	}
-
 	property{
 		name{ life_rating }
 		type{ uint8_t }

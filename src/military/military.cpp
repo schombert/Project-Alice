@@ -408,6 +408,9 @@ template<typename T>
 auto province_is_under_siege(sys::state const& state, T ids) {
 	return state.world.province_get_siege_progress(ids) > 0.0f;
 }
+bool province_is_under_siege(sys::state const& state, dcon::province_id ids) {
+	return state.world.province_get_siege_progress(ids) > 0.0f;
+}
 
 template<typename T>
 auto battle_is_ongoing_in_province(sys::state const& state, T ids) {

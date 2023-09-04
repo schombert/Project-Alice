@@ -1062,22 +1062,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			if(!nations::is_great_power(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
-			} else if(state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_loosinggpstatus"),
-						text::substitution_map{});
-			} else if(state.world.nation_get_rank(nation_id) <= uint16_t(state.defines.great_nations_count)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_loosinggpstatus"),
-						text::substitution_map{});
-			}
-			text::close_layout_box(contents, box);
+		if(!nations::is_great_power(state, state.local_player_nation)) {
+			text::add_line(state, contents, "countryalert_no_gpstatus");
+		} else if(state.world.nation_get_rank(state.local_player_nation) > uint16_t(state.defines.great_nations_count)) {
+			text::add_line(state, contents, "alice_lose_gp");
+		} else if(state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.great_nations_count)) {
+			text::add_line(state, contents, "countryalert_no_loosinggpstatus");
 		}
 	}
 };

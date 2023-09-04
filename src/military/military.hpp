@@ -265,6 +265,8 @@ template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids);
 template<typename T>
 auto province_is_under_siege(sys::state const& state, T ids);
+bool province_is_under_siege(sys::state const& state, dcon::province_id ids);
+
 template<typename T>
 auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 

@@ -49,6 +49,7 @@ float get_voter_support(sys::state& state, dcon::nation_id nation, dcon::issue_o
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id nation) {
 	auto fat_id = dcon::fatten(state.world, nation);
 	auto gov_type_id = fat_id.get_government_type();
+	assert(!gov_type_id || uint32_t(gov_type_id.index()) < state.culture_definitions.governments.size());
 	if(gov_type_id)
 		return state.culture_definitions.governments[gov_type_id].can_appoint_ruling_party;
 	else
@@ -63,6 +64,7 @@ bool is_election_ongoing(sys::state& state, dcon::nation_id nation) {
 bool has_elections(sys::state& state, dcon::nation_id nation) {
 	auto fat_id = dcon::fatten(state.world, nation);
 	auto gov_type_id = fat_id.get_government_type();
+	assert(!gov_type_id || uint32_t(gov_type_id.index()) < state.culture_definitions.governments.size());
 	if(gov_type_id)
 		return state.culture_definitions.governments[gov_type_id].has_elections;
 	else
@@ -342,6 +344,7 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	auto ident = state.world.nation_get_identity_from_identity_holder(id);
 	auto gov_id = state.world.nation_get_government_type(id);
+	assert(!gov_id || uint32_t(gov_id.index()) < state.culture_definitions.governments.size());
 	if(gov_id)
 		state.world.nation_set_name(id, state.world.national_identity_get_government_name(ident, gov_id));
 	else
@@ -353,6 +356,7 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type) {
 	auto old_gov = state.world.nation_get_government_type(n);
 	if(old_gov != new_type) {
+		assert(!new_type || uint32_t(new_type.index()) < state.culture_definitions.governments.size());
 		state.world.nation_set_government_type(n, new_type);
 
 		if((state.culture_definitions.governments[new_type].ideologies_allowed &

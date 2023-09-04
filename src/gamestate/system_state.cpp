@@ -2817,6 +2817,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 
 	military::reset_unit_stats(*this);
+	culture::clear_existing_tech_effects(*this);
 	culture::repopulate_technology_effects(*this);
 	culture::repopulate_invention_effects(*this);
 	military::apply_base_unit_stat_modifiers(*this);

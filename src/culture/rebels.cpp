@@ -184,7 +184,7 @@ void update_pop_movement_membership(sys::state& state) {
 		if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
 			return;
 		// pops in rebel factions don't join movements
-		if(state.world.pop_get_pop_rebellion_membership(p))
+		if(state.world.pop_get_rebel_faction_from_pop_rebellion_membership(p))
 			return;
 
 		auto pop_location = state.world.pop_get_province_from_pop_location(p);
@@ -192,33 +192,29 @@ void update_pop_movement_membership(sys::state& state) {
 		if(state.world.province_get_is_colonial(pop_location))
 			return;
 
-		auto existing_movement = state.world.pop_get_pop_movement_membership(p);
+		auto existing_movement = state.world.pop_get_movement_from_pop_movement_membership(p);
 		auto mil = state.world.pop_get_militancy(p);
 
 		// -Pops with define : MIL_TO_JOIN_REBEL or greater militancy cannot join a movement
 		if(mil >= state.defines.mil_to_join_rebel) {
-			if(existing_movement) {
-				state.world.movement_get_pop_support(state.world.pop_movement_membership_get_movement(existing_movement)) -=
-						state.world.pop_get_size(p);
-				state.world.delete_pop_movement_membership(existing_movement);
-			}
+			remove_pop_from_movement(state, p);
 			return;
 		}
 		if(existing_movement) {
 			auto i =
-					state.world.movement_get_associated_issue_option(state.world.pop_movement_membership_get_movement(existing_movement));
+					state.world.movement_get_associated_issue_option(existing_movement);
 			if(i) {
 				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i));
 				if(support * 100.0f < state.defines.issue_movement_leave_limit) {
 					// If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT
 					// the pop will leave the movement.
-					state.world.delete_pop_movement_membership(existing_movement);
+					remove_pop_from_movement(state, p);
 					return;
 				}
 			} else if(mil < state.defines.nationalist_movement_mil_cap) {
 				// If the pop's militancy falls below define:NATIONALIST_MOVEMENT_MIL_CAP, the pop will leave an independence
 				// movement.
-				state.world.delete_pop_movement_membership(existing_movement);
+				remove_pop_from_movement(state, p);
 				return;
 			}
 			// pop still remains in movement, no more work to do
@@ -853,6 +849,13 @@ void rebel_risings_check(sys::state& state) {
 						damage_fraction = 1.0f;
 
 						damage_pops_on_rebel_victory(state, p);
+
+						if(auto swt = rf.get_type().get_siege_won_trigger(); !swt || trigger::evaluate(state, swt, trigger::to_generic(p), trigger::to_generic(faction_owner.id), trigger::to_generic(rf.id))) {
+							auto swe = rf.get_type().get_siege_won_effect();
+							if(swe) {
+								effect::execute(state, swe, trigger::to_generic(p), trigger::to_generic(faction_owner.id), trigger::to_generic(rf.id), uint32_t(state.current_date.value), uint32_t((rf.id.index() << 3) ^ p.index()));
+							}
+						}
 						state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
 						state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
 						state.world.province_set_last_control_change(p, state.current_date);

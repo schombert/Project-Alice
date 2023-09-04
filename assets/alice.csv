@@ -363,7 +363,7 @@ set_globally;set globally;;;;;;;;;;;;x
 national_value;national value;;;;;;;;;;;;x
 industrial_score;industrial score;;;;;;;;;;;;x
 industrial_score_of;the industrial score of;;;;;;;;;;;;x
-military_score;military score;;;;;;;;;;;;x
+alice_military_score;military score;;;;;;;;;;;;x
 military_score_of;the military score of;;;;;;;;;;;;x
 civilized;civilized;;;;;;;;;;;;x
 percent_occupied;percentage of occupied provinces;;;;;;;;;;;;x
@@ -1205,4 +1205,11 @@ o_add_to_treasury; for the owner of the province
 w_rgo_prod;Global RGO production: $x$
 w_artisan_prod;Global artisan production: $x$
 w_fac_prod;Global factory production: $x$
+alice_lose_gp;We are losing §YGreat Power§W status!
+fort_build_tt_1;The province is under your control
+fort_build_tt_2;The province is not under siege
+fort_build_tt_3;The current level, $x$, plus the province's difficulty level, $n$, is less than your current max level, $y$
+nb_build_tt_1;The province is coastal
+nb_build_tt_2;No other naval base has been built or is under construction in the state
+rr_build_tt_1;Our ruling party allows the government to construct rail roads
 ;;;;;;;;;;;;;x

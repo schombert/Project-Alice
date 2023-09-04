@@ -3407,7 +3407,7 @@ uint32_t ef_consciousness(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "consciousness", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+	display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
