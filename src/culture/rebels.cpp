@@ -367,7 +367,7 @@ bool pop_is_compatible_with_rebel_faction(sys::state& state, dcon::pop_id p, dco
 	if(fac.get_primary_culture_group() &&
 			fac.get_primary_culture_group() != pop.get_culture().get_group_from_culture_group_membership())
 		return false;
-	if(fac.get_type().get_ideology() && fac.get_type().get_ideology() != pop.get_dominant_ideology())
+	if(fac.get_type().get_ideology() && fac.get_type().get_ideology_restriction() && fac.get_type().get_ideology() != pop.get_dominant_ideology())
 		return false;
 	if(fac.get_defection_target()) {
 		if(pop.get_is_primary_or_accepted_culture())

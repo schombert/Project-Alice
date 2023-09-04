@@ -1700,7 +1700,7 @@ rebel_body
 	allow_all_cultures              value      bool                              member_fn
 	allow_all_culture_groups        value      bool                              member_fn
 	allow_all_religions             value      bool                              discard
-	allow_all_ideologies            value      bool                              discard
+	allow_all_ideologies            value      bool                              member_fn
 	resilient                       value      bool                              discard
 	reinforcing                     value      bool                              discard
 	general                         value      bool                              discard

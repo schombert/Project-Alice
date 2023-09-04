@@ -2066,7 +2066,9 @@ void rebel_body::ideology(association_type, std::string_view value, error_handle
 void rebel_body::allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
 	context.outer_context.state.world.rebel_type_set_culture_restriction(context.id, !value);
 }
-
+void rebel_body::allow_all_ideologies(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
+	context.outer_context.state.world.rebel_type_set_ideology_restriction(context.id, !value);
+}
 void rebel_body::allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line,
 		rebel_context& context) {
 	context.outer_context.state.world.rebel_type_set_culture_group_restriction(context.id, !value);

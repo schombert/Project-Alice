@@ -2052,6 +2052,7 @@ struct rebel_body {
 	void defect_delay(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context);
 	void ideology(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context);
 	void allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
+	void allow_all_ideologies(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
 	void allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
 	void occupation_mult(association_type, float value, error_handler& err, int32_t line, rebel_context& context);
 	void will_rise(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context);

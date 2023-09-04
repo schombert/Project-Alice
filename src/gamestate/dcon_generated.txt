@@ -1171,6 +1171,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ ideology_restriction }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ culture_group_restriction }
 		type{ bitfield }
 		tag{ scenario }
