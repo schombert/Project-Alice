@@ -1105,7 +1105,28 @@ public:
 		}
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto tech_id = nations::current_research(state, nation_id);
+		return (type == mouse_probe_type::tooltip && bool(tech_id)) ? message_result::consumed : message_result::unseen;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto tech_id = nations::current_research(state, nation_id);
+
+		if(tech_id) {
+			text::add_line(state, contents, "technologyview_research_tooltip",
+				text::variable_type::tech, state.world.technology_get_name(tech_id),
+				text::variable_type::date, nations::get_research_end_date(state, tech_id, nation_id));
+			text::add_line(state, contents, "technologyview_research_invested_tooltip",
+				text::variable_type::invested, int64_t(state.world.nation_get_research_points(nation_id)),
+				text::variable_type::cost, int64_t(culture::effective_technology_cost(state, state.ui_date.to_ymd(state.start_date).year, nation_id, tech_id)));
+		} else {
+			text::add_line(state, contents, "technologyview_no_research_tooltip");
+		}
 	}
 };
 
