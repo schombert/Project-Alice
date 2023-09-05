@@ -308,10 +308,9 @@ public:
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		text::add_line(state, contents, state.world.commodity_get_name(com));
 		text::add_line_break_to_layout(state, contents);
-		text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_three_places{ state.world.commodity_get_total_real_demand(com) });
-		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_three_places{ state.world.commodity_get_total_production(com) });
-		text::add_line(state, contents, "trade_commodity_report_3", text::variable_type::x, text::fp_three_places{ state.world.commodity_get_total_consumption(com) });
-		text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_three_places{ state.world.commodity_get_global_market_pool(com) });
+		text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_real_demand(com) });
+		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_production(com) });
+		text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_global_market_pool(com) });
 
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "trade_top_producers");
