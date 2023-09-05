@@ -41,19 +41,12 @@ public:
 class movements_option : public listbox_row_element_base<dcon::movement_id> {
 private:
 	flag_button* nationalist_flag = nullptr;
-	movement_nationalist_name_text* nationalist_name = nullptr;
-	movement_issue_name_text* issue_name = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
-			auto ptr = make_element_by_type<movement_issue_name_text>(state, id);
-			issue_name = ptr.get();
-			return ptr;
+			return make_element_by_type<movement_issue_name_text>(state, id);
 		} else if(name == "nationalist_name") {
-			auto ptr = make_element_by_type<movement_nationalist_name_text>(state, id);
-			nationalist_name = ptr.get();
-			return ptr;
+			return make_element_by_type<movement_nationalist_name_text>(state, id);
 		} else if(name == "flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
 			nationalist_flag = ptr.get();
@@ -72,12 +65,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.world.movement_get_associated_independence(content)) {
 			nationalist_flag->set_visible(state, true);
-			nationalist_name->set_visible(state, true);
-			issue_name->set_visible(state, false);
 		} else {
 			nationalist_flag->set_visible(state, false);
-			nationalist_name->set_visible(state, false);
-			issue_name->set_visible(state, true);
 		}
 	}
 
@@ -92,9 +81,6 @@ public:
 };
 
 class movements_list : public listbox_element_base<movements_option, dcon::movement_id> {
-private:
-	dcon::nation_id nation_id{};
-
 protected:
 	std::string_view get_row_element_name() override {
 		return "movement_entry";
@@ -103,20 +89,10 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto movement : state.world.nation_get_movement_within(nation_id)) {
+		for(auto movement : state.world.nation_get_movement_within(state.local_player_nation)) {
 			row_contents.push_back(movement.get_movement().id);
 		}
 		update(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
 	}
 };
 

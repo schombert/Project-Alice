@@ -375,11 +375,15 @@ public:
 	}
 };
 
-class movement_issue_name_text : public standard_movement_text {
+class movement_issue_name_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
-		auto issue = state.world.movement_get_associated_issue_option(movement_id);
-		return text::produce_simple_string(state, issue.get_movement_name());
+	void on_update(sys::state& state) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto issue = state.world.movement_get_associated_issue_option(mid);
+		if(issue)
+			set_text(state, text::produce_simple_string(state, issue.get_movement_name()));
+		else
+			set_text(state, "");
 	}
 };
 
@@ -401,6 +405,9 @@ public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, movement_id);
 		auto independence_target = fat_id.get_associated_independence();
+		if(!independence_target)
+			return;
+
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
 		if(independence_target.get_cultural_union_of().id) {

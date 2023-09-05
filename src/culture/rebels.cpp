@@ -34,7 +34,8 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 	state.world.execute_serial_over_movement([&](auto ids) { state.world.movement_set_pop_support(ids, ve::fp_vector()); });
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		if(auto m = state.world.pop_get_movement_from_pop_movement_membership(p); m) {
-			state.world.movement_get_pop_support(m) += state.world.pop_get_size(p);
+			auto i = state.world.movement_get_associated_issue_option(m);
+			state.world.movement_get_pop_support(m) += state.world.pop_get_size(p) * (i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) : 1.0f);
 		}
 	});
 
@@ -86,24 +87,29 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 		auto host_pculture = state.world.nation_get_primary_culture(host_nations);
 		auto host_cradicalism = ve::to_float(state.world.culture_get_radicalism(host_pculture));
 
-		auto new_radicalism = state.world.movement_get_transient_radicalism(ids) + state.defines.movement_radicalism_base +
-													nation_reform_count.get(host_nations) * state.defines.movement_radicalism_passed_reform_effect +
-													host_cradicalism + host_max_nationalism * state.defines.movement_radicalism_nationalism_factor +
-													state.defines.population_movement_radical_factor * state.world.movement_get_pop_support(ids) /
-															state.world.nation_get_non_colonial_population(host_nations);
+		auto ref_effect = nation_reform_count.get(host_nations) * state.defines.movement_radicalism_passed_reform_effect;
+		auto nat_effect = host_max_nationalism * state.defines.movement_radicalism_nationalism_factor;
+		auto mov_support = state.world.movement_get_pop_support(ids);
+		auto non_c_pop = state.world.nation_get_non_colonial_population(host_nations);
+		auto support_effect = state.defines.population_movement_radical_factor * mov_support / non_c_pop;
+
+		auto new_radicalism = state.world.movement_get_transient_radicalism(ids) + state.defines.movement_radicalism_base
+			+ ref_effect + host_cradicalism + nat_effect + support_effect;
 		state.world.movement_set_radicalism(ids, new_radicalism);
 	});
 }
 
 void add_pop_to_movement(sys::state& state, dcon::pop_id p, dcon::movement_id m) {
 	remove_pop_from_movement(state, p);
-	state.world.movement_get_pop_support(m) += state.world.pop_get_size(p);
+	auto i = state.world.movement_get_associated_issue_option(m);
+	state.world.movement_get_pop_support(m) += state.world.pop_get_size(p) * (i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) : 1.0f);
 	state.world.try_create_pop_movement_membership(p, m);
 }
 void remove_pop_from_movement(sys::state& state, dcon::pop_id p) {
 	auto prior_movement = state.world.pop_get_movement_from_pop_movement_membership(p);
 	if(prior_movement) {
-		state.world.movement_get_pop_support(prior_movement) -= state.world.pop_get_size(p);
+		auto i = state.world.movement_get_associated_issue_option(prior_movement);
+		state.world.movement_get_pop_support(prior_movement) -= state.world.pop_get_size(p) * (i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) : 1.0f);
 		state.world.delete_pop_movement_membership(state.world.pop_get_pop_movement_membership(p));
 	}
 }
@@ -237,14 +243,26 @@ void update_pop_movement_membership(sys::state& state) {
 				auto parent = state.world.issue_option_get_parent_issue(io);
 				auto co = state.world.nation_get_issues(owner, parent);
 				auto allow = state.world.issue_option_get_allow(io);
-				if(co != io &&
-						(state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() ||
-								co.id.index() - 1 == io.index()) &&
-						(!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+				if(co != io && (state.world.issue_get_issue_type(parent) == uint8_t(culture::issue_type::social) || state.world.issue_get_issue_type(parent) == uint8_t(culture::issue_type::political))) { // filter out currently active issue
 					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io));
-					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
-						max_option = io;
-						max_support = sup;
+					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) { // filter out -- above limit thersholds
+						/*
+						then the pop has a chance to join an issue-based movement at probability: issue-support x 9 x define:MOVEMENT_LIT_FACTOR x pop-literacy + issue-support x 9 x define:MOVEMENT_CON_FACTOR x pop-consciousness
+						*/
+
+						// probability test
+						auto fp_prob = 9.0f * sup * (state.defines.movement_lit_factor * lit + state.defines.movement_con_factor * con);
+						auto rvalue = float(uint32_t(rng::get_random(state, (p.value << 3) ^ io.index()) & 0xFFFF)) / float(0x10000);
+						if(rvalue < fp_prob) {
+
+							// is this issue possible to get by law?
+							if((state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index())
+								&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+
+								max_option = io;
+								max_support = sup;
+							}
+						}
 					}
 				}
 			});
@@ -258,15 +276,15 @@ void update_pop_movement_membership(sys::state& state) {
 					state.world.try_create_movement_within(new_movement, owner);
 					add_pop_to_movement(state, p, new_movement);
 				}
-				return;
-			}
-
-			if(!state.world.pop_get_is_primary_or_accepted_culture(p) && mil >= state.defines.nationalist_movement_mil_cap) {
+			} else if(!state.world.pop_get_is_primary_or_accepted_culture(p) && mil >= state.defines.nationalist_movement_mil_cap) {
 				/*
 				- If there are no valid issues, the pop has a militancy of at least define:NATIONALIST_MOVEMENT_MIL_CAP, does not
 				have the primary culture of the nation it is in, and does have the primary culture of some core in its province,
 				then it has a chance (20% ?) of joining an independence movement for such a core.
 				*/
+				if(rng::reduce(uint32_t(rng::get_random(state, p.value)), 10) != 0) {
+					return; // exit out of considering this pop
+				}
 				auto pop_culture = state.world.pop_get_culture(p);
 				for(auto c : state.world.province_get_core(pop_location)) {
 					if(c.get_identity().get_primary_culture() == pop_culture) {
@@ -279,7 +297,7 @@ void update_pop_movement_membership(sys::state& state) {
 							state.world.try_create_movement_within(new_mov, owner);
 							state.world.try_create_pop_movement_membership(p, new_mov);
 						}
-						return;
+						break;
 					}
 				}
 			}
