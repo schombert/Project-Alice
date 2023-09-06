@@ -24,6 +24,11 @@ struct glyph_sub_offset {
 
 class font_manager;
 
+
+enum class font_feature {
+	none, small_caps
+};
+
 class font {
 private:
 	font(font const&) = delete;
@@ -34,11 +39,15 @@ private:
 
 public:
 	FT_Face font_face;
+	std::vector<uint16_t> substitution_indices;
+	uint8_t const* gs = nullptr;
+
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;
 	float internal_descender = 0.0f;
 	float internal_top_adj = 0.0f;
 
+	font_feature features = font_feature::none;
 	bool loaded = false;
 
 	float glyph_advances[256] = {0.0f};
@@ -71,7 +80,7 @@ public:
 	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
 
-	void load_font(font& fnt, char const* file_data, uint32_t file_size);
+	void load_font(font& fnt, char const* file_data, uint32_t file_size, font_feature f);
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;

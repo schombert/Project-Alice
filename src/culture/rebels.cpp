@@ -587,13 +587,6 @@ void update_pop_rebel_membership(sys::state& state) {
 								break;
 							}
 
-							if(state.world.rebel_type_get_culture_restriction(rt) && !state.world.rebel_faction_get_primary_culture(temp)) {
-								state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
-							}
-							if(state.world.rebel_type_get_culture_group_restriction(rt) && !state.world.rebel_faction_get_primary_culture_group(temp)) {
-								state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
-							}
-
 							auto chance = state.world.rebel_type_get_spawn_chance(rt);
 							auto eval = trigger::evaluate_multiplicative_modifier(state, chance, trigger::to_generic(p),
 									trigger::to_generic(owner), trigger::to_generic(temp));
@@ -670,6 +663,13 @@ void update_pop_rebel_membership(sys::state& state) {
 							break;
 						default:
 							break;
+						}
+
+						if(state.world.rebel_type_get_culture_restriction(rt) && !state.world.rebel_faction_get_primary_culture(temp)) {
+							state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
+						}
+						if(state.world.rebel_type_get_culture_group_restriction(rt) && !state.world.rebel_faction_get_primary_culture_group(temp)) {
+							state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
 						}
 
 						state.world.try_create_rebellion_within(temp, owner);

@@ -297,15 +297,12 @@ ogl::color3f get_text_color(text::text_color text_color) {
 void button_element_base::set_button_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
 	text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-																				base_data.data.button.font_handle)) /
-								2.0f;
+		base_data.data.button.font_handle)) / 2.0f;
 }
 
 void button_element_base::on_reset_text(sys::state& state) noexcept {
 	if(stored_text.length() > 0) {
-		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(),
-																					uint32_t(stored_text.length()), base_data.data.button.font_handle)) /
-									2.0f;
+		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 	}
 }
 
@@ -315,9 +312,7 @@ void button_element_base::on_create(sys::state& state) noexcept {
 		if(base_text_handle) {
 			stored_text = text::produce_simple_string(state, base_text_handle);
 			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(),
-																						uint32_t(stored_text.length()), base_data.data.button.font_handle)) /
-										2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 		}
 	}
 }

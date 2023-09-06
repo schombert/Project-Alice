@@ -8,6 +8,424 @@
 
 namespace text {
 
+namespace gsub {
+
+uint16_t b_to_u16(uint8_t const* bytes) {
+	return (uint16_t(bytes[0]) << 8) | (uint16_t(bytes[1]));
+}
+
+uint32_t b_to_u32(uint8_t const* bytes) {
+	return (uint32_t(bytes[0]) << 24) | (uint32_t(bytes[1]) << 16) | (uint32_t(bytes[2]) << 8) | (uint32_t(bytes[3]));
+}
+
+int16_t b_to_i16(uint8_t const* bytes) {
+	return static_cast<int16_t>((uint16_t(bytes[0]) << 8) | (uint16_t(bytes[1])));
+}
+
+/*
+	uint16 	majorVersion 	Major version of the GSUB table, = 1
+	uint16 	minorVersion 	Minor version of the GSUB table, = 0
+	Offset16 	scriptListOffset 	Offset to ScriptList table, from beginning of GSUB table
+	Offset16 	featureListOffset 	Offset to FeatureList table, from beginning of GSUB table
+	Offset16 	lookupListOffset 	Offset to LookupList table, from beginning of GSUB table
+*/
+
+int32_t feature_offset(uint8_t const* table_base) {
+	return b_to_u16(table_base + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t));
+}
+int32_t script_offset(uint8_t const* table_base) {
+	return b_to_u16(table_base + sizeof(uint16_t) + sizeof(uint16_t));
+}
+int32_t lookup_offset(uint8_t const* table_base) {
+	return b_to_u16(table_base + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t));
+}
+
+struct opentype_tag {
+	char tag_data[4];
+};
+
+static_assert(sizeof(opentype_tag) == 4);
+
+namespace script_list_table {
+template<typename F>
+void for_each_script_table(uint8_t const* script_list_table_base, F&& func) {
+	auto count = b_to_u16(script_list_table_base + 0);
+
+	auto script_record_ptr = script_list_table_base + sizeof(uint16_t);
+
+	for(uint16_t i = 0; i < count; ++i) {
+		auto tag_ptr = reinterpret_cast<opentype_tag const*>(script_record_ptr);
+		auto offset = b_to_u16(script_record_ptr + sizeof(opentype_tag));
+		func(*tag_ptr, script_list_table_base + offset);
+		script_record_ptr += sizeof(uint16_t) + sizeof(opentype_tag);
+	}
+}
+}
+
+namespace script_table {
+template<typename F>
+void for_each_lang_sys_table(uint8_t const* script_table_base, F&& func) {
+	auto langSysCount = b_to_u16(script_table_base + sizeof(uint16_t));
+	auto LangSysRecord_ptr = script_table_base + sizeof(uint16_t) + sizeof(uint16_t);
+
+	for(uint16_t i = 0; i < langSysCount; ++i) {
+		auto tag_ptr = reinterpret_cast<opentype_tag const*>(LangSysRecord_ptr);
+		auto offset = b_to_u16(LangSysRecord_ptr + sizeof(opentype_tag));
+		func(*tag_ptr, script_table_base + offset);
+		LangSysRecord_ptr += sizeof(uint16_t) + sizeof(opentype_tag);
+	}
+}
+uint8_t const* default_lang_sys_table(uint8_t const* script_table_base) {
+	auto defaultLangSysOffset = b_to_i16(script_table_base + 0);
+	if(defaultLangSysOffset != 0)
+		return script_table_base + defaultLangSysOffset;
+	else
+		return nullptr;
+}
+}
+
+namespace lang_sys_table {
+uint16_t required_feature(uint8_t const* lang_sys_table) {
+	return b_to_u16(lang_sys_table + sizeof(uint16_t));
+}
+template<typename F>
+void for_each_feature_index(uint8_t const* lang_sys_table, F&& func) {
+	auto featureIndexCount = b_to_u16(lang_sys_table + sizeof(uint16_t) + sizeof(uint16_t));
+	auto featureIndices_ptr = lang_sys_table + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+
+	for(uint16_t i = 0; i < featureIndexCount; ++i) {
+		func(b_to_u16(featureIndices_ptr));
+		featureIndices_ptr += sizeof(uint16_t);
+	}
+}
+}
+
+namespace feature_list_table{
+template<typename F>
+void for_each_feature_table(uint8_t const* feature_list_table_base, F&& func) {
+	auto featureCount = b_to_u16(feature_list_table_base + 0);
+	
+	auto FeatureRecord_ptr = feature_list_table_base + sizeof(uint16_t);
+
+	for(uint16_t i = 0; i < featureCount; ++i) {
+		auto tag_ptr = reinterpret_cast<opentype_tag const*>(FeatureRecord_ptr);
+		auto offset = b_to_u16(FeatureRecord_ptr + sizeof(opentype_tag));
+		func(*tag_ptr, feature_list_table_base + offset, i);
+		FeatureRecord_ptr += sizeof(uint16_t) + sizeof(opentype_tag);
+	}
+}
+struct tagged_feature {
+	opentype_tag tag;
+	uint8_t const* feature_table;
+};
+tagged_feature get_feature_table(uint8_t const* feature_list_table_base, uint16_t index) {
+	auto featureCount = b_to_u16(feature_list_table_base + 0);
+	auto FeatureRecord_ptr = feature_list_table_base + sizeof(uint16_t) + index * (sizeof(uint16_t) + sizeof(opentype_tag));
+	if(index < featureCount) {
+		return tagged_feature{
+			*reinterpret_cast<opentype_tag const*>(FeatureRecord_ptr),
+			feature_list_table_base + b_to_u16(FeatureRecord_ptr + sizeof(opentype_tag)) };
+	} else {
+		return tagged_feature{ opentype_tag{ "NON" }, nullptr };
+	}
+}
+}
+
+namespace feature_table {
+template<typename F>
+void for_each_lookup_list_index(uint8_t const* feature_table, F&& func) {
+	auto lookupIndexCount = b_to_u16(feature_table + sizeof(uint16_t));
+	auto lookupListIndices_ptr = feature_table + sizeof(uint16_t) + sizeof(uint16_t);
+
+	for(uint16_t i = 0; i < lookupIndexCount; ++i) {
+		func(b_to_u16(lookupListIndices_ptr));
+		lookupListIndices_ptr += sizeof(uint16_t);
+	}
+}
+}
+
+namespace lookup_list_table {
+uint16_t count(uint8_t const* lookup_list_table) {
+	return b_to_u16(lookup_list_table + 0);
+}
+uint8_t const* get_lookup_table(uint8_t const* lookup_list_table, uint16_t index) {
+	auto lookupCount = b_to_u16(lookup_list_table + 0);
+	auto lookupOffsets_ptr = lookup_list_table + sizeof(uint16_t);
+	if(index < lookupCount) {
+		return lookup_list_table + b_to_u16(lookupOffsets_ptr + index * sizeof(uint16_t));
+	} else {
+		return nullptr;
+	}
+}
+}
+
+namespace lookup_table {
+uint16_t get_lookup_type(uint8_t const* lookup_table) {
+	return b_to_u16(lookup_table + 0);
+}
+uint16_t get_lookup_flag(uint8_t const* lookup_table) {
+	return b_to_u16(lookup_table + sizeof(uint16_t));
+}
+uint16_t get_sub_table_count(uint8_t const* lookup_table) {
+	return b_to_u16(lookup_table + sizeof(uint16_t) + sizeof(uint16_t));
+}
+uint8_t const* get_sub_table(uint8_t const* lookup_table, uint16_t index) {
+	auto sub_table_count = b_to_u16(lookup_table + sizeof(uint16_t) + sizeof(uint16_t));
+	auto subtableOffsets_ptr = lookup_table + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+	if(index < sub_table_count) {
+		return lookup_table + b_to_u16(subtableOffsets_ptr + index * sizeof(uint16_t));
+	} else {
+		return nullptr;
+	}
+}
+}
+
+namespace coverage_table {
+uint16_t get_format(uint8_t const* coverage_table) {
+	return b_to_u16(coverage_table + 0);
+}
+uint16_t format1_glyph_count(uint8_t const* coverage_table) {
+	return b_to_u16(coverage_table + sizeof(uint16_t));
+}
+int32_t format1_glyph_index(uint8_t const* coverage_table, uint16_t glyph_in) {
+	auto count = format1_glyph_count(coverage_table);
+	auto data_ptr = coverage_table + sizeof(uint16_t) + sizeof(uint16_t);
+	for(int32_t i = 0; i < int32_t(count); ++i) {
+		auto g = b_to_u16(data_ptr);
+		if(g == glyph_in)
+			return i;
+		data_ptr += sizeof(uint16_t);
+	}
+	return -1;
+}
+uint16_t format2_range_count(uint8_t const* coverage_table) {
+	return b_to_u16(coverage_table + sizeof(uint16_t));
+}
+int32_t format2_glyph_index(uint8_t const* coverage_table, uint16_t glyph_in) {
+	auto count = format2_range_count(coverage_table);
+	auto data_ptr = coverage_table + sizeof(uint16_t) + sizeof(uint16_t);
+	for(int32_t i = 0; i < int32_t(count); ++i) {
+		auto start_glyph = b_to_u16(data_ptr + 0);
+		auto end_glyph = b_to_u16(data_ptr + sizeof(uint16_t));
+		auto startCoverageIndex = b_to_u16(data_ptr + sizeof(uint16_t) + sizeof(uint16_t));
+
+		if(start_glyph <= glyph_in && glyph_in <= end_glyph)
+			return startCoverageIndex + glyph_in - start_glyph;
+
+		data_ptr += sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+	}
+	return -1;
+}
+}
+
+uint32_t perform_single_substitution(uint8_t const* sub_table, uint32_t glyph_index_in) {
+	auto format = b_to_u16(sub_table + 0);
+	if(format == 1) {
+		auto coverageOffset = b_to_u16(sub_table + sizeof(uint16_t));
+		auto deltaGlyphID = b_to_i16(sub_table + sizeof(uint16_t) + sizeof(uint16_t));
+		auto ct = sub_table + coverageOffset;
+		auto fmt = coverage_table::get_format(ct);
+		if(fmt == 1) {
+			auto indx = coverage_table::format1_glyph_index(ct, uint16_t(glyph_index_in));
+			if(indx == -1)
+				return glyph_index_in;
+			else
+				return uint32_t(int32_t(glyph_index_in) + deltaGlyphID);
+		} else if(fmt == 2) {
+			auto indx = coverage_table::format2_glyph_index(ct, uint16_t(glyph_index_in));
+			if(indx == -1)
+				return glyph_index_in;
+			else
+				return uint32_t(int32_t(glyph_index_in) + deltaGlyphID);
+		} else {
+			return glyph_index_in;
+		}
+	} else if(format == 2) {
+		auto coverageOffset = b_to_u16(sub_table + sizeof(uint16_t));
+		auto glyphCount = b_to_u16(sub_table + sizeof(uint16_t) + sizeof(uint16_t));
+		auto substituteGlyphIDs = sub_table + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+		auto ct = sub_table + coverageOffset;
+		auto fmt = coverage_table::get_format(ct);
+		if(fmt == 1) {
+			auto indx = coverage_table::format1_glyph_index(ct, uint16_t(glyph_index_in));
+			if(indx == -1)
+				return glyph_index_in;
+
+			assert(indx < int32_t(glyphCount));
+			return uint32_t(b_to_u16(substituteGlyphIDs + sizeof(uint16_t) * indx));
+		} else if(fmt == 2) {
+			auto indx = coverage_table::format2_glyph_index(ct, uint16_t(glyph_index_in));
+			if(indx == -1)
+				return glyph_index_in;
+
+			assert(indx < int32_t(glyphCount));
+			return uint32_t(b_to_u16(substituteGlyphIDs + sizeof(uint16_t) * indx));
+		} else {
+			return glyph_index_in;
+		}
+	} else {
+		return glyph_index_in;
+	}
+}
+
+uint8_t const* find_gsub(uint8_t const* file_data) {
+	auto num_tables = b_to_u16(file_data + sizeof(uint32_t));
+	auto table_records = file_data + sizeof(uint32_t) + sizeof(uint16_t) * 4;
+	for(uint16_t i = 0; i < num_tables; ++i) {
+		if(char(table_records[0]) == 'G' && char(table_records[1]) == 'S' && char(table_records[2]) == 'U' && char(table_records[3]) == 'B') {
+			auto offset = b_to_u32(table_records + sizeof(uint32_t) * 2);
+			return file_data + offset;
+		}
+		table_records += sizeof(uint32_t) * 4;
+	}
+	return nullptr;
+}
+
+std::vector<uint16_t> small_caps_lookup_indices(uint8_t const* gsub_table) {
+	std::vector<uint16_t> results;
+
+	uint8_t const* latn_table = nullptr;
+	uint8_t const* DFLT_table = nullptr;
+
+	auto so = gsub_table + script_offset(gsub_table);
+	script_list_table::for_each_script_table(so, [&](opentype_tag const& t, uint8_t const* d) {
+		if(t.tag_data[0] == 'D' && t.tag_data[1] == 'F' && t.tag_data[2] == 'L' && t.tag_data[3] == 'T') {
+			DFLT_table = d;
+		} else if(t.tag_data[0] == 'l' && t.tag_data[1] == 'a' && t.tag_data[2] == 't' && t.tag_data[3] == 'n') {
+			latn_table = d;
+		}
+	});
+
+	auto st = latn_table ? latn_table : DFLT_table;
+	if(!st)
+		return results;
+
+	auto def_ls_table = script_table::default_lang_sys_table(st);
+	if(!def_ls_table)
+		return results;
+
+	auto fo = gsub_table + feature_offset(gsub_table);
+	lang_sys_table::for_each_feature_index(def_ls_table, [&](uint16_t id) {
+		auto ft = feature_list_table::get_feature_table(fo, id);
+		if(ft.tag.tag_data[0] == 's' && ft.tag.tag_data[1] == 'm' && ft.tag.tag_data[2] == 'c' && ft.tag.tag_data[3] == 'p') {
+			feature_table::for_each_lookup_list_index(ft.feature_table, [&](uint16_t i) { results.push_back(i); });
+		}
+	});
+
+	return results;
+}
+uint32_t perform_glyph_subs(uint8_t const* gsub_table, std::vector<uint16_t> const& lookups, uint32_t glyph_in) {
+	auto lo = gsub_table + lookup_offset(gsub_table);
+
+	for(auto i : lookups) {
+		auto lt = lookup_list_table::get_lookup_table(lo, i);
+		if(lt && lookup_table::get_lookup_type(lt) == 1) {
+			auto num_st = lookup_table::get_sub_table_count(lt);
+			for(uint16_t j = 0; j < num_st; ++j) {
+				if(auto st = lookup_table::get_sub_table(lt, j); st) {
+					auto new_glyph = perform_single_substitution(st, glyph_in);
+					if(glyph_in != new_glyph)
+						return new_glyph;
+				}
+			}
+		}
+	}
+
+	return glyph_in;
+}
+
+/*
+void dump_gsub(uint8_t const* data) {
+	OutputDebugStringA("Script List Table\n");
+	auto so = data + script_offset(data);
+	script_list_table::for_each_script_table(so, [](opentype_tag const& t, uint8_t const* d) {
+		std::string tag = "\t[";
+		tag += t.tag_data[0];
+		tag += t.tag_data[1];
+		tag += t.tag_data[2];
+		tag += t.tag_data[3];
+		tag += "] script table\n";
+		OutputDebugStringA(tag.c_str());
+
+		auto def_table = script_table::default_lang_sys_table(d);
+		if(def_table) {
+			OutputDebugStringA("\t Default language system table:\n");
+			auto feat = lang_sys_table::required_feature(def_table);
+			if(feat != uint16_t(0xFFFF)) {
+				std::string fr = std::string("\t\t required feature: ") + std::to_string(feat) + "\n";
+				OutputDebugStringA(fr.c_str());
+			} else {
+				OutputDebugStringA("\t\t no required feature\n");
+			}
+			lang_sys_table::for_each_feature_index(def_table, [](uint16_t id) {
+				std::string f2 = "\t\t feature: " + std::to_string(id) + "\n";
+				OutputDebugStringA(f2.c_str());
+			});
+		} else {
+			OutputDebugStringA("\t No default language system table\n");
+		}
+
+		script_table::for_each_lang_sys_table(d, [](opentype_tag const& t2, uint8_t const* d2) {
+			std::string tag2 = "\t Language system table [";
+			tag2 += t2.tag_data[0];
+			tag2 += t2.tag_data[1];
+			tag2 += t2.tag_data[2];
+			tag2 += t2.tag_data[3];
+			tag2 += "]\n";
+			OutputDebugStringA(tag2.c_str());
+
+			auto feat = lang_sys_table::required_feature(d2);
+			if(feat != uint16_t(0xFFFF)) {
+				std::string fr = std::string("\t\t required feature: ") + std::to_string(feat) + "\n";
+				OutputDebugStringA(fr.c_str());
+			} else {
+				OutputDebugStringA("\t\t no required feature\n");
+			}
+			lang_sys_table::for_each_feature_index(d2, [](uint16_t id) {
+				std::string f2 = "\t\t feature: " + std::to_string(id) + "\n";
+				OutputDebugStringA(f2.c_str());
+			});
+		});
+	});
+
+	OutputDebugStringA("Feature List Table\n");
+	auto fo = data + feature_offset(data);
+	feature_list_table::for_each_feature_table(fo, [](opentype_tag const& t, uint8_t const* d, uint16_t i) {
+		std::string tag = "\t[";
+		tag += t.tag_data[0];
+		tag += t.tag_data[1];
+		tag += t.tag_data[2];
+		tag += t.tag_data[3];
+		tag += "] (";
+		tag += std::to_string(i);
+		tag += ") feature table\n";
+		OutputDebugStringA(tag.c_str());
+
+		feature_table::for_each_lookup_list_index(d, [](uint16_t feature_index) {
+			std::string f2 = "\t\t lookup: " + std::to_string(feature_index) + "\n";
+			OutputDebugStringA(f2.c_str());
+		});
+	});
+
+	OutputDebugStringA("Lookup List Table\n");
+	auto lo = data + lookup_offset(data);
+	auto count = lookup_list_table::count(lo);
+	auto count_str = std::string("\t total lookups: ") + std::to_string(count) + "\n";
+	OutputDebugStringA(count_str.c_str());
+	for(uint16_t i = 0; i < count; ++i) {
+		auto nth = lookup_list_table::get_lookup_table(lo, i);
+		assert(nth);
+		auto type = lookup_table::get_lookup_type(nth);
+		auto stc = lookup_table::get_sub_table_count(nth);
+		auto tstr = std::string("\t type ") + std::to_string(type) + " lookup at position: " + std::to_string(i) + ", " + std::to_string(stc) + " sub tables\n";
+		OutputDebugStringA(tstr.c_str());
+	}
+	OutputDebugStringA("DONE\n");
+}
+*/
+
+} // end GSUB
+
 constexpr uint16_t pack_font_handle(uint32_t font_index, bool black, uint32_t size) {
 	return uint16_t(uint32_t((font_index - 1) << 7) | uint32_t(black ? (1 << 6) : 0) | uint32_t(size & 0x3F));
 }
@@ -243,30 +661,37 @@ void dead_reckoning(float distance_map[dr_size * dr_size], bool const in_map[dr_
 	}
 }
 
-void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_size) {
+void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_size, font_feature f) {
 	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
+	fnt.features = f;
 	memcpy(fnt.file_data.get(), file_data, file_size);
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
 	FT_Set_Pixel_Sizes(fnt.font_face, 0, 64 * magnification_factor);
 	fnt.loaded = true;
 
-	fnt.internal_line_height =
-			static_cast<float>(fnt.font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
-	fnt.internal_ascender =
-			static_cast<float>(fnt.font_face->size->metrics.ascender) / static_cast<float>((1 << 6) * magnification_factor);
-	fnt.internal_descender =
-			-static_cast<float>(fnt.font_face->size->metrics.descender) / static_cast<float>((1 << 6) * magnification_factor);
+	fnt.internal_line_height = static_cast<float>(fnt.font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
+	fnt.internal_ascender = static_cast<float>(fnt.font_face->size->metrics.ascender) / static_cast<float>((1 << 6) * magnification_factor);
+	fnt.internal_descender = -static_cast<float>(fnt.font_face->size->metrics.descender) / static_cast<float>((1 << 6) * magnification_factor);
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
+
+	fnt.gs = gsub::find_gsub(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
+	if(fnt.gs && f == font_feature::small_caps) {
+		//fnt.internal_line_height -= fnt.internal_descender;
+		//fnt.internal_descender = 0;	
+		fnt.substitution_indices = gsub::small_caps_lookup_indices(fnt.gs);
+	}
 
 	// load all glyph metrics
 
 	for(int32_t i = 0; i < 256; ++i) {
-		auto const index_in_this_font = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(i)));
+		auto index_in_this_font = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(i)));
+		if(fnt.gs && f == font_feature::small_caps) {
+			index_in_this_font = gsub::perform_glyph_subs(fnt.gs, fnt.substitution_indices, index_in_this_font);
+		}
 		if(index_in_this_font) {
 			FT_Load_Glyph(fnt.font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL);
-			fnt.glyph_advances[i] =
-					static_cast<float>(fnt.font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
+			fnt.glyph_advances[i] = static_cast<float>(fnt.font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
 		}
 	}
 }
@@ -274,8 +699,15 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 float font::kerning(char codepoint_first, char codepoint_second) const {
 	auto utf16_first = win1250toUTF16(codepoint_first);
 	auto utf16_second = win1250toUTF16(codepoint_second);
-	auto const index_a = FT_Get_Char_Index(font_face, utf16_first);
-	auto const index_b = FT_Get_Char_Index(font_face, utf16_second);
+	auto index_a = FT_Get_Char_Index(font_face, utf16_first);
+	auto index_b = FT_Get_Char_Index(font_face, utf16_second);
+
+	if(index_a && gs && features == font_feature::small_caps) {
+		index_a = gsub::perform_glyph_subs(gs, substitution_indices, index_a);
+	}
+	if(index_b && gs && features == font_feature::small_caps) {
+		index_b = gsub::perform_glyph_subs(gs, substitution_indices, index_b);
+	}
 
 	if((index_a == 0) || (index_b == 0)) {
 		return 0.0f;
@@ -328,7 +760,13 @@ void font::make_glyph(char ch_in) {
 	if(codepoint == ' ')
 		return;
 
-	auto const index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
+	auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
+
+	if(index_in_this_font && gs && features == font_feature::small_caps) {
+		index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
+	}
+
+	// load all glyph metrics
 	if(index_in_this_font) {
 		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
@@ -428,12 +866,12 @@ void load_standard_fonts(sys::state& state) {
 	auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
 	if(font_a) {
 		auto file_content = view_contents(*font_a);
-		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size);
+		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size, font_feature::none);
 	}
-	auto font_b = open_file(root, NATIVE("assets/fonts/AndadaSC-Regular.otf"));
+	auto font_b = open_file(root, NATIVE("assets/fonts/SourceSerif4_18pt-Regular.ttf"));
 	if(font_b) {
 		auto file_content = view_contents(*font_b);
-		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size);
+		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size, font_feature::small_caps);
 	}
 }
 

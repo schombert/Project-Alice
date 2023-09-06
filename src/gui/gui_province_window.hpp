@@ -248,8 +248,9 @@ public:
 			auto defection_target = fat_id.get_defection_target();
 			if(culture.id) {
 				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
-			} else if(defection_target.id) {
-				std::string adjective = text::get_adjective_as_string(state, defection_target);
+			}
+			std::string adjective = text::get_adjective_as_string(state, defection_target);
+			if(defection_target.id) {
 				text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
 				text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
 			}
