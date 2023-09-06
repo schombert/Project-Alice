@@ -904,7 +904,11 @@ uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 	auto chances_total = tval[2];
 
 	auto sub_units_start = tval + 3; // [code] + [payload size] + [chances total] + [first sub effect chance]
+
+	auto r = int32_t(rng::get_random(ws, r_hi, r_lo) % chances_total);
 	uint32_t rval = 0;
+	bool found_res = false;
+
 	while(sub_units_start < tval + source_size) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(ws, layout, box, text::fp_percentage{float(*sub_units_start) / float(chances_total)});
@@ -912,9 +916,13 @@ uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
 		text::close_layout_box(layout, box);
 
-		rval = 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1,
-									 indentation + indentation_amount);
-
+		r -= *sub_units_start;
+		auto tresult = 1 + internal_make_effect_description(ws, sub_units_start + 1, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1,
+				indentation + indentation_amount);
+		if(r < 0 && !found_res) {
+			found_res = true;
+			rval = tresult;
+		}
 		sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceded by uint16_t
 	}
 	return rval;

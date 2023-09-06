@@ -868,7 +868,7 @@ void load_standard_fonts(sys::state& state) {
 		auto file_content = view_contents(*font_a);
 		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size, font_feature::none);
 	}
-	auto font_b = open_file(root, NATIVE("assets/fonts/SourceSerif4_18pt-Regular.ttf"));
+	auto font_b = open_file(root, NATIVE("assets/fonts/SourceSerif4Subhead-Regular.ttf"));
 	if(font_b) {
 		auto file_content = view_contents(*font_b);
 		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size, font_feature::small_caps);

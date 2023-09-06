@@ -909,7 +909,7 @@ uint32_t es_random_list_scope(EFFECT_PARAMTERS) {
 		if(r < 0) {
 			return 1 + internal_execute_effect(sub_units_start + 1, ws, primary_slot, this_slot, from_slot, r_hi, r_lo + 1);
 		}
-		sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceeded by uint16_t
+		sub_units_start += 2  + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceeded by uint16_t
 	}
 	return 0;
 }
