@@ -122,6 +122,14 @@ void map_state::update(sys::state& state) {
 	axis.y *= -1;
 	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
 
+	if(pgup_zoom) {
+		zoom_change += 0.2f;
+		has_zoom_changed = true;
+	}
+	if(pgdn_zoom) {
+		zoom_change -= 0.2f;
+		has_zoom_changed = true;
+	}
 	if(has_zoom_changed) {
 		last_zoom_time = now;
 		has_zoom_changed = false;
@@ -166,6 +174,10 @@ void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
 		down_arrow_key_down = true;
+	} else if(keycode == sys::virtual_key::PRIOR) {
+		pgup_zoom = true;
+	} else if(keycode == sys::virtual_key::NEXT) {
+		pgdn_zoom = true;
 	}
 }
 
@@ -206,6 +218,10 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 			}
 		}
 		down_arrow_key_down = false;
+	} else if(keycode == sys::virtual_key::PRIOR) {
+		pgup_zoom = false;
+	} else if(keycode == sys::virtual_key::NEXT) {
+		pgdn_zoom = false;
 	}
 }
 
