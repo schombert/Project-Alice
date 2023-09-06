@@ -108,6 +108,21 @@ void map_state::update(sys::state& state) {
 	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
+	pos_velocity.x = 0.f;
+	pos_velocity.y = 0.f;
+	if (left_arrow_key_down) {
+		pos_velocity.x -= 1.f;
+	}
+	if (right_arrow_key_down) {
+		pos_velocity.x += 1.f;
+	}
+	if (up_arrow_key_down) {
+		pos_velocity.y -= 1.f;
+	}
+	if (down_arrow_key_down) {
+		pos_velocity.y += 1.f;
+	}
+
 	glm::vec2 velocity;
 
 	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
@@ -122,12 +137,12 @@ void map_state::update(sys::state& state) {
 	axis.y *= -1;
 	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
 
-	if(pgup_zoom) {
-		zoom_change += 0.2f;
+	if(pgup_key_down) {
+		zoom_change += 0.1f;
 		has_zoom_changed = true;
 	}
-	if(pgdn_zoom) {
-		zoom_change -= 0.2f;
+	if(pgdn_key_down) {
+		zoom_change -= 0.1f;
 		has_zoom_changed = true;
 	}
 	if(has_zoom_changed) {
@@ -162,66 +177,52 @@ void map_state::set_terrain_map_mode() {
 }
 
 void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::LEFT) {
-		pos_velocity.x = -1.f;
+	switch (keycode) {
+	case sys::virtual_key::LEFT:
 		left_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::RIGHT) {
-		pos_velocity.x = +1.f;
+		break;
+	case sys::virtual_key::RIGHT:
 		right_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::UP) {
-		pos_velocity.y = -1.f;
+		break;
+	case sys::virtual_key::UP:
 		up_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::DOWN) {
-		pos_velocity.y = +1.f;
+		break;
+	case sys::virtual_key::DOWN:
 		down_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::PRIOR) {
-		pgup_zoom = true;
-	} else if(keycode == sys::virtual_key::NEXT) {
-		pgdn_zoom = true;
+		break;
+	case sys::virtual_key::PRIOR:
+		pgup_key_down = true;
+		break;
+	case sys::virtual_key::NEXT:
+		pgdn_key_down = true;
+		break;
+	default:
+		break;
 	}
 }
 
 void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::LEFT) {
-		if(pos_velocity.x < 0) {
-			if(right_arrow_key_down == false) {
-				pos_velocity.x = 0;
-			} else {
-				pos_velocity.x *= -1;
-			}
-		}
+	switch(keycode) {
+	case sys::virtual_key::LEFT:
 		left_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::RIGHT) {
-		if(pos_velocity.x > 0) {
-			if(left_arrow_key_down == false) {
-				pos_velocity.x = 0;
-			} else {
-				pos_velocity.x *= -1;
-			}
-		}
+		break;
+	case sys::virtual_key::RIGHT:
 		right_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::UP) {
-		if(pos_velocity.y < 0) {
-			if(down_arrow_key_down == false) {
-				pos_velocity.y = 0;
-			} else {
-				pos_velocity.y *= -1;
-			}
-		}
+		break;
+	case sys::virtual_key::UP:
 		up_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::DOWN) {
-		if(pos_velocity.y > 0) {
-			if(up_arrow_key_down == false) {
-				pos_velocity.y = 0;
-			} else {
-				pos_velocity.y *= -1;
-			}
-		}
+		break;
+	case sys::virtual_key::DOWN:
 		down_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::PRIOR) {
-		pgup_zoom = false;
-	} else if(keycode == sys::virtual_key::NEXT) {
-		pgdn_zoom = false;
+		break;
+	case sys::virtual_key::PRIOR:
+		pgup_key_down = false;
+		break;
+	case sys::virtual_key::NEXT:
+		pgdn_key_down = false;
+		break;
+	default:
+		break;
 	}
 }
 
