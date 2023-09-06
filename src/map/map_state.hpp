@@ -78,6 +78,8 @@ public:
 	float zoom = 1.f;
 	float zoom_change = 1.f;
 	bool has_zoom_changed = false;
+	bool pgup_key_down = false;
+	bool pgdn_key_down = false;
 	bool left_arrow_key_down = false;
 	bool right_arrow_key_down = false;
 	bool up_arrow_key_down = false;
