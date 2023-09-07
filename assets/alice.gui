@@ -894,6 +894,12 @@ guiTypes = {
 			shortcut = "r"
 		}
 		
+		guiButtonType = {
+			name = "remove_unit_from_selection_button"
+			position = { x = 303 y = 6 }
+			quadTextureSprite ="GFX_unit_close"
+		}
+		
 		iconType = {
 			name = "unit_inf"
 			spriteType = "GFX_unit_strip"
