@@ -40,6 +40,7 @@ private:
 public:
 	FT_Face font_face;
 	std::vector<uint16_t> substitution_indices;
+	std::vector<uint8_t const*> type_2_kerning_tables;
 	uint8_t const* gs = nullptr;
 
 	float internal_line_height = 0.0f;

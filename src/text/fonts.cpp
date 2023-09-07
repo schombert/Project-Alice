@@ -6,9 +6,14 @@
 #include "system_state.hpp"
 #include "bmfont.hpp"
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#define __builtin_popcount __popcnt
+#endif
+
 namespace text {
 
-namespace gsub {
+
 
 uint16_t b_to_u16(uint8_t const* bytes) {
 	return (uint16_t(bytes[0]) << 8) | (uint16_t(bytes[1]));
@@ -21,14 +26,6 @@ uint32_t b_to_u32(uint8_t const* bytes) {
 int16_t b_to_i16(uint8_t const* bytes) {
 	return static_cast<int16_t>((uint16_t(bytes[0]) << 8) | (uint16_t(bytes[1])));
 }
-
-/*
-	uint16 	majorVersion 	Major version of the GSUB table, = 1
-	uint16 	minorVersion 	Minor version of the GSUB table, = 0
-	Offset16 	scriptListOffset 	Offset to ScriptList table, from beginning of GSUB table
-	Offset16 	featureListOffset 	Offset to FeatureList table, from beginning of GSUB table
-	Offset16 	lookupListOffset 	Offset to LookupList table, from beginning of GSUB table
-*/
 
 int32_t feature_offset(uint8_t const* table_base) {
 	return b_to_u16(table_base + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t));
@@ -216,59 +213,50 @@ int32_t format2_glyph_index(uint8_t const* coverage_table, uint16_t glyph_in) {
 	}
 	return -1;
 }
+int32_t glyph_index(uint8_t const* coverage_table, uint16_t glyph_in) {
+	auto fmt = coverage_table::get_format(coverage_table);
+	if(fmt == 1) {
+		return coverage_table::format1_glyph_index(coverage_table, glyph_in);
+	} else if(fmt == 2) {
+		return coverage_table::format2_glyph_index(coverage_table, glyph_in);
+	} else {
+		return -1;
+	}
+}
 }
 
+namespace gsub {
 uint32_t perform_single_substitution(uint8_t const* sub_table, uint32_t glyph_index_in) {
 	auto format = b_to_u16(sub_table + 0);
 	if(format == 1) {
 		auto coverageOffset = b_to_u16(sub_table + sizeof(uint16_t));
 		auto deltaGlyphID = b_to_i16(sub_table + sizeof(uint16_t) + sizeof(uint16_t));
 		auto ct = sub_table + coverageOffset;
-		auto fmt = coverage_table::get_format(ct);
-		if(fmt == 1) {
-			auto indx = coverage_table::format1_glyph_index(ct, uint16_t(glyph_index_in));
-			if(indx == -1)
-				return glyph_index_in;
-			else
-				return uint32_t(int32_t(glyph_index_in) + deltaGlyphID);
-		} else if(fmt == 2) {
-			auto indx = coverage_table::format2_glyph_index(ct, uint16_t(glyph_index_in));
-			if(indx == -1)
-				return glyph_index_in;
-			else
-				return uint32_t(int32_t(glyph_index_in) + deltaGlyphID);
-		} else {
+		
+		auto indx = coverage_table::glyph_index(ct, uint16_t(glyph_index_in));
+		if(indx == -1)
 			return glyph_index_in;
-		}
+		else
+			return uint32_t(int32_t(glyph_index_in) + deltaGlyphID);
+		
 	} else if(format == 2) {
 		auto coverageOffset = b_to_u16(sub_table + sizeof(uint16_t));
 		auto glyphCount = b_to_u16(sub_table + sizeof(uint16_t) + sizeof(uint16_t));
 		auto substituteGlyphIDs = sub_table + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
 		auto ct = sub_table + coverageOffset;
-		auto fmt = coverage_table::get_format(ct);
-		if(fmt == 1) {
-			auto indx = coverage_table::format1_glyph_index(ct, uint16_t(glyph_index_in));
-			if(indx == -1)
-				return glyph_index_in;
 
-			assert(indx < int32_t(glyphCount));
-			return uint32_t(b_to_u16(substituteGlyphIDs + sizeof(uint16_t) * indx));
-		} else if(fmt == 2) {
-			auto indx = coverage_table::format2_glyph_index(ct, uint16_t(glyph_index_in));
-			if(indx == -1)
-				return glyph_index_in;
-
-			assert(indx < int32_t(glyphCount));
-			return uint32_t(b_to_u16(substituteGlyphIDs + sizeof(uint16_t) * indx));
-		} else {
+		auto indx = coverage_table::glyph_index(ct, uint16_t(glyph_index_in));
+		if(indx == -1)
 			return glyph_index_in;
-		}
+
+		assert(indx < int32_t(glyphCount));
+		return uint32_t(b_to_u16(substituteGlyphIDs + sizeof(uint16_t) * indx));
 	} else {
 		return glyph_index_in;
 	}
 }
 
-uint8_t const* find_gsub(uint8_t const* file_data) {
+uint8_t const* find(uint8_t const* file_data) {
 	auto num_tables = b_to_u16(file_data + sizeof(uint32_t));
 	auto table_records = file_data + sizeof(uint32_t) + sizeof(uint16_t) * 4;
 	for(uint16_t i = 0; i < num_tables; ++i) {
@@ -424,7 +412,474 @@ void dump_gsub(uint8_t const* data) {
 }
 */
 
-} // end GSUB
+} // end namespace gsub
+
+namespace gdef {
+uint8_t const* find(uint8_t const* file_data) {
+	auto num_tables = b_to_u16(file_data + sizeof(uint32_t));
+	auto table_records = file_data + sizeof(uint32_t) + sizeof(uint16_t) * 4;
+	for(uint16_t i = 0; i < num_tables; ++i) {
+		if(char(table_records[0]) == 'G' && char(table_records[1]) == 'D' && char(table_records[2]) == 'E' && char(table_records[3]) == 'F') {
+			auto offset = b_to_u32(table_records + sizeof(uint32_t) * 2);
+			return file_data + offset;
+		}
+		table_records += sizeof(uint32_t) * 4;
+	}
+	return nullptr;
+}
+
+uint8_t const* get_class_definition_table(uint8_t const* gd) {
+	return gd + b_to_u16(gd + sizeof(uint16_t) + sizeof(uint16_t));
+}
+}
+
+namespace class_definition_table{
+uint16_t classify_glyph(uint8_t const* class_definition_table, uint16_t glyph) {
+	if(!class_definition_table)
+		return 0;
+
+	auto format = b_to_u16(class_definition_table + 0);
+	if(format == 1) {
+		auto startGlyphID = b_to_u16(class_definition_table + sizeof(uint16_t));
+		auto glyphCount = b_to_u16(class_definition_table + sizeof(uint16_t) + sizeof(uint16_t));
+		if(glyph >= startGlyphID && glyph - startGlyphID < glyphCount) {
+			return b_to_u16(class_definition_table + sizeof(uint16_t) * 3 + sizeof(uint16_t) * (glyph - startGlyphID));
+		}
+	} else if(format == 2) {
+		auto classRangeCount = b_to_u16(class_definition_table + sizeof(uint16_t));
+		auto rng = class_definition_table + sizeof(uint16_t) + sizeof(uint16_t);
+		for(uint16_t i = 0; i < classRangeCount; ++i) {
+			auto startGlyphID = b_to_u16(rng + 0);
+			auto endGlyphID = b_to_u16(rng + sizeof(uint16_t));
+			if(startGlyphID <= glyph && glyph <= endGlyphID) {
+				return b_to_u16(rng + sizeof(uint16_t) + sizeof(uint16_t));
+			}
+			rng += sizeof(uint16_t) * 3;
+		}
+	}
+	return 0;
+}
+}
+
+namespace value_record {
+
+inline constexpr uint16_t X_PLACEMENT = 0x0001;
+inline constexpr uint16_t Y_PLACEMENT = 0x0002;
+inline constexpr uint16_t X_ADVANCE = 0x0004;
+inline constexpr uint16_t Y_ADVANCE = 0x0008;
+inline constexpr uint16_t X_PLACEMENT_DEVICE = 0x0010;
+inline constexpr uint16_t Y_PLACEMENT_DEVICE = 0x0020;
+inline constexpr uint16_t X_ADVANCE_DEVICE = 0x0040;
+inline constexpr uint16_t Y_ADVANCE_DEVICE = 0x0080;
+
+size_t size(uint16_t format) {
+	return size_t(__builtin_popcount(format) * 2);
+}
+
+int16_t get_x_placement(uint8_t const* t, uint16_t format) {
+	if((format & X_PLACEMENT) == 0)
+		return 0;
+	return b_to_i16(t + 0);
+}
+int16_t get_y_placement(uint8_t const* t, uint16_t format) {
+	if((format & Y_PLACEMENT) == 0)
+		return 0;
+	return b_to_i16(t + 2 * ((format & X_PLACEMENT) != 0));
+}
+int16_t get_x_advance(uint8_t const* t, uint16_t format) {
+	if((format & X_ADVANCE) == 0)
+		return 0;
+	return b_to_i16(t + __builtin_popcount(format & (X_ADVANCE - 1)) * 2);
+}
+int16_t get_y_advance(uint8_t const* t, uint16_t format) {
+	if((format & Y_ADVANCE) == 0)
+		return 0;
+	return b_to_i16(t + __builtin_popcount(format & (Y_ADVANCE - 1)) * 2);
+}
+uint8_t const* get_x_pla_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
+	if((format & X_PLACEMENT_DEVICE) == 0)
+		return nullptr;
+	auto v = b_to_u16(t + __builtin_popcount(format & (X_PLACEMENT_DEVICE - 1)) * 2);
+	return v ? parent_base + v : nullptr;
+}
+uint8_t const* get_y_pla_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
+	if((format & Y_PLACEMENT_DEVICE) == 0)
+		return nullptr;
+	auto v = b_to_u16(t + __builtin_popcount(format & (Y_PLACEMENT_DEVICE - 1)) * 2);
+	return v ? parent_base + v : nullptr;
+}
+uint8_t const* get_x_adv_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
+	if((format & X_ADVANCE_DEVICE) == 0)
+		return nullptr;
+	auto v = b_to_u16(t + __builtin_popcount(format & (X_ADVANCE_DEVICE - 1)) * 2);
+	return v ? parent_base + v : nullptr;
+}
+uint8_t const* get_y_adv_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
+	if((format & Y_ADVANCE_DEVICE) == 0)
+		return nullptr;
+	auto v = b_to_u16(t + __builtin_popcount(format & (Y_ADVANCE_DEVICE - 1)) * 2);
+	return v ? parent_base + v : nullptr;
+}
+}
+
+namespace pair_value_record {
+//constexpr inline size_t size = sizeof(uint16_t) + value_record::size * 2;
+size_t size(uint16_t value_format_1, uint16_t value_format_2) {
+	return sizeof(uint16_t) + value_record::size(value_format_1) + value_record::size(value_format_2);
+}
+}
+
+namespace pair_set_table{
+uint16_t get_pair_value_count(uint8_t const* t) {
+	return b_to_u16(t + 0);
+}
+uint8_t const* get_pair_value_record(uint8_t const* t, uint16_t index, uint16_t value_format_1, uint16_t value_format_2) {
+	auto first_offset = t + sizeof(uint16_t);
+	return t + b_to_u16(first_offset + index * pair_value_record::size(value_format_1, value_format_2));
+}
+}
+
+namespace pair_value_record {
+uint16_t get_second_glyph(uint8_t const* t) {
+	return b_to_u16(t + 0);
+}
+uint8_t const* get_value_record_1(uint8_t const* t, uint16_t value_format_1, uint16_t value_format_2) {
+	return t + sizeof(uint16_t);
+}
+uint8_t const* get_value_record_2(uint8_t const* t, uint16_t value_format_1, uint16_t value_format_2) {
+	return t + sizeof(uint16_t) + value_record::size(value_format_1);
+}
+}
+
+namespace pair_pos_format_1 {
+uint8_t const* get_coverage_table(uint8_t const* t) {
+	return t + b_to_u16(t + sizeof(uint16_t));
+}
+uint16_t get_value_format_1(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) + sizeof(uint16_t));
+}
+uint16_t get_value_format_2(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t));
+}
+uint16_t get_pair_set_count(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t));
+}
+uint8_t const* get_pair_set_table(uint8_t const* t, uint16_t index) {
+	auto first_offset = t + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+	return t + b_to_u16(first_offset + index * sizeof(uint16_t));
+}
+
+int32_t net_x_adjust(uint8_t const* t, uint32_t glyph_index_a, uint32_t glyph_index_b) {
+	auto ct = get_coverage_table(t);
+	auto coverage_index = coverage_table::glyph_index(ct, uint16_t(glyph_index_a));
+	if(coverage_index == -1)
+		return 0;
+
+	auto f1 = get_value_format_1(t);
+	auto f2 = get_value_format_2(t);
+
+	auto psc = get_pair_set_count(t);
+
+	if(coverage_index >= psc)
+		return 0;
+
+	auto pst = get_pair_set_table(t, uint16_t(coverage_index));
+	auto pstc = pair_set_table::get_pair_value_count(pst);
+	for(uint16_t i = 0; i < pstc; ++i) {
+		auto rec = pair_set_table::get_pair_value_record(pst, i, f1, f2);
+		auto second = pair_value_record::get_second_glyph(rec);
+		if(second == uint16_t(glyph_index_b)) {
+			return value_record::get_x_advance(pair_value_record::get_value_record_1(rec, f1, f2), f1)
+				+ value_record::get_x_placement(pair_value_record::get_value_record_2(rec, f1, f2), f2);
+		}
+	}
+	return 0;
+}
+}
+
+
+namespace class_2_record {
+size_t size(uint16_t value_format_1, uint16_t value_format_2) {
+	return value_record::size(value_format_1) + value_record::size(value_format_2);
+}
+uint8_t const* get_value_record_1(uint8_t const* t, uint16_t value_format_1, uint16_t value_format_2) {
+	return t;
+}
+uint8_t const* get_value_record_2(uint8_t const* t, uint16_t value_format_1, uint16_t value_format_2) {
+	return t  + value_record::size(value_format_1);
+}
+}
+
+namespace pair_pos_format_2 {
+uint8_t const* get_coverage_table(uint8_t const* t) {
+	return t + b_to_u16(t + sizeof(uint16_t));
+}
+uint16_t get_value_format_1(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) + sizeof(uint16_t));
+}
+uint16_t get_value_format_2(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t));
+}
+uint8_t const* get_class_def_1_table(uint8_t const* t) {
+	return t + b_to_u16(t + sizeof(uint16_t) * 4);
+}
+uint8_t const* get_class_def_2_table(uint8_t const* t) {
+	return t + b_to_u16(t + sizeof(uint16_t) * 5);
+}
+uint16_t get_class_1_count(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) * 6);
+}
+uint16_t get_class_2_count(uint8_t const* t) {
+	return b_to_u16(t + sizeof(uint16_t) * 7);
+}
+uint8_t const* get_class_2_record(uint8_t const* t,
+	uint16_t class_1, uint16_t class_2,
+	uint16_t class_1_count, uint16_t class_2_count,
+	uint16_t value_format_1, uint16_t value_format_2) {
+
+	if(class_1 >= class_1_count || class_2 >= class_2_count)
+		return nullptr;
+
+	auto base = t + sizeof(uint16_t) * 8;
+	auto const c2rs = class_2_record::size(value_format_1, value_format_2);
+	return base + class_1 * (class_2_count * c2rs) + class_2 * (c2rs);
+}
+
+int32_t net_x_adjust(uint8_t const* t, uint32_t glyph_index_a, uint32_t glyph_index_b) {
+	auto ct = get_coverage_table(t);
+	auto coverage_index = coverage_table::glyph_index(ct, uint16_t(glyph_index_a));
+	if(coverage_index == -1)
+		return 0;
+
+	auto f1 = get_value_format_1(t);
+	auto f2 = get_value_format_2(t);
+
+	auto cdt1 = get_class_def_1_table(t);
+	auto cdt2 = get_class_def_2_table(t);
+
+	auto class_1 = class_definition_table::classify_glyph(cdt1, uint16_t(glyph_index_a));
+	auto class_2 = class_definition_table::classify_glyph(cdt2, uint16_t(glyph_index_b));
+
+	auto record = get_class_2_record(t, class_1, class_2, get_class_1_count(t), get_class_2_count(t), f1, f2);
+	if(!record)
+		return 0;
+
+	return value_record::get_x_advance(class_2_record::get_value_record_1(record, f1, f2), f1)
+		+ value_record::get_x_placement(class_2_record::get_value_record_2(record, f1, f2), f2);
+}
+}
+
+namespace pair_pos_format {
+int32_t net_x_adjust(uint8_t const* t, uint32_t glyph_index_a, uint32_t glyph_index_b) {
+	auto format_type = b_to_u16(t);
+	if(format_type == 1) {
+		return pair_pos_format_1::net_x_adjust(t, glyph_index_a, glyph_index_b);
+	} else if(format_type == 2) {
+		return pair_pos_format_2::net_x_adjust(t, glyph_index_a, glyph_index_b);
+	} else {
+		return 0;
+	}
+}
+}
+
+namespace gpos {
+
+uint8_t const* find(uint8_t const* file_data) {
+	auto num_tables = b_to_u16(file_data + sizeof(uint32_t));
+	auto table_records = file_data + sizeof(uint32_t) + sizeof(uint16_t) * 4;
+	for(uint16_t i = 0; i < num_tables; ++i) {
+		if(char(table_records[0]) == 'G' && char(table_records[1]) == 'P' && char(table_records[2]) == 'O' && char(table_records[3]) == 'S') {
+			auto offset = b_to_u32(table_records + sizeof(uint32_t) * 2);
+			return file_data + offset;
+		}
+		table_records += sizeof(uint32_t) * 4;
+	}
+	return nullptr;
+}
+
+
+std::vector<uint8_t const*> find_kerning_type2_subtables(uint8_t const* gsub_table) {
+	std::vector<uint8_t const*> results;
+
+	uint8_t const* latn_table = nullptr;
+	uint8_t const* DFLT_table = nullptr;
+
+	auto so = gsub_table + script_offset(gsub_table);
+	script_list_table::for_each_script_table(so, [&](opentype_tag const& t, uint8_t const* d) {
+		if(t.tag_data[0] == 'D' && t.tag_data[1] == 'F' && t.tag_data[2] == 'L' && t.tag_data[3] == 'T') {
+			DFLT_table = d;
+		} else if(t.tag_data[0] == 'l' && t.tag_data[1] == 'a' && t.tag_data[2] == 't' && t.tag_data[3] == 'n') {
+			latn_table = d;
+		}
+	});
+
+	auto st = latn_table ? latn_table : DFLT_table;
+	if(!st)
+		return results;
+
+	auto def_ls_table = script_table::default_lang_sys_table(st);
+	if(!def_ls_table)
+		return results;
+
+	auto fo = gsub_table + feature_offset(gsub_table);
+	auto lo = gsub_table + lookup_offset(gsub_table);
+
+	lang_sys_table::for_each_feature_index(def_ls_table, [&](uint16_t id) {
+		auto ft = feature_list_table::get_feature_table(fo, id);
+		if(ft.tag.tag_data[0] == 'k' && ft.tag.tag_data[1] == 'e' && ft.tag.tag_data[2] == 'r' && ft.tag.tag_data[3] == 'n') {
+			feature_table::for_each_lookup_list_index(ft.feature_table, [&](uint16_t i) {
+				auto t = lookup_list_table::get_lookup_table(lo, i);
+				auto type = lookup_table::get_lookup_type(t);
+				auto stc = lookup_table::get_sub_table_count(t);
+				if(type == 2) { // basic pair positioning
+					for(uint16_t j = 0; j < stc; ++j) {
+						if(auto st = lookup_table::get_sub_table(t, j); st) {
+							results.push_back(st);
+						}
+					}
+				} else if(type == 9) { // extension positioning
+					for(uint16_t j = 0; j < stc; ++j) {
+						if(auto st = lookup_table::get_sub_table(t, j); st) {
+							if(b_to_u16(st) == 1 && b_to_u16(st + sizeof(uint16_t)) == 2) { // extension format referring to a type 2 lookup
+								results.push_back(st + b_to_u32(st + sizeof(uint16_t) * 2));
+							}
+						}
+					}
+				}
+			});
+		}
+	});
+
+	return results;
+}
+
+int32_t net_kerning(std::vector<uint8_t const*> const& tables, uint32_t glyph_a, uint32_t glyph_b) {
+	int32_t v = 0;
+	for(auto t : tables) {
+		v += pair_pos_format::net_x_adjust(t, glyph_a, glyph_b);
+	}
+	return v;
+}
+
+/*
+void dump_gpos(uint8_t const* data) {
+	OutputDebugStringA("Script List Table\n");
+	auto so = data + script_offset(data);
+	script_list_table::for_each_script_table(so, [](opentype_tag const& t, uint8_t const* d) {
+		std::string tag = "\t[";
+		tag += t.tag_data[0];
+		tag += t.tag_data[1];
+		tag += t.tag_data[2];
+		tag += t.tag_data[3];
+		tag += "] script table\n";
+		OutputDebugStringA(tag.c_str());
+
+		auto def_table = script_table::default_lang_sys_table(d);
+		if(def_table) {
+			OutputDebugStringA("\t Default language system table:\n");
+			auto feat = lang_sys_table::required_feature(def_table);
+			if(feat != uint16_t(0xFFFF)) {
+				std::string fr = std::string("\t\t required feature: ") + std::to_string(feat) + "\n";
+				OutputDebugStringA(fr.c_str());
+			} else {
+				OutputDebugStringA("\t\t no required feature\n");
+			}
+			lang_sys_table::for_each_feature_index(def_table, [](uint16_t id) {
+				std::string f2 = "\t\t feature: " + std::to_string(id) + "\n";
+				OutputDebugStringA(f2.c_str());
+			});
+		} else {
+			OutputDebugStringA("\t No default language system table\n");
+		}
+
+		script_table::for_each_lang_sys_table(d, [](opentype_tag const& t2, uint8_t const* d2) {
+			std::string tag2 = "\t Language system table [";
+			tag2 += t2.tag_data[0];
+			tag2 += t2.tag_data[1];
+			tag2 += t2.tag_data[2];
+			tag2 += t2.tag_data[3];
+			tag2 += "]\n";
+			OutputDebugStringA(tag2.c_str());
+
+			auto feat = lang_sys_table::required_feature(d2);
+			if(feat != uint16_t(0xFFFF)) {
+				std::string fr = std::string("\t\t required feature: ") + std::to_string(feat) + "\n";
+				OutputDebugStringA(fr.c_str());
+			} else {
+				OutputDebugStringA("\t\t no required feature\n");
+			}
+			lang_sys_table::for_each_feature_index(d2, [](uint16_t id) {
+				std::string f2 = "\t\t feature: " + std::to_string(id) + "\n";
+				OutputDebugStringA(f2.c_str());
+			});
+		});
+	});
+
+	OutputDebugStringA("Feature List Table\n");
+	auto fo = data + feature_offset(data);
+	feature_list_table::for_each_feature_table(fo, [](opentype_tag const& t, uint8_t const* d, uint16_t i) {
+		std::string tag = "\t[";
+		tag += t.tag_data[0];
+		tag += t.tag_data[1];
+		tag += t.tag_data[2];
+		tag += t.tag_data[3];
+		tag += "] (";
+		tag += std::to_string(i);
+		tag += ") feature table\n";
+		OutputDebugStringA(tag.c_str());
+
+		feature_table::for_each_lookup_list_index(d, [](uint16_t feature_index) {
+			std::string f2 = "\t\t lookup: " + std::to_string(feature_index) + "\n";
+			OutputDebugStringA(f2.c_str());
+		});
+	});
+
+	OutputDebugStringA("Lookup List Table\n");
+	auto lo = data + lookup_offset(data);
+	auto count = lookup_list_table::count(lo);
+	auto count_str = std::string("\t total lookups: ") + std::to_string(count) + "\n";
+	OutputDebugStringA(count_str.c_str());
+	for(uint16_t i = 0; i < count; ++i) {
+		auto nth = lookup_list_table::get_lookup_table(lo, i);
+		assert(nth);
+		auto type = lookup_table::get_lookup_type(nth);
+		auto stc = lookup_table::get_sub_table_count(nth);
+		auto tstr = std::string("\t type ") + std::to_string(type) + " lookup at position: " + std::to_string(i) + ", " + std::to_string(stc) + " sub tables\n";
+		OutputDebugStringA(tstr.c_str());
+
+		if(type == 8) { //Chained Contexts Positioning
+			for(uint16_t j = 0; j < stc; ++j) {
+				if(auto st = lookup_table::get_sub_table(nth, j); st) {
+					auto fmt = coverage_table::get_format(st);
+					auto fstr = std::string("\t\t format ") + std::to_string(fmt) + "\n";
+					OutputDebugStringA(fstr.c_str());
+				}
+			}
+		} else if(type == 9) { // Extension Positioning
+			for(uint16_t j = 0; j < stc; ++j) {
+				if(auto st = lookup_table::get_sub_table(nth, j); st) {
+					auto fmt = coverage_table::get_format(st);
+					auto ext_type = coverage_table::format1_glyph_count(st);
+
+					auto fstr = std::string("\t\t format ") + std::to_string(fmt) + " as type " + std::to_string(ext_type) + "\n";
+					OutputDebugStringA(fstr.c_str());
+				}
+			}
+		} else if(type == 2) { // Pair Adjustment Positioning
+			for(uint16_t j = 0; j < stc; ++j) {
+				if(auto st = lookup_table::get_sub_table(nth, j); st) {
+					auto fmt = coverage_table::get_format(st);
+					auto fstr = std::string("\t\t format ") + std::to_string(fmt) + "\n";
+					OutputDebugStringA(fstr.c_str());
+				}
+			}
+		}
+	}
+	OutputDebugStringA("DONE\n");
+}
+*/
+
+} // end GPOS
 
 constexpr uint16_t pack_font_handle(uint32_t font_index, bool black, uint32_t size) {
 	return uint16_t(uint32_t((font_index - 1) << 7) | uint32_t(black ? (1 << 6) : 0) | uint32_t(size & 0x3F));
@@ -675,12 +1130,14 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	fnt.internal_descender = -static_cast<float>(fnt.font_face->size->metrics.descender) / static_cast<float>((1 << 6) * magnification_factor);
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
 
-	fnt.gs = gsub::find_gsub(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
+	fnt.gs = gsub::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
 	if(fnt.gs && f == font_feature::small_caps) {
 		//fnt.internal_line_height -= fnt.internal_descender;
 		//fnt.internal_descender = 0;	
 		fnt.substitution_indices = gsub::small_caps_lookup_indices(fnt.gs);
 	}
+	auto gp = gpos::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
+	fnt.type_2_kerning_tables = gpos::find_kerning_type2_subtables(gp);
 
 	// load all glyph metrics
 
@@ -718,7 +1175,8 @@ float font::kerning(char codepoint_first, char codepoint_second) const {
 		FT_Get_Kerning(font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
 		return static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
 	} else {
-		return 0.0f;
+		auto rval = gpos::net_kerning(type_2_kerning_tables, index_a, index_b);
+		return rval * float(64)  / float(font_face->units_per_EM);
 	}
 }
 
