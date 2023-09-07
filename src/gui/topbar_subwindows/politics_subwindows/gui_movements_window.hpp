@@ -90,7 +90,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto movement : state.world.nation_get_movement_within(state.local_player_nation)) {
-			row_contents.push_back(movement.get_movement().id);
+			if (movement.get_movement().get_pop_support() >= 1.0f) {
+				row_contents.push_back(movement.get_movement().id);
+			}
 		}
 		update(state);
 	}
