@@ -895,14 +895,9 @@ public:
 
 class ledger_commodity_plupp : public tinted_image_element_base {
 public:
-	uint32_t get_tint_color(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::commodity_id>(payload);
-			state.world.commodity_get_color(content);
-		}
-		return 0;
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::commodity_id>(state, parent);
+		color = state.world.commodity_get_color(content);
 	}
 };
 

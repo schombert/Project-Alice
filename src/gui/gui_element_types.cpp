@@ -206,10 +206,18 @@ void tinted_image_element_base::render(sys::state& state, int32_t x, int32_t y) 
 	if(gid) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
-			ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
-					float(color & 0xFF) / 255.f, float((color >> 8) & 0xFF) / 255.f, float((color >> 16) & 0xFF) / 255.f,
+			if(gfx_def.number_of_frames > 1) {
+				ogl::render_tinted_subsprite(state, frame,
+					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			} else {
+				ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			}
 		}
 	}
 }
@@ -229,10 +237,6 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			}
 		}
 	}
-}
-
-void tinted_image_element_base::on_update(sys::state& state) noexcept {
-	color = get_tint_color(state);
 }
 
 void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {

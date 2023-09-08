@@ -3751,6 +3751,31 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 	military::cleanup_navy(state, b);
 }
 
+void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::disband_undermanned;
+	p.source = source;
+	p.data.army_movement.a = a;
+	add_to_command_queue(state, p);
+}
+bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
+		!bool(state.world.army_get_battle_from_army_battle_participation(a));
+}
+void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!can_disband_undermanned_regiments(state, source, a))
+		return;
+	std::vector<dcon::regiment_id> regs;
+	for(auto r : state.world.army_get_army_membership(a)) {
+		auto pop = r.get_regiment().get_pop_from_regiment_source();
+		if(!pop || pop.get_size() < state.defines.pop_min_size_for_regiment)
+			regs.push_back(r.get_regiment());
+	}
+	for(auto r : regs)
+		state.world.delete_regiment(r);
+}
+
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4606,6 +4631,9 @@ void execute_command(sys::state& state, payload& c) {
 			break;
 		case command_type::cancel_factory_building_construction:
 			execute_cancel_factory_building_construction(state, c.source, c.data.start_factory_building.location, c.data.start_factory_building.type);
+			break;
+		case command_type::disband_undermanned:
+			execute_disband_undermanned_regiments(state, c.source, c.data.army_movement.a);
 			break;
 
 			// common mp commands

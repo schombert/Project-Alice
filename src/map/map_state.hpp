@@ -35,6 +35,8 @@ public:
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);
 
+	void center_map_on_province(sys::state& state, dcon::province_id);
+
 	// Input methods
 	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
 	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
@@ -42,12 +44,9 @@ public:
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
-	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
-			sys::key_modifiers mod);
-	void on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
-			sys::key_modifiers mod);
-	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
-			sys::key_modifiers mod);
+	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	dcon::province_id get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
 
 	dcon::province_id get_selected_province();

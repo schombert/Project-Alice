@@ -116,19 +116,6 @@ public:
 	}
 };
 
-template<typename T>
-class generic_simple_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, T content) noexcept {
-		return "";
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		T content = retrieve<T>(state, parent);
-		simple_text_element_base::set_text(state, get_text(state, content));
-	}
-};
-
 class simple_multiline_text : public multiline_text_element_base {
 public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
@@ -303,47 +290,54 @@ public:
 	}
 };
 
-class state_name_text : public generic_simple_text<dcon::state_instance_id> {
+class state_name_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
-		return text::get_dynamic_state_name(state, content);
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		set_text(state, text::get_dynamic_state_name(state, content));
 	}
 };
 
-class state_factory_count_text : public generic_simple_text<dcon::state_instance_id> {
+class state_factory_count_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
-		uint8_t count = 0;
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		int32_t count = 0;
 		province::for_each_province_in_state_instance(state, content, [&](dcon::province_id pid) {
 			auto fat_id = dcon::fatten(state.world, pid);
 			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) { ++count; });
 		});
-		return std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
+		auto txt = std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
+		set_text(state, txt);
 	}
 };
 
-class state_admin_efficiency_text : public generic_simple_text<dcon::state_instance_id> {
+class state_admin_efficiency_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
-		return text::format_percentage(province::state_admin_efficiency(state, content), 1);
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		set_text(state, text::format_percentage(province::state_admin_efficiency(state, content), 1));
 	}
 };
 
-class state_aristocrat_presence_text : public generic_simple_text<dcon::state_instance_id> {
+class state_aristocrat_presence_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
 		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
 		auto aristocrat_amount = state.world.state_instance_get_demographics(content, aristocrat_key);
-		return text::format_percentage(total_pop > 0 ? aristocrat_amount / total_pop : 0.0f, 1);
+		auto txt = text::format_percentage(total_pop > 0 ? aristocrat_amount / total_pop : 0.0f, 1);
+		set_text(state, txt);
 	}
 };
 
-class state_population_text : public generic_simple_text<dcon::state_instance_id> {
+class state_population_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
-		return text::prettify(int32_t(total_pop));
+		set_text(state, text::prettify(int32_t(total_pop)));
 	}
 };
 
@@ -435,11 +429,14 @@ public:
 	}
 };
 
-class national_identity_vassal_type_text : public generic_simple_text<dcon::national_identity_id> {
+class national_identity_vassal_type_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::national_identity_id content) noexcept override {
-		// TODO: figure out if it should be a substate
-		return text::produce_simple_string(state, "satellite");
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.nation_get_is_substate(content))
+			set_text(state, text::produce_simple_string(state, "substate"));
+		else
+			set_text(state, text::produce_simple_string(state, "satellite"));
 	}
 };
 
@@ -1192,11 +1189,11 @@ public:
 
 class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
 public:
-	uint32_t get_tint_color(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
 		auto ideology = state.world.political_party_get_ideology(ruling_party);
-		return state.world.ideology_get_color(ideology);
+		color = state.world.ideology_get_color(ideology);
 	}
 };
 
@@ -1222,9 +1219,9 @@ public:
 
 class ideology_plupp : public tinted_image_element_base {
 public:
-	uint32_t get_tint_color(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		auto ideology_id = retrieve<dcon::ideology_id>(state, parent);
-		return state.world.ideology_get_color(ideology_id);
+		color = state.world.ideology_get_color(ideology_id);
 	}
 };
 

@@ -231,6 +231,17 @@ void map_state::set_pos(glm::vec2 new_pos) {
 	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
 }
 
+void map_state::center_map_on_province(sys::state& state, dcon::province_id p) {
+	if(!p)
+		return;
+
+	auto map_pos = state.world.province_get_mid_point(p);
+	map_pos.x /= float(map_data.size_x);
+	map_pos.y /= float(map_data.size_y);
+	map_pos.y = 1.0f - map_pos.y;
+	set_pos(map_pos);
+}
+
 void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod,
 		float amount) {
 	constexpr auto zoom_speed_factor = 15.f;

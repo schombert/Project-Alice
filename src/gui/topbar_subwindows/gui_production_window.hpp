@@ -1478,14 +1478,12 @@ class commodity_secondary_worker_amount : public simple_text_element_base {
 	}
 };
 
-class commodity_player_production_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_production_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
-		} else {
-			return "";
-		}
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		if(commodity_id)
+			set_text(state, text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1));
 	}
 };
 

@@ -850,13 +850,20 @@ enum class regiment_rank {
 	attacker_front, attacker_back, defender_front, defender_back
 };
 
-class counter_ico : public image_element_base {
+class counter_ico : public tinted_image_element_base {
 public:
 	regiment_rank rank;
 	int32_t slot = 0;
 	bool visible = false;
 
 	void on_update(sys::state& state) noexcept override {
+		auto color_from_nation = [&](dcon::nation_id n) {
+			if(n)
+				return state.world.nation_get_color(n);
+			else
+				return sys::pack_color(128, 128, 128);
+		};
+
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		switch(rank) {
 			case regiment_rank::attacker_front:
@@ -879,6 +886,7 @@ public:
 							frame = 3;
 						}
 					}
+					color = color_from_nation(state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg)));
 				}
 			}
 				break;
@@ -902,6 +910,7 @@ public:
 							frame = 3;
 						}
 					}
+					color = color_from_nation(state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg)));
 				}
 			}
 				break;
@@ -925,6 +934,7 @@ public:
 							frame = 3;
 						}
 					}
+					color = color_from_nation(state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg)));
 				}
 			}
 				break;
@@ -948,6 +958,7 @@ public:
 							frame = 3;
 						}
 					}
+					color = color_from_nation(state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg)));
 				}
 			}
 				break;
@@ -956,7 +967,7 @@ public:
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
-			image_element_base::render(state, x, y);
+			tinted_image_element_base::render(state, x, y);
 	}
 };
 

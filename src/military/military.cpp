@@ -4678,6 +4678,49 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	return total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort) > 0;
 }
 
+float attrition_amount(sys::state& state, dcon::navy_id a) {
+	return 0.0f;
+}
+float attrition_amount(sys::state& state, dcon::army_id a) {
+	auto prov = state.world.army_get_location_from_army_location(a);
+
+	float total_army_weight = 0;
+	for(auto ar : state.world.province_get_army_location(prov)) {
+		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
+				!bool(ar.get_army().get_navy_from_army_transport())) {
+
+			for(auto rg : ar.get_army().get_army_membership()) {
+				total_army_weight += 3.0f * rg.get_regiment().get_strength();
+			}
+		}
+	}
+
+	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
+
+	auto ar = fatten(state.world, a);
+
+	auto army_controller = ar.get_controller_from_army_control();
+	auto supply_limit = supply_limit_in_province(state, army_controller, prov);
+	auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
+
+	float greatest_hostile_fort = 0.0f;
+
+	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
+			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+			if(other.get_building_level(economy::province_building_type::fort) > 0) {
+				if(are_at_war(state, army_controller, other.get_nation_from_province_control())) {
+					greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_building_level(economy::province_building_type::fort)));
+				}
+			}
+		}
+	}
+
+	auto value = std::clamp(total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort), 0.0f, state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::max_attrition))
+		+ state.world.province_get_siege_progress(prov) > 0.f ? state.defines.siege_attrition : 0.0f;
+	return value * 0.01f;
+}
+
 void apply_attrition(sys::state& state) {
 	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t i) {
 		dcon::province_id prov{dcon::province_id::value_base_t(i)};
