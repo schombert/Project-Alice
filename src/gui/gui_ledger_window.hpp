@@ -642,24 +642,19 @@ public:
 //
 // Province population per strata
 //
-class province_population_per_pop_type_text : public standard_province_text {
-	dcon::pop_type_id pop_type_id{};
-
+class province_population_per_pop_type_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		auto total_pop = state.world.province_get_demographics(province_id, demographics::to_key(state, pop_type_id));
-		return text::prettify(int32_t(total_pop));
-	}
+	dcon::pop_type_id pop_type_id;
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_type_id>()) {
-			pop_type_id = any_cast<dcon::pop_type_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return standard_province_text::set(state, payload);
+	province_population_per_pop_type_text(dcon::pop_type_id pop_type_id) : pop_type_id(pop_type_id) { }
+
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::to_key(state, pop_type_id));
+		set_text(state, text::prettify(int32_t(total_pop)));
 	}
 };
+
 class ledger_province_population_entry : public listbox_row_element_base<dcon::province_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -685,10 +680,7 @@ public:
 		}
 		// For each pop type generate
 		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-			auto ptr = make_element_by_type<province_population_per_pop_type_text>(state,
-					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
-			Cyto::Any payload = id;
-			ptr->impl_set(state, payload);
+			auto ptr = make_element_by_type<province_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition, id);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		});

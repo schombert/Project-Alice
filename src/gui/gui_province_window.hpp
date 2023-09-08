@@ -850,11 +850,12 @@ public:
 	}
 };
 
-class province_supply_limit_text : public standard_province_text {
+class province_supply_limit_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto supply = int32_t(military::peacetime_attrition_limit(state, state.local_player_nation, province_id));
-		return std::to_string(supply);
+		set_text(state, std::to_string(supply));
 	}
 
 	// TODO: needs an explanation of where the value comes from
@@ -1057,15 +1058,16 @@ public:
 	}
 };
 
-class province_crime_name_text : public standard_province_text {
+class province_crime_name_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, province_id);
 		auto crime_id = fat_id.get_crime();
 		if(crime_id) {
-			return text::produce_simple_string(state, state.culture_definitions.crimes[crime_id].name);
+			set_text(state, text::produce_simple_string(state, state.culture_definitions.crimes[crime_id].name));
 		} else {
-			return "";
+			set_text(state, "");
 		}
 	}
 
@@ -1081,10 +1083,11 @@ public:
 	}
 };
 
-class province_crime_fighting_text : public standard_province_text {
+class province_crime_fighting_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1));
 	}
 
 	/*
@@ -1107,10 +1110,11 @@ public:
 	*/
 };
 
-class province_rebel_percent_text : public standard_province_text {
+class province_rebel_percent_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_float(province::revolt_risk(state, province_id), 2);
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_float(province::revolt_risk(state, province_id), 2));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1128,35 +1132,39 @@ public:
 	}
 };
 
-class province_rgo_employment_percent_text : public standard_province_text {
+class province_rgo_employment_percent_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(state.world.province_get_rgo_employment(province_id), 1));
 	}
 };
 
-class province_migration_text : public standard_province_text {
+class province_migration_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
 		auto external = province::monthly_net_pop_external_migration(state, province_id);
-		return text::prettify(int32_t(internal + external));
+		set_text(state, text::prettify(int32_t(internal + external)));
 	}
 };
 
-class province_pop_growth_text : public standard_province_text {
+class province_pop_growth_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id))));
 	}
 };
 
-class province_army_size_text : public standard_province_text {
+class province_army_size_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto built = military::regiments_created_from_province(state, province_id);
 		auto max_possible = military::regiments_max_possible_from_province(state, province_id);
-		return text::format_ratio(built, max_possible);
+		set_text(state, text::format_ratio(built, max_possible));
 	}
 };
 

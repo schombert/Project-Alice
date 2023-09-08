@@ -472,7 +472,7 @@ void update_pop_rebel_membership(sys::state& state) {
 					dcon::national_identity_id ind_tag = [&]() {
 						auto prov = state.world.pop_get_province_from_pop_location(p);
 						for(auto core : state.world.province_get_core(prov)) {
-							if(core.get_identity().get_primary_culture() == state.world.pop_get_culture(p))
+							if(!core.get_identity().get_is_not_releasable() && core.get_identity().get_primary_culture() == state.world.pop_get_culture(p))
 								return core.get_identity().id;
 						}
 						return dcon::national_identity_id{};
@@ -991,17 +991,15 @@ void execute_province_defections(sys::state& state) {
 					case culture::rebel_defection::ideology: {
 						// prefer existing tag of same ideology
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_nation_from_identity_holder().get_ruling_party().get_ideology() ==
-											reb_type.get_ideology() &&
-									owned.begin() != owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(holder.get_ruling_party().get_ideology() == reb_type.get_ideology() && holder.get_owned_province_count() != 0) {
 								return c.get_identity().get_nation_from_identity_holder().id;
 							}
 						}
 						// otherwise pick a non-existent tag
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(!c.get_identity().get_is_not_releasable() && owned.begin() == owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(!c.get_identity().get_is_not_releasable() && holder.get_owned_province_count() == 0) {
 								auto t = c.get_identity().get_nation_from_identity_holder().id;
 								nations::create_nation_based_on_template(state, t, owner);
 								politics::force_nation_ideology(state, t, reb_type.get_ideology());
@@ -1013,17 +1011,15 @@ void execute_province_defections(sys::state& state) {
 					case culture::rebel_defection::religion:
 						// prefer existing
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) &&
-									owned.begin() != owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(holder.get_religion() == state.world.rebel_faction_get_religion(reb_controller) && holder.get_owned_province_count() != 0) {
 								return c.get_identity().get_nation_from_identity_holder().id;
 							}
 						}
 						// otherwise pick a non-existent tag
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) &&
-									owned.begin() == owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(!c.get_identity().get_is_not_releasable() && c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && holder.get_owned_province_count() == 0) {
 								auto t = c.get_identity().get_nation_from_identity_holder().id;
 								nations::create_nation_based_on_template(state, t, owner);
 								return t;
@@ -1033,17 +1029,15 @@ void execute_province_defections(sys::state& state) {
 					case culture::rebel_defection::culture:
 						// prefer existing
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) &&
-									owned.begin() != owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && holder.get_owned_province_count() != 0) {
 								return c.get_identity().get_nation_from_identity_holder().id;
 							}
 						}
 						// otherwise pick a non-existent tag
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) &&
-									owned.begin() == owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(!c.get_identity().get_is_not_releasable() && c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && holder.get_owned_province_count() == 0) {
 								auto t = c.get_identity().get_nation_from_identity_holder().id;
 								nations::create_nation_based_on_template(state, t, owner);
 								return t;
@@ -1053,19 +1047,18 @@ void execute_province_defections(sys::state& state) {
 					case culture::rebel_defection::culture_group:
 						// prefer existing
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() ==
-											state.world.rebel_faction_get_primary_culture_group(reb_controller) &&
-									owned.begin() != owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && holder.get_owned_province_count() != 0) {
 								return c.get_identity().get_nation_from_identity_holder().id;
 							}
 						}
 						// otherwise pick a non-existent tag
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() ==
-											state.world.rebel_faction_get_primary_culture_group(reb_controller) &&
-									owned.begin() == owned.end()) {
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(!c.get_identity().get_is_not_releasable()
+								&& c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller)
+								&& holder.get_owned_province_count() == 0) {
+
 								auto t = c.get_identity().get_nation_from_identity_holder().id;
 								nations::create_nation_based_on_template(state, t, owner);
 								return t;
@@ -1078,14 +1071,9 @@ void execute_province_defections(sys::state& state) {
 					case culture::rebel_defection::pan_nationalist:
 						// union tag or nothing
 						for(auto c : state.world.province_get_core(p)) {
-							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-							if(c.get_identity() == state.world.rebel_faction_get_defection_target(reb_controller)) {
-								if(owned.begin() != owned.end())
-									return c.get_identity().get_nation_from_identity_holder().id;
-
-								auto t = c.get_identity().get_nation_from_identity_holder().id;
-								nations::create_nation_based_on_template(state, t, owner);
-								return t;
+							auto holder = c.get_identity().get_nation_from_identity_holder();
+							if(c.get_identity() == state.world.rebel_faction_get_defection_target(reb_controller) && holder.get_owned_province_count() != 0) {
+								return holder.id;
 							}
 						}
 						break;
