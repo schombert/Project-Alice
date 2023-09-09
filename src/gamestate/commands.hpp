@@ -92,6 +92,8 @@ enum class command_type : uint8_t {
 	save_game = 83,
 	cancel_factory_building_construction = 84,
 	disband_undermanned = 85,
+	even_split_army = 86,
+	even_split_navy = 87,
 	
 	notify_player_ban = 117,
 	notify_player_kick = 118,
@@ -671,6 +673,12 @@ bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source
 
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+
+void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+
+void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 
 void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a);

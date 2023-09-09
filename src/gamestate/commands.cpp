@@ -3776,6 +3776,120 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 		state.world.delete_regiment(r);
 }
 
+
+void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::even_split_army;
+	p.source = source;
+	p.data.army_movement.a = a;
+	add_to_command_queue(state, p);
+}
+bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	return can_split_army(state, source, a);
+}
+void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!can_evenly_split_army(state, source, a))
+		return;
+
+	bool inf_split = false;
+	bool cav_split = false;
+	bool art_split = false;
+
+	static std::vector<dcon::regiment_id> to_transfer;
+	to_transfer.clear();
+
+	for(auto t : state.world.army_get_army_membership(a)) {
+		auto type = state.military_definitions.unit_base_definitions[t.get_regiment().get_type()].type;
+		if(type == military::unit_type::infantry) {
+			if(inf_split) {
+				to_transfer.push_back(t.get_regiment());
+			}
+			inf_split = !inf_split;
+		} else if(type == military::unit_type::cavalry) {
+			if(cav_split) {
+				to_transfer.push_back(t.get_regiment());
+			}
+			cav_split = !cav_split;
+		} else if(type == military::unit_type::support || type == military::unit_type::special) {
+			if(art_split) {
+				to_transfer.push_back(t.get_regiment());
+			}
+			art_split = !art_split;
+		}
+	}
+
+	if(to_transfer.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_army());
+		new_u.set_controller_from_army_control(source);
+		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
+		new_u.set_black_flag(state.world.army_get_black_flag(a));
+
+		for(auto t : to_transfer) {
+			state.world.regiment_set_army_from_army_membership(t, new_u);
+		}
+
+		if(source == state.local_player_nation && state.is_selected(a))
+			state.select(new_u);
+	}
+}
+
+void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::even_split_navy;
+	p.source = source;
+	p.data.navy_movement.n = a;
+	add_to_command_queue(state, p);
+}
+bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	return can_split_navy(state, source, a);
+}
+void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!can_evenly_split_navy(state, source, a))
+		return;
+
+	static std::vector<dcon::ship_id> to_transfer;
+	to_transfer.clear();
+
+	bool big_split = false;
+	bool sm_split = false;
+	bool tra_split = false;
+
+	for(auto t : state.world.navy_get_navy_membership(a)) {
+		auto type = state.military_definitions.unit_base_definitions[t.get_ship().get_type()].type;
+		if(type == military::unit_type::big_ship) {
+			if(big_split) {
+				to_transfer.push_back(t.get_ship());
+			}
+			big_split = !big_split;
+		} else if(type == military::unit_type::light_ship) {
+			if(sm_split) {
+				to_transfer.push_back(t.get_ship());
+			}
+			sm_split = !sm_split;
+		} else if(type == military::unit_type::transport) {
+			if(tra_split) {
+				to_transfer.push_back(t.get_ship());
+			}
+			tra_split = !tra_split;
+		}
+	}
+
+	if(to_transfer.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_navy());
+		new_u.set_controller_from_navy_control(source);
+		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(a));
+
+		for(auto t : to_transfer) {
+			state.world.ship_set_navy_from_navy_membership(t, new_u);
+		}
+
+		if(source == state.local_player_nation && state.is_selected(a))
+			state.select(new_u);
+	}
+}
+
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4634,6 +4748,12 @@ void execute_command(sys::state& state, payload& c) {
 			break;
 		case command_type::disband_undermanned:
 			execute_disband_undermanned_regiments(state, c.source, c.data.army_movement.a);
+			break;
+		case command_type::even_split_army:
+			execute_evenly_split_army(state, c.source, c.data.army_movement.a);
+			break;
+		case command_type::even_split_navy:
+			execute_evenly_split_navy(state, c.source, c.data.navy_movement.n);
 			break;
 
 			// common mp commands

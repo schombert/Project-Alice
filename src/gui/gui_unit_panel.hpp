@@ -52,18 +52,18 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			command::split_army(state, state.local_player_nation, content);
+			command::evenly_split_army(state, state.local_player_nation, content);
 		} else {
-			command::split_navy(state, state.local_player_nation, content);
+			command::evenly_split_navy(state, state.local_player_nation, content);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			disabled = !command::can_split_army(state, state.local_player_nation, content);
+			disabled = !command::can_evenly_split_army(state, state.local_player_nation, content);
 		} else {
-			disabled = !command::can_split_navy(state, state.local_player_nation, content);
+			disabled = !command::can_evenly_split_navy(state, state.local_player_nation, content);
 		}
 	}
 
@@ -1303,8 +1303,14 @@ public:
 		}
 		for(auto a : state.selected_navies) {
 			command::delete_navy(state, state.local_player_nation, a);
-		}
-		
+		}	
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "disband_all");
 	}
 };
 
@@ -1464,7 +1470,29 @@ public:
 class u_row_split : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		// TODO
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			command::evenly_split_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			command::evenly_split_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			disabled = !command::can_evenly_split_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			disabled = !command::can_evenly_split_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "splitinhalf");
 	}
 };
 
