@@ -181,9 +181,8 @@ void initialize(sys::state& state) {
 		auto ft = fatten(state.world, t);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			savings_buffer.get(t) += state.world.commodity_get_is_available_from_start(c)
-																	 ? state.world.commodity_get_cost(c) * ft.get_life_needs(c) +
-																				 0.5f * state.world.commodity_get_cost(c) * ft.get_everyday_needs(c)
-																	 : 0.0f;
+				? state.world.commodity_get_cost(c) * ft.get_life_needs(c) + 0.5f * state.world.commodity_get_cost(c) * ft.get_everyday_needs(c)
+				: 0.0f;
 		});
 		auto strata = (ft.get_strata() * 2) + 1;
 		savings_buffer.get(t) *= strata;
@@ -206,12 +205,15 @@ void initialize(sys::state& state) {
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 
-		auto amount = std::ceil(
-				1.1f *
-				(state.world.province_get_demographics(p,
-						 demographics::to_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers)) +
-						state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves))) /
-				40000.0f);
+		float pop_amount = 0.0f;
+		for(auto pt : state.world.in_pop_type) {
+			if(pt == state.culture_definitions.slaves) {
+				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+			} else if(pt.get_is_paid_rgo_worker()) {
+				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
+			}
+		}
+		auto amount = std::ceil(1.1f * pop_amount / 40000.0f);
 
 		fp.set_rgo_size(std::max(1.0f, amount));
 
@@ -400,22 +402,23 @@ void update_rgo_employment(sys::state& state) {
 		auto rgo_max = rgo_max_employment(state, owner, p) * state.world.province_get_rgo_production_scale(p);
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-		float worker_pool = state.world.province_get_demographics(p,
-				demographics::to_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers));
+		float worker_pool = 0.0f;
+		for(auto wt : state.culture_definitions.rgo_workers) {
+			worker_pool += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+		}
 		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
 		float labor_pool = worker_pool + slave_pool;
 
 		state.world.province_set_rgo_employment(p, labor_pool >= rgo_max ? 1.0f : labor_pool / rgo_max);
 
 		auto slave_fraction = (slave_pool > rgo_max) ? rgo_max / slave_pool : 1.0f;
-		auto free_fraction =
-				std::max(0.0f, (worker_pool > rgo_max - slave_pool) ? (rgo_max - slave_pool) / std::max(worker_pool, 0.01f) : 1.0f);
+		auto free_fraction = std::max(0.0f, (worker_pool > rgo_max - slave_pool) ? (rgo_max - slave_pool) / std::max(worker_pool, 0.01f) : 1.0f);
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.slaves) {
+			auto pt = pop.get_pop().get_poptype();
+			if(pt == state.culture_definitions.slaves) {
 				pop.get_pop().set_employment(pop.get_pop().get_size() * slave_fraction);
-			} else if(pop.get_pop().get_poptype() ==
-								(is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers)) {
+			} else if(pt.get_is_paid_rgo_worker()) {
 				pop.get_pop().set_employment(pop.get_pop().get_size() * free_fraction);
 			}
 		}
@@ -632,10 +635,8 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 
 	float total_state_pop = std::max(0.01f, state.world.state_instance_get_demographics(s, demographics::total));
 	float owner_fraction = total_state_pop > 0
-														 ? std::min(0.05f, state.world.state_instance_get_demographics(s,
-																									 demographics::to_key(state, state.culture_definitions.capitalists)) /
-																									 total_state_pop)
-														 : 0.0f;
+		? std::min(0.05f, state.world.state_instance_get_demographics(s, demographics::to_key(state, state.culture_definitions.capitalists)) /  total_state_pop)
+		: 0.0f;
 
 	float input_multiplier =
 			fac.get_triggered_modifiers() *
@@ -1951,19 +1952,13 @@ void daily_update(sys::state& state) {
 
 		auto acc_u = ve::select(none_of_above, s_spending * adj_pop_of_type * p_level * ln_costs, 0.0f);
 
-		acc_a = acc_a +
-						ve::select(en_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * en_costs, 0.0f);
-		acc_e =
-				acc_e + ve::select(en_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * en_costs, 0.0f);
-		acc_m =
-				acc_m + ve::select(en_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * en_costs, 0.0f);
+		acc_a = acc_a + ve::select(en_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * en_costs, 0.0f);
+		acc_e = acc_e + ve::select(en_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * en_costs, 0.0f);
+		acc_m = acc_m + ve::select(en_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * en_costs, 0.0f);
 
-		acc_a = acc_a +
-						ve::select(lx_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * lx_costs, 0.0f);
-		acc_e =
-				acc_e + ve::select(lx_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * lx_costs, 0.0f);
-		acc_m =
-				acc_m + ve::select(lx_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * lx_costs, 0.0f);
+		acc_a = acc_a + ve::select(lx_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * lx_costs, 0.0f);
+		acc_e = acc_e + ve::select(lx_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * lx_costs, 0.0f);
+		acc_m = acc_m + ve::select(lx_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * lx_costs, 0.0f);
 
 		acc_u = acc_u + ve::select(none_of_above && state.world.pop_type_get_has_unemployment(types),
 												s_spending * (pop_of_type - state.world.pop_get_employment(ids)) * unemp_level * ln_costs, 0.0f);
@@ -2198,17 +2193,19 @@ void daily_update(sys::state& state) {
 				{
 					// FARMER / LABORER
 					bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-					auto const worker = is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers;
+					//auto const worker = is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers;
 
 					auto const min_wage = (is_mine ? laborer_min_wage : farmer_min_wage) / needs_scaling_factor;
 
-					float total_min_to_workers =
-							min_wage * state.world.province_get_demographics(p, demographics::to_employment_key(state, worker));
+					float total_min_to_workers = 0.0f;
+					float num_workers = 0.0f;
+					for(auto wt : state.culture_definitions.rgo_workers) {
+						total_min_to_workers += min_wage* state.world.province_get_demographics(p, demographics::to_employment_key(state, wt));
+						num_workers += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+					}
 					float total_rgo_profit = state.world.province_get_rgo_full_profit(p);
 
 					float total_worker_wage = 0.0f;
-
-					float num_workers = state.world.province_get_demographics(p, demographics::to_key(state, worker));
 
 					if(total_min_to_workers <= total_rgo_profit && num_rgo_owners > 0) {
 						total_worker_wage = total_min_to_workers + (total_rgo_profit - total_min_to_workers) * 0.2f;
@@ -2220,7 +2217,7 @@ void daily_update(sys::state& state) {
 					auto per_worker_profit = num_workers > 0 ? total_worker_wage / num_workers : 0.0f;
 
 					for(auto pl : state.world.province_get_pop_location(p)) {
-						if(worker == pl.get_pop().get_poptype()) {
+						if(pl.get_pop().get_poptype().get_is_paid_rgo_worker()) {
 							pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_worker_profit);
 							assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 						}
@@ -2627,6 +2624,10 @@ void daily_update(sys::state& state) {
 }
 
 void regenerate_unsaved_values(sys::state& state) {
+	for(auto pt : state.world.in_pop_type) {
+		if(pt.get_is_paid_rgo_worker())
+			state.culture_definitions.rgo_workers.push_back(pt);
+	}
 
 	state.world.nation_resize_life_needs_costs(state.world.pop_type_size());
 	state.world.nation_resize_everyday_needs_costs(state.world.pop_type_size());

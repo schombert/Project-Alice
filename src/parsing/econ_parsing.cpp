@@ -143,10 +143,15 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 			context.outer_context.state.economy_definitions.craftsmen_fraction = pt.employees.employees[0].amount;
 			context.found_worker_types = true;
 		}
-		context.templates.insert_or_assign(std::string(name), std::move(pt));
 		if(pt.type_ == production_type_enum::rgo && bool(pt.owner.type)) {
 			context.outer_context.state.culture_definitions.aristocrat = pt.owner.type;
+			for(auto& wt : pt.employees.employees) {
+				if(wt.type != context.outer_context.state.culture_definitions.slaves) {
+					context.outer_context.state.world.pop_type_set_is_paid_rgo_worker(wt.type, true);
+				}
+			}
 		}
+		context.templates.insert_or_assign(std::string(name), std::move(pt));	
 	} else if(pt.type_ == production_type_enum::rgo) {
 		context.outer_context.state.world.commodity_set_is_mine(pt.output_goods_, pt.mine);
 		context.outer_context.state.world.commodity_set_rgo_amount(pt.output_goods_, pt.value);
