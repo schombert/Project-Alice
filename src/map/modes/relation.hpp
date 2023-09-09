@@ -35,8 +35,8 @@ std::vector<uint32_t> relation_map_from(sys::state& state) {
 
 			float interpolation = (200 + relation_value) / 400.f;
 
-			color = ogl::color_gradient(interpolation, sys::pack_color(46, 247, 15), // red
-					sys::pack_color(247, 15, 15)																				 // green
+			color = ogl::color_gradient(interpolation, sys::pack_color(46, 247, 15), // green
+					sys::pack_color(247, 15, 15)	// red
 			);
 		}
 
