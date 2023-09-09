@@ -125,6 +125,7 @@ struct global_cultural_state {
 	std::vector<dcon::reform_id> economic_issues;
 
 	std::vector<folder_info> tech_folders; // contains *all* the folder names; techs index into this by an integer index
+	std::vector<dcon::pop_type_id> rgo_workers;
 
 	tagged_vector<government_type, dcon::government_type_id> governments;
 	tagged_vector<crime_info, dcon::crime_id> crimes;
