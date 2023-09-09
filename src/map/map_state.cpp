@@ -108,20 +108,25 @@ void map_state::update(sys::state& state) {
 	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
-	pos_velocity.x = 0.f;
-	pos_velocity.y = 0.f;
-	if (left_arrow_key_down) {
-		pos_velocity.x -= 1.f;
+	if((left_arrow_key_down xor right_arrow_key_down) or (up_arrow_key_down xor down_arrow_key_down)) {
+		glm::vec2 arrow_key_velocity_vector{};
+		if (left_arrow_key_down) {
+			arrow_key_velocity_vector.x -= 1.f;
+		}
+		if (right_arrow_key_down) {
+			arrow_key_velocity_vector.x += 1.f;
+		}
+		if (up_arrow_key_down) {
+			arrow_key_velocity_vector.y -= 1.f;
+		}
+		if (down_arrow_key_down) {
+			arrow_key_velocity_vector.y += 1.f;
+		}
+		arrow_key_velocity_vector = glm::normalize(arrow_key_velocity_vector);
+		arrow_key_velocity_vector *= 0.175f;
+		pos_velocity += arrow_key_velocity_vector;
 	}
-	if (right_arrow_key_down) {
-		pos_velocity.x += 1.f;
-	}
-	if (up_arrow_key_down) {
-		pos_velocity.y -= 1.f;
-	}
-	if (down_arrow_key_down) {
-		pos_velocity.y += 1.f;
-	}
+	pos_velocity /= 1.125;
 
 	glm::vec2 velocity;
 
