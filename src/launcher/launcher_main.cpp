@@ -1077,12 +1077,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
 		if(font_a) {
 			auto file_content = view_contents(*font_a);
-			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size);
+			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
 		}
 		auto font_b = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
 		if(font_b) {
 			auto file_content = view_contents(*font_b);
-			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size);
+			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
 		}
 
 		font_collection.load_all_glyphs();

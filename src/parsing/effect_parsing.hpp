@@ -191,9 +191,15 @@ struct ef_this_remove_casus_belli {
 struct ef_wargoal {
 	dcon::cb_type_id casus_belli_;
 	dcon::national_identity_id country_;
+	bool target_country_is_this = false;
+	bool target_country_is_from = false;
 	dcon::province_id state_province_id_;
 	void country(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(value.length() == 3) {
+		if(is_this(value)) {
+			target_country_is_this = true;
+		} else if(is_from(value)) {
+			target_country_is_from = true;
+		} else if(value.length() == 3) {
 			if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
 					it != context.outer_context.map_of_ident_names.end()) {
 				country_ = it->second;
@@ -897,6 +903,11 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::is_slave_state_yes | effect::no_payload));
 			else
 				context.compiled_effect.push_back(uint16_t(effect::is_slave_state_no | effect::no_payload));
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			if(value)
+				context.compiled_effect.push_back(uint16_t(effect::is_slave_province_yes | effect::no_payload));
+			else
+				context.compiled_effect.push_back(uint16_t(effect::is_slave_province_no | effect::no_payload));
 		} else if(context.main_slot == trigger::slot_contents::pop) {
 			if(value)
 				context.compiled_effect.push_back(uint16_t(effect::is_slave_pop_yes | effect::no_payload));

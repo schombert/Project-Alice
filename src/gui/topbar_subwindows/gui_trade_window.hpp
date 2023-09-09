@@ -8,102 +8,98 @@
 namespace ui {
 
 
-class commodity_price_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_price_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		return text::format_money(state.world.commodity_get_current_price(commodity_id));
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_money(state.world.commodity_get_current_price(commodity_id)));
 	}
 };
 
-class commodity_player_availability_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_availability_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			return text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
-		} else {
-			return "";
-		}
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		if(commodity_id)
+			set_text(state, text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id)));
 	}
 };
 
-class commodity_player_real_demand_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_real_demand_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
-		} else {
-			return "";
-		}
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		if(commodity_id)
+			set_text(state, text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1));
 	}
 };
 
-
-
-class commodity_national_player_stockpile_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_national_player_stockpile_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		if(commodity_id) {
-			float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
-			return text::format_float(stockpile, 2);
-		} else {
-			return "";
-		}
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		if(commodity_id)
+			set_text(state, text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, commodity_id), 2));
 	}
 };
 
-class commodity_player_stockpile_increase_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_stockpile_increase_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
 		float amount = economy::stockpile_commodity_daily_increase(state, commodity_id, state.local_player_nation);
-		return std::string(amount >= 0.f ? "+" : "") + text::format_float(amount, 2);
+		auto txt = std::string(amount >= 0.f ? "+" : "") + text::format_float(amount, 2);
+		set_text(state, txt);
 	}
 };
 
-class commodity_market_increase_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_market_increase_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
 		float amount = economy::global_market_commodity_daily_increase(state, commodity_id);
-		return std::string("(") + text::format_float(amount, 0) + ")";
+		auto txt = std::string("(") + text::format_float(amount, 0) + ")";
+		set_text(state, txt);
 	}
 };
 
-class commodity_global_market_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_global_market_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = state.world.commodity_get_global_market_pool(commodity_id);
-		return text::format_float(amount, 2);
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_float(state.world.commodity_get_global_market_pool(commodity_id), 2));
 	}
 };
 
-class commodity_player_domestic_market_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_domestic_market_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 1);
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_float(commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
-class commodity_player_factory_needs_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_factory_needs_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 3);
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_float(commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
-class commodity_player_pop_needs_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_pop_needs_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 3);
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_float(commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
-class commodity_player_government_needs_text : public generic_simple_text<dcon::commodity_id> {
+class commodity_player_government_needs_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
-		return text::format_float(amount, 3);
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_float(commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
@@ -304,15 +300,63 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
-			auto com = retrieve<dcon::commodity_id>(state, parent);
-			text::add_line(state, contents, state.world.commodity_get_name(com));
-			text::add_line_break_to_layout(state, contents);
-			text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_three_places{state.world.commodity_get_total_real_demand(com)});
-			text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_three_places{state.world.commodity_get_total_production(com)});
-			text::add_line(state, contents, "trade_commodity_report_3", text::variable_type::x, text::fp_three_places{state.world.commodity_get_total_consumption(com)});
-			text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_three_places{state.world.commodity_get_global_market_pool(com)});
-		
+
+		auto com = retrieve<dcon::commodity_id>(state, parent);
+		text::add_line(state, contents, state.world.commodity_get_name(com));
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_real_demand(com) });
+		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_production(com) });
+		text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_global_market_pool(com) });
+
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "trade_top_producers");
+
+		struct tagged_value {
+			float v = 0.0f;
+			dcon::nation_id n;
+		};
+
+		static std::vector<tagged_value> producers;
+		producers.clear();
+		for(auto n : state.world.in_nation) {
+			producers.push_back(tagged_value{ n.get_domestic_market_pool(com), n.id });
+		}
+		std::sort(producers.begin(), producers.end(), [](auto const& a, auto const& b) { return a.v > b.v; });
+		for(uint32_t i = 0; i < producers.size() && i < 5; ++i) {
+			if(producers[i].v >= 0.05f) {
+				auto box = text::open_layout_box(contents, 15);
+				std::string tag_str = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(producers[i].n)));
+				text::add_to_layout_box(state, contents, box, tag_str);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, state.world.nation_get_name(producers[i].n));
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
+				text::close_layout_box(contents, box);
+			}
+		}
+
+		text::add_line_break_to_layout(state, contents);
+		{
+			float a_total = 0.0f;
+			float r_total = 0.0f;
+			float f_total = 0.0f;
+			for(auto p : state.world.in_province) {
+				if(p.get_nation_from_province_ownership()) {
+					if(p.get_artisan_production() == com)
+						a_total += p.get_artisan_actual_production();
+					if(p.get_rgo() == com)
+						r_total += p.get_rgo_actual_production();
+				}
+			}
+			for(auto f : state.world.in_factory) {
+				if(f.get_building_type().get_output() == com)
+					f_total += f.get_actual_production();
+			}
+
+			text::add_line(state, contents, "w_rgo_prod", text::variable_type::x, text::fp_one_place{r_total});
+			text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
+			text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
+		}
 	}
 };
 
@@ -654,9 +698,11 @@ public:
 	}
 };
 
-class trade_flow_total_produced_text : public generic_simple_text<dcon::commodity_id> {
+class trade_flow_total_produced_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+
 		auto amount = 0.f;
 		for(auto const fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
@@ -671,14 +717,15 @@ public:
 					amount += state.world.province_get_rgo_actual_production(pid);
 			});
 		}
-		return text::format_float(amount, 3);
+
+		set_text(state, text::format_float(amount, 2));
 	}
 };
-class trade_flow_total_used_text : public generic_simple_text<dcon::commodity_id> {
+class trade_flow_total_used_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);
-		return text::format_float(amount, 3);
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_float(economy::nation_factory_consumption(state, state.local_player_nation, commodity_id), 2));
 	}
 };
 

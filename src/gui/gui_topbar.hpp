@@ -202,42 +202,6 @@ public:
 	}
 };
 
-class topbar_nation_current_research_text : public nation_current_research_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
-		auto tech_id = nations::current_research(state, nation_id);
-		auto box = text::open_layout_box(contents, 0);
-		// TODO - check for other research?
-		if(tech_id) {
-			auto tech_fat = dcon::fatten(state.world, tech_id);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::tech, tech_fat.get_name());
-			text::add_to_substitution_map(sub, text::variable_type::date,
-					nations::get_research_end_date(state, tech_id, state.local_player_nation));
-			text::add_to_substitution_map(sub, text::variable_type::invested,
-					text::fp_one_place{state.world.nation_get_research_points(nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::cost, dcon::fatten(state.world, tech_id).get_cost());
-
-			text::localised_format_box(state, contents, box, std::string_view("technologyview_research_tooltip"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("technologyview_research_invested_tooltip"), sub);
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("technologyview_no_research_tooltip"));
-		}
-		text::close_layout_box(contents, box);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-};
-
 class topbar_nation_literacy_text : public expanded_hitbox_text {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -904,12 +868,10 @@ public:
 			topbar_subwindow->set_visible(state, true);
 			state.ui_state.root->move_child_to_front(topbar_subwindow);
 			state.ui_state.topbar_subwindow = topbar_subwindow;
-			state.ui_state.can_move_map_while_visible = false;
 		};
 
 		if(state.ui_state.topbar_subwindow->is_visible()) {
 			state.ui_state.topbar_subwindow->set_visible(state, false);
-			state.ui_state.can_move_map_while_visible = true;
 			if(state.ui_state.topbar_subwindow != topbar_subwindow) {
 				override_and_show_tab();
 			}
@@ -1064,22 +1026,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			if(!nations::is_great_power(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
-			} else if(state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_loosinggpstatus"),
-						text::substitution_map{});
-			} else if(state.world.nation_get_rank(nation_id) <= uint16_t(state.defines.great_nations_count)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_loosinggpstatus"),
-						text::substitution_map{});
-			}
-			text::close_layout_box(contents, box);
+		if(!nations::is_great_power(state, state.local_player_nation)) {
+			text::add_line(state, contents, "countryalert_no_gpstatus");
+		} else if(state.world.nation_get_rank(state.local_player_nation) > uint16_t(state.defines.great_nations_count)) {
+			text::add_line(state, contents, "alice_lose_gp");
+		} else if(state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.great_nations_count)) {
+			text::add_line(state, contents, "countryalert_no_loosinggpstatus");
 		}
 	}
 };
@@ -1906,7 +1858,7 @@ public:
 		} else if(name == "topbar_tech_progress") {
 			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "tech_current_research") {
-			return make_element_by_type<topbar_nation_current_research_text>(state, id);
+			return make_element_by_type<nation_current_research_text>(state, id);
 		} else if(name == "topbar_researchpoints_value") {
 			return make_element_by_type<topbar_nation_daily_research_points_text>(state, id);
 		} else if(name == "tech_literacy_value") {

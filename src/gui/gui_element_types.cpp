@@ -206,10 +206,18 @@ void tinted_image_element_base::render(sys::state& state, int32_t x, int32_t y) 
 	if(gid) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
-			ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
-					float(color & 0xFF) / 255.f, float((color >> 8) & 0xFF) / 255.f, float((color >> 16) & 0xFF) / 255.f,
+			if(gfx_def.number_of_frames > 1) {
+				ogl::render_tinted_subsprite(state, frame,
+					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			} else {
+				ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			}
 		}
 	}
 }
@@ -229,10 +237,6 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			}
 		}
 	}
-}
-
-void tinted_image_element_base::on_update(sys::state& state) noexcept {
-	color = get_tint_color(state);
 }
 
 void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -297,15 +301,12 @@ ogl::color3f get_text_color(text::text_color text_color) {
 void button_element_base::set_button_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
 	text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-																				base_data.data.button.font_handle)) /
-								2.0f;
+		base_data.data.button.font_handle)) / 2.0f;
 }
 
 void button_element_base::on_reset_text(sys::state& state) noexcept {
 	if(stored_text.length() > 0) {
-		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(),
-																					uint32_t(stored_text.length()), base_data.data.button.font_handle)) /
-									2.0f;
+		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 	}
 }
 
@@ -315,9 +316,7 @@ void button_element_base::on_create(sys::state& state) noexcept {
 		if(base_text_handle) {
 			stored_text = text::produce_simple_string(state, base_text_handle);
 			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(),
-																						uint32_t(stored_text.length()), base_data.data.button.font_handle)) /
-										2.0f;
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 		}
 	}
 }

@@ -1337,6 +1337,29 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 	}
 	text::close_layout_box(dest, box);
 }
+void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, variable_type subkeyc, substitution valuec, int32_t indent) {
+	auto box = text::open_layout_box(dest, indent);
+
+
+	if(condition_met) {
+		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+	} else {
+		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+	}
+
+	text::add_space_to_layout_box(state, dest, box);
+
+	if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+		text::substitution_map m;
+		add_to_substitution_map(m, subkey, value);
+		add_to_substitution_map(m, subkeyb, valueb);
+		add_to_substitution_map(m, subkeyc, valuec);
+		add_to_layout_box(state, dest, box, k->second, m);
+	} else {
+		add_to_layout_box(state, dest, box, key);
+	}
+	text::close_layout_box(dest, box);
+}
 void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
 		int32_t indent) {
 

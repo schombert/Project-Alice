@@ -108,6 +108,26 @@ void map_state::update(sys::state& state) {
 	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
+	if((left_arrow_key_down xor right_arrow_key_down) or (up_arrow_key_down xor down_arrow_key_down)) {
+		glm::vec2 arrow_key_velocity_vector{};
+		if (left_arrow_key_down) {
+			arrow_key_velocity_vector.x -= 1.f;
+		}
+		if (right_arrow_key_down) {
+			arrow_key_velocity_vector.x += 1.f;
+		}
+		if (up_arrow_key_down) {
+			arrow_key_velocity_vector.y -= 1.f;
+		}
+		if (down_arrow_key_down) {
+			arrow_key_velocity_vector.y += 1.f;
+		}
+		arrow_key_velocity_vector = glm::normalize(arrow_key_velocity_vector);
+		arrow_key_velocity_vector *= 0.175f;
+		pos_velocity += arrow_key_velocity_vector;
+	}
+	pos_velocity /= 1.125;
+
 	glm::vec2 velocity;
 
 	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
@@ -122,6 +142,14 @@ void map_state::update(sys::state& state) {
 	axis.y *= -1;
 	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
 
+	if(pgup_key_down) {
+		zoom_change += 0.1f;
+		has_zoom_changed = true;
+	}
+	if(pgdn_key_down) {
+		zoom_change -= 0.1f;
+		has_zoom_changed = true;
+	}
 	if(has_zoom_changed) {
 		last_zoom_time = now;
 		has_zoom_changed = false;
@@ -153,69 +181,70 @@ void map_state::set_terrain_map_mode() {
 	active_map_mode = map_mode::mode::terrain;
 }
 
-void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod, bool can_move_map_while_visible) {
-	if(can_move_map_while_visible) {
-		if(keycode == sys::virtual_key::LEFT) {
-			pos_velocity.x = -1.f;
-			left_arrow_key_down = true;
-		} else if(keycode == sys::virtual_key::RIGHT) {
-			pos_velocity.x = +1.f;
-			right_arrow_key_down = true;
-		} else if(keycode == sys::virtual_key::UP) {
-			pos_velocity.y = -1.f;
-			up_arrow_key_down = true;
-		} else if(keycode == sys::virtual_key::DOWN) {
-			pos_velocity.y = +1.f;
-			down_arrow_key_down = true;
-		}
+void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
+	switch (keycode) {
+	case sys::virtual_key::LEFT:
+		left_arrow_key_down = true;
+		break;
+	case sys::virtual_key::RIGHT:
+		right_arrow_key_down = true;
+		break;
+	case sys::virtual_key::UP:
+		up_arrow_key_down = true;
+		break;
+	case sys::virtual_key::DOWN:
+		down_arrow_key_down = true;
+		break;
+	case sys::virtual_key::PRIOR:
+		pgup_key_down = true;
+		break;
+	case sys::virtual_key::NEXT:
+		pgdn_key_down = true;
+		break;
+	default:
+		break;
 	}
 }
 
-void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod, bool can_move_map_while_visible) {
-	if(can_move_map_while_visible) {
-		if(keycode == sys::virtual_key::LEFT) {
-			if(pos_velocity.x < 0) {
-				if(right_arrow_key_down == false) {
-					pos_velocity.x = 0;
-				} else {
-					pos_velocity.x *= -1;
-				}
-			}
-			left_arrow_key_down = false;
-		} else if(keycode == sys::virtual_key::RIGHT) {
-			if(pos_velocity.x > 0) {
-				if(left_arrow_key_down == false) {
-					pos_velocity.x = 0;
-				} else {
-					pos_velocity.x *= -1;
-				}
-			}
-			right_arrow_key_down = false;
-		} else if(keycode == sys::virtual_key::UP) {
-			if(pos_velocity.y < 0) {
-				if(down_arrow_key_down == false) {
-					pos_velocity.y = 0;
-				} else {
-					pos_velocity.y *= -1;
-				}
-			}
-			up_arrow_key_down = false;
-		} else if(keycode == sys::virtual_key::DOWN) {
-			if(pos_velocity.y > 0) {
-				if(up_arrow_key_down == false) {
-					pos_velocity.y = 0;
-				} else {
-					pos_velocity.y *= -1;
-				}
-			}
-			down_arrow_key_down = false;
-		}
+void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
+	switch(keycode) {
+	case sys::virtual_key::LEFT:
+		left_arrow_key_down = false;
+		break;
+	case sys::virtual_key::RIGHT:
+		right_arrow_key_down = false;
+		break;
+	case sys::virtual_key::UP:
+		up_arrow_key_down = false;
+		break;
+	case sys::virtual_key::DOWN:
+		down_arrow_key_down = false;
+		break;
+	case sys::virtual_key::PRIOR:
+		pgup_key_down = false;
+		break;
+	case sys::virtual_key::NEXT:
+		pgdn_key_down = false;
+		break;
+	default:
+		break;
 	}
 }
 
 void map_state::set_pos(glm::vec2 new_pos) {
 	pos.x = glm::mod(new_pos.x, 1.f);
 	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
+}
+
+void map_state::center_map_on_province(sys::state& state, dcon::province_id p) {
+	if(!p)
+		return;
+
+	auto map_pos = state.world.province_get_mid_point(p);
+	map_pos.x /= float(map_data.size_x);
+	map_pos.y /= float(map_data.size_y);
+	map_pos.y = 1.0f - map_pos.y;
+	set_pos(map_pos);
 }
 
 void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod,

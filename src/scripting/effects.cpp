@@ -909,7 +909,7 @@ uint32_t es_random_list_scope(EFFECT_PARAMTERS) {
 		if(r < 0) {
 			return 1 + internal_execute_effect(sub_units_start + 1, ws, primary_slot, this_slot, from_slot, r_hi, r_lo + 1);
 		}
-		sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceeded by uint16_t
+		sub_units_start += 2  + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceeded by uint16_t
 	}
 	return 0;
 }
@@ -1182,19 +1182,17 @@ uint32_t es_region_scope(EFFECT_PARAMTERS) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 
 		uint32_t i = 0;
-		for(auto si : ws.world.in_state_instance) {
-			if(si.get_definition() == region && trigger::evaluate(ws, limit, trigger::to_generic(si.id), this_slot, from_slot)) {
-				i += apply_subeffects(tval, ws, trigger::to_generic(si.id), this_slot, from_slot, r_hi, r_lo + i);
+		for(auto p : ws.world.state_definition_get_abstract_state_membership(region)) {
+			if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
+				i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
 			}
 		}
 		return i;
 	} else {
 		auto region = trigger::payload(tval[2]).state_id;
 		uint32_t i = 0;
-		for(auto si : ws.world.in_state_instance) {
-			if(si.get_definition() == region) {
-				i += apply_subeffects(tval, ws, trigger::to_generic(si.id), this_slot, from_slot, r_hi, r_lo + i);
-			}
+		for(auto p : ws.world.state_definition_get_abstract_state_membership(region)) {
+			i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
 		}
 		return i;
 	}
@@ -1519,6 +1517,10 @@ uint32_t ef_religion(EFFECT_PARAMTERS) {
 uint32_t ef_is_slave_state_yes(EFFECT_PARAMTERS) {
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
 			[&](dcon::province_id p) { ws.world.province_set_is_slave(p, true); });
+	return 0;
+}
+uint32_t ef_is_slave_province_yes(EFFECT_PARAMTERS) {
+	ws.world.province_set_is_slave(trigger::to_prov(primary_slot), true);
 	return 0;
 }
 uint32_t ef_is_slave_pop_yes(EFFECT_PARAMTERS) {
@@ -2496,6 +2498,17 @@ uint32_t ef_is_slave_pop_no(EFFECT_PARAMTERS) {
 				ws.world.province_get_rgo(ws.world.pop_get_province_from_pop_location(trigger::to_pop(primary_slot))));
 		ws.world.pop_set_poptype(trigger::to_pop(primary_slot),
 				mine ? ws.culture_definitions.laborers : ws.culture_definitions.farmers);
+	}
+	return 0;
+}
+uint32_t ef_is_slave_province_no(EFFECT_PARAMTERS) {
+	auto p = trigger::to_prov(primary_slot);
+	ws.world.province_set_is_slave(p, false);
+	bool mine = ws.world.commodity_get_is_mine(ws.world.province_get_rgo(p));
+	for(auto pop : ws.world.province_get_pop_location(p)) {
+		if(pop.get_pop().get_poptype() == ws.culture_definitions.slaves) {
+			pop.get_pop().set_poptype(mine ? ws.culture_definitions.laborers : ws.culture_definitions.farmers);
+		}
 	}
 	return 0;
 }
@@ -4528,7 +4541,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_infrastructure_state, //constexpr inline uint16_t infrastructure_state = 0x0167;
 		ef_fort_state, //constexpr inline uint16_t fort_state = 0x0168;
 		ef_naval_base_state, //constexpr inline uint16_t naval_base_state = 0x0169;
-
+		ef_is_slave_province_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
+		ef_is_slave_province_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
 		//
 		// SCOPES
 		//

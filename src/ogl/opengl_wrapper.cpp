@@ -467,6 +467,26 @@ void render_tinted_textured_rect(sys::state const& state, float x, float y, floa
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
+		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	bind_vertices_by_rotation(state, rot, flipped);
+
+	auto const scale = 1.0f / static_cast<float>(total_frames);
+	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
+	glUniform4f(parameters::subrect, r, g, b, 0);
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+	GLuint subroutines[2] = { parameters::alternate_tint, parameters::sub_sprite };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
 void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y,
 		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);

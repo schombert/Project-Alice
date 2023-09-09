@@ -451,8 +451,8 @@ void update_rankings(sys::state& state) {
 				}
 				if(fa.get_is_civilized() != fb.get_is_civilized())
 					return fa.get_is_civilized();
-				if(bool(fa.get_overlord_as_subject()) != bool(fa.get_overlord_as_subject()))
-					return !bool(fa.get_overlord_as_subject());
+				if(bool(fa.get_overlord_as_subject().get_ruler()) != bool(fa.get_overlord_as_subject().get_ruler()))
+					return !bool(fa.get_overlord_as_subject().get_ruler());
 				auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
 				auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
 				if(a_score != b_score)
@@ -633,10 +633,9 @@ status get_status(sys::state& state, dcon::nation_id n) {
 
 sys::date get_research_end_date(sys::state& state, dcon::technology_id tech_id, dcon::nation_id n) {
 	sys::date curr = state.current_date;
-	float daily = nations::daily_research_points(state, n);
-	auto total = uint16_t((dcon::fatten(state.world, tech_id).get_cost() - state.world.nation_get_research_points(n)) / daily);
-	curr.value += total;
-	return curr;
+	auto daily = nations::daily_research_points(state, n);
+	auto total = int32_t((culture::effective_technology_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / daily);
+	return curr + total;
 }
 
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {
@@ -1259,26 +1258,6 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 
 void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
-
-	auto pending_offer = state.world.nation_get_peace_offer_from_pending_peace_offer(n);
-	if(pending_offer) {
-		state.world.delete_peace_offer(pending_offer);
-	}
-
-	// drop all wg to/from/secondary this nation
-	std::vector<dcon::wargoal_id> to_delete;
-	for(auto w : state.world.nation_get_war_participant(n)) {
-		for(auto wg : w.get_war().get_wargoals_attached()) {
-			if(wg.get_wargoal().get_target_nation() == n || wg.get_wargoal().get_added_by() == n ||
-					wg.get_wargoal().get_secondary_nation() == n) {
-
-				to_delete.push_back(wg.get_wargoal().id);
-			}
-		}
-	}
-	for(auto wg : to_delete) {
-		state.world.delete_wargoal(wg);
-	}
 
 	auto leaders = state.world.nation_get_leader_loyalty(n);
 	while(leaders.begin() != leaders.end()) {
@@ -2304,7 +2283,6 @@ void update_crisis(sys::state& state) {
 		state.crisis_temperature += state.defines.crisis_temperature_increase * state.defines.crisis_temperature_participant_factor *
 																float(participants) / float(total);
 
-		// TODO: start crisis war at temperature 100; set mode to none
 		if(state.crisis_temperature >= 100) {
 			dcon::war_id war;
 			if(state.current_crisis == sys::crisis_type::liberation) {

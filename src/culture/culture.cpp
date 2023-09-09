@@ -23,6 +23,65 @@ void set_default_issue_and_reform_options(sys::state& state) {
 	});
 }
 
+void clear_existing_tech_effects(sys::state& state) {
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_max_building_level(nation_indices, t, 0);
+		});
+		
+	}
+	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_active_building(nation_indices, id, ve::vbitfield_type{0});
+		});
+	});
+	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_active_unit(nation_indices, uid, ve::vbitfield_type{ 0 });
+		});
+	}
+	for(uint32_t i = 0; i < state.culture_definitions.crimes.size(); ++i) {
+		dcon::crime_id uid = dcon::crime_id{ dcon::crime_id::value_base_t(i) };
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_active_crime(nation_indices, uid, ve::vbitfield_type{ 0 });
+		});
+	}
+
+	for(auto cmod : state.world.in_commodity) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_rgo_goods_output(nation_indices, cmod, 0.0f);
+		});
+	}
+	for(auto cmod : state.world.in_commodity) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_factory_goods_output(nation_indices, cmod, 0.0f);
+		});
+	}
+	for(auto cmod : state.world.in_commodity) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_rgo_size(nation_indices, cmod, 0.0f);
+		});
+	}
+	for(auto cmod : state.world.in_commodity) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_factory_goods_throughput(nation_indices, cmod, 0.0f);
+		});
+	}
+	for(auto cmod : state.world.in_rebel_type) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_rebel_org_modifier(nation_indices, cmod, 0.0f);
+		});
+	}
+	state.world.execute_serial_over_nation([&](auto nation_indices) {
+		state.world.nation_set_has_gas_attack(nation_indices, ve::vbitfield_type{ 0 });
+	});
+	state.world.execute_serial_over_nation([&](auto nation_indices) {
+		state.world.nation_set_has_gas_defense(nation_indices, ve::vbitfield_type{ 0 });
+	});
+	military::reset_unit_stats(state);
+}
+
 void repopulate_technology_effects(sys::state& state) {
 	state.world.for_each_technology([&](dcon::technology_id t_id) {
 		auto tech_id = fatten(state.world, t_id);

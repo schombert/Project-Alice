@@ -77,7 +77,6 @@ public:
 
 class province_rgo : public image_element_base {
 public:
-
 	void on_update(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, retrieve<dcon::province_id>(state, parent));
 		frame = fat_id.get_rgo().get_icon();
@@ -88,18 +87,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-
-			auto rgo_good = state.world.province_get_rgo(prov_id);
-			if(rgo_good) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(rgo_good), text::substitution_map{});
-				text::close_layout_box(contents, box);
-			}
-		}
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto rgo = state.world.province_get_rgo(prov);
+		text::add_line(state, contents, state.world.commodity_get_name(rgo));
 	}
 };
 
@@ -258,8 +248,9 @@ public:
 			auto defection_target = fat_id.get_defection_target();
 			if(culture.id) {
 				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
-			} else if(defection_target.id) {
-				std::string adjective = text::get_adjective_as_string(state, defection_target);
+			}
+			std::string adjective = text::get_adjective_as_string(state, defection_target);
+			if(defection_target.id) {
 				text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
 				text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
 			}
@@ -605,6 +596,53 @@ public:
 			}
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto id = retrieve<dcon::province_id>(state, parent);
+
+		if constexpr(Value == economy::province_building_type::fort) {
+			text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(id) == state.local_player_nation);
+			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
+
+			int32_t current_lvl = state.world.province_get_building_level(id, economy::province_building_type::fort);
+			int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::fort);
+			int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_fort));
+
+			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+
+		} else if constexpr(Value == economy::province_building_type::naval_base) {
+			text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(id) == state.local_player_nation);
+			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
+			text::add_line_with_condition(state, contents, "nb_build_tt_1", state.world.province_get_is_coast(id));
+
+
+			int32_t current_lvl = state.world.province_get_building_level(id, economy::province_building_type::naval_base);
+			int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::naval_base);
+			int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_naval_base));
+
+			auto si = state.world.province_get_state_membership(id);
+			text::add_line_with_condition(state, contents, "nb_build_tt_2", current_lvl > 0 || !si.get_naval_base_is_taken());
+
+			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+
+		} if constexpr(Value == economy::province_building_type::railroad) {
+			text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(id) == state.local_player_nation);
+			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
+
+			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+			text::add_line_with_condition(state, contents, "rr_build_tt_1", (rules & issue_rule::build_railway) != 0);
+
+			int32_t current_rails_lvl = state.world.province_get_building_level(id, economy::province_building_type::railroad);
+			int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::railroad);
+			int32_t min_build_railroad =int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+
+			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0), text::variable_type::x, int64_t(current_rails_lvl), text::variable_type::n, int64_t(min_build_railroad), text::variable_type::y, int64_t(max_local_rails_lvl));
+		}
+	}
 };
 
 template<economy::province_building_type Value>
@@ -812,11 +850,12 @@ public:
 	}
 };
 
-class province_supply_limit_text : public standard_province_text {
+class province_supply_limit_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto supply = int32_t(military::peacetime_attrition_limit(state, state.local_player_nation, province_id));
-		return std::to_string(supply);
+		set_text(state, std::to_string(supply));
 	}
 
 	// TODO: needs an explanation of where the value comes from
@@ -1019,15 +1058,16 @@ public:
 	}
 };
 
-class province_crime_name_text : public standard_province_text {
+class province_crime_name_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, province_id);
 		auto crime_id = fat_id.get_crime();
 		if(crime_id) {
-			return text::produce_simple_string(state, state.culture_definitions.crimes[crime_id].name);
+			set_text(state, text::produce_simple_string(state, state.culture_definitions.crimes[crime_id].name));
 		} else {
-			return "";
+			set_text(state, "");
 		}
 	}
 
@@ -1043,10 +1083,11 @@ public:
 	}
 };
 
-class province_crime_fighting_text : public standard_province_text {
+class province_crime_fighting_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1));
 	}
 
 	/*
@@ -1069,10 +1110,11 @@ public:
 	*/
 };
 
-class province_rebel_percent_text : public standard_province_text {
+class province_rebel_percent_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_float(province::revolt_risk(state, province_id), 2);
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_float(province::revolt_risk(state, province_id), 2));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1090,35 +1132,39 @@ public:
 	}
 };
 
-class province_rgo_employment_percent_text : public standard_province_text {
+class province_rgo_employment_percent_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(state.world.province_get_rgo_employment(province_id), 1));
 	}
 };
 
-class province_migration_text : public standard_province_text {
+class province_migration_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
 		auto external = province::monthly_net_pop_external_migration(state, province_id);
-		return text::prettify(int32_t(internal + external));
+		set_text(state, text::prettify(int32_t(internal + external)));
 	}
 };
 
-class province_pop_growth_text : public standard_province_text {
+class province_pop_growth_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id))));
 	}
 };
 
-class province_army_size_text : public standard_province_text {
+class province_army_size_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
 		auto built = military::regiments_created_from_province(state, province_id);
 		auto max_possible = military::regiments_max_possible_from_province(state, province_id);
-		return text::format_ratio(built, max_possible);
+		set_text(state, text::format_ratio(built, max_possible));
 	}
 };
 
@@ -1294,23 +1340,6 @@ public:
 		} else {
 			set_visible(state, false);
 		}
-	}
-};
-
-class province_colony_rgo_icon : public image_element_base {
-public: // goto hell;
-				// Seriously hate this code, just no, this is awful and shouldnt be needed
-				// but i refuse to loose my sanity to something to assining
-	dcon::text_sequence_id rgo_name;
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, rgo_name);
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1637,7 +1666,6 @@ public:
 
 class province_window_colony : public window_element_base {
 private:
-	province_colony_rgo_icon* rgo_icon = nullptr;
 	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 
@@ -1652,9 +1680,7 @@ public:
 			culture_chart = ptr.get();
 			return ptr;
 		} else if(name == "goods_type") {
-			auto ptr = make_element_by_type<province_colony_rgo_icon>(state, id);
-			rgo_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<province_rgo>(state, id);
 		} else if(name == "colonize_button") {
 			return make_element_by_type<province_protectorate_button>(state, id);
 		} else if(name == "withdraw_button") {
@@ -1687,8 +1713,6 @@ public:
 		if(bool(nation_id)) {
 			set_visible(state, false);
 		} else {
-			rgo_icon->frame = fat_id.get_rgo().get_icon();
-			rgo_icon->rgo_name = fat_id.get_rgo().get_name();
 			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
 			population_box->set_text(state, text::prettify(int32_t(total_pop)));
 			culture_chart->on_update(state);

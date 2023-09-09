@@ -873,25 +873,23 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 			rotation = 1.5708
 		}
-		
 		guiButtonType = {
 			name = "disbandbutton"
-			position = { x = 235 y = 6 }
+			position = { x = 254 y = 6 }
 			quadTextureSprite ="GFX_unit_disband"
 		}	
 
 		guiButtonType = {
 			name = "splitinhalf"
-			position = { x = 254 y = 6 }
+			position = { x = 279 y = 6 }
 			quadTextureSprite ="GFX_unit_splitinhalf"
 			shortcut = "s"
 		}		
 
 		guiButtonType = {
-			name = "newunitbutton"
-			position = { x = 279 y = 6 }
-			quadTextureSprite ="GFX_unit_reorg"
-			shortcut = "r"
+			name = "remove_unit_from_selection_button"
+			position = { x = 303 y = 6 }
+			quadTextureSprite ="GFX_unit_close"
 		}
 		
 		iconType = {

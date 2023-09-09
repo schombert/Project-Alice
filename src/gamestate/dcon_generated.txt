@@ -1171,6 +1171,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ ideology_restriction }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ culture_group_restriction }
 		type{ bitfield }
 		tag{ scenario }
@@ -1229,25 +1234,21 @@ object {
 		type{ text_sequence_id }
 		tag{ save }
 	}
-
 	property{
 		name{ continent }
 		type{ modifier_id }
 		tag{ scenario }
 	}
-
 	property{
 		name{ climate }
 		type{ modifier_id }
 		tag{ scenario }
 	}
-
 	property{
 		name{ terrain }
 		type{ modifier_id }
 		tag{ save }
 	}
-
 	property{
 		name{ life_rating }
 		type{ uint8_t }
@@ -2351,6 +2352,11 @@ object {
 	}
 	property{
 		name{ is_concession }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ is_crisis_offer }
 		type{ bitfield }
 		tag{ save }
 	}

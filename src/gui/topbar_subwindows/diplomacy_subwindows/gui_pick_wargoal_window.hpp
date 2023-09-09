@@ -914,7 +914,7 @@ public:
 		bool content = retrieve<bool>(state, parent);
 		frame = content ? 1 : 0;
 		auto war = retrieve<dcon::war_id>(state, parent);
-		show = bool(war);
+		show = !bool(war);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -927,6 +927,21 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(!show)
 			return;
+	}
+};
+
+class diplomacy_declare_war_call_allies_text : public simple_text_element_base {
+public:
+	bool show = true;
+
+	void on_update(sys::state& state) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		show = !bool(war);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			simple_text_element_base::render(state, x, y);
 	}
 };
 
@@ -978,7 +993,7 @@ public:
 		} else if(name == "call_allies_checkbox") {
 			return make_element_by_type<diplomacy_declare_war_call_allies_checkbox>(state, id);
 		} else if(name == "call_allies_text") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<diplomacy_declare_war_call_allies_text>(state, id);
 		} else if(name == "agreebutton") {
 			return make_element_by_type<diplomacy_declare_war_agree_button>(state, id);
 		} else if(name == "declinebutton") {

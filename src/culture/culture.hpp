@@ -169,8 +169,11 @@ enum class rebel_defection : uint8_t { none = 0, culture, culture_group, religio
 enum class rebel_independence : uint8_t { none = 0, culture, culture_group, religion, colonial, any, pan_nationalist };
 
 // these functions are to be called only after loading a save
+void clear_existing_tech_effects(sys::state& state);
 void repopulate_technology_effects(sys::state& state);
 void repopulate_invention_effects(sys::state& state);
+
+
 void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
 void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id inv_id);
 void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);

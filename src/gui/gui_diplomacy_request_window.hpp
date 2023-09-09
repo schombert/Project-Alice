@@ -41,9 +41,9 @@ public:
 	}
 };
 
-class diplomacy_request_title_text : public generic_simple_text<diplomatic_message::message> {
+class diplomacy_request_title_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, diplomatic_message::message diplomacy_request) noexcept override {
+	std::string get_text(sys::state& state, diplomatic_message::message const& diplomacy_request) {
 		switch(diplomacy_request.type) {
 		case diplomatic_message::type_t::none:
 			return std::string("???");
@@ -65,6 +65,10 @@ public:
 			return text::produce_simple_string(state, "crisis_offer_di");
 		}
 		return std::string("???");
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto diplomacy_request = retrieve< diplomatic_message::message>(state, parent);
+		set_text(state, get_text(state, diplomacy_request));
 	}
 };
 

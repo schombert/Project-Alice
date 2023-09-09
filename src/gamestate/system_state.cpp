@@ -93,8 +93,9 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
 				auto owner = world.province_get_nation_from_province_ownership(prov_id);
-				if(owner)
+				if(owner) {
 					open_diplomacy(owner);
+				}
 			}
 		}
 
@@ -298,7 +299,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 
-			map_state.on_key_down(keycode, mod, state::ui_state.can_move_map_while_visible);
+			map_state.on_key_down(keycode, mod);
 		}
 	} else if(mode == sys::game_mode_type::end_screen) {
 
@@ -315,7 +316,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
 				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
-			map_state.on_key_down(keycode, mod, state::ui_state.can_move_map_while_visible);
+			if(!ui_state.topbar_subwindow->is_visible()) {
+				map_state.on_key_down(keycode, mod);
+			}
 
 			if(keycode == sys::virtual_key::LEFT || keycode == sys::virtual_key::RIGHT || keycode == sys::virtual_key::UP || keycode == sys::virtual_key::DOWN) {
 				if(ui_state.mouse_sensitive_target) {
@@ -327,7 +330,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	}
 }
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-	map_state.on_key_up(keycode, mod, state::ui_state.can_move_map_while_visible);
+	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
@@ -2275,8 +2278,10 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					});
 				}
 			}
-			if(inv.get_technology_type() == uint8_t(culture::tech_category::unknown))
-				std::abort();
+			if(inv.get_technology_type() == uint8_t(culture::tech_category::unknown)) {
+				err.accumulated_warnings += "failed to find a technology category for invention ";
+				err.accumulated_warnings += text::produce_simple_string(*this, inv.get_name()) + "\n";
+			}
 		}
 	}
 	// parse on_actions.txt
@@ -2429,6 +2434,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
+	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
 
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
@@ -2817,6 +2823,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 
 	military::reset_unit_stats(*this);
+	culture::clear_existing_tech_effects(*this);
 	culture::repopulate_technology_effects(*this);
 	culture::repopulate_invention_effects(*this);
 	military::apply_base_unit_stat_modifiers(*this);
@@ -2849,6 +2856,24 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations::update_ui_rankings(*this);
 
 	nations::monthly_flashpoint_update(*this);
+
+	//
+	// clear any pending messages from previously loaded saves
+	//
+	while(!new_n_event.empty())
+		new_n_event.pop();
+	while(!new_f_n_event.empty())
+		new_f_n_event.pop();
+	while(!new_p_event.empty())
+		new_p_event.pop();
+	while(!new_f_p_event.empty())
+		new_f_p_event.pop();
+	while(!new_requests.empty())
+		new_requests.pop();
+	while(!naval_battle_reports.empty())
+		naval_battle_reports.pop();
+	while(!land_battle_reports.empty())
+		land_battle_reports.pop();
 
 	if(local_player_nation) {
 		world.nation_set_is_player_controlled(local_player_nation, true);
@@ -3165,7 +3190,6 @@ void state::single_game_tick() {
 		}
 	});
 
-	military::update_war_cleanup(*this);
 	economy::daily_update(*this);
 
 	military::update_siege_progress(*this);
@@ -3324,6 +3348,7 @@ void state::single_game_tick() {
 
 	ai::general_ai_unit_tick(*this);
 
+	military::run_gc(*this);
 	ai::daily_cleanup(*this);
 
 	/*

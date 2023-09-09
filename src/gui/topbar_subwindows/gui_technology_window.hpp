@@ -980,10 +980,8 @@ public:
 class invention_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			auto content = retrieve<dcon::invention_id>(state, parent);
-			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
-		}
+		auto content = retrieve<dcon::invention_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -991,17 +989,15 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			auto content = retrieve<dcon::invention_id>(state, parent);
+		auto content = retrieve<dcon::invention_id>(state, parent);
 
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
-			text::close_layout_box(contents, box);
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
+		text::close_layout_box(contents, box);
 
-			text::add_line_break_to_layout(state, contents);
+		text::add_line_break_to_layout(state, contents);
 
-			invention_description(state, contents, content, 0);
-		}
+		invention_description(state, contents, content, 0);
 	}
 };
 
@@ -1164,12 +1160,67 @@ public:
 class technology_research_points_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
+		auto t = retrieve<dcon::technology_id>(state, parent);
+		if(t) {
+			set_text(state, std::to_string(int64_t(
+				culture::effective_technology_cost(state, state.ui_date.to_ymd(state.start_date).year, state.local_player_nation, t)
+			)));
+		} else {
+			set_text(state, "");
+		}
+	}
 
-			set_text(state, std::to_string(state.world.technology_get_cost(content)));
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto tech_id = retrieve<dcon::technology_id>(state, parent);
+		if(!tech_id)
+			return;
+
+		auto base_cost = state.world.technology_get_cost(tech_id);
+		auto availability_year = state.world.technology_get_year(tech_id);
+		auto folder = state.world.technology_get_folder_index(tech_id);
+		auto category = state.culture_definitions.tech_folders[folder].category;
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "base_value");
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, int64_t(base_cost));
+			text::close_layout_box(contents, box);
+		}
+
+		switch(category) {
+			case culture::tech_category::army:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::army_tech_research_bonus, true);
+				break;
+			case culture::tech_category::navy:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
+				break;
+			case culture::tech_category::commerce:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::commerce_tech_research_bonus, true);
+				break;
+			case culture::tech_category::culture:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::culture_tech_research_bonus, true);
+				break;
+			case culture::tech_category::industry:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
+				break;
+			default:
+				break;
+		}
+		
+		auto ol_mod = state.world.nation_get_active_technologies( state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(state.local_player_nation)), tech_id) ? state.defines.tech_factor_vassal : 1.0f;
+
+		if(ol_mod != 1.0f) {
+			text::add_line(state, contents, "tech_ol_tt", text::variable_type::x, text::fp_percentage{ ol_mod });
+		}
+
+		auto year_mod = (1.0f - std::max(0.0f, float(state.ui_date.to_ymd(state.start_date).year - availability_year) / state.defines.tech_year_span));
+		if(year_mod != 1.0f) {
+			text::add_line(state, contents, "tech_year_tt", text::variable_type::x, text::fp_percentage{ year_mod });
 		}
 	}
 };
@@ -1228,8 +1279,6 @@ public:
 			return make_element_by_type<technology_selected_effect_text>(state, id);
 		} else if(name == "diff_icon") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "diff_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "diff") {
 			return make_element_by_type<technology_research_points_text>(state, id);
 		} else if(name == "year_label") {

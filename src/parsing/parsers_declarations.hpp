@@ -1902,6 +1902,7 @@ struct invention_contents : public modifier_base {
 	void limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context);
 	void chance(dcon::value_modifier_key value, error_handler& err, int32_t line, invention_context& context);
 	void effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context);
+	void shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context);
 };
 
 dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context);
@@ -2052,6 +2053,7 @@ struct rebel_body {
 	void defect_delay(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context);
 	void ideology(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context);
 	void allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
+	void allow_all_ideologies(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
 	void allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
 	void occupation_mult(association_type, float value, error_handler& err, int32_t line, rebel_context& context);
 	void will_rise(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context);
@@ -2423,6 +2425,7 @@ struct foreign_investment_block {
 struct country_history_file {
 	void finish(country_history_context&) { }
 	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
 	void capital(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
 	void any_value(std::string_view label, association_type, std::string_view value, error_handler& err, int32_t line,

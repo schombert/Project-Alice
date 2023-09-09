@@ -623,6 +623,26 @@ void tf_country_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 			primary_slot != -1 ? trigger::to_generic(nations::owner_of_pop(ws, trigger::to_pop(primary_slot))) : -1, this_slot,
 			from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
 }
+void tf_capital_scope_province(TRIGGER_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
+				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))) : text::produce_simple_string(ws, "singular_nation"));
+		text::close_layout_box(layout, box);
+	}
+
+	if(trigger::count_subtriggers(tval) > 1) {
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
+		text::close_layout_box(layout, box);
+	}
+
+	auto loc = primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_capital(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))) : -1;
+	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+}
 void tf_capital_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -1481,7 +1501,7 @@ void tf_culture_group_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = trigger::payload(tval[1]).culgrp_id;
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture_group"),
 			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -1490,6 +1510,22 @@ void tf_culture_group_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
+			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_culture_group_province(TRIGGER_DISPLAY_PARAMS) {
+	auto cg = trigger::payload(tval[1]).culgrp_id;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture_group"),
+			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_culture_group_state(TRIGGER_DISPLAY_PARAMS) {
+	auto cg = trigger::payload(tval[1]).culgrp_id;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture_group"),
 			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -1883,6 +1919,30 @@ void tf_is_cultural_union_tag_this_nation(TRIGGER_DISPLAY_PARAMS) {
 			layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_have_core_in_nation_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto tag = trigger::payload(tval[1]).tag_id;
+	auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
+	auto box = text::open_layout_box(layout, indentation);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_ob"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)));
+	text::close_layout_box(layout, box);
+}
+void tf_have_core_in_nation_this(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_ob"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot))) : text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_have_core_in_nation_from(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_ob"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, from_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(from_slot))) : text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
+}
+
 void tf_can_build_factory_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -3263,13 +3323,207 @@ void tf_is_primary_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
-																						ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
+					ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
 				ws, layout, box);
 	else
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws, "this_nation_primary_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+
+
+void tf_is_accepted_culture_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
+			text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws,
+			ws.world.culture_get_name(ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)))), text::produce_simple_string(ws, "an_accepted_culture"),
+				ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws,
+			ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))), text::produce_simple_string(ws, "an_accepted_culture"),
+				ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+			ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+				ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws,
+			ws.world.culture_get_name(ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+			nations::owner_of_pop(ws, trigger::to_pop(this_slot))))),
+			text::produce_simple_string(ws, "this_nation_primary_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_state_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws,
+			ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_state_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+			ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws,
+			ws.world.culture_get_name(ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+			nations::owner_of_pop(ws, trigger::to_pop(this_slot))))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_province_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws,
+			ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_province_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
+			ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
+			text::produce_simple_string(ws, "an_accepted_culture"),
+			ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation_primary_culture"),
+				text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
+		text::produce_simple_string(ws, "this_nation_accepted_culture"),
+		ws, layout, box);
+	
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
+		text::produce_simple_string(ws, "this_nation_accepted_culture"),
+		ws, layout, box);
+
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
+		text::produce_simple_string(ws, "this_nation_accepted_culture"),
+		ws, layout, box);
+
+	text::close_layout_box(layout, box);
+}
+void tf_is_accepted_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
+		text::produce_simple_string(ws, "this_nation_accepted_culture"),
+		ws, layout, box);
+
+	text::close_layout_box(layout, box);
+}
+
 void tf_is_accepted_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -4234,14 +4488,14 @@ void tf_industrial_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4253,7 +4507,7 @@ void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4265,7 +4519,7 @@ void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4277,7 +4531,7 @@ void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4290,7 +4544,7 @@ void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -7432,6 +7686,29 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_invention, //constexpr inline uint16_t invention_province = 0x0283;
 		tf_brigades_compare_province_this, //constexpr inline uint16_t brigades_compare_province_this = 0x0284;
 		tf_brigades_compare_province_from, //constexpr inline uint16_t brigades_compare_province_from = 0x0285;
+		tf_is_accepted_culture_nation_this_pop, //constexpr inline uint16_t is_accepted_culture_nation_this_pop = 0x0286;
+		tf_is_accepted_culture_nation_this_nation, //constexpr inline uint16_t is_accepted_culture_nation_this_nation = 0x0287;
+		tf_is_accepted_culture_nation_this_state, //constexpr inline uint16_t is_accepted_culture_nation_this_state = 0x0288;
+		tf_is_accepted_culture_nation_this_province, //constexpr inline uint16_t is_accepted_culture_nation_this_province = 0x0289;
+		tf_is_accepted_culture_state_this_pop, //constexpr inline uint16_t is_accepted_culture_state_this_pop = 0x028A;
+		tf_is_accepted_culture_state_this_nation, //constexpr inline uint16_t is_accepted_culture_state_this_nation = 0x028B;
+		tf_is_accepted_culture_state_this_state, //constexpr inline uint16_t is_accepted_culture_state_this_state = 0x028C;
+		tf_is_accepted_culture_state_this_province, //constexpr inline uint16_t is_accepted_culture_state_this_province = 0x028D;
+		tf_is_accepted_culture_province_this_pop, //constexpr inline uint16_t is_accepted_culture_province_this_pop = 0x028E;
+		tf_is_accepted_culture_province_this_nation, //constexpr inline uint16_t is_accepted_culture_province_this_nation = 0x028F;
+		tf_is_accepted_culture_province_this_state, //constexpr inline uint16_t is_accepted_culture_province_this_state = 0x0290;
+		tf_is_accepted_culture_province_this_province, //constexpr inline uint16_t is_accepted_culture_province_this_province = 0x0291;
+		tf_is_accepted_culture_pop_this_pop, //constexpr inline uint16_t is_accepted_culture_pop_this_pop = 0x0292;
+		tf_is_accepted_culture_pop_this_nation, //constexpr inline uint16_t is_accepted_culture_pop_this_nation = 0x0293;
+		tf_is_accepted_culture_pop_this_state, //constexpr inline uint16_t is_accepted_culture_pop_this_state = 0x0294;
+		tf_is_accepted_culture_pop_this_province, //constexpr inline uint16_t is_accepted_culture_pop_this_province = 0x0295;
+		tf_culture_group_province, //constexpr inline uint16_t culture_group_province = 0x0296;
+		tf_culture_group_state, //constexpr inline uint16_t culture_group_state = 0x0297;
+		tf_have_core_in_nation_tag, //constexpr inline uint16_t have_core_in_nation_tag = 0x0298;
+		tf_have_core_in_nation_this, //constexpr inline uint16_t have_core_in_nation_this = 0x0299;
+		tf_have_core_in_nation_from, //constexpr inline uint16_t have_core_in_nation_from = 0x029A;
+		tf_owns, //constexpr inline uint16_t owns_province = 0x029B;
+		tf_empty, //constexpr inline uint16_t empty_state = 0x029C;
 
 		//
 		// scopes
@@ -7484,6 +7761,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_country_scope_nation,						// constexpr uint16_t country_scope_nation = 0x002C;
 		tf_country_scope_province,					// constexpr uint16_t country_scope_province = 0x002D;
 		tf_cultural_union_scope_pop,				// constexpr uint16_t cultural_union_scope_pop = 0x002E;
+		tf_capital_scope_province    // constexpr uint16_t capital_scope_province = 0x002F;
 };
 
 // #define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::columnar_layout& layout,

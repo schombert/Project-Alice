@@ -38,8 +38,8 @@ namespace sys {
 	MOD_LIST_ELEMENT(28, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_efficiency")                           \
 	MOD_LIST_ELEMENT(29, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_size")                                \
 	MOD_LIST_ELEMENT(30, mine_rgo_size, true, modifier_display_type::percent, "modifier_mine_size")                                \
-	MOD_LIST_ELEMENT(31, pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_pop_militancy_modifier") \
-	MOD_LIST_ELEMENT(32, pop_consciousness_modifier, false, modifier_display_type::fp_three_places,                                \
+	MOD_LIST_ELEMENT(31, pop_militancy_modifier, false, modifier_display_type::fp_two_places, "modifier_pop_militancy_modifier") \
+	MOD_LIST_ELEMENT(32, pop_consciousness_modifier, true, modifier_display_type::fp_two_places,                                \
 			"modifier_pop_consciousness_modifier")                                                                                     \
 	MOD_LIST_ELEMENT(33, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier")              \
 	MOD_LIST_ELEMENT(34, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier")          \

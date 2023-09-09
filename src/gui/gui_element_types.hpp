@@ -16,12 +16,11 @@
 
 namespace ui {
 
-template<typename T>
-std::unique_ptr<element_base> make_element_by_type(sys::state& state,
-		std::string_view name) { // also bypasses global creation hooks
+template<typename T, typename ...Params>
+std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name, Params&&... params) { // also bypasses global creation hooks
 	auto it = state.ui_state.defs_by_name.find(name);
 	if(it != state.ui_state.defs_by_name.end()) {
-		auto res = std::make_unique<T>();
+		auto res = std::make_unique<T>(std::forward<Params>(params)...);
 		std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
@@ -29,9 +28,9 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state,
 	}
 	return std::unique_ptr<element_base>{};
 }
-template<typename T>
-std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) { // also bypasses global creation hooks
-	auto res = std::make_unique<T>();
+template<typename T, typename ...Params>
+std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params) { // also bypasses global creation hooks
+	auto res = std::make_unique<T>(std::forward<Params>(params)...);
 	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
 	make_size_from_graphics(state, res->base_data);
 	res->on_create(state);
@@ -76,16 +75,18 @@ public:
 	}
 };
 
+class invisible_element : public element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		set_visible(state, false);
+	}
+};
+
 class tinted_image_element_base : public image_element_base {
-private:
+public:
 	uint32_t color = 0;
 
-public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	virtual uint32_t get_tint_color(sys::state& state) noexcept {
-		return 0;
-	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
@@ -331,8 +332,9 @@ public:
 class generic_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent)
+		if(parent) {
 			parent->set_visible(state, false);
+		}
 	}
 };
 

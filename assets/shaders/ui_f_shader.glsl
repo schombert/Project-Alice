@@ -127,6 +127,11 @@ layout(index = 4) subroutine(color_function_class)
 vec4 enabled_color(vec4 color_in) {
 	return color_in;
 }
+
+layout(index = 16) subroutine(color_function_class)
+vec4 alt_tint_color(vec4 color_in) {
+	return vec4(color_in.r * subrect.r, color_in.g * subrect.g, color_in.b * subrect.b, color_in.a);
+}
 		
 void main() {
 	frag_color = coloring_function(font_function(tex_coord));

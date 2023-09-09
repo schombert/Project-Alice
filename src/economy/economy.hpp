@@ -61,7 +61,7 @@ constexpr inline dcon::commodity_id money(0);
 // to feed everyone, and *every* the rgos was grain (and everyone farmed), the scaling factor would have to be about 60'000
 // if all rgos were equally common (there are about 20 of them), the scaling factor would have to be about
 // 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
-constexpr inline float needs_scaling_factor = 1'000'000.0f;
+constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 

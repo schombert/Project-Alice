@@ -1676,6 +1676,10 @@ void inv_effect::rebel_org_gain(inv_rebel_org_gain const& value, error_handler& 
 			.push_back(sys::rebel_org_modifier{value.value, value.faction_});
 }
 
+void invention_contents::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+	context.outer_context.state.world.invention_set_shared_prestige(context.id, value);
+}
+
 void invention_contents::limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_limit(context.id, value);
 }
@@ -2066,7 +2070,9 @@ void rebel_body::ideology(association_type, std::string_view value, error_handle
 void rebel_body::allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
 	context.outer_context.state.world.rebel_type_set_culture_restriction(context.id, !value);
 }
-
+void rebel_body::allow_all_ideologies(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
+	context.outer_context.state.world.rebel_type_set_ideology_restriction(context.id, !value);
+}
 void rebel_body::allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line,
 		rebel_context& context) {
 	context.outer_context.state.world.rebel_type_set_culture_group_restriction(context.id, !value);
@@ -2215,7 +2221,7 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 				return;
 			}
 		}
-		err.accumulated_errors +=
+		err.accumulated_warnings +=
 				"No soldiers in province regiment comes from (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
@@ -2435,6 +2441,16 @@ void country_history_file::set_country_flag(association_type, std::string_view v
 			it != context.outer_context.map_of_national_flags.end()) {
 		if(context.holder_id)
 			context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, true);
+	} else {
+		// unused flag variable: ignore
+	}
+}
+
+void country_history_file::set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(auto it = context.outer_context.map_of_global_flags.find(std::string(value));
+			it != context.outer_context.map_of_global_flags.end()) {
+		if(context.holder_id)
+			context.outer_context.state.national_definitions.set_global_flag_variable(it->second, true);
 	} else {
 		// unused flag variable: ignore
 	}

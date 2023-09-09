@@ -1196,23 +1196,34 @@ void take_reforms(sys::state& state) {
 			// Enact social policies to deter Jacobin rebels from overruning the country
 			// Reactionaries will popup in effect but they are MORE weak that Jacobins
 			dcon::issue_option_id iss;
-			float max_support = 0.f;
-			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
-				if(command::can_enact_issue(state, n, io)) {
-					float support = 0.f;
-					for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
-						for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
-							float weigth = plid.get_pop().get_size() * 0.001f;
-							support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * weigth;
+			float max_support = 0.0f;
+
+			for(auto m : state.world.nation_get_movement_within(n)) {
+				if(m.get_movement().get_associated_issue_option() && m.get_movement().get_pop_support() > max_support) {
+					iss = m.get_movement().get_associated_issue_option();
+					max_support = m.get_movement().get_pop_support();
+				}
+			}
+			if(!iss || !command::can_enact_issue(state, n, iss)) {
+				max_support = 0.0f;
+				iss = dcon::issue_option_id{};
+				state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+					if(command::can_enact_issue(state, n, io)) {
+						float support = 0.f;
+						for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
+							for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
+								float weigth = plid.get_pop().get_size() * 0.001f;
+								support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * weigth;
+							}
+						}
+						if(support > max_support) {
+							iss = io;
+							max_support = support;
 						}
 					}
-					if(support > max_support) {
-						iss = io;
-						max_support = support;
-					}
-				}
-			});
-			if(iss && command::can_enact_issue(state, n, iss)) {
+				});
+			}
+			if(iss) {
 				nations::enact_issue(state, n, iss);
 			}
 		} else { // military and economic

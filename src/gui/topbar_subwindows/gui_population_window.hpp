@@ -1660,16 +1660,9 @@ protected:
 
 template<typename T>
 class pop_distribution_plupp : public tinted_image_element_base {
-	T content{};
-
 public:
-	uint32_t get_tint_color(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any id_payload = T{};
-			parent->impl_get(state, id_payload);
-			return ogl::get_ui_color<T>(state, any_cast<T>(id_payload));
-		}
-		return 0;
+	void on_update(sys::state& state) noexcept override {
+		color = ogl::get_ui_color<T>(state, retrieve<T>(state, parent));
 	}
 };
 

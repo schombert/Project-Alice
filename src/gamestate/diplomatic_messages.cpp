@@ -9,7 +9,6 @@ namespace diplomatic_message {
 void decline(sys::state& state, message const& m) {
 	switch(m.type) {
 	case type::none:
-		std::abort();
 		break;
 	case type::access_request:
 		if(!command::can_ask_for_access(state, m.from, m.to))
@@ -307,7 +306,6 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 void accept(sys::state& state, message const& m) {
 	switch(m.type) {
 	case type::none:
-		std::abort();
 		break;
 	case type::access_request: {
 		if(!command::can_ask_for_access(state, m.from, m.to, true))
