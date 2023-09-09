@@ -924,6 +924,25 @@ protected:
 	}
 };
 
+class budget_tariff_percentage_text : public simple_text_element_base {
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<budget_slider_signal>()) {
+			auto sig = any_cast<budget_slider_signal>(payload);
+			if(sig.target == budget_slider_target::tariffs) {
+				set_text(state, text::format_percentage(sig.amount));
+			}
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		set_text(state, text::format_percentage(float(state.world.nation_get_tariffs(nation_id)) / 100.0f));
+	}
+};
+
 class budget_window : public window_element_base {
 private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
@@ -954,7 +973,7 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
-			return make_element_by_type<nation_tariff_percentage_text>(state, id);
+			return make_element_by_type<budget_tariff_percentage_text>(state, id);
 		} else if(name == "total_funds_val") {
 			return make_element_by_type<nation_budget_funds_text>(state, id);
 		} else if(name == "national_bank_val") {
