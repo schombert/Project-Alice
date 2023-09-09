@@ -6455,6 +6455,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_infrastructure, //constexpr inline uint16_t infrastructure_state = 0x0167;
 		ef_fort, //constexpr inline uint16_t fort_state = 0x0168;
 		ef_naval_base, //constexpr inline uint16_t naval_base_state = 0x0169;
+		ef_is_slave_state_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
+		ef_is_slave_state_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
 
 		//
 		// SCOPES

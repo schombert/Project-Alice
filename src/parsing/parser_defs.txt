@@ -771,6 +771,7 @@ tr_work_available
 
 trigger_body
 	total_sunk_by_us    value     int      member_fn
+	have_core_in   value   text       member_fn
 	ai               value           bool               member_fn
 	tag              value           text               member_fn
 	war              value           bool               member_fn
@@ -923,7 +924,7 @@ trigger_body
 	world_wars_enabled    value      bool               member_fn
 	has_cultural_sphere   value      bool               member_fn
 	has_unclaimed_cores   value      bool               member_fn
-	is_accepted_culture   value      bool               member_fn
+	is_accepted_culture   value      text               member_fn
 	is_ideology_enabled   value      text               member_fn
 	is_sphere_leader_of   value      text               member_fn
 	rich_tax_above_poor   value      bool               member_fn
@@ -1594,6 +1595,7 @@ inv_effect
 	#base          modifier_base
 	#any                  group      unit_modifier_body     member_fn
 	rgo_goods_output      group      inv_rgo_goods_output   member
+	rgo_goods_throughput       group      inv_rgo_goods_output   member  (rgo_goods_output)
 	factory_goods_throughput group   inv_fac_goods_throughput  member
 	factory_goods_output  group      inv_fac_goods_output   member
 	shared_prestige       value      float                  member_fn
@@ -1614,6 +1616,7 @@ invention_contents
 	chance                extern     make_inv_chance        member_fn
 	news                  value      bool                   discard
 	effect                group      inv_effect             member_fn
+	shared_prestige       value      float                  member_fn
 
 s_on_yearly_pulse
 	#any                  value      int                    member_fn
@@ -1901,6 +1904,7 @@ country_history_file
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               member_fn
 	set_country_flag                value      text                              member_fn
+	set_global_flag               value      text                              member_fn
 	decision                        value      text                              member_fn
 
 history_war_goal

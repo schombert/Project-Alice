@@ -251,6 +251,9 @@ rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;X
 this_nation_prim_culture;the primary culture or an accepted culture of this nation;;;La cultura primaria o una cultura aceptada de esta nacion;;;;;;;;;x
 from_nation_prim_culture;the primary culture or an accepted culture of the from nation;;;La cultura primaria o una cultura aceptada de esa nacion;;;;;;;;;x
 culture_group;culture group;;;Grupo de cultura;;;;;;;;;x
+dominant_culture_group;dominant culture group;
+primary_culture_group;primary culture group;
+a_core_ob;a core owned by
 rebel_culture_group;rebel cultural group;;;Grupo de cultura rebelde;;;;;;;;;x
 this_nation_culture_group;the same as the culture group of this nation ;;;Es el mismo grupo que esta nacion;;;;;;;;;x
 from_nation_culture_group;the same as the culture group of the from nation;;;Es el mismo grupo que esa nacion;;;;;;;;;x
@@ -324,6 +327,7 @@ member_of_nat_religion;a member of the national religion;;;;;;;;;;;;x
 dominant_religion;the dominant religion;;;;;;;;;;;;x
 this_pop_culture;the culture of this pop;;;;;;;;;;;;x
 this_nation_primary_culture;the primary culture of this nation;;;;;;;;;;;;x
+this_nation_accepted_culture;an accepted culture of this nation;;;;;;;;;;;;x
 coastal;coastal;;;;;;;;;;;;x
 in_sphere_of;in the sphere of;;;;;;;;;;;;x
 a_producer_of;a producer of;;;;;;;;;;;;x

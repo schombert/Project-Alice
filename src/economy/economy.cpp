@@ -369,13 +369,12 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	// technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
 
 	auto sz = state.world.province_get_rgo_size(p);
-	auto bonus = state.world.province_get_modifier_values(p,
-									 is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size) +
-							 state.world.nation_get_modifier_values(n,
-									 is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size) +
-							 state.world.nation_get_rgo_size(n, state.world.province_get_rgo(p)) + 1.0f;
+	auto pmod = state.world.province_get_modifier_values(p,  is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size);
+	auto nmod = state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size);
+	auto specific_pmod = state.world.nation_get_rgo_size(n, state.world.province_get_rgo(p));
+	auto bonus = pmod + nmod + specific_pmod + 1.0f;
 
-	return sz * bonus;
+	return sz * std::max(bonus, 0.01f);
 }
 
 inline constexpr float rgo_per_size_employment = 40'000.0f;
@@ -590,7 +589,9 @@ float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, d
 						std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
 								 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output) +
 								 state.world.nation_get_rgo_goods_output(n, c)));
-	return val * c.get_current_price() / c.get_cost();
+	auto rval = val * c.get_current_price() / c.get_cost();
+	assert(rval >= 0.0f && std::isfinite(rval));
+	return rval;
 }
 
 inline constexpr float production_scale_delta = 0.05f;
@@ -791,7 +792,7 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 	state.world.province_set_rgo_full_profit(p, amount * state.world.commodity_get_current_price(c));
 
 	if(c == money) {
-		assert(std::isfinite(amount * state.defines.gold_to_cash_rate));
+		assert(std::isfinite(amount * state.defines.gold_to_cash_rate) && amount * state.defines.gold_to_cash_rate >= 0.0f);
 		state.world.nation_get_stockpiles(n, money) += amount * state.defines.gold_to_cash_rate;
 	}
 }
@@ -920,12 +921,13 @@ void populate_army_consumption(sys::state& state) {
 		auto owner = reg.get_army_from_army_membership().get_controller_from_army_control();
 
 		if(owner) {
+			auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
 			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(supply_cost.commodity_type[i]) {
 					state.world.nation_get_army_demand(owner, supply_cost.commodity_type[i]) +=
-							supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(owner, type).supply_consumption *
-							(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
+						 supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(owner, type).supply_consumption *
+						o_sc_mod;
 				} else {
 					break;
 				}
@@ -947,12 +949,13 @@ void populate_navy_consumption(sys::state& state) {
 		auto owner = shp.get_navy_from_navy_membership().get_controller_from_navy_control();
 
 		if(owner) {
+			auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
 			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(supply_cost.commodity_type[i]) {
 					state.world.nation_get_navy_demand(owner, supply_cost.commodity_type[i]) +=
-							supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(owner, type).supply_consumption *
-							(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
+						supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(owner, type).supply_consumption *
+						o_sc_mod;
 				} else {
 					break;
 				}
@@ -1117,16 +1120,18 @@ float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
 		auto v = state.world.nation_get_army_demand(n, cid) * l_spending * effective_prices.get(cid);
+		assert(std::isfinite(v) && v >= 0.0f);
 		total += v;
 		military_total += v;
 	}
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
 		auto v = state.world.nation_get_navy_demand(n, cid) * n_spending * effective_prices.get(cid);
+		assert(std::isfinite(v) && v >= 0.0f);
 		total += v;
 		military_total += v;
 	}
-
+	assert(std::isfinite(total) && total >= 0.0f);
 	state.world.nation_set_maximum_military_costs(n, military_total);
 
 	for(uint32_t i = 1; i < total_commodities; ++i) {
@@ -1140,8 +1145,9 @@ float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_
 			total += difference * effective_prices.get(cid);
 		}
 	}
-	auto overseas_factor = state.defines.province_overseas_penalty *  float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
+	assert(std::isfinite(total) && total >= 0.0f);
 
+	auto overseas_factor = state.defines.province_overseas_penalty *  float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
 	if(overseas_factor > 0) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
@@ -1153,6 +1159,7 @@ float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_
 		}
 	}
 
+	assert(std::isfinite(total) && total >= 0.0f);
 	// direct payments to pops
 
 	auto const a_spending = float(state.world.nation_get_administrative_spending(n)) / 100.0f;
@@ -1201,9 +1208,11 @@ float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_
 		} else if(lx_type == culture::income_type::military) {
 			total += m_spending * adj_pop_of_type * state.world.nation_get_luxury_needs_costs(n, pt);
 		}
+
+		assert(std::isfinite(total) && total >= 0.0f);
 	});
 
-	assert(std::isfinite(total));
+	assert(std::isfinite(total) && total >= 0.0f);
 
 	return total;
 }
@@ -2434,6 +2443,7 @@ void daily_update(sys::state& state) {
 
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
 				auto capped_payout = std::min(n.get_stockpiles(money), payout);
+				assert(capped_payout >= 0.0f);
 
 				n.get_stockpiles(money) -= capped_payout;
 				uni.get_target().get_stockpiles(money) += capped_payout;

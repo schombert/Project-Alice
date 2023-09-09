@@ -2275,8 +2275,10 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					});
 				}
 			}
-			if(inv.get_technology_type() == uint8_t(culture::tech_category::unknown))
-				std::abort();
+			if(inv.get_technology_type() == uint8_t(culture::tech_category::unknown)) {
+				err.accumulated_warnings += "failed to find a technology category for invention ";
+				err.accumulated_warnings += text::produce_simple_string(*this, inv.get_name()) + "\n";
+			}
 		}
 	}
 	// parse on_actions.txt
@@ -2429,6 +2431,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
+	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
 
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history

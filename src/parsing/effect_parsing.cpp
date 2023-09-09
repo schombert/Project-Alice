@@ -971,7 +971,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 
 		context.compiled_effect.push_back(trigger::payload(it->second).value);
 
-		context.main_slot = trigger::slot_contents::state;
+		context.main_slot = trigger::slot_contents::province;
 		parse_effect_body(gen, err, context);
 
 		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);

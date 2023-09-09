@@ -385,9 +385,11 @@ constexpr inline uint16_t secede_province_state_reb = 0x0166;
 constexpr inline uint16_t infrastructure_state = 0x0167;
 constexpr inline uint16_t fort_state = 0x0168;
 constexpr inline uint16_t naval_base_state = 0x0169;
+constexpr inline uint16_t is_slave_province_yes = 0x016A;
+constexpr inline uint16_t is_slave_province_no = 0x016B;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x016A;
+constexpr inline uint16_t first_scope_code = 0x016C;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -815,6 +817,8 @@ inline constexpr int32_t data_sizes[] = {
 		1, //constexpr inline uint16_t infrastructure_state = 0x0167;
 		1, //constexpr inline uint16_t fort_state = 0x0168;
 		1, //constexpr inline uint16_t naval_base_state = 0x0169;
+		0, //ef_is_slave_province_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
+		0, //ef_is_slave_province_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1516,8 +1520,31 @@ constexpr inline uint16_t technology_province = 0x0282;
 constexpr inline uint16_t invention_province = 0x0283;
 constexpr inline uint16_t brigades_compare_province_this = 0x0284;
 constexpr inline uint16_t brigades_compare_province_from = 0x0285;
+constexpr inline uint16_t is_accepted_culture_nation_this_pop = 0x0286;
+constexpr inline uint16_t is_accepted_culture_nation_this_nation = 0x0287;
+constexpr inline uint16_t is_accepted_culture_nation_this_state = 0x0288;
+constexpr inline uint16_t is_accepted_culture_nation_this_province = 0x0289;
+constexpr inline uint16_t is_accepted_culture_state_this_pop = 0x028A;
+constexpr inline uint16_t is_accepted_culture_state_this_nation = 0x028B;
+constexpr inline uint16_t is_accepted_culture_state_this_state = 0x028C;
+constexpr inline uint16_t is_accepted_culture_state_this_province = 0x028D;
+constexpr inline uint16_t is_accepted_culture_province_this_pop = 0x028E;
+constexpr inline uint16_t is_accepted_culture_province_this_nation = 0x028F;
+constexpr inline uint16_t is_accepted_culture_province_this_state = 0x0290;
+constexpr inline uint16_t is_accepted_culture_province_this_province = 0x0291;
+constexpr inline uint16_t is_accepted_culture_pop_this_pop = 0x0292;
+constexpr inline uint16_t is_accepted_culture_pop_this_nation = 0x0293;
+constexpr inline uint16_t is_accepted_culture_pop_this_state = 0x0294;
+constexpr inline uint16_t is_accepted_culture_pop_this_province = 0x0295;
+constexpr inline uint16_t culture_group_province = 0x0296;
+constexpr inline uint16_t culture_group_state = 0x0297;
+constexpr inline uint16_t have_core_in_nation_tag = 0x0298;
+constexpr inline uint16_t have_core_in_nation_this = 0x0299;
+constexpr inline uint16_t have_core_in_nation_from = 0x029A;
+constexpr inline uint16_t owns_province = 0x029B;
+constexpr inline uint16_t empty_state = 0x029C;
 
-constexpr inline uint16_t first_scope_code = 0x0286;
+constexpr inline uint16_t first_scope_code = 0x029D;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1574,8 +1601,9 @@ constexpr inline uint16_t integer_scope = first_scope_code + 0x002B; // variable
 constexpr inline uint16_t country_scope_nation = first_scope_code + 0x002C;
 constexpr inline uint16_t country_scope_province = first_scope_code + 0x002D;
 constexpr inline uint16_t cultural_union_scope_pop = first_scope_code + 0x002E;
+constexpr inline uint16_t capital_scope_province = first_scope_code + 0x002F;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x002F;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0030;
 
 constexpr inline uint16_t placeholder_not_scope = code_mask;
 
@@ -2236,7 +2264,29 @@ inline constexpr int32_t data_sizes[] = {
 		1, //constexpr inline uint16_t invention_province = 0x0283;
 		2, //constexpr inline uint16_t brigades_compare_province_this = 0x0284;
 		2, //constexpr inline uint16_t brigades_compare_province_from = 0x0285;
-
+		0, //constexpr inline uint16_t is_accepted_culture_nation_this_pop = 0x0286;
+		0, //constexpr inline uint16_t is_accepted_culture_nation_this_nation = 0x0287;
+		0, //constexpr inline uint16_t is_accepted_culture_nation_this_state = 0x0288;
+		0, //constexpr inline uint16_t is_accepted_culture_nation_this_province = 0x0289;
+		0, //constexpr inline uint16_t is_accepted_culture_state_this_pop = 0x028A;
+		0, //constexpr inline uint16_t is_accepted_culture_state_this_nation = 0x028B;
+		0, //constexpr inline uint16_t is_accepted_culture_state_this_state = 0x028C;
+		0, //constexpr inline uint16_t is_accepted_culture_state_this_province = 0x028D;
+		0, //constexpr inline uint16_t is_accepted_culture_province_this_pop = 0x028E;
+		0, //constexpr inline uint16_t is_accepted_culture_province_this_nation = 0x028F;
+		0, //constexpr inline uint16_t is_accepted_culture_province_this_state = 0x0290;
+		0, //constexpr inline uint16_t is_accepted_culture_province_this_province = 0x0291;
+		0, //constexpr inline uint16_t is_accepted_culture_pop_this_pop = 0x0292;
+		0, //constexpr inline uint16_t is_accepted_culture_pop_this_nation = 0x0293;
+		0, //constexpr inline uint16_t is_accepted_culture_pop_this_state = 0x0294;
+		0, //constexpr inline uint16_t is_accepted_culture_pop_this_province = 0x0295;
+		1, //constexpr inline uint16_t culture_group_province = 0x0296;
+		1, //constexpr inline uint16_t culture_group_state = 0x0297;
+		1, //constexpr inline uint16_t have_core_in_nation_tag = 0x0298;
+		0, //constexpr inline uint16_t have_core_in_nation_this = 0x0299;
+		0, //constexpr inline uint16_t have_core_in_nation_from = 0x029A;
+		1, //constexpr inline uint16_t owns_province = 0x029B;
+		0, //constexpr inline uint16_t empty_state = 0x029C;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };
