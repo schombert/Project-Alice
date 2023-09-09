@@ -126,7 +126,7 @@ void map_state::update(sys::state& state) {
 		arrow_key_velocity_vector *= 0.175f;
 		pos_velocity += arrow_key_velocity_vector;
 	}
-		pos_velocity /= 1.125;
+	pos_velocity /= 1.125;
 
 	glm::vec2 velocity;
 
