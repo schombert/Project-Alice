@@ -88,8 +88,10 @@ state::~state() {
 }
 } // namespace sys
 
-// blake2
+extern "C" {
+	// blake2
 #include "blake2.c"
+};
 
 // zstd
 
