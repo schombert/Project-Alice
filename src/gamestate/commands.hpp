@@ -401,7 +401,7 @@ struct nation_pick_data {
 };
 
 struct advance_tick_data {
-	uint32_t checksum;
+	sys::checksum_key checksum;
 };
 
 struct game_seed_data {

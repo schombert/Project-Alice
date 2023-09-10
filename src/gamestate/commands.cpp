@@ -4474,15 +4474,12 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	}
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, uint32_t checksum) {
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum) {
 #ifndef NDEBUG
-	uint32_t current = state.get_network_checksum();
-	if(current != checksum) {
+	sys::checksum_key current = state.get_network_checksum();
+	if(!current.is_equal(checksum)) {
 #ifdef _WIN64
 		std::string msg = "Network has gotten out of sync: ";
-		msg += std::to_string(current);
-		msg += " != ";
-		msg += std::to_string(checksum);
 		MessageBoxA(NULL, "Out of sync", msg.c_str(), MB_OK);
 #endif
 		std::abort();
