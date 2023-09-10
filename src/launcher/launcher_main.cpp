@@ -1318,6 +1318,7 @@ int WINAPI wWinMain(
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
 #include "opengl_wrapper.cpp"
+#include "blake2.c"
 
 namespace sys {
 state::~state() {

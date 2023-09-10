@@ -81,17 +81,13 @@
 #include "opengl_wrapper.cpp"
 #include "map_modes.cpp"
 #include "prng.cpp"
+#include "blake2.c"
 
 namespace sys {
 state::~state() {
 	// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
 }
 } // namespace sys
-
-extern "C" {
-	// blake2
-#include "blake2.c"
-};
 
 // zstd
 
