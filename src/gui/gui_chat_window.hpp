@@ -78,7 +78,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto const& c : state.ui_state.chat_messages)
-			row_contents.push_back(c);
+			if(c.source)
+				row_contents.push_back(c);
 		update(state);
 	}
 };

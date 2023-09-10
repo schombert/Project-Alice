@@ -4302,6 +4302,7 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 	p.source = source;
 	p.data.chat_message.target = target;
 	memcpy(p.data.chat_message.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
+	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
 	add_to_command_queue(state, p);
 }
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
