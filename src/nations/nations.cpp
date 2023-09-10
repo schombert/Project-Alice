@@ -348,7 +348,7 @@ void update_research_points(sys::state& state) {
 						sum_from_pops);
 			}
 		});
-		auto amount = ve::select(total_pop >= 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
+		auto amount = ve::select(total_pop > 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
 				(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x
