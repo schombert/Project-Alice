@@ -3181,7 +3181,6 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 	auto in_war = state.world.peace_offer_get_war_from_war_settlement(pending_offer);
 
 	if(!in_war) {
-		nations::cleanup_crisis_peace_offer(state, pending_offer);
 		return;
 	}
 
