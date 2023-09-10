@@ -81,7 +81,9 @@
 #include "opengl_wrapper.cpp"
 #include "map_modes.cpp"
 #include "prng.cpp"
+extern "C" {
 #include "blake2.c"
+};
 
 namespace sys {
 state::~state() {

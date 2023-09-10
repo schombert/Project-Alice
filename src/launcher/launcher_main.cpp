@@ -24,6 +24,9 @@
 #include "text.hpp"
 #include "simple_fs_win.cpp"
 #include "prng.cpp"
+extern "C" {
+#include "blake2.c"
+};
 #include "serialization.hpp"
 
 namespace launcher {
@@ -1318,7 +1321,6 @@ int WINAPI wWinMain(
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
 #include "opengl_wrapper.cpp"
-#include "blake2.c"
 
 namespace sys {
 state::~state() {
