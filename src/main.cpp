@@ -89,7 +89,7 @@ state::~state() {
 } // namespace sys
 
 // blake2
-#include "blake2.cpp"
+#include "blake2.c"
 
 // zstd
 
