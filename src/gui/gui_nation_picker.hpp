@@ -245,7 +245,7 @@ public:
 				sys::save_header h;
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
-				if(h.count == state.scenario_counter && h.timestamp == state.scenario_time_stamp) {
+				if(h.checksum == state.scenario_checksum) {
 					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.tag, h.cgov, h.d, false });
 				}
 			}

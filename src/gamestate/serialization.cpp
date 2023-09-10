@@ -782,12 +782,14 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	scenario_header header;
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
+	header.checksum = state.get_network_checksum();
 
 	size_t scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
 
 	state.scenario_counter = count;
 	state.scenario_time_stamp = header.timestamp;
+	state.scenario_checksum = header.checksum;
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =
@@ -841,6 +843,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
+		state.scenario_checksum = header.checksum;
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
 
@@ -876,6 +879,7 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
+		state.scenario_checksum = header.checksum;
 
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
@@ -916,9 +920,11 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 			return false;
 		}
 
-		if(state.scenario_counter != header.count)
-			return false;
-		if(state.scenario_time_stamp != header.timestamp)
+		//if(state.scenario_counter != header.count)
+		//	return false;
+		//if(state.scenario_time_stamp != header.timestamp)
+		//	return false;
+		if(state.scenario_checksum != header.checksum)
 			return false;
 
 		state.loaded_save_file = NATIVE("");
@@ -956,6 +962,7 @@ void write_save_file(sys::state& state) {
 	save_header header;
 	header.count = state.scenario_counter;
 	header.timestamp = state.scenario_time_stamp;
+	header.checksum = state.scenario_checksum;
 	header.tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
 	header.d = state.current_date;
@@ -1004,9 +1011,11 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 			return false;
 		}
 
-		if(state.scenario_counter != header.count)
-			return false;
-		if(state.scenario_time_stamp != header.timestamp)
+		//if(state.scenario_counter != header.count)
+		//	return false;
+		//if(state.scenario_time_stamp != header.timestamp)
+		//	return false;
+		if(state.scenario_checksum != header.checksum)
 			return false;
 
 		state.loaded_save_file = name;
