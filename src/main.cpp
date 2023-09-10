@@ -81,6 +81,9 @@
 #include "opengl_wrapper.cpp"
 #include "map_modes.cpp"
 #include "prng.cpp"
+extern "C" {
+#include "blake2.c"
+};
 
 namespace sys {
 state::~state() {
@@ -89,7 +92,7 @@ state::~state() {
 } // namespace sys
 
 // zstd
-
+extern "C" {
 #define XXH_NAMESPACE ZSTD_
 #define ZSTD_DISABLE_ASM
 
@@ -114,3 +117,4 @@ state::~state() {
 #include "zstd/error_private.c"
 #include "zstd/zstd_decompress.c"
 #include "zstd/zstd_compress.c"
+};

@@ -24,6 +24,9 @@
 #include "text.hpp"
 #include "simple_fs_win.cpp"
 #include "prng.cpp"
+extern "C" {
+#include "blake2.c"
+};
 #include "serialization.hpp"
 
 namespace launcher {
@@ -1326,7 +1329,7 @@ state::~state() {
 } // namespace sys
 
 // zstd
-
+extern "C" {
 #define XXH_NAMESPACE ZSTD_
 #define ZSTD_DISABLE_ASM
 
@@ -1351,4 +1354,4 @@ state::~state() {
 #include "zstd/error_private.c"
 #include "zstd/zstd_decompress.c"
 #include "zstd/zstd_compress.c"
-
+};
