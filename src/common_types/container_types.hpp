@@ -187,11 +187,12 @@ struct small_commodity_set {
 namespace sys {
 
 struct checksum_key {
-	uint8_t data[64];
+	static constexpr uint32_t key_size = 64;
+	uint8_t key[key_size];
 
 	bool is_equal(const checksum_key& a) noexcept {
-		for(size_t i = 0; i < 64; i++)
-			if(data[i] != a.data[i])
+		for(size_t i = 0; i < key_size; i++)
+			if(key[i] != a.key[i])
 				return false;
 		return true;
 	}
