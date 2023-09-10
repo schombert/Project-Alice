@@ -3023,7 +3023,7 @@ void run_gc(sys::state& state) {
 			int32_t best_rank = 0;
 			dcon::nation_id n;
 			for(auto par : w.get_war_participant()) {
-				if(par.get_is_attacker()) {
+				if(par.get_is_attacker() && !(par.get_nation().get_overlord_as_subject().get_ruler())) {
 					if(!n || par.get_nation().get_rank() < best_rank) {
 						best_rank = par.get_nation().get_rank();
 						n = par.get_nation();
@@ -3040,7 +3040,7 @@ void run_gc(sys::state& state) {
 			int32_t best_rank = 0;
 			dcon::nation_id n;
 			for(auto par : w.get_war_participant()) {
-				if(!par.get_is_attacker()) {
+				if(!par.get_is_attacker() && !(par.get_nation().get_overlord_as_subject().get_ruler())) {
 					if(!n || par.get_nation().get_rank() < best_rank) {
 						best_rank = par.get_nation().get_rank();
 						n = par.get_nation();

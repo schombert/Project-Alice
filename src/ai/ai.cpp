@@ -2443,6 +2443,8 @@ void make_peace_offers(sys::state& state) {
 	auto send_offer_up_to = [&](dcon::nation_id from, dcon::nation_id to, dcon::war_id w, bool attacker, int32_t score_max, bool concession) {
 		command::execute_start_peace_offer(state, from, to, w, concession);
 		auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(from);
+		if(!pending)
+			return;
 
 		int32_t current_value = 0;
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
@@ -2457,6 +2459,7 @@ void make_peace_offers(sys::state& state) {
 
 		command::execute_send_peace_offer(state, from);
 	};
+
 	for(auto w : state.world.in_war) {
 		if(w.get_primary_attacker().get_is_player_controlled() == false || w.get_primary_defender().get_is_player_controlled() == false) {
 			auto overall_score = military::primary_warscore(state, w);
@@ -2472,8 +2475,10 @@ void make_peace_offers(sys::state& state) {
 						if(war_duration >= 365) {
 							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 							
-							if(overall_score > (total_po_cost - willingness_factor) && (-overall_score / 2 + total_po_cost - 2 * willingness_factor) < 0)
+							if(overall_score > (total_po_cost - willingness_factor) && (-overall_score / 2 + total_po_cost - 2 * willingness_factor) < 0) {
 								send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(total_po_cost - willingness_factor), false);
+								continue;
+							}
 						}
 					}
 				} else if(w.get_primary_defender().get_is_player_controlled() == false) { // defender may surrender
@@ -2494,8 +2499,10 @@ void make_peace_offers(sys::state& state) {
 						if(war_duration >= 365) {
 							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 
-							if(-overall_score > (total_po_cost - willingness_factor) && (overall_score / 2 + total_po_cost - 2 * willingness_factor) < 0)
+							if(-overall_score > (total_po_cost - willingness_factor) && (overall_score / 2 + total_po_cost - 2 * willingness_factor) < 0) {
 								send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(total_po_cost - willingness_factor), false);
+								continue;
+							}
 						}
 					}
 				} else if(w.get_primary_attacker().get_is_player_controlled() == false) { // attacker may surrender
