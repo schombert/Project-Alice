@@ -4775,8 +4775,8 @@ void execute_command(sys::state& state, payload& c) {
 			for(count = 0; count < sizeof(c.data.chat_message.body); count++)
 				if(c.data.chat_message.body[count] == '\0')
 					break;
-			std::string_view sv(c.data.chat_message.body, count);
-			execute_chat_message(state, c.source, sv, c.data.chat_message.target);
+			std::string_view sv(c.data.chat_message.body, c.data.chat_message.body + count);
+			execute_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target);
 			break;
 		}
 		case command_type::notify_player_ban:

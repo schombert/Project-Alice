@@ -149,7 +149,7 @@ public:
 			});
 		}
 
-		char body[max_chat_message_len];
+		char body[max_chat_message_len + 1];
 		size_t len = s.length() >= max_chat_message_len ? max_chat_message_len : s.length();
 		memcpy(body, s.data(), len);
 		body[len] = '\0';
