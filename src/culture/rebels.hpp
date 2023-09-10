@@ -33,4 +33,6 @@ void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t,
 
 void delete_faction(sys::state& state, dcon::rebel_faction_id reb);
 
+std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb);
+
 } // namespace rebel

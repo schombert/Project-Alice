@@ -84,7 +84,7 @@ primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primar
 union_culture_accepted;All cultures in the nation's primary culture group become accepted;;;Todas las culturas en el grupo primario de culturas de la nacion se vuelven aceptadas;;;;;;;;;x
 this_nation_culture;The primary culture of this nation;;;La cultura primaria de esta nacion;;;;;;;;;x
 from_nation_culture;The primary culture of the from nation;;;La cultura primaria de esa nacion;;;;;;;;;x
-remove_accepted_culture;$text$ stops being an accepted culture;;;$text$ deja de ser una cultura aceptada;;;;;;;;;x
+alice_remove_accepted_culture;$text$ stops being an accepted culture;;;$text$ deja de ser una cultura aceptada;;;;;;;;;x
 life_rating;Life rating;;;Calidad de vida;;;;;;;;;x
 make_national_religion;$text$ becomes the national religion;;;$text$ se vuelve la religion nacional;;;;;;;;;x
 make_slave_state;Becomes a slave state;;;Se convierte en estado con esclavitud;;;;;;;;;x
@@ -195,9 +195,9 @@ railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;
 railroad_in_capital_state;+1 railroad level in capital state;;;+1 ferrocarril en el estado capital;;;;;;;;;x
 fort_in_capital;+1 fort level in capital;;;+1 fortaleza en la capital;;;;;;;;;x
 fort_in_capital_state;+1 fort level in capital state;;;+1 fortaleza en el estado capital;;;;;;;;;x
-set_national_variable_to;Set national variable $text$ to ;;;Establece la variable nacional $text$ a;;;;;;;;;x
-increase_national_variable_by;Increase national variable $text$ by ;;;Incrementa la variable nacional $text$ por;;;;;;;;;x
-decrease_national_variable_by;Decrease national variable $text$ by ;;;Decrementa la variable nacional $text$ por;;;;;;;;;x
+set_national_variable_to;Set national variable $text$ to $value$
+increase_national_variable_by;Increase national variable $text$ by $value$
+decrease_national_variable_by;Decrease national variable $text$ by $value$
 cmp_ge;is at least;;;Es al menos;;;;;;;;;x
 cmp_le;is at most;;;Es a lo mucho;;;;;;;;;x
 cmp_gt;is greater than;;;Es mas que;;;;;;;;;x
@@ -1219,4 +1219,6 @@ rr_build_tt_1;Our ruling party allows the government to construct rail roads
 tech_ol_tt;§G$x$§! from your overlord having this technology
 tech_year_tt;§G$x$§! from the current year
 disband_all;Disband all selected units
+ai_will_accept_po;The AI will accept this offer
+ai_will_not_accept_po;The AI will NOT accept this offer
 ;;;;;;;;;;;;;x

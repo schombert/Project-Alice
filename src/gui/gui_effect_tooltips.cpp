@@ -1796,7 +1796,7 @@ uint32_t ef_remove_accepted_culture(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id));
-		text::localised_format_box(ws, layout, box, "remove_accepted_culture", m);
+		text::localised_format_box(ws, layout, box, "alice_remove_accepted_culture", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
