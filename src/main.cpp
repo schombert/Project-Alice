@@ -88,6 +88,9 @@ state::~state() {
 }
 } // namespace sys
 
+// blake2
+#include "blake2.cpp"
+
 // zstd
 
 #define XXH_NAMESPACE ZSTD_

@@ -135,14 +135,14 @@ struct scenario_header {
 	uint32_t version = scenario_file_version;
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
-	uint32_t checksum = 0;
+	checksum_key checksum;
 };
 
 struct save_header {
 	uint32_t version = save_file_version;
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
-	uint32_t checksum = 0;
+	checksum_key checksum;
 	dcon::national_identity_id tag;
 	dcon::government_type_id cgov;
 	sys::date d;
