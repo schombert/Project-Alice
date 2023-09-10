@@ -924,7 +924,7 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 		//	return false;
 		//if(state.scenario_time_stamp != header.timestamp)
 		//	return false;
-		if(state.scenario_checksum != header.checksum)
+		if(!state.scenario_checksum.is_equal(header.checksum))
 			return false;
 
 		state.loaded_save_file = NATIVE("");
@@ -1015,7 +1015,7 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 		//	return false;
 		//if(state.scenario_time_stamp != header.timestamp)
 		//	return false;
-		if(state.scenario_checksum != header.checksum)
+		if(!state.scenario_checksum.is_equal(header.checksum))
 			return false;
 
 		state.loaded_save_file = name;

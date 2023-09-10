@@ -189,18 +189,11 @@ namespace sys {
 struct checksum_key {
 	uint8_t data[64];
 
-	bool operator==(const checksum_key& b) noexcept {
+	bool is_equal(const checksum_key& a) noexcept {
 		for(size_t i = 0; i < 64; i++)
-			if(data[i] != b.data[i])
+			if(data[i] != a.data[i])
 				return false;
 		return true;
-	}
-
-	bool operator!=(const checksum_key& b) noexcept {
-		for(size_t i = 0; i < 64; i++)
-			if(data[i] != b.data[i])
-				return true;
-		return false;
 	}
 };
 
