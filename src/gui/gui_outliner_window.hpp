@@ -262,7 +262,9 @@ public:
 
 				} else if(nf_type == 4) { // Promotion
 					// entry_text->set_text(state, "???");
-					entry_text->set_text(state, "Promotion");
+					auto amount = fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type()));
+					auto total = fat_si.get_demographics(demographics::total);
+					entry_text->set_text(state, text::format_percentage(amount / total, 2));
 
 				} else if(nf_type == 5) { // Production
 					entry_text->set_text(state, text::produce_simple_string(state, fat_si.get_definition().get_name()));
