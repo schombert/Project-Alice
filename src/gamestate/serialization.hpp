@@ -128,19 +128,21 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<u
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-constexpr inline uint32_t save_file_version = 27;
-constexpr inline uint32_t scenario_file_version = 85 + save_file_version;
+constexpr inline uint32_t save_file_version = 28;
+constexpr inline uint32_t scenario_file_version = 86 + save_file_version;
 
 struct scenario_header {
 	uint32_t version = scenario_file_version;
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
+	checksum_key checksum;
 };
 
 struct save_header {
 	uint32_t version = save_file_version;
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
+	checksum_key checksum;
 	dcon::national_identity_id tag;
 	dcon::government_type_id cgov;
 	sys::date d;

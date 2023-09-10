@@ -35,6 +35,8 @@
 #include "gui_nation_picker.hpp"
 #include "gui_end_window.hpp"
 
+#include "blake2.h"
+
 namespace sys {
 //
 // window event functions
@@ -3404,6 +3406,21 @@ uint32_t state::get_network_checksum() {
 		checksum ^= buffer[total_size_used];
 	}
 	return checksum;
+}
+
+sys::checksum_key state::get_network_checksum() {
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(*this)]);
+
+	dcon::load_record loaded = world.make_serialize_record_store_save();
+	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
+	world.serialize(start, loaded);
+
+	auto buffer_position = reinterpret_cast<uint8_t*>(start);
+	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+
+	checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	return key;
 }
 
 void state::game_loop() {

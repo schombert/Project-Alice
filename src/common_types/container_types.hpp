@@ -183,3 +183,19 @@ struct small_commodity_set {
 };
 
 } // namespace economy
+
+namespace sys {
+
+struct checksum_key {
+	static constexpr uint32_t key_size = 64;
+	uint8_t key[key_size];
+
+	bool is_equal(const checksum_key& a) noexcept {
+		for(size_t i = 0; i < key_size; i++)
+			if(key[i] != a.key[i])
+				return false;
+		return true;
+	}
+};
+
+} // namespace sys
