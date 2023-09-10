@@ -15,12 +15,8 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_picks_nation:
 	case command_type::notify_player_ban:
 	case command_type::notify_player_kick:
+	case command_type::game_seed:
 		// Notifications can be sent because it's an-always do thing
-		break;
-	case command_type::save_game:
-		// Only in singleplayer or host may save the game
-		if(state.network_mode != sys::network_mode_type::single_player)
-			return;
 		break;
 	default:
 		// Normal commands are discarded iff we are not in the game
@@ -4478,6 +4474,27 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	}
 }
 
+void execute_advance_tick(sys::state& state, dcon::nation_id source, uint32_t checksum) {
+#ifndef NDEBUG
+	uint32_t current = state.get_network_checksum();
+	if(current != checksum) {
+#ifdef _WIN64
+		std::string msg = "Network has gotten out of sync: ";
+		msg += std::to_string(current);
+		msg += " != ";
+		msg += std::to_string(checksum);
+		MessageBoxA(NULL, "Out of sync", msg.c_str(), MB_OK);
+#endif
+		std::abort();
+	}
+#endif
+	state.single_game_tick();
+}
+
+void execute_game_seed(sys::state& state, dcon::nation_id source, uint32_t seed) {
+	state.game_seed = seed;
+}
+
 void execute_command(sys::state& state, payload& c) {
 	switch(c.type) {
 		case command_type::invalid:
@@ -4781,23 +4798,11 @@ void execute_command(sys::state& state, payload& c) {
 			execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
 			break;
 		case command_type::advance_tick:
-		{
-#ifndef NDEBUG
-			uint32_t checksum = state.get_network_checksum();
-			if(checksum != c.data.advance_tick.checksum) {
-#ifdef _WIN64
-				std::string msg = "Network has gotten out of sync: ";
-				msg += std::to_string(checksum);
-				msg += " != ";
-				msg += std::to_string(c.data.advance_tick.checksum);
-				MessageBoxA(NULL, "Out of sync", msg.c_str(), MB_OK);
-#endif
-				std::abort();
-			}
-#endif
-			state.single_game_tick();
+			execute_advance_tick(state, c.source, c.data.advance_tick.checksum);
 			break;
-		}
+		case command_type::game_seed:
+			execute_game_seed(state, c.source, c.data.game_seed.seed);
+			break;
 
 			// console commands
 		case command_type::switch_nation:

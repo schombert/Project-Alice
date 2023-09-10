@@ -175,6 +175,16 @@ static void accept_new_clients(sys::state& state) {
 				}
 			}
 			{
+				command::payload c;
+				c.type = command::command_type::game_seed;
+				c.source = dcon::nation_id{};
+				c.data.game_seed.seed = state.game_seed;
+				auto r = socket_send(client.socket_fd, &c, sizeof(c));
+				if(r < 0) { // error
+					disconnect_client(state, client);
+				}
+			}
+			{
 				// Tell all the other clients that we have joined
 				command::payload c;
 				c.type = command::command_type::notify_player_joins;

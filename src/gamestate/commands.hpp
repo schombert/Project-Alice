@@ -102,6 +102,7 @@ enum class command_type : uint8_t {
 	notify_player_leaves = 121,
 	advance_tick = 122,
 	chat_message = 123,
+	game_seed = 124,
 
 	// console cheats
 	switch_nation = 128,
@@ -403,6 +404,10 @@ struct advance_tick_data {
 	uint32_t checksum;
 };
 
+struct game_seed_data {
+	uint32_t seed;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -457,6 +462,7 @@ struct payload {
 		cheat_event_data cheat_event;
 		advance_tick_data advance_tick;
 		save_game_data save_game;
+		game_seed_data game_seed;
 
 		dtype() { }
 	} data;
