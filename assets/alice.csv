@@ -1219,4 +1219,5 @@ rr_build_tt_1;Our ruling party allows the government to construct rail roads
 tech_ol_tt;§G$x$§! from your overlord having this technology
 tech_year_tt;§G$x$§! from the current year
 disband_all;Disband all selected units
+alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
 ;;;;;;;;;;;;;x

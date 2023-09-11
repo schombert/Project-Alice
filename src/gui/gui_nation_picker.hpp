@@ -90,10 +90,9 @@ public:
 		save_item* i = retrieve< save_item*>(state, parent);
 
 		std::vector<dcon::nation_id> players;
-		state.world.for_each_nation([&](dcon::nation_id n) {
+		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
 				players.push_back(n);
-		});
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 
 		if(i->is_new_game) {
@@ -118,9 +117,8 @@ public:
 		// do not desync the local player nation upon selection of savefile
 		if(state.network_mode != sys::network_mode_type::single_player) {
 			state.local_player_nation = old_local_player_nation;
-			state.world.for_each_nation([&](dcon::nation_id n) {
+			for(const auto n : state.world.in_nation)
 				state.world.nation_set_is_player_controlled(n, false);
-			});
 			for(const auto n : players)
 				state.world.nation_set_is_player_controlled(n, true);
 		}
