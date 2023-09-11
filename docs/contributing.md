@@ -29,6 +29,8 @@ The build uses CMake and should "just work", with some annoying exceptions.
 3. Open the project in Visual Studio and let it configure (CMake should run in the output window and download dependencies; this may take some time).
 4. Go look at the "Final Touches" section at the bottom of this page.
 
+If you experience problems with audio playback, you may wish to install Windows Media Player and Windows Media Feature Pack (https://support.microsoft.com/en-us/windows/get-windows-media-player-81718e0d-cfce-25b1-aee3-94596b658287) to be able to properly playback MP3 files (the music jukebox).
+
 #### Linux (Debian-based distro)
 
 Make sure to install the required dependencies.
