@@ -3439,7 +3439,7 @@ void state::game_loop() {
 					if(network_mode == sys::network_mode_type::host) {
 						command::payload c;
 						c.type = command::command_type::advance_tick;
-						c.data.advance_tick.checksum = get_network_checksum();
+						c.data.advance_tick.checksum = get_save_checksum();
 						network_state.outgoing_commands.push(c);
 					} else {
 						single_game_tick();
