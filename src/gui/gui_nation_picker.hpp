@@ -88,13 +88,22 @@ class select_save_game : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
+
+		std::vector<dcon::nation_id> players;
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
+		});
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
+
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
 				window::emit_error_message(msg, false);
 			} else {
 				state.fill_unsaved_data();
-				command::update_session_info(state, state.local_player_nation);
+				if(state.network_mode == sys::network_mode_type::host)
+					command::update_session_info(state, state.local_player_nation);
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
@@ -102,8 +111,18 @@ public:
 				window::emit_error_message(msg, false);
 			} else {
 				state.fill_unsaved_data();
-				command::update_session_info(state, state.local_player_nation);
+				if(state.network_mode == sys::network_mode_type::host)
+					command::update_session_info(state, state.local_player_nation);
 			}
+		}
+		// do not desync the local player nation upon selection of savefile
+		if(state.network_mode != sys::network_mode_type::single_player) {
+			state.local_player_nation = old_local_player_nation;
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				state.world.nation_set_is_player_controlled(n, false);
+			});
+			for(const auto n : players)
+				state.world.nation_set_is_player_controlled(n, true);
 		}
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
