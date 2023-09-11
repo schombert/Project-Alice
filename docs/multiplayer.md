@@ -8,6 +8,8 @@ The server will receive commands from the clients. The server will then send bac
 
 The commands should be sent in chronological order. Clients **will** advance one tick when told so, and then execute the commands afterwards as if the player was doing it. This means that all commands should be properly acknowledged by the client as they occurred chronologically.
 
+Everytime a client connects, it is given the checksum of the server, this checksum is for failsafe purpouses, to not let the client enter into an invalid state. The "play" button on the nation picker will bre greyed out if the checksum of the client and the host mismatch. Everytime a savefile is selected on the host, it will tell all it's clients that the checksum has indeed, changed now. This prevents clients who are otherwise not given yet a savefile to connect a game, or clients with different mods to connect a server for example.
+
 ### Deterministic reimplementations
 
 The standard C++ and C library provide `sin`, `cos`, and `acos` functions for performing their respective mathematical functions. However the implementation of these vary per platform and library, and since we're trying to provide a cross platform experience we reimplemented the mathematical functions from scratch, into a house-built solution.
@@ -18,6 +20,9 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 
 `notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled.
 `notify_player_pick_nation` - Picks a nation, this is useful for example on the lobby where players are switching nations constantly, IF the `source` is invalid (i.e a `dcon::nation_id{}`) then it refers to the current local player nation of the client, this is useful to set the "temporal nation" on the lobby so that clients can be identified by their nation automatically assigned by the server. Otherwise the `source` is the client who requested to pick a nation `target` in `data.nation_pick.target`.
+`update_session_info` - Updates the game seed (important to keep in sync with clients and host), and the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state.
+`notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.
+`notify_player_ban` - When banning a player, it is disconnected, and not allowed to rejoin.
 
 The server will send new clients a `notify_player_joins` for each connected player. It will send a `notify_player_pick_nation` to the client, with an invalid source, telling it what is their "assigned nation".
 
@@ -25,4 +30,6 @@ An assigned nation is a "random" nation that the server will hand out to the cli
 
 ### Out-of-sync (OOS)
 
-No more oos :D
+On debug builds, a checksum will be generated every tick to ensure synchronisation hasn't been broken. If a desync happens, it will be pointed out in the tick where it occurred.
+
+Otherwise, the goal is no more oos :D

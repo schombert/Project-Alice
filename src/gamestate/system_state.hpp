@@ -428,6 +428,7 @@ struct alignas(64) state {
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
 	uint32_t scenario_counter = 0;		// as above
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
+	sys::checksum_key session_host_checksum;// for checking that the client can join a session
 	native_string loaded_scenario_file;
 	native_string loaded_save_file;
 
@@ -565,7 +566,8 @@ struct alignas(64) state {
 	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
-	sys::checksum_key get_network_checksum();
+	sys::checksum_key get_save_checksum();
+	sys::checksum_key get_scenario_checksum();
 
 	// the following function are for interacting with the string pool
 
