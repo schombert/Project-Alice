@@ -118,6 +118,7 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
 float estimate_reparations_income(sys::state& state, dcon::nation_id n);
 float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n);
+float estimate_stockpile_filling_spending(sys::state& state, dcon::nation_id n);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment

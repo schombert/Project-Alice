@@ -69,60 +69,126 @@ uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 namespace ui {
 
 
-class nation_administrative_efficiency_text : public standard_nation_text {
+class nation_actual_stockpile_spending_text : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(economy::estimate_stockpile_filling_spending(state, state.local_player_nation)));
+	}
+};
+
+class nation_gold_income_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(economy::estimate_gold_income(state, state.local_player_nation)));
+	}
+};
+
+class nation_loan_spending_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(economy::estimate_loan_payments(state, state.local_player_nation)));
+	}
+};
+
+class nation_diplomatic_balance_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(economy::estimate_diplomatic_balance(state, state.local_player_nation)));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto n = any_cast<dcon::nation_id>(payload);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			
+		float w_subsidies_amount =
+			economy::estimate_war_subsidies_income(state, n) - economy::estimate_war_subsidies_spending(state, n);
+		float reparations_amount = economy::estimate_reparations_income(state, n) - economy::estimate_reparations_spending(state, n);
 
-				{
-					text::substitution_map m;
-					text::add_to_substitution_map(m, text::variable_type::val,
-							text::fp_percentage{1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier)});
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, "admin_explain_1", m);
-					text::close_layout_box(contents, box);
-				}
-				active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier,
-						false);
-				{
-					auto non_colonial = state.world.nation_get_non_colonial_population(n);
-					auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
+		if(w_subsidies_amount > 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ w_subsidies_amount });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warsubsidies_income", m);
+			text::close_layout_box(contents, box);
+		} else if(w_subsidies_amount < 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ w_subsidies_amount });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warsubsidies_expense", m);
+			text::close_layout_box(contents, box);
+		}
 
-					text::substitution_map m;
-					text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{total * 100.0f});
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, "admin_explain_2", m);
-					text::close_layout_box(contents, box);
-				}
-				{
-					float issue_sum = 0.0f;
-					for(auto i : state.culture_definitions.social_issues) {
-						issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
-					}
-					auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
+		if(reparations_amount > 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ w_subsidies_amount });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warindemnities_income", m);
+			text::close_layout_box(contents, box);
+		} else if(reparations_amount < 0.0f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ w_subsidies_amount });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "warindemnities_expense", m);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
 
-					text::substitution_map m;
-					text::add_to_substitution_map(m, text::variable_type::val,
-							text::fp_two_places{(from_issues + state.defines.max_bureaucracy_percentage) * 100.0f});
-					text::add_to_substitution_map(m, text::variable_type::x,
-							text::fp_two_places{state.defines.max_bureaucracy_percentage * 100.0f});
-					text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{from_issues * 100.0f});
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, "admin_explain_3", m);
-					text::close_layout_box(contents, box);
-				}
-			
+class nation_subsidy_spending_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(economy::estimate_subsidy_spending(state, state.local_player_nation)));
+	}
+};
+
+class nation_administrative_efficiency_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_percentage(state.world.nation_get_administrative_efficiency(state.local_player_nation)));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = state.local_player_nation;
+
+		{
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val,
+					text::fp_percentage{ 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::administrative_efficiency_modifier) });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "admin_explain_1", m);
+			text::close_layout_box(contents, box);
+		}
+		active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::administrative_efficiency_modifier,
+				false);
+		{
+			auto non_colonial = state.world.nation_get_non_colonial_population(n);
+			auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
+
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{ total * 100.0f });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "admin_explain_2", m);
+			text::close_layout_box(contents, box);
+		}
+		{
+			float issue_sum = 0.0f;
+			for(auto i : state.culture_definitions.social_issues) {
+				issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
+			}
+			auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
+
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val,
+					text::fp_two_places{ (from_issues + state.defines.max_bureaucracy_percentage) * 100.0f });
+			text::add_to_substitution_map(m, text::variable_type::x,
+					text::fp_two_places{ state.defines.max_bureaucracy_percentage * 100.0f });
+			text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{ from_issues * 100.0f });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "admin_explain_3", m);
+			text::close_layout_box(contents, box);
 		}
 	}
 };
@@ -626,6 +692,7 @@ public:
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
 	}
 };
 
@@ -656,6 +723,7 @@ public:
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
 		// balance
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
