@@ -68,7 +68,7 @@ public:
 			if(state.military_definitions.unit_base_definitions[utid].maneuver_or_evasion > 0) {
 				text::add_line(state, contents, "alice_evasion", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver_or_evasion * 100, 0));
 			}
-			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption*100, 0));
+			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
 		} else {
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
@@ -80,7 +80,7 @@ public:
 			}
 			text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power, 2));
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
-			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline*100, 0));
+			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline * 100, 0));
 			if(state.military_definitions.unit_base_definitions[utid].support > 0) {
 				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100, 0));
 			}
@@ -156,7 +156,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<dcon::unit_type_id>{unit_type};
+			Cyto::Any payload = element_selection_wrapper<dcon::unit_type_id>{ unit_type };
 			parent->impl_get(state, payload);
 		}
 	}
@@ -167,7 +167,7 @@ public:
 			parent->impl_get(state, payload);
 			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
 			disabled = state.world.nation_get_active_unit(n, unit_type) == false &&
-								 state.military_definitions.unit_base_definitions[unit_type].active == false;
+				state.military_definitions.unit_base_definitions[unit_type].active == false;
 		}
 	}
 
@@ -470,9 +470,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(is_navy == false) {
-			state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation, [&](dcon::province_land_construction_id c) { row_contents.push_back(ui::queue_unit_entry_info{c, dcon::province_naval_construction_id{0}, false}); });
+			state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation, [&](dcon::province_land_construction_id c) { row_contents.push_back(ui::queue_unit_entry_info{ c, dcon::province_naval_construction_id{0}, false }); });
 		} else {
-			state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation, [&](dcon::province_naval_construction_id c) { row_contents.push_back(ui::queue_unit_entry_info{dcon::province_land_construction_id{0}, c, true}); });
+			state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation, [&](dcon::province_naval_construction_id c) { row_contents.push_back(ui::queue_unit_entry_info{ dcon::province_land_construction_id{0}, c, true }); });
 		}
 		update(state);
 	}

@@ -94,7 +94,7 @@ enum class command_type : uint8_t {
 	disband_undermanned = 85,
 	even_split_army = 86,
 	even_split_navy = 87,
-	
+
 	notify_player_ban = 117,
 	notify_player_kick = 118,
 	notify_player_picks_nation = 119,
@@ -534,8 +534,8 @@ void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 inline budget_settings_data make_empty_budget_settings() {
-	return budget_settings_data{int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127),
-			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127)};
+	return budget_settings_data{ int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127),
+			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
 }
 // when sending new budget settings, leaving any value as int8_t(-127) will cause it to be ignored, leaving the setting the same
 // You can use the function above to easily make an instance of the settings struct that will change no values

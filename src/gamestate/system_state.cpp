@@ -3387,10 +3387,23 @@ void state::single_game_tick() {
 	}
 }
 
-sys::checksum_key state::get_network_checksum() {
+sys::checksum_key state::get_save_checksum() {
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(*this)]);
-
 	dcon::load_record loaded = world.make_serialize_record_store_save();
+	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
+	world.serialize(start, loaded);
+
+	auto buffer_position = reinterpret_cast<uint8_t*>(start);
+	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+
+	checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	return key;
+}
+
+sys::checksum_key state::get_scenario_checksum() {
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_scenario_section(*this)]);
+	dcon::load_record loaded = world.make_serialize_record_store_scenario();
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
 

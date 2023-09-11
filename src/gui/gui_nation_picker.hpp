@@ -135,8 +135,7 @@ protected:
 	GLuint flag_texture_handle = 0;
 	bool visible = false;
 public:
-	void button_action(sys::state& state) noexcept override {
-	}
+	void button_action(sys::state& state) noexcept override { }
 
 
 	void on_update(sys::state& state) noexcept  override {
@@ -368,26 +367,26 @@ public:
 		}
 		auto s = retrieve<picker_sort>(state, parent);
 		switch(s) {
-			case picker_sort::name:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return text::get_name_as_string(state, fatten(state.world, a)) < text::get_name_as_string(state, fatten(state.world, b));
-				});
-				break;
-			case picker_sort::mil_rank:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b);
-				});
-				break;
-			case picker_sort::indust_rank:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b);
-				});
-				break;
-			case picker_sort::p_rank:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
-				});
-				break;
+		case picker_sort::name:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return text::get_name_as_string(state, fatten(state.world, a)) < text::get_name_as_string(state, fatten(state.world, b));
+			});
+			break;
+		case picker_sort::mil_rank:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b);
+			});
+			break;
+		case picker_sort::indust_rank:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b);
+			});
+			break;
+		case picker_sort::p_rank:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
+			});
+			break;
 		}
 		update(state);
 	}
