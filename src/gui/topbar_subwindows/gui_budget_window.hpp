@@ -552,17 +552,18 @@ public:
 	}
 };
 
-class budget_army_spending_text : public budget_scaled_monetary_value_text {
+class budget_military_spending_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		vals[uint8_t(budget_slider_target::army_stock)] = economy::estimate_land_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 	}
 };
 
-class budget_naval_spending_text : public budget_scaled_monetary_value_text {
+class budget_overseas_spending_text : public simple_text_element_base {
 public:
-	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(economy::estimate_overseas_penalty_spending(state, state.local_player_nation)));
 	}
 };
 
@@ -624,6 +625,7 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 	}
 };
 
@@ -653,7 +655,7 @@ public:
 				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
-
+		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		// balance
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
@@ -991,9 +993,9 @@ public:
 		} else if(name == "nat_stock_est") {
 			return make_element_by_type<budget_estimated_stockpile_spending_text>(state, id);
 		} else if(name == "mil_cost_val") {
-			return make_element_by_type<budget_army_spending_text>(state, id);
+			return make_element_by_type<budget_military_spending_text>(state, id);
 		} else if(name == "overseas_cost_val") {
-			return make_element_by_type<budget_naval_spending_text>(state, id);
+			return make_element_by_type<budget_overseas_spending_text>(state, id);
 		} else if(name == "tariff_val") {
 			return make_element_by_type<budget_tariff_income_text>(state, id);
 		} else if(name == "gold_inc") {

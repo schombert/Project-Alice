@@ -1096,7 +1096,7 @@ float get_debt(sys::state& state, dcon::nation_id n) {
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
 	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
-	return std::min(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 1.f);
+	return std::clamp(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 0.01f, 1.f);
 }
 
 float tax_efficiency(sys::state& state, dcon::nation_id n) {
