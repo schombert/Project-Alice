@@ -463,7 +463,7 @@ public:
 		disabled = !bool(state.local_player_nation);
 		// can't start if checksum doesn't match
 		if(state.network_mode == sys::network_mode_type::client)
-			disabled = disabled || !state.session_host_checksum.is_equal(state.get_network_checksum());
+			disabled = disabled || !state.session_host_checksum.is_equal(state.get_save_checksum());
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -471,7 +471,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.network_mode == sys::network_mode_type::client && !state.session_host_checksum.is_equal(state.get_network_checksum())) {
+		if(state.network_mode == sys::network_mode_type::client && !state.session_host_checksum.is_equal(state.get_save_checksum())) {
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
 			text::close_layout_box(contents, box);

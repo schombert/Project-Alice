@@ -179,7 +179,7 @@ static void accept_new_clients(sys::state& state) {
 				c.type = command::command_type::update_session_info;
 				c.source = dcon::nation_id{};
 				c.data.update_session_info.seed = state.game_seed;
-				c.data.update_session_info.checksum = state.get_network_checksum();
+				c.data.update_session_info.checksum = state.get_save_checksum();
 				auto r = socket_send(client.socket_fd, &c, sizeof(c));
 				if(r < 0) { // error
 					disconnect_client(state, client);
