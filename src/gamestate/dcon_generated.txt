@@ -385,6 +385,18 @@ object {
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
+	property{
+		name{ is_life_need }
+		type{ bitfield }
+	}
+	property{
+		name{ is_everyday_need }
+		type{ bitfield }
+	}
+	property{
+		name{ is_luxury_need }
+		type{ bitfield }
+	}
 }
 
 object {
@@ -3409,6 +3421,21 @@ object {
 	property{
 		name{ luxury_needs_costs }
 		type{ array{pop_type_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ life_needs_weights }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ everyday_needs_weights }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ luxury_needs_weights }
+		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
 	property {
