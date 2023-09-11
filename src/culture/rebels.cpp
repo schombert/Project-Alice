@@ -49,14 +49,21 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 	}
 
 	state.world.execute_serial_over_nation([&](auto host_nations) {
-		ve::fp_vector reform_totals;
-		for(auto preform : state.culture_definitions.political_issues) {
-			ve::tagged_vector<dcon::issue_option_id> creform = state.world.nation_get_issues(host_nations, preform);
-			auto base_reform = state.world.issue_get_options(preform)[0].index() + 1;
-			reform_totals = reform_totals + ve::to_float(ve::int_vector(creform.to_original_values()) - base_reform);
-		}
-		nation_reform_count.set(host_nations, reform_totals);
+		nation_reform_count.set(host_nations, 0.0f);
 	});
+
+	for(auto preform : state.culture_definitions.political_issues) {
+		if(state.world.issue_get_is_next_step_only(preform)) {
+			auto base_reform = state.world.issue_get_options(preform)[0].index() + 1;
+
+			state.world.execute_serial_over_nation([&](auto host_nations) {
+				ve::fp_vector reform_totals = nation_reform_count.get(host_nations);
+				ve::tagged_vector<dcon::issue_option_id> creform = state.world.nation_get_issues(host_nations, preform);
+				reform_totals = reform_totals + ve::to_float(ve::int_vector(creform.to_original_values()) - base_reform);
+				nation_reform_count.set(host_nations, reform_totals);
+			});
+		}
+	}
 
 	state.world.execute_serial_over_movement([&](auto ids) {
 		/*
@@ -95,7 +102,7 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 
 		auto new_radicalism = state.world.movement_get_transient_radicalism(ids) + state.defines.movement_radicalism_base
 			+ ref_effect + host_cradicalism + nat_effect + support_effect;
-		state.world.movement_set_radicalism(ids, new_radicalism);
+		state.world.movement_set_radicalism(ids, ve::max(0.0f, new_radicalism));
 	});
 }
 
@@ -1193,6 +1200,29 @@ void execute_rebel_victories(sys::state& state) {
 void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t, dcon::ideology_id i, dcon::culture_id c,
 		dcon::religion_id r) {
 	// TODO
+}
+
+std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
+	text::substitution_map sub;
+
+	auto culture = state.world.rebel_faction_get_primary_culture(reb);
+	auto defection_target = state.world.rebel_faction_get_defection_target(reb);
+	auto in_nation = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
+	std::string rebel_adj = text::produce_simple_string(state, state.world.nation_get_adjective(in_nation));
+	std::string adjective = text::get_adjective_as_string(state, defection_target);
+
+	text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebel_adj));
+	
+	if(culture) {
+		text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
+	}
+	
+	if(defection_target) {
+		text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
+		text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
+	}
+
+	return text::resolve_string_substitution(state, state.world.rebel_faction_get_type(reb).get_name(), sub);
 }
 
 } // namespace rebel

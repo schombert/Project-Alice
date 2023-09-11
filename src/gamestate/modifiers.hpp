@@ -46,7 +46,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(35, poor_income_modifier, true, modifier_display_type::percent, "modifier_poor_income_modifier")              \
 	MOD_LIST_ELEMENT(36, boost_strongest_party, true, modifier_display_type::percent, "modifier_boost_strongest_party")            \
 	MOD_LIST_ELEMENT(37, immigrant_attract, true, modifier_display_type::percent, "modifier_immigant_attract")                    \
-	MOD_LIST_ELEMENT(38, immigrant_push, true, modifier_display_type::percent, "modifier_immigrant_push")                          \
+	MOD_LIST_ELEMENT(38, immigrant_push, true, modifier_display_type::percent, "modifier_immigant_push")                          \
 	MOD_LIST_ELEMENT(39, local_repair, true, modifier_display_type::percent, "modifier_local_repair")                              \
 	MOD_LIST_ELEMENT(40, local_ship_build, false, modifier_display_type::percent, "modifier_local_ship_build")                     \
 	MOD_LIST_ELEMENT(41, movement_cost, false, modifier_display_type::percent, "modifier_movement_cost")                           \

@@ -1667,6 +1667,50 @@ void update_crisis_leaders(sys::state& state) {
 	}
 }
 
+bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg) {
+	if(state.crisis_temperature < 50.0f)
+		return false;
+
+	auto str_est = estimate_crisis_str(state);
+
+	if(to == state.primary_crisis_attacker) {
+		if(str_est.attacker < str_est.defender * 0.66f)
+			return true;
+		if(str_est.attacker < str_est.defender * 0.75f)
+			return is_concession;
+
+		if(!is_concession)
+			return false;
+
+		dcon::nation_id attacker = state.primary_crisis_attacker;
+		if(state.current_crisis == sys::crisis_type::colonial) {
+			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
+			if(colonizers.end() - colonizers.begin() >= 2) {
+				attacker = (*(colonizers.begin())).get_colonizer();
+			}
+		}
+
+		if(missing_wg)
+			return false;
+
+		return true;
+	} else if(to == state.primary_crisis_defender) {
+		if(str_est.defender < str_est.attacker * 0.66f)
+			return true;
+		if(str_est.defender < str_est.attacker * 0.75f)
+			return is_concession;
+
+		if(!is_concession)
+			return false;
+
+		if(missing_wg)
+			return false;
+
+		return true;
+	}
+	return false;
+}
+
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon::peace_offer_id peace) {
 	if(state.crisis_temperature < 50.0f)
 		return false;
@@ -2441,6 +2485,9 @@ void add_gw_goals(sys::state& state) {
 
 void make_peace_offers(sys::state& state) {
 	auto send_offer_up_to = [&](dcon::nation_id from, dcon::nation_id to, dcon::war_id w, bool attacker, int32_t score_max, bool concession) {
+		if(state.world.nation_get_peace_offer_from_pending_peace_offer(from))
+			return; // offer already in flight
+
 		command::execute_start_peace_offer(state, from, to, w, concession);
 		auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(from);
 		if(!pending)
@@ -2514,6 +2561,78 @@ void make_peace_offers(sys::state& state) {
 			}
 		}
 	}
+}
+
+bool will_accept_peace_offer_value(sys::state& state,
+	dcon::nation_id n, dcon::nation_id from,
+	dcon::nation_id prime_attacker, dcon::nation_id prime_defender,
+	float primary_warscore, float scoreagainst_me,
+	bool offer_from_attacker, bool concession,
+	int32_t overall_po_value, int32_t my_po_target,
+	int32_t target_personal_po_value, int32_t potential_peace_score_against,
+	int32_t my_side_against_target, int32_t my_side_peace_cost,
+	int32_t war_duration) {
+
+	bool is_attacking = !offer_from_attacker;
+
+	auto overall_score = primary_warscore;
+	if(!is_attacking)
+		overall_score = -overall_score;
+
+	int32_t personal_po_value = target_personal_po_value;
+
+	if(concession) {
+		if((is_attacking && overall_score <= -50.0f) || (!is_attacking && overall_score >= 50.0f))
+			return true;
+	}
+	if(!concession) {
+		overall_po_value = -overall_po_value;
+	}
+
+	auto personal_score_saved = personal_po_value - potential_peace_score_against;
+
+	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
+		if(overall_score <= -50 && overall_score <= overall_po_value * 2)
+			return true;
+
+		if(war_duration < 365) {
+			return concession && my_side_peace_cost >= -overall_po_value;
+		}
+		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+		if(overall_score >= 0) {
+			if(concession && (overall_score * 2 - overall_po_value - willingness_factor) < 0)
+				return true;
+		} else {
+			if(overall_score <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
+				return true;
+		}
+
+	} else if((prime_attacker == n || prime_defender == n) && concession) {
+
+		if(scoreagainst_me > 50)
+			return true;
+
+		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing
+			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
+				return true;
+		} else {
+			if(my_side_against_target <= overall_po_value)
+				return true;
+		}
+	} else {
+		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
+			return true;
+
+		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing	
+			if(scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
+				return true;
+
+		} else { // we are winning
+			if(std::min(scoreagainst_me, 0.0f) - my_po_target >= -overall_po_value)
+				return true;
+		}
+	}
+	return false;
 }
 
 bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_id from, dcon::peace_offer_id p) {

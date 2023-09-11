@@ -1449,7 +1449,7 @@ public:
 					auto rbl_fact_slim_id = rbl_fact_fat_id.id;
 					text::add_line_break_to_layout_box(state, contents, box);
 					text::substitution_map sub;
-					auto rebelname = text::produce_simple_string(state, rbl_type_fat_id.get_name());
+					auto rebelname = rebel::rebel_name(state, rbl_fact_fat_id);
 					auto rebelsize = text::prettify(rebel::get_faction_brigades_active(state, rbl_fact_slim_id));
 					auto rebelOrg = text::format_percentage(rebel::get_faction_organization(state, rbl_fact_slim_id));
 					text::add_to_substitution_map(sub, text::variable_type::name, std::string_view(rebelname));

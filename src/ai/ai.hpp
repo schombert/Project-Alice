@@ -52,4 +52,16 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 void make_attacks(sys::state& state);
 void make_defense(sys::state& state);
 void general_ai_unit_tick(sys::state& state);
+
+bool will_accept_peace_offer_value(sys::state& state,
+	dcon::nation_id n, dcon::nation_id from,
+	dcon::nation_id prime_attacker, dcon::nation_id prime_defender,
+	float primary_warscore, float scoreagainst_me,
+	bool offer_from_attacker, bool concession,
+	int32_t overall_po_value, int32_t my_po_target,
+	int32_t target_personal_po_value, int32_t potential_peace_score_against,
+	int32_t my_side_against_target, int32_t my_side_peace_cost,
+	int32_t war_duration);
+bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg);
+
 }

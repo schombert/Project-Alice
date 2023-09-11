@@ -1416,8 +1416,10 @@ public:
 		auto prov = retrieve<dcon::province_id>(state, parent);
 		bool as_port = retrieve<bool>(state, parent);
 
-		for(auto n : state.world.province_get_navy_location(prov)) {
-			base_array.emplace_back(n.get_navy().id);
+		if(as_port || (prov.index() >= state.province_definitions.first_sea_province.index())) {
+			for(auto n : state.world.province_get_navy_location(prov)) {
+				base_array.emplace_back(n.get_navy().id);
+			}
 		}
 		if(as_port) {
 			for(auto a : state.world.province_get_army_location(prov)) {

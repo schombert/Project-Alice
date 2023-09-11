@@ -60,6 +60,10 @@ struct toggle_wg_state {
 	dcon::wargoal_id wg;
 };
 
+struct test_acceptance {
+	bool result = false;
+};
+
 class peace_wg_from : public flag_button {
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		auto wg = retrieve<dcon::wargoal_id>(state, parent);
@@ -257,6 +261,22 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, send_offer{});
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto sent_to = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.nation_get_is_player_controlled(sent_to)) {
+			// no tooltip -- no expected acceptance from players
+			return;
+		}
+		auto res = retrieve<test_acceptance>(state, parent);
+		if(res.result) {
+			text::add_line(state, contents, "ai_will_accept_po");
+		} else {
+			text::add_line(state, contents, "ai_will_not_accept_po");
+		}
+	}
 };
 
 class diplomacy_setup_peace_dialog : public window_element_base { // eu3dialogtype
@@ -404,6 +424,55 @@ public:
 			command::send_peace_offer(state, state.local_player_nation);
 			set_visible(state, false);
 
+			return message_result::consumed;
+		} else if(payload.holds_type<test_acceptance>()) { // test_acceptance
+			auto target = retrieve<dcon::nation_id>(state, parent);
+			const dcon::war_id w = military::find_war_between(state, state.local_player_nation, target);
+			auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
+
+			int32_t target_personal_po_value = 0;
+			int32_t potential_peace_score_against = 0;
+			int32_t my_side_against_target = 0;
+			int32_t my_side_peace_cost = !military::is_attacker(state, w, state.local_player_nation) ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w);
+			int32_t overall_po_value = 0;
+			int32_t my_po_target = 0;
+			auto prime_attacker = state.world.war_get_primary_attacker(w);
+			auto prime_defender = state.world.war_get_primary_defender(w);
+
+			for(auto& twg : wargoals) {
+				auto wg = fatten(state.world, twg.wg);
+				auto wg_value = military::peace_cost(state, w, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+
+				if(twg.added) {
+					overall_po_value += wg_value;
+					if(wg.get_target_nation() == target) {
+						target_personal_po_value += wg_value;
+					}
+					if(wg.get_target_nation() == state.local_player_nation) {
+						my_side_against_target += wg_value;
+					}
+				}
+				if(wg.get_target_nation() == target || wg.get_added_by() == target) {
+					if(wg.get_target_nation() == target && (wg.get_added_by() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
+						potential_peace_score_against += wg_value;
+					}
+					if(wg.get_added_by() == target && (wg.get_target_nation() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
+						my_po_target += wg_value;
+					}
+				}
+			}
+
+			auto acceptance = ai::will_accept_peace_offer_value(state,
+				target, state.local_player_nation,
+				prime_attacker, prime_defender,
+				military::primary_warscore(state, w), military::directed_warscore(state, w, state.local_player_nation, target),
+				military::is_attacker(state, w, state.local_player_nation), is_concession,
+				overall_po_value, my_po_target,
+				target_personal_po_value, potential_peace_score_against,
+				my_side_against_target, my_side_peace_cost,
+				war_duration);
+
+			payload.emplace<test_acceptance>(test_acceptance{ acceptance });
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -599,19 +668,20 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<toggled_crisis_wargoal>()) {
 			toggled_crisis_wargoal twg = any_cast<toggled_crisis_wargoal>(payload);
-			payload.emplace<toggled_crisis_wargoal>(toggled_crisis_wargoal{twg.index, wargoals[twg.index] });
+			if(uint32_t(twg.index) < wargoals.size())
+				payload.emplace<toggled_crisis_wargoal>(toggled_crisis_wargoal{twg.index, wargoals[twg.index] });
 			return message_result::consumed;
 		} else if(payload.holds_type<toggle_crisis_wargoal>()) {
 			toggle_crisis_wargoal twg = any_cast<toggle_crisis_wargoal>(payload);
-			wargoals[twg.index] = !wargoals[twg.index];
+			if(uint32_t(twg.index) < wargoals.size())
+				wargoals[twg.index] = !wargoals[twg.index];
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<offer_cost>()) {
 			int32_t total = 0;
 
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
-			auto count = nations::num_crisis_wargoals(state);
-			for(int32_t i = 0; i < count; ++i) {
+			for(uint32_t i = 0; i < wargoals.size(); ++i) {
 				if(wargoals[i] && nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
 					auto wg = nations::get_nth_crisis_war_goal(state, i);
 					total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
@@ -625,7 +695,7 @@ public:
 
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
 			auto count = nations::num_crisis_wargoals(state);
-			for(int32_t i = 0; i < count; ++i) {
+			for(uint32_t i = 0; i < wargoals.size(); ++i) {
 				if(wargoals[i] && nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
 					auto wg = nations::get_nth_crisis_war_goal(state, i);
 					command::add_to_crisis_peace_offer(state, state.local_player_nation,wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
@@ -634,6 +704,22 @@ public:
 			command::send_crisis_peace_offer(state, state.local_player_nation);
 			set_visible(state, false);
 
+			return message_result::consumed;
+		} else if(payload.holds_type<test_acceptance>()) { // test_acceptance
+			auto target = state.local_player_nation == state.primary_crisis_attacker ? state.primary_crisis_defender : state.primary_crisis_attacker;
+			bool missing_wargoal = false;
+
+			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
+			auto count = nations::num_crisis_wargoals(state);
+			for(uint32_t i = 0; i < wargoals.size(); ++i) {
+				if(nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
+					missing_wargoal = missing_wargoal || !wargoals[i];
+				}
+			}
+
+			bool acceptance = ai::will_accept_crisis_peace_offer(state, target, is_concession, missing_wargoal);
+
+			payload.emplace<test_acceptance>(test_acceptance{ acceptance });
 			return message_result::consumed;
 		}
 		return message_result::unseen;
