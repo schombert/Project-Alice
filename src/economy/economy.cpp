@@ -63,7 +63,7 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
-			if(state.world.commodity_get_is_life_need(cid) && state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_is_life_need(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_life_needs_weights(n, cid);
 				auto sat = state.world.nation_get_demand_satisfaction(n, cid);
 
@@ -84,7 +84,7 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
-			if(state.world.commodity_get_is_life_need(cid) && state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_is_life_need(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_life_needs_weights(n, cid);
 				w = (w * multiplier) - 1.0f;
 			}
@@ -98,7 +98,7 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
-			if(state.world.commodity_get_is_everyday_need(cid) && state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_is_everyday_need(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_everyday_needs_weights(n, cid);
 				auto sat = state.world.nation_get_demand_satisfaction(n, cid);
 
@@ -119,7 +119,7 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
-			if(state.world.commodity_get_is_everyday_need(cid) && state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_is_everyday_need(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_everyday_needs_weights(n, cid);
 				w = (w * multiplier) - 1.0f;
 			}
@@ -133,7 +133,7 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
-			if(state.world.commodity_get_is_luxury_need(cid) && state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_is_luxury_need(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_luxury_needs_weights(n, cid);
 				auto sat = state.world.nation_get_demand_satisfaction(n, cid);
 
@@ -154,7 +154,7 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
-			if(state.world.commodity_get_is_luxury_need(cid) && state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_is_luxury_need(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_luxury_needs_weights(n, cid);
 				w = (w * multiplier) - 1.0f;
 			}
