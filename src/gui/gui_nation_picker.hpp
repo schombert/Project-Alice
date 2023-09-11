@@ -94,6 +94,7 @@ public:
 				window::emit_error_message(msg, false);
 			} else {
 				state.fill_unsaved_data();
+				command::update_session_info(state, state.local_player_nation);
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
@@ -101,6 +102,7 @@ public:
 				window::emit_error_message(msg, false);
 			} else {
 				state.fill_unsaved_data();
+				command::update_session_info(state, state.local_player_nation);
 			}
 		}
 		state.game_state_updated.store(true, std::memory_order_release);
@@ -443,6 +445,21 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
+		// can't start if checksum doesn't match
+		if(state.network_mode == sys::network_mode_type::client)
+			disabled = disabled || !state.session_host_checksum.is_equal(state.get_network_checksum());
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.network_mode == sys::network_mode_type::client && !state.session_host_checksum.is_equal(state.get_network_checksum())) {
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 

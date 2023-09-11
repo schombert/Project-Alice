@@ -15,7 +15,7 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_picks_nation:
 	case command_type::notify_player_ban:
 	case command_type::notify_player_kick:
-	case command_type::game_seed:
+	case command_type::update_session_info:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
@@ -4489,8 +4489,19 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 	state.single_game_tick();
 }
 
-void execute_game_seed(sys::state& state, dcon::nation_id source, uint32_t seed) {
+void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
 	state.game_seed = seed;
+	state.session_host_checksum = k;
+}
+
+void update_session_info(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::update_session_info;
+	p.source = source;
+	p.data.update_session_info.seed = state.game_seed;
+	p.data.update_session_info.checksum = state.get_network_checksum();
+	add_to_command_queue(state, p);
 }
 
 void execute_command(sys::state& state, payload& c) {
@@ -4769,7 +4780,7 @@ void execute_command(sys::state& state, payload& c) {
 			execute_evenly_split_navy(state, c.source, c.data.navy_movement.n);
 			break;
 
-			// common mp commands
+		// common mp commands
 		case command_type::chat_message:
 		{
 			size_t count = 0;
@@ -4798,8 +4809,8 @@ void execute_command(sys::state& state, payload& c) {
 		case command_type::advance_tick:
 			execute_advance_tick(state, c.source, c.data.advance_tick.checksum);
 			break;
-		case command_type::game_seed:
-			execute_game_seed(state, c.source, c.data.game_seed.seed);
+		case command_type::update_session_info:
+			execute_update_session_info(state, c.source, c.data.update_session_info.seed, c.data.update_session_info.checksum);
 			break;
 
 			// console commands

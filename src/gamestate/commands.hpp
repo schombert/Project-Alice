@@ -102,7 +102,7 @@ enum class command_type : uint8_t {
 	notify_player_leaves = 121,
 	advance_tick = 122,
 	chat_message = 123,
-	game_seed = 124,
+	update_session_info = 124,
 
 	// console cheats
 	switch_nation = 128,
@@ -404,8 +404,9 @@ struct advance_tick_data {
 	sys::checksum_key checksum;
 };
 
-struct game_seed_data {
+struct update_session_info_data {
 	uint32_t seed;
+	sys::checksum_key checksum;
 };
 
 struct payload {
@@ -462,7 +463,7 @@ struct payload {
 		cheat_event_data cheat_event;
 		advance_tick_data advance_tick;
 		save_game_data save_game;
-		game_seed_data game_seed;
+		update_session_info_data update_session_info;
 
 		dtype() { }
 	} data;
@@ -768,6 +769,8 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void update_session_info(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

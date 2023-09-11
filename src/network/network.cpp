@@ -174,11 +174,12 @@ static void accept_new_clients(sys::state& state) {
 					disconnect_client(state, client);
 				}
 			}
-			{
+			{ //tell the client general information about the game
 				command::payload c;
-				c.type = command::command_type::game_seed;
+				c.type = command::command_type::update_session_info;
 				c.source = dcon::nation_id{};
-				c.data.game_seed.seed = state.game_seed;
+				c.data.update_session_info.seed = state.game_seed;
+				c.data.update_session_info.checksum = state.get_network_checksum();
 				auto r = socket_send(client.socket_fd, &c, sizeof(c));
 				if(r < 0) { // error
 					disconnect_client(state, client);
