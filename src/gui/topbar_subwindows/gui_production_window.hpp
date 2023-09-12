@@ -355,7 +355,37 @@ public:
 				text::add_line_break_to_layout(state, contents);
 				text::add_line(state, contents, "factory_delete_not_allowed");
 			}
-			// TODO: classic tooltips ?
+		}
+	}
+};
+
+class factory_close_and_delete_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
+		frame = 1;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		command::delete_factory(state, state.local_player_nation, fid);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		if(n == state.local_player_nation) {
+			text::add_line(state, contents, "close_and_del");
+			if(disabled) {
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "factory_delete_not_allowed");
+			}
 		}
 	}
 };
@@ -690,6 +720,11 @@ public:
 		} else if(name == "open_close") {
 			auto ptr = make_element_by_type<factory_reopen_button>(state, id);
 			closed_elements.push_back(ptr.get());
+
+			auto ptrb = make_element_by_type<factory_close_and_delete_button>(state, id);
+			factory_elements.push_back(ptrb.get());
+			add_child_to_front(std::move(ptrb));
+
 			return ptr;
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
