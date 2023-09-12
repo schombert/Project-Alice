@@ -1278,11 +1278,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ artisan_production }
-		type{ commodity_id }
-		tag{ save }
-	}
-	property{
 		name{ building_level }
 		type{ array{economy::province_building_type}{uint8_t} }
 		tag{ save }
@@ -1404,24 +1399,11 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ artisan_production_scale }
-		type{ float }
-		tag{ save }
-	}
-	property{
 		name{ rgo_actual_production }
-		type{ float }
-	}
-	property{
-		name{ artisan_actual_production }
 		type{ float }
 	}
 	property {
 		name{ rgo_full_profit }
-		type{ float }
-	}
-	property {
-		name{ artisan_full_profit }
 		type{ float }
 	}
 	property{
@@ -3437,6 +3419,20 @@ object {
 		name{ luxury_needs_weights }
 		type{ array{commodity_id}{float} }
 		tag{ save }
+	}
+	property {
+		name{ artisan_distribution }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ artisan_actual_production }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ artisan_profit }
+		type{ float }
 	}
 	property {
 		name{ overseas_penalty }
