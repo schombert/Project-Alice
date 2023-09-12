@@ -4383,7 +4383,7 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_i
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target) // can't perform on self
 		return false;
-	return true;
+	return source == state.local_player_nation;
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_notify_player_ban(state, source, target))
@@ -4419,7 +4419,7 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target) // can't perform on self
 		return false;
-	return true;
+	return source == state.local_player_nation;
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_notify_player_kick(state, source, target))
