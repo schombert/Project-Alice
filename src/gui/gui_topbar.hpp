@@ -1063,7 +1063,7 @@ public:
 			if(!economy::nation_is_constructing_factories(state, nation_id)) {
 				text::localised_format_box(state, contents, box, "countryalert_no_isbuildingfactories", text::substitution_map{});
 			} else if(economy::nation_is_constructing_factories(state, nation_id)) {
-				text::localised_format_box(state, contents, box, "countryalert_isbuilding_factories", text::substitution_map{});
+				text::localised_format_box(state, contents, box, "countryalert_isbuildingfactories", text::substitution_map{});
 				auto nation_fat_id = dcon::fatten(state.world, nation_id);
 				nation_fat_id.for_each_state_building_construction([&](dcon::state_building_construction_id building_slim_id) {
 					auto building_fat_id = dcon::fatten(state.world, building_slim_id);
