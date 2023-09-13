@@ -767,18 +767,25 @@ public:
 	}
 };
 
-class province_invest_railroad_button : public button_element_base {
+class province_invest_railroad_button : public shift_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
-			command::begin_province_building_construction(state, state.local_player_nation, content,
-					economy::province_building_type::railroad);
+			command::begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
 		}
 	}
-
+	virtual void button_shift_action(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
+		auto si = state.world.province_get_state_membership(pid);
+		if(si) {
+			province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+				command::begin_province_building_construction(state, state.local_player_nation, p, economy::province_building_type::railroad);
+			});
+		}
+	}
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -861,6 +868,37 @@ public:
 	// TODO: needs an explanation of where the value comes from
 };
 
+class rr_investment_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		progress = economy::province_building_construction(state, prov, economy::province_building_type::railroad).progress;
+	}
+};
+
+class rr_invest_inwdow : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "building_progress") {
+			return make_element_by_type<rr_investment_progress>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(province::has_railroads_being_built(state, prov)) {
+			window_element_base::impl_render(state, x, y);
+		}
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(province::has_railroads_being_built(state, prov))
+			return window_element_base::test_mouse(state, x, y, type);
+		return message_result::unseen;
+	}
+};
+
 class province_view_foreign_details : public window_element_base {
 private:
 	province_country_flag_button* country_flag_button = nullptr;
@@ -929,9 +967,7 @@ public:
 		} else if(name == "build_icon_infra") {
 			return make_element_by_type<province_view_foreign_building_icon<economy::province_building_type::railroad>>(state, id);
 		} else if(name == "infra_progress_win") {
-			auto ptr = make_element_by_type<window_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<rr_invest_inwdow>(state, id);
 		} else if(name == "invest_build_infra") {
 			return make_element_by_type<province_invest_railroad_button>(state, id);
 		} else if(name == "invest_factory_button") {

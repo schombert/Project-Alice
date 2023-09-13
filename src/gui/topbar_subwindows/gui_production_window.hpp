@@ -361,9 +361,13 @@ public:
 
 class factory_close_and_delete_button : public button_element_base {
 public:
+	bool visible = true;
+
 	void on_update(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+
+		visible = dcon::fatten(state.world, fid).get_production_scale() >= 0.05f;
 		disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 		frame = 1;
 	}
@@ -374,11 +378,19 @@ public:
 		command::delete_factory(state, state.local_player_nation, fid);
 	}
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!visible)
+			return;
+
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		if(n == state.local_player_nation) {
 			text::add_line(state, contents, "close_and_del");

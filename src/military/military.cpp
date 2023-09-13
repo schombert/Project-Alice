@@ -3076,6 +3076,32 @@ void run_gc(sys::state& state) {
 		if(!po && !wr)
 			state.world.delete_wargoal(wg);
 	}
+
+	//
+	// empty armies / navies or leaderless ones
+	//
+	for(uint32_t i = state.world.navy_size(); i-- > 0; ) {
+		dcon::navy_id n{ dcon::navy_id::value_base_t(i) };
+		if(state.world.navy_is_valid(n)) {
+			auto rng = state.world.navy_get_navy_membership(n);
+			if(!state.world.navy_get_battle_from_navy_battle_participation(n)) {
+				if(rng.begin() == rng.end() || !state.world.navy_get_controller_from_navy_control(n)) {
+					military::cleanup_navy(state, n);
+				}
+			}
+		}
+	}
+	for(uint32_t i = state.world.army_size(); i-- > 0; ) {
+		dcon::army_id n{ dcon::army_id::value_base_t(i) };
+		if(state.world.army_is_valid(n)) {
+			auto rng = state.world.army_get_army_membership(n);
+			if(!state.world.army_get_battle_from_army_battle_participation(n)) {
+				if(rng.begin() == rng.end() || (!state.world.army_get_controller_from_army_rebel_control(n) && !state.world.army_get_controller_from_army_control(n))) {
+					military::cleanup_army(state, n);
+				}
+			}
+		}
+	}
 }
 
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
@@ -4183,8 +4209,10 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 	assert(location);
 
-	static std::vector<dcon::army_id> to_delete;
-	to_delete.clear();
+	auto make_leaderless = [&](dcon::army_id a) {
+		state.world.army_set_controller_from_army_control(a, dcon::nation_id{});
+		state.world.army_set_controller_from_army_rebel_control(a, dcon::rebel_faction_id{});
+	};
 
 	for(auto n : state.world.land_battle_get_army_battle_participation(b)) {
 		auto nation_owner = state.world.army_get_controller_from_army_control(n.get_army());
@@ -4195,25 +4223,20 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 		bool battle_attacker = (role_in_war == war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
 
-		auto members = n.get_army().get_army_membership();
-		if(members.begin() == members.end()) {
-			to_delete.push_back(n.get_army());
-			continue;
-		}
-
+		
 		if(battle_attacker && result == battle_result::defender_won) {
 			if(!can_retreat_from_battle(state, b)) {
-				to_delete.push_back(n.get_army());
+				make_leaderless(n.get_army());
 			} else {
 				if(!retreat(state, n.get_army()))
-					to_delete.push_back(n.get_army());
+					make_leaderless(n.get_army());
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
 			if(!can_retreat_from_battle(state, b)) {
-				to_delete.push_back(n.get_army());
+				make_leaderless(n.get_army());
 			} else {
 				if(!retreat(state, n.get_army()))
-					to_delete.push_back(n.get_army());
+					make_leaderless(n.get_army());
 			}
 		} else {
 			auto path = n.get_army().get_path();
@@ -4380,10 +4403,6 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	}
 
 	state.world.delete_land_battle(b);
-
-	for(auto n : to_delete) {
-		cleanup_army(state, n);
-	}
 }
 
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result) {
@@ -4393,20 +4412,10 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 	assert(war);
 	assert(location);
 
-	static std::vector<dcon::navy_id> to_delete;
-	to_delete.clear();
-	static std::vector<dcon::army_id> army_to_delete;
-	army_to_delete.clear();
-
 	for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
 		auto role_in_war = get_role(state, war, n.get_navy().get_controller_from_navy_control());
 		bool battle_attacker = (role_in_war == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);
 
-		auto members = n.get_navy().get_navy_membership();
-		if(members.begin() == members.end()) {
-			to_delete.push_back(n.get_navy());
-			continue;
-		}
 
 		auto transport_cap = military::free_transport_capacity(state, n.get_navy());
 		if(transport_cap < 0) {
@@ -4416,8 +4425,6 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 					state.world.delete_regiment((*em_regs.begin()).get_regiment());
 					++transport_cap;
 				}
-				if(em_regs.begin() == em_regs.end())
-					army_to_delete.push_back(em.get_army());
 				if(transport_cap >= 0)
 					break;
 			}
@@ -4425,17 +4432,17 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 
 		if(battle_attacker && result == battle_result::defender_won) {
 			if(!can_retreat_from_battle(state, b)) {
-				to_delete.push_back(n.get_navy());
+				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
 			} else {
 				if(!retreat(state, n.get_navy()))
-					to_delete.push_back(n.get_navy());
+					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
 			if(!can_retreat_from_battle(state, b)) {
-				to_delete.push_back(n.get_navy());
+				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
 			} else {
 				if(!retreat(state, n.get_navy()))
-					to_delete.push_back(n.get_navy());
+					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
 			}
 		} else {
 			auto path = n.get_navy().get_path();
@@ -4601,13 +4608,6 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 	}
 
 	state.world.delete_naval_battle(b);
-
-	for(auto n : to_delete) {
-		cleanup_navy(state, n);
-	}
-	for(auto a : army_to_delete) {
-		cleanup_army(state, a);
-	}
 }
 
 inline constexpr float combat_modifier_table[] = {0.0f, 0.02f, 0.04f, 0.06f, 0.08f, 0.10f, 0.12f, 0.16f, 0.20f, 0.25f, 0.30f,
