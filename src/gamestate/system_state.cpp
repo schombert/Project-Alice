@@ -303,6 +303,10 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	} else if(mode == sys::game_mode_type::end_screen) {
 
 	} else {
+		if(keycode == sys::virtual_key::MINUS)
+			keycode = sys::virtual_key::SUBTRACT;
+		else if(keycode == sys::virtual_key::PLUS)
+			keycode = sys::virtual_key::ADD;
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
 				if(ui_state.console_window->is_visible())
