@@ -342,11 +342,12 @@ public:
 			float f_total = 0.0f;
 			for(auto p : state.world.in_province) {
 				if(p.get_nation_from_province_ownership()) {
-					if(p.get_artisan_production() == com)
-						a_total += p.get_artisan_actual_production();
 					if(p.get_rgo() == com)
 						r_total += p.get_rgo_actual_production();
 				}
+			}
+			for(auto n : state.world.in_nation) {
+				a_total += state.world.nation_get_artisan_actual_production(n, com);
 			}
 			for(auto f : state.world.in_factory) {
 				if(f.get_building_type().get_output() == com)

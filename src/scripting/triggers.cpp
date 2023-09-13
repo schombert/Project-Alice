@@ -2721,9 +2721,10 @@ TRIGGER_FUNCTION(tf_produces_nation) {
 	return compare_to_true(tval[0], ws.world.nation_get_domestic_market_pool(to_nation(primary_slot), good) > 0.0f);
 }
 TRIGGER_FUNCTION(tf_produces_province) {
-	return compare_to_true(tval[0],
+	/* return compare_to_true(tval[0],
 			(ws.world.province_get_rgo(to_prov(primary_slot)) == payload(tval[1]).com_id) ||
-					(ws.world.province_get_artisan_production(to_prov(primary_slot)) == payload(tval[1]).com_id));
+					(ws.world.province_get_artisan_production(to_prov(primary_slot)) == payload(tval[1]).com_id)); */
+	return compare_to_true(tval[0], ws.world.province_get_rgo(to_prov(primary_slot)) == payload(tval[1]).com_id);
 }
 TRIGGER_FUNCTION(tf_produces_state) {
 	auto good = payload(tval[1]).com_id;
@@ -2735,8 +2736,8 @@ TRIGGER_FUNCTION(tf_produces_state) {
 							if(p.get_province().get_nation_from_province_ownership() == o) {
 								if(p.get_province().get_rgo() == good)
 									return true;
-								if(p.get_province().get_artisan_production() == good)
-									return true;
+								//if(p.get_province().get_artisan_production() == good)
+								//	return true;
 
 								for(auto f : p.get_province().get_factory_location()) {
 									if(f.get_factory().get_building_type().get_output() == good)
@@ -2752,8 +2753,11 @@ TRIGGER_FUNCTION(tf_produces_pop) {
 	auto pop_location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
 	auto good = payload(tval[1]).com_id;
 
-	return compare_to_true(tval[0], (ws.world.pop_get_poptype(to_pop(primary_slot)) == ws.culture_definitions.artisans) &&
-																			(ws.world.province_get_artisan_production(pop_location) == good));
+	/*return compare_to_true(tval[0], (ws.world.pop_get_poptype(to_pop(primary_slot)) == ws.culture_definitions.artisans) &&
+																			(ws.world.province_get_artisan_production(pop_location) == good)); */
+
+	//return compare_to_true(tval[0], (ws.world.pop_get_poptype(to_pop(primary_slot)).get_is_paid_rgo_worker()) && (ws.world.province_get_rgo(pop_location) == good));
+	return compare_to_true(tval[0], false);
 }
 TRIGGER_FUNCTION(tf_average_militancy_nation) {
 	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
