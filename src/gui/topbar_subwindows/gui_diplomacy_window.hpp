@@ -687,6 +687,13 @@ public:
 		auto cb = retrieve<military::available_cb>(state, parent);
 		dcon::cb_type_id content = cb.cb_type;
 		frame = state.world.cb_type_get_sprite_index(content) - 1;
+
+		auto conditions = state.world.cb_type_get_can_use(cb.cb_type);
+		if(conditions) {
+			disabled = !trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation);
+		} else {
+			disabled = false;
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -698,6 +705,12 @@ public:
 		text::add_line(state, contents, state.world.cb_type_get_name(cb.cb_type));
 		if(cb.expiration) {
 			text::add_line(state, contents, "until_date", text::variable_type::x, cb.expiration);
+		}
+		auto conditions = state.world.cb_type_get_can_use(cb.cb_type);
+		if(conditions) {
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "cb_conditions_header");
+			ui::trigger_description(state, contents, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
 		}
 	}
 };

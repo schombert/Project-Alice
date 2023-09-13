@@ -361,17 +361,31 @@ public:
 
 class factory_close_and_delete_button : public button_element_base {
 public:
+	bool visible = true;
+
 	void on_update(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+
+		visible = dcon::fatten(state.world, fid).get_production_scale() >= 0.05f;
 		disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 		frame = 1;
 	}
-
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(visible)
+			return button_element_base::test_mouse(state, x, y, type);
+		return message_result::unseen;
+	}
 	void button_action(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		command::delete_factory(state, state.local_player_nation, fid);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

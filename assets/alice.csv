@@ -1223,4 +1223,6 @@ alice_play_checksum_host;Checksum mismatch with host, ensure you have the same m
 ai_will_accept_po;The AI will accept this offer
 ai_will_not_accept_po;The AI will NOT accept this offer
 close_and_del;Close & Delete Factory
+cb_conditions_header;Conditions to use:
+as_a_vassal;as a vassal
 ;;;;;;;;;;;;;x

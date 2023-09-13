@@ -1409,6 +1409,7 @@ void tf_culture_state(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
@@ -1416,6 +1417,7 @@ void tf_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_culture_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
@@ -1442,6 +1444,7 @@ void tf_culture_state_reb(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			rc ? text::produce_simple_string(ws, ws.world.culture_get_name(rc)) : text::produce_simple_string(ws, "rebel_culture"), ws,
 			layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_culture_province_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_primary_culture(trigger::to_rebel(from_slot)) : dcon::culture_id{};
@@ -1451,6 +1454,7 @@ void tf_culture_province_reb(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			rc ? text::produce_simple_string(ws, ws.world.culture_get_name(rc)) : text::produce_simple_string(ws, "rebel_culture"), ws,
 			layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_culture_nation_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_primary_culture(trigger::to_rebel(from_slot)) : dcon::culture_id{};

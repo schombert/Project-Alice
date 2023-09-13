@@ -855,7 +855,7 @@ float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::
 										? state.defines.tech_factor_vassal
 										: 1.0f;
 	return float(base_cost) * ol_mod * (1.0f / research_mod) *
-				 (1.0f - std::max(0.0f, float(current_year - availability_year) / state.defines.tech_year_span));
+				 (1.0f - std::max(0.0f, float(int32_t(current_year) - availability_year) / state.defines.tech_year_span));
 }
 
 void update_research(sys::state& state, uint32_t current_year) {
