@@ -3165,24 +3165,7 @@ void refresh_home_ports(sys::state& state) {
 }
 
 void daily_cleanup(sys::state& state) {
-	for(uint32_t i = state.world.navy_size(); i-- > 0; ) {
-		dcon::navy_id n{dcon::navy_id::value_base_t(i)};
-		if(state.world.navy_is_valid(n)) {
-			auto rng = state.world.navy_get_navy_membership(n);
-			if(rng.begin() == rng.end() && !state.world.navy_get_battle_from_navy_battle_participation(n)) {
-				military::cleanup_navy(state, n);
-			}
-		}
-	}
-	for(uint32_t i = state.world.army_size(); i-- > 0; ) {
-		dcon::army_id n{dcon::army_id::value_base_t(i)};
-		if(state.world.army_is_valid(n)) {
-			auto rng = state.world.army_get_army_membership(n);
-			if(rng.begin() == rng.end() && !state.world.army_get_battle_from_army_battle_participation(n)) {
-				military::cleanup_army(state, n);
-			}
-		}
-	}
+	
 }
 
 

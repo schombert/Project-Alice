@@ -78,7 +78,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		for(auto const& c : state.ui_state.chat_messages)
-			row_contents.push_back(c);
+			if(c.source)
+				row_contents.push_back(c);
 		update(state);
 	}
 };
@@ -149,7 +150,7 @@ public:
 			});
 		}
 
-		char body[max_chat_message_len];
+		char body[max_chat_message_len + 1];
 		size_t len = s.length() >= max_chat_message_len ? max_chat_message_len : s.length();
 		memcpy(body, s.data(), len);
 		body[len] = '\0';

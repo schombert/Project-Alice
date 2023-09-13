@@ -94,7 +94,7 @@ enum class command_type : uint8_t {
 	disband_undermanned = 85,
 	even_split_army = 86,
 	even_split_navy = 87,
-	
+
 	notify_player_ban = 117,
 	notify_player_kick = 118,
 	notify_player_picks_nation = 119,
@@ -102,6 +102,7 @@ enum class command_type : uint8_t {
 	notify_player_leaves = 121,
 	advance_tick = 122,
 	chat_message = 123,
+	update_session_info = 124,
 
 	// console cheats
 	switch_nation = 128,
@@ -399,6 +400,15 @@ struct nation_pick_data {
 	dcon::nation_id target;
 };
 
+struct advance_tick_data {
+	sys::checksum_key checksum;
+};
+
+struct update_session_info_data {
+	uint32_t seed;
+	sys::checksum_key checksum;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -451,7 +461,9 @@ struct payload {
 		rally_point_data rally_point;
 		cheat_data_int cheat_int;
 		cheat_event_data cheat_event;
+		advance_tick_data advance_tick;
 		save_game_data save_game;
+		update_session_info_data update_session_info;
 
 		dtype() { }
 	} data;
@@ -464,6 +476,8 @@ struct payload {
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
+
+bool is_console_command(command_type t);
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
 bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus);
@@ -520,8 +534,8 @@ void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 inline budget_settings_data make_empty_budget_settings() {
-	return budget_settings_data{int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127),
-			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127)};
+	return budget_settings_data{ int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127),
+			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
 }
 // when sending new budget settings, leaving any value as int8_t(-127) will cause it to be ignored, leaving the setting the same
 // You can use the function above to easily make an instance of the settings struct that will change no values
@@ -755,6 +769,8 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void update_session_info(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

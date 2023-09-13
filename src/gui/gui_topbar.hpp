@@ -1063,7 +1063,7 @@ public:
 			if(!economy::nation_is_constructing_factories(state, nation_id)) {
 				text::localised_format_box(state, contents, box, "countryalert_no_isbuildingfactories", text::substitution_map{});
 			} else if(economy::nation_is_constructing_factories(state, nation_id)) {
-				text::localised_format_box(state, contents, box, "countryalert_isbuilding_factories", text::substitution_map{});
+				text::localised_format_box(state, contents, box, "countryalert_isbuildingfactories", text::substitution_map{});
 				auto nation_fat_id = dcon::fatten(state.world, nation_id);
 				nation_fat_id.for_each_state_building_construction([&](dcon::state_building_construction_id building_slim_id) {
 					auto building_fat_id = dcon::fatten(state.world, building_slim_id);
@@ -1132,20 +1132,34 @@ public:
 	}
 };
 
-class topbar_unemployment_icon : public standard_nation_icon {
+class topbar_unemployment_icon : public image_element_base {
 private:
-	float get_num_unemployed(sys::state& state, dcon::pop_type_id pop_type, dcon::nation_id nation_id) noexcept {
-		auto total_key = demographics::to_key(state, pop_type);
-		auto employment_key = demographics::to_employment_key(state, pop_type);
-		return state.world.nation_get_demographics(nation_id, total_key) -
-					 state.world.nation_get_demographics(nation_id, employment_key);
-	}
 
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id);
-		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker, nation_id);
-		return int32_t(primary_unemployed + secondary_unemployed <= 1.0f);
+	void on_update(sys::state& state) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		bool has_unemployed = false;
+
+		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+			auto state_instance = si.get_state();
+
+			auto prim_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+			auto prim_unemployed = prim_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+
+			auto sec_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+			auto sec_unemployed = sec_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+
+			if(prim_unemployed >= 1.0f) {
+				has_unemployed = true;
+				break;
+			}
+			if(sec_unemployed >= 1.0f) {
+				has_unemployed = true;
+				break;
+			}
+		}
+
+		frame = has_unemployed ? 0 : 1;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1153,62 +1167,61 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-			auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id);
-			auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker, nation_id);
+		bool header = false;
 
-			auto box = text::open_layout_box(contents, 0);
-			if(primary_unemployed + secondary_unemployed <= 0.f) {
-				text::localised_format_box(state, contents, box, "countryalert_no_hasunemployedworkers", text::substitution_map{});
-			} else if(primary_unemployed + secondary_unemployed >= 0.f) {
-				text::localised_format_box(state, contents, box, "remove_countryalert_hasunemployedworkers", text::substitution_map{});
-				auto nation_fat_id = dcon::fatten(state.world, nation_id);
-				nation_fat_id.for_each_state_ownership_as_nation([&](dcon::state_ownership_id state_slim) {
-					auto fat_state = dcon::fatten(state.world, state_slim);
-					if(fat_state.is_valid()) {
-						auto state_instance = fat_state.get_state();
-						if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id) >= 10.0f &&
-								state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) >
-										10.0f) {
-							text::add_line_break_to_layout_box(state, contents, box);
-							text::substitution_map sub;
+		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+			auto state_instance = si.get_state();
 
-							auto popFat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
-							auto numUnemployed = int32_t(
-									state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) -
-									state_instance.get_demographics(
-											demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
-							auto numWorkers = int32_t(state_instance.get_demographics(
-									demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
+			auto prim_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+			auto prim_unemployed = prim_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
 
-							auto percUnemployed = text::fp_two_places{
-									numUnemployed /
-									state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
+			auto sec_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+			auto sec_unemployed = sec_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
 
-							// auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
-							// auto pop_name = text::produce_simple_string(state, pop_fat.get_name());
-							// auto numUnemployed = int32_t(state_instance.get_demographics(demographics::total) -
-							// state_instance.get_demographics(demographics::employed)); auto stateDef =
-							// state_instance.get_definition(); auto stateName = text::produce_simple_string(state,
-							// stateDef.get_name()); auto percUnemployed = text::format_percentage(numUnemployed /
-							// state_instance.get_demographics(demographics::total));
-							text::add_to_substitution_map(sub, text::variable_type::num, numUnemployed);
-							text::add_to_substitution_map(sub, text::variable_type::type, popFat.get_name());
-							text::add_to_substitution_map(sub, text::variable_type::state, state_instance.get_definition().get_name());
-							text::add_to_substitution_map(sub, text::variable_type::perc, percUnemployed);
-							text::localised_format_box(state, contents, box, std::string_view("topbar_unemployed"), sub);
-						}
-					}
-				});
-			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("Error!"));
+			if(prim_unemployed >= 1.0f) {
+				if(!header) {
+					text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
+					header = true;
+				}
+
+				text::substitution_map sub;
+
+				text::add_to_substitution_map(sub, text::variable_type::num, int64_t(prim_total));
+				text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker));
+				auto state_name = text::get_dynamic_state_name(state, state_instance);
+				text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
+				text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_one_place{ 100.0f * prim_unemployed / prim_total });
+
+				auto box = text::open_layout_box(contents);
+				text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
+				text::close_layout_box(contents, box);
 			}
-			text::close_layout_box(contents, box);
+			if(sec_unemployed >= 1.0f) {
+				if(!header) {
+					text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
+					header = true;
+				}
+
+				text::substitution_map sub;
+
+				text::add_to_substitution_map(sub, text::variable_type::num, int64_t(sec_total));
+				text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
+				auto state_name = text::get_dynamic_state_name(state, state_instance);
+				text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
+				text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_one_place{ 100.0f * sec_unemployed / sec_total });
+
+				auto box = text::open_layout_box(contents);
+				text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
+				text::close_layout_box(contents, box);
+			}
 		}
+
+		if(!header) {
+			text::add_line(state, contents, "countryalert_no_hasunemployedworkers");
+		}
+
 	}
 };
 

@@ -782,14 +782,13 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	scenario_header header;
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
-	header.checksum = state.get_network_checksum();
 
 	size_t scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
 
 	state.scenario_counter = count;
 	state.scenario_time_stamp = header.timestamp;
-	state.scenario_checksum = header.checksum;
+	
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =
@@ -805,6 +804,13 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	auto last_written = write_scenario_section(temp_scenario_buffer, state);
 	auto last_written_count = last_written - temp_scenario_buffer;
 	assert(size_t(last_written_count) == scenario_space);
+
+	// calculate checksum
+	checksum_key* checksum = &reinterpret_cast<scenario_header*>(temp_buffer + sizeof(uint32_t))->checksum;
+	blake2b(checksum, sizeof(*checksum), temp_scenario_buffer, scenario_space, nullptr, 0);
+
+	state.scenario_checksum = *checksum;
+
 	buffer_position = write_compressed_section(buffer_position, temp_scenario_buffer, uint32_t(scenario_space));
 	delete[] temp_scenario_buffer;
 

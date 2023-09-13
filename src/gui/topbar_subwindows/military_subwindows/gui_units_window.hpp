@@ -183,6 +183,53 @@ class leader_in_army_img : public image_element_base {
 };
 
 template<typename T>
+class cancel_unit_construction_button { };
+
+template<>
+class cancel_unit_construction_button<dcon::army_id> : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto info = retrieve<military_unit_info<dcon::army_id>>(state, parent);
+		if(std::holds_alternative<dcon::province_land_construction_id>(info)) {
+			auto pc = std::get<dcon::province_land_construction_id>(info);
+			auto pop = state.world.province_land_construction_get_pop(pc);
+			disabled = !command::can_cancel_land_unit_construction(state, state.local_player_nation, state.world.pop_get_province_from_pop_location(pop), state.world.pop_get_culture(pop), state.world.province_land_construction_get_type(pc));
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto info = retrieve<military_unit_info<dcon::army_id>>(state, parent);
+		if(std::holds_alternative<dcon::province_land_construction_id>(info)) {
+			auto pc = std::get<dcon::province_land_construction_id>(info);
+			auto pop = state.world.province_land_construction_get_pop(pc);
+			command::cancel_land_unit_construction(state, state.local_player_nation, state.world.pop_get_province_from_pop_location(pop), state.world.pop_get_culture(pop), state.world.province_land_construction_get_type(pc));
+		}
+	}
+};
+
+template<>
+class cancel_unit_construction_button<dcon::navy_id> : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto info = retrieve<military_unit_info<dcon::navy_id>>(state, parent);
+		if(std::holds_alternative<dcon::province_naval_construction_id>(info)) {
+			auto pc = std::get<dcon::province_naval_construction_id>(info);
+			auto loc = state.world.province_naval_construction_get_province(pc);
+			auto type = state.world.province_naval_construction_get_type(pc);
+			disabled = !command::can_cancel_naval_unit_construction(state, state.local_player_nation, loc, type);
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto info = retrieve<military_unit_info<dcon::navy_id>>(state, parent);
+		if(std::holds_alternative<dcon::province_naval_construction_id>(info)) {
+			auto pc = std::get<dcon::province_naval_construction_id>(info);
+			auto loc = state.world.province_naval_construction_get_province(pc);
+			auto type = state.world.province_naval_construction_get_type(pc);
+			command::cancel_naval_unit_construction(state, state.local_player_nation, loc, type);
+		}
+	}
+};
+
+template<typename T>
 class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
 	simple_text_element_base* unit_name = nullptr;
 	image_element_base* unit_icon = nullptr;
@@ -229,7 +276,7 @@ public:
 			eta_date_text = ptr.get();
 			return ptr;
 		} else if(name == "military_cancel_unit") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<cancel_unit_construction_button<T>>(state, id);
 			cancel_button = ptr.get();
 			return ptr;
 		} else if(name == "regiments") {

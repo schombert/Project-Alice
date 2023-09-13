@@ -88,12 +88,21 @@ class select_save_game : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
+
+		std::vector<dcon::nation_id> players;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
+
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
 				window::emit_error_message(msg, false);
 			} else {
 				state.fill_unsaved_data();
+				if(state.network_mode == sys::network_mode_type::host)
+					command::update_session_info(state, state.local_player_nation);
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
@@ -101,7 +110,17 @@ public:
 				window::emit_error_message(msg, false);
 			} else {
 				state.fill_unsaved_data();
+				if(state.network_mode == sys::network_mode_type::host)
+					command::update_session_info(state, state.local_player_nation);
 			}
+		}
+		// do not desync the local player nation upon selection of savefile
+		if(state.network_mode != sys::network_mode_type::single_player) {
+			state.local_player_nation = old_local_player_nation;
+			for(const auto n : state.world.in_nation)
+				state.world.nation_set_is_player_controlled(n, false);
+			for(const auto n : players)
+				state.world.nation_set_is_player_controlled(n, true);
 		}
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
@@ -116,8 +135,7 @@ protected:
 	GLuint flag_texture_handle = 0;
 	bool visible = false;
 public:
-	void button_action(sys::state& state) noexcept override {
-	}
+	void button_action(sys::state& state) noexcept override { }
 
 
 	void on_update(sys::state& state) noexcept  override {
@@ -349,26 +367,26 @@ public:
 		}
 		auto s = retrieve<picker_sort>(state, parent);
 		switch(s) {
-			case picker_sort::name:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return text::get_name_as_string(state, fatten(state.world, a)) < text::get_name_as_string(state, fatten(state.world, b));
-				});
-				break;
-			case picker_sort::mil_rank:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b);
-				});
-				break;
-			case picker_sort::indust_rank:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b);
-				});
-				break;
-			case picker_sort::p_rank:
-				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
-				});
-				break;
+		case picker_sort::name:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return text::get_name_as_string(state, fatten(state.world, a)) < text::get_name_as_string(state, fatten(state.world, b));
+			});
+			break;
+		case picker_sort::mil_rank:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b);
+			});
+			break;
+		case picker_sort::indust_rank:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b);
+			});
+			break;
+		case picker_sort::p_rank:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
+			});
+			break;
 		}
 		update(state);
 	}
@@ -443,6 +461,21 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
+		// can't start if checksum doesn't match
+		if(state.network_mode == sys::network_mode_type::client)
+			disabled = disabled || !state.session_host_checksum.is_equal(state.get_save_checksum());
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.network_mode == sys::network_mode_type::client && !state.session_host_checksum.is_equal(state.get_save_checksum())) {
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 

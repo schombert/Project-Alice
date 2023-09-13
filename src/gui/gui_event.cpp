@@ -118,6 +118,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	// TODO: Is this correct? I remember in vanilla it could vary
 	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
+	auto pc = state.world.nation_get_primary_culture(target_nation);
+	auto pcg_adj = pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective();
+	text::add_to_substitution_map(sub, text::variable_type::union_adj, pcg_adj);
+
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
