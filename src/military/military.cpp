@@ -4491,57 +4491,56 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			auto a_nation = get_naval_battle_lead_attacker(state, b);
 			auto d_nation = get_naval_battle_lead_defender(state, b);
 
-			assert(a_nation);
-			assert(d_nation);
+			if(a_nation && d_nation) {
 
-			nations::adjust_prestige(state, a_nation, score / 50.0f);
-			nations::adjust_prestige(state, d_nation, score / -50.0f);
+				nations::adjust_prestige(state, a_nation, score / 50.0f);
+				nations::adjust_prestige(state, d_nation, score / -50.0f);
 
-			// Report
-			[&]() {
-				for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
-					if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
-						naval_battle_report rep;
-						rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
-						rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
-						rep.attacker_small_losses = state.world.naval_battle_get_attacker_small_ships_lost(b);
-						rep.attacker_small_ships = state.world.naval_battle_get_attacker_small_ships(b);
-						rep.attacker_transport_losses = state.world.naval_battle_get_attacker_transport_ships_lost(b);
-						rep.attacker_transport_ships = state.world.naval_battle_get_attacker_transport_ships(b);
+				// Report
+				[&]() {
+					for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
+						if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
+							naval_battle_report rep;
+							rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
+							rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
+							rep.attacker_small_losses = state.world.naval_battle_get_attacker_small_ships_lost(b);
+							rep.attacker_small_ships = state.world.naval_battle_get_attacker_small_ships(b);
+							rep.attacker_transport_losses = state.world.naval_battle_get_attacker_transport_ships_lost(b);
+							rep.attacker_transport_ships = state.world.naval_battle_get_attacker_transport_ships(b);
 
-						rep.defender_big_losses = state.world.naval_battle_get_defender_big_ships_lost(b);
-						rep.defender_big_ships = state.world.naval_battle_get_defender_big_ships(b);
-						rep.defender_small_losses = state.world.naval_battle_get_defender_small_ships_lost(b);
-						rep.defender_small_ships = state.world.naval_battle_get_defender_small_ships(b);
-						rep.defender_transport_losses = state.world.naval_battle_get_defender_transport_ships_lost(b);
-						rep.defender_transport_ships = state.world.naval_battle_get_defender_transport_ships(b);
+							rep.defender_big_losses = state.world.naval_battle_get_defender_big_ships_lost(b);
+							rep.defender_big_ships = state.world.naval_battle_get_defender_big_ships(b);
+							rep.defender_small_losses = state.world.naval_battle_get_defender_small_ships_lost(b);
+							rep.defender_small_ships = state.world.naval_battle_get_defender_small_ships(b);
+							rep.defender_transport_losses = state.world.naval_battle_get_defender_transport_ships_lost(b);
+							rep.defender_transport_ships = state.world.naval_battle_get_defender_transport_ships(b);
 
-						rep.attacker_won = (result == battle_result::attacker_won);
+							rep.attacker_won = (result == battle_result::attacker_won);
 
-						rep.attacking_nation = get_naval_battle_lead_attacker(state, b);
-						rep.defending_nation = get_naval_battle_lead_defender(state, b);
-						rep.attacking_admiral = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
-						rep.defending_admiral = state.world.naval_battle_get_admiral_from_defending_admiral(b);
+							rep.attacking_nation = get_naval_battle_lead_attacker(state, b);
+							rep.defending_nation = get_naval_battle_lead_defender(state, b);
+							rep.attacking_admiral = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
+							rep.defending_admiral = state.world.naval_battle_get_admiral_from_defending_admiral(b);
 
-						rep.location = state.world.naval_battle_get_location_from_naval_battle_location(b);
-						rep.player_on_winning_side =
+							rep.location = state.world.naval_battle_get_location_from_naval_battle_location(b);
+							rep.player_on_winning_side =
 								is_attacker(state, war, state.local_player_nation) == state.world.naval_battle_get_war_attacker_is_attacker(b);
 
-						if(rep.player_on_winning_side) {
-							rep.warscore_effect = score;
-							rep.prestige_effect = score / 50.0f;
-						} else {
-							rep.warscore_effect = -score;
-							rep.prestige_effect = -score / 50.0f;
+							if(rep.player_on_winning_side) {
+								rep.warscore_effect = score;
+								rep.prestige_effect = score / 50.0f;
+							} else {
+								rep.warscore_effect = -score;
+								rep.prestige_effect = -score / 50.0f;
+							}
+
+							auto discard = state.naval_battle_reports.try_push(rep);
+
+							return;
 						}
-
-						auto discard = state.naval_battle_reports.try_push(rep);
-
-						return;
 					}
-				}
-			}();
-
+					}();
+			}
 		} else if(result == battle_result::defender_won) {
 			auto score = std::max(0.0f,
 					(state.world.naval_battle_get_attacker_loss_value(b) - state.world.naval_battle_get_defender_loss_value(b)) / 10.0f);
@@ -4554,56 +4553,56 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			auto a_nation = get_naval_battle_lead_attacker(state, b);
 			auto d_nation = get_naval_battle_lead_defender(state, b);
 
-			assert(a_nation);
-			assert(d_nation);
+			if(a_nation && d_nation) {
 
-			nations::adjust_prestige(state, a_nation, score / -50.0f);
-			nations::adjust_prestige(state, d_nation, score / 50.0f);
+				nations::adjust_prestige(state, a_nation, score / -50.0f);
+				nations::adjust_prestige(state, d_nation, score / 50.0f);
 
-			// Report
-			[&]() {
-				for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
-					if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
-						naval_battle_report rep;
-						rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
-						rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
-						rep.attacker_small_losses = state.world.naval_battle_get_attacker_small_ships_lost(b);
-						rep.attacker_small_ships = state.world.naval_battle_get_attacker_small_ships(b);
-						rep.attacker_transport_losses = state.world.naval_battle_get_attacker_transport_ships_lost(b);
-						rep.attacker_transport_ships = state.world.naval_battle_get_attacker_transport_ships(b);
+				// Report
+				[&]() {
+					for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
+						if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
+							naval_battle_report rep;
+							rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
+							rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
+							rep.attacker_small_losses = state.world.naval_battle_get_attacker_small_ships_lost(b);
+							rep.attacker_small_ships = state.world.naval_battle_get_attacker_small_ships(b);
+							rep.attacker_transport_losses = state.world.naval_battle_get_attacker_transport_ships_lost(b);
+							rep.attacker_transport_ships = state.world.naval_battle_get_attacker_transport_ships(b);
 
-						rep.defender_big_losses = state.world.naval_battle_get_defender_big_ships_lost(b);
-						rep.defender_big_ships = state.world.naval_battle_get_defender_big_ships(b);
-						rep.defender_small_losses = state.world.naval_battle_get_defender_small_ships_lost(b);
-						rep.defender_small_ships = state.world.naval_battle_get_defender_small_ships(b);
-						rep.defender_transport_losses = state.world.naval_battle_get_defender_transport_ships_lost(b);
-						rep.defender_transport_ships = state.world.naval_battle_get_defender_transport_ships(b);
+							rep.defender_big_losses = state.world.naval_battle_get_defender_big_ships_lost(b);
+							rep.defender_big_ships = state.world.naval_battle_get_defender_big_ships(b);
+							rep.defender_small_losses = state.world.naval_battle_get_defender_small_ships_lost(b);
+							rep.defender_small_ships = state.world.naval_battle_get_defender_small_ships(b);
+							rep.defender_transport_losses = state.world.naval_battle_get_defender_transport_ships_lost(b);
+							rep.defender_transport_ships = state.world.naval_battle_get_defender_transport_ships(b);
 
-						rep.attacker_won = (result == battle_result::attacker_won);
+							rep.attacker_won = (result == battle_result::attacker_won);
 
-						rep.attacking_nation = get_naval_battle_lead_attacker(state, b);
-						rep.defending_nation = get_naval_battle_lead_defender(state, b);
-						rep.attacking_admiral = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
-						rep.defending_admiral = state.world.naval_battle_get_admiral_from_defending_admiral(b);
+							rep.attacking_nation = get_naval_battle_lead_attacker(state, b);
+							rep.defending_nation = get_naval_battle_lead_defender(state, b);
+							rep.attacking_admiral = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
+							rep.defending_admiral = state.world.naval_battle_get_admiral_from_defending_admiral(b);
 
-						rep.location = state.world.naval_battle_get_location_from_naval_battle_location(b);
-						rep.player_on_winning_side =
+							rep.location = state.world.naval_battle_get_location_from_naval_battle_location(b);
+							rep.player_on_winning_side =
 								is_attacker(state, war, state.local_player_nation) != state.world.naval_battle_get_war_attacker_is_attacker(b);
 
-						if(rep.player_on_winning_side) {
-							rep.warscore_effect = score;
-							rep.prestige_effect = score / 50.0f;
-						} else {
-							rep.warscore_effect = -score;
-							rep.prestige_effect = -score / 50.0f;
+							if(rep.player_on_winning_side) {
+								rep.warscore_effect = score;
+								rep.prestige_effect = score / 50.0f;
+							} else {
+								rep.warscore_effect = -score;
+								rep.prestige_effect = -score / 50.0f;
+							}
+
+							auto discard = state.naval_battle_reports.try_push(rep);
+
+							return;
 						}
-
-						auto discard = state.naval_battle_reports.try_push(rep);
-
-						return;
 					}
-				}
-			}();
+				}();
+			}
 		}
 	}
 

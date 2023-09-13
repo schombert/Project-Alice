@@ -371,7 +371,12 @@ public:
 		disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 		frame = 1;
 	}
-
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(visible)
+			return button_element_base::test_mouse(state, x, y, type);
+		return message_result::unseen;
+	}
 	void button_action(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
@@ -388,9 +393,6 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(!visible)
-			return;
-
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		if(n == state.local_player_nation) {
 			text::add_line(state, contents, "close_and_del");
