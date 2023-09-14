@@ -2863,20 +2863,19 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	//
 	// clear any pending messages from previously loaded saves
 	//
-	while(!new_n_event.empty())
-		new_n_event.pop();
-	while(!new_f_n_event.empty())
-		new_f_n_event.pop();
-	while(!new_p_event.empty())
-		new_p_event.pop();
-	while(!new_f_p_event.empty())
-		new_f_p_event.pop();
-	while(!new_requests.empty())
-		new_requests.pop();
-	while(!naval_battle_reports.empty())
-		naval_battle_reports.pop();
-	while(!land_battle_reports.empty())
-		land_battle_reports.pop();
+
+	new_n_event.~SPSCQueue();
+	new (&new_n_event) rigtorp::SPSCQueue<event::pending_human_n_event>(1024);
+	new_f_n_event.~SPSCQueue();
+	new (&new_f_n_event) rigtorp::SPSCQueue<event::pending_human_f_n_event>(1024);
+	new_p_event.~SPSCQueue();
+	new (&new_p_event) rigtorp::SPSCQueue<event::pending_human_p_event>(1024);
+	new_f_p_event.~SPSCQueue();
+	new (&new_f_p_event) rigtorp::SPSCQueue<event::pending_human_f_p_event>(1024);
+
+	new_requests.~SPSCQueue();
+	new (&new_requests) rigtorp::SPSCQueue<diplomatic_message::message>(256);
+
 
 	if(local_player_nation) {
 		world.nation_set_is_player_controlled(local_player_nation, true);
@@ -2885,7 +2884,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			if(e.n == local_player_nation) {
 				auto auto_choice = world.national_event_get_auto_choice(e.e);
 				if(auto_choice == 0)
-					new_n_event.push(e);
+					auto b = new_n_event.try_push(e);
 				else
 					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
@@ -2894,7 +2893,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			if(e.n == local_player_nation) {
 				auto auto_choice = world.free_national_event_get_auto_choice(e.e);
 				if(auto_choice == 0)
-					new_f_n_event.push(e);
+					auto b = new_f_n_event.try_push(e);
 				else
 					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
@@ -2903,7 +2902,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 				auto auto_choice = world.provincial_event_get_auto_choice(e.e);
 				if(auto_choice == 0)
-					new_p_event.push(e);
+					auto b = new_p_event.try_push(e);
 				else
 					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
@@ -2912,14 +2911,14 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 				auto auto_choice = world.free_provincial_event_get_auto_choice(e.e);
 				if(auto_choice == 0)
-					new_f_p_event.push(e);
+					auto b = new_f_p_event.try_push(e);
 				else
 					command::make_event_choice(*this, e, uint8_t(auto_choice - 1));
 			}
 		}
 		for(auto const& m : pending_messages) {
-			if(m.to == local_player_nation) {
-				new_requests.push(m);
+			if(m.to == local_player_nation && m.type != diplomatic_message::type::none) {
+				auto b = new_requests.try_push(m);
 			}
 		}
 	}
@@ -2929,6 +2928,20 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
 	ai::refresh_home_ports(*this);
+
+#ifndef  NDEBUG
+	for(auto n : world.in_nation) {
+		assert(n.get_owned_province_count() == 0 || (n.get_government_type() && n.get_government_type().index() < culture_definitions.governments.ssize()));
+	}
+	for(uint32_t i = 0; i < culture_definitions.governments.size(); ++i) {
+		dcon::government_type_id g{dcon::government_type_id::value_base_t(i) };
+		for(auto rt : world.in_rebel_type) {
+			auto ng = rt.get_government_change(g);
+			assert(!ng || ng.index() < culture_definitions.governments.ssize());
+		}
+	}
+
+#endif // ! NDEBUG
 
 	game_state_updated.store(true, std::memory_order::release);
 }

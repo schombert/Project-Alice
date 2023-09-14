@@ -1409,24 +1409,26 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	if(auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b); r) {
-		break_alliance(state, r);
-		if(a != state.local_player_nation) {
-			notification::post(state, notification::message{
-				[from = a, to = b](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
-				},
-				"msg_alliance_ends_title",
-				a,
-				sys::message_setting_type::alliance_ends
-			});
-			notification::post(state, notification::message{
-				[from = a, to = b](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
-				},
-				"msg_alliance_ends_title",
-				b,
-				sys::message_setting_type::alliance_ends
-			});
+		if(state.world.diplomatic_relation_get_are_allied(r)) {
+			break_alliance(state, r);
+			if(a != state.local_player_nation) {
+				notification::post(state, notification::message{
+					[from = state.world.nation_get_name(a), to = state.world.nation_get_name(b)](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
+					},
+					"msg_alliance_ends_title",
+					a,
+					sys::message_setting_type::alliance_ends
+				});
+				notification::post(state, notification::message{
+					[from = state.world.nation_get_name(a), to = state.world.nation_get_name(b)](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
+					},
+					"msg_alliance_ends_title",
+					b,
+					sys::message_setting_type::alliance_ends
+				});
+			}
 		}
 	}
 }
@@ -2922,6 +2924,9 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 				std::min(3.0f, m.get_movement().get_pop_support() / winner_support - 1.0f) * state.defines.wrong_reform_radical_impact;
 		}
 	}
+	if(winner) {
+		state.world.delete_movement(winner);
+	}
 
 	/*
 	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing
@@ -2932,20 +2937,21 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 	auto current = state.world.nation_get_issues(source, issue.id).id;
 	bool is_social = state.world.issue_get_issue_type(issue) == uint8_t(culture::issue_category::social);
 
-	for(auto id : state.world.in_ideology) {
-
-		auto condition = is_social
-			? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
-			: (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
-		if(condition) {
-			auto factor =
-				trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
-			auto const idsupport_key = pop_demographics::to_key(state, id);
-			if(factor > 0) {
-				for(auto pr : state.world.nation_get_province_ownership(source)) {
-					for(auto pop : pr.get_province().get_pop_location()) {
-						auto base_mil = pop.get_pop().get_militancy();
-						pop.get_pop().set_militancy(base_mil + pop.get_pop().get_demographics(idsupport_key) * factor * state.defines.mil_reform_impact); // intentionally left to be clamped below
+	if(state.world.issue_get_is_next_step_only(issue)) {
+		for(auto id : state.world.in_ideology) {
+			auto condition = is_social
+				? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
+				: (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
+			if(condition) {
+				auto factor =
+					trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
+				auto const idsupport_key = pop_demographics::to_key(state, id);
+				if(factor > 0) {
+					for(auto pr : state.world.nation_get_province_ownership(source)) {
+						for(auto pop : pr.get_province().get_pop_location()) {
+							auto base_mil = pop.get_pop().get_militancy();
+							pop.get_pop().set_militancy(base_mil + pop.get_pop().get_demographics(idsupport_key) * factor * state.defines.mil_reform_impact); // intentionally left to be clamped below
+						}
 					}
 				}
 			}
@@ -2966,7 +2972,7 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 			auto adj_con = base_con + pop.get_pop().get_demographics(isupport_key) * state.defines.con_reform_impact;
 			pop.get_pop().set_consciousness(std::clamp(adj_con, 0.0f, 10.0f));
 
-			if(auto m = pop.get_pop().get_movement_from_pop_movement_membership(); m && m.get_associated_issue_option() != i) {
+			if(auto m = pop.get_pop().get_movement_from_pop_movement_membership(); m && m.get_pop_support() > winner_support) {
 				auto base_mil = pop.get_pop().get_militancy();
 				pop.get_pop().set_militancy(std::clamp(base_mil + state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
 			} else {

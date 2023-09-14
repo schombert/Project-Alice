@@ -356,7 +356,7 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type) {
 	auto old_gov = state.world.nation_get_government_type(n);
 	if(old_gov != new_type) {
-		assert(!new_type || uint32_t(new_type.index()) < state.culture_definitions.governments.size());
+		assert(new_type && uint32_t(new_type.index()) < state.culture_definitions.governments.size());
 		state.world.nation_set_government_type(n, new_type);
 
 		if((state.culture_definitions.governments[new_type].ideologies_allowed &

@@ -158,6 +158,8 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 	/* Nations can only start researching technologies if, they are not uncivilized, the tech
 		 activation date is past by, and all the previous techs (if any) of the same folder index
 		 are already researched fully. And they are not already researched. */
+	if(!tech)
+		return false;
 	if(state.world.nation_get_active_technologies(source, tech))
 		return false; // Already researched
 	if(nations::current_research(state, source) == tech)

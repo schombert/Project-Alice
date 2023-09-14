@@ -17,8 +17,9 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 	}
 
 	auto time_limit = state.world.nation_get_last_issue_or_reform_change(state.local_player_nation);
+	auto parent = state.world.issue_option_get_parent_issue(ref);
 
-	if(time_limit && !(time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) {
+	if(parent.get_issue_type() != uint8_t(culture::issue_type::party) && time_limit && !(time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) {
 		text::add_line_with_condition(state, contents, "too_soon_for_reform", false, text::variable_type::date, time_limit + int32_t(state.defines.min_delay_between_reforms * 30));
 		text::add_line_break_to_layout(state, contents);
 	}

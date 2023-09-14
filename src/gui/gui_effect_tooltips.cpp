@@ -4117,40 +4117,40 @@ uint32_t ef_war_tag(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[2]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[5]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[3]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[6]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[4]).tag_id; t) {
+	if(auto t = trigger::payload(tval[7]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[5]).cb_id) {
+	if(trigger::payload(tval[2]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[5]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[2]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[6]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[3]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[7]).tag_id; t) {
+		if(auto t = trigger::payload(tval[4]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4171,40 +4171,40 @@ uint32_t ef_war_this_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4225,40 +4225,40 @@ uint32_t ef_war_this_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4279,40 +4279,40 @@ uint32_t ef_war_this_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4333,40 +4333,40 @@ uint32_t ef_war_this_pop(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4387,40 +4387,40 @@ uint32_t ef_war_from_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4441,40 +4441,40 @@ uint32_t ef_war_from_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4504,40 +4504,40 @@ uint32_t ef_war_no_ally_tag(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[2]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[5]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[3]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[6]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[4]).tag_id; t) {
+	if(auto t = trigger::payload(tval[7]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[5]).cb_id) {
+	if(trigger::payload(tval[2]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[5]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[2]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[6]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[3]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[7]).tag_id; t) {
+		if(auto t = trigger::payload(tval[4]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4564,40 +4564,40 @@ uint32_t ef_war_no_ally_this_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
 			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4624,40 +4624,40 @@ uint32_t ef_war_no_ally_this_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4684,40 +4684,40 @@ uint32_t ef_war_no_ally_this_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4744,40 +4744,40 @@ uint32_t ef_war_no_ally_this_pop(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4804,40 +4804,40 @@ uint32_t ef_war_no_ally_from_nation(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
@@ -4864,40 +4864,40 @@ uint32_t ef_war_no_ally_from_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
 		text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
+	if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, si);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(auto t = trigger::payload(tval[3]).tag_id; t) {
+	if(auto t = trigger::payload(tval[6]).tag_id; t) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, t);
 		text::localised_format_box(ws, layout, box, "for_text", m);
 		text::close_layout_box(layout, box);
 	}
-	if(trigger::payload(tval[4]).cb_id) {
+	if(trigger::payload(tval[1]).cb_id) {
 		{
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[4]).cb_id));
-			text::localised_format_box(ws, layout, box, "attacker_wg_label", m);
+			text::add_to_substitution_map(m, text::variable_type::text, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
+			text::localised_format_box(ws, layout, box, "defender_wg_label", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[5]).prov_id); si) {
+		if(auto si = ws.world.province_get_state_membership(trigger::payload(tval[2]).prov_id); si) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, si);
 			text::localised_format_box(ws, layout, box, "for_text", m);
 			text::close_layout_box(layout, box);
 		}
-		if(auto t = trigger::payload(tval[6]).tag_id; t) {
+		if(auto t = trigger::payload(tval[3]).tag_id; t) {
 			auto box = text::open_layout_box(layout, indentation + indentation_amount);
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::text, t);
