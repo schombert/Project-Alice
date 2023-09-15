@@ -1419,6 +1419,9 @@ public:
 };
 class factory_level_text : public simple_text_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.x += int16_t(20);
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto factory_id = retrieve<dcon::factory_id>(state, parent);
 		set_text(state, std::to_string(uint32_t(state.world.factory_get_level(factory_id))));

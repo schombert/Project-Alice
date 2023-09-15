@@ -494,7 +494,7 @@ void perform_influence_actions(sys::state& state) {
 						if(source == affected_gp)
 							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 						else
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 					},
 					"msg_rem_sphere_title",
 					gprl.get_great_power(),
@@ -505,7 +505,7 @@ void perform_influence_actions(sys::state& state) {
 						if(source == affected_gp)
 							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 						else
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 					},
 					"msg_rem_sphere_title",
 					current_sphere,
@@ -516,7 +516,7 @@ void perform_influence_actions(sys::state& state) {
 						if(source == affected_gp)
 							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 						else
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 					},
 					"msg_rem_sphere_title",
 					gprl.get_influence_target(),

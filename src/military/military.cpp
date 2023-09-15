@@ -3015,9 +3015,6 @@ void run_gc(sys::state& state) {
 	for(auto g : to_delete)
 		state.world.delete_wargoal(g);
 
-	// TODO
-	// Find war leaders if a nation has left the war and / or end war
-	//
 	for(auto w : state.world.in_war) {
 		if(get_role(state, w, w.get_primary_attacker()) == war_role::none) {
 			int32_t best_rank = 0;
@@ -3727,6 +3724,7 @@ sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id 
 }
 
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r) {
+	assert(state.world.army_is_valid(a));
 	bool battle_attacker = (r == war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
 	if(battle_attacker) {
 		if(!state.world.land_battle_get_general_from_attacking_general(b)) {
@@ -3795,6 +3793,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 }
 
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
+	assert(state.world.army_is_valid(a));
 	state.world.army_set_location_from_army_location(a, p);
 	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a)) {
 		auto owner_nation = state.world.army_get_controller_from_army_control(a);
@@ -3920,6 +3919,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 }
 
 void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_id b, war_role r) {
+	assert(state.world.navy_is_valid(n));
 	bool battle_attacker = (r == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);
 	if(battle_attacker) {
 		// try add admiral as leader
@@ -4137,6 +4137,8 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 
 	auto b = state.world.army_get_battle_from_army_battle_participation(n);
 	if(b) {
+		state.world.army_set_is_retreating(n, true); // prevents army from re-entering battles
+
 		bool should_end = true;
 		auto controller = state.world.army_get_controller_from_army_control(n);
 		if(bool(controller)) {
@@ -4184,9 +4186,11 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 	while(em.begin() != em.end()) {
 		cleanup_army(state, (*em.begin()).get_army());
 	}
-
+	
 	auto controller = state.world.navy_get_controller_from_navy_control(n);
 	auto b = state.world.navy_get_battle_from_navy_battle_participation(n);
+
+	state.world.navy_set_is_retreating(n, true); // prevents navy from re-entering battles
 	if(b && controller) {
 		bool should_end = true;
 		// TODO: Do they have to be in common war or can they just be "hostile against"?
@@ -4824,10 +4828,6 @@ void apply_regiment_damage(sys::state& state) {
 					}
 				}
 				state.world.delete_regiment(s);
-				auto army_regs = state.world.army_get_army_membership(army);
-				if(army_regs.begin() == army_regs.end()) {
-					military::cleanup_army(state, army);
-				}
 			}
 		}
 	}
@@ -5684,6 +5684,7 @@ uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
 }
 
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from) {
+	assert(state.world.navy_is_valid(n));
 	state.world.navy_set_location_from_navy_location(n, p);
 	if(!state.world.navy_get_is_retreating(n)) {
 		auto owner_nation = state.world.navy_get_controller_from_navy_control(n);

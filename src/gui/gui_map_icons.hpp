@@ -874,8 +874,9 @@ class map_province_values : public window_element_base {
 		return mouse_probe{ nullptr, ui::xy_pair{0,0} };
 	}
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.map_state.get_zoom() >= prov_details_cutoff)
+		if(state.map_state.get_zoom() >= prov_details_cutoff && retrieve<dcon::province_id>(state, parent).index() < state.province_definitions.first_sea_province.index()) {
 			window_element_base::impl_render(state, x, y);
+		}
 	}
 };
 
@@ -983,7 +984,6 @@ public:
 			} else {
 				for(auto n : navies) {
 					auto controller = n.get_navy().get_controller_from_navy_control().id;
-
 					if(state.is_selected(n.get_navy()))
 						found_selected = true;
 					else if(controller == state.local_player_nation)
@@ -994,7 +994,6 @@ public:
 						found_ally = true;
 					else
 						found_other = true;
-
 				}
 			}
 			if(!populated) {

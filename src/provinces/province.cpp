@@ -730,24 +730,25 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
+	static std::vector<dcon::regiment_id> regs;
+	regs.clear();
 	for(auto p : state.world.province_get_pop_location(id)) {
 		rebel::remove_pop_from_movement(state, p.get_pop());
 		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
 
-		std::vector<dcon::regiment_id> regs;
 		for(auto r : p.get_pop().get_regiment_source()) {
 			regs.push_back(r.get_regiment().id);
 		}
-		for(auto r : regs) {
-			state.world.delete_regiment(r);
-		}
-
+		
 		{
 			auto rng = p.get_pop().get_province_land_construction();
 			while(rng.begin() != rng.end()) {
 				state.world.delete_province_land_construction(*(rng.begin()));
 			}
 		}
+	}
+	for(auto r : regs) {
+		state.world.delete_regiment(r);
 	}
 
 	state.world.province_set_nation_from_province_ownership(id, new_owner);
