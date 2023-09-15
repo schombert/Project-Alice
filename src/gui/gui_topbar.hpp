@@ -975,7 +975,7 @@ class topbar_speeddown_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		base_data.data.button.shortcut = sys::virtual_key::MINUS;
+		base_data.data.button.shortcut = sys::virtual_key::SUBTRACT;
 	}
 
 	void button_action(sys::state& state) noexcept override {

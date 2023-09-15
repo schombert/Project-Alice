@@ -240,21 +240,7 @@ public:
 			text::add_to_layout_box(state, contents, box, controller_name);
 		} else {
 			auto rebel_faction_id = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
-			auto fat_id = dcon::fatten(state.world, rebel_faction_id);
-			text::substitution_map sub{};
-			auto rebel_adj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
-			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebel_adj));
-			auto culture = fat_id.get_primary_culture();
-			auto defection_target = fat_id.get_defection_target();
-			if(culture.id) {
-				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
-			}
-			std::string adjective = text::get_adjective_as_string(state, defection_target);
-			if(defection_target.id) {
-				text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
-				text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
-			}
-			text::add_to_layout_box(state, contents, box, fat_id.get_type().get_name(), sub);
+			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction_id));
 		}
 		text::close_layout_box(contents, box);
 	}

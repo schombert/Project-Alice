@@ -4156,13 +4156,14 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 			// continue fighting rebels
 			if(has_other && has_rebels)
 				should_end = false;
-		} else {
-			assert(state.world.army_get_controller_from_army_rebel_control(n));
+		} else if(state.world.army_get_controller_from_army_rebel_control(n)) {
 			for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
 				if(bp.get_army() != n && bp.get_army().get_army_rebel_control()) {
 					should_end = false;
 				}
 			}
+		} else {
+
 		}
 		
 		if(should_end) {
@@ -4186,7 +4187,7 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 
 	auto controller = state.world.navy_get_controller_from_navy_control(n);
 	auto b = state.world.navy_get_battle_from_navy_battle_participation(n);
-	if(b) {
+	if(b && controller) {
 		bool should_end = true;
 		// TODO: Do they have to be in common war or can they just be "hostile against"?
 		for(auto bp : state.world.naval_battle_get_navy_battle_participation_as_battle(b)) {
@@ -4212,7 +4213,11 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	auto make_leaderless = [&](dcon::army_id a) {
 		state.world.army_set_controller_from_army_control(a, dcon::nation_id{});
 		state.world.army_set_controller_from_army_rebel_control(a, dcon::rebel_faction_id{});
+		state.world.army_set_is_retreating(a, true);
 	};
+
+	auto a_nation = get_land_battle_lead_attacker(state, b);
+	auto d_nation = get_land_battle_lead_defender(state, b);
 
 	for(auto n : state.world.land_battle_get_army_battle_participation(b)) {
 		auto nation_owner = state.world.army_get_controller_from_army_control(n.get_army());
@@ -4274,8 +4279,6 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				}
 			}
 
-			auto a_nation = get_land_battle_lead_attacker(state, b);
-			auto d_nation = get_land_battle_lead_defender(state, b);
 
 			if(a_nation && d_nation) { // no prestige for beating up rebels
 				nations::adjust_prestige(state, a_nation, score / 50.0f);
@@ -4343,9 +4346,6 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				}
 			}
 
-			auto a_nation = get_land_battle_lead_attacker(state, b);
-			auto d_nation = get_land_battle_lead_defender(state, b);
-
 			if(a_nation && d_nation) {
 				nations::adjust_prestige(state, a_nation, score / -50.0f);
 				nations::adjust_prestige(state, d_nation, score / 50.0f);
@@ -4412,6 +4412,9 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 	assert(war);
 	assert(location);
 
+	auto a_nation = get_naval_battle_lead_attacker(state, b);
+	auto d_nation = get_naval_battle_lead_defender(state, b);
+
 	for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
 		auto role_in_war = get_role(state, war, n.get_navy().get_controller_from_navy_control());
 		bool battle_attacker = (role_in_war == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);
@@ -4433,16 +4436,22 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		if(battle_attacker && result == battle_result::defender_won) {
 			if(!can_retreat_from_battle(state, b)) {
 				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+				n.get_navy().set_is_retreating(true);
 			} else {
-				if(!retreat(state, n.get_navy()))
+				if(!retreat(state, n.get_navy())) {
 					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+					n.get_navy().set_is_retreating(true);
+				}
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
 			if(!can_retreat_from_battle(state, b)) {
 				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+				n.get_navy().set_is_retreating(true);
 			} else {
-				if(!retreat(state, n.get_navy()))
+				if(!retreat(state, n.get_navy())) {
 					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+					n.get_navy().set_is_retreating(true);
+				}
 			}
 		} else {
 			auto path = n.get_navy().get_path();
@@ -4488,11 +4497,8 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				state.world.war_get_defender_battle_score(war) += score;
 			}
 
-			auto a_nation = get_naval_battle_lead_attacker(state, b);
-			auto d_nation = get_naval_battle_lead_defender(state, b);
 
 			if(a_nation && d_nation) {
-
 				nations::adjust_prestige(state, a_nation, score / 50.0f);
 				nations::adjust_prestige(state, d_nation, score / -50.0f);
 
@@ -4550,11 +4556,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				state.world.war_get_defender_battle_score(war) += score;
 			}
 
-			auto a_nation = get_naval_battle_lead_attacker(state, b);
-			auto d_nation = get_naval_battle_lead_defender(state, b);
-
 			if(a_nation && d_nation) {
-
 				nations::adjust_prestige(state, a_nation, score / -50.0f);
 				nations::adjust_prestige(state, d_nation, score / 50.0f);
 
@@ -6097,8 +6099,18 @@ void update_siege_progress(sys::state& state) {
 				province to its owner's control without the owner participating, you get +2.5 relations with the owner.
 				*/
 
+				// if siege won from rebels : treat as rebel defeat
+				auto old_rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
+				if(old_rf) {
+					for(auto pop : state.world.province_get_pop_location(prov)) {
+						if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
+							pop.get_pop().get_militancy() /= state.defines.reduction_after_defeat;
+						}
+					}
+				}
+
 				state.world.province_set_former_controller(prov, controller);
-				state.world.province_set_former_rebel_controller(prov, state.world.province_get_rebel_faction_from_province_rebel_control(prov));
+				state.world.province_set_former_rebel_controller(prov, old_rf);
 
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
 				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);

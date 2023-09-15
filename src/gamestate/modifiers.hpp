@@ -87,7 +87,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(25, rich_vote, true, modifier_display_type::percent, "modifier_rich_vote")                                    \
 	MOD_LIST_ELEMENT(26, middle_vote, true, modifier_display_type::percent, "modifier_middle_vote")                                \
 	MOD_LIST_ELEMENT(27, poor_vote, true, modifier_display_type::percent, "modifier_poor_vote")                                    \
-	MOD_LIST_ELEMENT(28, minimum_wage, true, modifier_display_type::percent, "modifier_minimum_wage")                              \
+	MOD_LIST_ELEMENT(28, minimum_wage, true, modifier_display_type::percent, "modifier_minimun_wage")                              \
 	MOD_LIST_ELEMENT(29, factory_maintenance, false, modifier_display_type::percent, "modifier_factory_maintenance")               \
 	MOD_LIST_ELEMENT(30, poor_life_needs, false, modifier_display_type::percent, "modifier_poor_life_needs")                       \
 	MOD_LIST_ELEMENT(31, rich_life_needs, false, modifier_display_type::percent, "modifier_rich_life_needs")                       \

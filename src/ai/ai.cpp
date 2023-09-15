@@ -1189,7 +1189,7 @@ void civilize(sys::state& state) {
 
 void take_reforms(sys::state& state) {
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled())
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			continue;
 
 		if(n.get_is_civilized()) { // political & social
@@ -2951,7 +2951,7 @@ void remove_ai_data(sys::state& state, dcon::nation_id n) {
 
 void update_ships(sys::state& state) {
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled() == false && n.get_is_at_war() == false) {
+		if(!n.get_is_player_controlled() && n.get_is_at_war() == false) {
 			dcon::unit_type_id best_transport;
 			dcon::unit_type_id best_light;
 			dcon::unit_type_id best_big;
@@ -3003,7 +3003,7 @@ void update_ships(sys::state& state) {
 
 void build_ships(sys::state& state) {
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled() == false && n.get_province_naval_construction().begin() == n.get_province_naval_construction().end()) {
+		if(!n.get_is_player_controlled() && n.get_province_naval_construction().begin() == n.get_province_naval_construction().end()) {
 
 			dcon::unit_type_id best_transport;
 			dcon::unit_type_id best_light;
@@ -3158,7 +3158,7 @@ dcon::province_id get_home_port(sys::state& state, dcon::nation_id n) {
 
 void refresh_home_ports(sys::state& state) {
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled() == false && n.get_owned_province_count() > 0) {
+		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {
 			n.set_ai_home_port(get_home_port(state, n));
 		}
 	}
@@ -3345,7 +3345,7 @@ void pickup_idle_ships(sys::state& state) {
 
 		auto owner = n.get_controller_from_navy_control();
 
-		if(owner.get_is_player_controlled())
+		if(owner.get_is_player_controlled() || owner.get_owned_province_count() == 0)
 			continue;
 
 		auto home_port = state.world.nation_get_ai_home_port(owner);
@@ -4441,7 +4441,7 @@ void move_gathered_attackers(sys::state& state) {
 
 void update_land_constructions(sys::state& state) {
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled())
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			continue;
 
 		auto constructions = state.world.nation_get_province_land_construction(n);

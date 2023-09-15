@@ -690,7 +690,7 @@ public:
 
 		auto conditions = state.world.cb_type_get_can_use(cb.cb_type);
 		if(conditions) {
-			disabled = !trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation);
+			disabled = !trigger::evaluate(state, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
 		} else {
 			disabled = false;
 		}

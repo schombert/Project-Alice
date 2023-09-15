@@ -886,6 +886,12 @@ void rebel_risings_check(sys::state& state) {
 						state.world.province_set_last_control_change(p, state.current_date);
 
 						military::eject_ships(state, p);
+					} else { // failure -- treat rebels as defeated
+						for(auto pop : state.world.province_get_pop_location(p)) {
+							if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == rf) {
+								pop.get_pop().get_militancy() /= state.defines.reduction_after_defeat;
+							}
+						}
 					}
 
 					// deal damage to any armies present
@@ -1128,19 +1134,12 @@ void execute_rebel_victories(sys::state& state) {
 			// rebel victory
 
 			/*
-			If it wins, it gets its `demands_enforced_effect` executed.
-			*/
-
-			if(auto k = state.world.rebel_faction_get_type(reb).get_demands_enforced_effect(); k)
-				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb),
-						uint32_t(state.current_date.value), uint32_t(within.index() ^ (reb.index() << 4)));
-
-			/*
 			The government type of the nation will change if the rebel type has an associated government (with the same logic for
 			a government type change from a wargoal or other cause).
 			*/
 
 			auto old_gov = state.world.nation_get_government_type(within);
+			assert(old_gov);
 			auto new_gov = state.world.rebel_faction_get_type(reb).get_government_change(old_gov);
 			if(new_gov) {
 				politics::change_government_type(state, within, new_gov);
@@ -1164,6 +1163,15 @@ void execute_rebel_victories(sys::state& state) {
 			*/
 			auto ploss = state.defines.prestige_hit_on_break_country * nations::prestige_score(state, within);
 			nations::adjust_prestige(state, within, ploss);
+
+
+			/*
+			If it wins, it gets its `demands_enforced_effect` executed.
+			*/
+
+			if(auto k = state.world.rebel_faction_get_type(reb).get_demands_enforced_effect(); k)
+				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb),
+						uint32_t(state.current_date.value), uint32_t(within.index() ^ (reb.index() << 4)));
 
 			notification::post(state, notification::message{
 				[type = state.world.rebel_faction_get_type(reb).id, ploss, new_gov, within, when = state.current_date, i = reb.index()](sys::state& state, text::layout_base& contents) {
@@ -1208,18 +1216,22 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 	auto culture = state.world.rebel_faction_get_primary_culture(reb);
 	auto defection_target = state.world.rebel_faction_get_defection_target(reb);
 	auto in_nation = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
-	std::string rebel_adj = text::produce_simple_string(state, state.world.nation_get_adjective(in_nation));
-	std::string adjective = text::get_adjective_as_string(state, defection_target);
+	auto rebel_adj = state.world.nation_get_adjective(in_nation);
+	auto adjective = defection_target.get_adjective();
 
-	text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebel_adj));
+	text::add_to_substitution_map(sub, text::variable_type::country, rebel_adj);
 	
 	if(culture) {
 		text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
+	} else {
+		text::add_to_substitution_map(sub, text::variable_type::culture, state.world.nation_get_primary_culture(in_nation).get_name());
 	}
 	
 	if(defection_target) {
-		text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
-		text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
+		text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
+		text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);
+	} else {
+		text::add_to_substitution_map(sub, text::variable_type::union_adj, state.world.nation_get_primary_culture(in_nation).get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 	}
 
 	return text::resolve_string_substitution(state, state.world.rebel_faction_get_type(reb).get_name(), sub);
