@@ -3709,7 +3709,7 @@ struct trigger_body {
 																std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value / 100.0f);
+		context.add_float_to_payload(value * 100.0f);
 	}
 	void corruption(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
