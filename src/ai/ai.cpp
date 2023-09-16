@@ -494,7 +494,7 @@ void perform_influence_actions(sys::state& state) {
 						if(source == affected_gp)
 							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 						else
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 					},
 					"msg_rem_sphere_title",
 					gprl.get_great_power(),
@@ -505,7 +505,7 @@ void perform_influence_actions(sys::state& state) {
 						if(source == affected_gp)
 							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 						else
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 					},
 					"msg_rem_sphere_title",
 					current_sphere,
@@ -516,7 +516,7 @@ void perform_influence_actions(sys::state& state) {
 						if(source == affected_gp)
 							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 						else
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 					},
 					"msg_rem_sphere_title",
 					gprl.get_influence_target(),
@@ -2263,6 +2263,8 @@ void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w
 	bool is_attacker = military::is_attacker(state, w, n);
 	if(!is_attacker && military::defenders_have_status_quo_wargoal(state, w))
 		return;
+	if(is_attacker && military::attackers_have_status_quo_wargoal(state, w))
+		return;
 
 	bool added = false;
 	do {
@@ -2934,7 +2936,7 @@ enum class army_activity {
 	merging = 3,
 	transport_guard = 4,
 	transport_attack = 5,
-	attack_finished = 6,
+	// attack_finished = 6,
 	attack_gathered = 7,
 	attack_transport = 8,
 };
@@ -3682,7 +3684,7 @@ void move_idle_guards(sys::state& state) {
 			&& !ar.get_battle_from_army_battle_participation()
 			&& !ar.get_navy_from_army_transport()) {
 
-			auto path = province::make_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar);
+			auto path = ar.get_black_flag() ? province::make_unowned_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province()) : province::make_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar);
 			if(path.size() > 0) {
 				auto existing_path = ar.get_path();
 				auto new_size = uint32_t(path.size());
@@ -4565,7 +4567,7 @@ void new_units_and_merging(sys::state& state) {
 
 			auto location = ar.get_location_from_army_location();
 
-			if(army_activity(ar.get_ai_activity()) == army_activity::unspecified) {
+			if(ar.get_black_flag() || army_activity(ar.get_ai_activity()) == army_activity::unspecified) {
 				auto regs = ar.get_army_membership();
 				if(regs.begin() == regs.end()) {
 					// empty army -- cleanup will get it

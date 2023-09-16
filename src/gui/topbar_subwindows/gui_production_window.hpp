@@ -584,8 +584,6 @@ class normal_factory_background : public opaque_element_base {
 					break;
 				}
 			}
-
-			// TODO: classic tooltips ?
 		}
 	}
 };

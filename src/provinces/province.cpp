@@ -690,15 +690,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
 
 		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
-		if(excess_factories > 0) {
-			std::vector<dcon::factory_id> to_delete;
-			while(excess_factories > 0) {
-				to_delete.push_back((*(province_fac_range.begin() + excess_factories)).get_factory().id);
-				--excess_factories;
-			}
-			for(auto fid : to_delete) {
-				state.world.delete_factory(fid);
-			}
+		while(excess_factories > 0) {
+			state.world.delete_factory((*(province_fac_range.begin() + excess_factories - 1)).get_factory().id);
+			--excess_factories;
 		}
 
 		state.world.province_set_state_membership(id, new_si);
@@ -730,24 +724,25 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
+	static std::vector<dcon::regiment_id> regs;
+	regs.clear();
 	for(auto p : state.world.province_get_pop_location(id)) {
 		rebel::remove_pop_from_movement(state, p.get_pop());
 		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
 
-		std::vector<dcon::regiment_id> regs;
 		for(auto r : p.get_pop().get_regiment_source()) {
 			regs.push_back(r.get_regiment().id);
 		}
-		for(auto r : regs) {
-			state.world.delete_regiment(r);
-		}
-
+		
 		{
 			auto rng = p.get_pop().get_province_land_construction();
 			while(rng.begin() != rng.end()) {
 				state.world.delete_province_land_construction(*(rng.begin()));
 			}
 		}
+	}
+	for(auto r : regs) {
+		state.world.delete_regiment(r);
 	}
 
 	state.world.province_set_nation_from_province_ownership(id, new_owner);

@@ -129,6 +129,8 @@ struct global_military_state {
 	dcon::unit_type_id irregular;
 	dcon::unit_type_id infantry;
 	dcon::unit_type_id artillery;
+
+	bool pending_blackflag_update = false;
 };
 
 struct available_cb {
@@ -406,6 +408,7 @@ void recover_org(sys::state& state);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
 void run_gc(sys::state& state);
+void update_blackflag_status(sys::state& state);
 
 bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);

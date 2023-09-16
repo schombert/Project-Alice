@@ -343,6 +343,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
+		if(!utid)
+			return;
+
 		if(is_navy == false) {
 			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
 				auto p = po.get_province();

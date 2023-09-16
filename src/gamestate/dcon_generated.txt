@@ -1573,7 +1573,6 @@ object {
 	property{
 		name{ black_flag }
 		type{ bitfield }
-		tag{ save }
 	}
 	property{
 		name{ is_retreating }

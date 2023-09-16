@@ -174,6 +174,9 @@ void update_cached_values(sys::state& state) {
 void restore_unsaved_values(sys::state& state) {
 	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
 
+	for(auto n : state.world.in_nation)
+		n.set_is_great_power(false);
+
 	for(auto& gp : state.great_nations) {
 		state.world.nation_set_is_great_power(gp.nation, true);
 	}
@@ -543,6 +546,8 @@ bool is_great_power(sys::state const& state, dcon::nation_id id) {
 }
 
 void update_great_powers(sys::state& state) {
+	bool at_least_one_added = false;
+
 	for(auto i = state.great_nations.size(); i-- > 0;) {
 		if(state.world.nation_get_rank(state.great_nations[i].nation) <= uint16_t(state.defines.great_nations_count)) {
 			// is still a gp
@@ -553,6 +558,7 @@ void update_great_powers(sys::state& state) {
 			auto n = state.great_nations[i].nation;
 			state.great_nations[i] = state.great_nations.back();
 			state.great_nations.pop_back();
+			at_least_one_added = true;
 
 			state.world.nation_set_is_great_power(n, false);
 
@@ -578,8 +584,8 @@ void update_great_powers(sys::state& state) {
 			});
 		}
 	}
-	bool at_least_one_added = false;
-	for(uint32_t i = 0; i < uint32_t(state.nations_by_rank.size()) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
+	
+	for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
 		auto n = state.nations_by_rank[i];
 		if(n && !state.world.nation_get_is_great_power(n)) {
 			at_least_one_added = true;

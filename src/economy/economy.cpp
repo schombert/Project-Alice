@@ -3021,6 +3021,7 @@ void daily_update(sys::state& state) {
 }
 
 void regenerate_unsaved_values(sys::state& state) {
+	state.culture_definitions.rgo_workers.clear();
 	for(auto pt : state.world.in_pop_type) {
 		if(pt.get_is_paid_rgo_worker())
 			state.culture_definitions.rgo_workers.push_back(pt);

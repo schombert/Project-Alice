@@ -95,6 +95,8 @@ public:
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 
+		state.preload();
+
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";

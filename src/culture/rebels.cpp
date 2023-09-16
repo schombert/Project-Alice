@@ -918,7 +918,8 @@ void rebel_risings_check(sys::state& state) {
 			//if(counter != new_to_make) {
 				notification::post(state, notification::message{
 					[reb = rf.id](sys::state& state, text::layout_base& contents) {
-						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, state.world.rebel_faction_get_type(reb).get_title());
+						auto rn = rebel_name(state, reb);
+						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
 					},
 					"msg_revolt_title",
 					rf.get_ruler_from_rebellion_within(),
