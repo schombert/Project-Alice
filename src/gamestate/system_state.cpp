@@ -3410,6 +3410,7 @@ void state::single_game_tick() {
 	ai::general_ai_unit_tick(*this);
 
 	military::run_gc(*this);
+	military::update_blackflag_status(*this);
 	ai::daily_cleanup(*this);
 
 	/*
