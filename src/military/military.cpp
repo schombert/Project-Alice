@@ -2599,6 +2599,8 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 	}
 
 	state.world.delete_war(w);
+
+	update_blackflag_status(state);
 }
 
 void set_initial_leaders(sys::state& state) {
