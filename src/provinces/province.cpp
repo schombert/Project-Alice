@@ -690,15 +690,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
 
 		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
-		if(excess_factories > 0) {
-			std::vector<dcon::factory_id> to_delete;
-			while(excess_factories > 0) {
-				to_delete.push_back((*(province_fac_range.begin() + excess_factories)).get_factory().id);
-				--excess_factories;
-			}
-			for(auto fid : to_delete) {
-				state.world.delete_factory(fid);
-			}
+		while(excess_factories > 0) {
+			state.world.delete_factory((*(province_fac_range.begin() + excess_factories - 1)).get_factory().id);
+			--excess_factories;
 		}
 
 		state.world.province_set_state_membership(id, new_si);

@@ -549,6 +549,13 @@ bool defenders_have_status_quo_wargoal(sys::state const& state, dcon::war_id w) 
 	}
 	return false;
 }
+bool attackers_have_status_quo_wargoal(sys::state const& state, dcon::war_id w) {
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0 && !is_defender_wargoal(state, w, wg.get_wargoal()))
+			return true;
+	}
+	return false;
+}
 
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w) {
 	for(auto p : state.world.war_get_war_participant(w)) {
@@ -1976,13 +1983,32 @@ void remove_military_access(sys::state& state, dcon::nation_id accessing_nation,
 
 void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	dcon::war_id w = find_war_between(state, a, b);
-	do {
+	while(w) {
 		cleanup_war(state, w, war_result::draw);
 		w = find_war_between(state, a, b);
-	} while(w);
+	}
+}
+
+void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::substitution_map& sub) {
+	auto war = fatten(state.world, w);
+
+	dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+	dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+
+	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+	text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
+	text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
+	text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
+	text::add_to_substitution_map(sub, text::variable_type::third, war.get_over_tag());
+	text::add_to_substitution_map(sub, text::variable_type::state, war.get_over_state());
+	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.national_identity_get_adjective(war.get_over_tag()));
 }
 
 void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_attacker, bool on_war_creation) {
+	assert(n);
+	if(state.world.nation_get_owned_province_count(n) == 0)
+		return;
+
 	auto participant = state.world.force_create_war_participant(w, n);
 	state.world.war_participant_set_is_attacker(participant, as_attacker);
 	state.world.nation_set_is_at_war(n, true);
@@ -2076,13 +2102,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			notification::post(state, notification::message{
 				[old_name, w](sys::state& state, text::layout_base& contents) {
 					text::substitution_map sub;
-					text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-					text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(state.world.war_get_primary_defender(w)));
-					text::add_to_substitution_map(sub, text::variable_type::second_country, state.world.war_get_primary_defender(w));
-					text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(state.world.war_get_primary_attacker(w)));
-					text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
-					text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
-
+					populate_war_text_subsitutions(state, w, sub);
 					std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 					std::string old_war_name = text::resolve_string_substitution(state, old_name, sub);
 					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::val, std::string_view{resolved_war_name});
@@ -2097,13 +2117,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	notification::post(state, notification::message{
 		[w, n](sys::state& state, text::layout_base& contents) {
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-			text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(state.world.war_get_primary_defender(w)));
-			text::add_to_substitution_map(sub, text::variable_type::second_country, state.world.war_get_primary_defender(w));
-			text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(state.world.war_get_primary_attacker(w)));
-			text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
-			text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
-
+			populate_war_text_subsitutions(state, w, sub);
 			std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 			text::add_line(state, contents, "msg_war_join_1", text::variable_type::x, n, text::variable_type::val, std::string_view{resolved_war_name});
 		},
@@ -2115,13 +2129,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		notification::post(state, notification::message{
 			[w, n](sys::state& state, text::layout_base& contents) {
 				text::substitution_map sub;
-				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(state.world.war_get_primary_defender(w)));
-				text::add_to_substitution_map(sub, text::variable_type::second_country, state.world.war_get_primary_defender(w));
-				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(state.world.war_get_primary_attacker(w)));
-				text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
-				text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
-
+				populate_war_text_subsitutions(state, w, sub);
 				std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 				text::add_line(state, contents, "msg_war_join_1", text::variable_type::x, n, text::variable_type::val, std::string_view{resolved_war_name});
 			},
@@ -2207,13 +2215,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	notification::post(state, notification::message{
 		[primary_attacker, primary_defender, w = new_war.id](sys::state& state, text::layout_base& contents) {
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-			text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
-			text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
-			text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
-			text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
-			text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
-
+			populate_war_text_subsitutions(state, w, sub);
 			std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 			text::add_line(state, contents, "msg_war_1", text::variable_type::x, primary_attacker, text::variable_type::y, primary_defender, text::variable_type::val, std::string_view{resolved_war_name});
 		},
@@ -2224,13 +2226,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	notification::post(state, notification::message{
 		[primary_attacker, primary_defender, w = new_war.id](sys::state& state, text::layout_base& contents) {
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-			text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
-			text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
-			text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
-			text::add_to_substitution_map(sub, text::variable_type::third, state.world.war_get_over_tag(w));
-			text::add_to_substitution_map(sub, text::variable_type::state, state.world.war_get_over_state(w));
-
+			populate_war_text_subsitutions(state, w, sub);
 			std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 			text::add_line(state, contents, "msg_war_1", text::variable_type::x, primary_attacker, text::variable_type::y, primary_defender, text::variable_type::val, std::string_view{resolved_war_name});
 		},
@@ -2547,7 +2543,6 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 				state.world.province_set_siege_progress(p.get_province(), 0.0f);
 
 				military::eject_ships(state, p.get_province());
-				military::update_blackflag_status(state, p.get_province());
 			}
 		}
 	}
@@ -2567,17 +2562,19 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 
 	for(auto p : to_reset) {
 		state.world.province_set_nation_from_province_control(p, state.world.province_get_nation_from_province_ownership(p));
-		military::update_blackflag_status(state, p);
 		military::eject_ships(state, p);
 	}
 
 	if(as_loss) {
 		state.world.nation_set_last_war_loss(n, state.current_date);
 	}
+
+	state.military_definitions.pending_blackflag_update = true;
 }
 
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 	auto par = state.world.war_get_war_participant(w);
+	state.military_definitions.pending_blackflag_update = true;
 
 	if(state.world.war_get_is_crisis_war(w)) {
 		nations::cleanup_crisis(state);
@@ -3016,7 +3013,7 @@ void run_gc(sys::state& state) {
 		state.world.delete_wargoal(g);
 
 	for(auto w : state.world.in_war) {
-		if(get_role(state, w, w.get_primary_attacker()) == war_role::none) {
+		if(get_role(state, w, w.get_primary_attacker()) != war_role::attacker || w.get_primary_attacker().get_overlord_as_subject().get_ruler()) {
 			int32_t best_rank = 0;
 			dcon::nation_id n;
 			for(auto par : w.get_war_participant()) {
@@ -3033,7 +3030,7 @@ void run_gc(sys::state& state) {
 			}
 			w.set_primary_attacker(n);
 		}
-		if(get_role(state, w, w.get_primary_defender()) == war_role::none) {
+		if(get_role(state, w, w.get_primary_defender()) != war_role::defender || w.get_primary_defender().get_overlord_as_subject().get_ruler()) {
 			int32_t best_rank = 0;
 			dcon::nation_id n;
 			for(auto par : w.get_war_participant()) {
@@ -3333,6 +3330,9 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			}
 		}
 	}
+
+	state.world.peace_offer_set_war_from_war_settlement(offer, dcon::war_id{});
+	state.world.peace_offer_set_is_crisis_offer(offer, false);
 }
 
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
@@ -3388,7 +3388,8 @@ void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	began, war exhaustion, war score, the peace cost of the offer, and whether the recipient will be annexed as a result.
 	*/
 
-	state.world.delete_peace_offer(offer);
+	state.world.peace_offer_set_war_from_war_settlement(offer, dcon::war_id{});
+	state.world.peace_offer_set_is_crisis_offer(offer, false);
 }
 
 void update_ticking_war_score(sys::state& state) {
@@ -6000,14 +6001,11 @@ void update_siege_progress(sys::state& state) {
 					if(!first_army)
 						first_army = ar.get_army();
 
-					auto army_stats = army_controller
-																? army_controller
-																: ar.get_army().get_army_rebel_control().get_controller().get_ruler_from_rebellion_within();
+					auto army_stats = army_controller ? army_controller : ar.get_army().get_army_rebel_control().get_controller().get_ruler_from_rebellion_within();
 
 					owner_involved = owner_involved || owner == army_controller;
 					core_owner_involved =
-							core_owner_involved || bool(state.world.get_core_by_prov_tag_key(prov,
-																				 state.world.nation_get_identity_from_identity_holder(army_controller)));
+							core_owner_involved || bool(state.world.get_core_by_prov_tag_key(prov,  state.world.nation_get_identity_from_identity_holder(army_controller)));
 
 					for(auto r : ar.get_army().get_army_membership()) {
 						auto reg_str = r.get_regiment().get_strength();
@@ -6192,7 +6190,10 @@ void update_siege_progress(sys::state& state) {
 
 void update_blackflag_status(sys::state& state, dcon::province_id p) {
 	for(auto ar : state.world.province_get_army_location(p)) {
-		ar.get_army().set_black_flag(!province::has_access_to_province(state, ar.get_army().get_controller_from_army_control(), p));
+		if(!ar.get_army().get_battle_from_army_battle_participation() && !ar.get_army().get_navy_from_army_transport()) {
+			auto controller = ar.get_army().get_controller_from_army_control();
+			ar.get_army().set_black_flag(!province::has_access_to_province(state, controller, p));
+		}
 	}
 }
 
@@ -6613,5 +6614,19 @@ bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon
 	return false;
 }
 
+
+void update_blackflag_status(sys::state& state) {
+	if(state.military_definitions.pending_blackflag_update) {
+		state.military_definitions.pending_blackflag_update = false;
+
+		for(auto a : state.world.in_army) {
+			if(a.get_controller_from_army_control() && !a.get_navy_from_army_transport() && !province::has_access_to_province(state, a.get_controller_from_army_control(), a.get_location_from_army_location())) {
+				a.set_black_flag(true);
+			} else {
+				a.set_black_flag(false);
+			}
+		}
+	}
+}
 
 } // namespace military

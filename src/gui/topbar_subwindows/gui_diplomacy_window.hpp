@@ -13,6 +13,10 @@
 #include "gui_peace_window.hpp"
 #include "gui_crisis_window.hpp"
 
+namespace military {
+void populate_war_text_subsitutions(sys::state&, dcon::war_id, text::substitution_map&);
+}
+
 namespace ui {
 
 
@@ -1636,18 +1640,10 @@ class war_name_text : public generic_multiline_text<dcon::war_id> {
 		contents.fixed_parameters.suppress_hyperlinks = true;
 
 		auto war = dcon::fatten(state.world, id);
-		dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
-		dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
 
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-		text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
-		text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
-		text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
-		text::add_to_substitution_map(sub, text::variable_type::third, war.get_over_tag());
-		text::add_to_substitution_map(sub, text::variable_type::state, war.get_over_state());
-
+		military::populate_war_text_subsitutions(state, war, sub);
 		text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
 		text::close_layout_box(contents, box);
 	}

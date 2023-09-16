@@ -841,16 +841,16 @@ public:
 				} else {
 					bool one_is_wl = [&]() {
 						if(state.world.war_get_primary_attacker(war) == source) {
-							if(military::get_role(state, war, target) != military::war_role::defender)
+							if(military::get_role(state, war, target) == military::war_role::defender)
 								return true;
 						} else if(state.world.war_get_primary_defender(war) == source) {
-							if(military::get_role(state, war, target) != military::war_role::attacker)
+							if(military::get_role(state, war, target) == military::war_role::attacker)
 								return true;
 						} else if(state.world.war_get_primary_attacker(war) == target) {
-							if(military::get_role(state, war, source) != military::war_role::defender)
+							if(military::get_role(state, war, source) == military::war_role::defender)
 								return true;
 						} else if(state.world.war_get_primary_defender(war) == target) {
-							if(military::get_role(state, war, source) != military::war_role::attacker)
+							if(military::get_role(state, war, source) == military::war_role::attacker)
 								return true;
 						}
 						return false;

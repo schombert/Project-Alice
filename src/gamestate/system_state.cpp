@@ -2766,6 +2766,36 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	military::set_initial_leaders(*this);
 }
 
+void state::preload() {
+	adjacency_data_out_of_date = true;
+	for(auto si : world.in_state_instance) {
+		si.set_naval_base_is_taken(false);
+		si.set_capital(dcon::province_id{});
+	}
+	for(auto n : world.in_nation) {
+		n.set_combined_issue_rules(0);
+		n.set_is_at_war(false);
+		n.set_allies_count(0);
+		n.set_vassals_count(0);
+		n.set_substates_count(0);
+		n.set_administrative_efficiency(0.0f);
+		n.set_is_target_of_some_cb(false);
+		n.set_in_sphere_of(dcon::nation_id{});
+	}
+	for(auto p : world.in_pop) {
+		p.set_political_reform_desire(0);
+		p.set_social_reform_desire(0);
+		p.set_is_primary_or_accepted_culture(false);
+	}
+	for(auto p : world.in_province) {
+		p.set_state_membership(dcon::state_instance_id{});
+	}
+	for(auto m : world.in_movement) {
+		m.set_pop_support(0.0f);
+		m.set_radicalism(0.0f);
+	}
+}
+
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
@@ -2931,7 +2961,19 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	ai::update_ai_general_status(*this);
 	ai::refresh_home_ports(*this);
 
+	military_definitions.pending_blackflag_update = true;
+	military::update_blackflag_status(*this);
+
 #ifndef  NDEBUG
+	for(auto p : world.in_peace_offer) {
+		auto n = p.get_nation_from_pending_peace_offer();
+		if(auto w = p.get_war_from_war_settlement(); w) {
+			if(military::get_role(*this, w, n) == military::war_role::none) {
+				p.set_war_from_war_settlement(dcon::war_id{});
+			}
+		}
+	}
+	military::run_gc(*this);
 	for(auto n : world.in_nation) {
 		assert(n.get_owned_province_count() == 0 || (n.get_government_type() && n.get_government_type().index() < culture_definitions.governments.ssize()));
 	}

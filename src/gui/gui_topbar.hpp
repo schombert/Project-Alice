@@ -1430,11 +1430,17 @@ public:
 	}
 };
 
-class topbar_rebels_icon : public standard_nation_button {
+class topbar_rebels_icon : public button_element_base {
 public:
-	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
-		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
+	void on_update(sys::state& state) noexcept override {
+		for(auto rf : state.world.nation_get_rebellion_within(state.local_player_nation)) {
+			auto org = rf.get_rebels().get_organization();
+			if(org >= 0.01f) {
+				frame = 0;
+				return;
+			}
+		}
+		frame = 1;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1442,37 +1448,24 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		bool showed_title = false;
 
-			auto box = text::open_layout_box(contents, 0);
-			auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
-			if(rebellions_iter.begin() == rebellions_iter.end()) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_haverebels"),
-						text::substitution_map{});
-			} else if(rebellions_iter.begin() != rebellions_iter.end()) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_haverebels"), text::substitution_map{});
-				auto nation_fat_id = dcon::fatten(state.world, nation_id);
-				nation_fat_id.for_each_rebellion_within([&](dcon::rebellion_within_id rbl) {
-					auto fat_id = dcon::fatten(state.world, rbl);
-					auto rbl_fact_fat_id = fat_id.get_rebels();
-					auto rbl_type_fat_id = rbl_fact_fat_id.get_type();
-					auto rbl_fact_slim_id = rbl_fact_fat_id.id;
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::substitution_map sub;
-					auto rebelname = rebel::rebel_name(state, rbl_fact_fat_id);
-					auto rebelsize = text::prettify(rebel::get_faction_brigades_active(state, rbl_fact_slim_id));
-					auto rebelOrg = text::format_percentage(rebel::get_faction_organization(state, rbl_fact_slim_id));
-					text::add_to_substitution_map(sub, text::variable_type::name, std::string_view(rebelname));
-					text::add_to_substitution_map(sub, text::variable_type::strength, std::string_view(rebelsize));
-					text::add_to_substitution_map(sub, text::variable_type::org, std::string_view(rebelOrg));
-					text::localised_format_box(state, contents, box, std::string_view("topbar_faction"), sub);
-				});
-				// text::add_line_break_to_layout_box(state, contents, box);
+		for(auto rf : state.world.nation_get_rebellion_within(state.local_player_nation)) {
+			auto org = rf.get_rebels().get_organization();
+			if(org >= 0.01f) {
+				if(!showed_title) {
+					text::add_line(state, contents, "countryalert_haverebels");
+					text::add_line_break_to_layout(state, contents);
+					showed_title = true;
+				}
+				auto rebelname = rebel::rebel_name(state, rf.get_rebels());
+					auto rebelsize = rf.get_rebels().get_possible_regiments();
+
+				text::add_line(state, contents, "topbar_faction",
+					text::variable_type::name, std::string_view{ rebelname },
+					text::variable_type::strength, text::pretty_integer{ rebelsize },
+					text::variable_type::org, text::fp_percentage{org});
 			}
-			text::close_layout_box(contents, box);
 		}
 	}
 

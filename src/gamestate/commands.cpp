@@ -2912,47 +2912,47 @@ void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_i
 	p.data.new_offer.is_concession = is_concession;
 	add_to_command_queue(state, p);
 }
-bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war,
-		bool is_concession) {
+bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
 
-			{
-				auto ol = state.world.nation_get_overlord_as_subject(source);
-				if(state.world.overlord_get_ruler(ol))
-					return false;
-			}
-			{
-				auto ol = state.world.nation_get_overlord_as_subject(target);
-				if(state.world.overlord_get_ruler(ol))
-					return false;
-			}
+	{
+		auto ol = state.world.nation_get_overlord_as_subject(source);
+		if(state.world.overlord_get_ruler(ol))
+			return false;
+	}
+	{
+		auto ol = state.world.nation_get_overlord_as_subject(target);
+		if(state.world.overlord_get_ruler(ol))
+			return false;
+	}
 
-			if(state.world.war_get_primary_attacker(war) == source) {
-				if(military::get_role(state, war, target) != military::war_role::defender)
-					return false;
-			} else if(state.world.war_get_primary_defender(war) == source) {
-				if(military::get_role(state, war, target) != military::war_role::attacker)
-					return false;
-			} else if(state.world.war_get_primary_attacker(war) == target) {
-				if(military::get_role(state, war, source) != military::war_role::defender)
-					return false;
-			} else if(state.world.war_get_primary_defender(war) == target) {
-				if(military::get_role(state, war, source) != military::war_role::attacker)
-					return false;
-			}
+	if(state.world.war_get_primary_attacker(war) == source) {
+		if(military::get_role(state, war, target) != military::war_role::defender)
+			return false;
+	} else if(state.world.war_get_primary_defender(war) == source) {
+		if(military::get_role(state, war, target) != military::war_role::attacker)
+			return false;
+	} else if(state.world.war_get_primary_attacker(war) == target) {
+		if(military::get_role(state, war, source) != military::war_role::defender)
+			return false;
+	} else if(state.world.war_get_primary_defender(war) == target) {
+		if(military::get_role(state, war, source) != military::war_role::attacker)
+			return false;
+	} else {
+		return false;
+	}
 
-			if(state.world.war_get_is_crisis_war(war)) {
-				if((state.world.war_get_primary_attacker(war) != source || state.world.war_get_primary_defender(war) != target) &&
-						(state.world.war_get_primary_attacker(war) != target || state.world.war_get_primary_defender(war) != source)) {
+	if(state.world.war_get_is_crisis_war(war)) {
+		if((state.world.war_get_primary_attacker(war) != source || state.world.war_get_primary_defender(war) != target) &&
+				(state.world.war_get_primary_attacker(war) != target || state.world.war_get_primary_defender(war) != source)) {
 
-					return false; // no separate peace
-				}
-			}
+			return false; // no separate peace
+		}
+	}
 
-			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
-			return !pending;
+	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	return !pending;
 }
-void execute_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war,
-		bool is_concession) {
+void execute_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
 	if(!can_start_peace_offer(state, source, target, war, is_concession))
 		return;
 
