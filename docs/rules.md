@@ -524,7 +524,7 @@ If a "good" peace offer is refused, the refusing nation gains define:GOOD_PEACE_
 
 A peace offer must be accepted when war score reaches 100.
 
-When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose). When a nation exits a war, it takes all of its vassals / substates with it. The nations on the other side of the war get a truce with the nation for define:BASE_TRUCE_MONTHS + the greatest truce months for any CB in the peach deal.
+When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose). When a nation exits a war, it takes all of its vassals / substates with it. The nations on the other side of the war get a truce with the nation for define:BASE_TRUCE_MONTHS + the greatest truce months for any CB in the peace deal.
 
 When a war goal is failed (the nation it targets leaves the war without that war goal being enacted): the nation that added it loses WAR_FAILED_GOAL_PRESTIGE_BASE^(WAR_FAILED_GOAL_PRESTIGE x current-prestige) x CB-penalty-factor prestige. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY militancy.
 

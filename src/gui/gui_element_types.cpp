@@ -1363,7 +1363,7 @@ void overlapping_truce_flags::on_update(sys::state& state) noexcept {
 
 	row_contents.clear();
 	for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
-		if(rel.get_truce_until() && rel.get_truce_until() <= state.current_date) {
+		if(rel.get_truce_until() && state.current_date < rel.get_truce_until()) {
 			auto other = rel.get_related_nations(0) != current_nation ? rel.get_related_nations(0) : rel.get_related_nations(1);
 			row_contents.push_back(truce_pair{other, rel.get_truce_until()});
 		}
