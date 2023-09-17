@@ -158,7 +158,7 @@ Cosmetic tags and flags would also be nice.
 
 ## Kiwi/ColdSlav
 
-  # Modding functionality - Economics
+  ### Modding functionality - Economics
   - The ability to check for good prices, either by a fixed amount or by a determined percentage of the good's defined default price.
   - This would also imply the ability to scope goods, either individually, or by group (or other factors that the modder may deem suitable)
   - The ability to artificially control good prices (definitely not harmful to the economic system), in the same way as above
@@ -167,4 +167,5 @@ Cosmetic tags and flags would also be nice.
   - The ability to modify the amount of factories per state, or even better (if easily implementable), the ability to set factory amount caps on a state basis
   - the ability to check for most-produced goods on a state level, nationally and internationally (this already sort of exists in vanilla Vic2, but it has barely been used and the way it works is poorly understood)
   - moddable wages, the abiliy to have a defined base wage value, and the ability to modifiy them on a PoP type, country, factory, and perhaps region basis.
+  - Fix the income modifiers, and also include more of the same modifiers but pop type-based rather than just strata-based
   - More economic modding
