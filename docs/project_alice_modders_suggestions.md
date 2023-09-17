@@ -155,3 +155,16 @@ Province Flags should also made to work
 Cosmetic tags and flags would also be nice.
 
 ### Modders like Tawani and Zombie_Freak did respond but said they mostly agreed with what said already.
+
+## Kiwi/ColdSlav
+
+  # Modding functionality - Economics
+  - The ability to check for good prices, either by a fixed amount or by a determined percentage of the good's defined default price.
+  - This would also imply the ability to scope goods, either individually, or by group (or other factors that the modder may deem suitable)
+  - The ability to artificially control good prices (definitely not harmful to the economic system), in the same way as above
+  - The ability to scope factories, and check them by type goods produced, input goods consumed (by a modder-defined amount of time), output goods produced (the same way as input), profitability, employees, employee ratio, presence of X type of employyes, cash reserves, if upgradeable, under construction, construction time?, amount (in country), and more?
+  - The ability to not only build factories in the capital but also any state
+  - The ability to modify the amount of factories per state, or even better (if easily implementable), the ability to set factory amount caps on a state basis
+  - the ability to check for most-produced goods on a state level, nationally and internationally (this already sort of exists in vanilla Vic2, but it has barely been used and the way it works is poorly understood)
+  - moddable wages, the abiliy to have a defined base wage value, and the ability to modifiy them on a PoP type, country, factory, and perhaps region basis.
+  - More economic modding
