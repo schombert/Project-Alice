@@ -1854,8 +1854,6 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 	if(!can_intervene_in_war(state, source, w, for_attacker))
 		return;
 
-	military::add_to_war(state, w, source, for_attacker);
-
 	if(!state.world.war_get_is_great(w)) {
 		bool status_quo_added = false;
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
@@ -1878,6 +1876,8 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 					dcon::national_identity_id{}, dcon::nation_id{});
 		}
 	}
+
+	military::add_to_war(state, w, source, for_attacker);
 }
 
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {

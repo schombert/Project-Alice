@@ -120,6 +120,8 @@ struct global_national_state {
 	std::vector<fixed_event> on_my_factories_nationalized;
 	std::vector<fixed_event> on_crisis_declare_interest;
 
+	bool gc_pending = false;
+
 	bool is_global_flag_variable_set(dcon::global_flag_id id) const;
 	void set_global_flag_variable(dcon::global_flag_id id, bool state);
 };
@@ -352,5 +354,7 @@ float get_yesterday_income(sys::state& state, dcon::nation_id n);
 
 void make_civilized(sys::state& state, dcon::nation_id n);
 void make_uncivilized(sys::state& state, dcon::nation_id n);
+
+void run_gc(sys::state& state);
 
 } // namespace nations

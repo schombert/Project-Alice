@@ -1262,6 +1262,19 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	politics::update_displayed_identity(state, n);
 }
 
+void run_gc(sys::state& state) {
+	if(state.national_definitions.gc_pending) {
+		state.national_definitions.gc_pending = false;
+
+		for(uint32_t i = state.world.rebel_faction_size(); i-- > 0; ) {
+			dcon::rebel_faction_id rf{dcon::rebel_faction_id::value_base_t(i) };
+			auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
+			if(!within)
+				state.world.delete_rebel_faction(rf);
+		}
+	}
+}
+
 void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
@@ -1280,10 +1293,10 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		military::cleanup_navy(state, (*navies.begin()).get_navy());
 	}
 
-	auto rebels = state.world.nation_get_rebellion_within(n);
-	while(rebels.begin() != rebels.end()) {
-		rebel::delete_faction(state, (*rebels.begin()).get_rebels());
-	}
+	//auto rebels = state.world.nation_get_rebellion_within(n);
+	//while(rebels.begin() != rebels.end()) {
+	//	rebel::delete_faction(state, (*rebels.begin()).get_rebels());
+	//}
 
 	auto movements = state.world.nation_get_movement_within(n);
 	while(movements.begin() != movements.end()) {
@@ -1300,6 +1313,7 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		}
 	}
 
+	state.national_definitions.gc_pending = true;
 	state.diplomatic_cached_values_out_of_date = true; // refresh stored counts of allies, vassals, etc
 
 	if(n == state.local_player_nation) { // TODO: player defeated; notify and end game
