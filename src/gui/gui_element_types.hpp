@@ -471,6 +471,9 @@ public:
 		n = i;
 		until = u;
 	}
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		return state.world.nation_get_identity_from_identity_holder(n);
+	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}

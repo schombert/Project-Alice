@@ -1038,8 +1038,8 @@ void update_ai_econ_construction(sys::state& state) {
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 
-				int32_t current_lvl = state.world.province_get_building_level(o.get_province(), economy::province_building_type::railroad);
-				int32_t max_local_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::railroad);
+				int32_t current_lvl = state.world.province_get_building_level(o.get_province(), economy::province_building_type::fort);
+				int32_t max_local_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::fort);
 				int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_fort));
 
 				if(max_local_lvl - current_lvl - min_build <= 0)

@@ -1015,10 +1015,12 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				if(!bool(e.second.id))
 					e.second.id = context.state.world.create_national_event();
 
-				event_building_context e_context{context, e.second.main_slot, e.second.this_slot, e.second.from_slot};
-				auto event_result = parse_generic_event(e.second.generator_state, err, e_context);
+				auto data_copy = e.second;
 
-				auto fid = fatten(context.state.world, e.second.id);
+				event_building_context e_context{context, data_copy.main_slot, data_copy.this_slot, data_copy.from_slot};
+				auto event_result = parse_generic_event(data_copy.generator_state, err, e_context);
+
+				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
 				fid.set_name(event_result.title_);
 				fid.set_image(event_result.picture_);
@@ -1027,77 +1029,77 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				fid.get_options() = event_result.options;
 
 				for(auto& r : context.state.national_definitions.on_yearly_pulse) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_quarterly_pulse) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_surrender) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_new_great_nation) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_lost_great_nation) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_election_tick) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_colony_to_state) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_state_conquest) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_colony_to_state_free_slaves) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_debtor_default) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_debtor_default_small) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_debtor_default_second) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_civilize) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_my_factories_nationalized) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_crisis_declare_interest) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
@@ -1116,21 +1118,23 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				if(!bool(e.second.id))
 					e.second.id = context.state.world.create_provincial_event();
 
-				event_building_context e_context{context, e.second.main_slot, e.second.this_slot, e.second.from_slot};
-				auto event_result = parse_generic_event(e.second.generator_state, err, e_context);
+				auto data_copy = e.second;
 
-				auto fid = fatten(context.state.world, e.second.id);
+				event_building_context e_context{context, data_copy.main_slot, data_copy.this_slot, data_copy.from_slot};
+				auto event_result = parse_generic_event(data_copy.generator_state, err, e_context);
+
+				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
 				fid.set_name(event_result.title_);
 				fid.get_options() = event_result.options;
 
 				for(auto& r : context.state.national_definitions.on_battle_won) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_battle_lost) {
-					if(r.id == e.second.id) {
+					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
 					}
 				}

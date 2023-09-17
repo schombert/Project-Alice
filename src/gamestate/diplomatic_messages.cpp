@@ -70,7 +70,7 @@ void decline(sys::state& state, message const& m) {
 		}
 		if(was_defensive) {
 			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(m.from, m.to);
-			if(rel) {
+			if(rel && state.world.diplomatic_relation_get_are_allied(rel)) {
 				state.world.diplomatic_relation_set_are_allied(rel, false);
 
 				notification::post(state, notification::message{

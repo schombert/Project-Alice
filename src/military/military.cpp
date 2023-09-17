@@ -1584,7 +1584,13 @@ int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	}
 	return total;
 }
-
+int32_t peace_offer_truce_months(sys::state& state, dcon::peace_offer_id offer) {
+	int32_t max_months = 0;
+	for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+		max_months = std::max(max_months, int32_t(wg.get_wargoal().get_type().get_truce_months()));
+	}
+	return max_months + int32_t(state.defines.base_truce_months);
+}
 int32_t attacker_peace_cost(sys::state& state, dcon::war_id war) {
 	int32_t total = 0;
 	for(auto wg : state.world.war_get_wargoals_attached(war)) {
@@ -1944,7 +1950,8 @@ void daily_leaders_update(sys::state& state) {
 bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target) {
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, attacker);
 	if(rel) {
-		if(state.current_date < state.world.diplomatic_relation_get_truce_until(rel))
+		auto truce_ends = state.world.diplomatic_relation_get_truce_until(rel);
+		if(truce_ends && state.current_date < truce_ends)
 			return true;
 	}
 	return false;
@@ -3098,12 +3105,63 @@ void run_gc(sys::state& state) {
 	}
 }
 
+void add_truce_between_sides(sys::state& state, dcon::war_id w, int32_t months) {
+	auto wpar = state.world.war_get_war_participant(w);
+	auto num_par = int32_t(wpar.end() - wpar.begin());
+	auto end_truce = state.current_date + months * 31;
+
+	for(int32_t i = 0; i < num_par; ++i) {
+		auto this_par = *(wpar.begin() + i);
+		auto this_nation = this_par.get_nation();
+
+		if(this_nation.get_overlord_as_subject().get_ruler())
+			continue;
+
+		auto attacker = this_par.get_is_attacker();
+
+		for(int32_t j = i + 1; j < num_par; ++j) {
+			auto other_par = *(wpar.begin() + j);
+			auto other_nation = other_par.get_nation();
+
+			if(!other_nation.get_overlord_as_subject().get_ruler() && attacker != other_par.get_is_attacker()) {
+				auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(this_nation, other_nation);
+				if(!rel) {
+					rel = state.world.force_create_diplomatic_relation(this_nation, other_nation);
+				}
+				auto& current_truce = state.world.diplomatic_relation_get_truce_until(rel);
+				if(!current_truce || current_truce < end_truce)
+					current_truce = end_truce;
+			}
+		}
+	}
+}
+void add_truce_from_nation(sys::state& state, dcon::war_id w, dcon::nation_id n, int32_t months) {
+	auto end_truce = state.current_date + months * 31;
+	bool attacker = military::is_attacker(state, w, n);
+
+	for(auto par : state.world.war_get_war_participant(w)) {
+		auto other_nation = par.get_nation();
+		if(other_nation.get_overlord_as_subject().get_ruler())
+			continue;
+
+
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(n, other_nation);
+		if(!rel) {
+			rel = state.world.force_create_diplomatic_relation(n, other_nation);
+		}
+		auto& current_truce = state.world.diplomatic_relation_get_truce_until(rel);
+		if(!current_truce || current_truce < end_truce)
+			current_truce = end_truce;
+	}
+}
+
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	dcon::nation_id from = state.world.peace_offer_get_nation_from_pending_peace_offer(offer);
 	dcon::nation_id target = state.world.peace_offer_get_target(offer);
 
 
 	auto war = state.world.peace_offer_get_war_from_war_settlement(offer);
+
 
 	if(war) {
 		notification::post(state, notification::message{
@@ -3149,7 +3207,8 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	}
 
 	if(war) {
-		
+		auto truce_months = military::peace_offer_truce_months(state, offer);
+
 		if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
 			if(state.world.war_get_is_great(war)) {
 				if(state.world.peace_offer_get_is_concession(offer) == false) {
@@ -3168,7 +3227,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 					}
 				}
 			}
-
+			add_truce_between_sides(state, war, truce_months);
 			cleanup_war(state, war,
 					state.world.peace_offer_get_is_concession(offer) ? war_result::defender_won : war_result::attacker_won);
 
@@ -3190,7 +3249,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 					}
 				}
 			}
-
+			add_truce_between_sides(state, war, truce_months);
 			cleanup_war(state, war,
 					state.world.peace_offer_get_is_concession(offer) ? war_result::attacker_won : war_result::defender_won);
 
@@ -3201,13 +3260,16 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 						dcon::state_definition_id{}, dcon::national_identity_id{});
 			}
 
-			if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(war)) == 0)
+			if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(war)) == 0) {
+				add_truce_between_sides(state, war, truce_months);
 				cleanup_war(state, war, war_result::defender_won);
-			else if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(war)) == 0)
+			} else if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(war)) == 0) {
+				add_truce_between_sides(state, war, truce_months);
 				cleanup_war(state, war, war_result::attacker_won);
-			else
+			} else {
+				add_truce_from_nation(state, war, target, truce_months);
 				remove_from_war(state, war, target, state.world.peace_offer_get_is_concession(offer) == false);
-
+			}
 		} else if(state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == target) {
 
 			if(state.world.war_get_is_great(war) && state.world.peace_offer_get_is_concession(offer) == true) {
@@ -3215,13 +3277,16 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 						dcon::state_definition_id{}, dcon::national_identity_id{});
 			}
 
-			if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(war)) == 0)
+			if(state.world.nation_get_owned_province_count(state.world.war_get_primary_attacker(war)) == 0) {
+				add_truce_between_sides(state, war, truce_months);
 				cleanup_war(state, war, war_result::defender_won);
-			else if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(war)) == 0)
+			} else if(state.world.nation_get_owned_province_count(state.world.war_get_primary_defender(war)) == 0) {
+				add_truce_between_sides(state, war, truce_months);
 				cleanup_war(state, war, war_result::attacker_won);
-			else
+			} else {
+				add_truce_from_nation(state, war, from, truce_months);
 				remove_from_war(state, war, from, state.world.peace_offer_get_is_concession(offer) == false);
-
+			}
 		} else {
 			assert(false);
 		}

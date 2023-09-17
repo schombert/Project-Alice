@@ -340,7 +340,7 @@ float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type);
 int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
 		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer);
-
+int32_t peace_offer_truce_months(sys::state& state, dcon::peace_offer_id offer);
 int32_t attacker_peace_cost(sys::state& state, dcon::war_id war);
 int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 

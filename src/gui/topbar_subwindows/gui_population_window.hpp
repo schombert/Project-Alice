@@ -1074,7 +1074,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 		return;
 	}
 	text::add_line(state, contents, "pop_assim_6");
-	text::add_line(state, contents, "pop_assim_7", text::variable_type::x, text::fp_two_places{state.defines.assimilation_scale});
+	text::add_line(state, contents, "pop_assim_7", text::variable_type::x, text::fp_three_places{state.defines.assimilation_scale});
 	text::add_line(state, contents, "pop_assim_8", text::variable_type::x, text::fp_two_places{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f});
 	active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_assimilation_rate, false);
 	text::add_line(state, contents, "pop_assim_9", text::variable_type::x, text::fp_two_places{state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f});
