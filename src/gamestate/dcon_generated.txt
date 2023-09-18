@@ -1493,7 +1493,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 4000 }
+	size{ 12000 }
 	tag{ save }
 
 	property{
@@ -1529,7 +1529,7 @@ object {
 object {
 	name{ ship }
 	storage_type{ erasable }
-	size{ 4000 }
+	size{ 8000 }
 	tag{ save }
 
 	property{

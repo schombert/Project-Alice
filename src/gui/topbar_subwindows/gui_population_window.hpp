@@ -2058,12 +2058,22 @@ class ideology_with_explanation : public simple_text_element_base {
 				if(state.world.ideology_get_is_civilized_only(i)) {
 					if(state.world.nation_get_is_civilized(nations::owner_of_pop(state, ids))) {
 						auto ptrigger = state.world.pop_type_get_ideology(type, i);
-						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
-								trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+						if(ptrigger) {
+							auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
+									trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
 
-						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{amount});
-						text::add_line_break_to_layout(state, contents);
-						multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+							text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ amount });
+							text::add_line_break_to_layout(state, contents);
+							multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+						} else {
+							text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ 0.0f });
+							text::add_line_break_to_layout(state, contents);
+							text::substitution_map map{};
+							text::add_to_substitution_map(map, text::variable_type::val, int64_t(0));
+							auto box = text::open_layout_box(contents, 15);
+							text::localised_format_box(state, contents, box, std::string_view("comwid_base"), map);
+							text::close_layout_box(contents, box);
+						}
 					} else {
 						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, int64_t(0));
 						text::add_line_break_to_layout(state, contents);
@@ -2071,12 +2081,22 @@ class ideology_with_explanation : public simple_text_element_base {
 					}
 				} else {
 					auto ptrigger = state.world.pop_type_get_ideology(type, i);
-					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
-							trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+					if(ptrigger) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
+								trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
 
-					text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{amount});
-					text::add_line_break_to_layout(state, contents);
-					multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ amount });
+						text::add_line_break_to_layout(state, contents);
+						multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+					} else {
+						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ 0.0f });
+						text::add_line_break_to_layout(state, contents);
+						text::substitution_map map{};
+						text::add_to_substitution_map(map, text::variable_type::val, int64_t(0));
+						auto box = text::open_layout_box(contents, 15);
+						text::localised_format_box(state, contents, box, std::string_view("comwid_base"), map);
+						text::close_layout_box(contents, box);
+					}
 				}
 			} else {
 				text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, int64_t(0));

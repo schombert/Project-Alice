@@ -956,8 +956,8 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
 								if(state.world.nation_get_is_civilized(o)) {
 									auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
-									return trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-											trigger::to_generic(o), 0);
+									return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
+											trigger::to_generic(o), 0) : 0.0f;
 								} else
 									return 0.0f;
 							},
@@ -973,8 +973,8 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 					auto amount = ve::apply(
 							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
 								auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
-								return trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-										trigger::to_generic(o), 0);
+								return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
+										trigger::to_generic(o), 0) : 0.0f;
 							},
 							ids, state.world.pop_get_poptype(ids), owner);
 
@@ -1053,17 +1053,14 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 					has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : ve::fp_vector(1.0f);
 
 			auto amount = owner_modifier * ve::select(allowed_by_owner,
-																				 ve::apply(
-																						 [&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
-																							 if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
-																								 return trigger::evaluate_multiplicative_modifier(state, mtrigger,
-																										 trigger::to_generic(pid), trigger::to_generic(o), 0);
-																							 } else {
-																								 return 0.0f;
-																							 }
-																						 },
-																						 ids, state.world.pop_get_poptype(ids), owner),
-																				 0.0f);
+				ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+					 if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+						 return trigger::evaluate_multiplicative_modifier(state, mtrigger,  trigger::to_generic(pid), trigger::to_generic(o), 0);
+					 } else {
+						return 0.0f;
+					 }
+				 },  ids, state.world.pop_get_poptype(ids), owner),
+				0.0f);
 
 			ibuf.temp_buffers[iid].set(ids, amount);
 			ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
