@@ -2085,53 +2085,34 @@ uint32_t ef_release_from_province(EFFECT_PARAMTERS) {
 }
 uint32_t ef_change_controller(EFFECT_PARAMTERS) {
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
-	if(holder && ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)) != holder) {
-		ws.world.province_set_nation_from_province_control(trigger::to_prov(primary_slot), holder);
-		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
-		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
-		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+	if(holder) {
+		province::set_province_controller(ws, trigger::to_prov(primary_slot), holder);
 		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }
 uint32_t ef_change_controller_this_nation(EFFECT_PARAMTERS) {
-	if(ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)) != trigger::to_nation(this_slot)) {
-		ws.world.province_set_nation_from_province_control(trigger::to_prov(primary_slot), trigger::to_nation(this_slot));
-		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
-		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
-		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
-		military::eject_ships(ws, trigger::to_prov(primary_slot));
-	}
+	province::set_province_controller(ws, trigger::to_prov(primary_slot), trigger::to_nation(this_slot));
+	military::eject_ships(ws, trigger::to_prov(primary_slot));
 	return 0;
 }
 uint32_t ef_change_controller_this_province(EFFECT_PARAMTERS) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
-	if(owner && ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)) != owner) {
-		ws.world.province_set_nation_from_province_control(trigger::to_prov(primary_slot), owner);
-		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
-		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
-		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+	if(owner) {
+		province::set_province_controller(ws, trigger::to_prov(primary_slot), owner);
 		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;
 }
 uint32_t ef_change_controller_from_nation(EFFECT_PARAMTERS) {
-	if(ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)) != trigger::to_nation(from_slot)) {
-		ws.world.province_set_nation_from_province_control(trigger::to_prov(primary_slot), trigger::to_nation(from_slot));
-		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
-		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
-		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
-		military::eject_ships(ws, trigger::to_prov(primary_slot));
-	}
+	province::set_province_controller(ws, trigger::to_prov(primary_slot), trigger::to_nation(from_slot));
+	military::eject_ships(ws, trigger::to_prov(primary_slot));
 	return 0;
 }
 uint32_t ef_change_controller_from_province(EFFECT_PARAMTERS) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot));
-	if(owner && ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)) != owner) {
-		ws.world.province_set_nation_from_province_control(trigger::to_prov(primary_slot), owner);
-		ws.world.province_set_rebel_faction_from_province_rebel_control(trigger::to_prov(primary_slot), dcon::rebel_faction_id{});
-		ws.world.province_set_last_control_change(trigger::to_prov(primary_slot), ws.current_date);
-		military::update_blackflag_status(ws, trigger::to_prov(primary_slot));
+	if(owner) {
+		province::set_province_controller(ws, trigger::to_prov(primary_slot), owner);
 		military::eject_ships(ws, trigger::to_prov(primary_slot));
 	}
 	return 0;

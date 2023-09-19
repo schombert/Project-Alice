@@ -1653,7 +1653,7 @@ void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings co
 		}
 		if(stored_value < settings.lower_limit || stored_value > settings.upper_limit) {
 			update_raw_value(state, stored_value);
-			on_value_change(state, stored_value);
+			//on_value_change(state, stored_value);
 		}
 	} else {
 		if(right_limit)
@@ -1662,7 +1662,7 @@ void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings co
 			left_limit->set_visible(state, false);
 		if(stored_value < settings.lower_value || stored_value > settings.upper_value) {
 			update_raw_value(state, stored_value);
-			on_value_change(state, stored_value);
+			//on_value_change(state, stored_value);
 		}
 	}
 }

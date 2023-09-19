@@ -704,10 +704,9 @@ void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
 	auto control = state.world.rebel_faction_get_province_rebel_control(reb);
 	for(auto p : control) {
 		auto prov = p.get_province();
-		prov.set_nation_from_province_control(prov.get_nation_from_province_ownership());
-		prov.set_last_control_change(state.current_date);
-		// we let the deletion of the rebel faction undo the rebel control itself
+		province::set_province_controller(state, prov, prov.get_nation_from_province_ownership());
 	}
+
 	state.world.delete_rebel_faction(reb);
 }
 
@@ -881,10 +880,7 @@ void rebel_risings_check(sys::state& state) {
 								effect::execute(state, swe, trigger::to_generic(p), trigger::to_generic(faction_owner.id), trigger::to_generic(rf.id), uint32_t(state.current_date.value), uint32_t((rf.id.index() << 3) ^ p.index()));
 							}
 						}
-						state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
-						state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
-						state.world.province_set_last_control_change(p, state.current_date);
-
+						province::set_province_controller(state, p, rf);
 						military::eject_ships(state, p);
 					} else { // failure -- treat rebels as defeated
 						for(auto pop : state.world.province_get_pop_location(p)) {

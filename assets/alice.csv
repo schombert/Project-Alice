@@ -1226,4 +1226,5 @@ close_and_del;Close & Delete Factory
 cb_conditions_header;Conditions to use:
 as_a_vassal;as a vassal
 change_state_name_to;change state name to $text$
+alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 ;;;;;;;;;;;;;x
