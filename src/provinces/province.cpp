@@ -135,6 +135,41 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 	return best_choice;
 }
 
+void set_province_controller(sys::state& state, dcon::province_id p, dcon::nation_id n) {
+	auto old_con = state.world.province_get_nation_from_province_control(p);
+	if(old_con != n) {
+		state.world.province_set_last_control_change(p, state.current_date);
+		auto rc = state.world.province_get_rebel_faction_from_province_rebel_control(p);
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(rc && owner) {
+			state.world.nation_get_rebel_controlled_count(owner) -= uint16_t(1);
+			if(!is_overseas(state, p)) {
+				state.world.nation_get_central_rebel_controlled(owner) -= uint16_t(1);
+			}
+		}
+		state.world.province_set_rebel_faction_from_province_rebel_control(p, dcon::rebel_faction_id{});
+		state.world.province_set_nation_from_province_control(p, n);
+		state.military_definitions.pending_blackflag_update = true;
+	}
+}
+
+void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel_faction_id rf) {
+	auto old_con = state.world.province_get_rebel_faction_from_province_rebel_control(p);
+	if(old_con != rf) {
+		state.world.province_set_last_control_change(p, state.current_date);
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(!old_con && owner) {
+			state.world.nation_get_rebel_controlled_count(owner) += uint16_t(1);
+			if(!is_overseas(state, p)) {
+				state.world.nation_get_central_rebel_controlled(owner) += uint16_t(1);
+			}
+		}
+		state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
+		state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
+		state.military_definitions.pending_blackflag_update = true;
+	}
+}
+
 void restore_cached_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_owned_province_count(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_province_count(ids, ve::int_vector()); });

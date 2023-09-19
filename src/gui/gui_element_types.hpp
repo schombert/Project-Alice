@@ -1478,6 +1478,19 @@ public:
 	}
 
 	void open(sys::state& state, ui::xy_pair location, ui::xy_pair source_size, dcon::province_id p, bool port) {
+		if(!as_port) {
+			if(p.index() < state.province_definitions.first_sea_province.index()) {
+				auto arange = state.world.province_get_army_location(p);
+				if(int32_t(arange.end() - arange.begin()) <= 1)
+					return;
+			} else {
+				auto arange = state.world.province_get_army_location(p);
+				auto nrange = state.world.province_get_navy_location(p);
+				if(int32_t(nrange.end() - nrange.begin()) <= 1 && arange.begin() == arange.end())
+					return;
+			}
+		}
+
 		as_port = port;
 		for_province = p;
 

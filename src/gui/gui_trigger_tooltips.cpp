@@ -2131,7 +2131,7 @@ void tf_is_core_tag(TRIGGER_DISPLAY_PARAMS) {
 void tf_num_of_revolts(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_reb_control"), int64_t(tval[2]), ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_reb_control"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_revolt_percentage(TRIGGER_DISPLAY_PARAMS) {
@@ -2144,7 +2144,7 @@ void tf_revolt_percentage(TRIGGER_DISPLAY_PARAMS) {
 void tf_num_of_cities_int(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"), int64_t(tval[2]), ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_cities_from_nation(TRIGGER_DISPLAY_PARAMS) {

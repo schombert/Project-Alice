@@ -139,4 +139,7 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start);
 
+void set_province_controller(sys::state& state, dcon::province_id p, dcon::nation_id n);
+void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel_faction_id rf);
+
 } // namespace province
