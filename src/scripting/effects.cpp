@@ -2293,27 +2293,29 @@ uint32_t ef_remove_country_modifier(EFFECT_PARAMTERS) {
 }
 uint32_t ef_create_alliance(EFFECT_PARAMTERS) {
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
-	if(holder)
+	if(holder && ws.world.nation_get_owned_province_count(holder) != 0 && ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) != 0)
 		nations::make_alliance(ws, holder, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_create_alliance_this_nation(EFFECT_PARAMTERS) {
-	nations::make_alliance(ws, trigger::to_nation(primary_slot), trigger::to_nation(this_slot));
+	if(ws.world.nation_get_owned_province_count(trigger::to_nation(this_slot)) != 0 && ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) != 0)
+		nations::make_alliance(ws, trigger::to_nation(primary_slot), trigger::to_nation(this_slot));
 	return 0;
 }
 uint32_t ef_create_alliance_this_province(EFFECT_PARAMTERS) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
-	if(owner)
+	if(owner && ws.world.nation_get_owned_province_count(owner) != 0 && ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) != 0)
 		nations::make_alliance(ws, trigger::to_nation(primary_slot), owner);
 	return 0;
 }
 uint32_t ef_create_alliance_from_nation(EFFECT_PARAMTERS) {
-	nations::make_alliance(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot));
+	if(ws.world.nation_get_owned_province_count(trigger::to_nation(from_slot)) != 0 && ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) != 0)
+		nations::make_alliance(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot));
 	return 0;
 }
 uint32_t ef_create_alliance_from_province(EFFECT_PARAMTERS) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot));
-	if(owner)
+	if(owner && ws.world.nation_get_owned_province_count(owner) != 0 && ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) != 0)
 		nations::make_alliance(ws, trigger::to_nation(primary_slot), owner);
 	return 0;
 }
@@ -2324,6 +2326,8 @@ uint32_t ef_release_vassal(EFFECT_PARAMTERS) {
 	auto hprovs = ws.world.nation_get_province_ownership(holder);
 	if(hprovs.begin() == hprovs.end()) {
 		nations::liberate_nation_from(ws, trigger::payload(tval[1]).tag_id, trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_owned_province_count(holder) == 0)
+			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
 			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
@@ -2344,6 +2348,8 @@ uint32_t ef_release_vassal_this_nation(EFFECT_PARAMTERS) {
 	if(hprovs.begin() == hprovs.end()) {
 		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)),
 				trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_owned_province_count(trigger::to_nation(this_slot)) == 0)
+			return 0;
 		ws.world.force_create_overlord(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
 			auto sr = ws.world.force_create_gp_relationship(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
@@ -2367,6 +2373,8 @@ uint32_t ef_release_vassal_this_province(EFFECT_PARAMTERS) {
 	if(hprovs.begin() == hprovs.end()) {
 		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(holder),
 				trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_owned_province_count(holder) == 0)
+			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
 			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
@@ -2387,6 +2395,8 @@ uint32_t ef_release_vassal_from_nation(EFFECT_PARAMTERS) {
 	if(hprovs.begin() == hprovs.end()) {
 		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)),
 				trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_owned_province_count(trigger::to_nation(from_slot)) == 0)
+			return 0;
 		ws.world.force_create_overlord(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
 			auto sr = ws.world.force_create_gp_relationship(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
@@ -2410,6 +2420,8 @@ uint32_t ef_release_vassal_from_province(EFFECT_PARAMTERS) {
 	if(hprovs.begin() == hprovs.end()) {
 		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(holder),
 				trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_owned_province_count(holder) == 0)
+			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
 			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
@@ -2433,6 +2445,8 @@ uint32_t ef_release_vassal_reb(EFFECT_PARAMTERS) {
 	auto hprovs = ws.world.nation_get_province_ownership(holder);
 	if(hprovs.begin() == hprovs.end()) {
 		nations::liberate_nation_from(ws, itag, trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_owned_province_count(holder) == 0)
+			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
 			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
@@ -3242,7 +3256,8 @@ uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!target)
 		return 0;
-
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
@@ -3259,7 +3274,8 @@ uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 }
 uint32_t ef_war_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
-
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
 			trigger::payload(tval[6]).tag_id,
@@ -3301,7 +3317,8 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!target)
 		return 0;
-
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
@@ -3317,7 +3334,8 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 }
 uint32_t ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
-
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
 			trigger::payload(tval[6]).tag_id,

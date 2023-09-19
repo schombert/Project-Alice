@@ -2741,18 +2741,28 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-	// run the economy for three days on scenario creation
-	economy::update_rgo_employment(*this);
-	economy::update_factory_employment(*this);
-	economy::daily_update(*this);
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		auto rgo = this->world.province_get_rgo(p);
+		if(!rgo) {
+			auto name = this->world.province_get_name(p);
+			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
+		}
+	});
 
-	economy::update_rgo_employment(*this);
-	economy::update_factory_employment(*this);
-	economy::daily_update(*this);
+	if(err.accumulated_errors.size() == 0) {
+		// run the economy for three days on scenario creation
+		economy::update_rgo_employment(*this);
+		economy::update_factory_employment(*this);
+		economy::daily_update(*this);
 
-	economy::update_rgo_employment(*this);
-	economy::update_factory_employment(*this);
-	economy::daily_update(*this);
+		economy::update_rgo_employment(*this);
+		economy::update_factory_employment(*this);
+		economy::daily_update(*this);
+
+		economy::update_rgo_employment(*this);
+		economy::update_factory_employment(*this);
+		economy::daily_update(*this);
+	}
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
@@ -2964,11 +2974,20 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military::update_blackflag_status(*this);
 
 #ifndef  NDEBUG
-	for(auto p : world.in_peace_offer) {
-		auto n = p.get_nation_from_pending_peace_offer();
-		if(auto w = p.get_war_from_war_settlement(); w) {
-			if(military::get_role(*this, w, n) == military::war_role::none) {
-				p.set_war_from_war_settlement(dcon::war_id{});
+	for(auto p : world.in_pop) {
+		float total = 0.0f;
+		for(auto i : world.in_ideology) {
+			auto& val = p.get_demographics(pop_demographics::to_key(*this, i));
+			if(0.0 <= val && val <= 1.0f) {
+				total += val;
+			} else {
+				val = 0.0f;
+			}
+		}
+		if(total > 0.0f) {
+			for(auto i : world.in_ideology) {
+				auto& val = p.get_demographics(pop_demographics::to_key(*this, i));
+				val = val / total;
 			}
 		}
 	}

@@ -6167,9 +6167,9 @@ void update_siege_progress(sys::state& state) {
 				auto old_rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
 				if(old_rf) {
 					for(auto pop : state.world.province_get_pop_location(prov)) {
-						if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
+						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
 							pop.get_pop().get_militancy() /= state.defines.reduction_after_defeat;
-						}
+						//}
 					}
 				}
 

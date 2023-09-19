@@ -1139,6 +1139,9 @@ bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
 }
 
 void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
+	if(state.world.nation_get_owned_province_count(a) == 0 || state.world.nation_get_owned_province_count(a) == 0)
+		return;
+
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 	if(!rel) {
 		rel = state.world.force_create_diplomatic_relation(a, b);
@@ -2672,6 +2675,9 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 }
 
 void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
+	if(state.world.nation_get_owned_province_count(great_power) == 0 || state.world.nation_get_owned_province_count(target) == 0)
+		return;
+
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
 	if(!rel) {
 		rel = state.world.force_create_gp_relationship(target, great_power);

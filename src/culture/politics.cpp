@@ -402,11 +402,11 @@ float pop_vote_weight(sys::state& state, dcon::pop_id p, dcon::nation_id n) {
 	auto vmod = [&]() {
 		switch(strata) {
 		case culture::pop_strata::poor:
-			return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_vote);
+			return std::max(0.0f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_vote));
 		case culture::pop_strata::middle:
-			return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_vote);
+			return std::max(0.0f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_vote));
 		case culture::pop_strata::rich:
-			return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_vote);
+			return std::max(0.0f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_vote));
 		default:
 			return 0.0f;
 		}

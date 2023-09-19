@@ -856,7 +856,7 @@ void rebel_risings_check(sys::state& state) {
 			float scale_factor = float(new_to_make) * 0.1f / total_damage; // 0.1 damage per regiment that would have been raised
 			for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0;) {
 				dcon::province_id p{dcon::province_id::value_base_t(i) };
-				if(auto dmg = province_damage.get(p) * scale_factor; dmg > 0.05f) { // threshold for flipping a province
+				if(auto dmg = province_damage.get(p) * scale_factor; dmg > 0.05f + 0.1f * state.world.province_get_building_level(p, economy::province_building_type::fort)) { // threshold for flipping a province
 					float total_army_strength = 0.0f;
 
 					// first, sum up all strength in province
@@ -909,6 +909,12 @@ void rebel_risings_check(sys::state& state) {
 
 					if(damage_fraction >= 1.0f) {
 						military::update_blackflag_status(state, p);
+					}
+				} else { // not enough damage to the province: failure -- treat rebels as defeated
+					for(auto pop : state.world.province_get_pop_location(p)) {
+						if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == rf) {
+							pop.get_pop().get_militancy() /= state.defines.reduction_after_defeat;
+						}
 					}
 				}
 			}

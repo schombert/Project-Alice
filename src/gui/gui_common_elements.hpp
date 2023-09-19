@@ -1228,19 +1228,15 @@ protected:
 		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib;
 		auto nat_id = retrieve<dcon::nation_id>(state, parent);
 
-		auto total = politics::vote_total(state, nat_id);
-		if(total <= 0.f) {
-			enabled = false;
-			return distrib;
-		} else {
-			enabled = true;
-		}
+		float total = 0.0f;
+
 		auto ideo_pool = std::vector<float>(state.world.ideology_size());
 		state.world.for_each_province([&](dcon::province_id province) {
 			if(nat_id == state.world.province_get_nation_from_province_ownership(province)) {
 				for(auto pop_loc : state.world.province_get_pop_location(province)) {
 					auto pop_id = pop_loc.get_pop();
 					float vote_size = politics::pop_vote_weight(state, pop_id, nat_id);
+					total += vote_size;
 					state.world.for_each_ideology([&](dcon::ideology_id iid) {
 						auto dkey = pop_demographics::to_key(state, iid);
 						ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;
@@ -1248,9 +1244,11 @@ protected:
 				}
 			}
 		});
+		
 		for(size_t i = 0; i < ideo_pool.size(); i++) {
 			distrib[dcon::ideology_id::value_base_t(i)] = ideo_pool[i] / total;
 		}
+		enabled = (total > 0.0f);
 		return distrib;
 	}
 };
