@@ -1384,6 +1384,11 @@ void release_vassal(sys::state& state, dcon::overlord_id rel) {
 }
 
 void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	if(subject == overlord)
+		return;
+	if(state.world.nation_get_owned_province_count(subject) == 0 || state.world.nation_get_owned_province_count(overlord) == 0)
+		return;
+
 	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
 	auto current_ruler = state.world.overlord_get_ruler(current_ol);
 
@@ -1402,6 +1407,11 @@ void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id ove
 	}
 }
 void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	if(subject == overlord)
+		return;
+	if(state.world.nation_get_owned_province_count(subject) == 0 || state.world.nation_get_owned_province_count(overlord) == 0)
+		return;
+
 	auto current_ol = state.world.nation_get_overlord_as_subject(subject);
 	auto current_ruler = state.world.overlord_get_ruler(current_ol);
 
@@ -1456,6 +1466,8 @@ void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	}
 }
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	if(a == b)
+		return;
 	auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 	if(!r) {
 		r = state.world.force_create_diplomatic_relation(a, b);
@@ -2666,6 +2678,9 @@ void perform_nationalization(sys::state& state, dcon::nation_id n) {
 }
 
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
+	if(great_power == target)
+		return;
+
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
 	if(!rel) {
 		rel = state.world.force_create_gp_relationship(target, great_power);
@@ -2676,6 +2691,8 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 
 void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
 	if(state.world.nation_get_owned_province_count(great_power) == 0 || state.world.nation_get_owned_province_count(target) == 0)
+		return;
+	if(great_power == target)
 		return;
 
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);

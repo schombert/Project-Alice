@@ -2060,6 +2060,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.technology_resize_activate_building(world.factory_type_size());
 	world.technology_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 	world.technology_resize_increase_building(uint32_t(economy::max_building_types));
+	world.invention_resize_increase_building(uint32_t(economy::max_building_types));
 
 	world.invention_resize_activate_building(world.factory_type_size());
 	world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
@@ -3023,6 +3024,7 @@ void state::single_game_tick() {
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
 		mode = sys::game_mode_type::end_screen;
+		game_state_updated.store(true, std::memory_order::release);
 		return;
 	}
 

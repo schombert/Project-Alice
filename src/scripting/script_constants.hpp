@@ -1543,8 +1543,12 @@ constexpr inline uint16_t have_core_in_nation_this = 0x0299;
 constexpr inline uint16_t have_core_in_nation_from = 0x029A;
 constexpr inline uint16_t owns_province = 0x029B;
 constexpr inline uint16_t empty_state = 0x029C;
+constexpr inline uint16_t is_overseas_pop = 0x029D;
+constexpr inline uint16_t primary_culture_pop = 0x029E;
+constexpr inline uint16_t plurality_pop = 0x029F;
+constexpr inline uint16_t is_overseas_state = 0x02A0;
 
-constexpr inline uint16_t first_scope_code = 0x029D;
+constexpr inline uint16_t first_scope_code = 0x02A1;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2287,6 +2291,10 @@ inline constexpr int32_t data_sizes[] = {
 		0, //constexpr inline uint16_t have_core_in_nation_from = 0x029A;
 		1, //constexpr inline uint16_t owns_province = 0x029B;
 		0, //constexpr inline uint16_t empty_state = 0x029C;
+		0, //constexpr inline uint16_t is_overseas_pop = 0x029D;
+		1, //constexpr inline uint16_t primary_culture_pop = 0x029E;
+		2, //constexpr inline uint16_t plurality_pop = 0x029F;
+		0, //constexpr inline uint16_t is_overseas_state = 0x02A0;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

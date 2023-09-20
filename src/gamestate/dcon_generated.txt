@@ -1591,7 +1591,7 @@ object {
 	}
 	property{
 		name{ path }
-		type{vector_pool{5000}{province_id}}
+		type{vector_pool{16000}{province_id}}
 		tag{ save }
 	}
 	property{
@@ -2804,6 +2804,11 @@ object {
 	property{
 		name{ colonial_points }
 		type{int16_t}
+		tag{ scenario }
+	}
+	property {
+		name{ increase_building }
+		type{ array{economy::province_building_type}{bitfield} }
 		tag{ scenario }
 	}
 	property{
@@ -4153,7 +4158,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 90000 }
+	size{ 200000 }
 	tag{ save }
 
 	property{
