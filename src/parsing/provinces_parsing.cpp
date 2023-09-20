@@ -67,7 +67,7 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 				// 2204;2206;sea;3001;0;Panama strait
 				auto first_value = parsers::parse_int(first_text, 0, err);
 				auto second_value = parsers::parse_int(second_text, 0, err);
-				if(first_value == 0 || second_value == 0) {
+				if(first_value <= 0 || second_value <= 0) {
 					// dead line
 				} else if(size_t(first_value) >= context.original_id_to_prov_id_map.size()) {
 					err.accumulated_errors += "Province id " + std::to_string(first_value) + " is too large (" + err.file_name + ")\n";

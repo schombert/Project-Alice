@@ -120,7 +120,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
-		
+
 		if(mode == sys::game_mode_type::pick_nation) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
@@ -180,7 +180,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			selected_armies.clear();
 			selected_navies.clear();
 		}
-		
+
 		for(auto a : world.nation_get_army_control(local_player_nation)) {
 			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
 				auto loc = a.get_army().get_location_from_army_location();
@@ -964,7 +964,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, false);
 	}
 
-	
+
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
@@ -2060,6 +2060,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.technology_resize_activate_building(world.factory_type_size());
 	world.technology_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 	world.technology_resize_increase_building(uint32_t(economy::max_building_types));
+	world.invention_resize_increase_building(uint32_t(economy::max_building_types));
 
 	world.invention_resize_activate_building(world.factory_type_size());
 	world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
@@ -3023,6 +3024,7 @@ void state::single_game_tick() {
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
 		mode = sys::game_mode_type::end_screen;
+		game_state_updated.store(true, std::memory_order::release);
 		return;
 	}
 

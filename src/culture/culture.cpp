@@ -206,6 +206,16 @@ void repopulate_invention_effects(sys::state& state) {
 		}
 		*/
 
+		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+			if(inv_id.get_increase_building(t)) {
+				state.world.execute_serial_over_nation([&](auto nation_indices) {
+					auto has_tech_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
+					auto old_rr_value = state.world.nation_get_max_building_level(nation_indices, t);
+					state.world.nation_set_max_building_level(nation_indices, t, ve::select(has_tech_mask, old_rr_value + 1, old_rr_value));
+				});
+			}
+		}
+
 		if(inv_id.get_enable_gas_attack()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
@@ -471,6 +481,13 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 		}
 	}
+
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(inv_id.get_increase_building(t)) {
+			state.world.nation_get_max_building_level(target_nation, t) += 1;
+		}
+	}
+
 	state.world.nation_get_permanent_colonial_points(target_nation) += inv_id.get_colonial_points();
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, true);
@@ -571,6 +588,13 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
 		}
 	}
+
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(inv_id.get_increase_building(t)) {
+			state.world.nation_get_max_building_level(target_nation, t) -= 1;
+		}
+	}
+
 	state.world.nation_get_permanent_colonial_points(target_nation) -= inv_id.get_colonial_points();
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, false);

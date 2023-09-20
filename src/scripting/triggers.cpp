@@ -1278,6 +1278,10 @@ TRIGGER_FUNCTION(tf_primary_culture) {
 	return compare_values_eq(tval[0], ws.world.nation_get_primary_culture(to_nation(primary_slot)),
 			trigger::payload(tval[1]).cul_id);
 }
+TRIGGER_FUNCTION(tf_primary_culture_pop) {
+	return compare_values_eq(tval[0], ws.world.nation_get_primary_culture(nations::owner_of_pop(ws, to_pop(primary_slot))),
+			trigger::payload(tval[1]).cul_id);
+}
 TRIGGER_FUNCTION(tf_accepted_culture) {
 	auto is_accepted = ve::apply(
 			[&ws, c = trigger::payload(tval[1]).cul_id](dcon::nation_id n) {
@@ -2462,6 +2466,9 @@ TRIGGER_FUNCTION(tf_total_amount_of_ships) {
 TRIGGER_FUNCTION(tf_plurality) {
 	return compare_values(tval[0], ws.world.nation_get_plurality(to_nation(primary_slot)), read_float_from_payload(tval + 1));
 }
+TRIGGER_FUNCTION(tf_plurality_pop) {
+	return compare_values(tval[0], ws.world.nation_get_plurality(nations::owner_of_pop(ws, to_pop(primary_slot))), read_float_from_payload(tval + 1));
+}
 TRIGGER_FUNCTION(tf_corruption) {
 	return compare_values(tval[0], nations::central_has_crime_fraction(ws, to_nation(primary_slot)),
 			read_float_from_payload(tval + 1));
@@ -2872,6 +2879,12 @@ TRIGGER_FUNCTION(tf_nationalism) {
 }
 TRIGGER_FUNCTION(tf_is_overseas) {
 	return compare_to_true(tval[0], province::is_overseas(ws, to_prov(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_is_overseas_pop) {
+	return compare_to_true(tval[0], province::is_overseas(ws, ws.world.pop_get_province_from_pop_location(to_pop(primary_slot))));
+}
+TRIGGER_FUNCTION(tf_is_overseas_state) {
+	return compare_to_true(tval[0], province::is_overseas(ws, ws.world.state_instance_get_capital(to_state(primary_slot))));
 }
 TRIGGER_FUNCTION(tf_controlled_by_rebels) {
 	return compare_to_true(tval[0],
@@ -6383,8 +6396,10 @@ struct trigger_container {
 			tf_have_core_in_nation_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t have_core_in_nation_from = 0x029A;
 			tf_owns_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owns_province = 0x029B;
 			tf_empty_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t empty_state = 0x029C;
-
-
+			tf_is_overseas_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_overseas_pop = 0x029D;
+			tf_primary_culture_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t primary_culture_pop = 0x029E;
+			tf_plurality_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t plurality_pop = 0x029F;
+			tf_is_overseas_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_overseas_state = 0x02A0;
 			//
 			// scopes
 			//
