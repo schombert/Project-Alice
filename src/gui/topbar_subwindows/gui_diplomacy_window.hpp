@@ -1086,24 +1086,6 @@ public:
 template<class T>
 class nation_status_diplomacy_window : public simple_text_element_base {
 public:
-	std::string get_status(sys::state& state, dcon::nation_id nation_id) {
-		switch(nations::get_status(state, nation_id)) {
-		case nations::status::great_power:
-			return text::produce_simple_string(state, "diplomacy_greatnation_status");
-		case nations::status::secondary_power:
-			return text::produce_simple_string(state, "diplomacy_colonialnation_status");
-		case nations::status::civilized:
-			return text::produce_simple_string(state, "diplomacy_civilizednation_status");
-		case nations::status::westernizing:
-			return text::produce_simple_string(state, "diplomacy_almost_western_nation_status");
-		case nations::status::uncivilized:
-			return text::produce_simple_string(state, "diplomacy_uncivilizednation_status");
-		case nations::status::primitive:
-			return text::produce_simple_string(state, "diplomacy_primitivenation_status");
-		default:
-			return text::produce_simple_string(state, "diplomacy_greatnation_status");
-		}
-	}
 
 	void on_update(sys::state& state) noexcept override {
 		T content = retrieve<T>(state, parent);
@@ -1111,11 +1093,11 @@ public:
 		dcon::nation_id overlord_nation = state.world.overlord_get_ruler(overlord);
 		auto fat_id = dcon::fatten(state.world, overlord_nation);
 		if(state.world.nation_get_is_substate(content)) {
-			simple_text_element_base::set_text(state, get_status(state, content) + ", " + text::produce_simple_string(state, "substate_of_nocolor") + " " + text::get_name_as_string(state, fat_id));
+			simple_text_element_base::set_text(state, ui::get_status_text(state, content) + ", " + text::produce_simple_string(state, "substate_of_nocolor") + " " + text::get_name_as_string(state, fat_id));
 		} else if(overlord_nation) {
-			simple_text_element_base::set_text(state, get_status(state, content) + ", " + text::produce_simple_string(state, "satellite_of_nocolor") + " " + text::get_name_as_string(state, fat_id));
+			simple_text_element_base::set_text(state, ui::get_status_text(state, content) + ", " + text::produce_simple_string(state, "satellite_of_nocolor") + " " + text::get_name_as_string(state, fat_id));
 		} else {
-			simple_text_element_base::set_text(state, get_status(state, content));
+			simple_text_element_base::set_text(state, ui::get_status_text(state, content));
 		}
 	}
 };
