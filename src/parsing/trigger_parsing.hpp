@@ -1738,6 +1738,8 @@ struct trigger_body {
 		} else if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::primary_culture | association_to_bool_code(a)));
+			} else if(context.main_slot == trigger::slot_contents::pop) {
+				context.compiled_trigger.push_back(uint16_t(trigger::primary_culture_pop | association_to_bool_code(a)));
 			} else {
 				err.accumulated_errors += "primary_culture trigger used in an incorrect scope type " +
 					slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3703,6 +3705,8 @@ struct trigger_body {
 	void plurality(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_trigger.push_back(uint16_t(trigger::plurality | association_to_trigger_code(a)));
+		} else if(context.main_slot == trigger::slot_contents::pop) {
+			context.compiled_trigger.push_back(uint16_t(trigger::plurality_pop | association_to_trigger_code(a)));
 		} else {
 			err.accumulated_errors += "plurality trigger used in an incorrect scope type " +
 																slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -4213,6 +4217,12 @@ struct trigger_body {
 		if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_trigger.push_back(
 					uint16_t(trigger::is_overseas | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.main_slot == trigger::slot_contents::pop) {
+			context.compiled_trigger.push_back(
+					uint16_t(trigger::is_overseas_pop | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_trigger.push_back(
+					uint16_t(trigger::is_overseas_state | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "is_overseas trigger used in an incorrect scope type " +
 																slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +

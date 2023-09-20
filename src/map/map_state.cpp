@@ -96,8 +96,6 @@ void map_state::update(sys::state& state) {
 	// Set the last_update_time if it hasn't been set yet
 	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
 		last_update_time = now;
-	if(last_zoom_time == std::chrono::time_point<std::chrono::system_clock>{})
-		last_zoom_time = now;
 
 	update_unit_arrows(state, map_data);
 
@@ -130,9 +128,37 @@ void map_state::update(sys::state& state) {
 
 	glm::vec2 velocity;
 
-	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
+	velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
 	pos += velocity;
+
+	pos.x = glm::mod(pos.x, 1.f);
+	pos.y = glm::clamp(pos.y, 0.f, 1.f);
+
+	if(pgup_key_down) {
+		zoom_change += 0.1f;
+	}
+	if(pgdn_key_down) {
+		zoom_change -= 0.1f;
+	}
+
+	glm::vec2 mouse_pos{state.mouse_x_position, state.mouse_y_position};
+	glm::vec2 screen_size{state.x_size, state.y_size};
+	auto view_mode = state.user_settings.map_is_globe ? map_view::globe : map_view::flat;
+	glm::vec2 pos_before_zoom;
+	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
+
+	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
+	zoom += zoom_diff;
+	zoom_change *= std::exp(-seconds_since_last_update*20);
+	zoom_change = zoom_change > 0.001f ? zoom_change : 0;
+	zoom = glm::clamp(zoom, 1.f, 75.f);
+
+	glm::vec2 pos_after_zoom;
+	if (valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
+		pos += pos_before_zoom - pos_after_zoom;
+	}
+
 
 	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
 	// Rotation axis
@@ -141,29 +167,6 @@ void map_state::update(sys::state& state) {
 	axis = glm::normalize(axis);
 	axis.y *= -1;
 	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
-
-	if(pgup_key_down) {
-		zoom_change += 0.1f;
-		has_zoom_changed = true;
-	}
-	if(pgdn_key_down) {
-		zoom_change -= 0.1f;
-		has_zoom_changed = true;
-	}
-	if(has_zoom_changed) {
-		last_zoom_time = now;
-		has_zoom_changed = false;
-	}
-	auto microseconds_since_last_zoom = std::chrono::duration_cast<std::chrono::microseconds>(now - last_zoom_time);
-	float seconds_since_last_zoom = (float)(microseconds_since_last_zoom.count() / 1e6);
-
-	zoom += (zoom_change * seconds_since_last_update) / (1 / zoom);
-	zoom_change *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
-	zoom = glm::clamp(zoom, 1.f, 75.f);
-	scroll_pos_velocity *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
-
-	pos.x = glm::mod(pos.x, 1.f);
-	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
@@ -251,19 +254,7 @@ void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int3
 		float amount) {
 	constexpr auto zoom_speed_factor = 15.f;
 
-	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
-	has_zoom_changed = true;
-
-	auto mouse_pos = glm::vec2(x, y);
-	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	scroll_pos_velocity = mouse_pos - screen_size * .5f;
-	scroll_pos_velocity /= screen_size;
-	scroll_pos_velocity *= zoom_speed_factor;
-	if(amount > 0) {
-		scroll_pos_velocity /= 3.f;
-	} else if(amount < 0) {
-		scroll_pos_velocity /= 6.f;
-	}
+	zoom_change = (amount / 5.f) * zoom_speed_factor;
 }
 
 void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
@@ -275,8 +266,10 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
 	}
-	float dist = glm::length(last_unit_box_drag_pos - mouse_pos);
-	if(left_mouse_down && dist >= 10) {
+	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos);
+	if((mouse_diff.x > std::ceil(screen_size_x * 0.0025f) || mouse_diff.y > std::ceil(screen_size_y * 0.0025f))
+		&& left_mouse_down)
+	{
 		auto pos1 = last_unit_box_drag_pos / screen_size;
 		auto pos2 = mouse_pos / screen_size;
 		auto pixel_size = glm::vec2(1) / screen_size;
@@ -352,11 +345,8 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 	left_mouse_down = false;
 	map_data.set_drag_box(false, {}, {}, {});
 	auto mouse_pos = glm::vec2(x, y);
-	float dist = glm::length(last_unit_box_drag_pos - mouse_pos);
-	if(dist >= 10) {
-		// DO SELECTION HERE
-
-	} else {
+	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos);
+	if(mouse_diff.x <= std::ceil(screen_size_x * 0.0025f) && mouse_diff.y <= std::ceil(screen_size_y * 0.0025f)) {
 		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 		glm::vec2 map_pos;
 		if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {

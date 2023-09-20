@@ -231,6 +231,7 @@ modifier_base
 	org_regain                                value      float            member_fn
 	reinforce_speed                           value      float            member_fn
 	land_organisation                         value      float            member_fn
+	army_organization                         value      float            member_fn (land_organisation)
 	naval_organisation                        value      float            member_fn
 	research_points                           value      float            member_fn
 	research_points_modifier                  value      float            member_fn
@@ -314,6 +315,8 @@ modifier_base
 	local_repair                              value      float            member_fn
 	local_ship_build                          value      float            member_fn
 	poor_savings_modifier                     value      float            member_fn
+	middle_savings_modifier                     value      float            discard
+	rich_savings_modifier                     value      float            discard
 	influence_modifier                        value      float            member_fn
 	diplomatic_points_modifier                value      float            member_fn
 	mobilisation_size                         value      float            member_fn (mobilization_size)
@@ -467,6 +470,7 @@ trait
 	speed           value    float       member_fn
 	experience      value    float       member_fn
 	reliability     value    float       member_fn
+	attrition     value    float       discard
 
 traits_set
 	#any           extern    make_trait              discard
@@ -720,6 +724,7 @@ province_history_file
 	party_loyalty     group          pv_party_loyalty   member_fn
 	state_building    group          pv_state_building  member_fn
 	revolt            value          none               discard
+	revolt            group          none               discard
 	is_slave          value          bool               member_fn
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
@@ -837,6 +842,7 @@ trigger_body
 	has_faction      value           text               member_fn
 	is_colonial      value           bool               member_fn
 	is_disarmed      value           bool               member_fn
+	disarmed      value           bool               member_fn (is_disarmed)
 	is_overseas      value           bool               member_fn
 	is_substate      value           bool               member_fn
 	life_rating      value           int                member_fn
@@ -945,6 +951,7 @@ trigger_body
 	has_recent_imigration      value       int          member_fn
 	has_recent_immigration     value       bool         member_fn (has_recent_imigration)
 	has_recently_lost_war      value       bool         member_fn
+	recently_lost_war      value       bool         member_fn (has_recently_lost_war)
 	political_reform_want      value       float        member_fn
 	poor_strata_militancy      value       float        member_fn
 	pop_majority_ideology      value       text         member_fn
@@ -1156,6 +1163,7 @@ ef_this_remove_casus_belli
 
 ef_wargoal
 	country                    value     text                           member_fn
+	target                    value     text                           member_fn (country)
 	casus_belli                value     text                           member_fn
 	state_province_id          value     int                            member_fn
 
@@ -1377,6 +1385,7 @@ effect_body
 	random_owned                    extern      ef_scope_random_owned       discard
 	random_province                 extern      ef_scope_random_owned       discard
 	any_owned                       extern      ef_scope_any_owned          discard
+	any_owned_province  extern      ef_scope_any_owned          discard
 	all_core                        extern      ef_scope_all_core           discard
 	any_state                       extern      ef_scope_any_state          discard
 	any_substate                       extern      ef_scope_any_substate          discard
@@ -1598,6 +1607,10 @@ inv_effect
 	rgo_goods_throughput       group      inv_rgo_goods_output   member  (rgo_goods_output)
 	factory_goods_throughput group   inv_fac_goods_throughput  member
 	factory_goods_output  group      inv_fac_goods_output   member
+	factory_goods_input  group      inv_fac_goods_output   discard
+	max_fort              value      int                    member_fn
+	max_railroad          value      int                    member_fn
+	max_naval_base        value      int                    member_fn
 	shared_prestige       value      float                  member_fn
 	plurality             value      float                  member_fn
 	activate_unit         value      text                   member_fn

@@ -702,22 +702,26 @@ uint32_t es_x_owned_scope_nation(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		std::vector<dcon::province_id> plist;
+
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 				if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
-					i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
+					plist.push_back(p.get_province());
 				}
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
-				i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
+				plist.push_back(p.get_province());
 			}
-			return i;
 		}
+
+		uint32_t i = 0;
+		for(auto p : plist) {
+			i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i);
+		}
+		return i;
 	}
 }
 uint32_t es_x_owned_scope_state(EFFECT_PARAMTERS) {
@@ -802,21 +806,25 @@ uint32_t es_x_core_scope(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		std::vector<dcon::province_id> plist;
+
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto p : cores_range) {
 				if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot))
-					i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
+					plist.push_back(p.get_province());
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto p : cores_range) {
-				i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
+				plist.push_back(p.get_province());
 			}
-			return i;
 		}
+
+		uint32_t i = 0;
+		for(auto p : plist) {
+			i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i);
+		}
+		return i;
 	}
 }
 uint32_t es_x_state_scope(EFFECT_PARAMTERS) {
@@ -840,21 +848,25 @@ uint32_t es_x_state_scope(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		std::vector<dcon::state_instance_id> slist;
+
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto si : ws.world.nation_get_state_ownership(trigger::to_nation(primary_slot))) {
 				if(trigger::evaluate(ws, limit, trigger::to_generic(si.get_state().id), this_slot, from_slot))
-					i += apply_subeffects(tval, ws, trigger::to_generic(si.get_state().id), this_slot, from_slot, r_hi, r_lo + i);
+					slist.push_back(si.get_state());
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto si : ws.world.nation_get_state_ownership(trigger::to_nation(primary_slot))) {
-				i += apply_subeffects(tval, ws, trigger::to_generic(si.get_state().id), this_slot, from_slot, r_hi, r_lo + i);
+				slist.push_back(si.get_state());
 			}
-			return i;
 		}
+
+		uint32_t i = 0;
+		for(auto p : slist) {
+			i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i);
+		}
+		return i;
 	}
 }
 uint32_t es_x_substate_scope(EFFECT_PARAMTERS) {
@@ -879,22 +891,26 @@ uint32_t es_x_substate_scope(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		std::vector<dcon::nation_id> nlist;
+
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto si : ws.world.nation_get_overlord_as_ruler(trigger::to_nation(primary_slot))) {
 				if(si.get_subject().get_is_substate() && trigger::evaluate(ws, limit, trigger::to_generic(si.get_subject().id), this_slot, from_slot))
-					i += apply_subeffects(tval, ws, trigger::to_generic(si.get_subject().id), this_slot, from_slot, r_hi, r_lo + i);
+					nlist.push_back(si.get_subject());
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto si : ws.world.nation_get_overlord_as_ruler(trigger::to_nation(primary_slot))) {
 				if(si.get_subject().get_is_substate())
-					i += apply_subeffects(tval, ws, trigger::to_generic(si.get_subject().id), this_slot, from_slot, r_hi, r_lo + i);
+					nlist.push_back(si.get_subject());
 			}
-			return i;
 		}
+
+		uint32_t i = 0;
+		for(auto p : nlist) {
+			i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i);
+		}
+		return i;
 	}
 }
 uint32_t es_random_list_scope(EFFECT_PARAMTERS) {

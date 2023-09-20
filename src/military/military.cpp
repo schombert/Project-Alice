@@ -367,7 +367,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 					 trigger::to_generic(secondary_nation))) {
 			bool validity = false;
 			if(allowed_states) { // check whether any state within the target is valid for free / liberate
-				if((state.world.cb_type_get_type_bits(cb) & cb_flag::all_allowed_states) == 0) {
+				if((state.world.cb_type_get_type_bits(cb) & cb_flag::all_allowed_states) != 0) {
 					for(auto si : state.world.nation_get_state_ownership(target)) {
 						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
 									 trigger::to_generic(secondary_nation))) {
@@ -1531,17 +1531,17 @@ int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal
 		for(auto prv : state.world.nation_get_province_ownership(target)) {
 			sum_target_prov_values += province_point_cost(state, prv.get_province(), target);
 		}
-		if(sum_target_prov_values > 0) {
+		auto secondary = secondary_nation ? secondary_nation : state.world.national_identity_get_nation_from_identity_holder(wargoal_tag);
+		bool is_lib = (bits & cb_flag::po_transfer_provinces) != 0;
 
-			if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal);
-					allowed_states && (bits & cb_flag::all_allowed_states) != 0) {
-				bool any_allowed = false;
+		if(sum_target_prov_values > 0) {
+			if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states && (bits & cb_flag::all_allowed_states) != 0) {
 				for(auto si : state.world.nation_get_state_ownership(target)) {
 					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
-								 trigger::to_generic(from))) {
+						is_lib ? trigger::to_generic(secondary) : trigger::to_generic(from))) {
 
 						province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id tprov) {
-							total += 2.8f * float(province_point_cost(state, tprov, target)) / float(sum_target_prov_values);
+							total += 280.0f * float(province_point_cost(state, tprov, target)) / float(sum_target_prov_values);
 						});
 					}
 				}
@@ -1717,9 +1717,8 @@ bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::c
 }
 bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
-	return (bits & (cb_flag::po_demand_state | cb_flag::po_transfer_provinces | cb_flag::po_destroy_naval_bases |
-										 cb_flag::po_destroy_forts)) != 0 &&
-				 (bits & cb_flag::all_allowed_states) == 0;
+	return (bits & (cb_flag::po_demand_state | cb_flag::po_transfer_provinces | cb_flag::po_destroy_naval_bases |  cb_flag::po_destroy_forts)) != 0
+		&&  (bits & cb_flag::all_allowed_states) == 0;
 }
 
 void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
@@ -2840,8 +2839,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		} else if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states) {
 			std::vector<dcon::state_instance_id> prior_states;
 			for(auto si : state.world.nation_get_state_ownership(target)) {
-				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
-							 trigger::to_generic(holder))) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from), trigger::to_generic(holder))) {
 					prior_states.push_back(si.get_state());
 				}
 			}
@@ -2882,8 +2880,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		} else if(auto allowed_states = state.world.cb_type_get_allowed_states(wargoal); allowed_states) {
 			std::vector<dcon::state_instance_id> prior_states;
 			for(auto si : state.world.nation_get_state_ownership(target)) {
-				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from),
-							 trigger::to_generic(from))) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(from), trigger::to_generic(from))) {
 					prior_states.push_back(si.get_state());
 				}
 			}
@@ -3483,11 +3480,10 @@ void update_ticking_war_score(sys::state& state) {
 					}
 				}
 			} else if(auto allowed_states = wg.get_type().get_allowed_states(); allowed_states) {
-				auto from_slot = wg.get_secondary_nation().id ? wg.get_secondary_nation().id
-																											: wg.get_associated_tag().get_nation_from_identity_holder().id;
+				auto from_slot = wg.get_secondary_nation().id ? wg.get_secondary_nation().id : wg.get_associated_tag().get_nation_from_identity_holder().id;
+				bool is_lib = (bits & cb_flag::po_transfer_provinces) != 0;
 				for(auto st : wg.get_target_nation().get_state_ownership()) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(st.get_state().id),
-								 trigger::to_generic(wg.get_added_by().id), trigger::to_generic(from_slot))) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(st.get_state().id), trigger::to_generic(wg.get_added_by().id), is_lib ? trigger::to_generic(from_slot) : trigger::to_generic(wg.get_added_by().id))) {
 
 						province::for_each_province_in_state_instance(state, st.get_state(), [&](dcon::province_id prv) {
 							++total_count;
@@ -3530,11 +3526,9 @@ void update_ticking_war_score(sys::state& state) {
 
 				float ratio = 0.0f;
 				if(attacker_goal) {
-					ratio =
-							war.get_defender_battle_score() > 0.0f ? war.get_attacker_battle_score() / war.get_defender_battle_score() : 10.0f;
+					ratio = war.get_defender_battle_score() > 0.0f ? war.get_attacker_battle_score() / war.get_defender_battle_score() : 10.0f;
 				} else {
-					ratio =
-							war.get_attacker_battle_score() > 0.0f ? war.get_defender_battle_score() / war.get_attacker_battle_score() : 10.0f;
+					ratio = war.get_attacker_battle_score() > 0.0f ? war.get_defender_battle_score() / war.get_attacker_battle_score() : 10.0f;
 				}
 				if(ratio >= wg.get_type().get_tws_battle_factor()) {
 					auto effective_percentage = std::min(ratio / state.defines.tws_battle_max_aspect, 1.0f);
@@ -4397,9 +4391,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 			if(war) {
 				if(state.world.land_battle_get_war_attacker_is_attacker(b)) {
-					state.world.war_get_attacker_battle_score(war) += score;
-				} else {
 					state.world.war_get_defender_battle_score(war) += score;
+				} else {
+					state.world.war_get_attacker_battle_score(war) += score;
 				}
 			}
 

@@ -119,7 +119,6 @@ remove_nat_mod;Remove national modifier $text$;;;Quitar el modificador nacional 
 make_alliance;Enter into an alliance with $text$;;;Entrar en una alianza con $text$;;;;;;;;;x
 becomes_independent;$text$ becomes an independent nation;;;$text$ se vuelve una nacion independiente;;;;;;;;;x
 release_as_independent;Release $text$ as an independent nation;;;Liberar $text$ como una nacion independiente;;;;;;;;;x
-enable_canal;Enable the $text$;;;Habilitar $text$;;;;;;;;;x
 set_global_flag;Set $text$ globally;;;Establecer $text$ globalmente;;;;;;;;;x
 remove_global_flag;Unset $text$ globally;;;Desestablecer $text$ globalmente;;;;;;;;;x
 change_national_value;Change national value to $text$;;;Cambiar valor nacional a $text$;;;;;;;;;x
@@ -243,6 +242,7 @@ government;government;;;Gobierno;;;;;;;;;x
 capital;capital;;;Capital;;;;;;;;;x
 technology_school;technology school;;;Escuela de tecnologia;;;;;;;;;x
 primary_culture;primary culture;;;Cultura primaria;;;;;;;;;x
+primary_culture_pop;the primary culture of the nation the pop is in
 an_accepted_culture;an accepted culture;;;Una cultura aceptada;;;;;;;;;x
 culture;culture;;;Cultura;;;;;;;;;x
 dominant_culture;dominant culture;;;Cultura dominante;;;;;;;;;x
@@ -338,6 +338,7 @@ percentage_recruited;percentage of recruited pops;;;;;;;;;;;;x
 in_cultural_core_prov;in a province with a core of the same culture;;;;;;;;;;;;x
 nationalism;nationalism;;;;;;;;;;;;x
 overseas;overseas;;;;;;;;;;;;x
+overseas_pop;located in an overseas province;;;;;;;;;;;;x
 controlled_by_rebel;controlled by rebels;;;;;;;;;;;;x
 controlled_by;controlled by;;;;;;;;;;;;x
 state_capital;state capital;;;;;;;;;;;;x
@@ -427,6 +428,7 @@ everyday_needs_satisfaction;everyday-needs satisfaction;;;;;;;;;;;;x
 luxury_needs_satisfaction;luxury-needs satisfaction;;;;;;;;;;;;x
 present_in_state;present in state;;;;;;;;;;;;x
 flashpoint;Flashpoint;;;;;;;;;;;;x
+plurality_pop;the plurality of the nation the pop is in
 an_ongoing_crisis;an ongoing crisis;;;;;;;;;;;;x
 there;There;;;;;;;;;;;;x
 current_crisis;current crisis;;;;;;;;;;;;x

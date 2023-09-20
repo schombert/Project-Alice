@@ -2063,14 +2063,14 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 				auto owner = nations::owner_of_pop(state, np);
 				if(state.world.ideology_get_is_civilized_only(i)) {
 					if(state.world.nation_get_is_civilized(owner)) {
-						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id),
-								trigger::to_generic(owner), 0);
+						auto amount = ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id),
+								trigger::to_generic(owner), 0) : 0.0f;
 						state.world.pop_set_demographics(np, i_key, amount);
 						totals += amount;
 					}
 				} else {
-					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id),
-							trigger::to_generic(owner), 0);
+					auto amount = ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id),
+							trigger::to_generic(owner), 0) : 0.0f;
 					state.world.pop_set_demographics(np, i_key, amount);
 					totals += amount;
 				}

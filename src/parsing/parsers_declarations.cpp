@@ -650,7 +650,7 @@ void individual_ideology::add_economic_reform(dcon::value_modifier_key value, er
 
 void cb_body::finish(individual_cb_context& context) {
 	auto bits = context.outer_context.state.world.cb_type_get_type_bits(context.id);
-	if((bits & military::cb_flag::po_transfer_provinces) != 0 && (bits & military::cb_flag::all_allowed_states) == 0)
+	if((bits & military::cb_flag::po_transfer_provinces) != 0 && (bits & military::cb_flag::all_allowed_states) == 0 && (bits & military::cb_flag::not_in_crisis) == 0)
 		context.outer_context.state.military_definitions.crisis_liberate = context.id;
 }
 
@@ -1516,8 +1516,7 @@ void technology_contents::max_railroad(association_type, int32_t value, error_ha
 	}
 }
 
-void technology_contents::max_naval_base(association_type, int32_t value, error_handler& err, int32_t line,
-		tech_context& context) {
+void technology_contents::max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
 	if(value == 1) {
 		context.outer_context.state.world.technology_set_increase_building(context.id, economy::province_building_type::naval_base, true);
 	} else {
@@ -1631,14 +1630,41 @@ void inv_effect::activate_unit(association_type, std::string_view value, error_h
 	}
 }
 
-void inv_effect::activate_building(association_type, std::string_view value, error_handler& err, int32_t line,
-		invention_context& context) {
-	if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
+void inv_effect::activate_building(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context) {
+	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fort")) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::fort, true);
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "railroad")) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::railroad, true);
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval_base")) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::naval_base, true);
+	} else if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
 			it != context.outer_context.map_of_factory_names.end()) {
 		context.outer_context.state.world.invention_set_activate_building(context.id, it->second, true);
 	} else {
 		err.accumulated_errors +=
 				"Invalid factory type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void inv_effect::max_fort(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	if(value == 1) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::fort, true);
+	} else {
+		err.accumulated_errors += "max_fort may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void inv_effect::max_railroad(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	if(value == 1) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::railroad, true);
+	} else {
+		err.accumulated_errors += "max_railroad may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void inv_effect::max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	if(value == 1) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::naval_base, true);
+	} else {
+		err.accumulated_errors += "max_naval_base may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -2779,7 +2805,7 @@ void generic_event::option(sys::event_option const& value, error_handler& err, i
 		options[last_option_added] = value;
 		++last_option_added;
 	} else {
-		err.accumulated_errors += "Event given too many options (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_warnings += "Event given too many options (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
