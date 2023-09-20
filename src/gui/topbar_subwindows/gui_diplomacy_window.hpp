@@ -1255,9 +1255,7 @@ public:
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_status") {
 			auto ptr = make_element_by_type<nation_status_diplomacy_window<dcon::nation_id>>(state, id);
-			//ptr->set_visible(state, false);
 			return ptr;
-			//return make_element_by_type<nation_status_text>(state, id);
 		} else if(name == "selected_nation_totalrank") {
 			return make_element_by_type<nation_rank_text>(state, id);
 		} else if(name == "ideology_icon") {
