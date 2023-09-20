@@ -128,17 +128,12 @@ void map_state::update(sys::state& state) {
 
 	glm::vec2 velocity;
 
-	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
+	velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
 	pos += velocity;
 
-	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
-	// Rotation axis
-	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
-	axis.z = 0;
-	axis = glm::normalize(axis);
-	axis.y *= -1;
-	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
+	pos.x = glm::mod(pos.x, 1.f);
+	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 
 	if(pgup_key_down) {
 		zoom_change += 0.1f;
@@ -147,14 +142,31 @@ void map_state::update(sys::state& state) {
 		zoom_change -= 0.1f;
 	}
 
-	zoom += (zoom_change * seconds_since_last_update) / (1 / zoom);
+	glm::vec2 mouse_pos{state.mouse_x_position, state.mouse_y_position};
+	glm::vec2 screen_size{state.x_size, state.y_size};
+	auto view_mode = state.user_settings.map_is_globe ? map_view::globe : map_view::flat;
+	glm::vec2 pos_before_zoom;
+	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
+
+	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
+	zoom += zoom_diff;
 	zoom_change *= std::exp(-seconds_since_last_update*20);
 	zoom_change = zoom_change > 0.001f ? zoom_change : 0;
 	zoom = glm::clamp(zoom, 1.f, 75.f);
-	scroll_pos_velocity *= std::exp(-seconds_since_last_update*20);
 
-	pos.x = glm::mod(pos.x, 1.f);
-	pos.y = glm::clamp(pos.y, 0.f, 1.f);
+	glm::vec2 pos_after_zoom;
+	if (valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
+		pos += pos_before_zoom - pos_after_zoom;
+	}
+
+
+	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
+	// Rotation axis
+	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
+	axis.z = 0;
+	axis = glm::normalize(axis);
+	axis.y *= -1;
+	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
@@ -243,17 +255,6 @@ void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int3
 	constexpr auto zoom_speed_factor = 15.f;
 
 	zoom_change = (amount / 5.f) * zoom_speed_factor;
-
-	auto mouse_pos = glm::vec2(x, y);
-	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	scroll_pos_velocity = mouse_pos - screen_size * .5f;
-	scroll_pos_velocity /= screen_size;
-	scroll_pos_velocity *= zoom_speed_factor;
-	if(amount > 0) {
-		scroll_pos_velocity /= 3.f;
-	} else if(amount < 0) {
-		scroll_pos_velocity /= 6.f;
-	}
 }
 
 void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
