@@ -1896,6 +1896,9 @@ struct inv_effect : public modifier_base {
 	void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context);
+	void max_fort(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
+	void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
+	void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 };
 
 struct invention_contents : public modifier_base {

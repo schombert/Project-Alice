@@ -1360,6 +1360,14 @@ void tf_primary_culture(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_primary_culture_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto t = trigger::payload(tval[1]).cul_id;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture_pop"),
+			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 
 void tf_primary_culture_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
@@ -3080,6 +3088,13 @@ void tf_plurality(TRIGGER_DISPLAY_PARAMS) {
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1) / 100.0f}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_plurality_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "plurality_pop"),
+			text::fp_percentage{ trigger::read_float_from_payload(tval + 1) / 100.0f }, ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_corruption(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -3765,6 +3780,12 @@ void tf_is_overseas(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "overseas"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_overseas_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "overseas_pop"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_controlled_by_rebels(TRIGGER_DISPLAY_PARAMS) {
@@ -7713,7 +7734,10 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_have_core_in_nation_from, //constexpr inline uint16_t have_core_in_nation_from = 0x029A;
 		tf_owns, //constexpr inline uint16_t owns_province = 0x029B;
 		tf_empty, //constexpr inline uint16_t empty_state = 0x029C;
-
+		tf_is_overseas_pop, //constexpr inline uint16_t is_overseas_pop = 0x029D;
+		tf_primary_culture_pop, //constexpr inline uint16_t primary_culture_pop = 0x029E;
+		tf_plurality_pop, //constexpr inline uint16_t plurality_pop = 0x029F;
+		tf_is_overseas, //constexpr inline uint16_t is_overseas_state = 0x02A0;
 		//
 		// scopes
 		//

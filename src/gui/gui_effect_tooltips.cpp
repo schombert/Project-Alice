@@ -2960,7 +2960,7 @@ uint32_t ef_enable_canal(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	auto canal_name = text::produce_simple_string(ws, std::string("canal_") + std::to_string(tval[1]));
-	text::add_to_substitution_map(m, text::variable_type::text, std::string_view{canal_name});
+	text::add_to_substitution_map(m, text::variable_type::name, std::string_view{canal_name});
 	text::localised_format_box(ws, layout, box, "enable_canal", m);
 	text::close_layout_box(layout, box);
 	return 0;

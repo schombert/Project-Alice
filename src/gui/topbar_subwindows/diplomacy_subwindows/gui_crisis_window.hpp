@@ -208,19 +208,17 @@ public:
 class diplomacy_crisis_attacker_backers : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) noexcept override {
-		if(bool(current_nation)) {
-			row_contents.clear();
-			for(uint32_t i = 0; i < state.crisis_participants.size(); i++) {
-				if(!state.crisis_participants[i].id)
-					break;
+		row_contents.clear();
+		for(uint32_t i = 0; i < state.crisis_participants.size(); i++) {
+			if(!state.crisis_participants[i].id)
+				break;
 
-				if(state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested && state.crisis_participants[i].id != state.primary_crisis_attacker) {
-					auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
-					row_contents.push_back(content.get_identity_from_identity_holder().id);
-				}
+			if(state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested && state.crisis_participants[i].id != state.primary_crisis_attacker) {
+				auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
+				row_contents.push_back(content.get_identity_from_identity_holder().id);
 			}
-			update(state);
 		}
+		update(state);
 	}
 };
 
@@ -375,19 +373,17 @@ public:
 class diplomacy_crisis_defender_backers : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) noexcept override {
-		if(bool(current_nation)) {
-			row_contents.clear();
-			for(uint32_t i = 0; i < state.crisis_participants.size(); i++) {
-				if(!state.crisis_participants[i].id)
-					break;
+		row_contents.clear();
+		for(uint32_t i = 0; i < state.crisis_participants.size(); i++) {
+			if(!state.crisis_participants[i].id)
+				break;
 
-				if(!state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested && state.crisis_participants[i].id != state.primary_crisis_defender) {
-					auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
-					row_contents.push_back(content.get_identity_from_identity_holder().id);
-				}
+			if(!state.crisis_participants[i].supports_attacker && !state.crisis_participants[i].merely_interested && state.crisis_participants[i].id != state.primary_crisis_defender) {
+				auto content = dcon::fatten(state.world, state.crisis_participants[i].id);
+				row_contents.push_back(content.get_identity_from_identity_holder().id);
 			}
-			update(state);
 		}
+		update(state);
 	}
 };
 

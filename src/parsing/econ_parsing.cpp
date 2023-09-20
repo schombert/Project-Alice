@@ -228,7 +228,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 				factory_handle.set_bonus_3_trigger(pt.bonuses[2].trigger);
 			}
 			if(pt.bonuses.size() >= 4) {
-				err.accumulated_errors += "Too many factory bonuses for " + std::string(name) + " (" + err.file_name + ")\n";
+				err.accumulated_warnings += "Too many factory bonuses for " + std::string(name) + " (" + err.file_name + ")\n";
 			}
 		} else {
 			err.accumulated_warnings += "Unused factory production type: " + std::string(name) + "\n";
