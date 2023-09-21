@@ -263,15 +263,20 @@ struct pending_nat_event {
 	token_generator generator_state;
 	bool text_assigned = false;
 	bool processed = false;
+	bool just_in_case_placeholder = false;
 
 	pending_nat_event() = default;
 	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot)
-			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), just_in_case_placeholder(false) { }
 	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot, token_generator const& generator_state)
 			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
-				text_assigned(true) { }
+				text_assigned(true), just_in_case_placeholder(false){ }
+	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
+			trigger::slot_contents from_slot, token_generator const& generator_state, bool just_in_case_placeholder)
+		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
+		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
 struct pending_prov_event {
 	dcon::provincial_event_id id;
@@ -281,15 +286,20 @@ struct pending_prov_event {
 	token_generator generator_state;
 	bool text_assigned = false;
 	bool processed = false;
+	bool just_in_case_placeholder = false;
 
 	pending_prov_event() = default;
 	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot)
-			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), just_in_case_placeholder(false) { }
 	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot, token_generator const& generator_state)
 			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
-				text_assigned(true) { }
+				text_assigned(true), just_in_case_placeholder(false) { }
+	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
+			trigger::slot_contents from_slot, token_generator const& generator_state, bool just_in_case_placeholder)
+		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
+		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
 struct scenario_building_context {
 	building_gfx_context gfx_context;
@@ -2468,10 +2478,14 @@ struct history_war_goal {
 	dcon::nation_id actor_;
 	dcon::nation_id receiver_;
 	dcon::cb_type_id casus_belli_;
+	dcon::nation_id secondary_;
+	dcon::province_id state_province_id_;
 
 	void receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+	void country(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context);
+	void state_province_id(association_type t, int32_t value, error_handler& err, int32_t line, war_history_context& context);
 
 	void finish(war_history_context&) { }
 };

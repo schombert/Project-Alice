@@ -5112,11 +5112,26 @@ void tf_num_of_vassals_no_substates(TRIGGER_DISPLAY_PARAMS) {
 			box);
 	text::close_layout_box(layout, box);
 }
+void tf_stronger_army_than_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
+	text::close_layout_box(layout, box);
+}
 void tf_brigades_compare_this(TRIGGER_DISPLAY_PARAMS) {
+	auto factor = trigger::read_float_from_payload(tval + 1);
+	text::substitution_map s;
+	text::add_to_substitution_map(s, text::variable_type::x, text::fp_one_place{ factor });
+	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
+
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_regiments"),
-			text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
@@ -5125,10 +5140,15 @@ void tf_brigades_compare_this(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_brigades_compare_from(TRIGGER_DISPLAY_PARAMS) {
+	auto factor = trigger::read_float_from_payload(tval + 1);
+	text::substitution_map s;
+	text::add_to_substitution_map(s, text::variable_type::x, text::fp_one_place{ factor });
+	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
+
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_regiments"),
-			text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
@@ -5137,10 +5157,15 @@ void tf_brigades_compare_from(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_brigades_compare_province_this(TRIGGER_DISPLAY_PARAMS) {
+	auto factor = trigger::read_float_from_payload(tval + 1);
+	text::substitution_map s;
+	text::add_to_substitution_map(s, text::variable_type::x, text::fp_one_place{ factor });
+	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
+
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner_num_regiments"),
-			text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
@@ -5149,10 +5174,15 @@ void tf_brigades_compare_province_this(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_brigades_compare_province_from(TRIGGER_DISPLAY_PARAMS) {
+	auto factor = trigger::read_float_from_payload(tval + 1);
+	text::substitution_map s;
+	text::add_to_substitution_map(s, text::variable_type::x, text::fp_one_place{ factor });
+	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
+
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner_num_regiments"),
-			text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
@@ -7738,6 +7768,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_primary_culture_pop, //constexpr inline uint16_t primary_culture_pop = 0x029E;
 		tf_plurality_pop, //constexpr inline uint16_t plurality_pop = 0x029F;
 		tf_is_overseas, //constexpr inline uint16_t is_overseas_state = 0x02A0;
+		tf_stronger_army_than_tag, //constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
+
 		//
 		// scopes
 		//

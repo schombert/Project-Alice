@@ -4393,7 +4393,7 @@ object {
 	}
 	property{
 		name{ legacy_id }
-		type{ uint16_t }
+		type{ uint32_t }
 		tag{ scenario }
 	}
 	property{

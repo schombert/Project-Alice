@@ -800,7 +800,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 					auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
 					if(ptrigger) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-								trigger::to_generic(owner), 0);
+								trigger::to_generic(pid), 0);
 						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
 						total += amount;
 					}
@@ -828,7 +828,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 						(!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					if(auto mtrigger = state.world.pop_type_get_issues(ptype, iid); mtrigger) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid),
-								trigger::to_generic(owner), 0);
+								trigger::to_generic(pid), 0);
 						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
 						total += amount;
 					}

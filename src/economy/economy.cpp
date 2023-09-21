@@ -608,7 +608,7 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	auto specific_pmod = state.world.nation_get_rgo_size(n, state.world.province_get_rgo(p));
 	auto bonus = pmod + nmod + specific_pmod + 1.0f;
 
-	return sz * std::max(bonus, 0.01f);
+	return std::max(sz * bonus, 0.01f);
 }
 
 inline constexpr float rgo_per_size_employment = 40'000.0f;
@@ -813,6 +813,9 @@ float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, d
 	modifiers.
 	*/
 	auto c = state.world.province_get_rgo(p);
+	if(!c)
+		return 0.0f;
+
 	bool is_mine = state.world.commodity_get_is_mine(c);
 
 	auto eff_size = rgo_effective_size(state, n, p);

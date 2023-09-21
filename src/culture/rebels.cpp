@@ -921,7 +921,17 @@ void rebel_risings_check(sys::state& state) {
 				notification::post(state, notification::message{
 					[reb = rf.id](sys::state& state, text::layout_base& contents) {
 						auto rn = rebel_name(state, reb);
-						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
+						auto province_control = state.world.rebel_faction_get_province_rebel_control(reb);
+						if(province_control.begin() != province_control.end()) {
+							text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
+							for(auto p : province_control) {
+								auto box = text::open_layout_box(contents, 15);
+								text::add_to_layout_box(state, contents, box, p.get_province().id);
+								text::close_layout_box(contents, box);
+							}
+						} else {
+							text::add_line(state, contents, "msg_revolt_2", text::variable_type::x, std::string_view{ rn });
+						}
 					},
 					"msg_revolt_title",
 					rf.get_ruler_from_rebellion_within(),

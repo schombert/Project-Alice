@@ -641,6 +641,9 @@ struct trigger_body {
 		} else if(context.main_slot == trigger::slot_contents::state) {
 			context.compiled_trigger.push_back(
 					uint16_t(trigger::is_colonial_state | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_trigger.push_back(
+					uint16_t(trigger::colonial_nation | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "is_colonial trigger used in an incorrect scope type " +
 																slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
@@ -3415,12 +3418,33 @@ struct trigger_body {
 			}
 		} else {
 			err.accumulated_errors += "tag trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) +
-																"(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+																" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
-	void neighbour(association_type a, std::string_view value, error_handler& err, int32_t line,
-			trigger_building_context& context) {
+	void stronger_army_than(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			if(value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_trigger.push_back(uint16_t(trigger::stronger_army_than_tag | association_to_bool_code(a)));
+					context.compiled_trigger.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors +=
+						"stronger_army_than trigger supplied with an invalid tag " + std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors +=
+					"stronger_army_than trigger supplied with an invalid value " + std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors += "stronger_army_than trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) +
+				" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
+	void neighbour(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(is_this(value)) {
 				if(context.this_slot == trigger::slot_contents::nation)
@@ -4963,7 +4987,27 @@ struct trigger_body {
 		}
 	}
 	void pop_unemployment(tr_pop_unemployment const& value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(is_from(value.type)) {
+		if(is_this(value.type)) {
+			if(context.this_slot != trigger::slot_contents::pop) {
+				err.accumulated_errors += "pop_unemployment = this trigger used in an invalid context (" + err.file_name + ", line " +
+					std::to_string(line) + ")\n";
+				return;
+			} else if(context.main_slot == trigger::slot_contents::nation)
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::pop_unemployment_nation_this_pop | association_to_trigger_code(value.a)));
+			else if(context.main_slot == trigger::slot_contents::state)
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::pop_unemployment_state_this_pop | association_to_trigger_code(value.a)));
+			else if(context.main_slot == trigger::slot_contents::province)
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::pop_unemployment_province_this_pop | association_to_trigger_code(value.a)));
+			else {
+				err.accumulated_errors += "pop_unemployment = this trigger used in an invalid context (" + err.file_name + ", line " +
+					std::to_string(line) + ")\n";
+				return;
+			}
+			context.add_float_to_payload(value.value_);
+		} else if(is_from(value.type)) {
 			if(context.this_slot != trigger::slot_contents::pop) {
 				err.accumulated_errors += "pop_unemployment = this trigger used in an invalid context (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";

@@ -363,7 +363,7 @@ void register_invention(std::string_view name, token_generator& gen, error_handl
 
 void read_promotion_target(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
 	if(auto it = context.outer_context.map_of_poptypes.find(std::string(name)); it != context.outer_context.map_of_poptypes.end()) {
-		trigger_building_context t_context{context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation,
+		trigger_building_context t_context{context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop,
 				trigger::slot_contents::empty};
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_promotion(context.id, it->second, result);
@@ -374,7 +374,7 @@ void read_promotion_target(std::string_view name, token_generator& gen, error_ha
 void read_pop_ideology(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
 	if(auto it = context.outer_context.map_of_ideologies.find(std::string(name));
 			it != context.outer_context.map_of_ideologies.end()) {
-		trigger_building_context t_context{context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation,
+		trigger_building_context t_context{context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop,
 				trigger::slot_contents::empty};
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_ideology(context.id, it->second.id, result);
@@ -384,7 +384,7 @@ void read_pop_ideology(std::string_view name, token_generator& gen, error_handle
 }
 void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
 	if(auto it = context.outer_context.map_of_ioptions.find(std::string(name)); it != context.outer_context.map_of_ioptions.end()) {
-		trigger_building_context t_context{context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation,
+		trigger_building_context t_context{context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop,
 				trigger::slot_contents::empty};
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_issues(context.id, it->second.id, result);
@@ -496,14 +496,12 @@ void read_pending_reform(dcon::reform_option_id id, token_generator& gen, error_
 }
 
 dcon::value_modifier_key make_poptype_pop_chance(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	trigger_building_context t_context{context, trigger::slot_contents::pop, trigger::slot_contents::nation,
-			trigger::slot_contents::empty};
+	trigger_building_context t_context{context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty};
 	return make_value_modifier(gen, err, t_context);
 }
 
 dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
-			trigger::slot_contents::empty};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_value_modifier(gen, err, t_context);
 }
 void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err,

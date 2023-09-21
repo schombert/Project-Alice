@@ -68,6 +68,10 @@ class nation_details_window : public window_element_base {
 		} else if(name == "puppets_overlappingbox") {
 			auto ptr = make_element_by_type<overlapping_puppet_flags>(state, id);
 			ptr->base_data.position.y -= 8 - 1; // Nudge
+			ptr->base_data.position.x += 20;
+			return ptr;
+		} else if(name == "puppets_label") {
+			auto ptr = make_element_by_type<nation_puppet_list_label>(state, id);
 			return ptr;
 		}
 
