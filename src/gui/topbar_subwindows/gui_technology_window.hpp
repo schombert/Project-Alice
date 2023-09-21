@@ -596,6 +596,18 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 				}
 				text::close_layout_box(contents, box);
 			}
+			if(mod.discipline_or_evasion != 0) {
+				auto box = text::open_layout_box(contents, indent + 15);
+				text::localised_format_box(state, contents, box, "discipline");
+				text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+				if(mod.discipline_or_evasion < 0) {
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.discipline_or_evasion }, text::text_color::red);
+				} else {
+					text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::green);
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.discipline_or_evasion }, text::text_color::green);
+				}
+				text::close_layout_box(contents, box);
+			}
 		} else {
 			if(mod.attack_or_gun_power != 0) {
 				auto box = text::open_layout_box(contents, indent + 15);
@@ -645,6 +657,18 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 					text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
 					text::add_to_layout_box(state, contents, box, text::fp_two_places{mod.siege_or_torpedo_attack},
 							text::text_color::green);
+				}
+				text::close_layout_box(contents, box);
+			}
+			if(mod.discipline_or_evasion != 0) {
+				auto box = text::open_layout_box(contents, indent + 15);
+				text::localised_format_box(state, contents, box, "evasion");
+				text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+				if(mod.discipline_or_evasion < 0) {
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.discipline_or_evasion }, text::text_color::red);
+				} else {
+					text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::green);
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.discipline_or_evasion }, text::text_color::green);
 				}
 				text::close_layout_box(contents, box);
 			}

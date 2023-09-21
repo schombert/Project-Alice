@@ -3350,7 +3350,7 @@ void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 		return;
 	dcon::free_national_event_id e;
 	for(auto v : state.world.in_free_national_event) {
-		if(v.get_legacy_id() == id) {
+		if(v.get_legacy_id() == uint32_t(id)) {
 			e = v;
 			break;
 		}
@@ -3374,7 +3374,7 @@ void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_
 		return;
 	dcon::free_national_event_id e;
 	for(auto v : state.world.in_free_national_event) {
-		if(v.get_legacy_id() == id) {
+		if(v.get_legacy_id() == uint32_t(id)) {
 			e = v;
 			break;
 		}

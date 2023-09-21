@@ -2693,6 +2693,14 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
+	// minimum discipline for land units
+	for(auto& u : military_definitions.unit_base_definitions) {
+		if(u.is_land) {
+			if(u.discipline_or_evasion <= 0.0f)
+				u.discipline_or_evasion = 1.0f;
+		}
+	}
+
 	fill_unsaved_data(); // we need this to run triggers
 
 	// run pending triggers and effects

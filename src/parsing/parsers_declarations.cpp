@@ -2852,8 +2852,7 @@ void generic_event::picture(association_type, std::string_view name, error_handl
 	}
 }
 
-void history_war_goal::receiver(association_type, std::string_view tag, error_handler& err, int32_t line,
-		war_history_context& context) {
+void history_war_goal::receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
 	if(tag.length() == 3) {
 		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
 				it != context.outer_context.map_of_ident_names.end()) {
@@ -2865,6 +2864,15 @@ void history_war_goal::receiver(association_type, std::string_view tag, error_ha
 	} else {
 		err.accumulated_errors +=
 				"invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void history_war_goal::state_province_id(association_type t, int32_t value, error_handler& err, int32_t line, war_history_context& context) {
+	if(0 <= value && size_t(value) < context.outer_context.original_id_to_prov_id_map.size()) {
+		state_province_id_ = context.outer_context.original_id_to_prov_id_map[value];
+	} else {
+		err.accumulated_errors +=
+			"history wargoal given an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -2932,8 +2940,7 @@ void make_leader_images(scenario_building_context& outer_context) {
 	}
 }
 
-void history_war_goal::actor(association_type, std::string_view tag, error_handler& err, int32_t line,
-		war_history_context& context) {
+void history_war_goal::actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
 	if(tag.length() == 3) {
 		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
 				it != context.outer_context.map_of_ident_names.end()) {
@@ -2947,8 +2954,21 @@ void history_war_goal::actor(association_type, std::string_view tag, error_handl
 				"invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
-void history_war_goal::casus_belli(association_type, std::string_view value, error_handler& err, int32_t line,
-		war_history_context& context) {
+void history_war_goal::country(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
+				it != context.outer_context.map_of_ident_names.end()) {
+			secondary_ = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+		} else {
+			err.accumulated_errors +=
+				"invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors +=
+			"invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void history_war_goal::casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context) {
 	if(auto it = context.outer_context.map_of_cb_types.find(std::string(value));
 			it != context.outer_context.map_of_cb_types.end()) {
 		casus_belli_ = it->second.id;
@@ -3071,6 +3091,9 @@ void war_history_file::finish(war_history_context& context) {
 			}
 			new_wg.set_target_nation(wg.receiver_);
 			new_wg.set_type(wg.casus_belli_);
+			new_wg.set_secondary_nation(wg.secondary_);
+			new_wg.set_associated_tag(context.outer_context.state.world.nation_get_identity_from_identity_holder(wg.secondary_));
+			new_wg.set_associated_state(context.outer_context.state.world.province_get_state_from_abstract_state_membership(wg.state_province_id_));
 			context.outer_context.state.world.force_create_wargoals_attached(new_war, new_wg);
 		}
 	}

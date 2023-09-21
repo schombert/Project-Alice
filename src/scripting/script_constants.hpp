@@ -442,16 +442,17 @@ constexpr inline uint16_t crisis_state_scope = first_scope_code + 0x002E;
 constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
 constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 constexpr inline uint16_t x_substate_scope = first_scope_code + 0x0031;
+constexpr inline uint16_t capital_scope_province = first_scope_code + 0x0032;
 
 // variable named scopes
-constexpr inline uint16_t tag_scope = first_scope_code + 0x0032;
-constexpr inline uint16_t integer_scope = first_scope_code + 0x0033;
-constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0034;
-constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0035;
-constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0036;
-constexpr inline uint16_t region_scope = first_scope_code + 0x0037;
+constexpr inline uint16_t tag_scope = first_scope_code + 0x0033;
+constexpr inline uint16_t integer_scope = first_scope_code + 0x0034;
+constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0035;
+constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0036;
+constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0037;
+constexpr inline uint16_t region_scope = first_scope_code + 0x0038;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0038;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0039;
 
 inline constexpr int32_t data_sizes[] = {
 		0, // none
@@ -1547,8 +1548,9 @@ constexpr inline uint16_t is_overseas_pop = 0x029D;
 constexpr inline uint16_t primary_culture_pop = 0x029E;
 constexpr inline uint16_t plurality_pop = 0x029F;
 constexpr inline uint16_t is_overseas_state = 0x02A0;
+constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
 
-constexpr inline uint16_t first_scope_code = 0x02A1;
+constexpr inline uint16_t first_scope_code = 0x02A2;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2295,6 +2297,7 @@ inline constexpr int32_t data_sizes[] = {
 		1, //constexpr inline uint16_t primary_culture_pop = 0x029E;
 		2, //constexpr inline uint16_t plurality_pop = 0x029F;
 		0, //constexpr inline uint16_t is_overseas_state = 0x02A0;
+		1, //constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

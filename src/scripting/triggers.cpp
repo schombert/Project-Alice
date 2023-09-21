@@ -2225,6 +2225,33 @@ TRIGGER_FUNCTION(tf_tag_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
 	return compare_values_eq(tval[0], ws.world.nation_get_identity_from_identity_holder(owner), trigger::payload(tval[1]).tag_id);
 }
+TRIGGER_FUNCTION(tf_stronger_army_than_tag) {
+	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+
+	auto main_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			to_nation(primary_slot));
+	auto this_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			tag_holder);
+	return compare_values(tval[0], main_brigades, this_brigades);
+}
 TRIGGER_FUNCTION(tf_neighbour_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	auto result =
@@ -6400,6 +6427,7 @@ struct trigger_container {
 			tf_primary_culture_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t primary_culture_pop = 0x029E;
 			tf_plurality_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t plurality_pop = 0x029F;
 			tf_is_overseas_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_overseas_state = 0x02A0;
+			tf_stronger_army_than_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
 			//
 			// scopes
 			//

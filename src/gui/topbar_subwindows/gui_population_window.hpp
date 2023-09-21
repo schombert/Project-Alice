@@ -525,7 +525,7 @@ void describe_migration(sys::state& state, text::columnar_layout& contents, dcon
 	}
 
 	auto owners = state.world.province_get_nation_from_province_ownership(loc);
-	auto migration_chance = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f);
+	auto migration_chance = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 	auto prov_mod = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 	auto scale = state.defines.immigration_scale;
 
@@ -535,7 +535,7 @@ void describe_migration(sys::state& state, text::columnar_layout& contents, dcon
 	active_modifiers_description(state, contents, loc, 0, sys::provincial_mod_offsets::immigrant_push, true);
 	
 	text::add_line(state, contents, "pop_mig_4");
-	additive_value_modifier_description(state, contents, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+	additive_value_modifier_description(state, contents, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 }
 
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
@@ -565,7 +565,7 @@ void describe_colonial_migration(sys::state& state, text::columnar_layout& conte
 		return;
 	}
 
-	auto mig_chance = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(owner), 0),  0.0f);
+	auto mig_chance = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f);
 	auto im_push = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 	auto cmig = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f);
 	auto scale = state.defines.immigration_scale;
@@ -578,7 +578,7 @@ void describe_colonial_migration(sys::state& state, text::columnar_layout& conte
 	active_modifiers_description(state, contents, owner, 0, sys::national_mod_offsets::colonial_migration, true);
 
 	text::add_line(state, contents, "pop_cmig_7");
-	additive_value_modifier_description(state, contents, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+	additive_value_modifier_description(state, contents, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 }
 
 void describe_emigration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
@@ -604,7 +604,7 @@ void describe_emigration(sys::state& state, text::columnar_layout& contents, dco
 	}
 
 	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-	auto emig = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f);
+	auto emig = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 	auto scale =  state.defines.immigration_scale;
 
 	text::add_line(state, contents, "pop_emg_5", text::variable_type::x, text::fp_three_places{scale}, text::variable_type::y,
@@ -614,16 +614,16 @@ void describe_emigration(sys::state& state, text::columnar_layout& contents, dco
 
 	text::add_line(state, contents, "pop_emg_6");
 	additive_value_modifier_description(state, contents, state.culture_definitions.emigration_chance, trigger::to_generic(ids),
-			trigger::to_generic(owners), 0);
+			trigger::to_generic(ids), 0);
 }
 
 void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
 
 	auto owner = nations::owner_of_pop(state, ids);
 	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto si = state.world.province_get_state_membership(loc);
@@ -645,7 +645,7 @@ void describe_promotion_demotion(sys::state& state, text::columnar_layout& conte
 		}
 	}
 	additive_value_modifier_description(state, contents, state.culture_definitions.promotion_chance, trigger::to_generic(ids),
-			trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), 0);
 
 	text::add_line_break_to_layout(state, contents);
 
@@ -660,7 +660,7 @@ void describe_promotion_demotion(sys::state& state, text::columnar_layout& conte
 		}
 	}
 	additive_value_modifier_description(state, contents, state.culture_definitions.demotion_chance, trigger::to_generic(ids),
-			trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), 0);
 
 	text::add_line_break_to_layout(state, contents);
 
@@ -1012,7 +1012,7 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
 	auto location = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
-	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(owner), 0), 0.0f);
+	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
 	float base_amount =
 			state.defines.assimilation_scale *
@@ -1094,7 +1094,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	}
 	text::add_line(state, contents, "pop_assim_12", text::variable_type::x, text::fp_two_places{assimilation_chances});
 	additive_value_modifier_description(state, contents, state.culture_definitions.assimilation_chance, trigger::to_generic(ids),
-			trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), 0);
 }
 
 class pop_location_text : public simple_text_element_base {
@@ -1926,7 +1926,7 @@ class issue_with_explanation : public simple_text_element_base {
 
 			auto attraction_factor =  [&]() {
 				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
-					return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+					return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 				} else {
 					return 0.0f;
 				}
@@ -1945,11 +1945,11 @@ class issue_with_explanation : public simple_text_element_base {
 				}
 				text::add_line(state, contents, "pop_issue_attraction_5", text::variable_type::x, text::fp_two_places{attraction_factor});
 				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
-					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 				}
 			} else {
 				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
-					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(owner), 0);
+					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 				} 
 			}
 		
@@ -2060,11 +2060,11 @@ class ideology_with_explanation : public simple_text_element_base {
 						auto ptrigger = state.world.pop_type_get_ideology(type, i);
 						if(ptrigger) {
 							auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
-									trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+									trigger::to_generic(ids), 0);
 
 							text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ amount });
 							text::add_line_break_to_layout(state, contents);
-							multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+							multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 						} else {
 							text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ 0.0f });
 							text::add_line_break_to_layout(state, contents);
@@ -2083,11 +2083,11 @@ class ideology_with_explanation : public simple_text_element_base {
 					auto ptrigger = state.world.pop_type_get_ideology(type, i);
 					if(ptrigger) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(ids),
-								trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+								trigger::to_generic(ids), 0);
 
 						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ amount });
 						text::add_line_break_to_layout(state, contents);
-						multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(nations::owner_of_pop(state, ids)), 0);
+						multiplicative_value_modifier_description(state, contents, ptrigger, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 					} else {
 						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ 0.0f });
 						text::add_line_break_to_layout(state, contents);
@@ -2207,7 +2207,7 @@ public:
 		auto prov_id = state.world.pop_location_get_province(pop_loc);
 		auto pop_id = state.world.pop_location_get_pop(pop_loc);
 		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
-		additive_value_modifier_description(state, contents, mod_key, trigger::to_generic(pop_id), trigger::to_generic(nat_id), 0);
+		additive_value_modifier_description(state, contents, mod_key, trigger::to_generic(pop_id), trigger::to_generic(pop_id), 0);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -2660,7 +2660,7 @@ public:
 			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
 			if(mod_key) {
 				auto chance = std::max(0.0f, 
-						trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(fat_id.id), trigger::to_generic(nat_id), 0));
+						trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(fat_id.id), trigger::to_generic(fat_id.id), 0));
 				distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
 				total += chance;
 			}

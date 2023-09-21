@@ -647,9 +647,9 @@ unit_definition
 	attack         value      float            member  (attack_or_gun_power)
 	defence        value      float            member  (defence_or_hull)
 	defense        value      float            member  (defence_or_hull)
-	discipline     value      float            member
+	discipline     value      float            member (discipline_or_evasion)
 	support        value      float            member
-	maneuver       value      float            member  (maneuver_or_evasion)
+	maneuver       value      float            member
 	siege          value      float            member  (siege_or_torpedo_attack)
 	move_sound     value      none             discard
 	select_sound   value      none             discard
@@ -667,7 +667,7 @@ unit_definition
 	hull           value      float            member  (defence_or_hull)
 	gun_power      value      float            member  (attack_or_gun_power)
 	fire_range     value      float            member  (reconnaissance_or_fire_range)
-	evasion        value      float            member  (maneuver_or_evasion)
+	evasion        value      float            member  (discipline_or_evasion)
 	torpedo_attack value      float            member  (siege_or_torpedo_attack)
 	transport      value      none             discard
 	sprite_mount   value      none             discard
@@ -899,6 +899,7 @@ trigger_body
 	has_culture_core      value      bool               member_fn
 	has_pop_religion      value      text               member_fn
 	industrial_score      value      text               member_fn
+	stronger_army_than      value      text               member_fn
 	is_canal_enabled      value      int                member_fn
 	is_culture_group      value      text               member_fn (culture_group)
 	is_greater_power      value      bool               member_fn
@@ -1557,7 +1558,8 @@ unit_modifier_body
 	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
 	fire_range            value      float            member  (reconnaissance_or_fire_range)
 	maneuver           value       float          discard
-	evasion              value        float          discard
+	evasion              value        float          member (discipline_or_evasion)
+	discipline              value        float          member (discipline_or_evasion)
 
 tech_rgo_goods_output
 	#any                  value      float                  member_fn
@@ -1924,6 +1926,8 @@ history_war_goal
 	casus_belli                     value      text                              member_fn
 	actor                           value      text                              member_fn
 	receiver                        value      text                              member_fn
+	country                        value      text                              member_fn
+	state_province_id        value      int                              member_fn
 
 war_block
 	add_attacker                    value      text                              member_fn
