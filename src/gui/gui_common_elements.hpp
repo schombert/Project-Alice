@@ -41,6 +41,8 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 void open_build_foreign_factory(sys::state& state, dcon::state_instance_id st);
 void open_foreign_investment(sys::state& state, dcon::nation_id n);
 
+std::string get_status_text(sys::state& state, dcon::nation_id nation_id);
+
 template<country_list_sort Sort>
 class country_sort_button : public button_element_base {
 public:
@@ -585,22 +587,7 @@ public:
 class nation_status_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		switch(nations::get_status(state, nation_id)) {
-		case nations::status::great_power:
-			return text::produce_simple_string(state, "diplomacy_greatnation_status");
-		case nations::status::secondary_power:
-			return text::produce_simple_string(state, "diplomacy_colonialnation_status");
-		case nations::status::civilized:
-			return text::produce_simple_string(state, "diplomacy_civilizednation_status");
-		case nations::status::westernizing:
-			return text::produce_simple_string(state, "diplomacy_almost_western_nation_status");
-		case nations::status::uncivilized:
-			return text::produce_simple_string(state, "diplomacy_uncivilizednation_status");
-		case nations::status::primitive:
-			return text::produce_simple_string(state, "diplomacy_primitivenation_status");
-		default:
-			return text::produce_simple_string(state, "diplomacy_greatnation_status");
-		}
+		return get_status_text(state, nation_id);
 	}
 };
 

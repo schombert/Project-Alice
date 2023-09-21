@@ -120,7 +120,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
-		
+
 		if(mode == sys::game_mode_type::pick_nation) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
@@ -180,7 +180,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			selected_armies.clear();
 			selected_navies.clear();
 		}
-		
+
 		for(auto a : world.nation_get_army_control(local_player_nation)) {
 			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
 				auto loc = a.get_army().get_location_from_army_location();
@@ -967,7 +967,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, false);
 	}
 
-	
+
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
