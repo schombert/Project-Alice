@@ -151,7 +151,6 @@ void map_state::update(sys::state& state) {
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom += zoom_diff;
 	zoom_change *= std::exp(-seconds_since_last_update*20);
-	zoom_change = zoom_change > 0.001f ? zoom_change : 0;
 	zoom = glm::clamp(zoom, 1.f, 75.f);
 
 	glm::vec2 pos_after_zoom;
