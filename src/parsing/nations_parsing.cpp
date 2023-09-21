@@ -894,6 +894,10 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 				it->second.generator_state = gen;
 				it->second.text_assigned = true;
 			}
+		} else {
+			context.map_of_provincial_events.insert_or_assign(scan_result.id,
+					pending_prov_event{ dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
+							trigger::slot_contents::empty, gen, true });
 		}
 
 		event_building_context e_context{context, trigger::slot_contents::province, trigger::slot_contents::province,
@@ -935,6 +939,10 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 				it->second.generator_state = gen;
 				it->second.text_assigned = true;
 			}
+		} else {
+			context.map_of_national_events.insert_or_assign(scan_result.id,
+					pending_nat_event{ dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
+							trigger::slot_contents::empty, gen, true });
 		}
 
 		event_building_context e_context{context, trigger::slot_contents::nation, trigger::slot_contents::nation,
@@ -951,7 +959,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 		fid.set_only_once(event_result.fire_only_once);
 		fid.set_trigger(event_result.trigger);
 		fid.get_options() = event_result.options;
-		fid.set_legacy_id(uint16_t(event_result.id));
+		fid.set_legacy_id(uint32_t(event_result.id));
 	}
 }
 
@@ -1008,7 +1016,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 		count = 0;
 		auto fixed_size = context.map_of_national_events.size();
 		for(auto& e : context.map_of_national_events) {
-			if(!e.second.processed && e.second.text_assigned && e.second.main_slot != trigger::slot_contents::empty) {
+			if(!e.second.processed && e.second.text_assigned && !e.second.just_in_case_placeholder&& e.second.main_slot != trigger::slot_contents::empty) {
 				e.second.processed = true;
 				++count;
 
@@ -1111,7 +1119,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 
 		fixed_size = context.map_of_provincial_events.size();
 		for(auto& e : context.map_of_provincial_events) {
-			if(!e.second.processed && e.second.text_assigned && e.second.main_slot != trigger::slot_contents::empty) {
+			if(!e.second.processed && e.second.text_assigned && !e.second.just_in_case_placeholder && e.second.main_slot != trigger::slot_contents::empty) {
 				e.second.processed = true;
 				++count;
 
@@ -1146,17 +1154,21 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 	} while(count > 0);
 
 	for(auto& e : context.map_of_national_events) {
-		if(!e.second.text_assigned) {
-			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " referenced but never defined. \n";
-		} else if(!e.second.processed) {
-			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " defined but never triggered. \n";
+		if(!e.second.just_in_case_placeholder) {
+			if(!e.second.text_assigned) {
+				err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " referenced but never defined. \n";
+			} else if(!e.second.processed) {
+				err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " defined but never triggered. \n";
+			}
 		}
 	}
 	for(auto& e : context.map_of_provincial_events) {
-		if(!e.second.text_assigned) {
-			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " referenced but never defined. \n";
-		} else if(!e.second.processed) {
-			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " defined but never triggered. \n";
+		if(!e.second.just_in_case_placeholder) {
+			if(!e.second.text_assigned) {
+				err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " referenced but never defined. \n";
+			} else if(!e.second.processed) {
+				err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " defined but never triggered. \n";
+			}
 		}
 	}
 }

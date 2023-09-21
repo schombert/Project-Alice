@@ -978,6 +978,12 @@ uint32_t es_capital_scope(EFFECT_PARAMTERS) {
 		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
 	return 0;
 }
+uint32_t es_capital_scope_province(EFFECT_PARAMTERS) {
+	auto owner = ws.world.nation_get_capital(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)));
+	if(owner)
+		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	return 0;
+}
 uint32_t es_this_scope_nation(EFFECT_PARAMTERS) {
 	return apply_subeffects(tval, ws, this_slot, this_slot, from_slot, r_hi, r_lo);
 }
@@ -4618,12 +4624,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_state_scope_pop,									// constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
 		es_state_scope_province,						// constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 		es_x_substate_scope,										// constexpr inline uint16_t x_state_scope = first_scope_code + 0x0031;
-		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0032;
-		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0033;
-		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0034;
-		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0035;
-		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0036;
-		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0037;
+		es_capital_scope_province,								// constexpr inline uint16_t capital_scope = first_scope_code + 0x0032;
+		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0033;
+		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0034;
+		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0035;
+		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0036;
+		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0037;
+		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0038;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {

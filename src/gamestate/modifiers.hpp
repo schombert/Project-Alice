@@ -233,6 +233,7 @@ struct unit_variable_stats {
 	float support = 0.0f;
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
+	float discipline_or_evasion = 0.0f;
 
 	void operator+=(unit_variable_stats const& other) {
 		build_time += other.build_time;
@@ -244,6 +245,7 @@ struct unit_variable_stats {
 		support += other.support;
 		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
+		discipline_or_evasion += other.discipline_or_evasion;
 	}
 	void operator-=(unit_variable_stats const& other) {
 		build_time -= other.build_time;
@@ -255,6 +257,7 @@ struct unit_variable_stats {
 		support -= other.support;
 		siege_or_torpedo_attack -= other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range -= other.reconnaissance_or_fire_range;
+		discipline_or_evasion -= other.discipline_or_evasion;
 	}
 };
 

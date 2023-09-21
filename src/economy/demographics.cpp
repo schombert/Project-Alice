@@ -531,8 +531,7 @@ void regenerate_from_pop_data(sys::state& state) {
 					auto v = state.world.state_instance_get_demographics(p, to_key(state, c));
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
-					state.world.state_instance_set_dominant_issue_option(p, ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c),
-																																			state.world.state_instance_get_dominant_issue_option(p)));
+					state.world.state_instance_set_dominant_issue_option(p, ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.state_instance_get_dominant_issue_option(p)));
 					max_buffer.set(p, ve::select(mask, v, old_max));
 				});
 			});
@@ -554,7 +553,7 @@ void regenerate_from_pop_data(sys::state& state) {
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
 					state.world.nation_set_dominant_issue_option(p,
-							ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.nation_get_dominant_issue_option(p)));
+						ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.nation_get_dominant_issue_option(p)));
 					max_buffer.set(p, ve::select(mask, v, old_max));
 				});
 			});
@@ -576,7 +575,7 @@ void regenerate_from_pop_data(sys::state& state) {
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
 					state.world.pop_set_dominant_issue_option(p,
-							ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.pop_get_dominant_issue_option(p)));
+						ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.pop_get_dominant_issue_option(p)));
 					max_buffer.set(p, ve::select(mask, v, old_max));
 				});
 			});
@@ -598,7 +597,7 @@ void regenerate_from_pop_data(sys::state& state) {
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
 					state.world.pop_set_dominant_ideology(p,
-							ve::select(mask, ve::tagged_vector<dcon::ideology_id>(c), state.world.pop_get_dominant_ideology(p)));
+						ve::select(mask, ve::tagged_vector<dcon::ideology_id>(c), state.world.pop_get_dominant_ideology(p)));
 					max_buffer.set(p, ve::select(mask, v, old_max));
 				});
 			});
@@ -723,9 +722,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto old_mil = state.world.pop_get_militancy(ids);
 
 		state.world.pop_set_militancy(ids,
-				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{},
-																	(sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a)), 0.0f)),
-						10.0f));
+				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a)), 0.0f)), 10.0f));
 	});
 }
 
@@ -803,9 +800,9 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 		auto cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
 															ve::fp_vector{state.defines.con_poor_clergy}, ve::fp_vector{state.defines.con_midrich_clergy});
 		auto lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
-									 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
-									 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-									 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f);
+			 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
+			state.defines.con_literacy * state.world.pop_get_literacy(ids) *
+			 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f);
 
 		auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 		auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
@@ -820,10 +817,7 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 		auto old_con = state.world.pop_get_consciousness(ids);
 
 		state.world.pop_set_consciousness(ids,
-				ve::min(ve::max(ve::select(owner != dcon::nation_id{}, ((old_con + lx_mod) + (cl_mod + lit_mod)) + (local_mod + sep_mod),
-														0.0f),
-										0.0f),
-						10.f));
+				ve::min(ve::max(ve::select(owner != dcon::nation_id{}, ((old_con + lx_mod) + (cl_mod + lit_mod)) + (local_mod + sep_mod), 0.0f), 0.0f), 10.f));
 	});
 }
 
@@ -840,9 +834,9 @@ float get_estimated_con_change(sys::state& state, dcon::pop_id ids) {
 	float cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
 														state.defines.con_poor_clergy, state.defines.con_midrich_clergy);
 	float lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
-								 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
-								 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-								 ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f);
+		 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
+		 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
+		ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f);
 
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
@@ -957,7 +951,7 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 								if(state.world.nation_get_is_civilized(o)) {
 									auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
 									return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-											trigger::to_generic(o), 0) : 0.0f;
+											trigger::to_generic(pid), 0) : 0.0f;
 								} else
 									return 0.0f;
 							},
@@ -974,7 +968,7 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
 								auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
 								return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-										trigger::to_generic(o), 0) : 0.0f;
+										trigger::to_generic(pid), 0) : 0.0f;
 							},
 							ids, state.world.pop_get_poptype(ids), owner);
 
@@ -1055,7 +1049,7 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 			auto amount = owner_modifier * ve::select(allowed_by_owner,
 				ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
 					 if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
-						 return trigger::evaluate_multiplicative_modifier(state, mtrigger,  trigger::to_generic(pid), trigger::to_generic(o), 0);
+						 return trigger::evaluate_multiplicative_modifier(state, mtrigger,  trigger::to_generic(pid), trigger::to_generic(pid), 0);
 					 } else {
 						return 0.0f;
 					 }
@@ -1203,9 +1197,9 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 		pbuf.amounts.set(ids, 0.0f);
 		auto owners = nations::owner_of_pop(state, ids);
 		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-				trigger::to_generic(ids), trigger::to_generic(owners), 0);
+				trigger::to_generic(ids), trigger::to_generic(ids), 0);
 		auto demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-				trigger::to_generic(ids), trigger::to_generic(owners), 0);
+				trigger::to_generic(ids), trigger::to_generic(ids), 0);
 		ve::apply(
 				[&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance, float demotion_chance) {
 					/*
@@ -1280,7 +1274,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 						auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
 						if(promote_mod) {
 							auto chance =
-									trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) +
+									trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(p), 0) +
 									promotion_bonus;
 							if(chance > 0) {
 								pbuf.types.set(p, promoted_type);
@@ -1292,7 +1286,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 						auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
 						if(promote_mod) {
 							auto chance =
-									trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) +
+									trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(p), 0) +
 									promotion_bonus;
 							if(chance > 0) {
 								pbuf.types.set(p, promoted_type);
@@ -1311,7 +1305,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
 							if(promote_mod) {
 								auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
-																					 trigger::to_generic(owner), 0) +
+																					 trigger::to_generic(p), 0) +
 																					 (target_type == promoted_type ? promotion_bonus : 0.0f),
 										0.0f);
 								chances_total += chance;
@@ -1321,7 +1315,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
 							if(promote_mod) {
 								auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
-																					 trigger::to_generic(owner), 0) +
+																					 trigger::to_generic(p), 0) +
 																					 (target_type == promoted_type ? promotion_bonus : 0.0f),
 										0.0f);
 								chances_total += chance;
@@ -1351,9 +1345,9 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);
 	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto si = state.world.province_get_state_membership(loc);
@@ -1389,9 +1383,9 @@ float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
 float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);
 	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto si = state.world.province_get_state_membership(loc);
@@ -1425,9 +1419,9 @@ float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 float get_estimated_demotion(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);
 	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0);
+			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto si = state.world.province_get_state_membership(loc);
@@ -1471,9 +1465,7 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 		pbuf.amounts.set(ids, 0.0f);
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
-		auto assimilation_chances = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance,
-																						trigger::to_generic(ids), trigger::to_generic(owners), 0),
-				0.0f);
+		auto assimilation_chances = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float assimilation_chance) {
@@ -1547,8 +1539,7 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	auto location = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
-	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance,
-		trigger::to_generic(ids), trigger::to_generic(owner), 0), 0.0f);
+	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
 	// slaves do not assimilate
 	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves)
@@ -1783,7 +1774,7 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
 		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance,
-															 trigger::to_generic(ids), trigger::to_generic(owners), 0),
+															 trigger::to_generic(ids), trigger::to_generic(ids), 0),
 											 0.0f) *
 									 pop_sizes *
 									 (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *
@@ -1824,7 +1815,7 @@ float get_estimated_internal_migration(sys::state& state, dcon::pop_id ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(loc);
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto amount = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance,
-		 trigger::to_generic(ids), trigger::to_generic(owners), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) * state.defines.immigration_scale;
+		 trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) * state.defines.immigration_scale;
 
 	
 	if(amount <= 0.0f)
@@ -1851,7 +1842,7 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
 		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance,
-															 trigger::to_generic(ids), trigger::to_generic(owners), 0),
+															 trigger::to_generic(ids), trigger::to_generic(ids), 0),
 											 0.0f) *
 									 pop_sizes *
 									 (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *
@@ -1905,7 +1896,7 @@ float get_estimated_colonial_migration(sys::state& state, dcon::pop_id ids) {
 	
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance,
-			trigger::to_generic(ids), trigger::to_generic(owner), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *  (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f) * state.defines.immigration_scale;
+			trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *  (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f) * state.defines.immigration_scale;
 
 	if(amounts <= 0.0f)
 		return 0.0f; // early exit
@@ -1932,7 +1923,7 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 		auto pop_sizes = state.world.pop_get_size(ids);
 		auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,
-															 trigger::to_generic(ids), trigger::to_generic(owners), 0),
+															 trigger::to_generic(ids), trigger::to_generic(ids), 0),
 											 0.0f) *
 									 pop_sizes * impush * ve::max(impush, 1.0f) * state.defines.immigration_scale;
 
@@ -2010,7 +2001,7 @@ float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,  trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f) * pop_sizes * impush * std::max(impush, 1.0f) * state.defines.immigration_scale;
+	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,  trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f) * pop_sizes * impush * std::max(impush, 1.0f) * state.defines.immigration_scale;
 
 	if(amounts <= 0.0f)
 		return 0.0f; // early exit

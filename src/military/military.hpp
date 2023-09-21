@@ -86,8 +86,7 @@ struct unit_definition : public sys::unit_variable_stats {
 	economy::commodity_set build_cost;
 	economy::commodity_set supply_cost;
 
-	float discipline = 0.0f;
-	float maneuver_or_evasion = 0.0f;
+	float maneuver = 0.0f;
 	int32_t colonial_points = 0;
 	int32_t min_port_level = 0;
 	int32_t supply_consumption_score = 0;

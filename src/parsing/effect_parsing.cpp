@@ -608,6 +608,8 @@ void ef_capital_scope(token_generator& gen, error_handler& err, effect_building_
 
 	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::capital_scope | effect::scope_has_limit));
+	} else if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::capital_scope_province | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "capital_scope effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -1184,6 +1186,7 @@ void ef_province_event::id(association_type t, int32_t value, error_handler& err
 			it->second.main_slot = trigger::slot_contents::province;
 			it->second.this_slot = trigger::slot_contents::nation;
 			it->second.from_slot = context.this_slot;
+			it->second.just_in_case_placeholder = false;
 		}
 	} else {
 		id_ = context.outer_context.state.world.create_provincial_event();
@@ -1203,6 +1206,7 @@ void ef_country_event::id(association_type t, int32_t value, error_handler& err,
 			it->second.main_slot = trigger::slot_contents::nation;
 			it->second.this_slot = trigger::slot_contents::nation;
 			it->second.from_slot = context.this_slot;
+			it->second.just_in_case_placeholder = false;
 		}
 	} else {
 		id_ = context.outer_context.state.world.create_national_event();
@@ -1237,6 +1241,7 @@ void effect_body::country_event(association_type t, int32_t value, error_handler
 				it->second.main_slot = trigger::slot_contents::nation;
 				it->second.this_slot = trigger::slot_contents::nation;
 				it->second.from_slot = context.this_slot;
+				it->second.just_in_case_placeholder = false;
 				context.compiled_effect.push_back(trigger::payload(ev_id).value);
 			}
 		} else {
@@ -1269,6 +1274,7 @@ void effect_body::country_event(association_type t, int32_t value, error_handler
 				it->second.main_slot = trigger::slot_contents::nation;
 				it->second.this_slot = trigger::slot_contents::nation;
 				it->second.from_slot = context.this_slot;
+				it->second.just_in_case_placeholder = false;
 				context.compiled_effect.push_back(trigger::payload(ev_id).value);
 			}
 		} else {
@@ -1310,6 +1316,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 				it->second.main_slot = trigger::slot_contents::province;
 				it->second.this_slot = trigger::slot_contents::nation;
 				it->second.from_slot = context.this_slot;
+				it->second.just_in_case_placeholder = false;
 				context.compiled_effect.push_back(trigger::payload(ev_id).value);
 			}
 		} else {
