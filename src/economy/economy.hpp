@@ -25,8 +25,9 @@ inline std::string_view province_building_type_get_name(economy::province_buildi
 		return "fort";
 	case economy::province_building_type::naval_base:
 		return "naval_base";
+	default:
+		return "???";
 	}
-	return "???";
 }
 inline std::string_view province_building_type_get_level_text(economy::province_building_type v) {
 	switch(v) {
@@ -36,8 +37,9 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 		return "fort_level";
 	case economy::province_building_type::naval_base:
 		return "naval_base_level";
+	default:
+		return "???";
 	}
-	return "???";
 }
 
 struct global_economy_state {

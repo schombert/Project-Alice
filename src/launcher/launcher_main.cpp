@@ -1,8 +1,6 @@
 #ifndef UNICODE
 #define UNICODE
 #endif
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
 
 #include <Windowsx.h>
 #include <shellapi.h>
@@ -31,18 +29,18 @@ extern "C" {
 
 namespace launcher {
 
-float scaling_factor = 1.0f;
-float dpi = 96.0f;
+static float scaling_factor = 1.0f;
+static float dpi = 96.0f;
 constexpr inline float base_width = 880.0f;
 constexpr inline float base_height = 540.0f;
 
 constexpr inline float caption_width = 837.0f;
 constexpr inline float caption_height = 44.0f;
 
-int32_t mouse_x = 0;
-int32_t mouse_y = 0;
+static int32_t mouse_x = 0;
+static int32_t mouse_y = 0;
 
-HWND m_hwnd = nullptr;
+static HWND m_hwnd = nullptr;
 
 struct ui_active_rect {
 	int32_t x = 0;
@@ -69,12 +67,12 @@ constexpr inline int32_t ui_row_height = 32;
 
 constexpr inline float list_text_right_align = 420.0f;
 
-int32_t obj_under_mouse = -1;
+static int32_t obj_under_mouse = -1;
 
 constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 880 - 31,  0 , 31, 31}, // close
-	ui_active_rect{ 26, 208, 21, 93}, // left
-	ui_active_rect{ 511, 208, 21, 93}, // right
+	ui_active_rect{ 28, 208, 21, 93}, // left
+	ui_active_rect{ 513, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
 	ui_active_rect{ 555, 196, 286, 33 }, // play game
 
@@ -122,22 +120,22 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 60 + 412, 75 + 32 * 13 + 4, 24, 24 },
 };
 
-std::vector<parsers::mod_file> mod_list;
+static std::vector<parsers::mod_file> mod_list;
 
 struct scenario_file {
 	native_string file_name;
 	sys::mod_identifier ident;
 };
 
-std::vector<scenario_file> scenario_files;
-native_string selected_scenario_file;
-uint32_t max_scenario_count = 0;
-std::atomic<bool> file_is_ready = true;
+static std::vector<scenario_file> scenario_files;
+static native_string selected_scenario_file;
+static uint32_t max_scenario_count = 0;
+static std::atomic<bool> file_is_ready = true;
 
-int32_t frame_in_list = 0;
+static int32_t frame_in_list = 0;
 
-HDC opengl_window_dc = nullptr;
-void* opengl_context = nullptr;
+static HDC opengl_window_dc = nullptr;
+static void* opengl_context = nullptr;
 
 void create_opengl_context() {
 	PIXELFORMATDESCRIPTOR pfd;
@@ -571,7 +569,7 @@ static GLfloat global_square_flipped_data[] = { 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.
 static GLfloat global_square_right_flipped_data[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f };
 static GLfloat global_square_left_flipped_data[] = { 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };
 
-GLuint ui_shader_program = 0;
+static GLuint ui_shader_program = 0;
 
 void load_shaders() {
 	simple_fs::file_system fs;
@@ -589,15 +587,15 @@ void load_shaders() {
 	}
 }
 
-GLuint global_square_vao = 0;
-GLuint global_square_buffer = 0;
-GLuint global_square_right_buffer = 0;
-GLuint global_square_left_buffer = 0;
-GLuint global_square_flipped_buffer = 0;
-GLuint global_square_right_flipped_buffer = 0;
-GLuint global_square_left_flipped_buffer = 0;
+static GLuint global_square_vao = 0;
+static GLuint global_square_buffer = 0;
+static GLuint global_square_right_buffer = 0;
+static GLuint global_square_left_buffer = 0;
+static GLuint global_square_flipped_buffer = 0;
+static GLuint global_square_right_flipped_buffer = 0;
+static GLuint global_square_left_flipped_buffer = 0;
 
-GLuint sub_square_buffers[64] = { 0 };
+static GLuint sub_square_buffers[64] = { 0 };
 
 void load_global_squares() {
 	glGenBuffers(1, &global_square_buffer);
@@ -797,18 +795,18 @@ void render_new_text(char const* codepoints, uint32_t count, color_modification 
 
 } // launcher::ogl
 
-::text::font_manager font_collection;
+static ::text::font_manager font_collection;
 
-::ogl::texture bg_tex;
-::ogl::texture left_tex;
-::ogl::texture right_tex;
-::ogl::texture close_tex;
-::ogl::texture big_button_tex;
-::ogl::texture empty_check_tex;
-::ogl::texture check_tex;
-::ogl::texture up_tex;
-::ogl::texture down_tex;
-::ogl::texture line_bg_tex;
+static ::ogl::texture bg_tex;
+static ::ogl::texture left_tex;
+static ::ogl::texture right_tex;
+static ::ogl::texture close_tex;
+static ::ogl::texture big_button_tex;
+static ::ogl::texture empty_check_tex;
+static ::ogl::texture check_tex;
+static ::ogl::texture up_tex;
+static ::ogl::texture down_tex;
+static ::ogl::texture line_bg_tex;
 
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
@@ -833,7 +831,7 @@ void render() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glViewport(0, 0, base_width * scaling_factor, base_height * scaling_factor);
+	glViewport(0, 0, int32_t(base_width * scaling_factor), int32_t(base_height * scaling_factor));
 	glDepthRange(-1.0f, 1.0f);
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
@@ -1124,7 +1122,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 				POINTS adj{ SHORT(x - rcWindow.left), SHORT(y - rcWindow.top) };
 				memcpy(&lParam, &adj, sizeof(LPARAM));
-			} // fallthrough; keep above WM_MOUSEMOVE
+
+				mouse_x = int32_t(float(GET_X_LPARAM(lParam)) / scaling_factor);
+				mouse_y = int32_t(float(GET_Y_LPARAM(lParam)) / scaling_factor);
+				if(update_under_mouse()) {
+					InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+				}
+				return 0;
+			}
 			case WM_MOUSEMOVE:
 			{
 				mouse_x = int32_t(float(GET_X_LPARAM(lParam)) / scaling_factor);
@@ -1194,7 +1199,8 @@ int WINAPI wWinMain(
 	if(!SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
 		return 0;
 
-	WNDCLASSEX wcex = { sizeof(WNDCLASSEX) };
+	WNDCLASSEX wcex = { };
+	wcex.cbSize = UINT(sizeof(WNDCLASSEX));
 	wcex.style = CS_OWNDC;
 	wcex.lpfnWndProc = launcher::WndProc;
 	wcex.cbClsExtra = 0;

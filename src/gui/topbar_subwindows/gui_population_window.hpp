@@ -2069,7 +2069,7 @@ class ideology_with_explanation : public simple_text_element_base {
 							text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ 0.0f });
 							text::add_line_break_to_layout(state, contents);
 							text::substitution_map map{};
-							text::add_to_substitution_map(map, text::variable_type::val, int64_t(0));
+							text::add_to_substitution_map(map, text::variable_type::val, text::substitution(int64_t(0)));
 							auto box = text::open_layout_box(contents, 15);
 							text::localised_format_box(state, contents, box, std::string_view("comwid_base"), map);
 							text::close_layout_box(contents, box);
@@ -2092,7 +2092,7 @@ class ideology_with_explanation : public simple_text_element_base {
 						text::add_line(state, contents, "pop_ideology_attraction_1", text::variable_type::x, text::fp_two_places{ 0.0f });
 						text::add_line_break_to_layout(state, contents);
 						text::substitution_map map{};
-						text::add_to_substitution_map(map, text::variable_type::val, int64_t(0));
+						text::add_to_substitution_map(map, text::variable_type::val, text::substitution(int64_t(0)));
 						auto box = text::open_layout_box(contents, 15);
 						text::localised_format_box(state, contents, box, std::string_view("comwid_base"), map);
 						text::close_layout_box(contents, box);

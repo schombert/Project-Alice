@@ -5003,6 +5003,8 @@ void update_land_battles(sys::state& state) {
 					case unit_type::special:
 						state.world.land_battle_get_defender_support_lost(b) += str_damage;
 						break;
+					default:
+						break;
 				}
 			}
 
@@ -5033,6 +5035,8 @@ void update_land_battles(sys::state& state) {
 						// fallthrough
 					case unit_type::special:
 						state.world.land_battle_get_attacker_support_lost(b) += str_damage;
+						break;
+					default:
 						break;
 				}
 			}
@@ -5080,6 +5084,8 @@ void update_land_battles(sys::state& state) {
 						case unit_type::special:
 							state.world.land_battle_get_defender_support_lost(b) += str_damage;
 							break;
+						default:
+							break;
 					}
 				}
 			}
@@ -5123,6 +5129,8 @@ void update_land_battles(sys::state& state) {
 							// fallthrough
 						case unit_type::special:
 							state.world.land_battle_get_attacker_support_lost(b) += str_damage;
+							break;
+						default:
 							break;
 					}
 				}
