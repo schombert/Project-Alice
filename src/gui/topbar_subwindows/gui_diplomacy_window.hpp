@@ -1083,6 +1083,25 @@ public:
 	}
 };
 
+template<class T>
+class nation_status_diplomacy_window : public simple_text_element_base {
+public:
+
+	void on_update(sys::state& state) noexcept override {
+		T content = retrieve<T>(state, parent);
+		dcon::overlord_id overlord = state.world.nation_get_overlord_as_subject(content);
+		dcon::nation_id overlord_nation = state.world.overlord_get_ruler(overlord);
+		auto fat_id = dcon::fatten(state.world, overlord_nation);
+		if(state.world.nation_get_is_substate(content)) {
+			simple_text_element_base::set_text(state, ui::get_status_text(state, content) + ", " + text::produce_simple_string(state, "substate_of_nocolor") + " " + text::get_name_as_string(state, fat_id));
+		} else if(overlord_nation) {
+			simple_text_element_base::set_text(state, ui::get_status_text(state, content) + ", " + text::produce_simple_string(state, "satellite_of_nocolor") + " " + text::get_name_as_string(state, fat_id));
+		} else {
+			simple_text_element_base::set_text(state, ui::get_status_text(state, content));
+		}
+	}
+};
+
 class diplomacy_country_facts : public window_element_base {
 private:
 	dcon::nation_id active_nation{};
@@ -1217,7 +1236,8 @@ public:
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_status") {
-			return make_element_by_type<nation_status_text>(state, id);
+			auto ptr = make_element_by_type<nation_status_diplomacy_window<dcon::nation_id>>(state, id);
+			return ptr;
 		} else if(name == "selected_nation_totalrank") {
 			return make_element_by_type<nation_rank_text>(state, id);
 		} else if(name == "ideology_icon") {

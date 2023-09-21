@@ -144,4 +144,22 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 	}
 	
 }
+std::string get_status_text(sys::state& state, dcon::nation_id nation_id) {
+	switch(nations::get_status(state, nation_id)) {
+	case nations::status::great_power:
+		return text::produce_simple_string(state, "diplomacy_greatnation_status");
+	case nations::status::secondary_power:
+		return text::produce_simple_string(state, "diplomacy_colonialnation_status");
+	case nations::status::civilized:
+		return text::produce_simple_string(state, "diplomacy_civilizednation_status");
+	case nations::status::westernizing:
+		return text::produce_simple_string(state, "diplomacy_almost_western_nation_status");
+	case nations::status::uncivilized:
+		return text::produce_simple_string(state, "diplomacy_uncivilizednation_status");
+	case nations::status::primitive:
+		return text::produce_simple_string(state, "diplomacy_primitivenation_status");
+	default:
+		return text::produce_simple_string(state, "diplomacy_greatnation_status");
+	}
+}
 } // namespace ui
