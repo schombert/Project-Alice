@@ -4337,9 +4337,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			}
 
 			// Report
-			[&]() {
-				for(auto nv : state.world.land_battle_get_army_battle_participation(b)) {
-					if(state.local_player_nation == nv.get_army().get_controller_from_army_control()) {
+			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
 						land_battle_report rep;
 						rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 						rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -4378,11 +4376,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 						}
 
 						auto discard = state.land_battle_reports.try_push(rep);
-
-						return;
-					}
-				}
-			}();
+			}
 
 		} else if(result == battle_result::defender_won) {
 			auto total_def_loss = state.world.land_battle_get_defender_cav_lost(b) + state.world.land_battle_get_defender_infantry_lost(b) + state.world.land_battle_get_defender_support_lost(b);
@@ -4403,10 +4397,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			}
 
 			// Report
-
-			[&]() {
-				for(auto nv : state.world.land_battle_get_army_battle_participation(b)) {
-					if(state.local_player_nation == nv.get_army().get_controller_from_army_control()) {
+			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
 						land_battle_report rep;
 						rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 						rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -4446,10 +4437,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 						auto discard = state.land_battle_reports.try_push(rep);
 
-						return;
 					}
-				}
-			}();
+			
 		}
 	}
 
@@ -4554,9 +4543,8 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				nations::adjust_prestige(state, d_nation, score / -50.0f);
 
 				// Report
-				[&]() {
-					for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
-						if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
+				
+						if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
 							naval_battle_report rep;
 							rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 							rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -4593,10 +4581,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 
 							auto discard = state.naval_battle_reports.try_push(rep);
 
-							return;
 						}
-					}
-					}();
 			}
 		} else if(result == battle_result::defender_won) {
 			auto score = std::max(0.0f,
@@ -4612,9 +4597,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				nations::adjust_prestige(state, d_nation, score / 50.0f);
 
 				// Report
-				[&]() {
-					for(auto nv : state.world.naval_battle_get_navy_battle_participation(b)) {
-						if(state.local_player_nation == nv.get_navy().get_controller_from_navy_control()) {
+				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
 							naval_battle_report rep;
 							rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 							rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -4651,10 +4634,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 
 							auto discard = state.naval_battle_reports.try_push(rep);
 
-							return;
-						}
-					}
-				}();
+				}
 			}
 		}
 	}

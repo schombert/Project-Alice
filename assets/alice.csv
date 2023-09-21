@@ -795,7 +795,8 @@ crisis_offer_button_ex_1;You are the leader of one of the crisis sides
 crisis_offer_button_ex_2;The crisis has attracted its initial backers
 crisis_offer_button_ex_3;You have at least 1 diplomatic point
 msg_revolt_title;Rebel Uprising
-msg_revolt_1;$x$ rebels have risen up.
+msg_revolt_1;$x$ rebels have risen up in the following provinces:
+msg_revolt_2;$x$ rebels have risen up (unsuccessfully)
 msg_war_title;War Declared
 msg_war_1;$x$ has declared war on $y$, starting the $val$.
 msg_wargoal_title;War Goal Added
