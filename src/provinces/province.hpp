@@ -4,7 +4,7 @@
 
 namespace province {
 
-inline constexpr float world_circumference = 40075.0f / 12.0f; // in arbitrary units
+inline constexpr float world_circumference = 40075.0f / 10.0f; // in arbitrary units
 
 inline constexpr uint16_t to_map_id(dcon::province_id id) {
 	return uint16_t(id.index() + 1);

@@ -1503,8 +1503,8 @@ public:
 			return 2;
 		}
 	}
-	// TODO - when the player clicks on the colony icon and theres colonies to expand then we want to teleport their camera to the
-	// colonies position & open the prov window
+	// TODO - when the player clicks on the colony icon and there are colonies to expand then we want to teleport their camera to the
+	// colony's position & open the prov window
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -1517,29 +1517,21 @@ public:
 			auto nation_id = any_cast<dcon::nation_id>(payload);
 
 			auto nation_fat_id = dcon::fatten(state.world, nation_id);
-			auto box = text::open_layout_box(contents, 0);
+			
 			if(nations::can_expand_colony(state, nation_id)) {
 				nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
-					auto colony_fat_id = dcon::fatten(state.world, colony);
-					auto colState = colony_fat_id.get_state();
-					auto colonyName = colState.get_name();
-					text::substitution_map sub;
-					text::add_to_substitution_map(sub, text::variable_type::region, colonyName);
-					text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialgood_state"), sub);
+					auto colState = dcon::fatten(state.world, colony).get_state();
+					text::add_line(state, contents, "countryalert_colonialgood_state", text::variable_type::region, colState);
 				});
 			} else if(nations::is_losing_colonial_race(state, nation_id)) {
 				nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
-					auto colony_fat_id = dcon::fatten(state.world, colony);
-					auto colState = colony_fat_id.get_state();
-					auto colonyName = colState.get_name();
-					text::substitution_map sub;
-					text::add_to_substitution_map(sub, text::variable_type::region, colonyName);
-					text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialbad_influence"), sub);
+					auto colState = dcon::fatten(state.world, colony).get_state();
+					text::add_line(state, contents, "countryalert_colonialbad_influence", text::variable_type::region, colState);
 				});
 			} else {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_colonial"), text::substitution_map{});
+				text::add_line(state, contents, "countryalert_no_colonial");
 			}
-			text::close_layout_box(contents, box);
+			
 		}
 	}
 };

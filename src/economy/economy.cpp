@@ -49,7 +49,7 @@ bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	return false;
 }
 
-inline constexpr float inputs_base_factor = 0.5f;
+inline constexpr float inputs_base_factor = 0.55f;
 
 void initialize_artisan_distribution(sys::state& state) {
 	state.world.nation_resize_artisan_distribution(state.world.commodity_size());

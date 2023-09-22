@@ -7,6 +7,9 @@
 
 namespace military {
 
+constexpr inline float org_dam_mul = 0.3f;
+constexpr inline float str_dam_mul = 0.25f;
+
 int32_t total_regiments(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_active_regiments(n);
 }
@@ -4977,10 +4980,10 @@ void update_land_battles(sys::state& state) {
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_back[i]));
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i]));
 
-				auto str_damage =
+				auto str_damage = str_dam_mul *
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
 						(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
-				auto org_damage =
+				auto org_damage = org_dam_mul *
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
 						(defender_fort * defender_org_bonus * def_stats.discipline_or_evasion *
 								(1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
@@ -5015,8 +5018,8 @@ void update_land_battles(sys::state& state) {
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_back[i]));
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
-				auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
-				auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
+				auto str_damage = str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
+				auto org_damage = org_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
 				auto& cstr = state.world.regiment_get_strength(att_front[i]);
 				str_damage = std::min(str_damage, cstr);
@@ -5059,10 +5062,10 @@ void update_land_battles(sys::state& state) {
 					auto tech_def_nation = tech_nation_for_regiment(state, att_front_target);
 					auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(att_front_target));
 
-					auto str_damage =
+					auto str_damage = str_dam_mul *
 							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
 							(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
-					auto org_damage =
+					auto org_damage = org_dam_mul *
 							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
 							(defender_fort * def_stats.discipline_or_evasion * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
 
@@ -5109,8 +5112,8 @@ void update_land_battles(sys::state& state) {
 					auto tech_att_nation = tech_nation_for_regiment(state, def_front_target);
 					auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(def_front_target));
 
-					auto str_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
-					auto org_damage = (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
+					auto str_damage = str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
+					auto org_damage = org_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
 
 					auto& cstr = state.world.regiment_get_strength(def_front_target);
 					str_damage = std::min(str_damage, cstr);
@@ -5507,12 +5510,12 @@ void update_naval_battles(sys::state& state) {
 				define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG (if target has no org) / (target-max-hull x target-experience x 0.1 + 1)
 				*/
 
-				float org_damage = (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
+				float org_damage = org_dam_mul * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
 													 (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult /
 													 ((ship_target_stats.defence_or_hull + 1.0f) * (is_attacker ? defender_org_bonus : attacker_org_bonus) *
 															 (1.0f + state.world.nation_get_modifier_values(ship_target_owner,
 																					 sys::national_mod_offsets::naval_organisation)));
-				float str_damage = (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
+				float str_damage = str_dam_mul * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
 													 (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_str_mult /
 													 (ship_target_stats.defence_or_hull + 1.0f);
 
@@ -5990,6 +5993,8 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	return transport_capacity(state, n) - used_total;
 }
 
+constexpr inline float siege_speed_mul = 0.5f;
+
 void update_siege_progress(sys::state& state) {
 	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t id) {
 		dcon::province_id prov{dcon::province_id::value_base_t(id)};
@@ -6122,7 +6127,7 @@ void update_siege_progress(sys::state& state) {
 														 (owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / siege_table[effective_fort_level];
 
 			auto& progress = state.world.province_get_siege_progress(prov);
-			progress += added_progress;
+			progress += siege_speed_mul * added_progress;
 
 			if(progress >= 1.0f) {
 				progress = 0.0f;
