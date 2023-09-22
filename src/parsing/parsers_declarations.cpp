@@ -2464,10 +2464,8 @@ void foreign_investment_block::any_value(std::string_view tag, association_type,
 	}
 }
 
-void country_history_file::set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line,
-		country_history_context& context) {
-	if(auto it = context.outer_context.map_of_national_flags.find(std::string(value));
-			it != context.outer_context.map_of_national_flags.end()) {
+void country_history_file::set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(auto it = context.outer_context.map_of_national_flags.find(std::string(value)); it != context.outer_context.map_of_national_flags.end()) {
 		if(context.holder_id)
 			context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, true);
 	} else {
@@ -2476,8 +2474,7 @@ void country_history_file::set_country_flag(association_type, std::string_view v
 }
 
 void country_history_file::set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
-	if(auto it = context.outer_context.map_of_global_flags.find(std::string(value));
-			it != context.outer_context.map_of_global_flags.end()) {
+	if(auto it = context.outer_context.map_of_global_flags.find(std::string(value)); it != context.outer_context.map_of_global_flags.end()) {
 		if(context.holder_id)
 			context.outer_context.state.national_definitions.set_global_flag_variable(it->second, true);
 	} else {

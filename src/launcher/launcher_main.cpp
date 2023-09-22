@@ -71,8 +71,8 @@ static int32_t obj_under_mouse = -1;
 
 constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 880 - 31,  0 , 31, 31}, // close
-	ui_active_rect{ 28, 208, 21, 93}, // left
-	ui_active_rect{ 513, 208, 21, 93}, // right
+	ui_active_rect{ 30, 208, 21, 93}, // left
+	ui_active_rect{ 515, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
 	ui_active_rect{ 555, 196, 286, 33 }, // play game
 

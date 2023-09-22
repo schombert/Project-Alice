@@ -734,16 +734,6 @@ void update_ai_econ_construction(sys::state& state) {
 		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
 			continue;
 
-		// buy stuff from the global market if we need it
-		//state.world.for_each_commodity([&](dcon::commodity_id c) {
-		//	n.set_stockpile_targets(c, 10000.f);
-		//	if(n.get_demand_satisfaction(c) < 1.0f) {
-		//		n.set_drawing_on_stockpiles(c, true);
-		//	} else {
-		//		n.set_drawing_on_stockpiles(c, false);
-		//	}
-		//});
-
 		auto treasury = n.get_stockpiles(economy::money);
 		int32_t max_projects = std::max(8, int32_t(treasury / 8000.0f));
 		auto rules = n.get_combined_issue_rules();
@@ -890,15 +880,20 @@ void update_ai_econ_construction(sys::state& state) {
 
 						if((rules & issue_rule::expand_factory) != 0) { // check: if present, try to upgrade
 							bool present_in_location = false;
+							bool under_cap = false;
 							province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 								for(auto fac : state.world.province_get_factory_location(p)) {
 									auto type = fac.get_factory().get_building_type();
 									if(type_selection == type) {
+										under_cap = fac.get_factory().get_production_scale() < 0.9f;
 										present_in_location = true;
 										return;
 									}
 								}
 							});
+							if(under_cap) {
+								continue; // factory doesn't need to get larger
+							}
 							if(present_in_location) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);

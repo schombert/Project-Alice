@@ -637,7 +637,7 @@ message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any&
 		return message_result::consumed;
 	} else if(payload.holds_type<option_taken_notification>()) {
 		if(!events.empty()) {
-			events.erase(events.begin() + size_t(index));
+			events.erase(events.begin() + size_t(std::min(size_t(index), events.size() - 1)));
 			impl_on_update(state);
 		}
 		return message_result::consumed;
@@ -842,7 +842,7 @@ message_result provincial_event_window::get(sys::state& state, Cyto::Any& payloa
 		return message_result::consumed;
 	} else if(payload.holds_type<option_taken_notification>()) {
 		if(!events.empty()) {
-			events.erase(events.begin() + size_t(index));
+			events.erase(events.begin() + size_t(std::min(size_t(index), events.size() - 1)));
 			impl_on_update(state);
 		}
 		return message_result::consumed;

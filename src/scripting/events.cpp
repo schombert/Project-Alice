@@ -324,7 +324,7 @@ void update_events(sys::state& state) {
 							[&](dcon::nation_id n, float c, bool condition) {
 								auto owned_range = state.world.nation_get_province_ownership(n);
 								if(condition && owned_range.begin() != owned_range.end()) {
-									if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+									if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFFFF) / float(0xFFFFFF + 1) >= c) {
 										events_triggered.local().push_back(event_nation_pair{n, id});
 									}
 								}
@@ -376,7 +376,7 @@ void update_events(sys::state& state) {
 							ve::apply(
 									[&](dcon::province_id p, dcon::nation_id o, float c, bool condition) {
 										if(condition) {
-											if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+											if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFFFF) / float(0xFFFFFF + 1) >= c) {
 												p_events_triggered.local().push_back(event_prov_pair{p, id});
 											}
 										}
