@@ -378,15 +378,15 @@ std::string final_match_condition_internal(std::string_view const key, int32_t s
 
 	if(ending_position - starting_position >= 8) {
 		return
-			" && (*(uint64_t*)(&cur.content[" + std::to_string(starting_position) + "]) | uint64_t(0x2020202020202020) ) == uint64_t(" + string_to_hex(key, starting_position, 8) + ")"
+			" && (*(uint64_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | uint64_t(0x2020202020202020) ) == uint64_t(" + string_to_hex(key, starting_position, 8) + ")"
 			+ final_match_condition_internal(key, starting_position + 8, ending_position);
 	} else if(ending_position - starting_position >= 4) {
 		return
-			" && (*(uint32_t*)(&cur.content[" + std::to_string(starting_position) + "]) | uint32_t(0x20202020) ) == uint32_t(" + string_to_hex(key, starting_position, 4) + ")"
+			" && (*(uint32_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | uint32_t(0x20202020) ) == uint32_t(" + string_to_hex(key, starting_position, 4) + ")"
 			+ final_match_condition_internal(key, starting_position + 4, ending_position);
 	} else if(ending_position - starting_position >= 2) {
 		return
-			" && (*(uint16_t*)(&cur.content[" + std::to_string(starting_position) + "]) | 0x2020 ) == " + string_to_hex(key, starting_position, 2)
+			" && (*(uint16_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | 0x2020 ) == " + string_to_hex(key, starting_position, 2)
 			+ final_match_condition_internal(key, starting_position + 2, ending_position);
 	} else { /// single char
 		return " && (cur.content[" + std::to_string(starting_position) + "] | 0x20 ) == " + string_to_hex(key, starting_position, 1);

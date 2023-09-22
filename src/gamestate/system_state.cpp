@@ -3369,6 +3369,7 @@ void state::single_game_tick() {
 			break;
 		case 19:
 			ai::update_budget(*this);
+			break;
 		case 20:
 			nations::monthly_flashpoint_update(*this);
 			ai::make_defense(*this);

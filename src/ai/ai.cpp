@@ -2649,7 +2649,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 
 	int32_t overall_po_value = 0;
 	int32_t personal_po_value = 0;
-	int32_t wg_in_offer = 0;
 	int32_t my_po_target = 0;
 
 	auto concession = state.world.peace_offer_get_is_concession(p);
@@ -2660,7 +2659,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	}
 
 	for(auto wg : state.world.peace_offer_get_peace_offer_item(p)) {
-		++wg_in_offer;
 		auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
 		overall_po_value += wg_value;
 		if(wg.get_wargoal().get_target_nation() == n) {

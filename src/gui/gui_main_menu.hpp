@@ -345,6 +345,8 @@ public:
 			case main_menu_sub_window::graphics:
 				graphics_menu->set_visible(state, true);
 				break;
+			case main_menu_sub_window::message_settings:
+				break;
 			}
 			return message_result::consumed;
 		}

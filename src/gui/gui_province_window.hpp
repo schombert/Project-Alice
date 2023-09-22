@@ -856,7 +856,7 @@ public:
 
 class rr_investment_progress : public progress_bar {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		auto prov = retrieve<dcon::province_id>(state, parent);
 		progress = economy::province_building_construction(state, prov, economy::province_building_type::railroad).progress;
 	}
