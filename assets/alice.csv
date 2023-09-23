@@ -105,7 +105,8 @@ annex_effect;Annex $text$;;;Anexa $text$;;;;;;;;;x
 annexed_by_effect;Is annexed by $text$;;;Es anexado por $text$;;;;;;;;;x
 core_return;$adj$ cores are returned to $text$;;;Los nucleos de $adj$ son devueltos a $text$;;;;;;;;;x
 core_return_short;$adj$ cores are returned;;;Los nucleos de $adj$ son devueltos;;;;;;;;;x
-change_province_controller;Change province controller to $text$;;;Cambiar el controlador de la provincia a $text$;;;;;;;;;x
+change_province_controller;change province controller to $text$;;;Cambiar el controlador de la provincia a $text$;;;;;;;;;x
+change_state_controller;change state controller to $text$
 railroad_level;Railroad level;;;Nivel del ferrocarril;;;;;;;;;x
 pop_savings;Pop savings;;;Ahorros del pop;;;;;;;;;x
 leadership_points;Leadership points;;;Puntos de liderazgo;;;;;;;;;x
@@ -293,6 +294,8 @@ exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
 set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
+located_in;located in
+the_owner_of_region;the owner of every province in
 a_casus_belli_against;a casus belli against;;;Un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;Acceso militar con;;;;;;;;;x
 prestige_of;the prestige of;;;El prestigio d;;;;;;;;;x
@@ -309,6 +312,7 @@ part_of;part of;;;;;;;;;;;;x
 a_border_with;a border with;;;;;;;;;;;;x
 units_in_province;units in province;;;;;;;;;;;;x
 units_in_the_province;units in the province;;;;;;;;;;;;x
+units_in_the_state;units in the state
 at_war_against;at war against;;;;;;;;;;;;x
 num_of_divisions;a number of divisions;;;;;;;;;;;;x
 an_ongoing_battle;an ongoing battle;;;;;;;;;;;;x

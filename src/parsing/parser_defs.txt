@@ -318,6 +318,7 @@ modifier_base
 	middle_savings_modifier                     value      float            discard
 	rich_savings_modifier                     value      float            discard
 	influence_modifier                        value      float            member_fn
+	diplomatic_influence                  value      float            member_fn (influence_modifier)
 	diplomatic_points_modifier                value      float            member_fn
 	mobilisation_size                         value      float            member_fn (mobilization_size)
 	mobilisation_economy_impact               value      float            member_fn (mobilization_impact)
@@ -335,6 +336,7 @@ modifier_base
 	suppression_points_modifier               value      float            member_fn
 	education_efficiency_modifier             value      float            member_fn
 	education_efficiency                      value      float            member_fn
+	education             value      float            member_fn (education_efficiency_modifier)
 	civilization_progress_modifier            value      float            member_fn
 	administrative_efficiency_modifier        value      float            member_fn
 	land_unit_start_experience                value      float            member_fn
@@ -371,6 +373,7 @@ modifier_base
 	reinforce_rate                            value      float            member_fn
 	tax_eff                                   value      float            member_fn (tax_efficiency)
 	administrative_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
+	admin_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
 	influence                                 value      float            member_fn
 	dig_in_cap                                value      float            member_fn
 	morale                                    value      float            member_fn (org_regain)
@@ -780,7 +783,7 @@ trigger_body
 	ai               value           bool               member_fn
 	tag              value           text               member_fn
 	war              value           bool               member_fn
-	owns             value           int                member_fn
+	owns             value           text                member_fn
 	port             value           bool               member_fn
 	rank             value           int                member_fn
 	type             value           text               member_fn (has_pop_type)
@@ -914,6 +917,7 @@ trigger_body
 	mobilisation_size     value      float              member_fn
 	revolt_percentage     value      float              member_fn
 	units_in_province     value      text               member_fn
+	country_units_in_state    value      text               member_fn
 	can_create_vassals    value      bool               member_fn
 	crisis_temperature    value      float              member_fn
 	education_spending    value      float              member_fn
@@ -1165,6 +1169,7 @@ ef_this_remove_casus_belli
 ef_wargoal
 	country                    value     text                           member_fn
 	target                    value     text                           member_fn (country)
+	tag                    value     text                           member_fn (country)
 	casus_belli                value     text                           member_fn
 	state_province_id          value     int                            member_fn
 

@@ -1994,7 +1994,6 @@ void rebel_gov_list::any_value(std::string_view from_gov, association_type, std:
 				toit != context.outer_context.map_of_governments.end()) {
 			assert(frit->second && frit->second.index() < context.outer_context.state.culture_definitions.governments.ssize());
 			assert(toit->second && toit->second.index() < context.outer_context.state.culture_definitions.governments.ssize());
-			assert(context.outer_context.state.world.rebel_type_size() >= uint32_t(frit->second.index()));
 			context.outer_context.state.world.rebel_type_set_government_change(context.id, frit->second, toit->second);
 		} else {
 			err.accumulated_errors +=

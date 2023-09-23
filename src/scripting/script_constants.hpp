@@ -387,9 +387,14 @@ constexpr inline uint16_t fort_state = 0x0168;
 constexpr inline uint16_t naval_base_state = 0x0169;
 constexpr inline uint16_t is_slave_province_yes = 0x016A;
 constexpr inline uint16_t is_slave_province_no = 0x016B;
+constexpr inline uint16_t change_controller_state = 0x016C;
+constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
+constexpr inline uint16_t change_controller_state_this_province = 0x016E;
+constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
+constexpr inline uint16_t change_controller_state_from_province = 0x0170;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x016C;
+constexpr inline uint16_t first_scope_code = 0x0171;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -454,7 +459,7 @@ constexpr inline uint16_t region_scope = first_scope_code + 0x0038;
 
 constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0039;
 
-inline constexpr int32_t data_sizes[] = {
+inline constexpr int8_t data_sizes[] = {
 		0, // none
 		1, // constexpr uint16_t capital = 0x0001;
 		1, // constexpr uint16_t add_core_tag = 0x0002;
@@ -820,6 +825,11 @@ inline constexpr int32_t data_sizes[] = {
 		1, //constexpr inline uint16_t naval_base_state = 0x0169;
 		0, //ef_is_slave_province_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
 		0, //ef_is_slave_province_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
+		1, //constexpr inline uint16_t change_controller_state = 0x016C;
+		0, //constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
+		0, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
+		0, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
+		0, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1549,8 +1559,18 @@ constexpr inline uint16_t primary_culture_pop = 0x029E;
 constexpr inline uint16_t plurality_pop = 0x029F;
 constexpr inline uint16_t is_overseas_state = 0x02A0;
 constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
+constexpr inline uint16_t region_state = 0x02A2;
+constexpr inline uint16_t region_pop = 0x02A3;
+constexpr inline uint16_t owns_region = 0x02A4;
+constexpr inline uint16_t is_core_state_tag = 0x02A5;
+constexpr inline uint16_t country_units_in_state_from = 0x02A6;
+constexpr inline uint16_t country_units_in_state_this_nation = 0x02A7;
+constexpr inline uint16_t country_units_in_state_this_province = 0x02A8;
+constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
+constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
+constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
 
-constexpr inline uint16_t first_scope_code = 0x02A2;
+constexpr inline uint16_t first_scope_code = 0x02AC;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1618,7 +1638,7 @@ constexpr inline uint16_t placeholder_not_scope = code_mask;
 //  tag = 1 variant, payload 1
 //  integer = 1 variant, payload 1
 
-inline constexpr int32_t data_sizes[] = {
+inline constexpr int8_t data_sizes[] = {
 		0, // none
 		1, // constexpr uint16_t year = 0x0001;
 		1, // constexpr uint16_t month = 0x0002;
@@ -2298,6 +2318,16 @@ inline constexpr int32_t data_sizes[] = {
 		2, //constexpr inline uint16_t plurality_pop = 0x029F;
 		0, //constexpr inline uint16_t is_overseas_state = 0x02A0;
 		1, //constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
+		1, //constexpr inline uint16_t region_state = 0x02A2;
+		1, //constexpr inline uint16_t region_pop = 0x02A3;
+		1, //constexpr inline uint16_t owns_region = 0x02A4;
+		1, //constexpr inline uint16_t is_core_state_tag = 0x02A5;
+		0, //constexpr inline uint16_t country_units_in_state_from = 0x02A6;
+		0, //constexpr inline uint16_t country_units_in_state_this_nation = 0x02A7;
+		0, //constexpr inline uint16_t country_units_in_state_this_province = 0x02A8;
+		0, //constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
+		0, //constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
+		1, //constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

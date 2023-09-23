@@ -2515,6 +2515,57 @@ uint32_t ef_change_controller_from_province(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_change_controller_state(EFFECT_DISPLAY_PARAMS) {
+	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	if(target) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, target);
+		text::localised_format_box(ws, layout, box, "change_state_controller", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_change_controller_state_this_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_controller", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_change_controller_state_this_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_controller", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_change_controller_state_from_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_controller", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_change_controller_state_from_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
+		text::localised_format_box(ws, layout, box, "change_state_controller", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 uint32_t ef_infrastructure(EFFECT_DISPLAY_PARAMS) {
 	auto type = economy::province_building_type::railroad;
 	auto amount = trigger::payload(tval[1]).signed_value;
@@ -6472,6 +6523,11 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_naval_base, //constexpr inline uint16_t naval_base_state = 0x0169;
 		ef_is_slave_state_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
 		ef_is_slave_state_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
+		ef_change_controller_state, //constexpr inline uint16_t change_controller_state = 0x016C;
+		ef_change_controller_state_this_nation, //constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
+		ef_change_controller_state_this_province, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
+		ef_change_controller_state_from_nation, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
+		ef_change_controller_state_from_province, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
 
 		//
 		// SCOPES

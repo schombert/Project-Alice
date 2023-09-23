@@ -1400,7 +1400,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::change_controller_this_province | effect::no_payload));
 				else {
 					err.accumulated_errors += "change_controller = this effect used in an incorrect scope type (" + err.file_name +
-																		", line " + std::to_string(line) + ")\n";
+						", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1410,7 +1410,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::change_controller_from_province | effect::no_payload));
 				else {
 					err.accumulated_errors += "change_controller = from effect used in an incorrect scope type (" + err.file_name +
-																		", line " + std::to_string(line) + ")\n";
+						", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(value.length() == 3) {
@@ -1420,15 +1420,50 @@ struct effect_body {
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
 					err.accumulated_errors +=
-							"change_controller effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"change_controller effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else {
 				err.accumulated_errors +=
-						"change_controller effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"change_controller effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(is_this(value)) {
+				if(context.this_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::change_controller_state_this_nation | effect::no_payload));
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::change_controller_state_this_province | effect::no_payload));
+				else {
+					err.accumulated_errors += "change_controller = this effect used in an incorrect scope type (" + err.file_name +
+						", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_from(value)) {
+				if(context.from_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::change_controller_state_from_nation | effect::no_payload));
+				else if(context.from_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::change_controller_state_from_province | effect::no_payload));
+				else {
+					err.accumulated_errors += "change_controller = from effect used in an incorrect scope type (" + err.file_name +
+						", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_effect.push_back(uint16_t(effect::change_controller_state));
+					context.compiled_effect.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors +=
+						"change_controller effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors +=
+					"change_controller effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
 		} else {
 			err.accumulated_errors +=
 					"change_controller effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";

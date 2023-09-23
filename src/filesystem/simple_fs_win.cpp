@@ -306,7 +306,8 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
 }
 
 void add_ignore_path(file_system& fs, native_string_view replaced_path) {
-	fs.ignored_paths.emplace_back(replaced_path);
+
+	fs.ignored_paths.emplace_back(correct_slashes(replaced_path));
 }
 
 std::vector<native_string> list_roots(file_system const& fs) {
@@ -443,7 +444,7 @@ std::string remove_double_backslashes(std::string_view data_in) {
 	return res;
 }
 
-native_string correct_slashes(native_string const& path) {
+native_string correct_slashes(native_string_view path) {
 	std::wstring res;
 	res.reserve(path.size());
 	for(size_t i = 0; i < path.size(); i++) {
