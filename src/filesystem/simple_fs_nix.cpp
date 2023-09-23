@@ -514,7 +514,7 @@ std::string remove_double_backslashes(std::string_view data_in) {
 	return res;
 }
 
-native_string correct_slashes(native_string const& path) {
+native_string correct_slashes(native_string_view path) {
 	std::string res;
 	res.reserve(path.size());
 	for(size_t i = 0; i < path.size(); i++) {

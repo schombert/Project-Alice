@@ -2139,6 +2139,52 @@ uint32_t ef_change_controller_from_province(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
+uint32_t ef_change_controller_state(EFFECT_PARAMTERS) {
+	auto holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	if(holder) {
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, holder](dcon::province_id p) {
+			province::set_province_controller(ws, p, holder);
+			military::eject_ships(ws, p);
+		});
+	}
+	return 0;
+}
+uint32_t ef_change_controller_state_this_nation(EFFECT_PARAMTERS) {
+	auto holder = trigger::to_nation(this_slot);
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, holder](dcon::province_id p) {
+		province::set_province_controller(ws, p, holder);
+		military::eject_ships(ws, p);
+	});
+	return 0;
+}
+uint32_t ef_change_controller_state_this_province(EFFECT_PARAMTERS) {
+	auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(holder) {
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, holder](dcon::province_id p) {
+			province::set_province_controller(ws, p, holder);
+			military::eject_ships(ws, p);
+		});
+	}
+	return 0;
+}
+uint32_t ef_change_controller_state_from_nation(EFFECT_PARAMTERS) {
+	auto holder = trigger::to_nation(from_slot);
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, holder](dcon::province_id p) {
+		province::set_province_controller(ws, p, holder);
+		military::eject_ships(ws, p);
+	});
+	return 0;
+}
+uint32_t ef_change_controller_state_from_province(EFFECT_PARAMTERS) {
+	auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot));
+	if(holder) {
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, holder](dcon::province_id p) {
+			province::set_province_controller(ws, p, holder);
+			military::eject_ships(ws, p);
+		});
+	}
+	return 0;
+}
 uint32_t ef_infrastructure(EFFECT_PARAMTERS) {
 	auto& building_level = ws.world.province_get_building_level(trigger::to_prov(primary_slot), economy::province_building_type::railroad);
 	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
@@ -4570,6 +4616,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_naval_base_state, //constexpr inline uint16_t naval_base_state = 0x0169;
 		ef_is_slave_province_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
 		ef_is_slave_province_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
+		ef_change_controller_state, //constexpr inline uint16_t change_controller_state = 0x016C;
+		ef_change_controller_state_this_nation, //constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
+		ef_change_controller_state_this_province, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
+		ef_change_controller_state_from_nation, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
+		ef_change_controller_state_from_province, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
+
+
 		//
 		// SCOPES
 		//

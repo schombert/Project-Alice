@@ -1829,13 +1829,21 @@ TRIGGER_FUNCTION(tf_is_core_reb) {
 TRIGGER_FUNCTION(tf_is_core_tag) {
 	auto result = ve::apply(
 			[&ws, t = trigger::payload(tval[1]).tag_id](dcon::province_id pid) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return bool(ws.world.get_core_by_prov_tag_key(pid, t));
 			},
 			to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_is_core_state_tag) {
+	auto result = ve::apply(
+			[&ws, t = trigger::payload(tval[1]).tag_id](dcon::state_instance_id sid) {
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(sid))) {
+					if(!(ws.world.get_core_by_prov_tag_key(p.get_province(), t)))
+						return false;
+				}
+				return true;
+			},
+			to_state(primary_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_num_of_revolts) {
@@ -2203,6 +2211,23 @@ TRIGGER_FUNCTION(tf_region) {
 	return compare_values_eq(tval[0], ws.world.province_get_state_from_abstract_state_membership(to_prov(primary_slot)),
 			trigger::payload(tval[1]).state_id);
 }
+TRIGGER_FUNCTION(tf_region_state) {
+	return compare_values_eq(tval[0], ws.world.state_instance_get_definition(to_state(primary_slot)),
+			trigger::payload(tval[1]).state_id);
+}
+TRIGGER_FUNCTION(tf_region_pop) {
+	return compare_values_eq(tval[0], ws.world.province_get_state_from_abstract_state_membership(ws.world.pop_get_province_from_pop_location(to_pop(primary_slot))), trigger::payload(tval[1]).state_id);
+}
+TRIGGER_FUNCTION(tf_owns_region) {
+	auto result = ve::apply([&](dcon::state_definition_id sd, dcon::nation_id n) {
+		for(auto p : ws.world.state_definition_get_abstract_state_membership(sd)) {
+			if(p.get_province().get_nation_from_province_ownership() != n)
+				return false;
+		}
+		return true;
+	}, trigger::payload(tval[1]).state_id, trigger::to_nation(primary_slot));
+	return compare_to_true(tval[0], result);
+}
 TRIGGER_FUNCTION(tf_tag_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_identity_from_identity_holder(to_nation(primary_slot)),
 			trigger::payload(tval[1]).tag_id);
@@ -2284,6 +2309,108 @@ TRIGGER_FUNCTION(tf_neighbour_from_province) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id o) { return bool(ws.world.get_nation_adjacency_by_nation_adjacency_pair(n, o)); },
 			to_nation(primary_slot), owner);
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_country_units_in_state_from) {
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s, dcon::nation_id tag) {
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(s))) {
+					if(p.get_province().get_state_membership() == s) {
+						for(auto a : ws.world.province_get_army_location(p.get_province())) {
+							if(a.get_army().get_controller_from_army_control() == tag)
+								return true;
+						}
+					}
+				}
+				return false;
+	},
+	to_state(primary_slot), to_nation(from_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_country_units_in_state_this_nation) {
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s, dcon::nation_id tag) {
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(s))) {
+					if(p.get_province().get_state_membership() == s) {
+						for(auto a : ws.world.province_get_army_location(p.get_province())) {
+							if(a.get_army().get_controller_from_army_control() == tag)
+								return true;
+						}
+					}
+				}
+				return false;
+	},
+	to_state(primary_slot), to_nation(this_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_country_units_in_state_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s, dcon::nation_id tag) {
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(s))) {
+					if(p.get_province().get_state_membership() == s) {
+						for(auto a : ws.world.province_get_army_location(p.get_province())) {
+							if(a.get_army().get_controller_from_army_control() == tag)
+								return true;
+						}
+					}
+				}
+				return false;
+	},
+	to_state(primary_slot), owner);
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_country_units_in_state_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s, dcon::nation_id tag) {
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(s))) {
+					if(p.get_province().get_state_membership() == s) {
+						for(auto a : ws.world.province_get_army_location(p.get_province())) {
+							if(a.get_army().get_controller_from_army_control() == tag)
+								return true;
+						}
+					}
+				}
+				return false;
+	},
+	to_state(primary_slot), owner);
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_country_units_in_state_this_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s, dcon::nation_id tag) {
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(s))) {
+					if(p.get_province().get_state_membership() == s) {
+						for(auto a : ws.world.province_get_army_location(p.get_province())) {
+							if(a.get_army().get_controller_from_army_control() == tag)
+								return true;
+						}
+					}
+				}
+				return false;
+	},
+	to_state(primary_slot), owner);
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_country_units_in_state_tag) {
+	auto tag = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	auto result = ve::apply(
+			[&ws, tag](dcon::state_instance_id s) {
+				if(!tag)
+					return false;
+				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(s))) {
+					if(p.get_province().get_state_membership() == s) {
+						for(auto a : ws.world.province_get_army_location(p.get_province())) {
+							if(a.get_army().get_controller_from_army_control() == tag)
+								return true;
+						}
+					}
+				}
+				return false;
+		},
+	to_state(primary_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_units_in_province_value) {
@@ -6428,6 +6555,17 @@ struct trigger_container {
 			tf_plurality_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t plurality_pop = 0x029F;
 			tf_is_overseas_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_overseas_state = 0x02A0;
 			tf_stronger_army_than_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
+			tf_region_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t region_state = 0x02A2;
+			tf_region_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t region_pop = 0x02A3;
+			tf_owns_region<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t owns_region = 0x02A4;
+			tf_is_core_state_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_core_state_tag = 0x02A5;
+			tf_country_units_in_state_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_from = 0x02A6;
+			tf_country_units_in_state_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_this_nation = 0x02A7;
+			tf_country_units_in_state_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_this_province = 0x02A8;
+			tf_country_units_in_state_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
+			tf_country_units_in_state_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
+			tf_country_units_in_state_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
+
 			//
 			// scopes
 			//
