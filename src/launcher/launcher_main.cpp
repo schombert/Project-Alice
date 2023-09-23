@@ -41,6 +41,8 @@ constexpr inline float caption_height = 44.0f;
 static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
 
+static std::string ip_addr = "127.0.0.1";
+
 static HWND m_hwnd = nullptr;
 
 struct ui_active_rect {
@@ -56,11 +58,12 @@ constexpr inline int32_t ui_obj_list_right = 2;
 constexpr inline int32_t ui_obj_create_scenario = 3;
 constexpr inline int32_t ui_obj_play_game = 4;
 constexpr inline int32_t ui_obj_host_game = 5;
-constexpr inline int32_t ui_obj_join_game = 6;
+constexpr inline int32_t ui_obj_ip_addr = 6;
+constexpr inline int32_t ui_obj_join_game = 7;
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 7;
+constexpr inline int32_t ui_list_first = 8;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -79,7 +82,8 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
 	ui_active_rect{ 555, 196 + 36 * 0, 286, 33 }, // play game
 	ui_active_rect{ 555, 196 + 48 + 36 * 1, 286, 33 }, // host game
-	ui_active_rect{ 555, 196 + 48 + 36 * 2, 286, 33 }, // join game
+	ui_active_rect{ 555, 196 + 48 + 36 * 2, 200, 33 }, // ip address textbox
+	ui_active_rect{ 555 + 200, 196 + 48 + 36 * 2, 86, 33 }, // join game
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -427,6 +431,8 @@ void mouse_click() {
 					temp_command_line += native_string(L" -host");
 				} else if(obj_under_mouse == ui_obj_join_game) {
 					temp_command_line += native_string(L" -join");
+					temp_command_line += native_string(L" ");
+					temp_command_line += simple_fs::utf8_to_native(ip_addr);
 				}
 				STARTUPINFO si;
 				ZeroMemory(&si, sizeof(si));
@@ -975,14 +981,24 @@ void render() {
 		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
+	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_ip_addr ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+		ui_rects[ui_obj_ip_addr].x,
+		ui_rects[ui_obj_ip_addr].y,
+		ui_rects[ui_obj_ip_addr].width,
+		ui_rects[ui_obj_ip_addr].height,
+		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+
 	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent("Host Game", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Host Game", 10, launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 6.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Host Game", 10, launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent("Join Game", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Join Game", 10, launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 6.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width / 2 - base_text_extent(ip_addr.c_str(), 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(ip_addr.c_str(), 10, launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 4.f, 22.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[1]);
+
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent("Join", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Join", 10, launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
@@ -1056,6 +1072,23 @@ void render() {
 	}
 
 	SwapBuffers(opengl_window_dc);
+}
+
+bool is_low_surrogate(uint16_t char_code) noexcept {
+	return char_code >= 0xDC00 && char_code <= 0xDFFF;
+}
+bool is_high_surrogate(uint16_t char_code) noexcept {
+	return char_code >= 0xD800 && char_code <= 0xDBFF;
+}
+
+char process_utf16_to_win1250(wchar_t c) {
+	if(c <= 127)
+		return char(c);
+	if(is_low_surrogate(c) || is_high_surrogate(c))
+		return 0;
+	char char_out = 0;
+	WideCharToMultiByte(1250, 0, &c, 1, &char_out, 1, nullptr, nullptr);
+	return char_out;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -1214,6 +1247,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			case WM_DESTROY:
 				PostQuitMessage(0);
 				return 1;
+			case WM_CHAR:
+			{
+				char turned_into = process_utf16_to_win1250(wParam);
+				if(turned_into) {
+					if(turned_into == '\b') {
+						if(!ip_addr.empty())
+							ip_addr.pop_back();
+					} else if(turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+						ip_addr.push_back(turned_into);
+					}
+				}
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+				return 0;
+			}
 			default:
 				break;
 
@@ -1302,6 +1349,7 @@ int WINAPI wWinMain(
 
 	MSG msg;
 	while(GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
