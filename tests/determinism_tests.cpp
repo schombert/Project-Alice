@@ -12,8 +12,8 @@ TEST_CASE("prng_simple", "[determinism]") {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 	game_state->game_seed = 64273;
 	game_state->current_date.value = 49963;
-	auto r1 = rng::get_random(*game_state, ~0x6a3f);
-	auto r2 = rng::get_random(*game_state, ~0x6a3f);
+	auto r1 = rng::get_random(*game_state, ~uint32_t(0x6a3f));
+	auto r2 = rng::get_random(*game_state, ~uint32_t(0x6a3f));
 	REQUIRE(r1 == r2);
 }
 
@@ -123,51 +123,59 @@ void checked_pop_update(sys::state& ws) {
 
 	// calculate complex changes in parallel where we can, but don't actually apply the results
 	// instead, the changes are saved to be applied only after all triggers have been evaluated
-	concurrency::parallel_for(0, 7, [&](int32_t index) {
+	//concurrency::parallel_for(0, 7, [&](int32_t index) {
+	for(int32_t index = 0; index <= 16; index++) {
 		switch(index) {
-		case 0: {
+		case 0:
+		{
 			auto o = uint32_t(ymd_date.day);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_ideologies(ws, o, days_in_month, idbuf);
 			break;
 		}
-		case 1: {
+		case 1:
+		{
 			auto o = uint32_t(ymd_date.day + 1);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_issues(ws, o, days_in_month, isbuf);
 			break;
 		}
-		case 2: {
+		case 2:
+		{
 			auto o = uint32_t(ymd_date.day + 6);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_type_changes(ws, o, days_in_month, pbuf);
 			break;
 		}
-		case 3: {
+		case 3:
+		{
 			auto o = uint32_t(ymd_date.day + 7);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_assimilation(ws, o, days_in_month, abuf);
 			break;
 		}
-		case 4: {
+		case 4:
+		{
 			auto o = uint32_t(ymd_date.day + 8);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_internal_migration(ws, o, days_in_month, mbuf);
 			break;
 		}
-		case 5: {
+		case 5:
+		{
 			auto o = uint32_t(ymd_date.day + 9);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_colonial_migration(ws, o, days_in_month, cmbuf);
 			break;
 		}
-		case 6: {
+		case 6:
+		{
 			auto o = uint32_t(ymd_date.day + 10);
 			if(o >= days_in_month)
 				o -= days_in_month;
@@ -175,47 +183,54 @@ void checked_pop_update(sys::state& ws) {
 			break;
 		}
 		}
-	});
+	}
+	//});
 
 	// apply in parallel where we can
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	for(int32_t index = 0; index <= 16; index++) {
 		switch(index) {
-		case 0: {
+		case 0:
+		{
 			auto o = uint32_t(ymd_date.day + 0);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::apply_ideologies(ws, o, days_in_month, idbuf);
 			break;
 		}
-		case 1: {
+		case 1:
+		{
 			auto o = uint32_t(ymd_date.day + 1);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::apply_issues(ws, o, days_in_month, isbuf);
 			break;
 		}
-		case 2: {
+		case 2:
+		{
 			auto o = uint32_t(ymd_date.day + 2);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_militancy(ws, o, days_in_month);
 			break;
 		}
-		case 3: {
+		case 3:
+		{
 			auto o = uint32_t(ymd_date.day + 3);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_consciousness(ws, o, days_in_month);
 			break;
 		}
-		case 4: {
+		case 4:
+		{
 			auto o = uint32_t(ymd_date.day + 4);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_literacy(ws, o, days_in_month);
 			break;
 		}
-		case 5: {
+		case 5:
+		{
 			auto o = uint32_t(ymd_date.day + 5);
 			if(o >= days_in_month)
 				o -= days_in_month;
@@ -231,7 +246,8 @@ void checked_pop_update(sys::state& ws) {
 					[&](auto ids) { ws.world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
 			break;
 		}
-	});
+	}
+	//});
 
 	// because they may add pops, these changes must be applied sequentially
 	{
@@ -287,8 +303,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	diplomatic_message::update_pending(ws2);
 	compare_game_states(ws1, ws2);
 
-	auto month_start = sys::year_month_day{ymd_date.year, ymd_date.month, uint16_t(1)};
-	auto next_month_start = sys::year_month_day{ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1)};
+	auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
+	auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
 	demographics::remove_size_zero_pops(ws1);
@@ -301,11 +317,12 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	compare_game_states(ws1, ws2);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
-	concurrency::parallel_for(0, 16, [&](int32_t index) {
+	//concurrency::parallel_for(0, 16, [&](int32_t index) {
+	for(int32_t index = 0; index <= 16; index++) {
 		switch(index) {
 		case 0:
-			nations::update_administrative_efficiency(ws1);
-			nations::update_administrative_efficiency(ws2);
+			ai::refresh_home_ports(ws1);
+			ai::refresh_home_ports(ws2);
 			break;
 		case 1:
 			nations::update_research_points(ws1);
@@ -328,52 +345,58 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			military::update_naval_supply_points(ws2);
 			break;
 		case 6:
+			military::update_all_recruitable_regiments(ws1);
+			military::update_all_recruitable_regiments(ws2);
+			break;
+		case 7:
+			military::regenerate_total_regiment_counts(ws1);
+			military::regenerate_total_regiment_counts(ws2);
+			break;
+		case 8:
 			economy::update_rgo_employment(ws1);
 			economy::update_rgo_employment(ws2);
 			break;
-		case 7:
+		case 9:
 			economy::update_factory_employment(ws1);
 			economy::update_factory_employment(ws2);
 			break;
-		case 8:
+		case 10:
+			nations::update_administrative_efficiency(ws1);
 			rebel::daily_update_rebel_organization(ws1);
+
+			nations::update_administrative_efficiency(ws2);
 			rebel::daily_update_rebel_organization(ws2);
 			break;
-		case 9:
+		case 11:
 			military::daily_leaders_update(ws1);
 			military::daily_leaders_update(ws2);
 			break;
-		case 10:
+		case 12:
 			politics::daily_party_loyalty_update(ws1);
 			politics::daily_party_loyalty_update(ws2);
 			break;
-		case 11:
+		case 13:
 			nations::daily_update_flashpoint_tension(ws1);
 			nations::daily_update_flashpoint_tension(ws2);
 			break;
-		case 12:
+		case 14:
 			military::update_ticking_war_score(ws1);
 			military::update_ticking_war_score(ws2);
 			break;
-		case 13:
+		case 15:
 			military::increase_dig_in(ws1);
 			military::increase_dig_in(ws2);
 			break;
-		case 14:
+		case 16:
 			military::recover_org(ws1);
 			military::recover_org(ws2);
 			break;
-		case 15:
-			ai::refresh_home_ports(ws1);
-			ai::refresh_home_ports(ws2);
-			break;
 		}
-	});
+		compare_game_states(ws1, ws2);
+	}
+	//});
 	compare_game_states(ws1, ws2);
 
-	military::update_war_cleanup(ws1);
-	military::update_war_cleanup(ws2);
-	compare_game_states(ws1, ws2);
 	economy::daily_update(ws1);
 	economy::daily_update(ws2);
 	compare_game_states(ws1, ws2);

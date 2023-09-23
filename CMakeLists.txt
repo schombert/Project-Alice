@@ -268,11 +268,11 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 
+if (BUILD_TESTING)
+    enable_testing()
+	add_subdirectory(tests)
+endif()
 
-#if (BUILD_TESTING)
-#    enable_testing()
-#	add_subdirectory(tests)
-#endif()
 add_subdirectory(SaveEditor)
 if(WIN32)
 	add_subdirectory(DbgAlice)
