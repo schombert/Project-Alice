@@ -838,10 +838,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		auto wine = context.map_of_commodity_names.find("wine")->second;
 		REQUIRE(state->world.pop_type_get_luxury_needs(state->culture_definitions.artisans, wine) == 10.0f);
-		REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].base == 1.0f);
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].factor == 1.0f);
 
 		auto react = context.map_of_ideologies.find("reactionary")->second.id;
-		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base == 1.0f);
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].factor == 1.0f);
 	}
 	// load ideology contents
 	{
@@ -854,7 +854,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(bool(state->culture_definitions.conservative) == true);
 		REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
 		auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
-		REQUIRE(state->value_modifiers[mkey].base == -0.5f);
+		REQUIRE(state->value_modifiers[mkey].factor == -0.5f);
 	}
 	// triggered modifier contents
 	{
@@ -1764,17 +1764,17 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 
 	auto wine = context.map_of_commodity_names.find("wine")->second;
 	REQUIRE(state->world.pop_type_get_luxury_needs(state->culture_definitions.artisans, wine) == 10.0f);
-	REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].base == 1.0f);
+	REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].factor == 1.0f);
 
 	auto react = context.map_of_ideologies.find("reactionary")->second.id;
-	REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base == 1.0f);
+	REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].factor == 1.0f);
 }
 // load ideology contents
 {
 	REQUIRE(bool(state->culture_definitions.conservative) == true);
 	REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
 	auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
-	REQUIRE(state->value_modifiers[mkey].base == -0.5f);
+	REQUIRE(state->value_modifiers[mkey].factor == -0.5f);
 }
 
 // cb contents
