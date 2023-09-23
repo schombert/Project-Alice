@@ -1,5 +1,5 @@
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_ENABLE_BENCHMARKING 1
+#define CATCH_CONFIG_MAIN 1
 #include "catch2/catch.hpp"
 
 #ifndef DCON_TRAP_INVALID_STORE
@@ -28,8 +28,9 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 
 	if (!sys::try_read_scenario_and_save_file(*game_state, NATIVE("tests_scenario.bin"))) {
 		// scenario making functions
-		game_state->load_scenario_data();
-		sys::write_scenario_file(*game_state, NATIVE("tests_scenario.bin"));
+		parsers::error_handler err("");
+		game_state->load_scenario_data(err);
+		sys::write_scenario_file(*game_state, NATIVE("tests_scenario.bin"), 1);
 	} else {
 		game_state->fill_unsaved_data();
 	}
