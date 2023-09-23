@@ -94,8 +94,11 @@ static socket_t socket_init_client(struct sockaddr_in& client_address, const cha
 		std::abort();
 	client_address.sin_family = AF_INET;
 	client_address.sin_port = htons(default_server_port);
-	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0)
-		std::abort();
+	if(inet_pton(AF_INET6, ip_address, &client_address.sin_addr) <= 0) { //try ipv6
+		if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) { //ipv4 fallback
+			std::abort();
+		}
+	}
 	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0)
 		std::abort();
 	return socket_fd;
