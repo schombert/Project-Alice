@@ -940,6 +940,10 @@ TRIGGER_FUNCTION(tf_capital_scope_province) {
 	auto cap = ws.world.nation_get_capital(ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)));
 	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(cap), this_slot, from_slot);
 }
+TRIGGER_FUNCTION(tf_capital_scope_pop) {
+	auto cap = ws.world.nation_get_capital(nations::owner_of_pop(ws, to_pop(primary_slot)));
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(cap), this_slot, from_slot);
+}
 TRIGGER_FUNCTION(tf_this_scope) {
 	return apply_subtriggers<return_type, this_type, this_type, from_type>(tval, ws, this_slot, this_slot, from_slot);
 }
@@ -2276,6 +2280,49 @@ TRIGGER_FUNCTION(tf_stronger_army_than_tag) {
 			},
 			tag_holder);
 	return compare_values(tval[0], main_brigades, this_brigades);
+}
+TRIGGER_FUNCTION(tf_stronger_army_than_this_nation) {
+	auto main_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			to_nation(primary_slot));
+	auto this_brigades = ve::apply(
+			[&ws](dcon::nation_id n) {
+				int32_t total = 0;
+				for(auto a : ws.world.nation_get_army_control(n)) {
+					for(auto u : a.get_army().get_army_membership()) {
+						++total;
+					}
+				}
+				return float(total);
+			},
+			trigger::to_nation(this_slot));
+	return compare_values(tval[0], main_brigades, this_brigades);
+}
+TRIGGER_FUNCTION(tf_stronger_army_than_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot));
+	return tf_stronger_army_than_this_nation<return_type>(tval, ws, primary_slot, to_generic(owner), int32_t());
+}
+TRIGGER_FUNCTION(tf_stronger_army_than_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	return tf_stronger_army_than_this_nation<return_type>(tval, ws, primary_slot, to_generic(owner), int32_t());
+}
+TRIGGER_FUNCTION(tf_stronger_army_than_this_pop) {
+	auto owner = nations::owner_of_pop(ws, trigger::to_pop(this_slot));
+	return tf_stronger_army_than_this_nation<return_type>(tval, ws, primary_slot, to_generic(owner), int32_t());
+}
+TRIGGER_FUNCTION(tf_stronger_army_than_from_nation) {
+	return tf_stronger_army_than_this_nation<return_type>(tval, ws, primary_slot, from_slot, int32_t());
+}
+TRIGGER_FUNCTION(tf_stronger_army_than_from_province) {
+	return tf_stronger_army_than_this_province<return_type>(tval, ws, primary_slot, from_slot, int32_t());
 }
 TRIGGER_FUNCTION(tf_neighbour_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
@@ -6565,6 +6612,12 @@ struct trigger_container {
 			tf_country_units_in_state_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
 			tf_country_units_in_state_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
 			tf_country_units_in_state_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
+			tf_stronger_army_than_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_this_nation = 0x02AC;
+			tf_stronger_army_than_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_this_state = 0x02AD;
+			tf_stronger_army_than_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_this_province = 0x02AE;
+			tf_stronger_army_than_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
+			tf_stronger_army_than_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
+			tf_stronger_army_than_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
 
 			//
 			// scopes
@@ -6618,7 +6671,7 @@ struct trigger_container {
 			tf_country_scope_province<return_type, primary_type, this_type, from_type>, // constexpr uint16_t country_scope_province = 0x002D;
 			tf_cultural_union_scope_pop<return_type, primary_type, this_type, from_type>, // constexpr uint16_t cultural_union_scope_pop = 0x002E;
 			tf_capital_scope_province<return_type, primary_type, this_type, from_type>, // constexpr uint16_t capital_scope_province = 0x002F;
-			
+			tf_capital_scope_pop, //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 	};
 };
 

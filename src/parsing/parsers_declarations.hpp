@@ -1549,6 +1549,7 @@ struct individual_ideology {
 	void finish(individual_ideology_context&) { }
 	void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
 	void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
+	void civilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
 	void color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context);
 	void date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, individual_ideology_context& context);
 	void add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line,

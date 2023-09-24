@@ -253,6 +253,13 @@ void tr_scope_owner(token_generator& gen, error_handler& err, trigger_building_c
 		context.compiled_trigger.push_back(uint16_t(trigger::owner_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::state) {
 		context.compiled_trigger.push_back(uint16_t(trigger::owner_scope_state));
+	} else if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::generic_scope));
+		context.compiled_trigger.push_back(uint16_t(1));
+		auto payload_size_offset = context.compiled_trigger.size() - 1;
+		parse_trigger_body(gen, err, context);
+		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
+		return;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "owner trigger scope used in an incorrect scope type " +
@@ -344,6 +351,8 @@ void tr_capital_scope(token_generator& gen, error_handler& err, trigger_building
 		context.compiled_trigger.push_back(uint16_t(trigger::capital_scope));
 	} else if(context.main_slot == trigger::slot_contents::province) {
 		context.compiled_trigger.push_back(uint16_t(trigger::capital_scope_province));
+	} else if(context.main_slot == trigger::slot_contents::pop) {
+		context.compiled_trigger.push_back(uint16_t(trigger::capital_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "capital_scope trigger scope used in an incorrect scope type " +
@@ -610,10 +619,12 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 			context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 		} else {
 			err.accumulated_errors += "unknown scope " + label_str + " introduced in a trigger (" + err.file_name + ")\n";
+			gen.discard_group();
 			return;
 		}
 	} else {
 		err.accumulated_errors += "unknown scope " + label_str + " introduced in a trigger (" + err.file_name + ")\n";
+		gen.discard_group();
 		return;
 	}
 }

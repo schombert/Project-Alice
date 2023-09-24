@@ -375,6 +375,10 @@ void ef_scope_all_core(token_generator& gen, error_handler& err, effect_building
 
 	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_core_scope | effect::scope_has_limit));
+		context.main_slot = trigger::slot_contents::province;
+	} else if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::x_core_scope_province | effect::scope_has_limit));
+		context.main_slot = trigger::slot_contents::nation;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "all_core effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -387,7 +391,7 @@ void ef_scope_all_core(token_generator& gen, error_handler& err, effect_building
 	context.limit_position = context.compiled_effect.size();
 	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
 
-	context.main_slot = trigger::slot_contents::province;
+	
 	parse_effect_body(gen, err, context);
 
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
@@ -506,6 +510,18 @@ void ef_scope_owner(token_generator& gen, error_handler& err, effect_building_co
 		context.compiled_effect.push_back(uint16_t(effect::owner_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::province) {
 		context.compiled_effect.push_back(uint16_t(effect::owner_scope_province | effect::scope_has_limit));
+	} else if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		return;
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "owner effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -1063,6 +1079,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 
 			context.main_slot = old_main;
 		} else {
+			gen.discard_group();
 			err.accumulated_errors += "Invalid tag used as an effect scope (" + err.file_name + ")\n";
 			return;
 		}

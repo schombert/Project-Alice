@@ -643,6 +643,26 @@ void tf_capital_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	auto loc = primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_capital(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))) : -1;
 	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
 }
+void tf_capital_scope_pop(TRIGGER_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box,
+				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(nations::owner_of_pop(ws, trigger::to_pop(primary_slot)))) : text::produce_simple_string(ws, "singular_nation"));
+		text::close_layout_box(layout, box);
+	}
+
+	if(trigger::count_subtriggers(tval) > 1) {
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
+		text::close_layout_box(layout, box);
+	}
+
+	auto loc = primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_capital(nations::owner_of_pop(ws, trigger::to_pop(primary_slot)))) : -1;
+	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+}
 void tf_capital_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -5204,6 +5224,84 @@ void tf_stronger_army_than_tag(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
 	text::close_layout_box(layout, box);
 }
+void tf_stronger_army_than_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_stronger_army_than_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_stronger_army_than_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_stronger_army_than_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_stronger_army_than_from_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_stronger_army_than_from_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0],
+		text::produce_simple_string(ws, "num_regiments"),
+		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
+}
 void tf_brigades_compare_this(TRIGGER_DISPLAY_PARAMS) {
 	auto factor = trigger::read_float_from_payload(tval + 1);
 	text::substitution_map s;
@@ -7861,7 +7959,12 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_country_units_in_state_this_state, //constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
 		tf_country_units_in_state_this_pop, //constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
 		tf_country_units_in_state_tag, //constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
-
+		tf_stronger_army_than_this_nation, //constexpr inline uint16_t stronger_army_than_this_nation = 0x02AC;
+		tf_stronger_army_than_this_state, //constexpr inline uint16_t stronger_army_than_this_state = 0x02AD;
+		tf_stronger_army_than_this_province, //constexpr inline uint16_t stronger_army_than_this_province = 0x02AE;
+		tf_stronger_army_than_this_pop, //constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
+		tf_stronger_army_than_from_nation, //constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
+		tf_stronger_army_than_from_province, //constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
 
 		//
 		// scopes
@@ -7914,7 +8017,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_country_scope_nation,						// constexpr uint16_t country_scope_nation = 0x002C;
 		tf_country_scope_province,					// constexpr uint16_t country_scope_province = 0x002D;
 		tf_cultural_union_scope_pop,				// constexpr uint16_t cultural_union_scope_pop = 0x002E;
-		tf_capital_scope_province    // constexpr uint16_t capital_scope_province = 0x002F;
+		tf_capital_scope_province,    // constexpr uint16_t capital_scope_province = 0x002F;
+		tf_capital_scope_pop,   //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 };
 
 // #define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::columnar_layout& layout,

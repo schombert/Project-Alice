@@ -603,9 +603,12 @@ void individual_ideology::can_reduce_militancy(association_type, bool value, err
 		context.outer_context.state.culture_definitions.conservative = context.id;
 }
 
-void individual_ideology::uncivilized(association_type, bool value, error_handler& err, int32_t line,
-		individual_ideology_context& context) {
+void individual_ideology::uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
 	context.outer_context.state.world.ideology_set_is_civilized_only(context.id, !value);
+}
+
+void individual_ideology::civilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
+	context.outer_context.state.world.ideology_set_is_civilized_only(context.id, value);
 }
 
 void individual_ideology::color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context) {
