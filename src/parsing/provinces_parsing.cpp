@@ -241,21 +241,6 @@ void province_history_file::life_rating(association_type, uint32_t value, error_
 	context.outer_context.state.world.province_set_life_rating(context.id, uint8_t(value));
 }
 
-void province_history_file::fort(association_type, uint32_t value, error_handler& err, int32_t line,
-		province_file_context& context) {
-	context.outer_context.state.world.province_set_building_level(context.id, economy::province_building_type::fort, uint8_t(value));
-}
-
-void province_history_file::naval_base(association_type, uint32_t value, error_handler& err, int32_t line,
-		province_file_context& context) {
-	context.outer_context.state.world.province_set_building_level(context.id, economy::province_building_type::naval_base, uint8_t(value));
-}
-
-void province_history_file::railroad(association_type, uint32_t value, error_handler& err, int32_t line,
-		province_file_context& context) {
-	context.outer_context.state.world.province_set_building_level(context.id, economy::province_building_type::railroad, uint8_t(value));
-}
-
 void province_history_file::colony(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
 	context.outer_context.state.world.province_set_is_colonial(context.id, value != 0);
@@ -341,6 +326,17 @@ void province_history_file::state_building(pv_state_building const& value, error
 void province_history_file::is_slave(association_type, bool value, error_handler& err, int32_t line,
 		province_file_context& context) {
 	context.outer_context.state.world.province_set_is_slave(context.id, value);
+}
+
+void province_history_file::any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line,
+			province_file_context& context) {
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		if(name == economy::province_building_type_get_name(t)) {
+			context.outer_context.state.world.province_set_building_level(context.id, t, uint8_t(value));
+			return;
+		}
+	}
+	err.accumulated_errors += "unknown province history key (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
 }
 
 void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {

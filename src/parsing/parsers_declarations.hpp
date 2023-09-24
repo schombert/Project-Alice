@@ -1399,9 +1399,6 @@ struct pv_state_building {
 
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
-	void fort(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
-	void naval_base(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
-	void railroad(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void trade_goods(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
 	void owner(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1412,6 +1409,8 @@ struct province_history_file {
 	void party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context);
 	void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context);
 	void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
+	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line,
+			province_file_context& context);
 	void finish(province_file_context&) { }
 };
 
@@ -1833,6 +1832,7 @@ struct tech_rgo_size {
 struct technology_contents : public modifier_base {
 	void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line,
 			tech_context& context);
+	void any_value(std::string_view name, association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context);
 	void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
