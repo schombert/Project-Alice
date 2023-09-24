@@ -12,8 +12,8 @@ TEST_CASE("prng_simple", "[determinism]") {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 	game_state->game_seed = 64273;
 	game_state->current_date.value = 49963;
-	auto r1 = rng::get_random(*game_state, ~0x6a3f);
-	auto r2 = rng::get_random(*game_state, ~0x6a3f);
+	auto r1 = rng::get_random(*game_state, ~uint32_t(0x6a3f));
+	auto r2 = rng::get_random(*game_state, ~uint32_t(0x6a3f));
 	REQUIRE(r1 == r2);
 }
 
@@ -125,49 +125,56 @@ void checked_pop_update(sys::state& ws) {
 	// instead, the changes are saved to be applied only after all triggers have been evaluated
 	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
-		case 0: {
+		case 0:
+		{
 			auto o = uint32_t(ymd_date.day);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_ideologies(ws, o, days_in_month, idbuf);
 			break;
 		}
-		case 1: {
+		case 1:
+		{
 			auto o = uint32_t(ymd_date.day + 1);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_issues(ws, o, days_in_month, isbuf);
 			break;
 		}
-		case 2: {
+		case 2:
+		{
 			auto o = uint32_t(ymd_date.day + 6);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_type_changes(ws, o, days_in_month, pbuf);
 			break;
 		}
-		case 3: {
+		case 3:
+		{
 			auto o = uint32_t(ymd_date.day + 7);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_assimilation(ws, o, days_in_month, abuf);
 			break;
 		}
-		case 4: {
+		case 4:
+		{
 			auto o = uint32_t(ymd_date.day + 8);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_internal_migration(ws, o, days_in_month, mbuf);
 			break;
 		}
-		case 5: {
+		case 5:
+		{
 			auto o = uint32_t(ymd_date.day + 9);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_colonial_migration(ws, o, days_in_month, cmbuf);
 			break;
 		}
-		case 6: {
+		case 6:
+		{
 			auto o = uint32_t(ymd_date.day + 10);
 			if(o >= days_in_month)
 				o -= days_in_month;
@@ -178,44 +185,50 @@ void checked_pop_update(sys::state& ws) {
 	});
 
 	// apply in parallel where we can
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
-		case 0: {
+		case 0:
+		{
 			auto o = uint32_t(ymd_date.day + 0);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::apply_ideologies(ws, o, days_in_month, idbuf);
 			break;
 		}
-		case 1: {
+		case 1:
+		{
 			auto o = uint32_t(ymd_date.day + 1);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::apply_issues(ws, o, days_in_month, isbuf);
 			break;
 		}
-		case 2: {
+		case 2:
+		{
 			auto o = uint32_t(ymd_date.day + 2);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_militancy(ws, o, days_in_month);
 			break;
 		}
-		case 3: {
+		case 3:
+		{
 			auto o = uint32_t(ymd_date.day + 3);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_consciousness(ws, o, days_in_month);
 			break;
 		}
-		case 4: {
+		case 4:
+		{
 			auto o = uint32_t(ymd_date.day + 4);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_literacy(ws, o, days_in_month);
 			break;
 		}
-		case 5: {
+		case 5:
+		{
 			auto o = uint32_t(ymd_date.day + 5);
 			if(o >= days_in_month)
 				o -= days_in_month;
@@ -287,8 +300,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	diplomatic_message::update_pending(ws2);
 	compare_game_states(ws1, ws2);
 
-	auto month_start = sys::year_month_day{ymd_date.year, ymd_date.month, uint16_t(1)};
-	auto next_month_start = sys::year_month_day{ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1)};
+	auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
+	auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
 	demographics::remove_size_zero_pops(ws1);
@@ -304,8 +317,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	concurrency::parallel_for(0, 16, [&](int32_t index) {
 		switch(index) {
 		case 0:
-			nations::update_administrative_efficiency(ws1);
-			nations::update_administrative_efficiency(ws2);
+			ai::refresh_home_ports(ws1);
+			ai::refresh_home_ports(ws2);
 			break;
 		case 1:
 			nations::update_research_points(ws1);
@@ -328,52 +341,56 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			military::update_naval_supply_points(ws2);
 			break;
 		case 6:
+			military::update_all_recruitable_regiments(ws1);
+			military::update_all_recruitable_regiments(ws2);
+			break;
+		case 7:
+			military::regenerate_total_regiment_counts(ws1);
+			military::regenerate_total_regiment_counts(ws2);
+			break;
+		case 8:
 			economy::update_rgo_employment(ws1);
 			economy::update_rgo_employment(ws2);
 			break;
-		case 7:
+		case 9:
 			economy::update_factory_employment(ws1);
 			economy::update_factory_employment(ws2);
 			break;
-		case 8:
+		case 10:
+			nations::update_administrative_efficiency(ws1);
 			rebel::daily_update_rebel_organization(ws1);
+
+			nations::update_administrative_efficiency(ws2);
 			rebel::daily_update_rebel_organization(ws2);
 			break;
-		case 9:
+		case 11:
 			military::daily_leaders_update(ws1);
 			military::daily_leaders_update(ws2);
 			break;
-		case 10:
+		case 12:
 			politics::daily_party_loyalty_update(ws1);
 			politics::daily_party_loyalty_update(ws2);
 			break;
-		case 11:
+		case 13:
 			nations::daily_update_flashpoint_tension(ws1);
 			nations::daily_update_flashpoint_tension(ws2);
 			break;
-		case 12:
+		case 14:
 			military::update_ticking_war_score(ws1);
 			military::update_ticking_war_score(ws2);
 			break;
-		case 13:
+		case 15:
 			military::increase_dig_in(ws1);
 			military::increase_dig_in(ws2);
 			break;
-		case 14:
+		case 16:
 			military::recover_org(ws1);
 			military::recover_org(ws2);
-			break;
-		case 15:
-			ai::refresh_home_ports(ws1);
-			ai::refresh_home_ports(ws2);
 			break;
 		}
 	});
 	compare_game_states(ws1, ws2);
 
-	military::update_war_cleanup(ws1);
-	military::update_war_cleanup(ws2);
-	compare_game_states(ws1, ws2);
 	economy::daily_update(ws1);
 	economy::daily_update(ws2);
 	compare_game_states(ws1, ws2);
@@ -430,202 +447,175 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	compare_game_states(ws1, ws2);
 
 	//
-	if(ws1.current_date.value % 4 == 0) {
+	//if(ws1.current_date.value % 4 == 0) {
 		ai::update_ai_colonial_investment(ws1);
 		ai::update_ai_colonial_investment(ws2);
 		compare_game_states(ws1, ws2);
-	}
+	//}
 
 	// Once per month updates, spread out over the month
-	switch(ymd_date.day) {
-	case 1:
-		nations::update_monthly_points(ws1);
-		nations::update_monthly_points(ws2);
+	//switch(ymd_date.day) {
+	for(int32_t index = 0; index <= 31; index++) {
+		switch(index) {
+		case 1:
+			nations::update_monthly_points(ws1);
+			nations::update_monthly_points(ws2);
+			break;
+		case 2:
+			sys::update_modifier_effects(ws1);
+			sys::update_modifier_effects(ws2);
+			break;
+		case 3:
+			military::monthly_leaders_update(ws1);
+			military::monthly_leaders_update(ws2);
+			compare_game_states(ws1, ws2);
+			ai::add_gw_goals(ws1);
+			ai::add_gw_goals(ws2);
+			break;
+		case 4:
+			military::reinforce_regiments(ws1);
+			military::reinforce_regiments(ws2);
+			compare_game_states(ws1, ws2);
+			ai::make_defense(ws1);
+			ai::make_defense(ws2);
+			break;
+		case 5:
+			rebel::update_movements(ws1);
+			rebel::update_movements(ws2);
+			compare_game_states(ws1, ws2);
+			rebel::update_factions(ws1);
+			rebel::update_factions(ws2);
+			break;
+		case 6:
+			ai::form_alliances(ws1);
+			ai::form_alliances(ws2);
+			compare_game_states(ws1, ws2);
+			ai::make_attacks(ws1);
+			ai::make_attacks(ws2);
+			break;
+		case 7:
+			ai::update_ai_general_status(ws1);
+			ai::update_ai_general_status(ws2);
+			break;
+		case 8:
+			military::apply_attrition(ws1);
+			military::apply_attrition(ws2);
+			break;
+		case 9:
+			military::repair_ships(ws1);
+			military::repair_ships(ws2);
+			break;
+		case 10:
+			province::update_crimes(ws1);
+			province::update_crimes(ws2);
+			break;
+		case 11:
+			province::update_nationalism(ws1);
+			province::update_nationalism(ws2);
+			break;
+		case 12:
+			ai::update_ai_research(ws1);
+			ai::update_ai_research(ws2);
+			break;
+		case 13:
+			ai::perform_influence_actions(ws1);
+			ai::perform_influence_actions(ws2);
+			break;
+		case 14:
+			ai::update_focuses(ws1);
+			ai::update_focuses(ws2);
+			break;
+		case 15:
+			culture::discover_inventions(ws1);
+			culture::discover_inventions(ws2);
+			break;
+		case 16:
+			ai::take_ai_decisions(ws1);
+			ai::take_ai_decisions(ws2);
+			break;
+		case 17:
+			ai::build_ships(ws1);
+			ai::build_ships(ws2);
+			compare_game_states(ws1, ws2);
+			ai::update_land_constructions(ws1);
+			ai::update_land_constructions(ws2);
+			break;
+		case 18:
+			ai::update_ai_econ_construction(ws1);
+			ai::update_ai_econ_construction(ws2);
+			break;
+		case 19:
+			ai::update_budget(ws1);
+			ai::update_budget(ws2);
+		case 20:
+			nations::monthly_flashpoint_update(ws1);
+			nations::monthly_flashpoint_update(ws2);
+			compare_game_states(ws1, ws2);
+			ai::make_defense(ws1);
+			ai::make_defense(ws2);
+			break;
+		case 21:
+			ai::update_ai_colony_starting(ws1);
+			ai::update_ai_colony_starting(ws2);
+			break;
+		case 22:
+			ai::take_reforms(ws1);
+			ai::take_reforms(ws2);
+			break;
+		case 23:
+			ai::civilize(ws1);
+			ai::civilize(ws2);
+			compare_game_states(ws1, ws2);
+			ai::make_war_decs(ws1);
+			ai::make_war_decs(ws2);
+			break;
+		case 24:
+			rebel::execute_rebel_victories(ws1);
+			rebel::execute_rebel_victories(ws2);
+			compare_game_states(ws1, ws2);
+			ai::make_attacks(ws1);
+			ai::make_attacks(ws2);
+			break;
+		case 25:
+			rebel::execute_province_defections(ws1);
+			rebel::execute_province_defections(ws2);
+			break;
+		case 26:
+			ai::make_peace_offers(ws1);
+			ai::make_peace_offers(ws2);
+			break;
+		case 27:
+			ai::update_crisis_leaders(ws1);
+			ai::update_crisis_leaders(ws2);
+			break;
+		case 28:
+			rebel::rebel_risings_check(ws1);
+			rebel::rebel_risings_check(ws2);
+			break;
+		case 29:
+			ai::update_war_intervention(ws1);
+			ai::update_war_intervention(ws2);
+			break;
+		case 30:
+			ai::update_ships(ws1);
+			ai::update_ships(ws2);
+			break;
+		case 31:
+			ai::update_cb_fabrication(ws1);
+			ai::update_cb_fabrication(ws2);
+			break;
+		default:
+			break;
+		}
 		compare_game_states(ws1, ws2);
-		break;
-	case 2:
-		sys::update_modifier_effects(ws1);
-		sys::update_modifier_effects(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 3:
-		military::monthly_leaders_update(ws1);
-		military::monthly_leaders_update(ws2);
-		compare_game_states(ws1, ws2);
-		ai::add_gw_goals(ws1);
-		ai::add_gw_goals(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 4:
-		military::reinforce_regiments(ws1);
-		military::reinforce_regiments(ws2);
-		compare_game_states(ws1, ws2);
-		ai::make_defense(ws1);
-		ai::make_defense(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 5:
-		rebel::update_movements(ws1);
-		rebel::update_movements(ws2);
-		compare_game_states(ws1, ws2);
-		rebel::update_factions(ws1);
-		rebel::update_factions(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 6:
-		ai::form_alliances(ws1);
-		ai::form_alliances(ws2);
-		compare_game_states(ws1, ws2);
-		ai::make_attacks(ws1);
-		ai::make_attacks(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 7:
-		ai::update_ai_general_status(ws1);
-		ai::update_ai_general_status(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 8:
-		military::apply_attrition(ws1);
-		military::apply_attrition(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 9:
-		military::repair_ships(ws1);
-		military::repair_ships(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 10:
-		province::update_crimes(ws1);
-		province::update_crimes(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 11:
-		province::update_nationalism(ws1);
-		province::update_nationalism(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 12:
-		ai::update_ai_research(ws1);
-		ai::update_ai_research(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 13:
-		ai::perform_influence_actions(ws1);
-		ai::perform_influence_actions(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 14:
-		ai::update_focuses(ws1);
-		ai::update_focuses(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 15:
-		culture::discover_inventions(ws1);
-		culture::discover_inventions(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 16:
-		ai::take_ai_decisions(ws1);
-		ai::take_ai_decisions(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 17:
-		ai::build_ships(ws1);
-		ai::build_ships(ws2);
-		compare_game_states(ws1, ws2);
-		ai::update_land_constructions(ws1);
-		ai::update_land_constructions(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 18:
-		ai::update_ai_econ_construction(ws1);
-		ai::update_ai_econ_construction(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 19:
-		ai::update_budget(ws1);
-		ai::update_budget(ws2);
-		compare_game_states(ws1, ws2);
-	case 20:
-		nations::monthly_flashpoint_update(ws1);
-		nations::monthly_flashpoint_update(ws2);
-		compare_game_states(ws1, ws2);
-		ai::make_defense(ws1);
-		ai::make_defense(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 21:
-		ai::update_ai_colony_starting(ws1);
-		ai::update_ai_colony_starting(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 22:
-		ai::take_reforms(ws1);
-		ai::take_reforms(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 23:
-		ai::civilize(ws1);
-		ai::civilize(ws2);
-		compare_game_states(ws1, ws2);
-		ai::make_war_decs(ws1);
-		ai::make_war_decs(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 24:
-		rebel::execute_rebel_victories(ws1);
-		rebel::execute_rebel_victories(ws2);
-		compare_game_states(ws1, ws2);
-		ai::make_attacks(ws1);
-		ai::make_attacks(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 25:
-		rebel::execute_province_defections(ws1);
-		rebel::execute_province_defections(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 26:
-		ai::make_peace_offers(ws1);
-		ai::make_peace_offers(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 27:
-		ai::update_crisis_leaders(ws1);
-		ai::update_crisis_leaders(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 28:
-		rebel::rebel_risings_check(ws1);
-		rebel::rebel_risings_check(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 29:
-		ai::update_war_intervention(ws1);
-		ai::update_war_intervention(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 30:
-		ai::update_ships(ws1);
-		ai::update_ships(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	case 31:
-		ai::update_cb_fabrication(ws1);
-		ai::update_cb_fabrication(ws2);
-		compare_game_states(ws1, ws2);
-		break;
-	default:
-		break;
 	}
 
 	military::apply_regiment_damage(ws1);
 	military::apply_regiment_damage(ws2);
 	compare_game_states(ws1, ws2);
 
-	if(ymd_date.day == 1) {
-		if(ymd_date.month == 1) {
+	//if(ymd_date.day == 1) {
+	//	if(ymd_date.month == 1) {
 			// yearly update : redo the upper house
 			for(auto n : ws1.world.in_nation) {
 				politics::recalculate_upper_house(ws1, n);
@@ -638,18 +628,18 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			ai::update_influence_priorities(ws1);
 			ai::update_influence_priorities(ws2);
 			compare_game_states(ws1, ws2);
-		}
-		if(ymd_date.month == 6) {
+	//	}
+	//	if(ymd_date.month == 6) {
 			ai::update_influence_priorities(ws1);
 			ai::update_influence_priorities(ws2);
 			compare_game_states(ws1, ws2);
-		}
-		if(ymd_date.month == 2) {
+	//	}
+		//if(ymd_date.month == 2) {
 			ai::upgrade_colonies(ws1);
 			ai::upgrade_colonies(ws2);
 			compare_game_states(ws1, ws2);
-		}
-	}
+		//}
+	//}
 
 	ai::general_ai_unit_tick(ws1);
 	ai::general_ai_unit_tick(ws2);

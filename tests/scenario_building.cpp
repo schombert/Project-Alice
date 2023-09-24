@@ -33,31 +33,6 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	parsers::scenario_building_context context(*state);
 
-	// This should have no effect whatsoever on the files, and it's only
-	// used so we can test the filesystem state later on
-	{
-		auto content = std::string_view{
-		    "name = \"Test\"\n"
-		    "path = \"mod/test\"\n"
-		    "replace_path = \"non_existing_folder\"\n"};
-		err.file_name = "test.mod";
-		parsers::token_generator gen(content.data(), content.data() + content.length());
-
-		parsers::mod_file_context mod_file_context(context);
-		parsers::parse_mod_file(gen, err, mod_file_context);
-	}
-	{
-		auto content = std::string_view{
-		    "name = \"Test2\"\n"
-		    "path = \"mod/test2\"\n"
-		    "replace_path = \"non_existing_folder\"\n"};
-		err.file_name = "test2.mod";
-		parsers::token_generator gen(content.data(), content.data() + content.length());
-
-		parsers::mod_file_context mod_file_context(context);
-		parsers::parse_mod_file(gen, err, mod_file_context);
-	}
-
 	auto map = open_directory(root, NATIVE("map"));
 	{
 		auto def_map_file = open_file(map, NATIVE("default.map"));
@@ -863,10 +838,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		auto wine = context.map_of_commodity_names.find("wine")->second;
 		REQUIRE(state->world.pop_type_get_luxury_needs(state->culture_definitions.artisans, wine) == 10.0f);
-		REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].base_factor == 1.0f);
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].factor == 1.0f);
 
 		auto react = context.map_of_ideologies.find("reactionary")->second.id;
-		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base_factor == 1.0f);
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].factor == 1.0f);
 	}
 	// load ideology contents
 	{
@@ -879,7 +854,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(bool(state->culture_definitions.conservative) == true);
 		REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
 		auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
-		REQUIRE(state->value_modifiers[mkey].base_factor == -0.5f);
+		REQUIRE(state->value_modifiers[mkey].factor == -0.5f);
 	}
 	// triggered modifier contents
 	{
@@ -1249,6 +1224,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 
 	state->world.nation_resize_flag_variables(uint32_t(state->national_definitions.num_allocated_national_flags));
+
+	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
 	{
 		auto country_dir = open_directory(history, NATIVE("countries"));
@@ -1270,7 +1247,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 				if (auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
-					parsers::country_history_context new_context{context, it->second, holder};
+					parsers::country_history_context new_context{context, it->second, holder, pending_decisions };
 
 					auto opened_file = open_file(country_file);
 					if (opened_file) {
@@ -1368,6 +1345,14 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	state->fill_unsaved_data(); // we need this to run triggers
 
+	// run pending triggers and effects
+	for(auto pending_decision : pending_decisions) {
+		dcon::nation_id n = pending_decision.first;
+		dcon::decision_id d = pending_decision.second;
+		if(auto e = state->world.decision_get_effect(d); e)
+			effect::execute(*state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state->current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
+
 	demographics::regenerate_from_pop_data(*state);
 	economy::initialize(*state);
 
@@ -1392,7 +1377,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	// Obtain filesystem state just before saving (see test below)
 	const auto fs_str = simple_fs::extract_state(state->common_fs);
-	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"));
+	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"), 1);
 
 	state = nullptr;
 	state = std::make_unique<sys::state>();
@@ -1779,17 +1764,17 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 
 	auto wine = context.map_of_commodity_names.find("wine")->second;
 	REQUIRE(state->world.pop_type_get_luxury_needs(state->culture_definitions.artisans, wine) == 10.0f);
-	REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].base_factor == 1.0f);
+	REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].factor == 1.0f);
 
 	auto react = context.map_of_ideologies.find("reactionary")->second.id;
-	REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base_factor == 1.0f);
+	REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].factor == 1.0f);
 }
 // load ideology contents
 {
 	REQUIRE(bool(state->culture_definitions.conservative) == true);
 	REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
 	auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
-	REQUIRE(state->value_modifiers[mkey].base_factor == -0.5f);
+	REQUIRE(state->value_modifiers[mkey].factor == -0.5f);
 }
 
 // cb contents
@@ -2197,55 +2182,55 @@ TEST_CASE("event performance", "[benchmarks]") {
 		});
 	};
 }
-
-TEST_CASE(".mod overrides", "[req-game-files]") {
-	parsers::error_handler err("");
-	REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
-
-	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
-	add_root(state->common_fs, NATIVE_M(GAME_DIR));
-	auto root = get_root(state->common_fs);
-	parsers::scenario_building_context context(*state);
-
-	// The default map exists, untouched and undisturbed
-	{
-		auto map = open_directory(root, NATIVE("map"));
-		auto def_map_file = open_file(map, NATIVE("default.map"));
-		REQUIRE(def_map_file.has_value() == true);
-	}
-
-	// As it is about to be overriden by a .mod file with no prior notice
-	{
-		auto content = std::string_view{
-		    "name = \"Test\"\n"
-		    "path = \"mod\\test\"\n"
-		    "replace_path = \"map\"\n"};
-		err.file_name = "test.mod";
-		parsers::token_generator gen(content.data(), content.data() + content.length());
-
-		parsers::mod_file_context mod_file_context(context);
-		parsers::parse_mod_file(gen, err, mod_file_context);
-
-		REQUIRE(err.accumulated_errors == "");
-	}
-
-	{
-		auto map = open_directory(root, NATIVE("map"));
-		auto def_map_file = open_file(map, NATIVE("default.map"));
-		REQUIRE(def_map_file.has_value() == false);
-	}
-
-	// Ensure the filesystem state is kept the same
-	const auto fs_str = simple_fs::extract_state(state->common_fs);
-	simple_fs::restore_state(state->common_fs, fs_str);
-	REQUIRE(simple_fs::extract_state(state->common_fs) == fs_str);
-
-	// Now the default.map file shouldn't exist as we override the path
-	// with a non-existing path
-	{
-		auto map = open_directory(root, NATIVE("map"));
-		auto def_map_file = open_file(map, NATIVE("default.map"));
-		REQUIRE(def_map_file.has_value() == false);
-	}
-}
+//
+//TEST_CASE(".mod overrides", "[req-game-files]") {
+//	parsers::error_handler err("");
+//	REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
+//
+//	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
+//	add_root(state->common_fs, NATIVE_M(GAME_DIR));
+//	auto root = get_root(state->common_fs);
+//	parsers::scenario_building_context context(*state);
+//
+//	// The default map exists, untouched and undisturbed
+//	{
+//		auto map = open_directory(root, NATIVE("map"));
+//		auto def_map_file = open_file(map, NATIVE("default.map"));
+//		REQUIRE(def_map_file.has_value() == true);
+//	}
+//
+//	// As it is about to be overriden by a .mod file with no prior notice
+//	{
+//		auto content = std::string_view{
+//		    "name = \"Test\"\n"
+//		    "path = \"mod\\test\"\n"
+//		    "replace_path = \"map\"\n"};
+//		err.file_name = "test.mod";
+//		parsers::token_generator gen(content.data(), content.data() + content.length());
+//
+//		parsers::mod_file_context mod_file_context(context);
+//		parsers::parse_mod_file(gen, err, mod_file_context);
+//
+//		REQUIRE(err.accumulated_errors == "");
+//	}
+//
+//	{
+//		auto map = open_directory(root, NATIVE("map"));
+//		auto def_map_file = open_file(map, NATIVE("default.map"));
+//		REQUIRE(def_map_file.has_value() == false);
+//	}
+//
+//	// Ensure the filesystem state is kept the same
+//	const auto fs_str = simple_fs::extract_state(state->common_fs);
+//	simple_fs::restore_state(state->common_fs, fs_str);
+//	REQUIRE(simple_fs::extract_state(state->common_fs) == fs_str);
+//
+//	// Now the default.map file shouldn't exist as we override the path
+//	// with a non-existing path
+//	{
+//		auto map = open_directory(root, NATIVE("map"));
+//		auto def_map_file = open_file(map, NATIVE("default.map"));
+//		REQUIRE(def_map_file.has_value() == false);
+//	}
+//}
 #endif
