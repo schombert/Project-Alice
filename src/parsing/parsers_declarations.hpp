@@ -938,21 +938,7 @@ struct building_definition : public modifier_base {
 	int32_t cost = 0;
 	building_type stored_type = building_type::factory;
 
-	void type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
-		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
-			stored_type = building_type::factory;
-		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fort")) {
-			stored_type = building_type::fort;
-		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval_base")) {
-			stored_type = building_type::naval_base;
-		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infrastructure")) {
-			stored_type = building_type::railroad;
-		} else {
-			err.accumulated_errors +=
-					"Unknown building type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
-		}
-	}
-
+	void type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context);
 	void finish(scenario_building_context& context) { }
 };
 

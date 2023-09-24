@@ -34,6 +34,23 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 	}
 }
 
+void building_definition::type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
+	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
+		stored_type = building_type::factory;
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infrastructure")) {
+		stored_type = building_type::railroad;
+	} else {
+		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+			if(std::string(value) == economy::province_building_type_get_name(t)) {
+				stored_type = t;
+				return;
+			}
+		}
+		err.accumulated_errors +=
+			"Unknown building type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+	}
+}
+
 void building_file::result(std::string_view name, building_definition&& res, error_handler& err, int32_t line,
 		scenario_building_context& context) {
 	// no, this messes things up
