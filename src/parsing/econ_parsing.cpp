@@ -89,6 +89,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		}
 	} break;
 	default: {
+		auto t = res.stored_type;
 		for(uint32_t i = 0; i < 8 && i < res.colonial_points.data.size(); ++i)
 			context.state.economy_definitions.building_definitions[int32_t(t)].colonial_points[i] = res.colonial_points.data[i];
 		context.state.economy_definitions.building_definitions[int32_t(t)].colonial_range = res.colonial_range;
