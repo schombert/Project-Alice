@@ -924,7 +924,6 @@ struct commodity_array {
 	void finish(scenario_building_context& context);
 };
 
-enum class building_type { factory, naval_base, fort, railroad };
 struct building_definition : public modifier_base {
 	int_vector colonial_points;
 	commodity_array goods_cost;
@@ -936,7 +935,7 @@ struct building_definition : public modifier_base {
 	int32_t naval_capacity = 0;
 	int32_t time = 0;
 	int32_t cost = 0;
-	building_type stored_type = building_type::factory;
+	economy::province_building_type stored_type = economy::province_building_type::factory;
 
 	void type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context);
 	void finish(scenario_building_context& context) { }

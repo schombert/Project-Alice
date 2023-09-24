@@ -36,9 +36,9 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 
 void building_definition::type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
-		stored_type = building_type::factory;
+		stored_type = economy::province_building_type::factory;
 	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infrastructure")) {
-		stored_type = building_type::railroad;
+		stored_type = economy::province_building_type::railroad;
 	} else {
 		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 			if(std::string(value) == economy::province_building_type_get_name(t)) {
@@ -56,7 +56,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 	// no, this messes things up
 	// res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
 	switch(res.stored_type) {
-	case building_type::factory: {
+	case economy::province_building_type::factory: {
 		auto factory_id = context.state.world.create_factory_type();
 		context.map_of_factory_names.insert_or_assign(std::string(name), factory_id);
 
@@ -88,25 +88,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
 		}
 	} break;
-	case building_type::naval_base:
-	case building_type::fort:
-	case building_type::railroad: {
-		economy::province_building_type t;
-		switch(res.stored_type) {
-		case building_type::naval_base:
-			t = economy::province_building_type::naval_base;
-			break;
-		case building_type::fort:
-			t = economy::province_building_type::fort;
-			break;
-		case building_type::railroad:
-			t = economy::province_building_type::railroad;
-			break;
-		default:
-			t = economy::province_building_type::railroad;
-			break;
-		}
-
+	default: {
 		for(uint32_t i = 0; i < 8 && i < res.colonial_points.data.size(); ++i)
 			context.state.economy_definitions.building_definitions[int32_t(t)].colonial_points[i] = res.colonial_points.data[i];
 		context.state.economy_definitions.building_definitions[int32_t(t)].colonial_range = res.colonial_range;
