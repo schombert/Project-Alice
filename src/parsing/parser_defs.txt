@@ -1114,6 +1114,7 @@ poptype_file
 individual_ideology
 	can_reduce_militancy       value     bool                           member_fn
 	uncivilized                value     bool                           member_fn
+	civilized                value     bool                           member_fn
 	color                      group     color_from_3i                  member_fn
 	date                       value     date                           member_fn
 	add_political_reform       extern    ideology_condition             member_fn
@@ -1390,7 +1391,9 @@ effect_body
 	random_pop                      extern      ef_scope_random_pop         discard
 	random_owned                    extern      ef_scope_random_owned       discard
 	random_province                 extern      ef_scope_random_owned       discard
+	any_core                 extern      ef_scope_all_core       discard
 	any_owned                       extern      ef_scope_any_owned          discard
+	any_prov                       extern      ef_scope_any_owned          discard
 	any_owned_province  extern      ef_scope_any_owned          discard
 	all_core                        extern      ef_scope_all_core           discard
 	any_state                       extern      ef_scope_any_state          discard

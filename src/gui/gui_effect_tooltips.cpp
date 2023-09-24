@@ -802,9 +802,60 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 	}
 	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
 
-	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo, r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0), indentation + indentation_amount);
+}
+uint32_t es_x_core_scope_province(EFFECT_DISPLAY_PARAMS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		if(primary_slot != -1) {
+			auto prov = trigger::to_prov(primary_slot);
+			auto cores_range = ws.world.province_get_core(prov);
+
+			std::vector<dcon::nation_id> rlist;
+
+			if((tval[0] & effect::scope_has_limit) != 0) {
+				auto limit = trigger::payload(tval[2]).tr_id;
+				for(auto p : cores_range) {
+					auto h = p.get_identity().get_nation_from_identity_holder();
+					if(h && trigger::evaluate(ws, limit, trigger::to_generic(h.id), this_slot, from_slot))
+						rlist.push_back(h.id);
+				}
+			} else {
+				for(auto p : cores_range) {
+					auto h = p.get_identity().get_nation_from_identity_holder();
+					if(h)
+						rlist.push_back(h.id);
+				}
+			}
+
+			if(rlist.size() != 0) {
+				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
+											 indentation + indentation_amount);
+			}
+			return 0;
+		}
+	}
+
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "core_in"));
+		text::add_space_to_layout_box(ws, layout, box);
+		if(primary_slot != -1)
+			text::add_to_layout_box(ws, layout, box, trigger::to_prov(primary_slot));
+		else
+			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_province"));
+		text::close_layout_box(layout, box);
+	}
+	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
+
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo, r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0), indentation + indentation_amount);
 }
 uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
@@ -6528,6 +6579,23 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_change_controller_state_this_province, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
 		ef_change_controller_state_from_nation, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
 		ef_change_controller_state_from_province, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
+		ef_reduce_pop, //constexpr inline uint16_t reduce_pop_province = 0x0171;
+		ef_reduce_pop, //constexpr inline uint16_t reduce_pop_state = 0x0172;
+		ef_reduce_pop, //constexpr inline uint16_t reduce_pop_nation = 0x0173;
+		ef_consciousness, //constexpr inline uint16_t consciousness_province = 0x0174;
+		ef_consciousness, //constexpr inline uint16_t consciousness_state = 0x0175;
+		ef_consciousness, //constexpr inline uint16_t consciousness_nation = 0x0176;
+		ef_militancy, //constexpr inline uint16_t militancy_province = 0x0177;
+		ef_militancy, //constexpr inline uint16_t militancy_state = 0x0178;
+		ef_militancy, //constexpr inline uint16_t militancy_nation = 0x0179;
+		ef_remove_core_tag, //constexpr inline uint16_t remove_core_tag_nation = 0x017A;
+		ef_remove_core_this_nation, //constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
+		ef_remove_core_this_province, //constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
+		ef_remove_core_this_state, //constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
+		ef_remove_core_this_pop, //constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
+		ef_remove_core_from_province, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
+		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
+		ef_remove_core_reb, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
 
 		//
 		// SCOPES
@@ -6584,12 +6652,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		es_state_scope_province,						// constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 		es_x_substate_scope,
 		es_capital_scope_province,										// constexpr inline uint16_t capital_scope = first_scope_code + 0x0032;
-		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0033;
-		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0034;
-		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0035;
-		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0036;
-		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0037;
-		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0038;
+		es_x_core_scope_province,                  //constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0033;
+		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0034;
+		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
+		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
+		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
+		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
+		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {

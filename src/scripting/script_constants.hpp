@@ -392,9 +392,26 @@ constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
 constexpr inline uint16_t change_controller_state_this_province = 0x016E;
 constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
 constexpr inline uint16_t change_controller_state_from_province = 0x0170;
+constexpr inline uint16_t reduce_pop_province = 0x0171;
+constexpr inline uint16_t reduce_pop_state = 0x0172;
+constexpr inline uint16_t reduce_pop_nation = 0x0173;
+constexpr inline uint16_t consciousness_province = 0x0174;
+constexpr inline uint16_t consciousness_state = 0x0175;
+constexpr inline uint16_t consciousness_nation = 0x0176;
+constexpr inline uint16_t militancy_province = 0x0177;
+constexpr inline uint16_t militancy_state = 0x0178;
+constexpr inline uint16_t militancy_nation = 0x0179;
+constexpr inline uint16_t remove_core_tag_nation = 0x017A;
+constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
+constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
+constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
+constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
+constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
+constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
+constexpr inline uint16_t remove_core_nation_reb = 0x0181;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x0171;
+constexpr inline uint16_t first_scope_code = 0x0182;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -448,16 +465,17 @@ constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
 constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 constexpr inline uint16_t x_substate_scope = first_scope_code + 0x0031;
 constexpr inline uint16_t capital_scope_province = first_scope_code + 0x0032;
+constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0033;
 
 // variable named scopes
-constexpr inline uint16_t tag_scope = first_scope_code + 0x0033;
-constexpr inline uint16_t integer_scope = first_scope_code + 0x0034;
-constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0035;
-constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0036;
-constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0037;
-constexpr inline uint16_t region_scope = first_scope_code + 0x0038;
+constexpr inline uint16_t tag_scope = first_scope_code + 0x0034;
+constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
+constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
+constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
+constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
+constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0039;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0040;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none
@@ -830,6 +848,23 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
 		0, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
 		0, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
+		2, //constexpr inline uint16_t reduce_pop_province = 0x0171;
+		2, //constexpr inline uint16_t reduce_pop_state = 0x0172;
+		2, //constexpr inline uint16_t reduce_pop_nation = 0x0173;
+		2, //constexpr inline uint16_t consciousness_province = 0x0174;
+		2, //constexpr inline uint16_t consciousness_state = 0x0175;
+		2, //constexpr inline uint16_t consciousness_nation = 0x0176;
+		2, //constexpr inline uint16_t militancy_province = 0x0177;
+		2, //constexpr inline uint16_t militancy_state = 0x0178;
+		2, //constexpr inline uint16_t militancy_nation = 0x0179;
+		1, //constexpr inline uint16_t remove_core_tag_nation = 0x017A;
+		0, //constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
+		0, //constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
+		0, //constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
+		0, //constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
+		0, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
+		0, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
+		0, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1569,8 +1604,14 @@ constexpr inline uint16_t country_units_in_state_this_province = 0x02A8;
 constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
 constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
 constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
+constexpr inline uint16_t stronger_army_than_this_nation = 0x02AC;
+constexpr inline uint16_t stronger_army_than_this_state = 0x02AD;
+constexpr inline uint16_t stronger_army_than_this_province = 0x02AE;
+constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
+constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
+constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
 
-constexpr inline uint16_t first_scope_code = 0x02AC;
+constexpr inline uint16_t first_scope_code = 0x02B2;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1628,8 +1669,9 @@ constexpr inline uint16_t country_scope_nation = first_scope_code + 0x002C;
 constexpr inline uint16_t country_scope_province = first_scope_code + 0x002D;
 constexpr inline uint16_t cultural_union_scope_pop = first_scope_code + 0x002E;
 constexpr inline uint16_t capital_scope_province = first_scope_code + 0x002F;
+constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0030;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0031;
 
 constexpr inline uint16_t placeholder_not_scope = code_mask;
 
@@ -2328,6 +2370,12 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
 		0, //constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
 		1, //constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
+		0, //constexpr inline uint16_t stronger_army_than_this_nation = 0x02AC;
+		0, //constexpr inline uint16_t stronger_army_than_this_state = 0x02AD;
+		0, //constexpr inline uint16_t stronger_army_than_this_province = 0x02AE;
+		0, //constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
+		0, //constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
+		0, //constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

@@ -749,6 +749,54 @@ struct effect_body {
 							"remove_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(context.main_slot == trigger::slot_contents::nation) {
+				if(is_reb(value)) {
+					if(context.from_slot == trigger::slot_contents::rebel)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_reb | effect::no_payload));
+					else {
+						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+							std::to_string(line) + ")\n";
+						return;
+					}
+				} else if(is_from(value)) {
+					if(context.from_slot == trigger::slot_contents::nation)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_from_nation | effect::no_payload));
+					else if(context.from_slot == trigger::slot_contents::province)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_from_province | effect::no_payload));
+					else {
+						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+							std::to_string(line) + ")\n";
+						return;
+					}
+				} else if(is_this(value)) {
+					if(context.this_slot == trigger::slot_contents::nation)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_this_nation | effect::no_payload));
+					else if(context.this_slot == trigger::slot_contents::province)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_this_province | effect::no_payload));
+					else if(context.this_slot == trigger::slot_contents::state)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_this_state | effect::no_payload));
+					else if(context.this_slot == trigger::slot_contents::pop)
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_this_pop | effect::no_payload));
+					else {
+						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+							std::to_string(line) + ")\n";
+						return;
+					}
+				} else if(value.length() == 3) {
+					if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+							it != context.outer_context.map_of_ident_names.end()) {
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_tag_nation));
+						context.compiled_effect.push_back(trigger::payload(it->second).value);
+					} else {
+						err.accumulated_errors +=
+							"remove_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						return;
+					}
+				} else {
+					err.accumulated_errors +=
+						"remove_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
 			} else {
 				err.accumulated_errors +=
 						"remove_core effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2026,6 +2074,15 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(uint16_t(effect::reduce_pop));
 			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_effect.push_back(uint16_t(effect::reduce_pop_nation));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::reduce_pop_province));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::reduce_pop_state));
+			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
 					"reduce_pop effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2285,6 +2342,15 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(uint16_t(effect::consciousness));
 			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::consciousness_province));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::consciousness_state));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_effect.push_back(uint16_t(effect::consciousness_nation));
+			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
 					"consciousness effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2294,6 +2360,15 @@ struct effect_body {
 	void militancy(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(uint16_t(effect::militancy));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::militancy_province));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::militancy_state));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_effect.push_back(uint16_t(effect::militancy_nation));
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
