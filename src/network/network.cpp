@@ -59,8 +59,8 @@ static void socket_shutdown(socket_t socket_fd) {
 	}
 }
 
-static socket_t socket_init_server(struct sockaddr_in& server_address) {
-	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
+static socket_t socket_init_server(struct sockaddr_in6& server_address) {
+	socket_t socket_fd = (socket_t)socket(AF_INET6, SOCK_STREAM, 0);
 	if(socket_fd < 0)
 		std::abort();
 
@@ -73,9 +73,9 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 		std::abort();
 #endif
 
-	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = INADDR_ANY;
-	server_address.sin_port = htons(default_server_port);
+	server_address.sin6_addr = IN6ADDR_ANY_INIT;
+	server_address.sin6_family = AF_INET6;
+	server_address.sin6_port = htons(default_server_port);
 	if(bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
 		std::abort();
 	if(listen(socket_fd, 3) < 0)
@@ -88,17 +88,16 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 	return socket_fd;
 }
 
-static socket_t socket_init_client(struct sockaddr_in& client_address, const char *ip_address) {
-	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
+static socket_t socket_init_client(struct sockaddr_in6& client_address, const char *ip_address) {
+	socket_t socket_fd = (socket_t)socket(AF_INET6, SOCK_STREAM, 0);
 	if(socket_fd < 0)
 		std::abort();
-	client_address.sin_family = AF_INET;
-	client_address.sin_port = htons(default_server_port);
-	if(inet_pton(AF_INET6, ip_address, &client_address.sin_addr) <= 0) { //try ipv6
-		if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) { //ipv4 fallback
-			std::abort();
-		}
-	}
+
+	client_address.sin6_addr = IN6ADDR_ANY_INIT;
+	client_address.sin6_family = AF_INET6;
+	client_address.sin6_port = htons(default_server_port);
+	if(inet_pton(AF_INET6, ip_address, &client_address.sin6_addr) <= 0) //ipv4 fallback
+		std::abort();
 	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0)
 		std::abort();
 	return socket_fd;
@@ -149,7 +148,7 @@ static void accept_new_clients(sys::state& state) {
 			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
 			// enforce bans
 			if(std::find_if(state.network_state.banlist.begin(), state.network_state.banlist.end(), [&](auto const a) {
-				return memcmp(&client.address.sin_addr, &a, sizeof(a)) == 0;
+				return memcmp(&client.address.sin6_addr, &a, sizeof(a)) == 0;
 				}) != state.network_state.banlist.end()) {
 				disconnect_client(state, client);
 				break;
@@ -321,7 +320,7 @@ void ban_player(sys::state& state, client_data& client) {
 	if(client.is_active()) {
 		socket_shutdown(client.socket_fd);
 		client.socket_fd = 0;
-		state.network_state.banlist.push_back(client.address.sin_addr);
+		state.network_state.banlist.push_back(client.address.sin6_addr);
 	}
 }
 
