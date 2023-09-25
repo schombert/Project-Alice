@@ -461,7 +461,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
 	if(zoom > 5) {
@@ -476,7 +476,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
 	{
@@ -493,7 +493,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 			}
 		}
 
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
 	/*

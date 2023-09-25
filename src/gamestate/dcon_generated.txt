@@ -2715,6 +2715,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ plurality }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
 		name{ image }
 		type{ dcon::gfx_object_id }
 		tag{ scenario }

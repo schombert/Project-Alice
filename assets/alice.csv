@@ -214,6 +214,7 @@ all_of_the_following;All of the following:;;;Todo de lo siguiente:;;;;;;;;;x
 any_of_the_following;Any of the following:;;;Cualquiera de lo siguiente:;;;;;;;;;x
 nation_at_war_against;nation at war against;;;Nacion en guerra en contra de;;;;;;;;;x
 core_in;core in;;;Nucleo en;;;;;;;;;x
+colonial_pop;located in a colonial province
 substate_of;substate of;;;Subestado de;;;;;;;;;x
 nation_in_sphere;nation in the sphere of;;;Nacion en esfera de;;;;;;;;;x
 year;year;;;A�o;;;;;;;;;x
@@ -282,6 +283,8 @@ controls;controls;;;Controla;;;;;;;;;x
 does_not_control;does not control;;;No controla;;;;;;;;;x
 a_core_in;a core in;;;Un nucleo en;;;;;;;;;x
 a_core_of;a core of;;;Un nucleo de;;;;;;;;;x
+a_core_of_owner;a core of its owner
+located_in_a_core_of;located in a core of
 percentage_reb_control;percentage of rebel controlled provinces;;;Porcentaje de provincias controladas por los rebeldes;;;;;;;;;x
 num_of_reb_control;number of rebel controlled provinces;;;Numero de provincias controladas por los rebeldes;;;;;;;;;x
 num_owned_provinces;number of owned provinces;;;Numero de provincias de las que sois due�os;;;;;;;;;x
@@ -316,7 +319,9 @@ units_in_the_state;units in the state
 at_war_against;at war against;;;;;;;;;;;;x
 num_of_divisions;a number of divisions;;;;;;;;;;;;x
 an_ongoing_battle;an ongoing battle;;;;;;;;;;;;x
-treasury;treasury;;;;;;;;;;;;x
+treasury;treasury
+o_treasury;owner's treasury
+o_of_prov;the owner of the province
 percentage_unowned_cores;percentage of unowned cores;;;;;;;;;;;;x
 a_vassal;a vassal;;;;;;;;;;;;x
 ruling_party_ideology;ruling party ideology;;;;;;;;;;;;x

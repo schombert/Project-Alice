@@ -347,6 +347,9 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 		}
 	}
 
+	auto& plur = state.world.nation_get_plurality(target_nation);
+	plur = std::clamp(plur + tech_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
 			state.world.nation_get_max_building_level(target_nation, t) += 1;
@@ -413,6 +416,9 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
 		}
 	}
+
+	auto& plur = state.world.nation_get_plurality(target_nation);
+	plur = std::clamp(plur - tech_id.get_plurality() * 100.0f, 0.0f, 100.0f);
 
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {

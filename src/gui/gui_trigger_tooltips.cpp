@@ -261,6 +261,24 @@ void tf_x_greater_power_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
 }
+void tf_x_country_scope(TRIGGER_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
+		text::close_layout_box(layout, box);
+	}
+
+	if(trigger::count_subtriggers(tval) > 1) {
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
+		text::close_layout_box(layout, box);
+	}
+
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+}
 void tf_x_owned_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -2156,6 +2174,23 @@ void tf_is_core_tag(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, h ? ws.world.nation_get_name(h) : ws.world.national_identity_get_name(tg));
 	text::close_layout_box(layout, box);
 }
+void tf_is_core_pop_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto tg = trigger::payload(tval[1]).tag_id;
+	auto h = ws.world.national_identity_get_nation_from_identity_holder(tg);
+
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in_a_core_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, h ? ws.world.nation_get_name(h) : ws.world.national_identity_get_name(tg));
+	text::close_layout_box(layout, box);
+}
+void tf_is_core_boolean(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of_owner"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_num_of_revolts(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -2336,22 +2371,6 @@ void tf_exists_tag(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_has_country_flag(TRIGGER_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0],
-			text::produce_simple_string(ws, ws.national_definitions.flag_variable_names[trigger::payload(tval[1]).natf_id]),
-			text::produce_simple_string(ws, "set"), ws, layout, box);
-	text::close_layout_box(layout, box);
-}
-void tf_has_country_flag_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0],
-			text::produce_simple_string(ws, ws.national_definitions.flag_variable_names[trigger::payload(tval[1]).natf_id]),
-			text::produce_simple_string(ws, "set"), ws, layout, box);
-	text::close_layout_box(layout, box);
-}
-void tf_has_country_flag_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0],
@@ -3108,6 +3127,13 @@ void tf_money(TRIGGER_DISPLAY_PARAMS) {
 			text::fp_currency{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_money_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "o_treasury"),
+			text::fp_currency{ trigger::read_float_from_payload(tval + 1) }, ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_lost_national(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -3122,13 +3148,6 @@ void tf_is_vassal(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_ruling_party_ideology_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "ruling_party_ideology"),
-			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)), ws, layout, box);
-	text::close_layout_box(layout, box);
-}
-void tf_ruling_party_ideology_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "ruling_party_ideology"),
@@ -4215,6 +4234,85 @@ void tf_vassal_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
 }
+
+
+void tf_vassal_of_province_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
+	text::close_layout_box(layout, box);
+}
+void tf_vassal_of_province_from(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_vassal_of_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_vassal_of_province_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_vassal_of_province_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box,
+				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+void tf_vassal_of_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(ws, layout, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
+}
+
 void tf_substate_of_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -4414,6 +4512,12 @@ void tf_is_colonial_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "colonial"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_colonial_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "colonial_pop"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_factories(TRIGGER_DISPLAY_PARAMS) {
@@ -5532,6 +5636,86 @@ void tf_is_our_vassal_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
 	text::close_layout_box(layout, box);
 }
+
+
+void tf_is_our_vassal_province_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	display_with_has_comparison(tval[0], trigger::payload(tval[1]).tag_id, ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
+}
+void tf_is_our_vassal_province_from(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(from_slot != -1)
+		display_with_has_comparison(tval[0], trigger::to_nation(from_slot), ws, layout, box);
+	else
+		display_with_has_comparison(tval[0], text::produce_simple_string(ws, "from_nation"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
+}
+void tf_is_our_vassal_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		display_with_has_comparison(tval[0], trigger::to_nation(this_slot), ws, layout, box);
+	else
+		display_with_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
+}
+void tf_is_our_vassal_province_this_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		display_with_has_comparison(tval[0], ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)), ws,
+				layout, box);
+	else
+		display_with_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
+}
+void tf_is_our_vassal_province_this_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		display_with_has_comparison(tval[0], ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)),
+				ws, layout, box);
+	else
+		display_with_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
+}
+void tf_is_our_vassal_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		display_with_has_comparison(tval[0], nations::owner_of_pop(ws, trigger::to_pop(this_slot)), ws, layout, box);
+	else
+		display_with_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
+}
+
 void tf_is_substate(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -6550,6 +6734,19 @@ void tf_relation_this_province(TRIGGER_DISPLAY_PARAMS) {
 				int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_relation_this_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], nations::owner_of_pop(ws, trigger::to_pop(this_slot)),
+				int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "this_nation"),
+				int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_relation_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -7440,7 +7637,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_money,																			// constexpr inline uint16_t money = 0x00B7;
 		tf_lost_national,															// constexpr inline uint16_t lost_national = 0x00B8;
 		tf_is_vassal,																	// constexpr inline uint16_t is_vassal = 0x00B9;
-		tf_ruling_party_ideology_pop,									// constexpr inline uint16_t ruling_party_ideology_pop = 0x00BA;
+		tf_ruling_party_ideology_nation,									// constexpr inline uint16_t ruling_party_ideology_pop = 0x00BA;
 		tf_ruling_party_ideology_nation,							// constexpr inline uint16_t ruling_party_ideology_nation = 0x00BB;
 		tf_ruling_party,															// constexpr inline uint16_t ruling_party = 0x00BC;
 		tf_is_ideology_enabled,												// constexpr inline uint16_t is_ideology_enabled = 0x00BD;
@@ -7879,8 +8076,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_war_exhaustion_pop,												 // constexpr inline uint16_t war_exhaustion_pop = 0x0259;
 		tf_has_culture_core_province_this_pop,				 // constexpr inline uint16_t has_culture_core_province_this_pop = 0x025A;
 		tf_tag_pop,																		 // constexpr inline uint16_t tag_pop = 0x025B;
-		tf_has_country_flag_pop,											 // constexpr inline uint16_t has_country_flag_pop = 0x025C;
-		tf_has_country_flag_province,									 // constexpr inline uint16_t has_country_flag_province = 0x025D;
+		tf_has_country_flag,											 // constexpr inline uint16_t has_country_flag_pop = 0x025C;
+		tf_has_country_flag,									 // constexpr inline uint16_t has_country_flag_province = 0x025D;
 		tf_has_country_modifier_province,							 // constexpr inline uint16_t has_country_modifier_province = 0x025E;
 		tf_religion_nation,														 // constexpr inline uint16_t religion_nation = 0x025F;
 		tf_religion_nation_reb,												 // constexpr inline uint16_t religion_nation_reb = 0x0260;
@@ -7965,6 +8162,33 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_stronger_army_than_this_pop, //constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
 		tf_stronger_army_than_from_nation, //constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
 		tf_stronger_army_than_from_province, //constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
+		tf_flashpoint_tension, //constexpr inline uint16_t flashpoint_tension_province = 0x02B2;
+		tf_is_colonial_pop, //constexpr inline uint16_t is_colonial_pop = 0x02B3;
+		tf_has_country_flag,	 // constexpr inline uint16_t has_country_flag_state = 0x02B4;
+		tf_rich_tax, //constexpr inline uint16_t rich_tax_pop = 0x02B5;
+		tf_middle_tax, //constexpr inline uint16_t middle_tax_pop = 0x02B6;
+		tf_poor_tax, //constexpr inline uint16_t poor_tax_pop = 0x02B7;
+		tf_is_core_pop_tag, //constexpr inline uint16_t is_core_pop_tag = 0x02B8;
+		tf_is_core_boolean, //constexpr inline uint16_t is_core_boolean = 0x02B9;
+		tf_is_core_this_nation, //constexpr inline uint16_t is_core_state_this_nation = 0x02BA;
+		tf_is_core_this_province, //constexpr inline uint16_t is_core_state_this_province = 0x02BB;
+		tf_is_core_this_pop, //constexpr inline uint16_t is_core_state_this_pop = 0x02BC;
+		tf_is_core_from_nation, //constexpr inline uint16_t is_core_state_from_nation = 0x02BD;
+		tf_ruling_party_ideology_nation, //constexpr inline uint16_t ruling_party_ideology_province = 0x02BE;
+		tf_money_province, //constexpr inline uint16_t money_province = 0x02BF;
+		tf_is_our_vassal_province_tag, //constexpr inline uint16_t is_our_vassal_province_tag = 0x02C0;
+		tf_is_our_vassal_province_from, //constexpr inline uint16_t is_our_vassal_province_from = 0x02C1;
+		tf_is_our_vassal_province_this_nation, //constexpr inline uint16_t is_our_vassal_province_this_nation = 0x02C2;
+		tf_is_our_vassal_province_this_province, //constexpr inline uint16_t is_our_vassal_province_this_province = 0x02C3;
+		tf_is_our_vassal_province_this_state, //constexpr inline uint16_t is_our_vassal_province_this_state = 0x02C4;
+		tf_is_our_vassal_province_this_pop, //constexpr inline uint16_t is_our_vassal_province_this_pop = 0x02C5;
+		tf_vassal_of_province_tag, //constexpr inline uint16_t vassal_of_province_tag = 0x02C6;
+		tf_vassal_of_province_from, //constexpr inline uint16_t vassal_of_province_from = 0x02C7;
+		tf_vassal_of_province_this_nation, //constexpr inline uint16_t vassal_of_province_this_nation = 0x02C8;
+		tf_vassal_of_province_this_province, //constexpr inline uint16_t vassal_of_province_this_province = 0x02C9;
+		tf_vassal_of_province_this_state, //constexpr inline uint16_t vassal_of_province_this_state = 0x02CA;
+		tf_vassal_of_province_this_pop, //constexpr inline uint16_t vassal_of_province_this_pop = 0x02CB;
+		tf_relation_this_pop, //constexpr inline uint16_t relation_this_pop = 0x02CC;
 
 		//
 		// scopes
@@ -8019,6 +8243,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_cultural_union_scope_pop,				// constexpr uint16_t cultural_union_scope_pop = 0x002E;
 		tf_capital_scope_province,    // constexpr uint16_t capital_scope_province = 0x002F;
 		tf_capital_scope_pop,   //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
+		tf_x_country_scope, //constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
 };
 
 // #define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::columnar_layout& layout,
