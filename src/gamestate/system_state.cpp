@@ -2999,7 +2999,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	military::run_gc(*this);
 	for(auto n : world.in_nation) {
-		assert(n.get_owned_province_count() == 0 || (n.get_government_type() && n.get_government_type().index() < culture_definitions.governments.ssize()));
+		auto g = n.get_government_type();
+		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
+		assert(n.get_owned_province_count() == 0 || (g && g.index() < culture_definitions.governments.ssize()));
 	}
 	for(uint32_t i = 0; i < culture_definitions.governments.size(); ++i) {
 		dcon::government_type_id g{dcon::government_type_id::value_base_t(i) };
