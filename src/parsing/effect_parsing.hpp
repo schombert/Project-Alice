@@ -1116,6 +1116,9 @@ struct effect_body {
 		} else if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::set_country_flag_province));
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
+		} else if(context.main_slot == trigger::slot_contents::pop) {
+			context.compiled_effect.push_back(uint16_t(effect::set_country_flag_pop));
+			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
 					"set_country_flag effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2020,6 +2023,9 @@ struct effect_body {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::social_reform));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::social_reform_province));
+				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors +=
 						"social_reform effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2037,6 +2043,9 @@ struct effect_body {
 				it != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::political_reform));
+				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::political_reform_province));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors += "political_reform effect used in an incorrect scope type (" + err.file_name + ", line " +

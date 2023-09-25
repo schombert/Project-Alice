@@ -2696,10 +2696,28 @@ uint32_t ef_social_reform(EFFECT_PARAMTERS) {
 	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
+uint32_t ef_social_reform_province(EFFECT_PARAMTERS) {
+	auto opt = trigger::payload(tval[1]).opt_id;
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner) {
+		politics::set_issue_option(ws, owner, opt);
+		culture::update_nation_issue_rules(ws, owner);
+	}
+	return 0;
+}
 uint32_t ef_political_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).opt_id;
 	politics::set_issue_option(ws, trigger::to_nation(primary_slot), opt);
 	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
+	return 0;
+}
+uint32_t ef_political_reform_province(EFFECT_PARAMTERS) {
+	auto opt = trigger::payload(tval[1]).opt_id;
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner) {
+		politics::set_issue_option(ws, owner, opt);
+		culture::update_nation_issue_rules(ws, owner);
+	}
 	return 0;
 }
 uint32_t ef_add_tax_relative_income(EFFECT_PARAMTERS) {
@@ -4388,6 +4406,11 @@ uint32_t ef_set_country_flag_province(EFFECT_PARAMTERS) {
 		return ef_set_country_flag(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
 	return 0;
 }
+uint32_t ef_set_country_flag_pop(EFFECT_PARAMTERS) {
+	if(auto owner = nations::owner_of_pop(ws, trigger::to_pop(primary_slot)); owner)
+		return ef_set_country_flag(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+	return 0;
+}
 uint32_t ef_add_country_modifier_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
 		return ef_add_country_modifier(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
@@ -4833,6 +4856,9 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_remove_core_nation_from_province, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
 		ef_remove_core_nation_from_nation, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
 		ef_remove_core_nation_reb, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
+		ef_set_country_flag_pop, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
+		ef_social_reform_province, //constexpr inline uint16_t social_reform_province = 0x0183;
+		ef_political_reform_province, //constexpr inline uint16_t political_reform_province = 0x0184;
 
 		//
 		// SCOPES

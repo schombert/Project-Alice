@@ -1858,6 +1858,7 @@ struct technology_contents : public modifier_base {
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 	void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+	void plurality(association_type, float value, error_handler& err, int32_t line, tech_context& context);
 
 	tech_rgo_goods_output rgo_goods_output;
 	tech_rgo_size rgo_size;
@@ -2498,6 +2499,7 @@ struct war_history_context {
 	std::vector<dcon::nation_id> attackers;
 	std::vector<dcon::nation_id> defenders;
 	std::string name;
+	bool great_war = false;
 
 	war_history_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
 };
@@ -2507,6 +2509,7 @@ struct war_block {
 	void add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+	void world_war(association_type, bool v, error_handler& err, int32_t line, war_history_context& context);
 	void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) {
 		context.wargoals.push_back(value);
 	}

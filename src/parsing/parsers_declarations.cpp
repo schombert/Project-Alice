@@ -1677,7 +1677,9 @@ void inv_effect::shared_prestige(association_type, float value, error_handler& e
 void inv_effect::plurality(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_plurality(context.id, value);
 }
-
+void technology_contents::plurality(association_type, float value, error_handler& err, int32_t line, tech_context& context) {
+	context.outer_context.state.world.technology_set_plurality(context.id, value);
+}
 void inv_effect::colonial_points(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_colonial_points(context.id, int16_t(value));
 }
@@ -2976,7 +2978,9 @@ void history_war_goal::casus_belli(association_type, std::string_view value, err
 															std::to_string(line) + ")\n";
 	}
 }
-
+void war_block::world_war(association_type, bool v, error_handler& err, int32_t line, war_history_context& context) {
+	context.great_war = v;
+}
 void war_block::add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line,
 		war_history_context& context) {
 	if(tag.length() == 3) {
@@ -3066,6 +3070,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
+		new_war.set_is_great(context.great_war);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		auto it = context.outer_context.state.key_to_text_sequence.find(

@@ -26,7 +26,18 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 			text::close_layout_box(contents, box);
 		}
 	}
-
+	if(tech_fat_id.get_plurality() != 0) {
+		auto box = text::open_layout_box(contents, 15);
+		text::localised_format_box(state, contents, box, "tech_plurality");
+		text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+		if(tech_fat_id.get_plurality() < 0) {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ tech_fat_id.get_plurality() }, text::text_color::red);
+		} else {
+			text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::green);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ tech_fat_id.get_plurality() }, text::text_color::green);
+		}
+		text::close_layout_box(contents, box);
+	}
 	auto activate_unit_description = [&](dcon::unit_type_id id) {
 		if(tech_fat_id.get_activate_unit(id)) {
 			auto unit_type_name = state.military_definitions.unit_base_definitions[id].name;
