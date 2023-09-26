@@ -387,6 +387,7 @@ modifier_base
 	naval_attrition                           value      float            member_fn
 	land_attrition                            value      float            member_fn
 	pop_growth                                value      float            member_fn
+	global_pop_growth                                value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
 	seperatism                                value      float            member_fn
 	colonial_prestige                         value      float            member_fn

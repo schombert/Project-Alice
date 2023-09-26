@@ -1309,7 +1309,7 @@ void effect_body::country_event(association_type t, int32_t value, error_handler
 
 void effect_body::province_event(association_type t, int32_t value, error_handler& err, int32_t line,
 		effect_building_context& context) {
-	if(context.main_slot == trigger::slot_contents::nation) {
+	if(context.main_slot == trigger::slot_contents::province) {
 		if(context.this_slot == trigger::slot_contents::nation)
 			context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_nation));
 		else if(context.this_slot == trigger::slot_contents::province)
@@ -1331,7 +1331,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 				auto ev_id = context.outer_context.state.world.create_provincial_event();
 				it->second.id = ev_id;
 				it->second.main_slot = trigger::slot_contents::province;
-				it->second.this_slot = trigger::slot_contents::nation;
+				it->second.this_slot = trigger::slot_contents::province;
 				it->second.from_slot = context.this_slot;
 				it->second.just_in_case_placeholder = false;
 				context.compiled_effect.push_back(trigger::payload(ev_id).value);

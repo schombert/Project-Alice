@@ -597,7 +597,11 @@ void update_factory_triggered_modifiers(sys::state& state) {
 }
 
 float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
-	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+	auto c = state.world.province_get_rgo(p);
+	if(!c)
+		return 0.01f;
+
+	bool is_mine = state.world.commodity_get_is_mine(c);
 
 	// - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size +
 	// technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
@@ -605,7 +609,7 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	auto sz = state.world.province_get_rgo_size(p);
 	auto pmod = state.world.province_get_modifier_values(p,  is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size);
 	auto nmod = state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size);
-	auto specific_pmod = state.world.nation_get_rgo_size(n, state.world.province_get_rgo(p));
+	auto specific_pmod = state.world.nation_get_rgo_size(n, c);
 	auto bonus = pmod + nmod + specific_pmod + 1.0f;
 
 	return std::max(sz * bonus, 0.01f);
