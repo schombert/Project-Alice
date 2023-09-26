@@ -413,6 +413,7 @@ public:
 
 		buildable_unit_entry_info group_info;
 		std::vector<dcon::modifier_const_fat_id> continent_list;
+		std::vector<buildable_unit_entry_info> list_of_possible_units;
 		if(is_navy == false) {
 			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
 				auto p = po.get_province();
@@ -432,8 +433,8 @@ public:
 						if(!std::count(continent_list.begin(), continent_list.end(), state.world.province_get_continent(p))) {
 							continent_list.push_back(state.world.province_get_continent(p));
 						}
-						info.continent = dcon::modifier_id{};
-						row_contents.push_back(info);
+						info.continent = state.world.province_get_continent(p);
+						list_of_possible_units.push_back(info);
 					}
 				});
 			}
@@ -443,6 +444,12 @@ public:
 			for(auto con : continent_list) {
 				group_info.continent = con;
 				row_contents.push_back(group_info);
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con) {
+						bu.continent = dcon::modifier_id{};
+						row_contents.push_back(bu);
+					}
+				}
 			}
 		} else {
 			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
@@ -450,13 +457,13 @@ public:
 				if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid)) {
 					buildable_unit_entry_info info;
 					info.is_navy = true;
-					info.continent = dcon::modifier_id{};
+					info.continent = state.world.province_get_continent(p);
 					info.pop_info = dcon::pop_id{};
 					info.province_info = p;
 					if(!std::count(continent_list.begin(), continent_list.end(), state.world.province_get_continent(p))) {
 						continent_list.push_back(state.world.province_get_continent(p));
 					}
-					row_contents.push_back(info);
+					list_of_possible_units.push_back(info);
 				}
 			}
 			group_info.pop_info = dcon::pop_id{};
@@ -465,6 +472,12 @@ public:
 			for(auto con : continent_list) {
 				group_info.continent = con;
 				row_contents.push_back(group_info);
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con) {
+						bu.continent = dcon::modifier_id{};
+						row_contents.push_back(bu);
+					}
+				}
 			}
 		}
 		update(state);
