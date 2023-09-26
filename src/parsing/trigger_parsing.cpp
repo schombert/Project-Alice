@@ -42,6 +42,14 @@ void tr_scope_any_neighbor_province(token_generator& gen, error_handler& err, tr
 		parse_trigger_body(gen, err, context);
 
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
+	} else if(context.main_slot == trigger::slot_contents::state) {
+		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_province_scope_state | trigger::is_existence_scope));
+		context.compiled_trigger.push_back(uint16_t(1));
+		auto payload_size_offset = context.compiled_trigger.size() - 1;
+
+		parse_trigger_body(gen, err, context);
+
+		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_neighbor_province trigger scope used in an incorrect scope type " +

@@ -301,6 +301,9 @@ enum class network_mode_type {
 	host
 };
 
+
+constexpr int32_t max_event_options = 8;
+
 } // namespace sys
 
 namespace culture {

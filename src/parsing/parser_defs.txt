@@ -298,6 +298,7 @@ modifier_base
 	mine_rgo_eff                              value      float            member_fn
 	farm_rgo_size                             value      float            member_fn
 	mine_rgo_size                             value      float            member_fn
+	rgo_size                             value      float            member_fn (m_rgo_size)
 	issue_change_speed                        value      float            member_fn
 	social_reform_desire                      value      float            member_fn
 	political_reform_desire                   value      float            member_fn
@@ -392,6 +393,7 @@ modifier_base
 	seperatism                                value      float            member_fn
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
+	unit_recruitment_time        value        float        discard
 
 int_vector
 	#free          value      int              member_fn

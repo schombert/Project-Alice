@@ -256,6 +256,7 @@ struct pending_invention_content {
 	dcon::invention_id id;
 };
 struct pending_nat_event {
+	std::string original_file;
 	dcon::national_event_id id;
 	trigger::slot_contents main_slot;
 	trigger::slot_contents this_slot;
@@ -273,12 +274,13 @@ struct pending_nat_event {
 			trigger::slot_contents from_slot, token_generator const& generator_state)
 			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 				text_assigned(true), just_in_case_placeholder(false){ }
-	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
+	pending_nat_event(std::string const& original_file, dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot, token_generator const& generator_state, bool just_in_case_placeholder)
-		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
+		: original_file(original_file), id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
 struct pending_prov_event {
+	std::string original_file;
 	dcon::provincial_event_id id;
 	trigger::slot_contents main_slot;
 	trigger::slot_contents this_slot;
@@ -296,9 +298,9 @@ struct pending_prov_event {
 			trigger::slot_contents from_slot, token_generator const& generator_state)
 			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 				text_assigned(true), just_in_case_placeholder(false) { }
-	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
+	pending_prov_event(std::string const& original_file, dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot, token_generator const& generator_state, bool just_in_case_placeholder)
-		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
+		: original_file(original_file), id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
 struct scenario_building_context {
@@ -623,6 +625,23 @@ public:
 	MOD_PROV_FUNCTION(mine_rgo_eff)
 	MOD_PROV_FUNCTION(farm_rgo_size)
 	MOD_PROV_FUNCTION(mine_rgo_size)
+	template<typename T>
+	void m_rgo_size(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; 
+		} else {
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::farm_rgo_size;
+			constructed_definition_p.values[next_to_add_p] = v; 
+			++next_to_add_p;
+		}
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+		} else {
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::mine_rgo_size;
+			constructed_definition_p.values[next_to_add_p] = v;
+			++next_to_add_p;
+		}
+	}
 	MOD_NAT_FUNCTION(issue_change_speed)
 	MOD_NAT_FUNCTION(social_reform_desire)
 	MOD_NAT_FUNCTION(political_reform_desire)

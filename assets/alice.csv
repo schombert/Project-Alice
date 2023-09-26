@@ -371,6 +371,7 @@ greater_than_edu_spending;greater than education spending;;;;;;;;;;;;x
 support_for_rp;support for ruling party;;;;;;;;;;;;x
 colonial;colonial;;;;;;;;;;;;x
 in_default_to;in default to;;;;;;;;;;;;x
+in_bnkrpt;bankrupt
 num_of_ports_connected;number of ports connected to capital;;;;;;;;;;;;x
 holding_an_election;holding an election;;;;;;;;;;;;x
 set_globally;set globally;;;;;;;;;;;;x

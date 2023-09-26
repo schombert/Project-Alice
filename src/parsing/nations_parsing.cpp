@@ -879,11 +879,12 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 			} else {
 				it->second.generator_state = gen;
 				it->second.text_assigned = true;
+				it->second.original_file = err.file_name;
 			}
 		} else {
 			context.map_of_provincial_events.insert_or_assign(scan_result.id,
-					pending_prov_event{dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
-							trigger::slot_contents::empty, gen});
+					pending_prov_event{ err.file_name, dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
+							trigger::slot_contents::empty, gen, false});
 		}
 		gen = scan_copy;
 	} else {
@@ -893,10 +894,11 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 			} else {
 				it->second.generator_state = gen;
 				it->second.text_assigned = true;
+				it->second.original_file = err.file_name;
 			}
 		} else {
 			context.map_of_provincial_events.insert_or_assign(scan_result.id,
-					pending_prov_event{ dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
+					pending_prov_event{ err.file_name, dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
 							trigger::slot_contents::empty, gen, true });
 		}
 
@@ -924,11 +926,12 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 			} else {
 				it->second.generator_state = gen;
 				it->second.text_assigned = true;
+				it->second.original_file = err.file_name;
 			}
 		} else {
 			context.map_of_national_events.insert_or_assign(scan_result.id,
-					pending_nat_event{dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
-							trigger::slot_contents::empty, gen});
+					pending_nat_event{ err.file_name, dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
+							trigger::slot_contents::empty, gen, false});
 		}
 		gen = scan_copy;
 	} else {
@@ -938,10 +941,11 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 			} else {
 				it->second.generator_state = gen;
 				it->second.text_assigned = true;
+				it->second.original_file = err.file_name;
 			}
 		} else {
 			context.map_of_national_events.insert_or_assign(scan_result.id,
-					pending_nat_event{ dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
+					pending_nat_event{ err.file_name, dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty,
 							trigger::slot_contents::empty, gen, true });
 		}
 
@@ -1024,6 +1028,8 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 					e.second.id = context.state.world.create_national_event();
 
 				auto data_copy = e.second;
+
+				err.file_name = e.second.original_file + " [pending]";
 
 				event_building_context e_context{context, data_copy.main_slot, data_copy.this_slot, data_copy.from_slot};
 				auto event_result = parse_generic_event(data_copy.generator_state, err, e_context);
@@ -1127,6 +1133,8 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 					e.second.id = context.state.world.create_provincial_event();
 
 				auto data_copy = e.second;
+
+				err.file_name = e.second.original_file + " [pending]";
 
 				event_building_context e_context{context, data_copy.main_slot, data_copy.this_slot, data_copy.from_slot};
 				auto event_result = parse_generic_event(data_copy.generator_state, err, e_context);
