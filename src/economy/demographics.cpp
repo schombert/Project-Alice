@@ -1501,8 +1501,8 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					float current_size = state.world.pop_get_size(p);
 					float base_amount =
 							state.defines.assimilation_scale *
-							(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) *
-							(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) *
+							std::max(0.0f, (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f)) *
+							std::max(0.0f, (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f)) *
 							assimilation_chance * current_size;
 
 					/*
@@ -1563,8 +1563,8 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	float current_size = state.world.pop_get_size(ids);
 	float base_amount =
 		state.defines.assimilation_scale *
-		(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) *
-		(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) *
+		std::max(0.0f, (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f)) *
+		std::max(0.0f, (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f)) *
 			assimilation_chances * current_size;
 
 	/*
@@ -1733,7 +1733,7 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 
 		auto weight =
 				trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0) *
-				(state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f);
+				std::max(0.0f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
 
 		if(weight > top_weights[2]) {
 			top_weights[2] = weight;
@@ -1780,7 +1780,7 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
-		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) *  pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *  state.defines.immigration_scale;
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) *  pop_sizes * ve::max((state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f), 0.0f) *  state.defines.immigration_scale;
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
@@ -1818,7 +1818,7 @@ float get_estimated_internal_migration(sys::state& state, dcon::pop_id ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(loc);
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto amount = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance,
-		 trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) * state.defines.immigration_scale;
+		 trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) * pop_sizes * std::max(0.0f, (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f)) * state.defines.immigration_scale;
 
 	
 	if(amount <= 0.0f)
@@ -1844,13 +1844,11 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
-		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance,
-															 trigger::to_generic(ids), trigger::to_generic(ids), 0),
-											 0.0f) *
-									 pop_sizes *
-									 (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *
-									 (state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::colonial_migration) + 1.0f) *
-									 state.defines.immigration_scale;
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) *
+			 pop_sizes *
+			ve::max((state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f), 0.0f) *
+			ve::max((state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::colonial_migration) + 1.0f), 0.0f) *
+			state.defines.immigration_scale;
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
@@ -1900,7 +1898,11 @@ float get_estimated_colonial_migration(sys::state& state, dcon::pop_id ids) {
 	
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) *  (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f) * state.defines.immigration_scale;
+			trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f)
+		* pop_sizes
+		* std::max((state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f), 0.0f)
+		* std::max((state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f), 0.0f)
+		* state.defines.immigration_scale;
 
 	if(amounts <= 0.0f)
 		return 0.0f; // early exit
@@ -1926,10 +1928,11 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
 		auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,
-															 trigger::to_generic(ids), trigger::to_generic(ids), 0),
-											 0.0f) *
-									 pop_sizes * impush * ve::max(impush, 1.0f) * state.defines.immigration_scale;
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f)
+			* pop_sizes
+			* ve::max(impush, 0.0f)
+			* ve::max(impush, 1.0f)
+			* state.defines.immigration_scale;
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
@@ -2007,7 +2010,7 @@ float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,  trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f) * pop_sizes * impush * std::max(impush, 1.0f) * state.defines.immigration_scale;
+	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,  trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f) * pop_sizes * std::max(impush, 0.0f) * std::max(impush, 1.0f) * state.defines.immigration_scale;
 
 	if(amounts <= 0.0f)
 		return 0.0f; // early exit
