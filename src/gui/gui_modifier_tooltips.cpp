@@ -127,13 +127,13 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 		if(!header) {
 			header = true;
 			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, national_modifier_names[pmid.index()].name),
+			text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, province_modifier_names[pmid.index()].name),
 					text::text_color::yellow);
 			text::add_to_layout_box(state, layout, box, std::string_view(":"), text::text_color::yellow);
 			text::close_layout_box(layout, box);
 		}
 
-		auto data = national_modifier_names[pmid.index()];
+		auto data = province_modifier_names[pmid.index()];
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, fat_id.get_name()), text::text_color::white);
 		text::add_to_layout_box(state, layout, box, std::string_view{":"}, text::text_color::white);

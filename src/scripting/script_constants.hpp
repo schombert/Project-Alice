@@ -1643,8 +1643,12 @@ constexpr inline uint16_t vassal_of_province_this_province = 0x02C9;
 constexpr inline uint16_t vassal_of_province_this_state = 0x02CA;
 constexpr inline uint16_t vassal_of_province_this_pop = 0x02CB;
 constexpr inline uint16_t relation_this_pop = 0x02CC;
+constexpr inline uint16_t has_recently_lost_war_pop = 0x02CD;
+constexpr inline uint16_t technology_pop = 0x02CE;
+constexpr inline uint16_t invention_pop = 0x02CF;
+constexpr inline uint16_t in_default_bool = 0x02D0;
 
-constexpr inline uint16_t first_scope_code = 0x02CD;
+constexpr inline uint16_t first_scope_code = 0x02D1;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1704,9 +1708,9 @@ constexpr inline uint16_t cultural_union_scope_pop = first_scope_code + 0x002E;
 constexpr inline uint16_t capital_scope_province = first_scope_code + 0x002F;
 constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
+constexpr inline uint16_t x_neighbor_province_scope_state = first_scope_code + 0x0032;
 
-
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0032;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0033;
 
 constexpr inline uint16_t placeholder_not_scope = code_mask;
 
@@ -2438,6 +2442,10 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t vassal_of_province_this_state = 0x02CA;
 		0, //constexpr inline uint16_t vassal_of_province_this_pop = 0x02CB;
 		1, //constexpr inline uint16_t relation_this_pop = 0x02CC;
+		0, //constexpr inline uint16_t has_recently_lost_war_pop = 0x02CD;
+		1, //constexpr inline uint16_t technology_pop = 0x02CE;
+		1, //constexpr inline uint16_t invention_pop = 0x02CF;
+		0, //constexpr inline uint16_t in_default_bool = 0x02D0;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

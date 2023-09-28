@@ -49,8 +49,6 @@ struct event_option {
 	dcon::effect_key effect;
 };
 
-constexpr int32_t max_event_options = 6;
-
 struct modifier_hash {
 	using is_avalanching = void;
 

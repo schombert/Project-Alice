@@ -1339,7 +1339,7 @@ object {
 
 	property {
 		name{ current_modifiers }
-		type{vector_pool{32000}{sys::dated_modifier}}
+		type{vector_pool{90000}{sys::dated_modifier}}
 		tag{ save }
 	}
 	property {
@@ -1493,7 +1493,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 12000 }
+	size{ 18000 }
 	tag{ save }
 
 	property{
@@ -1561,7 +1561,7 @@ object {
 object {
 	name{ army }
 	storage_type{ erasable }
-	size{ 2000 }
+	size{ 3000 }
 	tag{ save }
 
 	property{
@@ -1591,7 +1591,7 @@ object {
 	}
 	property{
 		name{ path }
-		type{vector_pool{16000}{province_id}}
+		type{vector_pool{30000}{province_id}}
 		tag{ save }
 	}
 	property{
@@ -3494,7 +3494,7 @@ object {
 	}
 	property {
 		name{ available_cbs }
-		type{vector_pool{28000}{military::available_cb}}
+		type{vector_pool{50000}{military::available_cb}}
 		tag{ save }
 	}
 	property {

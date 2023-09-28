@@ -2601,10 +2601,64 @@ guiTypes = {
 		}
 	}
 	
-	guiButtonType = {
-		name = "alice_event_auto_button"
-		position = { x = 0 y = 0 }
-		quadTextureSprite = "GFX_alice_event_auto"
+	windowType = {
+		name = "alice_prov_event_button"
+		position = { x=0 y=0 }	
+		size = { x=316 y= 28 }
+		
+		guiButtonType = {
+			name = "opt_button"
+			position = { x=-2 y =-2}
+			quadTextureSprite ="GFX_event_province_button"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "auto_button"
+			position = { x = 288 y = -2 }
+			quadTextureSprite = "GFX_alice_event_auto"
+		}
+	}
+	
+	listboxType = {
+		name = "alice_povince_event_opts_list"
+		position = { x= 0 y = 0}
+				
+		backGround=""
+		size = { x=316 y= 116 }
+		spacing = 1
+		scrollbartype = "standardlistbox_slider"
+		Orientation = "UPPER_LEFT"
+	}
+	
+	windowType = {
+		name = "alice_nation_event_button"
+		position = { x=0 y=0 }	
+		size = { x=512 y= 28 }
+		
+		guiButtonType = {
+			name = "opt_button"
+			position = { x=0 y =-1}
+			quadTextureSprite ="GFX_event_country_button"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "auto_button"
+			position = { x = 482 y = -1 }
+			quadTextureSprite = "GFX_alice_event_auto"
+		}
+	}
+	
+	listboxType = {
+		name = "alice_nation_event_opts_list"
+		position = { x= 0 y = 0}
+				
+		backGround=""
+		size = { x=512 y= 87 }
+		spacing = 1
+		scrollbartype = "standardlistbox_slider"
+		Orientation = "UPPER_LEFT"
 	}
 	
 	windowType = {

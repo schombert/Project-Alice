@@ -171,6 +171,26 @@ void tf_x_neighbor_province_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
 }
+void tf_x_neighbor_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
+
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_province"));
+		text::close_layout_box(layout, box);
+	}
+
+	auto st_count = trigger::count_subtriggers(tval);
+	if(st_count > 1) {
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
+		text::close_layout_box(layout, box);
+	}
+
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+}
 void tf_x_neighbor_country_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -4526,6 +4546,12 @@ void tf_has_factories(TRIGGER_DISPLAY_PARAMS) {
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_in_default_bool(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_bnkrpt"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_in_default_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -8189,6 +8215,10 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_vassal_of_province_this_state, //constexpr inline uint16_t vassal_of_province_this_state = 0x02CA;
 		tf_vassal_of_province_this_pop, //constexpr inline uint16_t vassal_of_province_this_pop = 0x02CB;
 		tf_relation_this_pop, //constexpr inline uint16_t relation_this_pop = 0x02CC;
+		tf_has_recently_lost_war, //constexpr inline uint16_t has_recently_lost_war_pop = 0x02CD;
+		tf_technology, //constexpr inline uint16_t technology_pop = 0x02CE;
+		tf_invention, //constexpr inline uint16_t invention_pop = 0x02CF;
+		tf_in_default_bool, //constexpr inline uint16_t in_default_bool = 0x02D0;
 
 		//
 		// scopes
@@ -8244,6 +8274,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_capital_scope_province,    // constexpr uint16_t capital_scope_province = 0x002F;
 		tf_capital_scope_pop,   //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 		tf_x_country_scope, //constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
+		tf_x_neighbor_province_scope_state, //constexpr inline uint16_t x_neighbor_province_scope_state = first_scope_code + 0x0032;
 };
 
 // #define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::columnar_layout& layout,

@@ -6596,6 +6596,9 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_remove_core_from_province, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
 		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
 		ef_remove_core_reb, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
+		ef_set_country_flag, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
+		ef_social_reform, //constexpr inline uint16_t social_reform_province = 0x0183;
+		ef_political_reform, //constexpr inline uint16_t political_reform_province = 0x0184;
 
 		//
 		// SCOPES

@@ -3,6 +3,111 @@
 
 namespace ui {
 
+std::vector<std::unique_ptr<national_major_event_window>> national_major_event_window::event_pool;
+
+void  national_major_event_window::new_event(sys::state& state, event::pending_human_n_event const& dat) {
+	if(event_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::national_major_event_window>(state, "event_major_window");
+		auto ptr = new_elm.get();
+		national_major_event_window* actual = static_cast<national_major_event_window*>(ptr);
+		actual->event_data = dat;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<national_major_event_window> ptr = std::move(event_pool.back());
+		event_pool.pop_back();
+		ptr->event_data = dat;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+void  national_major_event_window::new_event(sys::state& state, event::pending_human_f_n_event const& dat) {
+	if(event_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::national_major_event_window>(state, "event_major_window");
+		auto ptr = new_elm.get();
+		national_major_event_window* actual = static_cast<national_major_event_window*>(ptr);
+		actual->event_data = dat;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<national_major_event_window> ptr = std::move(event_pool.back());
+		event_pool.pop_back();
+		ptr->event_data = dat;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+
+std::vector<std::unique_ptr<national_event_window>> national_event_window::event_pool;
+
+void  national_event_window::new_event(sys::state& state, event::pending_human_n_event const& dat) {
+	if(event_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::national_event_window>(state, "event_country_window");
+		auto ptr = new_elm.get();
+		national_event_window* actual = static_cast<national_event_window*>(ptr);
+		actual->event_data = dat;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<national_event_window> ptr = std::move(event_pool.back());
+		event_pool.pop_back();
+		ptr->event_data = dat;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+void  national_event_window::new_event(sys::state& state, event::pending_human_f_n_event const& dat) {
+	if(event_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::national_event_window>(state, "event_country_window");
+		auto ptr = new_elm.get();
+		national_event_window* actual = static_cast<national_event_window*>(ptr);
+		actual->event_data = dat;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<national_event_window> ptr = std::move(event_pool.back());
+		event_pool.pop_back();
+		ptr->event_data = dat;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+
+std::vector<std::unique_ptr<provincial_event_window>> provincial_event_window::event_pool;
+
+void  provincial_event_window::new_event(sys::state& state, event::pending_human_p_event const& dat) {
+	if(event_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::provincial_event_window>(state, "event_province_window");
+		auto ptr = new_elm.get();
+		provincial_event_window* actual = static_cast<provincial_event_window*>(ptr);
+		actual->event_data = dat;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<provincial_event_window> ptr = std::move(event_pool.back());
+		event_pool.pop_back();
+		ptr->event_data = dat;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+void  provincial_event_window::new_event(sys::state& state, event::pending_human_f_p_event const& dat) {
+	if(event_pool.empty()) {
+		auto new_elm = ui::make_element_by_type<ui::provincial_event_window>(state, "event_province_window");
+		auto ptr = new_elm.get();
+		provincial_event_window* actual = static_cast<provincial_event_window*>(ptr);
+		actual->event_data = dat;
+		actual->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	} else {
+		std::unique_ptr<provincial_event_window> ptr = std::move(event_pool.back());
+		event_pool.pop_back();
+		ptr->event_data = dat;
+		ptr->set_visible(state, true);
+		state.ui_state.root->add_child_to_front(std::move(ptr));
+	}
+}
+
 void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event,
 				event::pending_human_f_p_event> const& phe) noexcept {
@@ -108,6 +213,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::state, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::statename, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
+	text::add_to_substitution_map(sub, text::variable_type::countryname, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name,
 			state.world.nation_get_constructing_cb_target(target_nation));
@@ -148,7 +254,8 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 
 void event_option_button::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
-	
+	auto index = retrieve<int32_t>(state, parent);
+
 	text::substitution_map sub;
 	sys::event_option opt;
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
@@ -169,62 +276,40 @@ void event_option_button::on_update(sys::state& state) noexcept {
 		populate_event_submap(state, sub, phe);
 	}
 
-	if(!bool(opt.name) && !bool(opt.effect)) {
-		visible = false;
-		return;
-	}
-	visible = true;
 	set_button_text(state, text::resolve_string_substitution(state, opt.name, sub));
-}
-
-void event_auto_button::on_update(sys::state& state) noexcept {
-	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
-
-	sys::event_option opt;
-	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		opt = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
-	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-		opt = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
-	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-		opt = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
-	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-		opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
-	}
-
-	if(!bool(opt.name) && !bool(opt.effect)) {
-		visible = false;
-		return;
-	}
-	visible = true;
 }
 
 void event_auto_button::button_action(sys::state& state) noexcept {
 
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	auto index = retrieve<int32_t>(state, parent);
+
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
 		state.world.national_event_set_auto_choice(phe.e, uint8_t(index + 1));
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto phe = std::get<event::pending_human_f_n_event>(content);
 		state.world.free_national_event_set_auto_choice(phe.e, uint8_t(index + 1));
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto phe = std::get<event::pending_human_p_event>(content);
 		state.world.provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto phe = std::get<event::pending_human_f_p_event>(content);
 		state.world.free_provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	}
 	Cyto::Any n_payload = option_taken_notification{};
 	parent->impl_get(state, n_payload);
 }
 
 void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(visible) {
+
 		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+		auto index = retrieve<int32_t>(state, parent);
+
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto phe = std::get<event::pending_human_n_event>(content);
 			effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
@@ -242,24 +327,26 @@ void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y
 			effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
 					trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 		}
-	}
+	
 }
 
 void event_option_button::button_action(sys::state& state) noexcept {
 
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	auto index = retrieve<int32_t>(state, parent);
+
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto phe = std::get<event::pending_human_f_n_event>(content);
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto phe = std::get<event::pending_human_p_event>(content);
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto phe = std::get<event::pending_human_f_p_event>(content);
-		command::make_event_choice(state, phe, index);
+		command::make_event_choice(state, phe, uint8_t(index));
 	}
 	Cyto::Any n_payload = option_taken_notification{};
 	parent->impl_get(state, n_payload);
@@ -391,39 +478,118 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 	}
 }
 
-template<bool IsMajor>
-void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
-	window_element_base::on_create(state);
-	auto s1 = IsMajor ? "event_major_option_start" : "event_country_option_start";
-	auto s2 = IsMajor ? "event_major_option_offset" : "event_country_option_offset";
-	auto s3 = IsMajor ? "event_major_optionbutton" : "event_country_optionbutton";
 
-	xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(s1)->second.definition].position;
-	xy_pair offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(s2)->second.definition].position;
-	for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
-
-		auto ptr = make_element_by_type<event_option_button>(state, state.ui_state.defs_by_name.find(s3)->second.definition);
-		ptr->base_data.position = cur_offset;
-		ptr->index = uint8_t(i);
-		option_buttons[i] = ptr.get();
-		
-		
-
-		auto ptrb = make_element_by_type<event_auto_button>(state, state.ui_state.defs_by_name.find("alice_event_auto_button")->second.definition);
-		ptrb->index = uint8_t(i);
-		ptrb->base_data.position.y = cur_offset.y;
-		ptrb->base_data.position.x = int16_t(cur_offset.x + ptr->base_data.size.x - ptrb->base_data.size.x);
-		auto_buttons[i] = ptrb.get();
-
-		add_child_to_front(std::move(ptr));
-		add_child_to_front(std::move(ptrb));
-
-		cur_offset.x += offset.x;
-		cur_offset.y += offset.y;
+class alice_button_row : public listbox_row_element_base<int32_t> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "opt_button") {
+			return make_element_by_type<event_option_button>(state, id);
+		} else if(name == "auto_button") {
+			return make_element_by_type<event_auto_button>(state, id);
+		} else {
+			return nullptr;
+		}
 	}
-	set_visible(state, false);
+};
+
+class nation_event_list : public listbox_element_base<alice_button_row, int32_t> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_nation_event_button";
+	}
+
+public:
+	leader_select_sort sort_type = leader_select_sort::attack;
+
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+
+		if(std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto e = std::get<event::pending_human_n_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.national_event_get_options(e)[i].effect && !state.world.national_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto e = std::get<event::pending_human_f_n_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.free_national_event_get_options(e)[i].effect && !state.world.free_national_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto e = std::get<event::pending_human_p_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.provincial_event_get_options(e)[i].effect && !state.world.provincial_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto e = std::get<event::pending_human_f_p_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.free_provincial_event_get_options(e)[i].effect && !state.world.free_provincial_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		}
+
+		update(state);
+	}
+};
+
+void national_event_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+
+	{
+		auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+		ptr->base_data.position.y = 20;
+		ptr->base_data.position.x += ptr->base_data.size.x;
+		add_child_to_front(std::move(ptr));
+	}
+	{
+		auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+		ptr->base_data.position.y = 20;
+		ptr->base_data.position.x += ptr->base_data.size.x * 2;
+		add_child_to_front(std::move(ptr));
+	}
+
+	{
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_option_start")->second.definition].position;
+		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
+		ptr->base_data.position = cur_offset;
+		ptr->base_data.position.y += 5;
+		add_child_to_front(std::move(ptr));
+	}
 }
 
+void national_major_event_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+
+	{
+		auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+		ptr->base_data.position.y = 20;
+		ptr->base_data.position.x += ptr->base_data.size.x;
+		add_child_to_front(std::move(ptr));
+	}
+	{
+		auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+		ptr->base_data.position.y = 20;
+		ptr->base_data.position.x += ptr->base_data.size.x * 2;
+		add_child_to_front(std::move(ptr));
+	}
+
+	//auto s3 = IsMajor ? "event_major_optionbutton" : "event_country_optionbutton";
+
+	{
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_option_start")->second.definition].position;
+		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
+		ptr->base_data.position = cur_offset;
+		add_child_to_front(std::move(ptr));
+	}
+}
 
 class event_date_text : public simple_text_element_base {
 public:
@@ -520,51 +686,24 @@ public:
 	}
 };
 
-template<bool IsMajor>
-std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+std::unique_ptr<element_base> national_event_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "background") {
-		auto bg_ptr = make_element_by_type<draggable_target>(state, id);
-		xy_pair cur_pos{0, 0};
-		{
-			auto ptr = make_element_by_type<event_lr_button<false>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
-			cur_pos.y = ptr->base_data.size.y * 1;
-			ptr->base_data.position = cur_pos;
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<simple_text_element_base>(state,
-					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
-			cur_pos.x -= ptr->base_data.size.x;
-			ptr->base_data.position = cur_pos;
-			count_text = ptr.get();
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<event_lr_button<true>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			cur_pos.x -= ptr->base_data.size.x;
-			ptr->base_data.position = cur_pos;
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<event_requirements_icon>(state,
-					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
-			ptr->base_data.position = bg_ptr->base_data.position;
-			ptr->base_data.position.y = cur_pos.y;
-			ptr->base_data.position.x += ptr->base_data.size.x;
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr =
-					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
-			ptr->base_data.position = bg_ptr->base_data.position;
-			ptr->base_data.position.y = cur_pos.y;
-			ptr->base_data.position.x += ptr->base_data.size.x * 2;
-			add_child_to_front(std::move(ptr));
-		}
-		return bg_ptr;
+		return make_element_by_type<draggable_target>(state, id);
+	} else if(name == "title") {
+		return make_element_by_type<event_name_text>(state, id);
+	} else if(name == "description") {
+		return make_element_by_type<event_desc_text>(state, id);
+	} else if(name == "event_images") {
+		return make_element_by_type<event_image>(state, id);
+	} else if(name == "date") {
+		return make_element_by_type<event_date_text>(state, id);
+	}
+	return nullptr;
+}
+
+std::unique_ptr<element_base> national_major_event_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "background") {
+		return make_element_by_type<draggable_target>(state, id);
 	} else if(name == "title") {
 		return make_element_by_type<event_name_text>(state, id);
 	} else if(name == "description") {
@@ -581,101 +720,46 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 	return nullptr;
 }
 
-template<bool IsMajor>
-void national_event_window<IsMajor>::on_update(sys::state& state) noexcept {
-	
-	for(auto e : option_buttons) {
-		e->set_visible(state, true);
-	}
-	for(auto e : auto_buttons) {
-		e->set_visible(state, true);
-	}
-
-	auto it = std::remove_if(events.begin(), events.end(), [&](auto& e) {
-		sys::date date{};
-		if(std::holds_alternative<event::pending_human_n_event>(e)) {
-			date = std::get<event::pending_human_n_event>(e).date;
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(e)) {
-			date = std::get<event::pending_human_f_n_event>(e).date;
-		}
-		return date + event::expiration_in_days <= state.current_date;
-	});
-	auto r = std::distance(it, events.end());
-	events.erase(it, events.end());
-
-	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
-
-	if(events.empty()) {
-		set_visible(state, false);
-	}
-}
-
-template<bool IsMajor>
-message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any& payload) noexcept {
-	
-
+message_result national_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<dcon::nation_id>()) {
 		payload.emplace<dcon::nation_id>(state.local_player_nation);
 		return message_result::consumed;
 	} else if(payload.holds_type<event_data_wrapper>()) {
-		if(events.empty()) {
-			payload.emplace<event_data_wrapper>(event_data_wrapper{});
-		} else {
-			payload.emplace<event_data_wrapper>(events[std::min(size_t(index), events.size() - 1)]);
-		}
-		return message_result::consumed;
-	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-		bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
-		index += b ? -1 : +1;
-
-		if(index >= int32_t(events.size()))
-			index = 0;
-		else if(index < 0)
-			index = int32_t(events.size()) - 1;
-
-		impl_on_update(state);
+		if(std::holds_alternative<event::pending_human_n_event>(event_data))
+			payload.emplace<event_data_wrapper>(std::get<event::pending_human_n_event>(event_data));
+		else if(std::holds_alternative<event::pending_human_f_n_event>(event_data))
+			payload.emplace<event_data_wrapper>(std::get<event::pending_human_f_n_event>(event_data));
 		return message_result::consumed;
 	} else if(payload.holds_type<option_taken_notification>()) {
-		if(!events.empty()) {
-			events.erase(events.begin() + size_t(std::min(size_t(index), events.size() - 1)));
-			impl_on_update(state);
-		}
+		set_visible(state, false);
+		auto uptr = state.ui_state.root->remove_child(this);
+		assert(uptr);
+		std::unique_ptr<national_event_window> ptr(static_cast<national_event_window*>(uptr.release()));
+		national_event_window::event_pool.push_back(std::move(ptr));
 		return message_result::consumed;
 	}
 	return message_result::unseen;
 }
 
-void provincial_event_window::on_create(sys::state& state) noexcept {
-	window_element_base::on_create(state);
-	xy_pair cur_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
-	xy_pair offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_offset")->second.definition].position;
-	divider_image->base_data.position.y = cur_offset.y;
-	divider_image->base_data.position.y -= 150; // Omega nudge??
-	cur_offset.y += divider_image->base_data.size.y;
-	for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
-		auto ptr = make_element_by_type<event_option_button>(state,
-				state.ui_state.defs_by_name.find("event_province_optionbutton")->second.definition);
-		ptr->base_data.position = cur_offset;
-		ptr->base_data.position.y -= 150; // Omega nudge??
-		ptr->index = uint8_t(i);
-		option_buttons[i] = ptr.get();
-
-		auto ptrb = make_element_by_type<event_auto_button>(state, state.ui_state.defs_by_name.find("alice_event_auto_button")->second.definition);
-		ptrb->index = uint8_t(i);
-		ptrb->base_data.position.y = cur_offset.y;
-		ptrb->base_data.position.y -= 150; // Omega nudge??
-		ptrb->base_data.position.x = int16_t(cur_offset.x + ptr->base_data.size.x - ptrb->base_data.size.x);
-		auto_buttons[i] = ptrb.get();
-
-		add_child_to_front(std::move(ptr));
-		add_child_to_front(std::move(ptrb));
-
-		cur_offset.x += offset.x;
-		cur_offset.y += offset.y;
+message_result national_major_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::nation_id>()) {
+		payload.emplace<dcon::nation_id>(state.local_player_nation);
+		return message_result::consumed;
+	} else if(payload.holds_type<event_data_wrapper>()) {
+		if(std::holds_alternative<event::pending_human_n_event>(event_data))
+			payload.emplace<event_data_wrapper>(std::get<event::pending_human_n_event>(event_data));
+		else if(std::holds_alternative<event::pending_human_f_n_event>(event_data))
+			payload.emplace<event_data_wrapper>(std::get<event::pending_human_f_n_event>(event_data));
+		return message_result::consumed;
+	} else if(payload.holds_type<option_taken_notification>()) {
+		set_visible(state, false);
+		auto uptr = state.ui_state.root->remove_child(this);
+		assert(uptr);
+		std::unique_ptr<national_major_event_window> ptr(static_cast<national_major_event_window*>(uptr.release()));
+		national_major_event_window::event_pool.push_back(std::move(ptr));
+		return message_result::consumed;
 	}
-	set_visible(state, false);
+	return message_result::unseen;
 }
 
 class event_province_text : public color_text_element {
@@ -723,64 +807,96 @@ public:
 	}
 };
 
-std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& state, std::string_view name,
-		dcon::gui_def_id id) noexcept {
+class province_event_list : public listbox_element_base<alice_button_row, int32_t> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_prov_event_button";
+	}
+
+public:
+	leader_select_sort sort_type = leader_select_sort::attack;
+
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+
+		if(std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto e = std::get<event::pending_human_n_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.national_event_get_options(e)[i].effect && !state.world.national_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto e = std::get<event::pending_human_f_n_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.free_national_event_get_options(e)[i].effect && !state.world.free_national_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto e = std::get<event::pending_human_p_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.provincial_event_get_options(e)[i].effect && !state.world.provincial_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto e = std::get<event::pending_human_f_p_event>(content).e;
+			for(int32_t i = 0; i < sys::max_event_options; ++i) {
+				if(!state.world.free_provincial_event_get_options(e)[i].effect && !state.world.free_provincial_event_get_options(e)[i].name)
+					break;
+				row_contents.push_back(i);
+			}
+		}
+
+		update(state);
+	}
+};
+
+void provincial_event_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+
+	{
+		auto ptr = make_element_by_type<event_requirements_icon>(state,
+				state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+		ptr->base_data.position.y = int16_t(355);
+		ptr->base_data.position.x += int16_t(ptr->base_data.size.x + 140);
+		add_child_to_front(std::move(ptr));
+	}
+	{
+		auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+		ptr->base_data.position.y = int16_t(355);
+		ptr->base_data.position.x += int16_t(ptr->base_data.size.x * 2 + 140);
+		add_child_to_front(std::move(ptr));
+	}
+
+	{
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
+		cur_offset.y += 22;
+
+		auto ptr = make_element_by_type<province_event_list>(state, state.ui_state.defs_by_name.find("alice_povince_event_opts_list")->second.definition);
+		ptr->base_data.position = cur_offset;
+		ptr->base_data.position.y -= 150; // Omega nudge??
+		add_child_to_front(std::move(ptr));
+	}
+}
+
+std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "background") {
-		auto bg_ptr = make_element_by_type<draggable_target>(state, id);
-		xy_pair cur_pos{0, 0};
-		{
-			auto ptr = make_element_by_type<event_lr_button<false>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
-			cur_pos.y = ptr->base_data.size.y * 1;
-			ptr->base_data.position = cur_pos;
-			ptr->base_data.position.x -= int16_t(118);
-			ptr->base_data.position.y -= int16_t(6);
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<simple_text_element_base>(state,
-					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
-			cur_pos.x -= ptr->base_data.size.x;
-			ptr->base_data.position = cur_pos;
-			ptr->base_data.position.x -= int16_t(118);
-			ptr->base_data.position.y -= int16_t(6);
-			count_text = ptr.get();
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<event_lr_button<true>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			cur_pos.x -= ptr->base_data.size.x;
-			ptr->base_data.position = cur_pos;
-			ptr->base_data.position.x -= int16_t(118);
-			ptr->base_data.position.y -= int16_t(6);
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<event_requirements_icon>(state,
-					state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
-			ptr->base_data.position = bg_ptr->base_data.position;
-			ptr->base_data.position.y = int16_t(cur_pos.y + 328);
-			ptr->base_data.position.x += int16_t(ptr->base_data.size.x + 140);
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr =
-					make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
-			ptr->base_data.position = bg_ptr->base_data.position;
-			ptr->base_data.position.y = int16_t(cur_pos.y + 328);
-			ptr->base_data.position.x += int16_t(ptr->base_data.size.x * 2 + 140);
-			add_child_to_front(std::move(ptr));
-		}
-		return bg_ptr;
+		return make_element_by_type<draggable_target>(state, id);
 	} else if(name == "event_images") {
 		auto ptr = make_element_by_type<element_base>(state, id);
 		ptr->set_visible(state, false);
 		return ptr;
 	} else if(name == "event_separator_image") {
 		auto ptr = make_element_by_type<image_element_base>(state, id);
-		divider_image = ptr.get();
+
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
+		ptr->base_data.position.y = cur_offset.y;
+		ptr->base_data.position.y -= 150; // Omega nudge??
+
 		return ptr;
 	} else if(name == "title") {
 		auto ptr = make_element_by_type<event_name_text>(state, id);
@@ -796,55 +912,23 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		return nullptr;
 	}
 }
-void provincial_event_window::on_update(sys::state& state) noexcept {
-	for(auto e : option_buttons)
-		e->set_visible(state, true);
-	for(auto e : auto_buttons)
-		e->set_visible(state, true);
 
-	auto it = std::remove_if(events.begin(), events.end(), [&](auto& e) {
-		sys::date date{};
-		if(std::holds_alternative<event::pending_human_p_event>(e))
-			date = std::get<event::pending_human_p_event>(e).date;
-		else if(std::holds_alternative<event::pending_human_f_p_event>(e))
-			date = std::get<event::pending_human_f_p_event>(e).date;
-		return date + event::expiration_in_days <= state.current_date;
-	});
-	auto r = std::distance(it, events.end());
-	events.erase(it, events.end());
-
-	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
-
-	if(events.empty())
-		set_visible(state, false);
-}
 message_result provincial_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<dcon::nation_id>()) {
 		payload.emplace<dcon::nation_id>(state.local_player_nation);
 		return message_result::consumed;
 	} else if(payload.holds_type<event_data_wrapper>()) {
-		if(events.empty()) {
-			payload.emplace<event_data_wrapper>(event_data_wrapper{});
-		} else {
-			payload.emplace<event_data_wrapper>(events[std::min(size_t(index), events.size() - 1)]);
-		}
-		return message_result::consumed;
-	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-		bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
-		index += b ? -1 : +1;
-
-		if(index >= int32_t(events.size()))
-			index = 0;
-		else if(index < 0)
-			index = int32_t(events.size()) - 1;
-
-		impl_on_update(state);
+		if(std::holds_alternative<event::pending_human_p_event>(event_data))
+			payload.emplace<event_data_wrapper>(std::get<event::pending_human_p_event>(event_data));
+		else if(std::holds_alternative<event::pending_human_f_p_event>(event_data))
+			payload.emplace<event_data_wrapper>(std::get<event::pending_human_f_p_event>(event_data));
 		return message_result::consumed;
 	} else if(payload.holds_type<option_taken_notification>()) {
-		if(!events.empty()) {
-			events.erase(events.begin() + size_t(std::min(size_t(index), events.size() - 1)));
-			impl_on_update(state);
-		}
+		set_visible(state, false);
+		auto uptr = state.ui_state.root->remove_child(this);
+		assert(uptr);
+		std::unique_ptr<provincial_event_window> ptr(static_cast<provincial_event_window*>(uptr.release()));
+		provincial_event_window::event_pool.push_back(std::move(ptr));
 		return message_result::consumed;
 	}
 	return message_result::unseen;
