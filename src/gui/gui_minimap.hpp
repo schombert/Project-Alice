@@ -341,6 +341,10 @@ public:
 			return make_element_by_type<minimap_msg_event_button>(state, id);
 		} else if(name == "menubar_msg_other") {
 			return make_element_by_type<minimap_msg_other_button>(state, id);
+		} else if(name == "menubar_plans_toggle") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "menubar_plans_open") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;

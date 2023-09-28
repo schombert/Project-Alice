@@ -264,6 +264,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
+
+		if(ui_state.outliner_window)
+			ui_state.outliner_window->impl_on_update(*this);
 	}
 }
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
@@ -1514,6 +1517,7 @@ void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
 	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
 	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	ui_state.outliner_window->impl_on_update(*this);
 	// TODO move windows
 }
 
@@ -1563,6 +1567,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	parsers::scenario_building_context context(*this);
 
 	text::load_text_data(*this, 2); // 2 = English
+	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
 	auto root = get_root(common_fs);
