@@ -269,7 +269,11 @@ void state_definition::free_value(int32_t value, error_handler& err, int32_t lin
 				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
+		if(province_id && !context.outer_context.state.world.province_get_state_from_abstract_state_membership(province_id)) {
+			context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
+		} else if(province_id) {
+			err.accumulated_warnings += "province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " was assigned to more than one state/region\n";
+		}
 	}
 }
 
