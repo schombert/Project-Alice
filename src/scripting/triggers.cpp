@@ -3977,6 +3977,9 @@ TRIGGER_FUNCTION(tf_colonial_nation) {
 TRIGGER_FUNCTION(tf_pop_majority_religion_nation) {
 	return compare_values_eq(tval[0], ws.world.nation_get_dominant_religion(to_nation(primary_slot)), payload(tval[1]).rel_id);
 }
+TRIGGER_FUNCTION(tf_pop_majority_religion_nation_this_nation) {
+	return compare_values_eq(tval[0], ws.world.nation_get_dominant_religion(to_nation(primary_slot)), ws.world.nation_get_religion(to_nation(this_slot)));
+}
 TRIGGER_FUNCTION(tf_pop_majority_religion_state) {
 	return compare_values_eq(tval[0], ws.world.state_instance_get_dominant_religion(to_state(primary_slot)),
 			payload(tval[1]).rel_id);
@@ -6988,6 +6991,7 @@ struct trigger_container {
 			tf_region_proper_state, //constexpr inline uint16_t region_proper_state = 0x02D3;
 			tf_region_proper_pop, //constexpr inline uint16_t region_proper_pop = 0x02D4;
 			tf_owns_region_proper, //constexpr inline uint16_t owns_region_proper = 0x02D5;
+			tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 
 			//
 			// scopes

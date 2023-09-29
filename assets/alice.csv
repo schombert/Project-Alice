@@ -334,6 +334,7 @@ crime_percent;percentage of provinces with crime;;;;;;;;;;;;x
 national_religion;the national_religion;;;;;;;;;;;;x
 member_of_nat_religion;a member of the national religion;;;;;;;;;;;;x
 dominant_religion;the dominant religion;;;;;;;;;;;;x
+same_rel_as_this;the same religion as this nation
 this_pop_culture;the culture of this pop;;;;;;;;;;;;x
 this_nation_primary_culture;the primary culture of this nation;;;;;;;;;;;;x
 this_nation_accepted_culture;an accepted culture of this nation;;;;;;;;;;;;x

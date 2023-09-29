@@ -1252,9 +1252,9 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 						? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size))
 						: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
 
-					if(current_size < small_pop_size && base_amount > 0.0f) {
+					/*if(current_size < small_pop_size && base_amount > 0.0f) {
 						pbuf.amounts.set(p, current_size);
-					} else if(base_amount >= 0.001f) {
+					} else*/ if(base_amount >= 0.001f) {
 						auto transfer_amount = std::min(current_size, base_amount);
 						pbuf.amounts.set(p, transfer_amount);
 					}
@@ -1492,6 +1492,9 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
 						return; // early exit
 
+					if(state.world.province_get_dominant_culture(location) == state.world.pop_get_culture(p))
+						return;
+
 					/*
 					Amount: define:ASSIMILATION_SCALE x (provincial-assimilation-rate-modifier + 1) x
 					(national-assimilation-rate-modifier + 1) x pop-size x assimilation chance factor (computed additively, and always
@@ -1532,9 +1535,9 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation.
 					*/
 
-					if(current_size < small_pop_size && base_amount >= 0.001f) {
+					/*if(current_size < small_pop_size && base_amount >= 0.001f) {
 						pbuf.amounts.set(p, current_size);
-					} else if(base_amount >= 0.001f) {
+					} else*/ if(base_amount >= 0.001f) {
 						auto transfer_amount = std::min(current_size, std::ceil(base_amount));
 						pbuf.amounts.set(p, transfer_amount);
 					}
@@ -1795,11 +1798,11 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 
 					auto dest = impl::get_province_target_in_nation(state, owner, p);
 
-					if(pop_size < small_pop_size) {
-						pbuf.amounts.set(p, pop_size);
-					} else {
+					//if(pop_size < small_pop_size) {
+					//	pbuf.amounts.set(p, pop_size);
+					// else {
 						pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
-					}
+					//}
 					pbuf.destinations.set(p, dest);
 				},
 				ids, loc, owners, amounts, pop_sizes);
@@ -1867,11 +1870,11 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 							pt == state.culture_definitions.secondary_factory_worker)
 						return; // early exit
 
-					if(pop_size < small_pop_size) {
-						pbuf.amounts.set(p, pop_size);
-					} else {
+					//if(pop_size < small_pop_size) {
+					//	pbuf.amounts.set(p, pop_size);
+					//} else {
 						pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
-					}
+					//}
 
 					auto dest = impl::get_colonial_province_target_in_nation(state, owner, p);
 					pbuf.destinations.set(p, dest);
@@ -1951,11 +1954,11 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 						return; // early exit
 					}
 
-					if(pop_size < small_pop_size) {
-						pbuf.amounts.set(p, pop_size);
-					} else {
+					//if(pop_size < small_pop_size) {
+					//	pbuf.amounts.set(p, pop_size);
+					//} else {
 						pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
-					}
+					//}
 
 					auto ndest = impl::get_immigration_target(state, owner, p);
 					auto dest = impl::get_province_target_in_nation(state, ndest, p);
@@ -2145,19 +2148,18 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
 	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply(
-				[&](dcon::pop_id p) {
+				[&](dcon::pop_id p, dcon::province_id l) {
 					if(pbuf.amounts.get(p) > 0.0f) {
-						auto o = nations::owner_of_pop(state, p);
-						auto cul = state.world.nation_get_primary_culture(o);
-						auto rel = state.world.nation_get_religion(o);
+						//auto o = nations::owner_of_pop(state, p);
+						auto cul = state.world.province_get_dominant_culture(l);
+						auto rel = state.world.province_get_dominant_religion(l);
 						assert(state.world.pop_get_poptype(p));
-						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p), cul, rel,
-								state.world.pop_get_poptype(p));
+						auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p));
 						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
 						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
 					}
 				},
-				ids);
+				ids, state.world.pop_get_province_from_pop_location(ids));
 	});
 }
 
@@ -2224,6 +2226,16 @@ void remove_size_zero_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{dcon::pop_id::value_base_t(last)};
 		if(state.world.pop_get_size(m) < 1.0f) {
+			state.world.delete_pop(m);
+		}
+	}
+}
+
+void remove_small_pops(sys::state& state) {
+	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
+	for(auto last = state.world.pop_size(); last-- > 0;) {
+		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
+		if(state.world.pop_get_size(m) < 20.0f) {
 			state.world.delete_pop(m);
 		}
 	}

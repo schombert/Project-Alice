@@ -5044,6 +5044,17 @@ void tf_pop_majority_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_pop_majority_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
+			text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.nation_get_religion(trigger::to_nation(this_slot)))), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"), text::produce_simple_string(ws, "same_rel_as_this"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_pop_majority_religion_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -8276,6 +8287,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_region_proper, //constexpr inline uint16_t region_proper_state = 0x02D3;
 		tf_region_proper_pop, //constexpr inline uint16_t region_proper_pop = 0x02D4;
 		tf_owns_region_proper, //constexpr inline uint16_t owns_region_proper = 0x02D5;
+		tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 
 		//
 		// scopes

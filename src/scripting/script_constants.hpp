@@ -413,9 +413,16 @@ constexpr inline uint16_t set_country_flag_pop = 0x0182;
 constexpr inline uint16_t social_reform_province = 0x0183;
 constexpr inline uint16_t political_reform_province = 0x0184;
 constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+constexpr inline uint16_t release_vassal_province = 0x0186;
+constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+constexpr inline uint16_t release_vassal_province_random = 0x018C;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x0186;
+constexpr inline uint16_t first_scope_code = 0x018D;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -874,6 +881,13 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t social_reform_province = 0x0183;
 		1, //constexpr inline uint16_t political_reform_province = 0x0184;
 		2, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+		1, //constexpr inline uint16_t release_vassal_province = 0x0186;
+		0, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+		0, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+		0, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+		0, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+		0, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+		0, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1655,8 +1669,9 @@ constexpr inline uint16_t region_proper = 0x02D2;
 constexpr inline uint16_t region_proper_state = 0x02D3;
 constexpr inline uint16_t region_proper_pop = 0x02D4;
 constexpr inline uint16_t owns_region_proper = 0x02D5;
+constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6; // as a special favor
 
-constexpr inline uint16_t first_scope_code = 0x02D6;
+constexpr inline uint16_t first_scope_code = 0x02D7;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2460,6 +2475,7 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t region_proper_state = 0x02D3;
 		1, //constexpr inline uint16_t region_proper_pop = 0x02D4;
 		1, //constexpr inline uint16_t owns_region_proper = 0x02D5;
+		0, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

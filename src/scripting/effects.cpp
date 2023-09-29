@@ -2642,6 +2642,55 @@ uint32_t ef_release_vassal_random(EFFECT_PARAMTERS) {
 	// unused
 	return 0;
 }
+uint32_t ef_release_vassal_province(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_release_vassal_province_this_nation(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal_this_nation(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_release_vassal_province_this_province(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal_this_province(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_release_vassal_province_from_nation(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal_from_nation(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_release_vassal_province_from_province(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal_from_province(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_release_vassal_province_reb(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal_reb(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
+uint32_t ef_release_vassal_province_random(EFFECT_PARAMTERS) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
+	if(owner)
+		return ef_release_vassal_random(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo);
+	else
+		return 0;
+}
 uint32_t ef_change_province_name(EFFECT_PARAMTERS) {
 	ws.world.province_set_name(trigger::to_prov(primary_slot), trigger::payload(tval[1]).text_id);
 	return 0;
@@ -4894,6 +4943,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_social_reform_province, //constexpr inline uint16_t social_reform_province = 0x0183;
 		ef_political_reform_province, //constexpr inline uint16_t political_reform_province = 0x0184;
 		ef_flashpoint_tension_province, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+		ef_release_vassal_province, //constexpr inline uint16_t release_vassal_province = 0x0186;
+		ef_release_vassal_province_this_nation, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+		ef_release_vassal_province_this_province, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+		ef_release_vassal_province_from_nation, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+		ef_release_vassal_province_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+		ef_release_vassal_province_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+		ef_release_vassal_province_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
 
 		//
 		// SCOPES

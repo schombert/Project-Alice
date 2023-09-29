@@ -3421,11 +3421,14 @@ void state::single_game_tick() {
 
 			ai::update_influence_priorities(*this);
 		}
-		if(ymd_date.month == 6) {
-			ai::update_influence_priorities(*this);
-		}
 		if(ymd_date.month == 2) {
 			ai::upgrade_colonies(*this);
+		}
+		if(ymd_date.month == 4 && ymd_date.year % 2 == 0) { // the purge
+			demographics::remove_small_pops(*this);
+		}
+		if(ymd_date.month == 6) {
+			ai::update_influence_priorities(*this);
 		}
 	}
 

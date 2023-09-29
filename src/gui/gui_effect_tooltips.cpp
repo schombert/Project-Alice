@@ -6614,6 +6614,13 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_social_reform, //constexpr inline uint16_t social_reform_province = 0x0183;
 		ef_political_reform, //constexpr inline uint16_t political_reform_province = 0x0184;
 		ef_flashpoint_tension, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+		ef_release_vassal, //constexpr inline uint16_t release_vassal_province = 0x0186;
+		ef_release_vassal_this_nation, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+		ef_release_vassal_this_province, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+		ef_release_vassal_from_nation, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+		ef_release_vassal_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+		ef_release_vassal_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+		ef_release_vassal_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
 
 		//
 		// SCOPES
