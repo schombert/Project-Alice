@@ -604,6 +604,20 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 		context.main_slot = old_main;
 
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
+	} else if(auto itr = context.outer_context.map_of_region_names.find(label_str); itr != context.outer_context.map_of_region_names.end()) {
+		context.compiled_trigger.push_back(uint16_t(trigger::x_provinces_in_variable_region_proper));
+
+		context.compiled_trigger.push_back(uint16_t(1));
+		auto payload_size_offset = context.compiled_trigger.size() - 1;
+
+		context.compiled_trigger.push_back(trigger::payload(itr->second).value);
+
+		auto old_main = context.main_slot;
+		context.main_slot = trigger::slot_contents::province;
+		parse_trigger_body(gen, err, context);
+		context.main_slot = old_main;
+
+		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else if(is_integer(name.data(), name.data() + name.length())) {
 		auto int_value = parse_int(name, 0, err);
 		if(0 <= int_value && size_t(int_value) < context.outer_context.original_id_to_prov_id_map.size()) {

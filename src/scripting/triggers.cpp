@@ -973,7 +973,38 @@ TRIGGER_FUNCTION(tf_x_provinces_in_variable_region) {
 					return accumulator.result;
 				}
 			},
-			primary_slot, this_slot, from_slot);
+		primary_slot, this_slot, from_slot);
+}
+TRIGGER_FUNCTION(tf_x_provinces_in_variable_region_proper) {
+	auto state_def = trigger::payload(*(tval + 2)).reg_id;
+
+	return ve::apply(
+			[&ws, tval, state_def](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
+				if(*tval & trigger::is_existence_scope) {
+					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
+
+					for(auto i : ws.world.region_get_region_membership(state_def)) {
+						accumulator.add_value(to_generic(i.get_province().id));
+						if(accumulator.result)
+							return true;
+					}
+
+					accumulator.flush();
+					return accumulator.result;
+				} else {
+					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
+
+					for(auto i : ws.world.region_get_region_membership(state_def)) {
+						accumulator.add_value(to_generic(i.get_province().id));
+						if(!accumulator.result)
+							return false;
+					}
+
+					accumulator.flush();
+					return accumulator.result;
+				}
+			},
+		primary_slot, this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_owner_scope_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
@@ -2367,6 +2398,51 @@ TRIGGER_FUNCTION(tf_region_state) {
 TRIGGER_FUNCTION(tf_region_pop) {
 	return compare_values_eq(tval[0], ws.world.province_get_state_from_abstract_state_membership(ws.world.pop_get_province_from_pop_location(to_pop(primary_slot))), trigger::payload(tval[1]).state_id);
 }
+
+
+TRIGGER_FUNCTION(tf_region_proper) {
+	auto r = trigger::payload(tval[1]).reg_id;
+	auto result = ve::apply([&ws, r](dcon::province_id p) {
+		for(auto m : ws.world.province_get_region_membership(p)) {
+			if(m.get_region() == r)
+				return true;
+		}
+		return false;
+	}, to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_region_proper_state) {
+	auto r = trigger::payload(tval[1]).reg_id;
+	auto result = ve::apply([&ws, r](dcon::province_id p) {
+		for(auto m : ws.world.province_get_region_membership(p)) {
+			if(m.get_region() == r)
+				return true;
+		}
+		return false;
+	}, ws.world.state_instance_get_capital(to_state(primary_slot)));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_region_proper_pop) {
+	auto r = trigger::payload(tval[1]).reg_id;
+	auto result = ve::apply([&ws, r](dcon::province_id p) {
+		for(auto m : ws.world.province_get_region_membership(p)) {
+			if(m.get_region() == r)
+				return true;
+		}
+		return false;
+	}, ws.world.pop_get_province_from_pop_location(to_pop(primary_slot)));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_owns_region_proper) {
+	auto result = ve::apply([&](dcon::region_id sd, dcon::nation_id n) {
+		for(auto p : ws.world.region_get_region_membership(sd)) {
+			if(p.get_province().get_nation_from_province_ownership() != n)
+				return false;
+		}
+		return true;
+	}, trigger::payload(tval[1]).reg_id, trigger::to_nation(primary_slot));
+	return compare_to_true(tval[0], result);
+}
 TRIGGER_FUNCTION(tf_owns_region) {
 	auto result = ve::apply([&](dcon::state_definition_id sd, dcon::nation_id n) {
 		for(auto p : ws.world.state_definition_get_abstract_state_membership(sd)) {
@@ -3282,10 +3358,13 @@ TRIGGER_FUNCTION(tf_is_canal_enabled) {
 																			province::border::impassible_bit) == 0);
 }
 TRIGGER_FUNCTION(tf_is_state_capital) {
-	auto id = to_prov(primary_slot);
 	auto sid = ws.world.province_get_state_membership(to_prov(primary_slot));
-
 	return compare_values_eq(tval[0], ws.world.state_instance_get_capital(sid), to_prov(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_state_capital_pop) {
+	auto id = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto sid = ws.world.province_get_state_membership(id);
+	return compare_values_eq(tval[0], ws.world.state_instance_get_capital(sid), id);
 }
 TRIGGER_FUNCTION(tf_truce_with_tag) {
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
@@ -6904,6 +6983,11 @@ struct trigger_container {
 			tf_technology_pop, //constexpr inline uint16_t technology_pop = 0x02CE;
 			tf_invention_pop, //constexpr inline uint16_t invention_pop = 0x02CF;
 			tf_in_default_bool, //constexpr inline uint16_t in_default_bool = 0x02D0;
+			tf_is_state_capital_pop, //constexpr inline uint16_t is_state_capital_pop = 0x02D1;
+			tf_region_proper, //constexpr inline uint16_t region_proper = 0x02D2;
+			tf_region_proper_state, //constexpr inline uint16_t region_proper_state = 0x02D3;
+			tf_region_proper_pop, //constexpr inline uint16_t region_proper_pop = 0x02D4;
+			tf_owns_region_proper, //constexpr inline uint16_t owns_region_proper = 0x02D5;
 
 			//
 			// scopes
@@ -6960,6 +7044,7 @@ struct trigger_container {
 			tf_capital_scope_pop, //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 			tf_x_country_scope, //constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
 			tf_x_neighbor_province_scope_state, //constexpr inline uint16_t x_neighbor_province_scope_state = first_scope_code + 0x0032;
+			tf_x_provinces_in_variable_region_proper, //constexpr inline uint16_t x_provinces_in_variable_region_proper = first_scope_code + 0x0033;
 	};
 };
 

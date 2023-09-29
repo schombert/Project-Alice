@@ -2655,7 +2655,7 @@ guiTypes = {
 		position = { x= 0 y = 0}
 				
 		backGround=""
-		size = { x=512 y= 87 }
+		size = { x=512 y= 145 }
 		spacing = 1
 		scrollbartype = "standardlistbox_slider"
 		Orientation = "UPPER_LEFT"

@@ -995,6 +995,26 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 		context.limit_position = old_limit_offset;
 		context.main_slot = old_main;
+	} else if(auto itr = context.outer_context.map_of_region_names.find(str_label); itr != context.outer_context.map_of_region_names.end()) {
+		auto old_limit_offset = context.limit_position;
+		auto old_main = context.main_slot;
+
+		context.compiled_effect.push_back(uint16_t(effect::region_proper_scope | effect::scope_has_limit));
+
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		context.compiled_effect.push_back(trigger::payload(itr->second).value);
+
+		context.main_slot = trigger::slot_contents::province;
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		context.main_slot = old_main;
 	} else if(auto itb = context.outer_context.map_of_poptypes.find(str_label);
 						itb != context.outer_context.map_of_poptypes.end()) {
 

@@ -1272,6 +1272,27 @@ uint32_t es_region_scope(EFFECT_PARAMTERS) {
 		return i;
 	}
 }
+uint32_t es_region_proper_scope(EFFECT_PARAMTERS) {
+	if((tval[0] & effect::scope_has_limit) != 0) {
+		auto region = trigger::payload(tval[3]).reg_id;
+		auto limit = trigger::payload(tval[2]).tr_id;
+
+		uint32_t i = 0;
+		for(auto p : ws.world.region_get_region_membership(region)) {
+			if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
+				i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
+			}
+		}
+		return i;
+	} else {
+		auto region = trigger::payload(tval[2]).reg_id;
+		uint32_t i = 0;
+		for(auto p : ws.world.region_get_region_membership(region)) {
+			i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i);
+		}
+		return i;
+	}
+}
 
 uint32_t ef_none(EFFECT_PARAMTERS) {
 	return 0;
@@ -2945,6 +2966,18 @@ uint32_t ef_add_crisis_interest(EFFECT_PARAMTERS) {
 }
 uint32_t ef_flashpoint_tension(EFFECT_PARAMTERS) {
 	auto& current_tension = ws.world.state_instance_get_flashpoint_tension(trigger::to_state(primary_slot));
+	auto amount = trigger::read_float_from_payload(tval + 1);
+	assert(std::isfinite(amount));
+
+	current_tension = std::clamp(current_tension + amount, 0.0f, 100.0f);
+	return 0;
+}
+uint32_t ef_flashpoint_tension_province(EFFECT_PARAMTERS) {
+	auto state = ws.world.province_get_state_membership(trigger::to_prov(primary_slot));
+	if(!state)
+		return 0;
+
+	auto& current_tension = ws.world.state_instance_get_flashpoint_tension(state);
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 
@@ -4860,6 +4893,7 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_set_country_flag_pop, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
 		ef_social_reform_province, //constexpr inline uint16_t social_reform_province = 0x0183;
 		ef_political_reform_province, //constexpr inline uint16_t political_reform_province = 0x0184;
+		ef_flashpoint_tension_province, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
 
 		//
 		// SCOPES
@@ -4922,7 +4956,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
 		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
 		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
-		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
+		es_region_proper_scope, //constexpr inline uint16_t region_proper_scope = first_scope_code + 0x0039;
+		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {

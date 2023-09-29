@@ -277,6 +277,18 @@ void state_definition::free_value(int32_t value, error_handler& err, int32_t lin
 	}
 }
 
+void region_definition::free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context) {
+	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+		err.accumulated_errors +=
+			"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	} else {
+		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+		if(province_id ) {
+			context.outer_context.state.world.force_create_region_membership(province_id, context.id);
+		}
+	}
+}
+
 void continent_provinces::free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors +=

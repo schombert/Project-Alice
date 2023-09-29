@@ -350,7 +350,8 @@ overseas;overseas;;;;;;;;;;;;x
 overseas_pop;located in an overseas province;;;;;;;;;;;;x
 controlled_by_rebel;controlled by rebels;;;;;;;;;;;;x
 controlled_by;controlled by;;;;;;;;;;;;x
-state_capital;state capital;;;;;;;;;;;;x
+state_capital;the state capital
+loc_state_capital;located in the state capital
 a_truce_with;a truce with;;;;;;;;;;;;x
 population;population;;;;;;;;;;;;x
 size;size;;;;;;;;;;;;x

@@ -599,6 +599,12 @@ state_definition
 region_file
 	#any           extern     make_state_definition     discard
 
+region_definition
+	#free          value      int                       member_fn
+
+superregion_file
+	#any           extern     make_region_definition     discard
+
 continent_provinces
 	#free          value      int                       member_fn
 

@@ -2336,6 +2336,9 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::state) {
 			context.compiled_effect.push_back(uint16_t(effect::flashpoint_tension));
 			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::flashpoint_tension_province));
+			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors += "flashpoint_tension effect used in an incorrect scope type (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
