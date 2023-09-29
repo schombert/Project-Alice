@@ -1416,7 +1416,21 @@ uint32_t es_region_scope(EFFECT_DISPLAY_PARAMS) {
 
 	return display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
 }
+uint32_t es_region_proper_scope(EFFECT_DISPLAY_PARAMS) {
 
+	auto region =
+		(tval[0] & effect::scope_has_limit) != 0 ? trigger::payload(tval[3]).reg_id : trigger::payload(tval[2]).reg_id;
+
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(region));
+		text::close_layout_box(layout, box);
+	}
+
+	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
+
+	return display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
+}
 uint32_t ef_none(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -6599,6 +6613,14 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_set_country_flag, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
 		ef_social_reform, //constexpr inline uint16_t social_reform_province = 0x0183;
 		ef_political_reform, //constexpr inline uint16_t political_reform_province = 0x0184;
+		ef_flashpoint_tension, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+		ef_release_vassal, //constexpr inline uint16_t release_vassal_province = 0x0186;
+		ef_release_vassal_this_nation, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+		ef_release_vassal_this_province, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+		ef_release_vassal_from_nation, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+		ef_release_vassal_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+		ef_release_vassal_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+		ef_release_vassal_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
 
 		//
 		// SCOPES
@@ -6661,7 +6683,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
 		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
 		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
-		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
+		es_region_proper_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
+		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {

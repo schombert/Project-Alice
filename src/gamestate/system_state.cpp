@@ -1932,6 +1932,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.accumulated_errors += "File map/region.txt could not be opened\n";
 		}
 	}
+	// parse super_region.txt
+	{
+		auto region_file = open_file(map, NATIVE("super_region.txt"));
+		if(region_file) {
+			auto content = view_contents(*region_file);
+			err.file_name = "super_region.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_superregion_file(gen, err, context);
+		} else {
+			// OK for this file to be missing
+		}
+	}
 	// parse continent.txt
 	{
 		auto continent_file = open_file(map, NATIVE("continent.txt"));
@@ -3412,11 +3424,14 @@ void state::single_game_tick() {
 
 			ai::update_influence_priorities(*this);
 		}
-		if(ymd_date.month == 6) {
-			ai::update_influence_priorities(*this);
-		}
 		if(ymd_date.month == 2) {
 			ai::upgrade_colonies(*this);
+		}
+		if(ymd_date.month == 4 && ymd_date.year % 2 == 0) { // the purge
+			demographics::remove_small_pops(*this);
+		}
+		if(ymd_date.month == 6) {
+			ai::update_influence_priorities(*this);
 		}
 	}
 

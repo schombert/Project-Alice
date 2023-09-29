@@ -412,9 +412,17 @@ constexpr inline uint16_t remove_core_nation_reb = 0x0181;
 constexpr inline uint16_t set_country_flag_pop = 0x0182;
 constexpr inline uint16_t social_reform_province = 0x0183;
 constexpr inline uint16_t political_reform_province = 0x0184;
+constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+constexpr inline uint16_t release_vassal_province = 0x0186;
+constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+constexpr inline uint16_t release_vassal_province_random = 0x018C;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x0185;
+constexpr inline uint16_t first_scope_code = 0x018D;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -476,9 +484,10 @@ constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
 constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
 constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
 constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
-constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
+constexpr inline uint16_t region_proper_scope = first_scope_code + 0x0039;
+constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0040;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003B;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none
@@ -871,6 +880,14 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
 		1, //constexpr inline uint16_t social_reform_province = 0x0183;
 		1, //constexpr inline uint16_t political_reform_province = 0x0184;
+		2, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+		1, //constexpr inline uint16_t release_vassal_province = 0x0186;
+		0, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+		0, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+		0, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+		0, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+		0, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+		0, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -888,7 +905,7 @@ inline int32_t effect_scope_data_payload(uint16_t code) {
 	if((masked_code == effect::tag_scope) || (masked_code == effect::integer_scope) ||
 			(masked_code == effect::pop_type_scope_nation) || (masked_code == effect::pop_type_scope_state) ||
 			(masked_code == effect::pop_type_scope_province) || (masked_code == effect::region_scope) ||
-			(masked_code == effect::random_scope))
+			(masked_code == effect::region_proper_scope) || (masked_code == effect::random_scope))
 		return 1 + ((code & effect::scope_has_limit) != 0);
 	return 0 + ((code & effect::scope_has_limit) != 0);
 }
@@ -1647,8 +1664,14 @@ constexpr inline uint16_t has_recently_lost_war_pop = 0x02CD;
 constexpr inline uint16_t technology_pop = 0x02CE;
 constexpr inline uint16_t invention_pop = 0x02CF;
 constexpr inline uint16_t in_default_bool = 0x02D0;
+constexpr inline uint16_t is_state_capital_pop = 0x02D1;
+constexpr inline uint16_t region_proper = 0x02D2;
+constexpr inline uint16_t region_proper_state = 0x02D3;
+constexpr inline uint16_t region_proper_pop = 0x02D4;
+constexpr inline uint16_t owns_region_proper = 0x02D5;
+constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6; // as a special favor
 
-constexpr inline uint16_t first_scope_code = 0x02D1;
+constexpr inline uint16_t first_scope_code = 0x02D7;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1709,8 +1732,9 @@ constexpr inline uint16_t capital_scope_province = first_scope_code + 0x002F;
 constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
 constexpr inline uint16_t x_neighbor_province_scope_state = first_scope_code + 0x0032;
+constexpr inline uint16_t x_provinces_in_variable_region_proper = first_scope_code + 0x0033;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0033;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0034;
 
 constexpr inline uint16_t placeholder_not_scope = code_mask;
 
@@ -2446,6 +2470,12 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t technology_pop = 0x02CE;
 		1, //constexpr inline uint16_t invention_pop = 0x02CF;
 		0, //constexpr inline uint16_t in_default_bool = 0x02D0;
+		0, //constexpr inline uint16_t is_state_capital_pop = 0x02D1;
+		1, //constexpr inline uint16_t region_proper = 0x02D2;
+		1, //constexpr inline uint16_t region_proper_state = 0x02D3;
+		1, //constexpr inline uint16_t region_proper_pop = 0x02D4;
+		1, //constexpr inline uint16_t owns_region_proper = 0x02D5;
+		0, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };
@@ -2487,6 +2517,7 @@ union payload {
 	dcon::political_party_id par_id;
 	dcon::reform_id ref_id;
 	dcon::reform_option_id ropt_id;
+	dcon::region_id reg_id;
 
 	// variables::national_variable_tag nat_var;
 	// variables::national_flag_tag nat_flag;
@@ -2504,6 +2535,10 @@ union payload {
 	payload(dcon::government_type_id i) {
 		memset(this, 0, sizeof(payload));
 		gov_id = i;
+	}
+	payload(dcon::region_id i) {
+		memset(this, 0, sizeof(payload));
+		reg_id = i;
 	}
 	payload(dcon::religion_id i) {
 		memset(this, 0, sizeof(payload));
@@ -2647,7 +2682,7 @@ inline int32_t get_trigger_payload_size(uint16_t const* data) {
 }
 inline int32_t trigger_scope_data_payload(uint16_t code) {
 	auto const masked_code = code & trigger::code_mask;
-	if((masked_code == trigger::x_provinces_in_variable_region) || (masked_code == trigger::tag_scope) ||
+	if((masked_code == trigger::x_provinces_in_variable_region) || (masked_code == trigger::x_provinces_in_variable_region_proper) || (masked_code == trigger::tag_scope) ||
 			(masked_code == trigger::integer_scope))
 		return 1;
 	return 0;
@@ -2656,8 +2691,7 @@ inline int32_t trigger_scope_data_payload(uint16_t code) {
 template<typename T>
 uint16_t* recurse_over_triggers(uint16_t* source, T const& f) {
 	f(source);
-	assert(
-			(source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);
+	assert((source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);
 
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
 		auto const source_size = 1 + get_trigger_scope_payload_size(source);

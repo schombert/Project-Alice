@@ -2655,6 +2655,38 @@ relationship{
 	}
 }
 
+object {
+	name{ region }
+	storage_type{ contiguous }
+	size{ 300 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+}
+
+relationship{
+	name{ region_membership }
+	storage_type{ compactable }
+	size{ 25000 }
+	tag{ scenario }
+
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{region}
+		name{region}
+		type{many}
+		index_storage{array}
+	}
+}
 
 relationship{
 	name{ core }

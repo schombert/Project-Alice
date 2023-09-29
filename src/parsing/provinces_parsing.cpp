@@ -153,6 +153,17 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 
 	parsers::parse_state_definition(gen, err, new_context);
 }
+void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+	auto rid = context.state.world.create_region();
+
+	context.map_of_region_names.insert_or_assign(std::string(name), rid);
+	context.state.world.region_set_name(rid, name_id);
+
+	region_building_context new_context{ context, rid };
+
+	parsers::parse_region_definition(gen, err, new_context);
+}
 
 void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err,
 		scenario_building_context& context) {

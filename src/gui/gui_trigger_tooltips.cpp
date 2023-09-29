@@ -529,6 +529,28 @@ void tf_x_provinces_in_variable_region(TRIGGER_DISPLAY_PARAMS) {
 
 	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
 }
+void tf_x_provinces_in_variable_region_proper(TRIGGER_DISPLAY_PARAMS) {
+	auto region = trigger::payload(*(tval + 2)).reg_id;
+
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "province_in"));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(region));
+		text::close_layout_box(layout, box);
+	}
+
+	if(trigger::count_subtriggers(tval) > 1) {
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
+		text::close_layout_box(layout, box);
+	}
+
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+}
 void tf_owner_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -2810,6 +2832,14 @@ void tf_region(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).state_id);
 	text::close_layout_box(layout, box);
 }
+void tf_region_proper(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "part_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(trigger::payload(tval[1]).reg_id));
+	text::close_layout_box(layout, box);
+}
 void tf_owns_region(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -2818,12 +2848,28 @@ void tf_owns_region(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).state_id);
 	text::close_layout_box(layout, box);
 }
+void tf_owns_region_proper(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "the_owner_of_region"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(trigger::payload(tval[1]).reg_id));
+	text::close_layout_box(layout, box);
+}
 void tf_region_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).state_id);
+	text::close_layout_box(layout, box);
+}
+void tf_region_proper_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(trigger::payload(tval[1]).reg_id));
 	text::close_layout_box(layout, box);
 }
 void tf_tag_tag(TRIGGER_DISPLAY_PARAMS) {
@@ -4023,6 +4069,12 @@ void tf_is_canal_enabled(TRIGGER_DISPLAY_PARAMS) {
 void tf_is_state_capital(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "loc_state_capital"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_state_capital_pop(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "state_capital"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -4990,6 +5042,17 @@ void tf_pop_majority_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_pop_majority_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
+			text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.nation_get_religion(trigger::to_nation(this_slot)))), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"), text::produce_simple_string(ws, "same_rel_as_this"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_state(TRIGGER_DISPLAY_PARAMS) {
@@ -8219,6 +8282,12 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_technology, //constexpr inline uint16_t technology_pop = 0x02CE;
 		tf_invention, //constexpr inline uint16_t invention_pop = 0x02CF;
 		tf_in_default_bool, //constexpr inline uint16_t in_default_bool = 0x02D0;
+		tf_is_state_capital_pop, //constexpr inline uint16_t is_state_capital_pop = 0x02D1;
+		tf_region_proper, //constexpr inline uint16_t region_proper = 0x02D2;
+		tf_region_proper, //constexpr inline uint16_t region_proper_state = 0x02D3;
+		tf_region_proper_pop, //constexpr inline uint16_t region_proper_pop = 0x02D4;
+		tf_owns_region_proper, //constexpr inline uint16_t owns_region_proper = 0x02D5;
+		tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 
 		//
 		// scopes
@@ -8275,6 +8344,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_capital_scope_pop,   //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 		tf_x_country_scope, //constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
 		tf_x_neighbor_province_scope_state, //constexpr inline uint16_t x_neighbor_province_scope_state = first_scope_code + 0x0032;
+		tf_x_provinces_in_variable_region_proper, //constexpr inline uint16_t x_provinces_in_variable_region_proper = first_scope_code + 0x0033;
 };
 
 // #define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::columnar_layout& layout,
