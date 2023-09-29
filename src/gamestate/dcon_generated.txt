@@ -1368,6 +1368,10 @@ object {
 		type{ culture_id }
 	}
 	property {
+		name{ dominant_accepted_culture }
+		type{ culture_id }
+	}
+	property {
 		name{ dominant_religion }
 		type{ religion_id }
 	}

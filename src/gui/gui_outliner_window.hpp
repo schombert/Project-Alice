@@ -420,7 +420,7 @@ public:
 			auto siid = std::get<dcon::state_instance_id>(content);
 			auto fat_si = dcon::fatten(state.world, siid);
 			auto fat_nf = dcon::fatten(state.world, siid).get_owner_focus();
-			auto full_str = text::produce_simple_string(state, fat_nf.get_name());
+			auto full_str = text::produce_simple_string(state, fat_nf.get_name()) + " (" + text::get_dynamic_state_name(state, siid) + ")";
 			color = text::text_color::white;
 			set_text(state, full_str);
 		} else if(std::holds_alternative<outliner_rebel_occupation>(content)) {
