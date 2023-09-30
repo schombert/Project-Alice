@@ -1859,6 +1859,7 @@ oob_file
 	leader                          group      oob_leader                        member_fn
 	army                            extern     make_oob_army                     discard
 	navy                            extern     make_oob_navy                     discard
+	ai                                  group       none                                          discard
 
 production_employee
 	poptype                         value      text                              member_fn

@@ -3822,6 +3822,10 @@ TRIGGER_FUNCTION(tf_nationalvalue_province) {
 TRIGGER_FUNCTION(tf_industrial_score_value) {
 	return compare_values(tval[0], ws.world.nation_get_industrial_score(to_nation(primary_slot)), tval[1]);
 }
+TRIGGER_FUNCTION(tf_industrial_score_tag) {
+	return compare_values(tval[0], ws.world.nation_get_industrial_score(to_nation(primary_slot)),
+		ws.world.nation_get_industrial_score(ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id)));
+}
 TRIGGER_FUNCTION(tf_industrial_score_from_nation) {
 	return compare_values(tval[0], ws.world.nation_get_industrial_score(to_nation(primary_slot)),
 			ws.world.nation_get_industrial_score(to_nation(from_slot)));
@@ -3847,6 +3851,10 @@ TRIGGER_FUNCTION(tf_industrial_score_this_province) {
 }
 TRIGGER_FUNCTION(tf_military_score_value) {
 	return compare_values(tval[0], ws.world.nation_get_military_score(to_nation(primary_slot)), tval[1]);
+}
+TRIGGER_FUNCTION(tf_military_score_tag) {
+	return compare_values(tval[0], ws.world.nation_get_military_score(to_nation(primary_slot)),
+		ws.world.nation_get_military_score(ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id)));
 }
 TRIGGER_FUNCTION(tf_military_score_from_nation) {
 	return compare_values(tval[0], ws.world.nation_get_military_score(to_nation(primary_slot)),
@@ -6992,6 +7000,8 @@ struct trigger_container {
 			tf_region_proper_pop, //constexpr inline uint16_t region_proper_pop = 0x02D4;
 			tf_owns_region_proper, //constexpr inline uint16_t owns_region_proper = 0x02D5;
 			tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
+			tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
+			tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
 
 			//
 			// scopes

@@ -4733,6 +4733,15 @@ void tf_industrial_score_value(TRIGGER_DISPLAY_PARAMS) {
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_industrial_score_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
+			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
+	text::close_layout_box(layout, box);
+}
 void tf_industrial_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -4799,6 +4808,15 @@ void tf_military_score_value(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
 	text::close_layout_box(layout, box);
 }
 void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
@@ -8288,6 +8306,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_region_proper_pop, //constexpr inline uint16_t region_proper_pop = 0x02D4;
 		tf_owns_region_proper, //constexpr inline uint16_t owns_region_proper = 0x02D5;
 		tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
+		tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
+		tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
 
 		//
 		// scopes
