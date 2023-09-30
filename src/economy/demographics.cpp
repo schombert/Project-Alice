@@ -18,6 +18,7 @@ uint32_t size(sys::state const& state) {
 
 void regenerate_is_primary_or_accepted(sys::state& state) {
 	state.world.for_each_pop([&](dcon::pop_id p) {
+		state.world.pop_set_is_primary_or_accepted_culture(p, false);
 		auto n = nations::owner_of_pop(state, p);
 		if(state.world.nation_get_primary_culture(n) == state.world.pop_get_culture(p)) {
 			state.world.pop_set_is_primary_or_accepted_culture(p, true);

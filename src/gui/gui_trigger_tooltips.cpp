@@ -1405,7 +1405,7 @@ void tf_government_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "government"),
-			text::produce_simple_string(ws, ws.culture_definitions.governments[gov].name), ws, layout, box);
+			text::produce_simple_string(ws, ws.world.government_type_get_name(gov)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_government_pop(TRIGGER_DISPLAY_PARAMS) {
@@ -1413,7 +1413,7 @@ void tf_government_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "government"),
-			text::produce_simple_string(ws, ws.culture_definitions.governments[gov].name), ws, layout, box);
+			text::produce_simple_string(ws, ws.world.government_type_get_name(gov)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_capital(TRIGGER_DISPLAY_PARAMS) {

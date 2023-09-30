@@ -709,7 +709,7 @@ void update_ai_ruling_party(sys::state& state) {
 			float max_support = estimate_pop_party_support(state, n, state.world.nation_get_ruling_party(n));
 			for(int32_t i = start; i < end; i++) {
 				auto pid = dcon::political_party_id(uint16_t(i));
-				if(pid != state.world.nation_get_ruling_party(n) && politics::political_party_is_active(state, pid) && (state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+				if(pid != state.world.nation_get_ruling_party(n) && politics::political_party_is_active(state, pid) && (gov.get_ideologies_allowed() & ::culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
 					auto support = estimate_pop_party_support(state, n, pid);
 					if(support > max_support) {
 						target = pid;
