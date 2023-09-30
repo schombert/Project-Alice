@@ -220,7 +220,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj,
 			state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
-	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.culture_definitions.governments[state.world.nation_get_government_type(target_nation)].ruler_name);
+	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(target_nation)));
 	// TODO: Is this correct? I remember in vanilla it could vary
 	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));

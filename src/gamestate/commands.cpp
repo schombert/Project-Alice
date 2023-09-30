@@ -1006,7 +1006,7 @@ void start_election(sys::state& state, dcon::nation_id source) {
 }
 bool can_start_election(sys::state& state, dcon::nation_id source) {
 	auto type = state.world.nation_get_government_type(source);
-	return type && state.culture_definitions.governments[type].has_elections && !politics::is_election_ongoing(state, source);
+	return state.world.government_type_get_has_elections(type) && !politics::is_election_ongoing(state, source);
 }
 void execute_start_election(sys::state& state, dcon::nation_id source) {
 	if(!can_start_election(state, source))
@@ -1955,7 +1955,7 @@ bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::p
 
 	auto gov = state.world.nation_get_government_type(source);
 	auto new_ideology = state.world.political_party_get_ideology(p);
-	if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+	if((state.world.government_type_get_ideologies_allowed(gov) & ::culture::to_bits(new_ideology)) == 0) {
 		return false;
 	}
 

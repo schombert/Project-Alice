@@ -691,7 +691,7 @@ flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_
 			state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
 	if(id != 0)
 		return flag_type(id - 1);
-	return state.culture_definitions.governments[gov_type].flag;
+	return flag_type(state.world.government_type_get_flag(gov_type));
 }
 
 flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {

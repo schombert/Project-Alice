@@ -300,8 +300,7 @@ void update_events(sys::state& state) {
 		auto mod = state.world.free_national_event_get_mtth(id);
 		auto t = state.world.free_national_event_get_trigger(id);
 
-		if(mod && (state.world.free_national_event_get_only_once(id) == false ||
-									state.world.free_national_event_get_has_been_triggered(id) == false)) {
+		if(state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false) {
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 				/*
 				For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is
@@ -312,8 +311,8 @@ void update_events(sys::state& state) {
 					? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
 					: (state.world.nation_get_owned_province_count(ids) != 0);
 				if(ve::compress_mask(some_exist).v != 0) {
-					auto chances =
-							trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+					auto chances = mod ?
+						trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0) : ve::fp_vector{ 1.0f };
 					auto adj_chance = 1.0f - ve::select(chances <= 1.0f, 1.0f, 1.0f / (chances));
 					auto adj_chance_2 = adj_chance * adj_chance;
 					auto adj_chance_4 = adj_chance_2 * adj_chance_2;
@@ -353,7 +352,7 @@ void update_events(sys::state& state) {
 		auto mod = state.world.free_provincial_event_get_mtth(id);
 		auto t = state.world.free_provincial_event_get_trigger(id);
 
-		if(mod) {
+		
 			ve::execute_serial_fast<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](ve::contiguous_tags<dcon::province_id> ids) {
 						/*
@@ -365,8 +364,9 @@ void update_events(sys::state& state) {
 																			trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0)
 																: (owners != dcon::nation_id{});
 						if(ve::compress_mask(some_exist).v != 0) {
-							auto chances =
-									trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+							auto chances = mod
+								? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+								: ve::fp_vector{2.0f};
 							auto adj_chance = 1.0f - ve::select(chances <= 2.0f, 1.0f, 2.0f / chances);
 							auto adj_chance_2 = adj_chance * adj_chance;
 							auto adj_chance_4 = adj_chance_2 * adj_chance_2;
@@ -384,7 +384,7 @@ void update_events(sys::state& state) {
 									ids, owners, adj_chance_16, some_exist);
 						}
 					});
-		}
+		
 	});
 
 	auto total_p_vector = p_events_triggered.combine([](auto& a, auto& b) {

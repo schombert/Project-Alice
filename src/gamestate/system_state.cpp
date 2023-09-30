@@ -2054,15 +2054,15 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 	world.invention_resize_activate_crime(uint32_t(culture_definitions.crimes.size()));
 
-	world.rebel_type_resize_government_change(uint32_t(culture_definitions.governments.size()));
+	world.rebel_type_resize_government_change(world.government_type_size());
 
 	world.nation_resize_max_building_level(economy::max_building_types);
 	world.nation_resize_active_inventions(world.invention_size());
 	world.nation_resize_active_technologies(world.technology_size());
 	world.nation_resize_upper_house(world.ideology_size());
 
-	world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
-	world.national_identity_resize_government_name(uint32_t(culture_definitions.governments.size()));
+	world.national_identity_resize_government_flag_type(world.government_type_size());
+	world.national_identity_resize_government_name(world.government_type_size());
 
 	// add special names
 	for(auto ident : world.in_national_identity) {
@@ -3001,13 +3001,12 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
-		assert(n.get_owned_province_count() == 0 || (g && g.index() < culture_definitions.governments.ssize()));
+		assert(n.get_owned_province_count() == 0 || world.government_type_is_valid(g));
 	}
-	for(uint32_t i = 0; i < culture_definitions.governments.size(); ++i) {
-		dcon::government_type_id g{dcon::government_type_id::value_base_t(i) };
+	for(auto g : world.in_government_type) {
 		for(auto rt : world.in_rebel_type) {
 			auto ng = rt.get_government_change(g);
-			assert(!ng || ng.index() < culture_definitions.governments.ssize());
+			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
 		}
 	}
 

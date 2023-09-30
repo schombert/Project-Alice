@@ -1947,7 +1947,7 @@ uint32_t ef_government(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
-				ws.culture_definitions.governments[trigger::payload(tval[1]).gov_id].name);
+				ws.world.government_type_get_name(trigger::payload(tval[1]).gov_id));
 		text::localised_format_box(ws, layout, box, "change_government_to", m);
 		text::close_layout_box(layout, box);
 	}
@@ -1958,10 +1958,9 @@ uint32_t ef_government_reb(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		if(from_slot != -1) {
-			auto new_gov = ws.world.rebel_faction_get_type(trigger::to_rebel(from_slot))
-												 .get_government_change(ws.world.nation_get_government_type(trigger::to_nation(primary_slot)));
+			auto new_gov = ws.world.rebel_faction_get_type(trigger::to_rebel(from_slot)).get_government_change(ws.world.nation_get_government_type(trigger::to_nation(primary_slot)));
 			if(new_gov)
-				text::add_to_substitution_map(m, text::variable_type::text, ws.culture_definitions.governments[new_gov].name);
+				text::add_to_substitution_map(m, text::variable_type::text, ws.world.government_type_get_name(new_gov));
 		}
 		text::localised_format_box(ws, layout, box, "change_government_to", m);
 		text::close_layout_box(layout, box);
