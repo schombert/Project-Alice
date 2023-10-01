@@ -3133,7 +3133,7 @@ TRIGGER_FUNCTION(tf_is_coastal_province) {
 	return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_is_coastal_state) {
-	return compare_to_true(tval[0], state_is_coastal(ws, to_state(primary_slot)));
+	return compare_to_true(tval[0], province::state_is_coastal(ws, to_state(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_in_sphere_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(primary_slot)),
@@ -3757,12 +3757,10 @@ TRIGGER_FUNCTION(tf_has_factories_state) {
 TRIGGER_FUNCTION(tf_has_factories_nation) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n) {
-				for(auto so : ws.world.nation_get_state_ownership(n)) {
-					auto s = ws.world.state_ownership_get_state(so);
-					auto def = ws.world.state_instance_get_definition(s);
-					auto owner = ws.world.state_instance_get_nation_from_state_ownership(s);
+				for(auto s : ws.world.nation_get_state_ownership(n)) {
+					auto def = ws.world.state_instance_get_definition(ws.world.state_ownership_get_state(s));
 					for(auto p : ws.world.state_definition_get_abstract_state_membership(def)) {
-						if(p.get_province().get_nation_from_province_ownership() == owner) {
+						if(p.get_province().get_nation_from_province_ownership() == n) {
 							auto frange = p.get_province().get_factory_location();
 							if(frange.begin() != frange.end())
 								return true;
