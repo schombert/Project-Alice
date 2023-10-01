@@ -521,10 +521,10 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			neg_vals.clear();
 			for(uint32_t i = uint32_t(last_value.size()); i-->0; ) {
 				dcon::nation_id in{ dcon::nation_id::value_base_t(i) };
-				if(last_value[i] >= 1.0f) {
+				if(last_value[i] > 0.0f) {
 					positive_vals.push_back(nation_and_value{ last_value[i],in});
 					total_pos += last_value[i];
-				} else if(last_value[i] <= -1.0f) {
+				} else if(last_value[i] < 0.0f) {
 					neg_vals.push_back(nation_and_value{ last_value[i],in });
 					total_neg += last_value[i];
 				}

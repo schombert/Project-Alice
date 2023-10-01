@@ -3039,7 +3039,7 @@ void state::single_game_tick() {
 	diplomatic_message::update_pending(*this);
 
 	auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
-	auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
+	auto next_month_start = ymd_date.month != 12 ? sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) } : sys::year_month_day{ ymd_date.year + 1, uint16_t(1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
 	// pop update:
