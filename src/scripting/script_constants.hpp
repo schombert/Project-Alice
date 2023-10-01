@@ -1675,7 +1675,7 @@ constexpr inline uint16_t industrial_score_tag = 0x02D8;
 constexpr inline uint16_t has_factories_nation = 0x02D9;
 constexpr inline uint16_t is_coastal_state = 0x02DA;
 
-constexpr inline uint16_t first_scope_code = 0x02D9;
+constexpr inline uint16_t first_scope_code = 0x02DB;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
