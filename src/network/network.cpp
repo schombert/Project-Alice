@@ -315,7 +315,11 @@ void send_and_receive_commands(sys::state& state) {
 		// send the commands of the server to all the clients
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			if(command::is_console_command(c->type) == false) {
+			bool valid = true;
+			if((c->type == command::command_type::notify_player_ban || c->type == command::command_type::notify_player_kick)) {
+				valid = (c->source == state.local_player_nation);
+			}
+			if(command::is_console_command(c->type) == false && valid) {
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
 				command_executed = true;
