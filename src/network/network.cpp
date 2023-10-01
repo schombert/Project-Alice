@@ -32,10 +32,10 @@ static int socket_recv(socket_t client_fd, void *data, size_t n) {
 	u_long has_pending = 0;
 	auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return (int)recv(client_fd, (char *)data, (int)n, MSG_WAITALL);
+		return (int)recv(client_fd, (char *)data, (int)n, 0);
 	return 0;
 #else
-	return recv(client_fd, data, n, MSG_WAITALL);
+	return recv(client_fd, data, n, MSG_DONTWAIT);
 #endif
 }
 
