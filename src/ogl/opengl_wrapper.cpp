@@ -98,9 +98,8 @@ void initialize_opengl(sys::state& state) {
 	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
 		auto fat_id = dcon::fatten(state.world, ident_id);
 		auto nat_id = fat_id.get_nation_from_identity_holder().id;
-		for(uint32_t i = 0; i < state.culture_definitions.governments.size(); ++i) {
-			const auto gov_id = dcon::government_type_id(dcon::government_type_id::value_base_t(i));
-			state.flag_types.push_back(state.culture_definitions.governments[gov_id].flag);
+		for(auto gov_id : state.world.in_government_type) {
+			state.flag_types.push_back(culture::flag_type(gov_id.get_flag()));
 		}
 	});
 	// Eliminate duplicates

@@ -77,19 +77,9 @@ enum class flag_type : uint8_t {
 	count
 };
 
-struct government_type {
-	uint32_t ideologies_allowed = 0;
-	dcon::text_sequence_id name;
-	dcon::text_sequence_id ruler_name;
-	bool has_elections = false;
-	bool can_appoint_ruling_party = false;
-	int8_t duration = 0;
-	flag_type flag = flag_type::default_flag;
-};
-
-constexpr inline uint32_t to_bits(dcon::ideology_id id) {
+constexpr inline uint64_t to_bits(dcon::ideology_id id) {
 	if(id)
-		return uint32_t(1 << id.index());
+		return uint64_t(1 << id.index());
 	else
 		return 0;
 }
@@ -127,7 +117,6 @@ struct global_cultural_state {
 	std::vector<folder_info> tech_folders; // contains *all* the folder names; techs index into this by an integer index
 	std::vector<dcon::pop_type_id> rgo_workers;
 
-	tagged_vector<government_type, dcon::government_type_id> governments;
 	tagged_vector<crime_info, dcon::crime_id> crimes;
 
 	// these are not intended to be a complete list of *all* poptypes, just those with special rules

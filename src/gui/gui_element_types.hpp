@@ -815,11 +815,56 @@ public:
 	}
 };
 
+class listbox2_scrollbar : public autoscaling_scrollbar {
+public:
+	void on_value_change(sys::state& state, int32_t v) noexcept override;
+};
+
+class listbox2_row_element : public window_element_base {
+public:
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+};
+
+struct listbox2_scroll_event {
+};
+struct listbox2_row_view {
+	listbox2_row_element* row = nullptr;
+};
+
+template<typename contents_type>
+class listbox2_base : public container_base {
+public:
+	std::vector<ui::element_base*> row_windows{};
+	listbox2_scrollbar* list_scrollbar = nullptr;
+	int32_t stored_index = 0;
+	int32_t visible_row_count = 0;
+	bool scrollbar_is_internal = false;
+
+	listbox2_base() { }
+	listbox2_base(bool scrollbar_is_internal) : scrollbar_is_internal(scrollbar_is_internal) { }
+
+	virtual std::unique_ptr<element_base> make_row(sys::state& state) noexcept = 0;
+
+	std::vector<contents_type> row_contents;
+
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	void resize(sys::state& state, int32_t height);
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
+	}
+};
+
 template<typename T>
 struct element_selection_wrapper {
 	T data{};
 };
-
 
 
 enum class outline_color : uint8_t {

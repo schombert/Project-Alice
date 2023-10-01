@@ -264,6 +264,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
+
+		if(ui_state.outliner_window)
+			ui_state.outliner_window->impl_on_update(*this);
 	}
 }
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
@@ -711,11 +714,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.national_event_get_auto_choice(c1->e);
 				if(auto_choice == 0) {
 					if(world.national_event_get_is_major(c1->e)) {
-						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-							->events.push_back(ui::event_data_wrapper{ *c1 });
+						ui::national_major_event_window::new_event(*this, *c1);
 					} else {
-						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-							->events.push_back(ui::event_data_wrapper{ *c1 });
+						ui::national_event_window::new_event(*this, *c1);
 					}
 				} else {
 					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
@@ -729,11 +730,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
 				if(auto_choice == 0) {
 					if(world.free_national_event_get_is_major(c2->e)) {
-						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)
-							->events.push_back(ui::event_data_wrapper{ *c2 });
+						ui::national_major_event_window::new_event(*this, *c2);
 					} else {
-						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)
-							->events.push_back(ui::event_data_wrapper{ *c2 });
+						ui::national_event_window::new_event(*this, *c2);
 					}
 				} else {
 					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
@@ -746,8 +745,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c3) {
 				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
 				if(auto_choice == 0) {
-					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-						->events.push_back(ui::event_data_wrapper{ *c3 });
+					ui::provincial_event_window::new_event(*this, *c3);
 				} else {
 					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
 				}
@@ -759,8 +757,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c4) {
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
-					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)
-						->events.push_back(ui::event_data_wrapper{ *c4 });
+					ui::provincial_event_window::new_event(*this, *c4);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
 				}
@@ -844,18 +841,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 				naval_battle_reports.pop();
 				c7 = naval_battle_reports.front();
 			}
-		}
-		if(!static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.empty()) {
-			ui_state.major_event_window->set_visible(*this, true);
-			ui_state.root->move_child_to_front(ui_state.major_event_window);
-		}
-		if(!static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.empty()) {
-			ui_state.national_event_window->set_visible(*this, true);
-			ui_state.root->move_child_to_front(ui_state.national_event_window);
-		}
-		if(!static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.empty()) {
-			ui_state.provincial_event_window->set_visible(*this, true);
-			ui_state.root->move_child_to_front(ui_state.provincial_event_window);
 		}
 		if(!static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.empty()) {
 			ui_state.request_window->set_visible(*this, true);
@@ -1306,21 +1291,7 @@ void state::on_create() {
 		ui_state.msg_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::national_event_window<true>>(*this, "event_major_window");
-		ui_state.major_event_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::national_event_window<false>>(*this, "event_country_window");
-		ui_state.national_event_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::provincial_event_window>(*this, "event_province_window");
-		ui_state.provincial_event_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
+
 	{
 		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(*this, "alice_leader_selection_panel");
 		ui_state.change_leader_window = new_elm.get();
@@ -1546,6 +1517,7 @@ void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
 	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
 	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	ui_state.outliner_window->impl_on_update(*this);
 	// TODO move windows
 }
 
@@ -1595,6 +1567,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	parsers::scenario_building_context context(*this);
 
 	text::load_text_data(*this, 2); // 2 = English
+	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
 	auto root = get_root(common_fs);
@@ -1956,6 +1929,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.accumulated_errors += "File map/region.txt could not be opened\n";
 		}
 	}
+	// parse super_region.txt
+	{
+		auto region_file = open_file(map, NATIVE("super_region.txt"));
+		if(region_file) {
+			auto content = view_contents(*region_file);
+			err.file_name = "super_region.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_superregion_file(gen, err, context);
+		} else {
+			// OK for this file to be missing
+		}
+	}
 	// parse continent.txt
 	{
 		auto continent_file = open_file(map, NATIVE("continent.txt"));
@@ -2066,15 +2051,15 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 	world.invention_resize_activate_crime(uint32_t(culture_definitions.crimes.size()));
 
-	world.rebel_type_resize_government_change(uint32_t(culture_definitions.governments.size()));
+	world.rebel_type_resize_government_change(world.government_type_size());
 
 	world.nation_resize_max_building_level(economy::max_building_types);
 	world.nation_resize_active_inventions(world.invention_size());
 	world.nation_resize_active_technologies(world.technology_size());
 	world.nation_resize_upper_house(world.ideology_size());
 
-	world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
-	world.national_identity_resize_government_name(uint32_t(culture_definitions.governments.size()));
+	world.national_identity_resize_government_flag_type(world.government_type_size());
+	world.national_identity_resize_government_name(world.government_type_size());
 
 	// add special names
 	for(auto ident : world.in_national_identity) {
@@ -2698,6 +2683,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	bool gov_error = false;
+	for(auto n : world.in_nation) {
+		auto g = n.get_government_type();
+		if(!g && n.get_owned_province_count() != 0) {
+			auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
+			err.accumulated_errors += name + " exists but has no governmentnt (THIS WILL RESULT IN A CRASH)\n";
+			gov_error = true;
+		}
+	}
+	if(gov_error)
+		return;
+
 	fill_unsaved_data(); // we need this to run triggers
 
 	// run pending triggers and effects
@@ -2999,13 +2996,14 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	military::run_gc(*this);
 	for(auto n : world.in_nation) {
-		assert(n.get_owned_province_count() == 0 || (n.get_government_type() && n.get_government_type().index() < culture_definitions.governments.ssize()));
+		auto g = n.get_government_type();
+		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
+		assert(n.get_owned_province_count() == 0 || world.government_type_is_valid(g));
 	}
-	for(uint32_t i = 0; i < culture_definitions.governments.size(); ++i) {
-		dcon::government_type_id g{dcon::government_type_id::value_base_t(i) };
+	for(auto g : world.in_government_type) {
 		for(auto rt : world.in_rebel_type) {
 			auto ng = rt.get_government_change(g);
-			assert(!ng || ng.index() < culture_definitions.governments.ssize());
+			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
 		}
 	}
 
@@ -3422,11 +3420,14 @@ void state::single_game_tick() {
 
 			ai::update_influence_priorities(*this);
 		}
-		if(ymd_date.month == 6) {
-			ai::update_influence_priorities(*this);
-		}
 		if(ymd_date.month == 2) {
 			ai::upgrade_colonies(*this);
+		}
+		if(ymd_date.month == 4 && ymd_date.year % 2 == 0) { // the purge
+			demographics::remove_small_pops(*this);
+		}
+		if(ymd_date.month == 6) {
+			ai::update_influence_priorities(*this);
 		}
 	}
 

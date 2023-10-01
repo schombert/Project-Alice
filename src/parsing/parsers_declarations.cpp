@@ -121,85 +121,84 @@ void issue::administrative(association_type, bool value, error_handler& err, int
 }
 
 void government_type::election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-	context.outer_context.state.culture_definitions.governments[context.id].has_elections = value;
+	context.outer_context.state.world.government_type_set_has_elections(context.id, value);
 }
 
 void government_type::appoint_ruling_party(association_type, bool value, error_handler& err, int32_t line,
 		government_type_context& context) {
-	context.outer_context.state.culture_definitions.governments[context.id].can_appoint_ruling_party = value;
+	context.outer_context.state.world.government_type_set_can_appoint_ruling_party(context.id, value);
 }
 
 void government_type::duration(association_type, int32_t value, error_handler& err, int32_t line,
 		government_type_context& context) {
-	context.outer_context.state.culture_definitions.governments[context.id].duration = int8_t(value);
+	context.outer_context.state.world.government_type_set_duration(context.id, int8_t(value));
 }
 
 void government_type::flagtype(association_type, std::string_view value, error_handler& err, int32_t line,
 		government_type_context& context) {
 	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::communist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::fascist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::monarchy));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::republic));
 	// Non-vanilla flags
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocracy));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "special"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::special;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::special));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "spare"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::spare;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::spare));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "populist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::populist;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::populist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "realm"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::realm;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::realm));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "other"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::other;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::other));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy2"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy2;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::monarchy2));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy3"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy3;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::monarchy3));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic2"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic2;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::republic2));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic3"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic3;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::republic3));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist2"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist2;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::communist2));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist3"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist3;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::communist3));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist2"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist2;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::fascist2));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist3"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist3;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::fascist3));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy2"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy2;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocracy2));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy3"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy3;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocracy3));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_1"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::cosmetic_1;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::cosmetic_1));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_2"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::cosmetic_2;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::cosmetic_2));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "colonial"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::colonial;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::colonial));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "nationalist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::nationalist;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::nationalist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "sectarian"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::sectarian;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::sectarian));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "socialist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::socialist;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::socialist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "dominion"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::dominion;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::dominion));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "agrarism"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::agrarism;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::agrarism));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "national_syndicalist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::national_syndicalist;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::national_syndicalist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocratic"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocratic;
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocratic));
 	else {
-		err.accumulated_errors +=
-				"Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
 }
 
@@ -208,7 +207,7 @@ void government_type::any_value(std::string_view text, association_type, bool va
 	if(value) {
 		auto found_ideology = context.outer_context.map_of_ideologies.find(std::string(text));
 		if(found_ideology != context.outer_context.map_of_ideologies.end()) {
-			context.outer_context.state.culture_definitions.governments[context.id].ideologies_allowed |=
+			context.outer_context.state.world.government_type_get_ideologies_allowed(context.id) |=
 					::culture::to_bits(found_ideology->second.id);
 		} else {
 			err.accumulated_errors +=
@@ -269,7 +268,23 @@ void state_definition::free_value(int32_t value, error_handler& err, int32_t lin
 				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
+		if(province_id && !context.outer_context.state.world.province_get_state_from_abstract_state_membership(province_id)) {
+			context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
+		} else if(province_id) {
+			err.accumulated_warnings += "province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " was assigned to more than one state/region\n";
+		}
+	}
+}
+
+void region_definition::free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context) {
+	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+		err.accumulated_errors +=
+			"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	} else {
+		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+		if(province_id ) {
+			context.outer_context.state.world.force_create_region_membership(province_id, context.id);
+		}
 	}
 }
 
@@ -1671,7 +1686,9 @@ void inv_effect::shared_prestige(association_type, float value, error_handler& e
 void inv_effect::plurality(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_plurality(context.id, value);
 }
-
+void technology_contents::plurality(association_type, float value, error_handler& err, int32_t line, tech_context& context) {
+	context.outer_context.state.world.technology_set_plurality(context.id, value);
+}
 void inv_effect::colonial_points(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_colonial_points(context.id, int16_t(value));
 }
@@ -1985,12 +2002,8 @@ void s_on_my_factories_nationalized::any_value(std::string_view chance, associat
 
 void rebel_gov_list::any_value(std::string_view from_gov, association_type, std::string_view to_gov, error_handler& err,
 		int32_t line, rebel_context& context) {
-	if(auto frit = context.outer_context.map_of_governments.find(std::string(from_gov));
-			frit != context.outer_context.map_of_governments.end()) {
-		if(auto toit = context.outer_context.map_of_governments.find(std::string(to_gov));
-				toit != context.outer_context.map_of_governments.end()) {
-			assert(frit->second && frit->second.index() < context.outer_context.state.culture_definitions.governments.ssize());
-			assert(toit->second && toit->second.index() < context.outer_context.state.culture_definitions.governments.ssize());
+	if(auto frit = context.outer_context.map_of_governments.find(std::string(from_gov)); frit != context.outer_context.map_of_governments.end()) {
+		if(auto toit = context.outer_context.map_of_governments.find(std::string(to_gov)); toit != context.outer_context.map_of_governments.end()) {
 			context.outer_context.state.world.rebel_type_set_government_change(context.id, frit->second, toit->second);
 		} else {
 			err.accumulated_errors +=
@@ -2332,24 +2345,19 @@ void oob_file::leader(oob_leader const& value, error_handler& err, int32_t line,
 	}
 }
 
-void production_employee::poptype(association_type, std::string_view v, error_handler& err, int32_t line,
-		production_context& context) {
+void production_employee::poptype(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
 	if(is_fixed_token_ci(v.data(), v.data() + v.length(), "artisan")) {
 		type = context.outer_context.state.culture_definitions.artisans;
-	} else if(auto it = context.outer_context.map_of_poptypes.find(std::string(v));
-						it != context.outer_context.map_of_poptypes.end()) {
+	} else if(auto it = context.outer_context.map_of_poptypes.find(std::string(v)); it != context.outer_context.map_of_poptypes.end()) {
 		type = it->second;
 	} else {
-		err.accumulated_errors +=
-				"Invalid pop type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid pop type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
-void alliance::first(association_type, std::string_view tag, error_handler& err, int32_t line,
-		scenario_building_context& context) {
+void alliance::first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(tag.length() == 3) {
-		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
-				it != context.map_of_ident_names.end()) {
+		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
 			first_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 		} else {
 			err.accumulated_errors +=
@@ -2361,11 +2369,9 @@ void alliance::first(association_type, std::string_view tag, error_handler& err,
 	}
 }
 
-void alliance::second(association_type, std::string_view tag, error_handler& err, int32_t line,
-		scenario_building_context& context) {
+void alliance::second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(tag.length() == 3) {
-		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
-				it != context.map_of_ident_names.end()) {
+		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
 			second_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 		} else {
 			err.accumulated_errors +=
@@ -2377,11 +2383,9 @@ void alliance::second(association_type, std::string_view tag, error_handler& err
 	}
 }
 
-void vassal_description::first(association_type, std::string_view tag, error_handler& err, int32_t line,
-		scenario_building_context& context) {
+void vassal_description::first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(tag.length() == 3) {
-		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
-				it != context.map_of_ident_names.end()) {
+		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
 			first_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 		} else {
 			err.accumulated_errors +=
@@ -2393,11 +2397,9 @@ void vassal_description::first(association_type, std::string_view tag, error_han
 	}
 }
 
-void vassal_description::second(association_type, std::string_view tag, error_handler& err, int32_t line,
-		scenario_building_context& context) {
+void vassal_description::second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(tag.length() == 3) {
-		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2]));
-				it != context.map_of_ident_names.end()) {
+		if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
 			second_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 		} else {
 			err.accumulated_errors +=
@@ -2414,24 +2416,20 @@ void vassal_description::start_date(association_type, sys::year_month_day ymd, e
 		invalid = true;
 }
 
-void govt_flag_block::flag(association_type, std::string_view value, error_handler& err, int32_t line,
-		country_history_context& context) {
-	if(auto it = context.outer_context.map_of_governments.find(std::string(value));
-			it != context.outer_context.map_of_governments.end()) {
-		flag_ = context.outer_context.state.culture_definitions.governments[it->second].flag;
+void govt_flag_block::flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(auto it = context.outer_context.map_of_governments.find(std::string(value)); it != context.outer_context.map_of_governments.end()) {
+		flag_ = ::culture::flag_type(context.outer_context.state.world.government_type_get_flag(it->second));
 	} else {
 		err.accumulated_errors += "invalid government type " + std::string(value) + " encountered  (" + err.file_name + " line " +
 															std::to_string(line) + ")\n";
 	}
 }
 
-void upper_house_block::any_value(std::string_view value, association_type, float v, error_handler& err, int32_t line,
-		country_history_context& context) {
+void upper_house_block::any_value(std::string_view value, association_type, float v, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
 		return;
 
-	if(auto it = context.outer_context.map_of_ideologies.find(std::string(value));
-			it != context.outer_context.map_of_ideologies.end()) {
+	if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
 		context.outer_context.state.world.nation_set_upper_house(context.holder_id, it->second.id, v);
 	} else {
 		err.accumulated_errors +=
@@ -2439,8 +2437,7 @@ void upper_house_block::any_value(std::string_view value, association_type, floa
 	}
 }
 
-void foreign_investment_block::any_value(std::string_view tag, association_type, float v, error_handler& err, int32_t line,
-		country_history_context& context) {
+void foreign_investment_block::any_value(std::string_view tag, association_type, float v, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
 		return;
 
@@ -2970,7 +2967,9 @@ void history_war_goal::casus_belli(association_type, std::string_view value, err
 															std::to_string(line) + ")\n";
 	}
 }
-
+void war_block::world_war(association_type, bool v, error_handler& err, int32_t line, war_history_context& context) {
+	context.great_war = v;
+}
 void war_block::add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line,
 		war_history_context& context) {
 	if(tag.length() == 3) {
@@ -3060,6 +3059,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
+		new_war.set_is_great(context.great_war);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		auto it = context.outer_context.state.key_to_text_sequence.find(

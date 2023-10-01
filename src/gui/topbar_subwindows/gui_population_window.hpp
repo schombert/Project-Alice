@@ -1054,7 +1054,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
 		base_amount = 0.0f;
 
-	text::add_line(state, contents, "pop_assim_1", text::variable_type::x, int64_t(base_amount));
+	text::add_line(state, contents, "pop_assim_1", text::variable_type::x, int64_t(std::max(0.0f, state.world.pop_get_size(ids) * base_amount)));
 	text::add_line_break_to_layout(state, contents);
 
 	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves) {
@@ -1075,10 +1075,10 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	}
 	text::add_line(state, contents, "pop_assim_6");
 	text::add_line(state, contents, "pop_assim_7", text::variable_type::x, text::fp_three_places{state.defines.assimilation_scale});
-	text::add_line(state, contents, "pop_assim_8", text::variable_type::x, text::fp_two_places{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f});
-	active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_assimilation_rate, false);
-	text::add_line(state, contents, "pop_assim_9", text::variable_type::x, text::fp_two_places{state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f});
-	active_modifiers_description(state, contents, location, 15, sys::provincial_mod_offsets::assimilation_rate, false);
+	text::add_line(state, contents, "pop_assim_8", text::variable_type::x, text::fp_two_places{ std::max(0.0f,state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f)});
+	active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_assimilation_rate, true);
+	text::add_line(state, contents, "pop_assim_9", text::variable_type::x, text::fp_two_places{ std::max(0.0f, state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f)});
+	active_modifiers_description(state, contents, location, 15, sys::provincial_mod_offsets::assimilation_rate, true);
 
 	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
 		text::add_line(state, contents, "pop_assim_10");
@@ -1092,7 +1092,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	if(core_factor < 1.0f) {
 		text::add_line(state, contents, "pop_assim_11", text::variable_type::x, text::fp_four_places{core_factor});
 	}
-	text::add_line(state, contents, "pop_assim_12", text::variable_type::x, text::fp_two_places{assimilation_chances});
+	text::add_line(state, contents, "pop_assim_12", text::variable_type::x, text::fp_four_places{assimilation_chances});
 	additive_value_modifier_description(state, contents, state.culture_definitions.assimilation_chance, trigger::to_generic(ids),
 			trigger::to_generic(ids), 0);
 }

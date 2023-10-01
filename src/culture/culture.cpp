@@ -347,6 +347,9 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 		}
 	}
 
+	auto& plur = state.world.nation_get_plurality(target_nation);
+	plur = std::clamp(plur + tech_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
 			state.world.nation_get_max_building_level(target_nation, t) += 1;
@@ -413,6 +416,9 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
 		}
 	}
+
+	auto& plur = state.world.nation_get_plurality(target_nation);
+	plur = std::clamp(plur - tech_id.get_plurality() * 100.0f, 0.0f, 100.0f);
 
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
@@ -685,7 +691,7 @@ flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_
 			state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
 	if(id != 0)
 		return flag_type(id - 1);
-	return state.culture_definitions.governments[gov_type].flag;
+	return flag_type(state.world.government_type_get_flag(gov_type));
 }
 
 flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {

@@ -1275,11 +1275,17 @@ void run_gc(sys::state& state) {
 			if(!within)
 				state.world.delete_rebel_faction(rf);
 		}
+
 	}
 }
 
 void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
+
+	auto control = state.world.nation_get_province_control(n);
+	while(control.begin() != control.end()) {
+		province::set_province_controller(state, (*control.begin()).get_province(), (*control.begin()).get_province().get_nation_from_province_ownership());
+	}
 
 	auto leaders = state.world.nation_get_leader_loyalty(n);
 	while(leaders.begin() != leaders.end()) {

@@ -162,7 +162,7 @@ public:
 			if(id != 0)
 				ft = culture::flag_type(id - 1);
 			else
-				ft = state.culture_definitions.governments[gov].flag;
+				ft = culture::flag_type(state.world.government_type_get_flag(gov));
 		}
 		flag_texture_handle = ogl::get_flag_handle(state, tag, ft);
 	}

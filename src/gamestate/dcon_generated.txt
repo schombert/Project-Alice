@@ -11,7 +11,6 @@ make_index{text_sequence_id}{uint16_t}
 make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
-make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
@@ -524,7 +523,7 @@ object {
 object {
 	name{ ideology_group }
 	storage_type{ contiguous }
-	size{ 32 }
+	size{ 64 }
 	tag{ scenario }
 
 	property{
@@ -537,7 +536,7 @@ object {
 object {
 	name{ ideology }
 	storage_type{ contiguous }
-	size{ 32 }
+	size{ 64 }
 	tag{ scenario }
 	tag{ save }
 
@@ -1240,6 +1239,49 @@ object {
 }
 
 object {
+	name{ government_type }
+	storage_type{ contiguous }
+	size{ 100 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ ruler_name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ ideologies_allowed }
+		type{ uint64_t }
+		tag{ scenario }
+	}
+	property{
+		name{ has_elections }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ can_appoint_ruling_party }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ duration }
+		type{ int8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ flag }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+}
+
+object {
 	name{ province }
 	storage_type{ contiguous }
 	size{ 17000 }
@@ -1339,7 +1381,7 @@ object {
 
 	property {
 		name{ current_modifiers }
-		type{vector_pool{32000}{sys::dated_modifier}}
+		type{vector_pool{90000}{sys::dated_modifier}}
 		tag{ save }
 	}
 	property {
@@ -1365,6 +1407,10 @@ object {
 	}
 	property {
 		name{ dominant_culture }
+		type{ culture_id }
+	}
+	property {
+		name{ dominant_accepted_culture }
 		type{ culture_id }
 	}
 	property {
@@ -1493,7 +1539,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 12000 }
+	size{ 18000 }
 	tag{ save }
 
 	property{
@@ -1561,7 +1607,7 @@ object {
 object {
 	name{ army }
 	storage_type{ erasable }
-	size{ 2000 }
+	size{ 3000 }
 	tag{ save }
 
 	property{
@@ -1591,7 +1637,7 @@ object {
 	}
 	property{
 		name{ path }
-		type{vector_pool{16000}{province_id}}
+		type{vector_pool{30000}{province_id}}
 		tag{ save }
 	}
 	property{
@@ -2655,6 +2701,38 @@ relationship{
 	}
 }
 
+object {
+	name{ region }
+	storage_type{ contiguous }
+	size{ 300 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+}
+
+relationship{
+	name{ region_membership }
+	storage_type{ compactable }
+	size{ 25000 }
+	tag{ scenario }
+
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{region}
+		name{region}
+		type{many}
+		index_storage{array}
+	}
+}
 
 relationship{
 	name{ core }
@@ -2712,6 +2790,11 @@ object {
 	property{
 		name{ modifier }
 		type{ modifier_id }
+		tag{ scenario }
+	}
+	property{
+		name{ plurality }
+		type{ float }
 		tag{ scenario }
 	}
 	property{
@@ -3489,7 +3572,7 @@ object {
 	}
 	property {
 		name{ available_cbs }
-		type{vector_pool{28000}{military::available_cb}}
+		type{vector_pool{50000}{military::available_cb}}
 		tag{ save }
 	}
 	property {

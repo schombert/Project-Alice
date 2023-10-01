@@ -447,53 +447,31 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 
-	if(zoom > 8) {
-		glUniform1f(4, 0.00085f);
-		uint8_t visible_borders =
-			(province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit |
-					province::border::impassible_bit | province::border::state_bit | province::border::test_bit);
-
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		for(auto& border : borders) {
-			if((border.type_flag & visible_borders) == 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
-	}
-
-	if(zoom > 5) {
-		glUniform1f(4, 0.0010f);
-		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-				province::border::test_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		for(auto& border : borders) {
-			if((border.type_flag & visible_borders) == 0 && (border.type_flag & province::border::state_bit) != 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	// Default border parameters
+	bool show_all_borders = false;
+	uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit);
+	float border_size = 0.00145f;
+	if(zoom > 8) { // Render all borders
+		show_all_borders = true;
+		border_size = 0.00085f;
+	} else if (zoom > 5) { // Render state borders also
+		visible_borders |= province::border::state_bit;
+		border_size = 0.0010f;
 	}
 
 	{
-		glUniform1f(4, 0.00145f);
-		uint8_t visible_borders = (province::border::national_bit | province::border::coastal_bit |
-															 province::border::non_adjacent_bit | province::border::impassible_bit);
+		glUniform1f(4, border_size);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
 		for(auto& border : borders) {
-			if(border.type_flag & visible_borders) {
+			if(border.type_flag & visible_borders || show_all_borders) {
 				first.push_back(border.start_index);
 				count.push_back(border.count);
 			}
 		}
 
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
 	/*

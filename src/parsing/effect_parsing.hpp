@@ -1116,6 +1116,9 @@ struct effect_body {
 		} else if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::set_country_flag_province));
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
+		} else if(context.main_slot == trigger::slot_contents::pop) {
+			context.compiled_effect.push_back(uint16_t(effect::set_country_flag_pop));
+			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
 					"set_country_flag effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1893,8 +1896,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void release_vassal(association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
+	void release_vassal(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(is_this(value)) {
 				if(context.this_slot == trigger::slot_contents::nation)
@@ -1903,7 +1905,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_this_province | effect::no_payload));
 				else {
 					err.accumulated_errors += "release_vassal = this effect used in an incorrect scope type (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1913,7 +1915,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_from_province | effect::no_payload));
 				else {
 					err.accumulated_errors += "release_vassal = from effect used in an incorrect scope type (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_reb(value)) {
@@ -1921,7 +1923,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_reb | effect::no_payload));
 				else {
 					err.accumulated_errors += "release_vassal = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "random")) {
@@ -1932,19 +1934,59 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal));
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
-					err.accumulated_errors +=
-							"release_vassal effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "release_vassal effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else {
-				err.accumulated_errors +=
-						"release_vassal effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				err.accumulated_errors += "release_vassal effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			if(is_this(value)) {
+				if(context.this_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_this_nation | effect::no_payload));
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_this_province | effect::no_payload));
+				else {
+					err.accumulated_errors += "release_vassal = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_from(value)) {
+				if(context.from_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_from_nation | effect::no_payload));
+				else if(context.from_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_from_province | effect::no_payload));
+				else {
+					err.accumulated_errors += "release_vassal = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_reb(value)) {
+				if(context.from_slot == trigger::slot_contents::rebel)
+					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_reb | effect::no_payload));
+				else {
+					err.accumulated_errors += "release_vassal = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "random")) {
+				context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_random | effect::no_payload));
+			} else if(value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province));
+					context.compiled_effect.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors += "release_vassal effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors += "release_vassal effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
 		} else {
-			err.accumulated_errors +=
-					"release_vassal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "release_vassal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2020,6 +2062,9 @@ struct effect_body {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::social_reform));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::social_reform_province));
+				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors +=
 						"social_reform effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2037,6 +2082,9 @@ struct effect_body {
 				it != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::political_reform));
+				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::political_reform_province));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors += "political_reform effect used in an incorrect scope type (" + err.file_name + ", line " +
@@ -2326,6 +2374,9 @@ struct effect_body {
 	void flashpoint_tension(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::state) {
 			context.compiled_effect.push_back(uint16_t(effect::flashpoint_tension));
+			context.add_float_to_payload(value);
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::flashpoint_tension_province));
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors += "flashpoint_tension effect used in an incorrect scope type (" + err.file_name + ", line " +

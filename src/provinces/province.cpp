@@ -733,18 +733,20 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		state.world.province_set_state_membership(id, new_si);
 
 		for(auto p : state.world.province_get_pop_location(id)) {
-			if(state.world.nation_get_primary_culture(new_owner) == p.get_pop().get_culture()) {
-				p.get_pop().set_is_primary_or_accepted_culture(true);
-				continue;
-			}
-			auto accepted = state.world.nation_get_accepted_cultures(new_owner);
-			for(auto c : accepted) {
-				if(c == p.get_pop().get_culture()) {
+			[&]() {
+				if(state.world.nation_get_primary_culture(new_owner) == p.get_pop().get_culture()) {
 					p.get_pop().set_is_primary_or_accepted_culture(true);
-					continue;
+					return;
 				}
-			}
-			p.get_pop().set_is_primary_or_accepted_culture(false);
+				auto accepted = state.world.nation_get_accepted_cultures(new_owner);
+				for(auto c : accepted) {
+					if(c == p.get_pop().get_culture()) {
+						p.get_pop().set_is_primary_or_accepted_culture(true);
+						return;
+					}
+				}
+				p.get_pop().set_is_primary_or_accepted_culture(false);
+			}();
 		}
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {
@@ -756,6 +758,10 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto province_fac_range = state.world.province_get_factory_location(id);
 		while(province_fac_range.begin() != province_fac_range.end()) {
 			state.world.delete_factory((*province_fac_range.begin()).get_factory().id);
+		}
+
+		for(auto p : state.world.province_get_pop_location(id)) {
+			p.get_pop().set_is_primary_or_accepted_culture(false);
 		}
 	}
 

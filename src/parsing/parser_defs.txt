@@ -298,6 +298,7 @@ modifier_base
 	mine_rgo_eff                              value      float            member_fn
 	farm_rgo_size                             value      float            member_fn
 	mine_rgo_size                             value      float            member_fn
+	rgo_size                             value      float            member_fn (m_rgo_size)
 	issue_change_speed                        value      float            member_fn
 	social_reform_desire                      value      float            member_fn
 	political_reform_desire                   value      float            member_fn
@@ -307,6 +308,7 @@ modifier_base
 	rich_income_modifier                      value      float            member_fn
 	middle_income_modifier                    value      float            member_fn
 	poor_income_modifier                      value      float            member_fn
+	low_income_modifier                  value      float            member_fn  (poor_income_modifier)
 	boost_strongest_party                     value      float            member_fn
 	global_immigrant_attract                  value      float            member_fn
 	immigration                               value      float            member_fn
@@ -386,10 +388,12 @@ modifier_base
 	naval_attrition                           value      float            member_fn
 	land_attrition                            value      float            member_fn
 	pop_growth                                value      float            member_fn
+	global_pop_growth                                value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
 	seperatism                                value      float            member_fn
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
+	unit_recruitment_time        value        float        discard
 
 int_vector
 	#free          value      int              member_fn
@@ -595,6 +599,12 @@ state_definition
 region_file
 	#any           extern     make_state_definition     discard
 
+region_definition
+	#free          value      int                       member_fn
+
+superregion_file
+	#any           extern     make_region_definition     discard
+
 continent_provinces
 	#free          value      int                       member_fn
 
@@ -779,6 +789,7 @@ trigger_body
 	total_sunk_by_us    value     int      member_fn
 	have_core_in   value   text       member_fn
 	ai               value           bool               member_fn
+	is_ai           value           bool               member_fn (ai)
 	tag              value           text               member_fn
 	war              value           bool               member_fn
 	owns             value           text                member_fn
@@ -796,6 +807,7 @@ trigger_body
 	strata           value           text               member_fn
 	capital          value           int                member_fn
 	culture          value           text               member_fn
+	is_culture     value           text               member_fn (culture)
 	is_core          value           text               member_fn
 	terrain          value           text               member_fn
 	blockade         value           bool               member_fn
@@ -806,6 +818,7 @@ trigger_body
 	neighbor         value           text               member_fn (neighbour)
 	owned_by         value           text               member_fn
 	poor_tax         value           float              member_fn
+	low_tax         value           float              member_fn (poor_tax)
 	pop_type         value           text               member_fn (has_pop_type)
 	prestige         value           text               member_fn
 	produces         value           text               member_fn
@@ -826,6 +839,7 @@ trigger_body
 	neighbour        value           text               member_fn
 	plurality        value           float              member_fn
 	vassal_of        value           text               member_fn
+	is_vassal_of        value           text               member_fn (vassal_of)
 	war_score        value           float              member_fn
 	corruption       value           float              member_fn
 	government       value           text               member_fn
@@ -873,6 +887,7 @@ trigger_body
 	nationalvalue    value           text               member_fn
 	num_of_allies    value           int                member_fn
 	num_of_cities    value           text               member_fn
+	number_of_cities    value           text               member_fn (num_of_cities)
 	crime_fighting   value           float              member_fn (administration_spending)
 	everyday_needs   value           float              member_fn
 	has_flashpoint   value           bool               member_fn
@@ -895,11 +910,13 @@ trigger_body
 	social_movement       value      bool               member_fn
 	social_spending       value      float              member_fn
 	accepted_culture      value      text               member_fn
+	has_accepted_culture      value      text               member_fn (accepted_culture)
 	brigades_compare      value      float              member_fn
 	has_country_flag      value      text               member_fn
 	has_culture_core      value      bool               member_fn
 	has_pop_religion      value      text               member_fn
 	industrial_score      value      text               member_fn
+	industry_score      value      text               member_fn (industrial_score)
 	stronger_army_than      value      text               member_fn
 	is_canal_enabled      value      int                member_fn
 	is_culture_group      value      text               member_fn (culture_group)
@@ -1032,6 +1049,7 @@ trigger_body
 	flashpoint_tag_scope         extern tr_flashpoint_tag_scope         discard
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
+	any_country                     extern      tr_scope_any_country        discard
 	#any                         extern tr_scope_variable               discard
 
 pop_history_definition
@@ -1282,6 +1300,7 @@ effect_body
 	add_country_modifier            value       text                member_fn
 	set_country_flag                value       text                member_fn
 	clr_country_flag                value       text                member_fn
+	remove_country_flag                value       text                member_fn (clr_country_flag)
 	country_event                   value       int                 member_fn
 	province_event                  value       int                 member_fn
 	military_access                 value       text                member_fn
@@ -1592,6 +1611,7 @@ technology_contents
 	rgo_goods_output      group      tech_rgo_goods_output  member
 	rgo_size              group      tech_rgo_size          member
 	factory_goods_output  group      tech_fac_goods_output  member
+	plurality             value      float                  member_fn
 
 inv_rgo_goods_output
 	#any                  value      float                  member_fn
@@ -1747,6 +1767,7 @@ decision
 	news_desc_medium                value      text                              discard
 	news_desc_short                 value      text                              discard
 	news_title                              value      text                              discard
+	news_picture                              value      text                              discard
 	alert                           value      bool                              discard
 	picture                         value      text                              discard
 
@@ -1781,6 +1802,7 @@ generic_event
 	news_desc_medium                value      text                              discard
 	news_desc_short                 value      text                              discard
 	news_title                      value      text                              discard
+	news_picture                              value      text                              discard
 	major                           value      bool                              member
 	picture                         value      text                              member_fn
 	fire_only_once                  value      bool                              member
@@ -1833,6 +1855,7 @@ oob_file
 	leader                          group      oob_leader                        member_fn
 	army                            extern     make_oob_army                     discard
 	navy                            extern     make_oob_navy                     discard
+	ai                                  group       none                                          discard
 
 production_employee
 	poptype                         value      text                              member_fn
@@ -1938,6 +1961,7 @@ war_block
 	add_defender                    value      text                              member_fn
 	rem_attacker                    value      text                              member_fn
 	rem_defender                    value      text                              member_fn
+	world_war                      value     bool                         member_fn
 	war_goal                        group      history_war_goal                  member_fn
 
 war_history_file

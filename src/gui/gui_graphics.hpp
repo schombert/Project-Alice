@@ -404,10 +404,6 @@ struct state {
 	std::array<chat_message, 32> chat_messages;
 	uint8_t chat_messages_index = 0;
 
-	element_base* major_event_window = nullptr;
-	element_base* national_event_window = nullptr;
-	element_base* provincial_event_window = nullptr;
-
 	element_base* naval_combat_window = nullptr;
 	element_base* army_combat_window = nullptr;
 

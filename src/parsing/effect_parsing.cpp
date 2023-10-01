@@ -995,6 +995,26 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 		context.limit_position = old_limit_offset;
 		context.main_slot = old_main;
+	} else if(auto itr = context.outer_context.map_of_region_names.find(str_label); itr != context.outer_context.map_of_region_names.end()) {
+		auto old_limit_offset = context.limit_position;
+		auto old_main = context.main_slot;
+
+		context.compiled_effect.push_back(uint16_t(effect::region_proper_scope | effect::scope_has_limit));
+
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		context.compiled_effect.push_back(trigger::payload(itr->second).value);
+
+		context.main_slot = trigger::slot_contents::province;
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+		context.main_slot = old_main;
 	} else if(auto itb = context.outer_context.map_of_poptypes.find(str_label);
 						itb != context.outer_context.map_of_poptypes.end()) {
 
@@ -1309,7 +1329,7 @@ void effect_body::country_event(association_type t, int32_t value, error_handler
 
 void effect_body::province_event(association_type t, int32_t value, error_handler& err, int32_t line,
 		effect_building_context& context) {
-	if(context.main_slot == trigger::slot_contents::nation) {
+	if(context.main_slot == trigger::slot_contents::province) {
 		if(context.this_slot == trigger::slot_contents::nation)
 			context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_nation));
 		else if(context.this_slot == trigger::slot_contents::province)
@@ -1331,7 +1351,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 				auto ev_id = context.outer_context.state.world.create_provincial_event();
 				it->second.id = ev_id;
 				it->second.main_slot = trigger::slot_contents::province;
-				it->second.this_slot = trigger::slot_contents::nation;
+				it->second.this_slot = trigger::slot_contents::province;
 				it->second.from_slot = context.this_slot;
 				it->second.just_in_case_placeholder = false;
 				context.compiled_effect.push_back(trigger::payload(ev_id).value);

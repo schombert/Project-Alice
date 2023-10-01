@@ -208,15 +208,13 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 }
 
 void make_government(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	dcon::government_type_id new_id =
-			dcon::government_type_id(dcon::government_type_id::value_base_t(context.state.culture_definitions.governments.size()));
-	context.state.culture_definitions.governments.emplace_back();
+	dcon::government_type_id new_id = context.state.world.create_government_type();
 
 	auto name_id = text::find_or_add_key(context.state, name);
 
-	context.state.culture_definitions.governments[new_id].name = name_id;
-	context.state.culture_definitions.governments[new_id].ruler_name =
-			text::find_or_add_key(context.state, std::string(name) + "_ruler");
+	context.state.world.government_type_set_name(new_id, name_id);
+	context.state.world.government_type_set_ruler_name(new_id,
+			text::find_or_add_key(context.state, std::string(name) + "_ruler"));
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{context, new_id};

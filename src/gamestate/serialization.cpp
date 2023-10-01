@@ -159,7 +159,6 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.culture_definitions.military_issues);
 		ptr_in = deserialize(ptr_in, state.culture_definitions.economic_issues);
 		ptr_in = deserialize(ptr_in, state.culture_definitions.tech_folders);
-		ptr_in = deserialize(ptr_in, state.culture_definitions.governments);
 		ptr_in = deserialize(ptr_in, state.culture_definitions.crimes);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.artisans);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.capitalists);
@@ -331,7 +330,6 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.culture_definitions.military_issues);
 		ptr_in = serialize(ptr_in, state.culture_definitions.economic_issues);
 		ptr_in = serialize(ptr_in, state.culture_definitions.tech_folders);
-		ptr_in = serialize(ptr_in, state.culture_definitions.governments);
 		ptr_in = serialize(ptr_in, state.culture_definitions.crimes);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.artisans);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.capitalists);
@@ -497,7 +495,6 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.culture_definitions.military_issues);
 		sz += serialize_size(state.culture_definitions.economic_issues);
 		sz += serialize_size(state.culture_definitions.tech_folders);
-		sz += serialize_size(state.culture_definitions.governments);
 		sz += serialize_size(state.culture_definitions.crimes);
 		sz += sizeof(state.culture_definitions.artisans);
 		sz += sizeof(state.culture_definitions.capitalists);

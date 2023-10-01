@@ -56,10 +56,28 @@ void apply_modifier_values_to_province(sys::state& state, dcon::province_id targ
 }
 
 void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration) {
-	state.world.nation_get_current_modifiers(target_nation).push_back(sys::dated_modifier{expiration, mod_id});
+	auto lst = state.world.nation_get_current_modifiers(target_nation);
+	for(auto& m : lst) {
+		if(m.mod_id == mod_id) {
+			if(!expiration || (m.expiration && m.expiration < expiration)) {
+				m.expiration = expiration;
+			}
+			return;
+		}
+	}
+	lst.push_back(sys::dated_modifier{expiration, mod_id});
 }
 void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration) {
-	state.world.province_get_current_modifiers(target_prov).push_back(sys::dated_modifier{expiration, mod_id});
+	auto lst = state.world.province_get_current_modifiers(target_prov);
+	for(auto& m : lst) {
+		if(m.mod_id == mod_id) {
+			if(!expiration || (m.expiration && m.expiration < expiration)) {
+				m.expiration = expiration;
+			}
+			return;
+		}
+	}
+	lst.push_back(sys::dated_modifier{expiration, mod_id});
 }
 void remove_modifier_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id) {
 	auto modifiers_range = state.world.nation_get_current_modifiers(target_nation);

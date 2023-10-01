@@ -613,12 +613,9 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto gov_type_id = fat_id.get_government_type();
-		if(gov_type_id) {
-			auto gov_name_seq = state.culture_definitions.governments[gov_type_id].name;
-			return text::produce_simple_string(state, gov_name_seq);
-		} else {
-			return "";
-		}
+		
+		auto gov_name_seq = state.world.government_type_get_name(gov_type_id);
+		return text::produce_simple_string(state, gov_name_seq);
 	}
 };
 

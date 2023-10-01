@@ -256,6 +256,7 @@ struct pending_invention_content {
 	dcon::invention_id id;
 };
 struct pending_nat_event {
+	std::string original_file;
 	dcon::national_event_id id;
 	trigger::slot_contents main_slot;
 	trigger::slot_contents this_slot;
@@ -273,12 +274,13 @@ struct pending_nat_event {
 			trigger::slot_contents from_slot, token_generator const& generator_state)
 			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 				text_assigned(true), just_in_case_placeholder(false){ }
-	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
+	pending_nat_event(std::string const& original_file, dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot, token_generator const& generator_state, bool just_in_case_placeholder)
-		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
+		: original_file(original_file), id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
 struct pending_prov_event {
+	std::string original_file;
 	dcon::provincial_event_id id;
 	trigger::slot_contents main_slot;
 	trigger::slot_contents this_slot;
@@ -296,9 +298,9 @@ struct pending_prov_event {
 			trigger::slot_contents from_slot, token_generator const& generator_state)
 			: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 				text_assigned(true), just_in_case_placeholder(false) { }
-	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
+	pending_prov_event(std::string const& original_file, dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot,
 			trigger::slot_contents from_slot, token_generator const& generator_state, bool just_in_case_placeholder)
-		: id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
+		: original_file(original_file), id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
 struct scenario_building_context {
@@ -338,6 +340,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<std::string, dcon::national_flag_id> map_of_national_flags;
 	ankerl::unordered_dense::map<std::string, dcon::global_flag_id> map_of_global_flags;
 	ankerl::unordered_dense::map<std::string, dcon::state_definition_id> map_of_state_names;
+	ankerl::unordered_dense::map<std::string, dcon::region_id> map_of_region_names;
 	ankerl::unordered_dense::map<int32_t, pending_nat_event> map_of_national_events;
 	ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
 	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
@@ -623,6 +626,23 @@ public:
 	MOD_PROV_FUNCTION(mine_rgo_eff)
 	MOD_PROV_FUNCTION(farm_rgo_size)
 	MOD_PROV_FUNCTION(mine_rgo_size)
+	template<typename T>
+	void m_rgo_size(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; 
+		} else {
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::farm_rgo_size;
+			constructed_definition_p.values[next_to_add_p] = v; 
+			++next_to_add_p;
+		}
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+		} else {
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::mine_rgo_size;
+			constructed_definition_p.values[next_to_add_p] = v;
+			++next_to_add_p;
+		}
+	}
 	MOD_NAT_FUNCTION(issue_change_speed)
 	MOD_NAT_FUNCTION(social_reform_desire)
 	MOD_NAT_FUNCTION(political_reform_desire)
@@ -1203,6 +1223,22 @@ struct region_file {
 };
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+struct region_building_context {
+	scenario_building_context& outer_context;
+	dcon::region_id id;
+};
+
+struct region_definition {
+	void free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context);
+	void finish(region_building_context&) { }
+};
+
+struct superregion_file {
+	void finish(scenario_building_context&) { }
+};
+
+void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 struct continent_building_context {
 	scenario_building_context& outer_context;
@@ -1843,6 +1879,7 @@ struct technology_contents : public modifier_base {
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 	void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+	void plurality(association_type, float value, error_handler& err, int32_t line, tech_context& context);
 
 	tech_rgo_goods_output rgo_goods_output;
 	tech_rgo_size rgo_size;
@@ -2483,6 +2520,7 @@ struct war_history_context {
 	std::vector<dcon::nation_id> attackers;
 	std::vector<dcon::nation_id> defenders;
 	std::string name;
+	bool great_war = false;
 
 	war_history_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
 };
@@ -2492,6 +2530,7 @@ struct war_block {
 	void add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+	void world_war(association_type, bool v, error_handler& err, int32_t line, war_history_context& context);
 	void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) {
 		context.wargoals.push_back(value);
 	}

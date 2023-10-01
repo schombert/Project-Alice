@@ -1192,7 +1192,7 @@ void execute_rebel_victories(sys::state& state) {
 					text::add_line(state, contents, "msg_rebels_win_1", text::variable_type::x, state.world.rebel_type_get_title(type));
 					text::add_line(state, contents, "msg_rebels_win_2", text::variable_type::x, text::fp_one_place{ploss});
 					if(new_gov) {
-						text::add_line(state, contents, "msg_rebels_win_3", text::variable_type::x, state.culture_definitions.governments[new_gov].name);
+						text::add_line(state, contents, "msg_rebels_win_3", text::variable_type::x, state.world.government_type_get_name(new_gov));
 					}
 					if(auto iid = state.world.rebel_type_get_ideology(type); iid) {
 						text::add_line(state, contents, "msg_rebels_win_4", text::variable_type::x, state.world.ideology_get_name(iid));
