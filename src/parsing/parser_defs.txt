@@ -1071,7 +1071,9 @@ value_modifier_definition
 	base               value         float                              member
 	days               value         float                              member (factor)
 	months             value         float                              member_fn
+	month              value         float                              member_fn (months)
 	years              value         float                              member_fn
+	year               value         float                              member_fn (years)
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
 

@@ -1158,7 +1158,7 @@ constexpr inline uint16_t is_primary_culture_pop_this_province = 0x00DA;
 constexpr inline uint16_t is_accepted_culture_pop = 0x00DB;
 constexpr inline uint16_t is_accepted_culture_province = 0x00DC;
 constexpr inline uint16_t is_accepted_culture_state = 0x00DD;
-constexpr inline uint16_t is_coastal = 0x00DE;
+constexpr inline uint16_t is_coastal_province = 0x00DE;
 constexpr inline uint16_t in_sphere_tag = 0x00DF;
 constexpr inline uint16_t in_sphere_from = 0x00E0;
 constexpr inline uint16_t in_sphere_this_nation = 0x00E1;
@@ -1236,7 +1236,7 @@ constexpr inline uint16_t crime_higher_than_education_pop = 0x0128;
 constexpr inline uint16_t agree_with_ruling_party = 0x0129;
 constexpr inline uint16_t is_colonial_state = 0x012A;
 constexpr inline uint16_t is_colonial_province = 0x012B;
-constexpr inline uint16_t has_factories = 0x012C;
+constexpr inline uint16_t has_factories_state = 0x012C;
 constexpr inline uint16_t in_default_tag = 0x012D;
 constexpr inline uint16_t in_default_from = 0x012E;
 constexpr inline uint16_t in_default_this_nation = 0x012F;
@@ -1672,8 +1672,10 @@ constexpr inline uint16_t owns_region_proper = 0x02D5;
 constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6; // as a special favor
 constexpr inline uint16_t military_score_tag = 0x02D7;
 constexpr inline uint16_t industrial_score_tag = 0x02D8;
+constexpr inline uint16_t has_factories_nation = 0x02D9;
+constexpr inline uint16_t is_coastal_state = 0x02DA;
 
-constexpr inline uint16_t first_scope_code = 0x02D9;
+constexpr inline uint16_t first_scope_code = 0x02DB;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1968,7 +1970,7 @@ inline constexpr int8_t data_sizes[] = {
 		0, // constexpr uint16_t is_accepted_culture_pop = 0x00DB;
 		0, // constexpr uint16_t is_accepted_culture_province = 0x00DC;
 		0, // constexpr uint16_t is_accepted_culture_state = 0x00DD;
-		0, // constexpr uint16_t is_coastal = 0x00DE;
+		0, // constexpr uint16_t is_coastal_province = 0x00DE;
 		1, // constexpr uint16_t in_sphere_tag = 0x00DF;
 		0, // constexpr uint16_t in_sphere_from = 0x00E0;
 		0, // constexpr uint16_t in_sphere_this_nation = 0x00E1;
@@ -2046,7 +2048,7 @@ inline constexpr int8_t data_sizes[] = {
 		2, // constexpr uint16_t agree_with_ruling_party = 0x0129;
 		0, // constexpr uint16_t is_colonial_state = 0x012A;
 		0, // constexpr uint16_t is_colonial_province = 0x012B;
-		0, // constexpr uint16_t has_factories = 0x012C;
+		0, // constexpr uint16_t has_factories_state = 0x012C;
 		1, // constexpr uint16_t in_default_tag = 0x012D;
 		0, // constexpr uint16_t in_default_from = 0x012E;
 		0, // constexpr uint16_t in_default_this_nation = 0x012F;
@@ -2480,6 +2482,8 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 		1, //constexpr inline uint16_t military_score_tag = 0x02D7;
 		1, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
+		0, //constexpr inline uint16_t has_factories_nation = 0x02D9;
+		0, //constexpr inline uint16_t is_coastal_state = 0x02DA;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

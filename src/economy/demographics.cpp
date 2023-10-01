@@ -639,6 +639,8 @@ void regenerate_from_pop_data(sys::state& state) {
 			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
+					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
+			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
 			state.world.for_each_culture([&](dcon::culture_id c) {
 				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, key = to_key(state, c)](auto p) {
@@ -664,6 +666,8 @@ template<typename F>
 void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
 	auto block_index = 16 * offset;
 	auto const block_advance = 16 * divisions;
+
+	assert(divisions > 10);
 
 	while(block_index < max) {
 		for(uint32_t i = 0; i < executions_per_block; ++i) {
@@ -1720,7 +1724,7 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 	return dcon::province_id{};
 }
 
-dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner, dcon::pop_id p) {
+dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner, dcon::pop_id p, sys::date day) {
 	/*
 	Country targets for external migration: must be a country with its capital on a different continent from the source country
 	*or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted:
@@ -1775,7 +1779,7 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 	if(total_weight <= 0.0f)
 		return dcon::nation_id{};
 
-	auto rvalue = float(rng::get_random(state, (uint32_t(p.index()) << 2) | uint32_t(3)) & 0xFFFF) / float(0xFFFF + 1);
+	auto rvalue = float(rng::get_random(state, uint32_t(day.value), (uint32_t(p.index()) << 2) | uint32_t(3)) & 0xFFFF) / float(0xFFFF + 1);
 	for(uint32_t i = 0; i < 3; ++i) {
 		rvalue -= top_weights[i] / total_weight;
 		if(rvalue < 0.0f) {
@@ -1950,7 +1954,8 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
 		auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f)
+		auto trigger_amount = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+		auto amounts = trigger_amount
 			* pop_sizes
 			* ve::max(impush, 0.0f)
 			* ve::max(impush, 1.0f)
@@ -1958,6 +1963,7 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
+
 					if(amount <= 0.0f)
 						return; // early exit
 					if(!owner)
@@ -1979,7 +1985,7 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 						pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
 					//}
 
-					auto ndest = impl::get_immigration_target(state, owner, p);
+					auto ndest = impl::get_immigration_target(state, owner, p, state.current_date);
 					auto dest = impl::get_province_target_in_nation(state, ndest, p);
 
 					pbuf.destinations.set(p, dest);
@@ -1994,13 +2000,25 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 	for(auto& v : national_amounts) {
 		v = 0.0f;
 	}
+
+	auto ymd_date = state.current_date.to_ymd(state.start_date);
+	auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
+	auto next_month_start = ymd_date.month != 12 ? sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) } : sys::year_month_day{ ymd_date.year + 1, uint16_t(1), uint16_t(1) };
+	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
+
 	for(auto ids : state.world.in_pop) {
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 
+		auto section = uint64_t(ids.id.index()) / 16;
+		auto tranche = int32_t(section / days_in_month);
+		auto day_of_month = tranche - 10;
+		if(day_of_month <= 0)
+			day_of_month += days_in_month;
+		int32_t day_adjustment = day_of_month - int32_t(ymd_date.day);
 		auto est_amount = get_estimated_emigration(state, ids);
 		if(est_amount > 0.0f) {
-			auto target = impl::get_immigration_target(state, owners, ids);
+			auto target = impl::get_immigration_target(state, owners, ids, state.current_date + day_adjustment);
 			if(owners == n) {
 				if(target && uint32_t(target.index()) < sz) {
 					national_amounts[uint32_t(target.index())] -= est_amount;
@@ -2032,7 +2050,8 @@ float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-	auto amounts = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance,  trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f) * pop_sizes * std::max(impush, 0.0f) * std::max(impush, 1.0f) * state.defines.immigration_scale;
+	auto trigger_result = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+	auto amounts = trigger_result * pop_sizes * std::max(impush, 0.0f) * std::max(impush, 1.0f) * state.defines.immigration_scale;
 
 	if(amounts <= 0.0f)
 		return 0.0f; // early exit
@@ -2225,15 +2244,16 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply(
 				[&](dcon::pop_id p) {
-					if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+					auto amount = pbuf.amounts.get(p);
+					if(amount > 0.0f && pbuf.destinations.get(p)) {
 						assert(state.world.pop_get_poptype(p));
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-						state.world.province_get_daily_net_immigration(state.world.pop_get_province_from_pop_location(p)) -=
-								pbuf.amounts.get(p);
-						state.world.province_get_daily_net_immigration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+
+						state.world.pop_get_size(p) -= amount;
+						state.world.pop_get_size(target_pop) += amount;
+						state.world.province_get_daily_net_immigration(state.world.pop_get_province_from_pop_location(p)) -= amount;
+						state.world.province_get_daily_net_immigration(pbuf.destinations.get(p)) += amount;
 						state.world.province_set_last_immigration(pbuf.destinations.get(p), state.current_date);
 					}
 				},

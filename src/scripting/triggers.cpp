@@ -3129,8 +3129,16 @@ TRIGGER_FUNCTION(tf_is_accepted_culture_state) {
 			owner, ws.world.state_instance_get_dominant_culture(to_state(primary_slot)));
 	return compare_to_true(tval[0], is_accepted);
 }
-TRIGGER_FUNCTION(tf_is_coastal) {
+TRIGGER_FUNCTION(tf_is_coastal_province) {
 	return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_is_coastal_state) {
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s) {
+				return province::state_is_coastal(ws, s);
+			},
+			to_state(primary_slot));
+	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_in_sphere_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(primary_slot)),
@@ -3734,7 +3742,7 @@ TRIGGER_FUNCTION(tf_is_colonial_province) {
 TRIGGER_FUNCTION(tf_is_colonial_pop) {
 	return compare_to_true(tval[0], ws.world.province_get_is_colonial(ws.world.pop_get_province_from_pop_location(to_pop(primary_slot))));
 }
-TRIGGER_FUNCTION(tf_has_factories) {
+TRIGGER_FUNCTION(tf_has_factories_state) {
 	auto result = ve::apply(
 			[&ws](dcon::state_instance_id s) {
 				auto def = ws.world.state_instance_get_definition(s);
@@ -3749,6 +3757,24 @@ TRIGGER_FUNCTION(tf_has_factories) {
 				return false;
 			},
 			to_state(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_has_factories_nation) {
+	auto result = ve::apply(
+			[&ws](dcon::nation_id n) {
+				for(auto s : ws.world.nation_get_state_ownership(n)) {
+					auto def = ws.world.state_instance_get_definition(ws.world.state_ownership_get_state(s));
+					for(auto p : ws.world.state_definition_get_abstract_state_membership(def)) {
+						if(p.get_province().get_nation_from_province_ownership() == n) {
+							auto frange = p.get_province().get_factory_location();
+							if(frange.begin() != frange.end())
+								return true;
+						}
+					}
+				}
+				return false;
+			},
+			to_nation(primary_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_in_default_bool) {
@@ -6123,7 +6149,7 @@ struct trigger_container {
 					from_type>, // constexpr inline uint16_t is_accepted_culture_province = 0x00DC;
 			tf_is_accepted_culture_state<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t is_accepted_culture_state = 0x00DD;
-			tf_is_coastal<return_type, primary_type, this_type, from_type>,			// constexpr inline uint16_t is_coastal = 0x00DE;
+			tf_is_coastal_province<return_type, primary_type, this_type, from_type>,			// constexpr inline uint16_t is_coastal = 0x00DE;
 			tf_in_sphere_tag<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t in_sphere_tag = 0x00DF;
 			tf_in_sphere_from<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t in_sphere_from = 0x00E0;
 			tf_in_sphere_this_nation<return_type, primary_type, this_type,
@@ -6264,7 +6290,7 @@ struct trigger_container {
 					from_type>, // constexpr inline uint16_t is_colonial_state = 0x012A;
 			tf_is_colonial_province<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t is_colonial_province = 0x012B;
-			tf_has_factories<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories = 0x012C;
+			tf_has_factories_state<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories_state = 0x012C;
 			tf_in_default_tag<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t in_default_tag = 0x012D;
 			tf_in_default_from<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t in_default_from = 0x012E;
@@ -7002,6 +7028,8 @@ struct trigger_container {
 			tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 			tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
 			tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
+			tf_has_factories_nation<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories_nation = 0x02D9;
+			tf_is_coastal_state<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 
 			//
 			// scopes
@@ -7149,7 +7177,7 @@ ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_mo
 ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier,
 		ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
-	ve::fp_vector sum = base.factor;
+	ve::fp_vector sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
