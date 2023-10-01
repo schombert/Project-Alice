@@ -3751,7 +3751,13 @@ void tf_is_accepted_culture_state(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, "an_accepted"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
-void tf_is_coastal(TRIGGER_DISPLAY_PARAMS) {
+void tf_is_coastal_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "coastal"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_coastal_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "coastal"), ws, layout, box);
@@ -8315,6 +8321,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
 		tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
 		tf_has_factories_nation, // constexpr inline uint16_t has_factories_state = 0x02D9;
+		tf_is_coastal_state, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 
 		//
 		// scopes

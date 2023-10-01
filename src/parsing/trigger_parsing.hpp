@@ -4257,9 +4257,12 @@ struct trigger_body {
 		}
 	}
 	void is_coastal(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::province) {
+		if(context.main_slot == trigger::slot_contents::state) {
 			context.compiled_trigger.push_back(
-					uint16_t(trigger::is_coastal | trigger::no_payload | association_to_bool_code(a, value)));
+					uint16_t(trigger::is_coastal_state | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_trigger.push_back(
+					uint16_t(trigger::is_coastal_province | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "is_coastal trigger used in an incorrect scope type " +
 																slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +

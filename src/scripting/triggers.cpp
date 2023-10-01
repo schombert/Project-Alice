@@ -3129,8 +3129,11 @@ TRIGGER_FUNCTION(tf_is_accepted_culture_state) {
 			owner, ws.world.state_instance_get_dominant_culture(to_state(primary_slot)));
 	return compare_to_true(tval[0], is_accepted);
 }
-TRIGGER_FUNCTION(tf_is_coastal) {
+TRIGGER_FUNCTION(tf_is_coastal_province) {
 	return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_is_coastal_state) {
+	return compare_to_true(tval[0], state_is_coastal(ws, to_state(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_in_sphere_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(primary_slot)),
@@ -6142,7 +6145,7 @@ struct trigger_container {
 					from_type>, // constexpr inline uint16_t is_accepted_culture_province = 0x00DC;
 			tf_is_accepted_culture_state<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t is_accepted_culture_state = 0x00DD;
-			tf_is_coastal<return_type, primary_type, this_type, from_type>,			// constexpr inline uint16_t is_coastal = 0x00DE;
+			tf_is_coastal_province<return_type, primary_type, this_type, from_type>,			// constexpr inline uint16_t is_coastal = 0x00DE;
 			tf_in_sphere_tag<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t in_sphere_tag = 0x00DF;
 			tf_in_sphere_from<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t in_sphere_from = 0x00E0;
 			tf_in_sphere_this_nation<return_type, primary_type, this_type,
@@ -7021,7 +7024,8 @@ struct trigger_container {
 			tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 			tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
 			tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
-			tf_has_factories_nation,	// constexpr inline uint16_t has_factories_nation = 0x02D9;
+			tf_has_factories_nation<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories_nation = 0x02D9;
+			tf_is_coastal_state<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 
 			//
 			// scopes
