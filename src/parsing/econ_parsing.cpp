@@ -55,8 +55,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		scenario_building_context& context) {
 	// no, this messes things up
 	// res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
-	switch(res.stored_type) {
-	case economy::province_building_type::factory: {
+	if(res.stored_type == economy::province_building_type::factory) {
 		auto factory_id = context.state.world.create_factory_type();
 		context.map_of_factory_names.insert_or_assign(std::string(name), factory_id);
 
@@ -87,8 +86,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		if(res.production_type.length() > 0) {
 			context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
 		}
-	} break;
-	default: {
+	} else {
 		auto t = res.stored_type;
 		for(uint32_t i = 0; i < 8 && i < res.colonial_points.data.size(); ++i)
 			context.state.economy_definitions.building_definitions[int32_t(t)].colonial_points[i] = res.colonial_points.data[i];
@@ -122,8 +120,6 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.state.world.modifier_set_name(context.state.economy_definitions.building_definitions[int32_t(t)].province_modifier,
 					context.state.economy_definitions.building_definitions[int32_t(t)].name);
 		}
-		break;
-	}
 	}
 }
 
