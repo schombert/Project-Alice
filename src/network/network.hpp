@@ -33,7 +33,8 @@ struct client_data {
 	dcon::nation_id playing_as{};
 	std::string player_name;
 	socket_t socket_fd = 0;
-	struct sockaddr_in6 address;
+	struct sockaddr_in6 v6_address;
+	struct sockaddr_in v4_address;
 
 	inline bool is_active() {
 		return socket_fd > 0;
@@ -41,11 +42,14 @@ struct client_data {
 };
 
 struct network_state {
+	bool as_v6 = false;
 	bool as_server = false;
-	struct sockaddr_in6 address;
+	struct sockaddr_in6 v6_address;
+	struct sockaddr_in v4_address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
 	std::array<client_data, 16> clients;
-	std::vector<struct in6_addr> banlist;
+	std::vector<struct in6_addr> v6_banlist;
+	std::vector<struct in_addr> v4_banlist;
 	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
 

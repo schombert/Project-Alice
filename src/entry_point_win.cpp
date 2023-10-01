@@ -177,6 +177,10 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
 						i++;
 					}
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-v6")) {
+					game_state.network_state.as_v6 = true;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
+					game_state.network_state.as_v6 = false;
 				}
 			}
 			network::init(game_state);
