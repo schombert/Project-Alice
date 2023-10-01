@@ -27,24 +27,45 @@ namespace network {
 // platform specific
 //
 
-static int socket_recv(socket_t client_fd, void *data, size_t n) {
+static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 #ifdef _WIN64
 	u_long has_pending = 0;
-	auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
+	auto r = ioctlsocket(socket_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return (int)recv(client_fd, (char *)data, (int)n, 0);
+		return (int)recv(socket_fd, reinterpret_cast<char *>(data), (int)n, 0);
 	return 0;
 #else
-	return recv(client_fd, data, n, MSG_DONTWAIT);
+	return recv(socket_fd, data, n, MSG_DONTWAIT);
 #endif
 }
 
-static int socket_send(socket_t client_fd, const void *data, size_t n) {
+static int socket_send(socket_t socket_fd, const void *data, size_t n) {
 #ifdef _WIN64
-	return (int)send(client_fd, (const char *)data, (int)n, 0);
+	return (int)send(socket_fd, reinterpret_cast<const char *>(data), (int)n, 0);
 #else
-	return send(client_fd, data, n, MSG_NOSIGNAL);
+	return send(socket_fd, data, n, MSG_NOSIGNAL);
 #endif
+}
+
+template<typename F>
+static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&& func) {
+	while(*m < len) {
+		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, len - *m);
+		if(r > 0) {
+			*m += static_cast<size_t>(r);
+		} else if(r < 0) { // error
+			return -1;
+		} else if(r == 0) {
+			break;
+		}
+	}
+	// Did we receive a command?
+	if(*m >= len) {
+		assert(*m <= len);
+		*m = 0; // reset
+		func();
+	}
+	return 0;
 }
 
 static void socket_shutdown(socket_t socket_fd) {
@@ -263,26 +284,23 @@ static void accept_new_clients(sys::state& state) {
 static void receive_from_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
-			command::payload cmd{};
-			auto r = socket_recv(client.socket_fd, &cmd, sizeof(cmd));
-			if(r == sizeof(cmd)) { // got command
-				switch(cmd.type) {
+			int r = socket_recv(client.socket_fd, &client.cmd_buffer, sizeof(client.cmd_buffer), &client.cmd_recv, [&]() {
+				switch(client.cmd_buffer.type) {
 				case command::command_type::invalid:
 				case command::command_type::notify_player_joins:
 					break; // has to be valid/sendable by client
 				case command::command_type::notify_player_picks_nation:
-					if(command::can_notify_player_picks_nation(state, cmd.source, cmd.data.nation_pick.target)) {
-						client.playing_as = cmd.data.nation_pick.target;
-					}
-					state.network_state.outgoing_commands.push(cmd);
+					if(command::can_notify_player_picks_nation(state, client.cmd_buffer.source, client.cmd_buffer.data.nation_pick.target))
+						client.playing_as = client.cmd_buffer.data.nation_pick.target;
+					state.network_state.outgoing_commands.push(client.cmd_buffer);
 					break;
 				default:
-					state.network_state.outgoing_commands.push(cmd);
+					state.network_state.outgoing_commands.push(client.cmd_buffer);
 					break;
 				}
-			} else if(r < 0) { // error
+			});
+			if(r < 0) // error
 				disconnect_client(state, client);
-			}
 		}
 	}
 }
@@ -319,25 +337,20 @@ void send_and_receive_commands(sys::state& state) {
 		}
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		// receive commands from the server and immediately execute them
-		while(1) {
-			command::payload cmd{};
-			int r = socket_recv(state.network_state.socket_fd, &cmd, sizeof(cmd));
-			if(r == sizeof(cmd)) { // got command
-				command::execute_command(state, cmd);
-				command_executed = true;
-			} else if(r == 0) { // nothing
-				break;
-			} else if(r < 0) { // error
+		int r = socket_recv(state.network_state.socket_fd, &state.network_state.cmd_buffer, sizeof(state.network_state.cmd_buffer), &state.network_state.cmd_recv, [&]() {
+			command::execute_command(state, state.network_state.cmd_buffer);
+			command_executed = true;
+		});
+		if(r < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+			MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
 #endif
-				std::abort();
-			}
+			std::abort();
 		}
 		// send the outgoing commands to the server and flush the entire queue
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			int r = socket_send(state.network_state.socket_fd, c, sizeof(*c));
+			r = socket_send(state.network_state.socket_fd, c, sizeof(*c));
 			if(r == sizeof(*c)) { // sent command
 				// ...
 			} else if(r < 0) { // error

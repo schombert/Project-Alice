@@ -4497,7 +4497,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum) {
-#ifndef NDEBUG
+//#ifndef NDEBUG
 	sys::checksum_key current = state.get_save_checksum();
 	if(!current.is_equal(checksum)) {
 #ifdef _WIN64
@@ -4506,7 +4506,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 #endif
 		std::abort();
 	}
-#endif
+//#endif
 	state.single_game_tick();
 }
 

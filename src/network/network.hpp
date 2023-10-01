@@ -36,6 +36,9 @@ struct client_data {
 	struct sockaddr_in6 v6_address;
 	struct sockaddr_in v4_address;
 
+	command::payload cmd_buffer;
+	size_t cmd_recv = 0;
+
 	inline bool is_active() {
 		return socket_fd > 0;
 	}
@@ -52,6 +55,8 @@ struct network_state {
 	std::vector<struct in_addr> v4_banlist;
 	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
+	command::payload cmd_buffer;
+	size_t cmd_recv = 0;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
