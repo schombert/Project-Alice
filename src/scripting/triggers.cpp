@@ -3758,7 +3758,7 @@ TRIGGER_FUNCTION(tf_has_factories_nation) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n) {
 				for(auto s : ws.world.nation_get_state_ownership(n)) {
-					auto def = ws.world.state_instance_get_definition(s);
+					auto def = ws.world.state_instance_get_definition(ws.world.state_ownership_get_state(s));
 					auto owner = ws.world.state_instance_get_nation_from_state_ownership(s);
 					for(auto p : ws.world.state_definition_get_abstract_state_membership(def)) {
 						if(p.get_province().get_nation_from_province_ownership() == owner) {
