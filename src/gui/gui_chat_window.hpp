@@ -136,6 +136,10 @@ public:
 		});
 		update(state);
 	}
+
+	bool is_reversed() override {
+		return true;
+	}
 };
 
 class chat_edit_box : public edit_box_element_base {
