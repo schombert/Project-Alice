@@ -581,9 +581,12 @@ struct trigger_body {
 	}
 
 	void has_factories(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::state) {
+		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_trigger.push_back(
-					uint16_t(trigger::has_factories | trigger::no_payload | association_to_bool_code(a, value)));
+					uint16_t(trigger::has_factories_nation | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_trigger.push_back(
+					uint16_t(trigger::has_factories_state | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "has_factories trigger used in an incorrect scope type " +
 																slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +

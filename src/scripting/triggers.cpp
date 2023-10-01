@@ -3734,7 +3734,7 @@ TRIGGER_FUNCTION(tf_is_colonial_province) {
 TRIGGER_FUNCTION(tf_is_colonial_pop) {
 	return compare_to_true(tval[0], ws.world.province_get_is_colonial(ws.world.pop_get_province_from_pop_location(to_pop(primary_slot))));
 }
-TRIGGER_FUNCTION(tf_has_factories) {
+TRIGGER_FUNCTION(tf_has_factories_state) {
 	auto result = ve::apply(
 			[&ws](dcon::state_instance_id s) {
 				auto def = ws.world.state_instance_get_definition(s);
@@ -3749,6 +3749,25 @@ TRIGGER_FUNCTION(tf_has_factories) {
 				return false;
 			},
 			to_state(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_has_factories_nation) {
+	auto result = ve::apply(
+			[&ws](dcon::nation_id n) {
+				for(auto s : state.world.nation_get_state_ownership(n)) {
+					auto def = ws.world.state_instance_get_definition(s);
+					auto owner = ws.world.state_instance_get_nation_from_state_ownership(s);
+					for(auto p : ws.world.state_definition_get_abstract_state_membership(def)) {
+						if(p.get_province().get_nation_from_province_ownership() == owner) {
+							auto frange = p.get_province().get_factory_location();
+							if(frange.begin() != frange.end())
+								return true;
+						}
+					}
+				}
+				return false;
+			},
+			to_nation(primary_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_in_default_bool) {
@@ -6264,7 +6283,7 @@ struct trigger_container {
 					from_type>, // constexpr inline uint16_t is_colonial_state = 0x012A;
 			tf_is_colonial_province<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t is_colonial_province = 0x012B;
-			tf_has_factories<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories = 0x012C;
+			tf_has_factories_state<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories_state = 0x012C;
 			tf_in_default_tag<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t in_default_tag = 0x012D;
 			tf_in_default_from<return_type, primary_type, this_type,
 					from_type>, // constexpr inline uint16_t in_default_from = 0x012E;
@@ -7002,6 +7021,7 @@ struct trigger_container {
 			tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 			tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
 			tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
+			tf_has_factories_nation,	// constexpr inline uint16_t has_factories_nation = 0x02D9;
 
 			//
 			// scopes
