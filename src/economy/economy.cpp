@@ -1402,7 +1402,8 @@ void populate_private_construction_consumption(sys::state& state) {
 
 	for(auto c : state.world.in_province_building_construction) {
 		auto owner = c.get_nation().id;
-		if(owner && owner == c.get_province().get_nation_from_province_control() && c.get_is_pop_project() && province_building_type(c.get_type()) == economy::province_building_type::railroad) {
+		// Rationale for not checking building type: Its an invalid state; should not occur under normal circumstances
+		if(owner && owner == c.get_province().get_nation_from_province_control() && c.get_is_pop_project()) {
 			auto t = economy::province_building_type(c.get_type());
 			auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 			auto& current_purchased = c.get_purchased_goods();
@@ -1884,8 +1885,11 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 
 	for(auto c : state.world.nation_get_province_building_construction(n)) {
 		if(c.get_province().get_nation_from_province_ownership() == c.get_province().get_nation_from_province_control()) {
+			auto t = economy::province_building_type(c.get_type());
+			// Rationale for not checking the building type:
+			// Pop projects created for forts and naval bases should NOT happen in the first place, so checking against them
+			// is a waste of resources
 			if(!c.get_is_pop_project()) {
-				auto t = economy::province_building_type(c.get_type());
 				auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 				auto& current_purchased = c.get_purchased_goods();
 				float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);
@@ -1904,8 +1908,7 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 						break;
 					}
 				}
-			} else if(c.get_is_pop_project() && province_building_type(c.get_type()) == economy::province_building_type::railroad) {
-				auto t = economy::province_building_type(c.get_type());
+			} else if(c.get_is_pop_project()) {
 				auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 				auto& current_purchased = c.get_purchased_goods();
 				float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);

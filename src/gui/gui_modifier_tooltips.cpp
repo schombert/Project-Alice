@@ -165,7 +165,7 @@ void acting_modifiers_description_province(sys::state& state, text::layout_base&
 	}
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(state.economy_definitions.building_definitions[int32_t(t)].province_modifier) {
-			active_single_modifier_description(state, layout, state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].province_modifier, identation,
+			active_single_modifier_description(state, layout, state.economy_definitions.building_definitions[int32_t(t)].province_modifier, identation,
 					header, nmid, state.world.province_get_building_level(p, t));
 		}
 	}

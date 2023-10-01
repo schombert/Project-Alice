@@ -553,21 +553,13 @@ template<economy::province_building_type Value>
 class province_building_expand_button : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content, Value);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content, Value);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			command::begin_province_building_construction(state, state.local_player_nation, content, Value);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		command::begin_province_building_construction(state, state.local_player_nation, content, Value);
 	}
 	virtual void button_shift_action(sys::state& state) noexcept override {
 		if constexpr(Value == economy::province_building_type::naval_base) {
@@ -640,12 +632,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			progress = economy::province_building_construction(state, content, Value).progress;
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		progress = economy::province_building_construction(state, content, Value).progress;
 	}
 
 
@@ -740,28 +728,19 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-
-			expand_button->set_visible(state, !is_being_built(state, content));
-			under_construction_icon->set_visible(state, is_being_built(state, content));
-			building_progress->set_visible(state, is_being_built(state, content));
-			expanding_text->set_visible(state, is_being_built(state, content));
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		expand_button->set_visible(state, !is_being_built(state, content));
+		under_construction_icon->set_visible(state, is_being_built(state, content));
+		building_progress->set_visible(state, is_being_built(state, content));
+		expanding_text->set_visible(state, is_being_built(state, content));
 	}
 };
 
 class province_invest_railroad_button : public shift_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			command::begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		command::begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
 	}
 	virtual void button_shift_action(sys::state& state) noexcept override {
 		auto pid = retrieve<dcon::province_id>(state, parent);
@@ -773,13 +752,9 @@ public:
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::province_id>(payload);
-			disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content,
-					economy::province_building_type::railroad);
-		}
+		auto content = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content,
+				economy::province_building_type::railroad);
 	}
 };
 

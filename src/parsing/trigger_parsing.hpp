@@ -5181,6 +5181,14 @@ struct trigger_body {
 																		std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(!parsers::is_integer(value.data(), value.data() + value.length()) && value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_trigger.push_back(uint16_t(trigger::industrial_score_tag | association_to_bool_code(a)));
+					context.compiled_trigger.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors += "industrial_score trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				}
 			} else {
 				context.compiled_trigger.push_back(uint16_t(trigger::industrial_score_value | association_to_trigger_code(a)));
 				context.compiled_trigger.push_back(trigger::payload(uint16_t(parse_uint(value, line, err))).value);
@@ -5223,6 +5231,14 @@ struct trigger_body {
 																		slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
+				}
+			} else if(!parsers::is_integer(value.data(), value.data() + value.length()) && value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
+						it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_trigger.push_back(uint16_t(trigger::military_score_tag | association_to_bool_code(a)));
+					context.compiled_trigger.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors += "military_score trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				}
 			} else {
 				context.compiled_trigger.push_back(uint16_t(trigger::military_score_value | association_to_trigger_code(a)));

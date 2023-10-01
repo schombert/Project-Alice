@@ -428,7 +428,7 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 			si.set_naval_base_is_taken(true);
 	}
 
-	if(type == economy::province_building_type::railroad && source != state.world.province_get_nation_from_province_ownership(p)) {
+	if(type != economy::province_building_type::fort && type != economy::province_building_type::naval_base && source != state.world.province_get_nation_from_province_ownership(p)) {
 		float amount = 0.0f;
 		auto& base_cost = state.economy_definitions.building_definitions[int32_t(type)].cost;
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {

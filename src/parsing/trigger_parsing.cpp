@@ -201,9 +201,10 @@ void tr_scope_any_state(token_generator& gen, error_handler& err, trigger_buildi
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+		auto old_main = context.main_slot;
 		context.main_slot = trigger::slot_contents::state;
 		parse_trigger_body(gen, err, context);
-		context.main_slot = trigger::slot_contents::nation;
+		context.main_slot = old_main;
 
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else {
@@ -308,9 +309,10 @@ void tr_scope_controller(token_generator& gen, error_handler& err, trigger_build
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+	auto old_main = context.main_slot;
 	context.main_slot = trigger::slot_contents::nation;
 	parse_trigger_body(gen, err, context);
-	context.main_slot = trigger::slot_contents::province;
+	context.main_slot = old_main;
 
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
@@ -335,9 +337,10 @@ void tr_scope_location(token_generator& gen, error_handler& err, trigger_buildin
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+	auto old_main = context.main_slot;
 	context.main_slot = trigger::slot_contents::province;
 	parse_trigger_body(gen, err, context);
-	context.main_slot = trigger::slot_contents::pop;
+	context.main_slot = old_main;
 
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
@@ -382,9 +385,10 @@ void tr_capital_scope(token_generator& gen, error_handler& err, trigger_building
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+	auto old_main = context.main_slot;
 	context.main_slot = trigger::slot_contents::province;
 	parse_trigger_body(gen, err, context);
-	context.main_slot = trigger::slot_contents::nation;
+	context.main_slot = old_main;
 
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
@@ -532,9 +536,10 @@ void tr_flashpoint_tag_scope(token_generator& gen, error_handler& err, trigger_b
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+		auto old_main = context.main_slot;
 		context.main_slot = trigger::slot_contents::nation;
 		parse_trigger_body(gen, err, context);
-		context.main_slot = trigger::slot_contents::state;
+		context.main_slot = old_main;
 
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else {

@@ -723,9 +723,6 @@ pv_state_building
 
 province_history_file
 	life_rating       value          uint               member_fn
-	fort              value          uint               member_fn
-	naval_base        value          uint               member_fn
-	railroad          value          uint               member_fn
 	colony            value          uint               member_fn
 	colonial          value          uint               member_fn  (colony)
 	trade_goods       value          text               member_fn
@@ -741,6 +738,7 @@ province_history_file
 	is_slave          value          bool               member_fn
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
+	#any              value          uint               member_fn
 	#any              extern         enter_dated_block  discard
 
 tr_diplomatic_influence
@@ -1600,15 +1598,13 @@ tech_rgo_size
 technology_contents
 	#base          modifier_base
 	#any                  group      unit_modifier_body     member_fn
+	#any                  value      int                    member_fn
 	unciv_military        value      bool                   discard
 	ai_chance             extern     make_ai_chance         member_fn
 	area                  value      text                   member_fn
 	year                  value      int                    member_fn
 	cost                  value      int                    member_fn
 	unit                  value      int                    discard
-	max_fort              value      int                    member_fn
-	max_railroad          value      int                    member_fn
-	max_naval_base        value      int                    member_fn
 	activate_unit         value      text                   member_fn
 	activate_building     value      text                   member_fn
 	colonial_points       value      int                    member_fn
@@ -1859,6 +1855,7 @@ oob_file
 	leader                          group      oob_leader                        member_fn
 	army                            extern     make_oob_army                     discard
 	navy                            extern     make_oob_navy                     discard
+	ai                                  group       none                                          discard
 
 production_employee
 	poptype                         value      text                              member_fn
