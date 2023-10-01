@@ -3133,7 +3133,12 @@ TRIGGER_FUNCTION(tf_is_coastal_province) {
 	return compare_to_true(tval[0], ws.world.province_get_is_coast(to_prov(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_is_coastal_state) {
-	return compare_to_true(tval[0], province::state_is_coastal(ws, to_state(primary_slot)));
+	auto result = ve::apply(
+			[&ws](dcon::state_instance_id s) {
+				return province::state_is_coastal(ws, s);
+			},
+			to_state(primary_slot));
+	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_in_sphere_tag) {
 	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(primary_slot)),
