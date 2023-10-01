@@ -434,6 +434,12 @@ void mouse_click() {
 					temp_command_line += native_string(L" ");
 					temp_command_line += simple_fs::utf8_to_native(ip_addr);
 				}
+
+				// IPv6 address
+				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
+					temp_command_line += native_string(L" -v6");
+				}
+
 				STARTUPINFO si;
 				ZeroMemory(&si, sizeof(si));
 				si.cb = sizeof(si);
