@@ -103,6 +103,7 @@ enum class command_type : uint8_t {
 	advance_tick = 122,
 	chat_message = 123,
 	update_session_info = 124,
+	save_stream = 125,
 
 	// console cheats
 	switch_nation = 128,

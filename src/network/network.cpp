@@ -32,10 +32,10 @@ static int socket_recv(socket_t client_fd, void *data, size_t n) {
 	u_long has_pending = 0;
 	auto r = ioctlsocket(client_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return (int)recv(client_fd, (char *)data, (int)n, 0);
+		return (int)recv(client_fd, (char *)data, (int)n, MSG_WAITALL);
 	return 0;
 #else
-	return recv(client_fd, data, n, MSG_DONTWAIT);
+	return recv(client_fd, data, n, MSG_WAITALL);
 #endif
 }
 
@@ -227,40 +227,32 @@ static void accept_new_clients(sys::state& state) {
 				c.type = command::command_type::notify_player_picks_nation;
 				c.source = dcon::nation_id{};
 				c.data.nation_pick.target = assigned_nation;
-				auto r = socket_send(client.socket_fd, &c, sizeof(c));
-				if(r < 0) { // error
+				if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
 					disconnect_client(state, client);
-				}
 			}
-			{ //tell the client general information about the game
+			{ // Tell the client general information about the game
 				command::payload c;
 				c.type = command::command_type::update_session_info;
 				c.source = dcon::nation_id{};
 				c.data.update_session_info.seed = state.game_seed;
 				c.data.update_session_info.checksum = state.get_save_checksum();
-				auto r = socket_send(client.socket_fd, &c, sizeof(c));
-				if(r < 0) { // error
+				if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
 					disconnect_client(state, client);
-				}
 			}
-			{
-				// Tell all the other clients that we have joined
+			{ // Tell all the other clients that we have joined
 				command::payload c;
 				c.type = command::command_type::notify_player_joins;
 				c.source = assigned_nation;
 				state.network_state.outgoing_commands.push(c);
 			}
-
 			// notify the client of all current players
 			state.world.for_each_nation([&](dcon::nation_id n) {
 				if(state.world.nation_get_is_player_controlled(n)) {
 					command::payload c;
 					c.type = command::command_type::notify_player_joins;
 					c.source = n;
-					auto r = socket_send(client.socket_fd, &c, sizeof(c));
-					if(r < 0) { // error
+					if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
 						disconnect_client(state, client);
-					}
 				}
 			});
 			return;
@@ -299,10 +291,8 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 	// propagate to all the clients
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
-			auto r = socket_send(client.socket_fd, &c, sizeof(c));
-			if(r < 0) { // error
+			if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
 				disconnect_client(state, client);
-			}
 		}
 	}
 }
