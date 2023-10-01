@@ -3751,7 +3751,13 @@ void tf_is_accepted_culture_state(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, "an_accepted"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
-void tf_is_coastal(TRIGGER_DISPLAY_PARAMS) {
+void tf_is_coastal_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "coastal"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_is_coastal_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "coastal"), ws, layout, box);
@@ -4592,7 +4598,13 @@ void tf_is_colonial_pop(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "colonial_pop"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
-void tf_has_factories(TRIGGER_DISPLAY_PARAMS) {
+void tf_has_factories_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_has_factories_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
@@ -7780,7 +7792,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_is_accepted_culture_pop,										// constexpr inline uint16_t is_accepted_culture_pop = 0x00DB;
 		tf_is_accepted_culture_province,							// constexpr inline uint16_t is_accepted_culture_province = 0x00DC;
 		tf_is_accepted_culture_state,									// constexpr inline uint16_t is_accepted_culture_state = 0x00DD;
-		tf_is_coastal,																// constexpr inline uint16_t is_coastal = 0x00DE;
+		tf_is_coastal_province,																// constexpr inline uint16_t is_coastal_province = 0x00DE;
 		tf_in_sphere_tag,															// constexpr inline uint16_t in_sphere_tag = 0x00DF;
 		tf_in_sphere_from,														// constexpr inline uint16_t in_sphere_from = 0x00E0;
 		tf_in_sphere_this_nation,											// constexpr inline uint16_t in_sphere_this_nation = 0x00E1;
@@ -7858,7 +7870,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_agree_with_ruling_party,										// constexpr inline uint16_t agree_with_ruling_party = 0x0129;
 		tf_is_colonial_state,													// constexpr inline uint16_t is_colonial_state = 0x012A;
 		tf_is_colonial_province,											// constexpr inline uint16_t is_colonial_province = 0x012B;
-		tf_has_factories,															// constexpr inline uint16_t has_factories = 0x012C;
+		tf_has_factories_state,															// constexpr inline uint16_t has_factories_state = 0x012C;
 		tf_in_default_tag,														// constexpr inline uint16_t in_default_tag = 0x012D;
 		tf_in_default_from,														// constexpr inline uint16_t in_default_from = 0x012E;
 		tf_in_default_this_nation,										// constexpr inline uint16_t in_default_this_nation = 0x012F;
@@ -8308,6 +8320,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_pop_majority_religion_nation_this_nation, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
 		tf_military_score_tag, //constexpr inline uint16_t military_score_tag = 0x02D7;
 		tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
+		tf_has_factories_nation, // constexpr inline uint16_t has_factories_state = 0x02D9;
+		tf_is_coastal_state, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 
 		//
 		// scopes
