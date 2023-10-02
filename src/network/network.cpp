@@ -371,7 +371,7 @@ void send_and_receive_commands(sys::state& state) {
 		// send the outgoing commands to the server and flush the entire queue
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			if(c->type != command::command_type::save_game) {
+			if(c->type == command::command_type::save_game) {
 				command::execute_command(state, *c);
 				command_executed = true;
 			} else {
