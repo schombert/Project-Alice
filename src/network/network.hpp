@@ -31,13 +31,13 @@ typedef int socket_t;
 
 struct client_data {
 	dcon::nation_id playing_as{};
-	std::string player_name;
 	socket_t socket_fd = 0;
 	struct sockaddr_in6 v6_address;
 	struct sockaddr_in v4_address;
 
-	command::payload cmd_buffer;
-	size_t cmd_recv = 0;
+	command::payload recv_buffer;
+	size_t recv_count = 0;
+	std::vector<char> send_buffer;
 
 	inline bool is_active() {
 		return socket_fd > 0;
@@ -55,8 +55,10 @@ struct network_state {
 	std::vector<struct in_addr> v4_banlist;
 	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
-	command::payload cmd_buffer;
-	size_t cmd_recv = 0;
+
+	command::payload recv_buffer;
+	size_t recv_count = 0;
+	std::vector<char> send_buffer;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}

@@ -39,7 +39,7 @@ static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 #endif
 }
 
-static int socket_send(socket_t socket_fd, const void *data, size_t n) {
+static int internal_socket_send(socket_t socket_fd, const void *data, size_t n) {
 #ifdef _WIN64
 	return (int)send(socket_fd, reinterpret_cast<const char *>(data), (int)n, 0);
 #else
@@ -66,6 +66,25 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 		func();
 	}
 	return 0;
+}
+
+static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
+	while(!buffer.empty()) {
+		int r = internal_socket_send(socket_fd, buffer.data(), buffer.size());
+		if(r > 0) {
+			buffer.erase(buffer.begin(), buffer.begin() + static_cast<size_t>(r));
+		} else if(r < 0) {
+			return -1;
+		} else if(r == 0) {
+			break;
+		}
+	}
+	return 0;
+}
+
+static void socket_add_to_send_queue(std::vector<char>& buffer, void *data, size_t n) {
+	buffer.resize(buffer.size() + n);
+	std::memcpy(buffer.data() + buffer.size() - n, data, n);
 }
 
 static void socket_shutdown(socket_t socket_fd) {
@@ -230,26 +249,24 @@ static void accept_new_clients(sys::state& state) {
 					break;
 				}
 			}
-
+			// client passed banlist check, assign them to a nation!
 			dcon::nation_id assigned_nation{};
-			{
-				// give the client a "joining" nation, basically a temporal nation choosen
-				// "randomly" that is tied to the client iself
-				state.world.for_each_nation([&](dcon::nation_id n) {
-					if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
-						assigned_nation = n;
-					}
-				});
-				assert(bool(assigned_nation));
-				client.playing_as = assigned_nation;
-				state.world.nation_set_is_player_controlled(assigned_nation, false);
-
+			// give the client a "joining" nation, basically a temporal nation choosen
+			// "randomly" that is tied to the client iself
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
+					assigned_nation = n;
+				}
+			});
+			assert(bool(assigned_nation));
+			client.playing_as = assigned_nation;
+			state.world.nation_set_is_player_controlled(assigned_nation, false);
+			{ // tell the client which nation they're
 				command::payload c;
 				c.type = command::command_type::notify_player_picks_nation;
 				c.source = dcon::nation_id{};
 				c.data.nation_pick.target = assigned_nation;
-				if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
-					disconnect_client(state, client);
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 			{ // Tell the client general information about the game
 				command::payload c;
@@ -257,8 +274,7 @@ static void accept_new_clients(sys::state& state) {
 				c.source = dcon::nation_id{};
 				c.data.update_session_info.seed = state.game_seed;
 				c.data.update_session_info.checksum = state.get_save_checksum();
-				if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
-					disconnect_client(state, client);
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 			{ // Tell all the other clients that we have joined
 				command::payload c;
@@ -272,8 +288,7 @@ static void accept_new_clients(sys::state& state) {
 					command::payload c;
 					c.type = command::command_type::notify_player_joins;
 					c.source = n;
-					if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
-						disconnect_client(state, client);
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				}
 			});
 			return;
@@ -284,18 +299,18 @@ static void accept_new_clients(sys::state& state) {
 static void receive_from_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
-			int r = socket_recv(client.socket_fd, &client.cmd_buffer, sizeof(client.cmd_buffer), &client.cmd_recv, [&]() {
-				switch(client.cmd_buffer.type) {
+			int r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
+				switch(client.recv_buffer.type) {
 				case command::command_type::invalid:
 				case command::command_type::notify_player_joins:
 					break; // has to be valid/sendable by client
 				case command::command_type::notify_player_picks_nation:
-					if(command::can_notify_player_picks_nation(state, client.cmd_buffer.source, client.cmd_buffer.data.nation_pick.target))
-						client.playing_as = client.cmd_buffer.data.nation_pick.target;
-					state.network_state.outgoing_commands.push(client.cmd_buffer);
+					if(command::can_notify_player_picks_nation(state, client.recv_buffer.source, client.recv_buffer.data.nation_pick.target))
+						client.playing_as = client.recv_buffer.data.nation_pick.target;
+					state.network_state.outgoing_commands.push(client.recv_buffer);
 					break;
 				default:
-					state.network_state.outgoing_commands.push(client.cmd_buffer);
+					state.network_state.outgoing_commands.push(client.recv_buffer);
 					break;
 				}
 			});
@@ -307,12 +322,9 @@ static void receive_from_clients(sys::state& state) {
 
 static void broadcast_to_clients(sys::state& state, command::payload& c) {
 	// propagate to all the clients
-	for(auto& client : state.network_state.clients) {
-		if(client.is_active()) {
-			if(socket_send(client.socket_fd, &c, sizeof(c)) < 0) // error
-				disconnect_client(state, client);
-		}
-	}
+	for(auto& client : state.network_state.clients)
+		if(client.is_active())
+			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 }
 
 void send_and_receive_commands(sys::state& state) {
@@ -335,10 +347,17 @@ void send_and_receive_commands(sys::state& state) {
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
 		}
+
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active()) {
+				if(socket_send(client.socket_fd, client.send_buffer) < 0) // error
+					disconnect_client(state, client);
+			}
+		}
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		// receive commands from the server and immediately execute them
-		int r = socket_recv(state.network_state.socket_fd, &state.network_state.cmd_buffer, sizeof(state.network_state.cmd_buffer), &state.network_state.cmd_recv, [&]() {
-			command::execute_command(state, state.network_state.cmd_buffer);
+		int r = socket_recv(state.network_state.socket_fd, &state.network_state.recv_buffer, sizeof(state.network_state.recv_buffer), &state.network_state.recv_count, [&]() {
+			command::execute_command(state, state.network_state.recv_buffer);
 			command_executed = true;
 		});
 		if(r < 0) { // error
@@ -350,17 +369,15 @@ void send_and_receive_commands(sys::state& state) {
 		// send the outgoing commands to the server and flush the entire queue
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			r = socket_send(state.network_state.socket_fd, c, sizeof(*c));
-			if(r == sizeof(*c)) { // sent command
-				// ...
-			} else if(r < 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, "Network client send error", "Network error", MB_OK);
-#endif
-				std::abort();
-			}
+			socket_add_to_send_queue(state.network_state.send_buffer, c, sizeof(*c));
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
+		}
+		if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
+#ifdef _WIN64
+			MessageBoxA(NULL, "Network client send error", "Network error", MB_OK);
+#endif
+			std::abort();
 		}
 	}
 
