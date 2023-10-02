@@ -41,7 +41,7 @@ constexpr inline float caption_height = 44.0f;
 static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
 
-static std::string ip_addr = "::1";
+static std::string ip_addr = "127.0.0.1";
 
 static HWND m_hwnd = nullptr;
 
@@ -81,9 +81,9 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 515, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
 	ui_active_rect{ 555, 196 + 36 * 0, 286, 33 }, // play game
-	ui_active_rect{ 555, 196 + 48 + 36 * 1, 286, 33 }, // host game
-	ui_active_rect{ 555, 196 + 48 + 36 * 2, 196, 33 }, // ip address textbox
-	ui_active_rect{ 555 + 200, 196 + 48 + 36 * 2, 86, 33 }, // join game
+	ui_active_rect{ 555, 244 + 36 * 1, 286, 33 }, // host game
+	ui_active_rect{ 555, 244 + 36 * 2, 196, 33 }, // ip address textbox
+	ui_active_rect{ 555 + 200, 244 + 36 * 2, 86, 33 }, // join game
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -857,7 +857,7 @@ void render() {
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 78.0f, 5.0f, 26.0f, launcher::ogl::color3f{255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f}, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 78.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -891,7 +891,7 @@ void render() {
 				ui_rects[ui_obj_list_right].height,
 				right_tex.get_texture_handle(), ui::rotation::upright, false);
 		} else {
-			launcher::ogl::render_textured_rect( launcher::ogl::color_modification::disabled,
+			launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 				ui_rects[ui_obj_list_right].x,
 				ui_rects[ui_obj_list_right].y,
 				ui_rects[ui_obj_list_right].width,
@@ -926,7 +926,7 @@ void render() {
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
 		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-		
+
 	}
 
 	{
@@ -997,14 +997,21 @@ void render() {
 	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent("Host Game", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Host Game", 9, launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	const char* hg_text = "Host Game";
+	const char* jg_text = "Join";
+	if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
+		hg_text = "<IPv6> Host Game";
+		jg_text = "Join";
+	}
 
-	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width / 2 - base_text_extent(ip_addr.c_str(), 10, 14, font_collection.fonts[0]) / 2.0f;
-	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[1]);
+	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(hg_text, uint32_t(::strlen(hg_text)), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(hg_text, uint32_t(::strlen(hg_text)), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent("Join", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Join", 4, launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width / 2 - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) / 2.0f;
+	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(jg_text, uint32_t(::strlen(jg_text)), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
