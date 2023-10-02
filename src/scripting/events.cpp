@@ -85,6 +85,10 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi,
 		int32_t primary_slot, slot_type pt, int32_t from_slot, slot_type ft) {
+
+	if(!state.world.national_event_get_name(e))
+		return; // event without data
+
 	if(ft == slot_type::province)
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)))
 							 .is_valid());
@@ -134,6 +138,10 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 	trigger_national_event(state, e, n, r_hi, r_lo, trigger::to_generic(n), slot_type::nation, from_slot, ft);
 }
 void trigger_national_event(sys::state& state, dcon::free_national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi) {
+
+	if(!state.world.free_national_event_get_name(e))
+		return; // event without data
+
 	if(state.world.free_national_event_get_only_once(e) && state.world.free_national_event_get_has_been_triggered(e))
 		return;
 
@@ -179,6 +187,10 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 }
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo,
 		int32_t from_slot, slot_type ft) {
+
+	if(!state.world.provincial_event_get_name(e))
+		return; // event without data
+
 	if(ft == slot_type::province)
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
 
@@ -222,6 +234,10 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 }
 void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi,
 		uint32_t r_lo) {
+
+	if(!state.world.free_provincial_event_get_name(e))
+		return; // event without data
+
 	state.world.free_provincial_event_set_has_been_triggered(e, true);
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
