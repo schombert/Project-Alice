@@ -835,16 +835,38 @@ class small_top_unit_icon : public window_element_base {
 
 class map_pv_rail : public image_element_base {
 public:
+	sys::date last_update;
+	char cached_level = 0;
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+			return;
+
+		if(last_update != state.ui_date) {
+			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::railroad);
+			last_update = state.ui_date;
+		}
+
 		image_element_base::render(state, x, y);
-		ogl::render_character(state, '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::railroad), ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
 	}
 };
 class map_pv_fort : public image_element_base {
 public:
+	sys::date last_update;
+	char cached_level = 0;
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+			return;
+
+		if(last_update != state.ui_date) {
+			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::fort);
+			last_update = state.ui_date;
+		}
+
 		image_element_base::render(state, x, y);
-		ogl::render_character(state, '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::fort), ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
 	}
 };
 
