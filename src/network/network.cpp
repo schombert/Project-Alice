@@ -321,6 +321,8 @@ static void receive_from_clients(sys::state& state) {
 }
 
 static void broadcast_to_clients(sys::state& state, command::payload& c) {
+	if(c.type == command::command_type::save_game)
+		return;
 	// propagate to all the clients
 	for(auto& client : state.network_state.clients)
 		if(client.is_active())
@@ -369,7 +371,12 @@ void send_and_receive_commands(sys::state& state) {
 		// send the outgoing commands to the server and flush the entire queue
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			socket_add_to_send_queue(state.network_state.send_buffer, c, sizeof(*c));
+			if(c->type != command::command_type::save_game) {
+				command::execute_command(state, *c);
+				command_executed = true;
+			} else {
+				socket_add_to_send_queue(state.network_state.send_buffer, c, sizeof(*c));
+			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
 		}

@@ -95,6 +95,7 @@ enum class command_type : uint8_t {
 	even_split_army = 86,
 	even_split_navy = 87,
 
+	// network
 	notify_player_ban = 117,
 	notify_player_kick = 118,
 	notify_player_picks_nation = 119,
