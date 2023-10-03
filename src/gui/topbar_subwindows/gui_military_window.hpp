@@ -10,97 +10,83 @@ namespace ui {
 
 class military_mob_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-
-		text::localised_format_box(state, contents, box, std::string_view("military_mobilize"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("mob_size_iro"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc2"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("military_mobilize_desc"));
-
-		text::close_layout_box(contents, box);
+	void button_action(sys::state& state) noexcept override {
+		command::toggle_mobilization(state, state.local_player_nation);
 	}
 };
 
 class military_demob_button : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-
-		text::localised_format_box(state, contents, box, std::string_view("military_demobilize"));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("military_demobilize_desc"));
-
-		text::close_layout_box(contents, box);
+	void button_action(sys::state& state) noexcept override {
+		command::toggle_mobilization(state, state.local_player_nation);
 	}
 };
 
 class military_mob_progress_bar : public progress_bar {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
+			progress = 0.0f;
+			return;
+		}
+	
+		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
+		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
+		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
+
+		if(mob_size <= 0.0f) {
+			progress = 1.0f;
+			return;
+		}
+
+		progress = mob_rem / mob_size;
+	}
 };
 
 class military_mob_progress_bar_text : public simple_text_element_base {
-protected:
-	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
-		return text::format_percentage(float(4.20), 2);
-	}
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state, state.local_player_nation));
+		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
+			set_text(state, "0%");
+			return;
+		}
+
+		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
+		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
+		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
+
+		if(mob_size <= 0.0f) {
+			set_text(state, "100%");
+			return;
+		}
+		set_text(state, text::format_percentage(mob_rem / mob_size, 0));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat = dcon::fatten(state.world, state.local_player_nation);
-		auto box = text::open_layout_box(contents);
-
-		if(fat.get_is_mobilized()) {
-			text::localised_format_box(state, contents, box, std::string_view("mobilization_progress_pending"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("mobilization_progress_not_mobilized"));
-		}
-
-		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "mobilization_progress_not_mobilized");
 	}
 };
 
 class military_mob_size_text : public nation_mobilization_size_text {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
+	void on_update(sys::state& state) noexcept override {
+		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
+		auto mob_size = std::min(int32_t(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), military::mobilized_regiments_pop_limit(state, state.local_player_nation));
 
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("mob_size_iro"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc2"));
-		text::close_layout_box(contents, box);
+		set_text(state, std::to_string(mob_size));
 	}
 };
 
 class military_mob_impact_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto v = 1.0f - military::mobilization_impact(state, state.local_player_nation);
+
+		set_text(state, text::format_percentage(v, 0));
+	}
 };
 
 class military_window : public window_element_base {
