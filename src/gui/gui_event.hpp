@@ -78,7 +78,7 @@ public:
 	void on_create(sys::state& state) noexcept override;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-
+	void on_update(sys::state& state) noexcept override;
 	static void new_event(sys::state& state, event::pending_human_n_event const& dat);
 	static void new_event(sys::state& state, event::pending_human_f_n_event const& dat);
 };
@@ -92,7 +92,7 @@ public:
 	void on_create(sys::state& state) noexcept override;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-
+	void on_update(sys::state& state) noexcept override;
 	static void new_event(sys::state& state, event::pending_human_n_event const& dat);
 	static void new_event(sys::state& state, event::pending_human_f_n_event const& dat);
 };
@@ -109,11 +109,13 @@ public:
 	void on_create(sys::state& state) noexcept override;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-
+	void on_update(sys::state& state) noexcept override;
 	static void new_event(sys::state& state, event::pending_human_p_event const& dat);
 	static void new_event(sys::state& state, event::pending_human_f_p_event const& dat);
 };
 
 void populate_event_submap(sys::state& state, text::substitution_map& sub, std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> const& phe) noexcept;
+
+void close_expired_event_windows(sys::state& state);
 
 } // namespace ui
