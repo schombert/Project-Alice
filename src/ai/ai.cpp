@@ -2737,6 +2737,30 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	return false;
 }
 
+bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
+
+	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	if(!real_target)
+		real_target = target;
+
+	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
+		return false;
+
+	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
+		return false;
+
+	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
+		if(!a.get_are_allied())
+			continue;
+		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
+		if(self_sup <= other.get_used_naval_supply_points())
+			return false;
+	}
+
+	return true;
+}
+
 void make_war_decs(sys::state& state) {
 	auto targets = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
@@ -2764,8 +2788,11 @@ void make_war_decs(sys::state& state) {
 				continue;
 			if(!military::can_use_cb_against(state, n, other))
 				continue;
+			if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !naval_supremacy(state, n, other))
+				continue;
 
 			auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
+			
 			if(str_difference > best_difference) {
 				best_difference = str_difference;
 				targets.set(n, other.id);
@@ -2789,6 +2816,8 @@ void make_war_decs(sys::state& state) {
 				if(military::has_truce_with(state, n, real_target))
 					continue;
 				if(!military::can_use_cb_against(state, n, other))
+					continue;
+				if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !naval_supremacy(state, n, other))
 					continue;
 
 				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
@@ -2821,11 +2850,11 @@ void update_budget(sys::state& state) {
 			n.set_land_spending(int8_t(100));
 			n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
-			n.set_land_spending(int8_t(75));
-			n.set_naval_spending(int8_t(75));
-		} else {
 			n.set_land_spending(int8_t(50));
 			n.set_naval_spending(int8_t(50));
+		} else {
+			n.set_land_spending(int8_t(25));
+			n.set_naval_spending(int8_t(25));
 		}
 		n.set_education_spending(int8_t(100));
 		n.set_construction_spending(int8_t(100));
@@ -3165,6 +3194,7 @@ void daily_cleanup(sys::state& state) {
 
 
 bool navy_needs_repair(sys::state& state, dcon::navy_id n) {
+	/*
 	auto in_nation = fatten(state.world, state.world.navy_get_controller_from_navy_control(n));
 	auto base_spending_level = in_nation.get_effective_naval_spending();
 	float oversize_amount =
@@ -3174,12 +3204,13 @@ bool navy_needs_repair(sys::state& state, dcon::navy_id n) {
 	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
 	auto spending_level = base_spending_level * over_size_penalty;
 	auto max_org = 0.25f + 0.75f * spending_level;
+	*/
 
 	for(auto shp : state.world.navy_get_navy_membership(n)) {
 		if(shp.get_ship().get_strength() < 0.5f)
 			return true;
-		if(shp.get_ship().get_org() < 0.75f * max_org)
-			return true;
+		//if(shp.get_ship().get_org() < 0.75f * max_org)
+		//	return true;
 	}
 	return false;
 }

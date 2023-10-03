@@ -904,8 +904,17 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
 			*/
-			total += int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment);
+			total += int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
 		}
+	}
+	return total;
+}
+
+int32_t mobilized_regiments_pop_limit(sys::state& state, dcon::nation_id n) {
+	int32_t total = 0;
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		if(p.get_province().get_is_colonial() == false)
+			total += mobilized_regiments_possible_from_province(state, p.get_province());
 	}
 	return total;
 }
@@ -6403,13 +6412,15 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 }
 
 void start_mobilization(sys::state& state, dcon::nation_id n) {
+	if(state.world.nation_get_is_mobilized(n))
+		return;
+
 	state.world.nation_set_is_mobilized(n, true);
 	/*
 	At most, national-mobilization-impact-modifier x (define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be
 	created by mobilization).
 	*/
 	auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(n)), int32_t(state.defines.min_mobilize_limit));
-
 	state.world.nation_set_mobilization_remaining(n,
 			uint16_t(real_regs * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact)));
 
@@ -6417,9 +6428,14 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 	schedule_array.clear();
 
 	for(auto pr : state.world.nation_get_province_ownership(n)) {
-		if(pr.get_province().get_is_colonial() == false) {
-			schedule_array.push_back(mobilization_order{pr.get_province().id, sys::date{}});
-		}
+		if(pr.get_province().get_is_colonial())
+			continue;
+		if(pr.get_province().get_nation_from_province_control() != n)
+			continue;
+		if(mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
+			continue;
+
+		schedule_array.push_back(mobilization_order{pr.get_province().id, sys::date{}});
 	}
 
 	std::sort(schedule_array.begin(), schedule_array.end(),
@@ -6459,6 +6475,9 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 	}
 }
 void end_mobilization(sys::state& state, dcon::nation_id n) {
+	if(!state.world.nation_get_is_mobilized(n))
+		return;
+
 	state.world.nation_set_is_mobilized(n, false);
 	state.world.nation_set_mobilization_remaining(n, 0);
 	auto schedule_array = state.world.nation_get_mobilization_schedule(n);
@@ -6484,6 +6503,7 @@ void advance_mobilizations(sys::state& state) {
 				auto back = schedule[s_size - 1];
 				if(state.current_date == back.when) {
 					schedule.pop_back();
+					bool mob_infantry = state.world.nation_get_active_unit(n, state.military_definitions.infantry);
 
 					// mobilize the province
 
@@ -6506,7 +6526,7 @@ void advance_mobilizations(sys::state& state) {
 								*/
 
 								auto available =
-										int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+										int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
 								if(available > 0) {
 
 									auto a = [&]() {
@@ -6521,7 +6541,8 @@ void advance_mobilizations(sys::state& state) {
 									}();
 
 									while(available > 0 && to_mobilize > 0) {
-										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.infantry);
+										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry ?state.military_definitions.infantry : state.military_definitions.irregular);
+										state.world.regiment_set_org(new_reg, 0.1f);
 										state.world.try_create_army_membership(new_reg, a);
 										state.world.try_create_regiment_source(new_reg, pop.get_pop());
 

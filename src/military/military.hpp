@@ -287,6 +287,7 @@ int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::provi
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool require_accepted);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture);
+int32_t mobilized_regiments_pop_limit(sys::state& state, dcon::nation_id n);
 uint8_t make_dice_rolls(sys::state& state, uint32_t seed);
 
 int32_t total_regiments(sys::state& state, dcon::nation_id n);

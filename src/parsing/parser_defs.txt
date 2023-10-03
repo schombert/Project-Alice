@@ -810,7 +810,7 @@ trigger_body
 	is_culture     value           text               member_fn (culture)
 	is_core          value           text               member_fn
 	terrain          value           text               member_fn
-	blockade         value           bool               member_fn
+	blockade         value           float               member_fn
 	controls         value           int                member_fn
 	election         value           bool               member_fn
 	is_slave         value           bool               member_fn
