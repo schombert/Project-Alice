@@ -232,7 +232,7 @@ void recreate_national_modifiers(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		auto timed_modifiers = n.get_current_modifiers();
 		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
-			if(bool(timed_modifiers[i].expiration) && timed_modifiers[i].expiration >= state.current_date) {
+			if(bool(timed_modifiers[i].expiration) && timed_modifiers[i].expiration < state.current_date) {
 				timed_modifiers.remove_at(i);
 			}
 		}
@@ -543,7 +543,7 @@ void recreate_province_modifiers(sys::state& state) {
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto timed_modifiers = state.world.province_get_current_modifiers(p);
 		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
-			if(bool(timed_modifiers[i].expiration) && timed_modifiers[i].expiration >= state.current_date) {
+			if(bool(timed_modifiers[i].expiration) && timed_modifiers[i].expiration < state.current_date) {
 				timed_modifiers.remove_at(i);
 			}
 		}

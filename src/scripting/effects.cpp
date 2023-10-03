@@ -3239,7 +3239,7 @@ uint32_t ef_add_province_modifier_state_no_duration(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_add_country_modifier(EFFECT_PARAMTERS) {
-	sys::add_modifier_to_nation(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).mod_id,
+ 	sys::add_modifier_to_nation(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).mod_id,
 			ws.current_date + trigger::payload(tval[2]).signed_value);
 	return 0;
 }

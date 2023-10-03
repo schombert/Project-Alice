@@ -4,6 +4,7 @@
 namespace ui {
 
 std::vector<std::unique_ptr<national_major_event_window>> national_major_event_window::event_pool;
+std::vector<ui::element_base*> pending_closure;
 
 void  national_major_event_window::new_event(sys::state& state, event::pending_human_n_event const& dat) {
 	if(event_pool.empty()) {
@@ -932,6 +933,48 @@ message_result provincial_event_window::get(sys::state& state, Cyto::Any& payloa
 		return message_result::consumed;
 	}
 	return message_result::unseen;
+}
+
+void national_major_event_window::on_update(sys::state& state) noexcept {
+	if(std::holds_alternative<event::pending_human_n_event>(event_data)) {
+		if(std::get<event::pending_human_n_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+			pending_closure.push_back(this);
+		}
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(event_data)) {
+		if(std::get<event::pending_human_f_n_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+			pending_closure.push_back(this);
+		}
+	}
+}
+void national_event_window::on_update(sys::state& state) noexcept {
+	if(std::holds_alternative<event::pending_human_n_event>(event_data)) {
+		if(std::get<event::pending_human_n_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+			pending_closure.push_back(this);
+		}
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(event_data)) {
+		if(std::get<event::pending_human_f_n_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+			pending_closure.push_back(this);
+		}
+	}
+}
+void provincial_event_window::on_update(sys::state& state) noexcept {
+	if(std::holds_alternative<event::pending_human_p_event>(event_data)) {
+		if(std::get<event::pending_human_p_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+			pending_closure.push_back(this);
+		}
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(event_data)) {
+		if(std::get<event::pending_human_f_p_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+			pending_closure.push_back(this);
+		}
+	}
+}
+
+void close_expired_event_windows(sys::state& state) {
+	for(auto e : pending_closure) {
+		Cyto::Any p = option_taken_notification{ };
+		e->impl_get(state, p);
+	}
+	pending_closure.clear();
 }
 
 } // namespace ui

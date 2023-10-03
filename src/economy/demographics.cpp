@@ -1340,6 +1340,8 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 										0.0f);
 								chances_total += chance;
 								weights[target_type] = chance;
+							} else {
+								weights[target_type] = 0.0f;
 							}
 						} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) {
 							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
@@ -1350,6 +1352,8 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 										0.0f);
 								chances_total += chance;
 								weights[target_type] = chance;
+							} else {
+								weights[target_type] = 0.0f;
 							}
 						} else {
 							weights[target_type] = 0.0f;
@@ -1366,6 +1370,11 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 								return;
 							}
 						}
+						pbuf.amounts.set(p, 0.0f);
+						pbuf.types.set(p, dcon::pop_type_id{});
+					} else {
+						pbuf.amounts.set(p, 0.0f);
+						pbuf.types.set(p, dcon::pop_type_id{});
 					}
 				},
 				ids, owners, promotion_chances, demotion_chances);

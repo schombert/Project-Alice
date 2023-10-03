@@ -855,6 +855,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		map_mode::update_map_mode(*this);
 		if(ui_state.unit_details_box->is_visible())
 			ui_state.unit_details_box->impl_on_update(*this);
+		ui::close_expired_event_windows(*this);
 
 		ui_state.rgos_root->impl_on_update(*this);
 		ui_state.units_root->impl_on_update(*this);
