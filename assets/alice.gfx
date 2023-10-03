@@ -55,7 +55,7 @@ spriteTypes = {
 	spriteType = {
 		name = "GFX_alice_unit_status"
 		texturefile = "assets\\unitstatus.png"
-		noOfFrames = 7
+		noOfFrames = 8
 	}
 	spriteType = {
 		name = "GFX_alice_siege_frame"

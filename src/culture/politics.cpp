@@ -61,7 +61,7 @@ bool has_elections(sys::state& state, dcon::nation_id nation) {
 
 sys::date next_election_date(sys::state& state, dcon::nation_id nation) {
 	auto end_date = state.world.nation_get_election_ends(nation);
-	return end_date + 365 * 5;
+	return end_date + int32_t(30.5f * state.world.nation_get_government_type(nation).get_duration());
 }
 
 dcon::reform_id get_reform_by_name(sys::state& state, std::string_view name) {
