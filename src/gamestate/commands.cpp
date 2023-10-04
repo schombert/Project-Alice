@@ -16,6 +16,7 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_ban:
 	case command_type::notify_player_kick:
 	case command_type::update_session_info:
+	case command_type::start_game:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
