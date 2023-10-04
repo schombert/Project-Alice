@@ -4525,6 +4525,22 @@ void update_session_info(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 
+void execute_start_game(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+	state.selected_armies.clear();
+	state.selected_navies.clear();
+	state.mode = sys::game_mode_type::in_game;
+	state.game_state_updated.store(true, std::memory_order::release);
+}
+
+void start_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::start_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
 void execute_command(sys::state& state, payload& c) {
 	switch(c.type) {
 	case command_type::invalid:
@@ -4832,6 +4848,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::update_session_info:
 		execute_update_session_info(state, c.source, c.data.update_session_info.seed, c.data.update_session_info.checksum);
+		break;
+	case command_type::start_game:
+		execute_start_game(state, c.source);
 		break;
 
 		// console commands

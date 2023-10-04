@@ -459,17 +459,13 @@ public:
 class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-		state.selected_armies.clear();
-		state.selected_navies.clear();
-		state.mode = sys::game_mode_type::in_game;
-		state.game_state_updated.store(true, std::memory_order::release);
+		command::start_game(state, state.local_player_nation);
 	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
 		// can't start if checksum doesn't match
 		if(state.network_mode == sys::network_mode_type::client)
-			disabled = disabled || !state.session_host_checksum.is_equal(state.get_save_checksum());
+			disabled = true;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

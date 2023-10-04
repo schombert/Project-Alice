@@ -104,7 +104,8 @@ enum class command_type : uint8_t {
 	advance_tick = 122,
 	chat_message = 123,
 	update_session_info = 124,
-	save_stream = 125,
+	start_game = 125, // for synchronized "start game"
+	save_stream = 126,
 
 	// console cheats
 	switch_nation = 128,
@@ -771,8 +772,8 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
-
 void update_session_info(sys::state& state, dcon::nation_id source);
+void start_game(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
