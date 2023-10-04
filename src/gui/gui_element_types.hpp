@@ -972,6 +972,8 @@ int32_t status_frame(sys::state& state, dcon::army_id a) {
 		return 6;
 	} else if(state.world.army_get_navy_from_army_transport(a)) {
 		return 5;
+	} else if(state.world.army_get_arrival_time(a)) {
+		return 7;
 	} else if(military::will_recieve_attrition(state, a)) {
 		return 3;
 	} else if(is_understr()) {
@@ -1002,6 +1004,8 @@ int32_t status_frame(sys::state& state, dcon::navy_id a) {
 		return 5;
 	} else if(!(state.world.navy_get_arrival_time(a)) && nb_level > 0 && is_understr()) {
 		return 4;
+	} else if(state.world.navy_get_arrival_time(a)) {
+		return 7;
 	} else {
 		return 0;
 	}
