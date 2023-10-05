@@ -8396,6 +8396,9 @@ void make_trigger_description(sys::state& ws, text::layout_base& layout, uint16_
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot,
 		int32_t this_slot, int32_t from_slot) {
+	if(!k)
+		return;
+
 	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[k.index() + 1],
 			primary_slot, this_slot, from_slot, 0, true);
 }

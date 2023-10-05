@@ -6697,8 +6697,10 @@ uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {
 
 void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
 		int32_t from_slot, uint32_t r_lo, uint32_t r_hi) {
-	effect_tooltip::internal_make_effect_description(state, state.effect_data.data() + state.effect_data_indices[k.index() + 1], layout, primary_slot, this_slot,
-			from_slot, r_lo, r_hi, 0);
+	if(!k)
+		text::add_line(state, layout, "no_effect");
+	else
+		effect_tooltip::internal_make_effect_description(state, state.effect_data.data() + state.effect_data_indices[k.index() + 1], layout, primary_slot, this_slot, from_slot, r_lo, r_hi, 0);
 }
 
 } // namespace ui

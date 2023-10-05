@@ -246,6 +246,7 @@ modifier_base
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
 	factory_owner_cost                        value      float            member_fn
+	local_factory_owner_cost          value     float          discard
 	min_tariff                                value      float            member_fn
 	max_tariff                                value      float            member_fn
 	ruling_party_support                      value      float            member_fn

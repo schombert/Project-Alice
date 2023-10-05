@@ -97,7 +97,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			auto amount = res.goods_cost.data.safe_get(id);
 			if(amount > 0) {
 				if(added >= economy::commodity_set::set_size) {
-					err.accumulated_errors += "Too many special building cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+					err.accumulated_warnings += "Too many special building cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
 				} else {
 					context.state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_type[added] = id;
 					context.state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[added] = amount;
