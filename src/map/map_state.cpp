@@ -414,6 +414,22 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 		float pi = glm::pi<float>();
 		float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
 		float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
+		if(!std::isfinite(angle_x1)) {
+			assert(false);
+			angle_x1 = 0.0f;
+		}
+		if(!std::isfinite(angle_x2)) {
+			assert(false);
+			angle_x2 = 0.0f;
+		}
+		if(!std::isfinite(map_pos.x)) {
+			assert(false);
+			map_pos.x = 0.0f;
+		}
+		if(!std::isfinite(map_pos.y)) {
+			assert(false);
+			map_pos.y = 0.0f;
+		}
 		cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
 		cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
 

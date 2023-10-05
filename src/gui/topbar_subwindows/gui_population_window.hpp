@@ -1668,21 +1668,23 @@ public:
 
 template<typename T, bool Multiple>
 class pop_distribution_piechart : public piechart<T> {
-	float iterate_one_pop(sys::state& state, std::unordered_map<typename T::value_base_t, float>& distrib, dcon::pop_id pop_id) {
-		auto amount = 0.f;
-		auto const weight_fn = [&](auto id) {
-			auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
-			distrib[typename T::value_base_t(id.index())] += weight;
-			amount += weight;
+	void iterate_one_pop(sys::state& state, dcon::pop_id pop_id) {
+		auto const weight_fn = [&](T id, float weight) {
+			auto it = std::find_if(this->distribution.begin(), this->distribution.end(), [id](auto& e) { return e.key == id;  });
+			if(it != this->distribution.end())
+				it->value += weight;
+			else
+				this->distribution.emplace_back(id, weight);
 		};
-		// Can obtain via simple pop_demographics query
+
 		if constexpr(std::is_same_v<T, dcon::issue_option_id>) {
-			state.world.for_each_issue_option(weight_fn);
-			return amount;
+			for(auto iopt : state.world.in_issue_option) {
+				weight_fn(iopt, state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, iopt)));
+			}
 		} else if constexpr(std::is_same_v<T, dcon::ideology_id>) {
-			state.world.for_each_ideology(weight_fn);
-			return amount;
-			// Needs to be queried directly from the pop
+			for(auto iopt : state.world.in_ideology) {
+				weight_fn(iopt, state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, iopt)));
+			}
 		} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
 			if(!state.world.province_get_is_colonial(prov_id)) {
@@ -1695,44 +1697,37 @@ class pop_distribution_piechart : public piechart<T> {
 					if(politics::political_party_is_active(state, pid)) {
 						auto support = politics::party_total_support(state, pop_id, pid,
 								state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
-						distrib[typename T::value_base_t(pid.index())] += support;
-						amount += support;
+						weight_fn(pid, support);
 					}
 				}
 			}
-			return amount;
 		} else if constexpr(std::is_same_v<T, dcon::culture_id>) {
 			auto size = state.world.pop_get_size(pop_id);
-			distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += size;
-			return size;
+			weight_fn(state.world.pop_get_culture(pop_id).id, size);
 		} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
 			auto size = state.world.pop_get_size(pop_id);
-			distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += size;
-			return size;
+			weight_fn(state.world.pop_get_religion(pop_id).id, size);
 		} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
 			auto size = state.world.pop_get_size(pop_id);
-			distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += size;
-			return size;
+			weight_fn(state.world.pop_get_poptype(pop_id).id, size);
 		}
 	}
 
 protected:
-	std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<typename T::value_base_t, float> distrib{};
+	void on_update(sys::state& state) noexcept override {
+		piechart<T>::distribution.clear();
+
 		if(piechart<T>::parent) {
-			auto total = 0.f;
 			if constexpr(Multiple) {
 				auto& pop_list = get_pop_window_list(state);
 				for(auto const pop_id : pop_list)
-					total += iterate_one_pop(state, distrib, pop_id);
+					iterate_one_pop(state, pop_id);
 			} else {
-				total = iterate_one_pop(state, distrib, get_pop_details_pop(state));
+				iterate_one_pop(state, get_pop_details_pop(state));
 			}
-			for(auto& e : distrib)
-				if(e.second > 0.f)
-					e.second /= total;
 		}
-		return distrib;
+
+		piechart<T>::update_chart(state);
 	}
 
 public:
@@ -1743,7 +1738,6 @@ public:
 		piechart<T>::radius = float(piechart<T>::base_data.size.x);
 		piechart<T>::base_data.size.x *= 2;
 		piechart<T>::base_data.size.y *= 2;
-		piechart<T>::on_update(state);
 	}
 };
 

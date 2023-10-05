@@ -196,13 +196,11 @@ public:
 template<culture::pop_strata Strata>
 class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
-	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(
-			sys::state& state) noexcept override {
-		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
-		
-		enabled = true;
+	void on_update(sys::state& state) noexcept override {
+		distribution.clear();
+
 		if(parent == nullptr)
-			return distrib;
+			return;
 
 		auto total = 0.f;
 		std::array<float, 5> sat_pool = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
@@ -222,18 +220,13 @@ protected:
 								 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
 								 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
 								 : 0] += pop_size;
-				total += pop_size;
 			}
 		}
-		if(total <= 0.f) {
-			enabled = false;
-			return distrib;
-		}
 
-		for(size_t i = 0; i < sat_pool.size(); i++)
-			distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
+		for(uint8_t i = 0; i < 5; i++)
+			distribution.emplace_back(dcon::pop_satisfaction_wrapper_id(i), sat_pool[i]);
 		
-		return distrib;
+		update_chart(state);
 	}
 
 public:

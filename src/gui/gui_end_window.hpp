@@ -110,17 +110,17 @@ class national_invention_count : public simple_text_element_base {
 
 class end_window_ideologies : public piechart<dcon::ideology_id> {
 protected:
-	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib{};
+	void on_update(sys::state& state) noexcept override {
+		distribution.clear();
+
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto total = state.world.nation_get_demographics(n, demographics::total);
-		if(total > 0) {
-			for(auto pt : state.world.in_ideology) {
-				auto amount = state.world.nation_get_demographics(n, demographics::to_key(state, pt));
-				distrib[dcon::ideology_id::value_base_t(pt.id.index())] = amount / total;
-			}
+		
+		for(auto pt : state.world.in_ideology) {
+			auto amount = state.world.nation_get_demographics(n, demographics::to_key(state, pt));
+			distribution.emplace_back(pt.id, amount);
 		}
-		return distrib;
+		
+		update_chart(state);
 	}
 };
 

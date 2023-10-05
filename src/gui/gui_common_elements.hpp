@@ -1193,47 +1193,38 @@ public:
 
 class upper_house_piechart : public piechart<dcon::ideology_id> {
 protected:
-	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib;
+	void on_update(sys::state& state) noexcept override {
 		auto nat_id = retrieve<dcon::nation_id>(state, parent);
-		
-		state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
-			auto weight = .01f * state.world.nation_get_upper_house(nat_id, ideo_id);
-			distrib[dcon::ideology_id::value_base_t(ideo_id.index())] = weight;
-		});
-
-		return distrib;
+		distribution.clear();
+		for(auto id : state.world.in_ideology) {
+			distribution.emplace_back(id.id, float(state.world.nation_get_upper_house(nat_id, id)));
+		}
+		update_chart(state);
 	}
 };
 
 class voter_ideology_piechart : public piechart<dcon::ideology_id> {
 protected:
-	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib;
+	void on_update(sys::state& state) noexcept override {
 		auto nat_id = retrieve<dcon::nation_id>(state, parent);
-
-		float total = 0.0f;
-
-		auto ideo_pool = std::vector<float>(state.world.ideology_size());
-		state.world.for_each_province([&](dcon::province_id province) {
-			if(nat_id == state.world.province_get_nation_from_province_ownership(province)) {
-				for(auto pop_loc : state.world.province_get_pop_location(province)) {
-					auto pop_id = pop_loc.get_pop();
-					float vote_size = politics::pop_vote_weight(state, pop_id, nat_id);
-					total += vote_size;
+		distribution.clear();
+		for(auto id : state.world.in_ideology) {
+			distribution.emplace_back(id.id, 0.0f);
+		}
+		for(auto p : state.world.nation_get_province_ownership(nat_id)) {
+			for(auto pop_loc : state.world.province_get_pop_location(p.get_province())) {
+				auto pop_id = pop_loc.get_pop();
+				float vote_size = politics::pop_vote_weight(state, pop_id, nat_id);
+				if(vote_size > 0) {
 					state.world.for_each_ideology([&](dcon::ideology_id iid) {
 						auto dkey = pop_demographics::to_key(state, iid);
-						ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;
+						distribution[iid.index()].value += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;
 					});
 				}
 			}
-		});
-		
-		for(size_t i = 0; i < ideo_pool.size(); i++) {
-			distrib[dcon::ideology_id::value_base_t(i)] = ideo_pool[i] / total;
 		}
-		enabled = (total > 0.0f);
-		return distrib;
+
+		update_chart(state);
 	}
 };
 
