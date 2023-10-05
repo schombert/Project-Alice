@@ -877,17 +877,9 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
-void piechart_element_base::generate_data_texture(sys::state& state, std::vector<uint8_t>& colors) {
-	if(!colors.empty()) {
-		memcpy(data_texture.data, colors.data(), resolution * channels);
-		data_texture.data_updated = true;
-	}
-}
-
-void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(enabled) {
-		ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
-	}
+template<class T>
+void piechart<T>::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
 }
 
 template<class T>
@@ -896,41 +888,62 @@ void piechart<T>::on_create(sys::state& state) noexcept {
 	radius = float(base_data.size.x);
 	base_data.size.x *= 2;
 	base_data.size.y *= 2;
-	on_update(state);
 }
 
 template<class T>
-void piechart<T>::on_update(sys::state& state) noexcept {
-	get_distribution(state).swap(distribution);
+void piechart<T>::update_chart(sys::state& state) {
+	std::sort(distribution.begin(), distribution.end(), [](auto const& a, auto const& b) { return a.value > b.value; });
+	float total = 0.0f;
+	for(auto& e : distribution) {
+		total += e.value;
+	}
+	int32_t int_total = 0;
 
-	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
-	T last_t{};
+	if(total != 0.0f) {
+		for(auto& e : distribution) {
+			auto ivalue = int32_t(e.value * float(resolution) / total);
+			e.slices = uint8_t(ivalue);
+			e.value /= total;
+			int_total += ivalue;
+		}
+	} else {
+		distribution.clear();
+	}
+
+	if(int_total < resolution && distribution.size() > 0) {
+		auto rem = resolution - int_total;
+		while(rem > 0) {
+			for(auto& e : distribution) {
+				e.slices += uint8_t(1);
+				rem -= 1;
+				if(rem == 0)
+					break;
+			}
+		}
+	} else if(int_total > resolution) {
+		assert(false);
+	}
+
 	size_t i = 0;
-	for(auto& [index, quant] : distribution) {
-		T t(index);
-		uint32_t color = ogl::get_ui_color<T>(state, t);
-		auto slice_count = std::min(size_t(quant * resolution), resolution - i);
+	for(auto& e : distribution) {
+		uint32_t color = ogl::get_ui_color<T>(state, e.key);
+		auto slice_count = size_t(e.slices);
+
 		for(size_t j = 0; j < slice_count; j++) {
-			spread[j + i] = t;
-			colors[(j + i) * channels] = uint8_t(color & 0xFF);
-			colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
-			colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
-			assert((j + i) * channels + 1 < colors.size() && "Exceeded 100% total for piechart");
+			data_texture.data[(i + j) * channels] = uint8_t(color & 0xFF);
+			data_texture.data[(i + j) * channels + 1] = uint8_t(color >> 8 & 0xFF);
+			data_texture.data[(i + j) * channels + 2] = uint8_t(color >> 16 & 0xFF);
 		}
-		if(slice_count) {
-			i += slice_count;
-			last_t = t;
-		}
+
+		i += slice_count;
 	}
-	uint32_t last_color = ogl::get_ui_color(state, last_t);
 	for(; i < resolution; i++) {
-		spread[i] = last_t;
-		colors[i * channels] = uint8_t(last_color & 0xFF);
-		colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
-		colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+		data_texture.data[i * channels] = uint8_t(0);
+		data_texture.data[i * channels + 1] = uint8_t(0);
+		data_texture.data[i * channels + 2] = uint8_t(0);
 	}
 
-	generate_data_texture(state, colors);
+	data_texture.data_updated = true;
 }
 
 template<class T>
@@ -947,9 +960,13 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 		}
 		index = size_t(angle / (2.f * PI) * float(resolution));
 	}
-	T t = T(spread[index]);
-	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
-	populate_tooltip(state, t, percentage, contents);
+	for(auto const& e : distribution) {
+		if(index < size_t(e.slices)) {
+			populate_tooltip(state, e.key, e.value, contents);
+			return;
+		}
+		index -= size_t(e.slices);
+	}
 }
 
 template<class T>
@@ -964,27 +981,15 @@ void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, tex
 }
 
 template<class SrcT, class DemoT>
-std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
+void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
+	this->distribution.clear();
 
-	std::unordered_map<typename DemoT::value_base_t, float> distrib;
 	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
 	if(this->parent) {
 		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
-		if(obj_id_payload.holds_type<dcon::province_id>()) {
-			auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
-			total_pops = state.world.province_get_demographics(prov_id, demographics::total);
-		} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
-			auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
-			total_pops = state.world.nation_get_demographics(nat_id, demographics::total);
-		} else if(obj_id_payload.holds_type<dcon::pop_id>()) {
-			auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
-			total_pops = 1.f;
-		}
-
-		if(total_pops <= 0.f)
-			return distrib;
+		
 		for_each_demo(state, [&](DemoT demo_id) {
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
@@ -1004,10 +1009,12 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 					volume = state.world.pop_get_demographics(pop_id, demo_key);
 				}
 			}
-			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
+			if(volume > 0)
+				this->distribution.emplace_back(demo_id, volume);
 		});
 	}
-	return distrib;
+
+	this->update_chart(state);
 }
 
 void autoscaling_scrollbar::on_create(sys::state& state) noexcept {

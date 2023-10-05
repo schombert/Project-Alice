@@ -529,35 +529,32 @@ public:
 	TabT target = TabT();
 };
 
-class piechart_element_base : public element_base {
-protected:
-	static constexpr size_t resolution = 200;
-	static constexpr size_t channels = 3;
-	bool enabled = true;
-	ogl::data_texture data_texture{resolution, channels};
-
-public:
-	float radius = 0.f;
-	void generate_data_texture(sys::state& state, std::vector<uint8_t>& colors);
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-};
-
 template<class T>
-class piechart : public piechart_element_base {
-protected:
-	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
-		std::unordered_map<typename T::value_base_t, float> out{};
-		out[static_cast<typename T::value_base_t>(-1)] = 1.f;
-		return out;
-	}
-
-private:
-	std::unordered_map<typename T::value_base_t, float> distribution{};
-	std::vector<T> spread = std::vector<T>(resolution);
-
+class piechart : public element_base {
 public:
+
+	static constexpr int32_t resolution = 200;
+	static constexpr size_t channels = 3;
+	
+	struct entry {
+		float value;
+		T key;
+		uint8_t slices;
+		entry(T key, float value) : value(value), key(key), slices(0) { }
+		entry() : value(0.0f), key(), slices(0) { }
+	};
+
+	ogl::data_texture data_texture{ resolution, channels };
+	std::vector<entry> distribution;
+	float radius = 0.f;
+
+	void update_chart(sys::state& state);
+
 	void on_create(sys::state& state) noexcept override;
-	void on_update(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	virtual void populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept;
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::position_sensitive_tooltip;
 	}
@@ -576,14 +573,12 @@ public:
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
 	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	virtual void populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept;
 };
 
 template<class SrcT, class DemoT>
 class demographic_piechart : public piechart<DemoT> {
-protected:
-	std::unordered_map<typename DemoT::value_base_t, float> get_distribution(sys::state& state) noexcept override;
+public:
+	void on_update(sys::state& state) noexcept override;
 	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
 };
 
