@@ -2200,7 +2200,9 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 					if(pbuf.amounts.get(p) > 0.0f) {
 						//auto o = nations::owner_of_pop(state, p);
 						auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
-						auto rel = state.world.province_get_dominant_religion(l);
+						auto rel = dac
+							? state.world.nation_get_religion(nations::owner_of_pop(state, p))
+							: state.world.province_get_dominant_religion(l);
 						assert(state.world.pop_get_poptype(p));
 						auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p));
 						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
