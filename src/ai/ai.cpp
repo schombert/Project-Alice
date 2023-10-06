@@ -3695,6 +3695,34 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+dcon::navy_id find_transport_fleet(sys::state& state, dcon::nation_id controller) {
+	int32_t n_size = 0;
+	dcon::navy_id transport_fleet;
+
+	for(auto v : state.world.nation_get_navy_control(controller)) {
+		if(v.get_navy().get_battle_from_navy_battle_participation())
+			continue;
+		auto members = v.get_navy().get_navy_membership();
+
+		auto tsize = int32_t(members.end() - members.begin());
+		if(tsize <= n_size || tsize <= 1)
+			continue;
+
+		n_size = tsize;
+		transport_fleet = dcon::navy_id{};
+
+		fleet_activity activity = fleet_activity(v.get_navy().get_ai_activity());
+		if(activity == fleet_activity::attacking || activity == fleet_activity::idle || activity == fleet_activity::returning_to_base) {
+			auto in_transport = v.get_navy().get_army_transport();	
+			if(in_transport.begin() == in_transport.end()) {
+				transport_fleet = v.get_navy();
+			}
+		}
+	}
+
+	return transport_fleet;
+}
+
 void move_idle_guards(sys::state& state) {
 	std::vector<dcon::army_id> require_transport;
 	require_transport.reserve(state.world.army_size());
@@ -3731,22 +3759,7 @@ void move_idle_guards(sys::state& state) {
 		auto coastal_target_prov = state.world.army_get_location_from_army_location(require_transport[i]);
 		auto controller = state.world.army_get_controller_from_army_control(require_transport[i]);
 
-		// find free transport fleet
-
-		dcon::navy_id transport_fleet;
-		for(auto v : state.world.nation_get_navy_control(controller)) {
-			if(v.get_navy().get_battle_from_navy_battle_participation())
-				continue;
-
-			fleet_activity activity = fleet_activity(v.get_navy().get_ai_activity());
-			if(activity == fleet_activity::attacking || activity == fleet_activity::idle || activity == fleet_activity::returning_to_base) {
-				auto in_transport = v.get_navy().get_army_transport();
-				if(in_transport.begin() == in_transport.end()) {
-					transport_fleet = v.get_navy();
-					break;
-				}
-			}
-		}
+		dcon::navy_id transport_fleet = find_transport_fleet(state, controller);
 
 		auto regs = state.world.army_get_army_membership(require_transport[i]);
 
@@ -4343,22 +4356,7 @@ void move_gathered_attackers(sys::state& state) {
 		auto coastal_target_prov = state.world.army_get_location_from_army_location(require_transport[i]);
 		auto controller = state.world.army_get_controller_from_army_control(require_transport[i]);
 
-		// find free transport fleet
-
-		dcon::navy_id transport_fleet;
-		for(auto v : state.world.nation_get_navy_control(controller)) {
-			if(v.get_navy().get_battle_from_navy_battle_participation())
-				continue;
-
-			fleet_activity activity = fleet_activity(v.get_navy().get_ai_activity());
-			if(activity == fleet_activity::attacking || activity == fleet_activity::idle || activity == fleet_activity::returning_to_base) {
-				auto in_transport = v.get_navy().get_army_transport();
-				if(in_transport.begin() == in_transport.end()) {
-					transport_fleet = v.get_navy();
-					break;
-				}
-			}
-		}
+		dcon::navy_id transport_fleet = find_transport_fleet(state, controller);
 
 		auto regs = state.world.army_get_army_membership(require_transport[i]);
 

@@ -745,8 +745,8 @@ inline constexpr int8_t data_sizes[] = {
 		3, // constexpr uint16_t scaled_consciousness_issue = 0x00FC;
 		3, // constexpr uint16_t scaled_consciousness_ideology = 0x00FD;
 		2, // constexpr uint16_t scaled_consciousness_unemployment = 0x00FE;
-		3, // constexpr uint16_t define_general = 0x00FF;
-		3, // constexpr uint16_t define_admiral = 0x0100;
+		4, // constexpr uint16_t define_general = 0x00FF;
+		4, // constexpr uint16_t define_admiral = 0x0100;
 		3, // constexpr uint16_t dominant_issue = 0x0101;
 		1, // constexpr uint16_t add_war_goal = 0x0102;
 		4, // constexpr uint16_t move_issue_percentage_nation = 0x0103;
@@ -2021,7 +2021,7 @@ inline constexpr int8_t data_sizes[] = {
 		1, // constexpr uint16_t has_pop_type_province = 0x010E;
 		1, // constexpr uint16_t has_pop_type_pop = 0x010F;
 		0, // constexpr uint16_t has_empty_adjacent_province = 0x0110;
-		1, // constexpr uint16_t has_leader = 0x0111;
+		2, // constexpr uint16_t has_leader = 0x0111;
 		0, // constexpr uint16_t ai = 0x0112;
 		0, // constexpr uint16_t can_create_vassals = 0x0113;
 		1, // constexpr uint16_t is_possible_vassal = 0x0114;
@@ -2519,7 +2519,6 @@ union payload {
 	dcon::global_flag_id glob_id;
 	dcon::national_event_id nev_id;
 	dcon::provincial_event_id pev_id;
-	dcon::unit_name_id unam_id;
 	dcon::trigger_key tr_id;
 	dcon::crime_id crm_id;
 	dcon::political_party_id par_id;
@@ -2647,10 +2646,6 @@ union payload {
 	payload(dcon::provincial_event_id i) {
 		memset(this, 0, sizeof(payload));
 		pev_id = i;
-	}
-	payload(dcon::unit_name_id i) {
-		memset(this, 0, sizeof(payload));
-		unam_id = i;
 	}
 	payload(dcon::trigger_key i) {
 		memset(this, 0, sizeof(payload));

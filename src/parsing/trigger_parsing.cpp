@@ -863,7 +863,7 @@ void trigger_body::has_leader(association_type a, std::string_view value, error_
 		return;
 	}
 	auto name_id = context.outer_context.state.add_unit_name(value);
-	context.compiled_trigger.push_back(trigger::payload(name_id).value);
+	context.add_int32_t_to_payload(name_id.index());
 }
 
 } // namespace parsers
