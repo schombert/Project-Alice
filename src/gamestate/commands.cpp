@@ -17,6 +17,7 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_kick:
 	case command_type::update_session_info:
 	case command_type::start_game:
+	case command_type::stop_game:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
@@ -4497,18 +4498,34 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	post_chat_message(state, m);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum) {
-#ifndef NDEBUG
-	sys::checksum_key current = state.get_save_checksum();
-	if(!current.is_equal(checksum)) {
-#ifdef _WIN64
-		std::string msg = "Network has gotten out of sync: ";
-		MessageBoxA(NULL, "Out of sync", msg.c_str(), MB_OK);
-#endif
-		std::abort();
+void notify_player_oos(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::notify_player_oos;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
+	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
+	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
+	post_chat_message(state, m);
+}
+
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum, int32_t speed) {
+//#ifndef NDEBUG
+	if(state.network_state.out_of_sync.load(std::memory_order::acquire) == false) {
+		sys::checksum_key current = state.get_save_checksum();
+		if(!current.is_equal(checksum))
+			state.network_state.out_of_sync.store(true, std::memory_order::release);
 	}
-#endif
+//#endif
 	state.single_game_tick();
+	state.host_game_speed = speed;
 }
 
 void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
@@ -4538,6 +4555,19 @@ void start_game(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command::command_type::start_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_stop_game(sys::state& state, dcon::nation_id source) {
+	state.mode = sys::game_mode_type::pick_nation;
+	state.game_state_updated.store(true, std::memory_order::release);
+}
+
+void stop_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::stop_game;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
@@ -4844,14 +4874,20 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::notify_player_picks_nation:
 		execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
 		break;
+	case command_type::notify_player_oos:
+		execute_notify_player_oos(state, c.source);
+		break;
 	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum);
+		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 		break;
 	case command_type::update_session_info:
 		execute_update_session_info(state, c.source, c.data.update_session_info.seed, c.data.update_session_info.checksum);
 		break;
 	case command_type::start_game:
 		execute_start_game(state, c.source);
+		break;
+	case command_type::stop_game:
+		execute_stop_game(state, c.source);
 		break;
 
 		// console commands

@@ -1237,6 +1237,7 @@ tech_ol_tt;§G$x$§! from your overlord having this technology
 tech_year_tt;§G$x$§! from the current year
 disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
+alice_play_save_stream;Host is streaming a save to you, wait until it completes
 ai_will_accept_po;The AI will accept this offer
 ai_will_not_accept_po;The AI will NOT accept this offer
 close_and_del;Close & Delete Factory

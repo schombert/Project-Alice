@@ -96,16 +96,18 @@ enum class command_type : uint8_t {
 	even_split_navy = 87,
 
 	// network
-	notify_player_ban = 117,
-	notify_player_kick = 118,
-	notify_player_picks_nation = 119,
-	notify_player_joins = 120,
-	notify_player_leaves = 121,
-	advance_tick = 122,
-	chat_message = 123,
-	update_session_info = 124,
-	start_game = 125, // for synchronized "start game"
-	save_stream = 126,
+	notify_player_ban = 106,
+	notify_player_kick = 107,
+	notify_player_picks_nation = 108,
+	notify_player_joins = 109,
+	notify_player_leaves = 110,
+	notify_player_oos = 111,
+	advance_tick = 112,
+	chat_message = 113,
+	update_session_info = 114,
+	start_game = 115, // for synchronized "start game"
+	stop_game = 116, // "go back to lobby"
+	save_stream = 117,
 
 	// console cheats
 	switch_nation = 128,
@@ -405,6 +407,7 @@ struct nation_pick_data {
 
 struct advance_tick_data {
 	sys::checksum_key checksum;
+	int32_t speed;
 };
 
 struct update_session_info_data {
@@ -772,8 +775,10 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+void notify_player_oos(sys::state& state, dcon::nation_id source);
 void update_session_info(sys::state& state, dcon::nation_id source);
 void start_game(sys::state& state, dcon::nation_id source);
+void stop_game(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

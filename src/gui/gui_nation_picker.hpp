@@ -458,13 +458,20 @@ public:
 class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		command::start_game(state, state.local_player_nation);
+		if(state.network_mode == sys::network_mode_type::client) {
+			//clients cant start the game, only tell that they're "ready"
+		} else {
+			command::start_game(state, state.local_player_nation);
+		}
 	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
-		// can't start if checksum doesn't match
-		if(state.network_mode == sys::network_mode_type::client)
-			disabled = true;
+		if(state.network_mode == sys::network_mode_type::client) {
+			if(!state.session_host_checksum.is_equal(state.get_save_checksum())) //can't start if checksum doesn't match
+				disabled = true;
+			else if(state.network_state.save_stream) //in the middle of a save stream
+				disabled = true;
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -472,9 +479,13 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.network_mode == sys::network_mode_type::client && !state.session_host_checksum.is_equal(state.get_save_checksum())) {
+		if(state.network_mode == sys::network_mode_type::client) {
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
+			if(!state.session_host_checksum.is_equal(state.get_save_checksum())) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
+			} else if(state.network_state.save_stream) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
+			}
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -528,6 +539,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
+		if(state.network_mode != sys::network_mode_type::host)
+			disabled = true;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -551,6 +564,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		disabled = !command::can_notify_player_ban(state, state.local_player_nation, n);
+		if(state.network_mode != sys::network_mode_type::host)
+			disabled = true;
 	}
 
 	void button_action(sys::state& state) noexcept override {

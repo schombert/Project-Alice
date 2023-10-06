@@ -23,10 +23,16 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 `update_session_info` - Updates the game seed (important to keep in sync with clients and host), and the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state.
 `notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.
 `notify_player_ban` - When banning a player, it is disconnected, and not allowed to rejoin.
+`start_game` - Host has started the game, all players connected will be sent into the game.
+`stop_game` - Host has stopped the game (not paused), all players connected will be sent into the lobby.
 
 The server will send new clients a `notify_player_joins` for each connected player. It will send a `notify_player_pick_nation` to the client, with an invalid source, telling it what is their "assigned nation".
 
 An assigned nation is a "random" nation that the server will hand out to the client so it can identifiably connect to the server as a nation, and perform commands as such nation.
+
+### Save streams
+
+For the handshake of client and host, we send a copy of the save to the client, ultra-compressed, to permit it to connect without having to use external toolage.
 
 ### Out-of-sync (OOS)
 

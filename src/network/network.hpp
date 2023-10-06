@@ -60,6 +60,13 @@ struct network_state {
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
 
+	bool save_stream = false; //client
+	uint32_t save_size = 0; //client
+	std::vector<uint8_t> save_data; //client
+
+	std::atomic<bool> out_of_sync = false; // network -> game state signal
+	std::atomic<bool> reported_oos = false; // has oos been reported to host yet?
+
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
 };

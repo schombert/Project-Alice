@@ -192,6 +192,17 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				window::emit_error_message(msg, true);
 				return 0;
 			}
+
+			// Host must have an already selected nation, to prevent issues...
+			if(game_state.network_mode == sys::network_mode_type::host) {
+				game_state.world.nation_set_is_player_controlled(dcon::nation_id{}, false);
+				game_state.world.for_each_nation([&](dcon::nation_id n) {
+					if(!game_state.world.nation_get_is_player_controlled(n) && game_state.world.nation_get_owned_province_count(n) > 0)
+						game_state.local_player_nation = n;
+				});
+				assert(bool(game_state.local_player_nation));
+				game_state.world.nation_set_is_player_controlled(game_state.local_player_nation, true);
+			}
 		}
 		LocalFree(parsed_cmd);
 
