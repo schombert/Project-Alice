@@ -206,7 +206,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 				glm::vec2 screen_pos;
 				if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
 					if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
-						&& x_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+						&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
 
 						selected_navies.push_back(a.get_navy());
 					}
@@ -312,10 +312,15 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			keycode = sys::virtual_key::ADD;
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
-				if(ui_state.console_window->is_visible())
+				if(ui_state.console_window->is_visible()) {
 					ui::console_window::show_toggle(*this);
-				else
+				} else if(!selected_armies.empty() || !selected_navies.empty()) {
+					selected_armies.clear();
+					selected_navies.clear();
+					game_state_updated.store(true, std::memory_order::release);
+				} else {
 					ui::show_main_menu(*this);
+				}
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
 			} else if(keycode == virtual_key::TAB) {
@@ -2652,9 +2657,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			for(auto k = uint32_t(context.state.province_definitions.first_sea_province.index()); k < context.state.world.province_size(); ++k) {
 				dcon::province_id p{ dcon::province_id::value_base_t(k) };
 				if(world.province_get_connected_region_id(p) != int16_t(max + 1)) {
+					world.province_set_is_coast(p, false);
+					world.province_set_port_to(p, dcon::province_id{});
 					for(auto adj : context.state.world.province_get_province_adjacency(p)) {
 						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 						other.set_is_coast(false);
+						other.set_port_to(dcon::province_id{});
 						adj.get_type() |= province::border::impassible_bit;
 					}
 				}

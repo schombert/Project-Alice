@@ -2938,8 +2938,8 @@ void daily_update(sys::state& state) {
 						if(p.get_province().get_nation_from_province_ownership() == n) {
 							for(auto f : p.get_province().get_factory_location()) {
 								++num_factories;
-								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f &&
-										f.get_factory().get_level() < uint8_t(255)) {
+								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f && f.get_factory().get_primary_employment() >= 0.9f && f.get_factory().get_level() < uint8_t(255)) {
+
 									if(auto new_p = f.get_factory().get_full_profit() / f.get_factory().get_level(); new_p > profit) {
 										profit = new_p;
 										selected_factory = f.get_factory();
@@ -2966,7 +2966,7 @@ void daily_update(sys::state& state) {
 						auto is_coastal = province::state_is_coastal(state, s);
 						for(auto t : state.world.in_factory_type) {
 							if(t.get_is_available_from_start() || state.world.nation_get_active_building(n, t)) {
-								if(!state_contains_constructed_factory(state, s, t) && (is_coastal || !t.get_is_coastal())) {
+								if(!state_contains_factory(state, s, t) && (is_coastal || !t.get_is_coastal())) {
 									possible.push_back(t.id);
 								}
 							}
@@ -3486,15 +3486,33 @@ void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s, F&&
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
 	auto d = state.world.state_instance_get_definition(s);
-	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-		if(p.get_province().get_nation_from_province_ownership() == o) {
+		if(p.get_province().get_state_membership() == s) {
 			for(auto f : p.get_province().get_factory_location()) {
 				if(f.get_factory().get_building_type() == ft)
 					return true;
 			}
 		}
 	}
+	return false;
+}
+
+bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+	auto d = state.world.state_instance_get_definition(s);
+
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_state_membership() == s) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == ft)
+					return true;
+			}
+		}
+	}
+	for(auto sc : state.world.state_instance_get_state_building_construction(s)) {
+		if(sc.get_type() == ft)
+			return true;
+	}
+
 	return false;
 }
 

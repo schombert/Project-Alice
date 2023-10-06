@@ -15,16 +15,32 @@ enum class reorg_win_action : uint8_t {
 };
 
 template<class T>
-class reorg_unit_transfer_button : public button_element_base {
+class reorg_unit_transfer_button : public shift_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			
-			Cyto::Any npayload = element_selection_wrapper<T>{content};
-			parent->impl_get(state, npayload);
+		auto content = retrieve<T>(state, parent);
+		if(content)
+			send(state, parent, element_selection_wrapper<T>{content});
+		
+	}
+	void button_shift_action(sys::state& state) noexcept override {
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			auto army = state.world.regiment_get_army_from_army_membership(content);
+			auto type = state.world.regiment_get_type(content);
+			for(auto r : state.world.army_get_army_membership(army)) {
+				if(r.get_regiment().get_type() == type) {
+					send(state, parent, element_selection_wrapper<T>{r.get_regiment().id});
+				}
+			}
+		} else {
+			auto n = state.world.ship_get_navy_from_navy_membership(content);
+			auto type = state.world.ship_get_type(content);
+			for(auto r : state.world.navy_get_navy_membership(n)) {
+				if(r.get_ship().get_type() == type) {
+					send(state, parent, element_selection_wrapper<T>{r.get_ship().id});
+				}
+			}
 		}
 	}
 };
@@ -80,10 +96,10 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "band_reorg_regiment") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<reorg_unit_transfer_button<T>>(state, id);
 
 		} else if(name == "band_reorg_naval") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<reorg_unit_transfer_button<T>>(state, id);
 
 		} else if(name == "unit_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);

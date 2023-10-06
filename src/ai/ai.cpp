@@ -821,7 +821,7 @@ void update_ai_econ_construction(sys::state& state) {
 							for(auto fac : state.world.province_get_factory_location(p)) {
 								auto type = fac.get_factory().get_building_type();
 								if(fac.get_factory().get_unprofitable() == false
-									&& fac.get_factory().get_level() < uint8_t(255)
+									&& fac.get_factory().get_level() < uint8_t(255) && fac.get_factory().get_primary_employment() >= 0.9f
 									&& std::find(desired_types.begin(), desired_types.end(), type) != desired_types.end()) {
 
 									auto ug_in_progress = false;
@@ -885,7 +885,8 @@ void update_ai_econ_construction(sys::state& state) {
 								for(auto fac : state.world.province_get_factory_location(p)) {
 									auto type = fac.get_factory().get_building_type();
 									if(type_selection == type) {
-										under_cap = fac.get_factory().get_production_scale() < 0.9f;
+										under_cap = fac.get_factory().get_production_scale() < 0.9f
+											&& fac.get_factory().get_primary_employment() >= 0.9f;
 										present_in_location = true;
 										return;
 									}

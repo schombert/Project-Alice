@@ -583,6 +583,26 @@ public:
 	}
 };
 
+class land_unit_under_construction_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		std::string txt("+");
+		auto cstr_range = state.world.nation_get_province_land_construction(state.local_player_nation);
+		txt += std::to_string(cstr_range.end() - cstr_range.begin());
+		set_text(state, txt);
+	}
+};
+
+class naval_unit_under_construction_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		std::string txt("+");
+		auto cstr_range = state.world.nation_get_province_naval_construction(state.local_player_nation);
+		txt += std::to_string(cstr_range.end() - cstr_range.begin());
+		set_text(state, txt);
+	}
+};
+
 class build_unit_large_window : public window_element_base {
 	dcon::unit_type_id unit_type{};
 	dcon::unit_type_id first_land_type{};
@@ -596,8 +616,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cancel_all_units") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "build_army_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			army_elements.push_back(ptr.get());
@@ -621,6 +640,17 @@ public:
 			auto ptr = make_element_by_type<element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "units_being_built_number") {
+			{
+				auto ptr = make_element_by_type<land_unit_under_construction_count>(state, id);
+				army_elements.push_back(ptr.get());
+				add_child_to_back(std::move(ptr));
+			}
+			{
+				auto ptr = make_element_by_type<naval_unit_under_construction_count>(state, id);
+				navy_elements.push_back(ptr.get());
+				return ptr;
+			}
 		} else if(name == "external_scroll_slider_queue") {
 			auto ptr = make_element_by_type<element_base>(state, id);
 			ptr->set_visible(state, false);

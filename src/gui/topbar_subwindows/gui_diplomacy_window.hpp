@@ -263,7 +263,7 @@ class diplomacy_war_exhaustion : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		return text::format_percentage(fat_id.get_war_exhaustion(), 1);
+		return text::format_percentage(fat_id.get_war_exhaustion() / 100.0f, 1);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -644,6 +644,10 @@ struct country_sort_setting {
 	bool sort_ascend = true;
 };
 
+struct dip_make_nation_visible {
+	dcon::nation_id data;
+};
+
 class diplomacy_country_listbox : public listbox_element_base<diplomacy_country_info, dcon::nation_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -682,6 +686,32 @@ protected:
 		});
 		sort_countries(state, row_contents, current_sort.sort, current_sort.sort_ascend);
 		update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dip_make_nation_visible>()) {
+			on_update(state);
+
+			auto n = any_cast<dip_make_nation_visible>(payload).data;
+			int32_t i = int32_t(row_contents.size());
+			for(; i-- > 0;) {
+				if(row_contents[i] == n) {
+					break;
+				}
+			}
+			if(i != -1) {
+				auto current_vis = list_scrollbar->raw_value();
+				auto vis_count = int32_t(row_windows.size());
+
+				if(i < current_vis || i >= current_vis + vis_count) {
+					list_scrollbar->update_raw_value(state, i);
+					update(state);
+				}
+			}
+			return message_result::consumed;
+		} else {
+			return listbox_element_base<diplomacy_country_info, dcon::nation_id>::get(state, payload);
+		}
 	}
 };
 
@@ -2422,6 +2452,7 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<dcon::nation_id>>()) {
 			facts_nation_id = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
+			send(state, country_listbox, dip_make_nation_visible{ facts_nation_id });
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<open_offer_window>()) {

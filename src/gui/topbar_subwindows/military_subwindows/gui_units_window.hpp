@@ -230,6 +230,34 @@ public:
 };
 
 template<typename T>
+class mil_goto_background_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		interactable = std::holds_alternative<T>(container);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		button_element_base::render(state, x, y);
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		if(std::holds_alternative<T>(container)) {
+			T id = std::get<T>(container);
+			state.selected_armies.clear();
+			state.selected_navies.clear();
+
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				state.map_state.center_map_on_province(state, state.world.army_get_location_from_army_location(id));
+			} else {
+				state.map_state.center_map_on_province(state, state.world.navy_get_location_from_navy_location(id));
+			}
+			state.ui_state.military_subwindow->set_visible(state, false);
+			state.select(id);
+		}
+	}
+};
+
+template<typename T>
 class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
 	simple_text_element_base* unit_name = nullptr;
 	image_element_base* unit_icon = nullptr;
@@ -249,7 +277,7 @@ class military_unit_entry : public listbox_row_element_base<military_unit_info<T
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "military_unit_entry_bg") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<mil_goto_background_button<T>>(state, id);
 		} else if(name == "unit_progress") {
 			auto ptr = make_element_by_type<military_unit_building_progress_bar<T>>(state, id);
 			unit_building_progress = ptr.get();
