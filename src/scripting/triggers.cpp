@@ -123,6 +123,20 @@ float read_float_from_payload(uint16_t const* data) {
 
 	return pack_float.f;
 }
+int32_t read_int32_t_from_payload(uint16_t const* data) {
+	union {
+		struct {
+			uint16_t low;
+			uint16_t high;
+		} v;
+		int32_t f;
+	} pack_float;
+
+	pack_float.v.low = data[0];
+	pack_float.v.high = data[1];
+
+	return pack_float.f;
+}
 
 template<typename T>
 struct gathered_s {
@@ -3491,7 +3505,7 @@ TRIGGER_FUNCTION(tf_has_empty_adjacent_province) {
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_leader) {
-	auto name = payload(tval[1]).unam_id;
+	dcon::unit_name_id name{ dcon::unit_name_id::value_base_t(read_int32_t_from_payload(tval + 1)) };
 	auto result = ve::apply(
 			[&ws, name](dcon::nation_id n) {
 				for(auto l : ws.world.nation_get_leader_loyalty(n)) {

@@ -5733,7 +5733,7 @@ uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from) {
 	assert(state.world.navy_is_valid(n));
 	state.world.navy_set_location_from_navy_location(n, p);
-	if(!state.world.navy_get_is_retreating(n)) {
+	if(!state.world.navy_get_is_retreating(n) && p.index() >= state.province_definitions.first_sea_province.index()) {
 		auto owner_nation = state.world.navy_get_controller_from_navy_control(n);
 
 		// look for existing battle

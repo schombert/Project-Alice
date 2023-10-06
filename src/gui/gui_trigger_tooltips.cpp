@@ -4219,7 +4219,7 @@ void tf_has_leader(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_leader_named"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, ws.to_string_view(trigger::payload(tval[1]).unam_id));
+	text::add_to_layout_box(ws, layout, box, ws.to_string_view(dcon::unit_name_id(dcon::unit_name_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)))));
 	text::close_layout_box(layout, box);
 }
 void tf_ai(TRIGGER_DISPLAY_PARAMS) {

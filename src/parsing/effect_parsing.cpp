@@ -1377,7 +1377,7 @@ void effect_body::define_general(ef_define_general const& value, error_handler& 
 		return;
 	}
 	context.compiled_effect.push_back(effect::define_general);
-	context.compiled_effect.push_back(trigger::payload(context.outer_context.state.add_unit_name(value.name)).value);
+	context.add_int32_t_to_payload(context.outer_context.state.add_unit_name(value.name).index());
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
@@ -1390,7 +1390,7 @@ void effect_body::define_admiral(ef_define_admiral const& value, error_handler& 
 		return;
 	}
 	context.compiled_effect.push_back(effect::define_admiral);
-	context.compiled_effect.push_back(trigger::payload(context.outer_context.state.add_unit_name(value.name)).value);
+	context.add_int32_t_to_payload(context.outer_context.state.add_unit_name(value.name).index());
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
