@@ -21,6 +21,10 @@
 #include "SPSCQueue.h"
 #include "network.hpp"
 
+#define ZSTD_STATIC_LINKING_ONLY
+#define XXH_NAMESPACE ZSTD_
+#include "zstd.h"
+
 namespace network {
 
 //
@@ -434,6 +438,7 @@ void send_and_receive_commands(sys::state& state) {
 				command_executed = true;
 				// start save stream!
 				if(state.network_state.recv_buffer.type == command::command_type::update_session_info) {
+					state.network_state.save_size = 0;
 					state.network_state.save_stream = true;
 				}
 			});
