@@ -440,8 +440,7 @@ void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32
 		text::close_layout_box(contents, box);
 	}
 
-	if(std::holds_alternative<event::pending_human_p_event>(content) ||
-			std::holds_alternative<event::pending_human_n_event>(content)) {
+	if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto box = text::open_layout_box(contents);
 		text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
 		text::close_layout_box(contents, box);
@@ -463,19 +462,24 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 		text::localised_format_box(state, contents, box, std::string_view("event_show_odds"));
 		text::close_layout_box(contents, box);
 	}
-	if(std::holds_alternative<event::pending_human_p_event>(content) ||
-			std::holds_alternative<event::pending_human_n_event>(content)) {
+	if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto box = text::open_layout_box(contents);
 		text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
 		text::close_layout_box(contents, box);
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto phe = std::get<event::pending_human_f_p_event>(content);
-		multiplicative_value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e),
-				trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
+		auto mod = state.world.free_provincial_event_get_mtth(phe.e);
+		if(mod)
+			multiplicative_value_modifier_description(state, contents, mod, trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
+		else
+			text::add_line(state, contents, "always");
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto phe = std::get<event::pending_human_f_n_event>(content);
-		multiplicative_value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e),
-				trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
+		auto mod = state.world.free_national_event_get_mtth(phe.e);
+		if(mod)
+			multiplicative_value_modifier_description(state, contents, mod, trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
+		else
+			text::add_line(state, contents, "always");
 	}
 }
 
