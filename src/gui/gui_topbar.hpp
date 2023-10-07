@@ -950,6 +950,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		base_data.data.button.shortcut = sys::virtual_key::ADD;
+		disabled = state.network_mode == sys::network_mode_type::client;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -976,6 +977,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		base_data.data.button.shortcut = sys::virtual_key::SUBTRACT;
+		disabled = state.network_mode == sys::network_mode_type::client;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -1005,8 +1007,12 @@ public:
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.internally_paused || state.ui_pause.load(std::memory_order::acquire)) {
-			frame = 0;
+		if(state.network_mode == sys::network_mode_type::single_player || state.network_mode == sys::network_mode_type::host) {
+			if(state.internally_paused || state.ui_pause.load(std::memory_order::acquire)) {
+				frame = 0;
+			} else {
+				frame = state.actual_game_speed;
+			}
 		} else {
 			frame = state.actual_game_speed;
 		}

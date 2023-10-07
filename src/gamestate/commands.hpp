@@ -95,14 +95,19 @@ enum class command_type : uint8_t {
 	even_split_army = 86,
 	even_split_navy = 87,
 
-	notify_player_ban = 117,
-	notify_player_kick = 118,
-	notify_player_picks_nation = 119,
-	notify_player_joins = 120,
-	notify_player_leaves = 121,
-	advance_tick = 122,
-	chat_message = 123,
-	update_session_info = 124,
+	// network
+	notify_player_ban = 106,
+	notify_player_kick = 107,
+	notify_player_picks_nation = 108,
+	notify_player_joins = 109,
+	notify_player_leaves = 110,
+	notify_player_oos = 111,
+	advance_tick = 112,
+	chat_message = 113,
+	update_session_info = 114,
+	start_game = 115, // for synchronized "start game"
+	stop_game = 116, // "go back to lobby"
+	save_stream = 117,
 
 	// console cheats
 	switch_nation = 128,
