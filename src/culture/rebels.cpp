@@ -916,7 +916,88 @@ void rebel_risings_check(sys::state& state) {
 			}
 
 			// end of new logic
-			
+
+			// rebel hunting logic
+			if(faction_owner.get_is_player_controlled()) {
+				static std::vector<dcon::army_id> rebel_hunters;
+				rebel_hunters.clear();
+				static std::vector<dcon::province_id> rebel_provs;
+				rebel_provs.clear();
+
+				for(auto ar : faction_owner.get_army_control()) {
+					auto loc = ar.get_army().get_location_from_army_location();
+					if(ar.get_army().get_is_rebel_hunter()
+						&& !ar.get_army().get_battle_from_army_battle_participation()
+						&& !ar.get_army().get_navy_from_army_transport()
+						&& (ar.get_army().get_arrival_time() || loc.get_nation_from_province_control() == faction_owner)
+						) {
+
+						rebel_hunters.push_back(ar.get_army().id);
+					}
+				}
+
+				for(auto prov : rf.get_province_rebel_control()) {
+					rebel_provs.push_back(prov.get_province().id);
+				}
+
+				while(rebel_provs.size() > 0 && rebel_hunters.size() > 0) {
+					auto rh = rebel_hunters[0];
+					auto loc = state.world.army_get_location_from_army_location(rh);
+					std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+						auto da = province::sorting_distance(state, a, loc);
+						auto db = province::sorting_distance(state, b, loc);
+						if(da != db)
+							return da < db;
+						else
+							return a.index() < b.index();
+					});
+
+					auto closest_prov = rebel_provs[0];
+					std::sort(rebel_hunters.begin(), rebel_hunters.end(), [&](dcon::army_id a, dcon::army_id b) {
+						auto pa = state.world.army_get_location_from_army_location(a);
+						auto pb = state.world.army_get_location_from_army_location(b);
+						auto da = province::sorting_distance(state, pa, closest_prov);
+						auto db = province::sorting_distance(state, pb, closest_prov);
+						if(da != db)
+							return da < db;
+						else
+							return a.index() < b.index();
+					});
+
+					for(uint32_t i = 0; i < rebel_hunters.size(); ++i) {
+						auto a = rebel_hunters[i];
+						if(state.world.army_get_location_from_army_location(a) == closest_prov) {
+							auto existing_path = state.world.army_get_path(a);
+							existing_path.resize(0);
+							state.world.army_set_arrival_time(a, sys::date{});
+
+							rebel_hunters[i] = rebel_hunters.back();
+							rebel_hunters.pop_back();
+							break;
+						} else if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
+							auto existing_path = state.world.army_get_path(a);
+
+							auto new_size = uint32_t(path.size());
+							existing_path.resize(new_size);
+
+							for(uint32_t j = new_size; j-- > 0; ) {
+								existing_path.at(j) = path[j];
+							}
+
+							state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+							state.world.army_set_dig_in(a, 0);
+
+							rebel_hunters[i] = rebel_hunters.back();
+							rebel_hunters.pop_back();
+							break;
+						}
+					}
+
+					rebel_provs[0] = rebel_provs.back();
+					rebel_provs.pop_back();
+				}
+			}
+
 			//if(counter != new_to_make) {
 				notification::post(state, notification::message{
 					[reb = rf.id](sys::state& state, text::layout_base& contents) {

@@ -94,6 +94,7 @@ enum class command_type : uint8_t {
 	disband_undermanned = 85,
 	even_split_army = 86,
 	even_split_navy = 87,
+	toggle_hunt_rebels = 88,
 
 	// network
 	notify_player_ban = 106,
@@ -696,6 +697,8 @@ bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
+
+void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a);
 
 void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);

@@ -3854,7 +3854,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
 	assert(state.world.army_is_valid(a));
 	state.world.army_set_location_from_army_location(a, p);
-	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a)) {
+	auto regs = state.world.army_get_army_membership(a);
+	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a) && regs.begin() != regs.end()) {
 		auto owner_nation = state.world.army_get_controller_from_army_control(a);
 
 		// look for existing battle
@@ -4189,6 +4190,8 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 }
 
 void cleanup_army(sys::state& state, dcon::army_id n) {
+	assert(!state.world.army_get_battle_from_army_battle_participation(n));
+
 	auto regs = state.world.army_get_army_membership(n);
 	while(regs.begin() != regs.end()) {
 		state.world.delete_regiment((*regs.begin()).get_regiment());
@@ -4237,6 +4240,8 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 }
 
 void cleanup_navy(sys::state& state, dcon::navy_id n) {
+	assert(!state.world.navy_get_battle_from_navy_battle_participation(n));
+
 	auto shps = state.world.navy_get_navy_membership(n);
 	while(shps.begin() != shps.end()) {
 		state.world.delete_ship((*shps.begin()).get_ship());
@@ -5733,7 +5738,8 @@ uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from) {
 	assert(state.world.navy_is_valid(n));
 	state.world.navy_set_location_from_navy_location(n, p);
-	if(!state.world.navy_get_is_retreating(n) && p.index() >= state.province_definitions.first_sea_province.index()) {
+	auto ships = state.world.navy_get_navy_membership(n);
+	if(!state.world.navy_get_is_retreating(n) && p.index() >= state.province_definitions.first_sea_province.index() && ships.begin() != ships.end()) {
 		auto owner_nation = state.world.navy_get_controller_from_navy_control(n);
 
 		// look for existing battle
@@ -5877,6 +5883,14 @@ void update_movement(sys::state& state) {
 						}
 					}();
 				}
+				if(state.world.army_get_is_rebel_hunter(a)
+					&& state.world.province_get_nation_from_province_control(dest)
+					&& state.world.nation_get_is_player_controlled(state.world.army_get_controller_from_army_control(a))
+					&& !state.world.army_get_battle_from_army_battle_participation(a)
+					&& !state.world.army_get_navy_from_army_transport(a)) {
+
+					military::send_rebel_hunter_to_next_province(state, a, state.world.army_get_location_from_army_location(a));
+				}
 			}
 		}
 	}
@@ -6004,7 +6018,77 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 
 constexpr inline float siege_speed_mul = 0.5f;
 
+void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
+	auto a = fatten(state.world, ar);
+
+	static std::vector<dcon::province_id> rebel_provs;
+	rebel_provs.clear();
+
+	auto controller = a.get_controller_from_army_control();
+
+	for(auto op : controller.get_province_ownership()) {
+		if(!op.get_province().get_nation_from_province_control()) {
+			rebel_provs.push_back(op.get_province().id);
+		}
+	}
+
+	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+		auto da = province::sorting_distance(state, a, prov);
+		auto db = province::sorting_distance(state, b, prov);
+		if(da != db)
+			return da < db;
+		else
+			return a.index() < b.index();
+	});
+	for(auto next_prov : rebel_provs) {
+		if(prov == next_prov)
+			continue;
+
+		auto path = province::make_land_path(state, prov, next_prov, controller, a);
+		if(path.size() > 0) {
+			auto existing_path = state.world.army_get_path(a);
+
+			auto new_size = uint32_t(path.size());
+			existing_path.resize(new_size);
+
+			for(uint32_t i = new_size; i-- > 0; ) {
+				existing_path.at(i) = path[i];
+			}
+
+			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+			state.world.army_set_dig_in(a, 0);
+
+			break;
+		}
+	}
+	if(!a.get_arrival_time()) {
+		auto home = a.get_ai_province();
+		if(home == prov)
+			return;
+
+		auto path = province::make_land_path(state, prov, home, controller, a);
+		if(path.size() > 0) {
+			auto existing_path = state.world.army_get_path(a);
+
+			auto new_size = uint32_t(path.size());
+			existing_path.resize(new_size);
+
+			for(uint32_t i = new_size; i-- > 0; ) {
+				existing_path.at(i) = path[i];
+			}
+
+			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+			state.world.army_set_dig_in(a, 0);
+		}
+	}
+}
+
 void update_siege_progress(sys::state& state) {
+	static auto new_nation_controller = ve::vectorizable_buffer<dcon::nation_id, dcon::province_id>(state.world.province_size());
+	province::ve_for_each_land_province(state, [&](auto ids) {
+		new_nation_controller.set(ids, dcon::nation_id{});
+	});
+
 	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t id) {
 		dcon::province_id prov{dcon::province_id::value_base_t(id)};
 
@@ -6159,22 +6243,31 @@ void update_siege_progress(sys::state& state) {
 				state.world.province_set_former_controller(prov, controller);
 				state.world.province_set_former_rebel_controller(prov, old_rf);
 
+				// logic now assumes that there are no rebel armies
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
-				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
-				assert(bool(new_controller) != bool(rebel_controller));
+				if(!are_at_war(state, new_controller, owner))
+					new_controller = owner;
+
+				//auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
+				//assert(bool(new_controller) != bool(rebel_controller));
+
+				new_nation_controller.set(prov, new_controller);
+
+				/*
 				if(!new_controller) {
 					province::set_province_controller(state, prov, rebel_controller);
 				} else if(are_at_war(state, new_controller, owner)) {
 					province::set_province_controller(state, prov, new_controller);
 				} else {
 					province::set_province_controller(state, prov, owner);
-				}
+				}*/
 			}
 		}
 	});
 
 	province::for_each_land_province(state, [&](dcon::province_id prov) {
-		if(state.world.province_get_last_control_change(prov) == state.current_date) {
+		if(auto nc = new_nation_controller.get(prov); nc) {
+			province::set_province_controller(state, prov, nc);
 			eject_ships(state, prov);
 
 			auto cc = state.world.province_get_nation_from_province_control(prov);
@@ -6221,6 +6314,20 @@ void update_siege_progress(sys::state& state) {
 					oc,
 					sys::message_setting_type::siegeover_on_nation
 				});
+			}
+
+			for(auto ar : state.world.province_get_army_location(prov)) {
+				auto a = ar.get_army();
+
+				if(a.get_is_rebel_hunter()
+					&& a.get_controller_from_army_control().get_is_player_controlled()
+					&& !a.get_battle_from_army_battle_participation()
+					&& !a.get_navy_from_army_transport()
+					&& !a.get_arrival_time()) {
+
+					send_rebel_hunter_to_next_province(state, a, prov);
+
+				}
 			}
 
 			/*
