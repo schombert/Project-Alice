@@ -39,6 +39,11 @@ struct client_data {
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
 
+	// accounting for save progress
+	size_t total_sent_bytes = 0;
+	size_t save_stream_offset = 0;
+	size_t save_stream_size = 0;
+
 	inline bool is_active() {
 		return socket_fd > 0;
 	}
@@ -64,8 +69,9 @@ struct network_state {
 	uint32_t save_size = 0; //client
 	std::vector<uint8_t> save_data; //client
 
-	std::atomic<bool> out_of_sync = false; // network -> game state signal
-	std::atomic<bool> reported_oos = false; // has oos been reported to host yet?
+	bool has_save_been_loaded = false; // has save been loaded?
+	bool out_of_sync = false; // network -> game state signal
+	bool reported_oos = false; // has oos been reported to host yet?
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}

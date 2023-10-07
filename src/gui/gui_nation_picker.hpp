@@ -502,15 +502,24 @@ public:
 	}
 };
 
-class multiplayer_ping_text : public simple_text_element_base {
-	uint32_t last_ms = 0;
+class multiplayer_status_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			set_text(state, "");
+		if(state.network_mode == sys::network_mode_type::host) {
+			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
+			for(auto const& c : state.network_state.clients) {
+				if(c.playing_as == n) {
+					auto completed = c.total_sent_bytes - c.save_stream_offset;
+					auto total = c.save_stream_size;
+					float progress = (float(total) / float(completed));
+					text::substitution_map sub{};
+					text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+					set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+				}
+			}
 		} else {
-			set_text(state, std::to_string(last_ms) + " ms");
+			set_text(state, text::produce_simple_string(state, "alice_status_ready"));
 		}
 	}
 };
@@ -598,7 +607,7 @@ public:
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "save_progress") {
-			auto ptr = make_element_by_type<multiplayer_ping_text>(state, id);
+			auto ptr = make_element_by_type<multiplayer_status_text>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;

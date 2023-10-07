@@ -4517,18 +4517,17 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum, int32_t speed) {
-//#ifndef NDEBUG
-	if(state.network_state.out_of_sync.load(std::memory_order::acquire) == false) {
+	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
 		if(!current.is_equal(checksum))
-			state.network_state.out_of_sync.store(true, std::memory_order::release);
+			state.network_state.out_of_sync = true;
 	}
-//#endif
 	state.single_game_tick();
 	state.host_game_speed = speed;
 }
 
 void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
+	state.network_state.has_save_been_loaded = false;
 	state.game_seed = seed;
 	state.session_host_checksum = k;
 }

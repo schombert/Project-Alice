@@ -20,6 +20,7 @@
 #include "commands.hpp"
 #include "SPSCQueue.h"
 #include "network.hpp"
+#include "serialization.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -54,7 +55,7 @@ static int internal_socket_send(socket_t socket_fd, const void *data, size_t n) 
 template<typename F>
 static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&& func) {
 	while(*m < len) {
-		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, len - *m);
+		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, std::min<size_t>(len - *m, 1024));
 		if(r > 0) {
 			*m += static_cast<size_t>(r);
 		} else if(r < 0) { // error
@@ -74,7 +75,7 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 	while(!buffer.empty()) {
-		int r = internal_socket_send(socket_fd, buffer.data(), buffer.size());
+		int r = internal_socket_send(socket_fd, buffer.data(), std::min<size_t>(buffer.size(), 1024));
 		if(r > 0) {
 			buffer.erase(buffer.begin(), buffer.begin() + static_cast<size_t>(r));
 		} else if(r < 0) {
@@ -221,10 +222,22 @@ static void disconnect_client(sys::state& state, client_data& client) {
 static uint8_t* write_network_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
 	uint32_t decompressed_length = uncompressed_size;
 	uint32_t section_length = uint32_t(ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size), ptr_in,
-		uncompressed_size, 19)); // write compressed data
+		uncompressed_size, ZSTD_maxCLevel())); // write compressed data
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
 	return ptr_out + sizeof(uint32_t) * 2 + section_length;
+}
+
+template<typename T>
+static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T const& function) {
+	uint32_t section_length = 0;
+	uint32_t decompressed_length = 0;
+	memcpy(&section_length, ptr_in, sizeof(uint32_t));
+	memcpy(&decompressed_length, ptr_in + sizeof(uint32_t), sizeof(uint32_t));
+	auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[decompressed_length]);
+	ZSTD_decompress(temp_buffer.get(), decompressed_length, ptr_in + sizeof(uint32_t) * 2, section_length);
+	function(temp_buffer.get(), decompressed_length);
+	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
 static void accept_new_clients(sys::state& state) {
@@ -273,7 +286,7 @@ static void accept_new_clients(sys::state& state) {
 			});
 			assert(bool(assigned_nation));
 			client.playing_as = assigned_nation;
-			state.world.nation_set_is_player_controlled(assigned_nation, false);
+			state.world.nation_set_is_player_controlled(assigned_nation, true);
 			{ // tell the client which nation they're
 				command::payload c;
 				c.type = command::command_type::notify_player_picks_nation;
@@ -290,16 +303,21 @@ static void accept_new_clients(sys::state& state) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 			{ // savefile streaming
-				size_t save_space = sizeof_save_section(state);
-				auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
-				write_save_section(temp_save_buffer.get(), state);
-				// this is an upper bound, since compacting the data may require less space
-				size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
-				auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
-				auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
-				auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-				socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-				socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
+				if(state.network_state.has_save_been_loaded) {
+					size_t save_space = sizeof_save_section(state);
+					auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
+					write_save_section(temp_save_buffer.get(), state);
+					// this is an upper bound, since compacting the data may require less space
+					size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
+					auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
+					auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
+					auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
+					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
+					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
+				} else {
+					uint32_t zero = 0;
+					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
+				}
 			}
 			{ // Tell all the other clients that we have joined
 				command::payload c;
@@ -363,11 +381,18 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 			if(client.is_active()) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				if(c.type == command::command_type::update_session_info) {
+					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+					client.save_stream_size = static_cast<size_t>(total_size_used);
 					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
 					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
 				}
 			}
 		}
+		// TODO: How do we not need to have to do this?
+		state.preload();
+		state.fill_unsaved_data();
+		with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
+		state.game_state_updated.store(true, std::memory_order::release);
 	} else {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
@@ -400,36 +425,55 @@ void send_and_receive_commands(sys::state& state) {
 
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
+				size_t old_size = client.send_buffer.size();
 				if(socket_send(client.socket_fd, client.send_buffer) < 0) // error
 					disconnect_client(state, client);
+				client.total_sent_bytes += old_size - client.send_buffer.size();
 			}
 		}
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		if(state.network_state.save_stream) {
 			if(state.network_state.save_size == 0) {
 				int r = socket_recv(state.network_state.socket_fd, &state.network_state.save_size, sizeof(state.network_state.save_size), &state.network_state.recv_count, [&]() {
-					if(state.network_state.save_size == 0)
-						std::abort();
-					if(state.network_state.save_size >= 24 * 1000 * 1000) { // 24 mb
+					if(state.network_state.save_size == 0) { //no save to send (new game)
+						state.network_state.save_data.clear();
+						state.network_state.save_stream = false;
+					} else {
+						if(state.network_state.save_size >= 24 * 1000 * 1000) { // 24 mb
 #ifdef _WIN64
-						MessageBoxA(NULL, "Network client save stream too big", "Network error", MB_OK);
+							MessageBoxA(NULL, "Network client save stream too big", "Network error", MB_OK);
 #endif
-						std::abort();
+							std::abort();
+						}
+						state.network_state.save_data.resize(static_cast<size_t>(state.network_state.save_size));
 					}
-					state.network_state.save_data.resize(static_cast<size_t>(state.network_state.save_size));
 				});
+				if(r < 0) { // error
+#ifdef _WIN64
+					MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+#endif
+					std::abort();
+				}
 			} else {
 				int r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(), &state.network_state.recv_count, [&]() {
 					dcon::nation_id old_local_player_nation = state.local_player_nation;
 					//
-					// read the savefile of the lobby...
 					state.preload();
-					sys::with_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-					state.network_state.save_stream = false; // go back to normal command loop stuff
-					state.game_state_updated.store(true, std::memory_order::release);
+					state.fill_unsaved_data();
+					with_network_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
 					//
 					state.local_player_nation = old_local_player_nation;
+					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+					//
+					state.game_state_updated.store(true, std::memory_order::release);
+					state.network_state.save_stream = false; // go back to normal command loop stuff
 				});
+				if(r < 0) { // error
+#ifdef _WIN64
+					MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+#endif
+					std::abort();
+				}
 			}
 		} else {
 			// receive commands from the server and immediately execute them
@@ -466,17 +510,14 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 				std::abort();
 			}
-
-			if(state.network_state.out_of_sync.load(std::memory_order::acquire) == true) {
-				if(state.network_state.reported_oos.load(std::memory_order::acquire) == false) {
-					command::notify_player_oos(state, state.local_player_nation);
-					state.network_state.reported_oos.store(true, std::memory_order::release);
-				}
-			}
 		}
 	}
 
 	if(command_executed) {
+		if(state.network_state.out_of_sync && !state.network_state.reported_oos) {
+			command::notify_player_oos(state, state.local_player_nation);
+			state.network_state.reported_oos = true;
+		}
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
 }
