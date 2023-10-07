@@ -177,7 +177,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode != sys::network_mode_type::host);
+		disabled = (state.network_mode != sys::network_mode_type::host) || (state.mode == sys::game_mode_type::pick_nation);
 	}
 
 	void button_action(sys::state& state) noexcept override {

@@ -1336,6 +1336,7 @@ void state::on_create() {
 	{ // And the other on the normal in game UI
 		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
 		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
+		ui_state.chat_window = new_elm.get(); // Default for singleplayer is the in-game one, lobby one is useless in sp
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 
@@ -3527,8 +3528,8 @@ void state::single_game_tick() {
 }
 
 sys::checksum_key state::get_save_checksum() {
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(*this)]);
 	dcon::load_record loaded = world.make_serialize_record_store_save();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
 
@@ -3541,8 +3542,8 @@ sys::checksum_key state::get_save_checksum() {
 }
 
 sys::checksum_key state::get_scenario_checksum() {
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_scenario_section(*this)]);
 	dcon::load_record loaded = world.make_serialize_record_store_scenario();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
 
@@ -3556,31 +3557,22 @@ sys::checksum_key state::get_scenario_checksum() {
 
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
+		network::send_and_receive_commands(*this);
+		command::execute_pending_commands(*this);
 		if(network_mode == sys::network_mode_type::client) {
-			network::send_and_receive_commands(*this);
-			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
 			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
-				network::send_and_receive_commands(*this);
-				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();
 				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
-
-				network::send_and_receive_commands(*this);
-				command::execute_pending_commands(*this);
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 					last_update = entry_time;
 					if(network_mode == sys::network_mode_type::host) {
-						command::payload c;
-						c.type = command::command_type::advance_tick;
-						c.data.advance_tick.checksum = get_save_checksum();
-						c.data.advance_tick.speed = speed;
-						network_state.outgoing_commands.push(c);
+						command::advance_tick(*this, local_player_nation);
 					} else {
 						single_game_tick();
 					}

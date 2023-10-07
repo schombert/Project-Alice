@@ -254,10 +254,8 @@ protected:
 		return "alice_savegameentry";
 	}
 
-public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base<save_game_item, save_item>::on_create(state);
-
+	void update_save_list(sys::state& state) noexcept {
+		row_contents.clear();
 		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), true });
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
@@ -279,6 +277,19 @@ public:
 		});
 
 		update(state);
+	}
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base<save_game_item, save_item>::on_create(state);
+		update_save_list(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.save_list_updated.load(std::memory_order::acquire) == true) {
+			state.save_list_updated.store(false, std::memory_order::release); // acknowledge update
+			update_save_list(state);
+		}
 	}
 };
 
@@ -457,6 +468,13 @@ public:
 
 class start_game_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		if(state.network_mode == sys::network_mode_type::client) {
+			set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
@@ -464,6 +482,7 @@ public:
 			command::start_game(state, state.local_player_nation);
 		}
 	}
+
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
 		if(state.network_mode == sys::network_mode_type::client) {

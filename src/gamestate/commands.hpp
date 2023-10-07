@@ -108,7 +108,6 @@ enum class command_type : uint8_t {
 	update_session_info = 114,
 	start_game = 115, // for synchronized "start game"
 	stop_game = 116, // "go back to lobby"
-	save_stream = 117,
 
 	// console cheats
 	switch_nation = 128,
@@ -768,6 +767,7 @@ bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 
+void advance_tick(sys::state& state, dcon::nation_id source);
 void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);

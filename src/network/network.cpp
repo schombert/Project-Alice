@@ -279,11 +279,12 @@ static void accept_new_clients(sys::state& state) {
 			dcon::nation_id assigned_nation{};
 			// give the client a "joining" nation, basically a temporal nation choosen
 			// "randomly" that is tied to the client iself
-			state.world.for_each_nation([&](dcon::nation_id n) {
+			for(auto n : state.world.in_nation) {
 				if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
 					assigned_nation = n;
+					break;
 				}
-			});
+			}
 			assert(bool(assigned_nation));
 			client.playing_as = assigned_nation;
 			state.world.nation_set_is_player_controlled(assigned_nation, true);
@@ -319,21 +320,28 @@ static void accept_new_clients(sys::state& state) {
 					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
 				}
 			}
-			{ // Tell all the other clients that we have joined
-				command::payload c;
-				c.type = command::command_type::notify_player_joins;
-				c.source = assigned_nation;
-				state.network_state.outgoing_commands.push(c);
-			}
 			// notify the client of all current players
-			state.world.for_each_nation([&](dcon::nation_id n) {
+			for(auto n : state.world.in_nation) {
 				if(state.world.nation_get_is_player_controlled(n)) {
 					command::payload c;
 					c.type = command::command_type::notify_player_joins;
 					c.source = n;
 					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				}
-			});
+			}
+			// if already in game, allow the player to join into the lobby as if she was into it
+			if(state.mode == sys::game_mode_type::in_game) {
+				command::payload c;
+				c.type = command::command_type::start_game;
+				c.source = state.local_player_nation;
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			}
+			{ // Tell all the other clients that we have joined
+				command::payload c;
+				c.type = command::command_type::notify_player_joins;
+				c.source = assigned_nation;
+				state.network_state.outgoing_commands.push(c);
+			}
 			return;
 		}
 	}
@@ -368,6 +376,13 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 		return;
 
 	// propagate to all the clients
+	for(auto& client : state.network_state.clients) {
+		if(client.is_active()) {
+			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+		}
+	}
+
+	// special case for save streams
 	if(c.type == command::command_type::update_session_info) {
 		size_t save_space = sizeof_save_section(state);
 		auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
@@ -379,13 +394,10 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 		auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				if(c.type == command::command_type::update_session_info) {
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = static_cast<size_t>(total_size_used);
-					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
-				}
+				client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+				client.save_stream_size = static_cast<size_t>(total_size_used);
+				socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
+				socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
 			}
 		}
 		// Mirror the calls done by the client
@@ -403,12 +415,6 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 		for(const auto n : players)
 			state.world.nation_set_is_player_controlled(n, true);
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-	} else {
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active()) {
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-		}
 	}
 }
 
@@ -420,11 +426,12 @@ void send_and_receive_commands(sys::state& state) {
 		// send the commands of the server to all the clients
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			bool valid = true;
-			if((c->type == command::command_type::notify_player_ban || c->type == command::command_type::notify_player_kick)) {
-				valid = (c->source == state.local_player_nation);
-			}
-			if(command::is_console_command(c->type) == false && valid) {
+			bool valid = !command::is_console_command(c->type);
+			if(valid) {
+				if(c->type == command::command_type::advance_tick) {
+					// generate checksum for the "advance tick" command!
+					c->data.advance_tick.checksum = state.get_save_checksum();
+				}
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
 				command_executed = true;
@@ -484,7 +491,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 			if(r < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+				MessageBoxA(NULL, "Network client save stream receive error", "Network error", MB_OK);
 #endif
 				std::abort();
 			}
@@ -501,7 +508,7 @@ void send_and_receive_commands(sys::state& state) {
 			});
 			if(r < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+				MessageBoxA(NULL, "Network client command receive error", "Network error", MB_OK);
 #endif
 				std::abort();
 			}
@@ -519,7 +526,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client send error", "Network error", MB_OK);
+				MessageBoxA(NULL, "Network client command send error", "Network error", MB_OK);
 #endif
 				std::abort();
 			}

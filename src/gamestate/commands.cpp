@@ -4554,20 +4554,26 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum, int32_t speed) {
-	if(!state.network_state.out_of_sync) {
-		sys::checksum_key current = state.get_save_checksum();
-		if(!current.is_equal(checksum))
-			state.network_state.out_of_sync = true;
-	}
-	state.single_game_tick();
-	state.actual_game_speed = speed;
+void advance_tick(sys::state& state, dcon::nation_id source) {
+	payload p;
+	p.type = command::command_type::advance_tick;
+	p.source = source;
+	// Postponed until it is sent!
+	//p.data.advance_tick.checksum = state.get_save_checksum();
+	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
+	add_to_command_queue(state, p);
 }
 
-void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
-	state.network_state.has_save_been_loaded = false;
-	state.game_seed = seed;
-	state.session_host_checksum = k;
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
+	if(!state.network_state.out_of_sync) {
+		sys::checksum_key current = state.get_save_checksum();
+		if(!current.is_equal(k))
+			state.network_state.out_of_sync = true;
+	}
+	if(state.network_mode == sys::network_mode_type::client) {
+		state.actual_game_speed = speed;
+	}
+	state.single_game_tick();
 }
 
 void update_session_info(sys::state& state, dcon::nation_id source) {
@@ -4578,6 +4584,11 @@ void update_session_info(sys::state& state, dcon::nation_id source) {
 	p.data.update_session_info.seed = state.game_seed;
 	p.data.update_session_info.checksum = state.get_save_checksum();
 	add_to_command_queue(state, p);
+}
+void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
+	state.network_state.has_save_been_loaded = true;
+	state.game_seed = seed;
+	state.session_host_checksum = k;
 }
 
 void execute_start_game(sys::state& state, dcon::nation_id source) {
