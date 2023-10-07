@@ -35,13 +35,10 @@ public:
 };
 
 class chat_message_entry : public listbox_row_element_base<chat_message> {
-	flag_button* country_flag = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
-			country_flag = ptr.get();
-			return ptr;
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "text_shadow") {
 			return make_element_by_type<chat_message_text>(state, id);
 		} else if(name == "text") {
@@ -61,12 +58,6 @@ public:
 		}
 		return listbox_row_element_base::get(state, payload);
 	}
-
-	void update(sys::state& state) noexcept override {
-		country_flag->set_visible(state, bool(content.source));
-		if(bool(content.source))
-			country_flag->on_update(state);
-	}
 };
 
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
@@ -77,10 +68,21 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto const& c : state.ui_state.chat_messages)
-			if(c.source)
+		for(uint8_t i = state.ui_state.chat_messages_index; i < uint8_t(state.ui_state.chat_messages.size()); i++) {
+			auto const& c = state.ui_state.chat_messages[i];
+			if(bool(c.source))
 				row_contents.push_back(c);
+		}
+		for(uint8_t i = 0; i < state.ui_state.chat_messages_index; i++) {
+			auto const& c = state.ui_state.chat_messages[i];
+			if(bool(c.source))
+				row_contents.push_back(c);
+		}
 		update(state);
+	}
+
+	bool is_reversed() override {
+		return true;
 	}
 };
 
@@ -89,6 +91,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
+		if(state.network_mode != sys::network_mode_type::host)
+			disabled = true;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -140,6 +144,12 @@ public:
 
 class chat_edit_box : public edit_box_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		edit_box_element_base::on_create(state);
+		base_data.size.y += 4;
+		base_data.data.text.border_size.y += 8;
+	}
+
 	void edit_box_enter(sys::state& state, std::string_view s) noexcept override {
 		dcon::nation_id target{};
 		if(s.length() > 4 && s[0] == '@') {
@@ -159,10 +169,26 @@ public:
 	}
 };
 
-class chat_window : public window_element_base {
+class chat_return_to_lobby_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
+		button_element_base::on_create(state);
+		set_button_text(state, text::produce_simple_string(state, "back"));
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		disabled = (state.network_mode != sys::network_mode_type::host);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		command::stop_game(state, state.local_player_nation);
+	}
+};
+
+class chat_window : public window_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		state.ui_state.chat_window = this; // This is required to dynamically switch between the lobby and in-game chat!
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -177,9 +203,7 @@ public:
 		} else if(name == "lobby_chat_edit") {
 			return make_element_by_type<chat_edit_box>(state, id);
 		} else if(name == "back_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<chat_return_to_lobby_button>(state, id);
 		} else {
 			return nullptr;
 		}
