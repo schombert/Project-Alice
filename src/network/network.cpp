@@ -55,7 +55,7 @@ static int internal_socket_send(socket_t socket_fd, const void *data, size_t n) 
 template<typename F>
 static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&& func) {
 	while(*m < len) {
-		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, std::min<size_t>(len - *m, 1024));
+		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, len - *m);
 		if(r > 0) {
 			*m += static_cast<size_t>(r);
 		} else if(r < 0) { // error
@@ -75,7 +75,7 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 	while(!buffer.empty()) {
-		int r = internal_socket_send(socket_fd, buffer.data(), std::min<size_t>(buffer.size(), 1024));
+		int r = internal_socket_send(socket_fd, buffer.data(), buffer.size());
 		if(r > 0) {
 			buffer.erase(buffer.begin(), buffer.begin() + static_cast<size_t>(r));
 		} else if(r < 0) {
@@ -388,11 +388,21 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 				}
 			}
 		}
-		// TODO: How do we not need to have to do this?
+		// Mirror the calls done by the client
+		std::vector<dcon::nation_id> players;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.preload();
-		state.fill_unsaved_data();
 		with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-		state.game_state_updated.store(true, std::memory_order::release);
+		state.fill_unsaved_data();
+		state.local_player_nation = old_local_player_nation;
+		for(const auto n : state.world.in_nation)
+			state.world.nation_set_is_player_controlled(n, false);
+		for(const auto n : players)
+			state.world.nation_set_is_player_controlled(n, true);
+		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	} else {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
@@ -433,8 +443,9 @@ void send_and_receive_commands(sys::state& state) {
 		}
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		if(state.network_state.save_stream) {
+			int r = 0;
 			if(state.network_state.save_size == 0) {
-				int r = socket_recv(state.network_state.socket_fd, &state.network_state.save_size, sizeof(state.network_state.save_size), &state.network_state.recv_count, [&]() {
+				r = socket_recv(state.network_state.socket_fd, &state.network_state.save_size, sizeof(state.network_state.save_size), &state.network_state.recv_count, [&]() {
 					if(state.network_state.save_size == 0) { //no save to send (new game)
 						state.network_state.save_data.clear();
 						state.network_state.save_stream = false;
@@ -448,32 +459,34 @@ void send_and_receive_commands(sys::state& state) {
 						state.network_state.save_data.resize(static_cast<size_t>(state.network_state.save_size));
 					}
 				});
-				if(r < 0) { // error
-#ifdef _WIN64
-					MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
-#endif
-					std::abort();
-				}
 			} else {
-				int r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(), &state.network_state.recv_count, [&]() {
+				r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(), &state.network_state.recv_count, [&]() {
+					std::vector<dcon::nation_id> players;
+					for(const auto n : state.world.in_nation)
+						if(state.world.nation_get_is_player_controlled(n))
+							players.push_back(n);
 					dcon::nation_id old_local_player_nation = state.local_player_nation;
-					//
 					state.preload();
-					state.fill_unsaved_data();
 					with_network_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-					//
+					state.fill_unsaved_data();
 					state.local_player_nation = old_local_player_nation;
+					for(const auto n : state.world.in_nation)
+						state.world.nation_set_is_player_controlled(n, false);
+					for(const auto n : players)
+						state.world.nation_set_is_player_controlled(n, true);
 					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 					//
 					state.game_state_updated.store(true, std::memory_order::release);
+					//
+					state.network_state.save_data.clear();
 					state.network_state.save_stream = false; // go back to normal command loop stuff
 				});
-				if(r < 0) { // error
+			}
+			if(r < 0) { // error
 #ifdef _WIN64
-					MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
+				MessageBoxA(NULL, "Network client receive error", "Network error", MB_OK);
 #endif
-					std::abort();
-				}
+				std::abort();
 			}
 		} else {
 			// receive commands from the server and immediately execute them
