@@ -1292,15 +1292,15 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		state.world.delete_leader((*leaders.begin()).get_leader());
 	}
 
-	auto armies = state.world.nation_get_army_control(n);
-	while(armies.begin() != armies.end()) {
-		military::cleanup_army(state, (*armies.begin()).get_army());
-	}
+	//auto armies = state.world.nation_get_army_control(n);
+	//while(armies.begin() != armies.end()) {
+	//	military::cleanup_army(state, (*armies.begin()).get_army());
+	//}
 
-	auto navies = state.world.nation_get_navy_control(n);
-	while(navies.begin() != navies.end()) {
-		military::cleanup_navy(state, (*navies.begin()).get_navy());
-	}
+	//auto navies = state.world.nation_get_navy_control(n);
+	//while(navies.begin() != navies.end()) {
+	//	military::cleanup_navy(state, (*navies.begin()).get_navy());
+	//}
 
 	//auto rebels = state.world.nation_get_rebellion_within(n);
 	//while(rebels.begin() != rebels.end()) {

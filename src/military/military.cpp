@@ -4049,6 +4049,9 @@ bool retreat(sys::state& state, dcon::navy_id n) {
 	auto province_start = state.world.navy_get_location_from_navy_location(n);
 	auto nation_controller = state.world.navy_get_controller_from_navy_control(n);
 
+	if(!nation_controller)
+		return false;
+
 	auto retreat_path = province::make_naval_retreat_path(state, nation_controller, province_start);
 	if(retreat_path.size() > 0) {
 		state.world.navy_set_is_retreating(n, true);
@@ -4317,10 +4320,6 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				state.world.army_set_arrival_time(n.get_army(), arrival_time_to(state, n.get_army(), path.at(path.size() - 1)));
 			}
 		}
-
-		if(result != battle_result::indecisive) { // so we don't restart battles as the war is ending
-			army_arrives_in_province(state, n.get_army(), location, crossing_type::none, b);
-		}
 	}
 
 	/*
@@ -4459,6 +4458,16 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 		}
 	}
 
+
+	if(result != battle_result::indecisive) { // so we don't restart battles as the war is ending
+		auto par_range = state.world.land_battle_get_army_battle_participation(b);
+		while(par_range.begin() != par_range.end()) {
+			auto n = (*par_range.begin()).get_army();
+			n.set_battle_from_army_battle_participation(dcon::land_battle_id{});
+			army_arrives_in_province(state, n, location, crossing_type::none, b);
+		}
+	}
+
 	state.world.delete_land_battle(b);
 }
 
@@ -4522,10 +4531,6 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 					state.world.army_set_arrival_time(em.get_army(), arrival_time_to(state, em.get_army(), apath.at(apath.size() - 1)));
 				}
 			}
-		}
-
-		if(result != battle_result::indecisive) { // so we don't restart battles as the war is ending
-			navy_arrives_in_province(state, n.get_navy(), location, b);
 		}
 	}
 
@@ -4653,6 +4658,15 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 
 				}
 			}
+		}
+	}
+
+	if(result != battle_result::indecisive) { // so we don't restart battles as the war is ending
+		auto par_range = state.world.naval_battle_get_navy_battle_participation(b);
+		while(par_range.begin() != par_range.end()) {
+			auto n = (*par_range.begin()).get_navy();
+			n.set_battle_from_navy_battle_participation(dcon::naval_battle_id{});
+			navy_arrives_in_province(state, n, location, b);
 		}
 	}
 
