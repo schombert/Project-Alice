@@ -348,6 +348,7 @@ modifier_base
 	naval_defense_modifier                    value      float            member_fn
 	land_attack_modifier                      value      float            member_fn
 	land_defense_modifier                     value      float            member_fn
+	land_defence_modifier                     value      float            member_fn (land_defense_modifier)
 	tariff_efficiency_modifier                value      float            member_fn
 	max_loan_modifier                         value      float            member_fn
 	movement_cost                             value      float            member_fn
@@ -1612,6 +1613,7 @@ technology_contents
 	activate_building     value      text                   member_fn
 	colonial_points       value      int                    member_fn
 	rgo_goods_output      group      tech_rgo_goods_output  member
+	rgo_goods_throughput       group      tech_rgo_goods_output   member  (rgo_goods_output)
 	rgo_size              group      tech_rgo_size          member
 	factory_goods_output  group      tech_fac_goods_output  member
 	plurality             value      float                  member_fn

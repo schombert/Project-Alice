@@ -929,15 +929,16 @@ void discover_inventions(sys::state& state) {
 		assert(odds);
 		if(lim) {
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
-				auto may_not_discover = state.world.nation_get_active_inventions(nids, inv) ||
-																(state.world.nation_get_owned_province_count(nids) == 0) ||
-																!trigger::evaluate(state, lim, trigger::to_generic(nids), trigger::to_generic(nids), 0);
-				if(ve::compress_mask(may_not_discover).v != 0) {
+				auto may_discover = !state.world.nation_get_active_inventions(nids, inv)
+					&& (state.world.nation_get_owned_province_count(nids) != 0)
+					&& trigger::evaluate(state, lim, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+
+				if(ve::compress_mask(may_discover).v != 0) {
 					auto chances =
 							trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
 					ve::apply(
-							[&](dcon::nation_id n, float chance, bool block_discovery) {
-								if(!block_discovery) {
+							[&](dcon::nation_id n, float chance, bool allow_discovery) {
+								if(!allow_discovery) {
 									auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
 									if(int32_t(random % 100) < int32_t(chance)) {
 										apply_invention(state, n, inv);
@@ -954,7 +955,7 @@ void discover_inventions(sys::state& state) {
 									}
 								}
 							},
-							nids, chances, may_not_discover);
+							nids, chances, may_discover);
 				}
 			});
 		} else {
