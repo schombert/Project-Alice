@@ -44,7 +44,7 @@ struct client_data {
 	size_t save_stream_offset = 0;
 	size_t save_stream_size = 0;
 
-	inline bool is_active() {
+	inline bool is_active() const {
 		return socket_fd > 0;
 	}
 };

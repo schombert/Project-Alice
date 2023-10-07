@@ -1263,12 +1263,6 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
-		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
-		ui_state.chat_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
 		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
 		ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
 		new_elm_army->set_visible(*this, false);
@@ -1331,6 +1325,17 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "alice_land_combat");
 		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+
+	{ // One on the lobby
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
+		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
+		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
+	}
+	{ // And the other on the normal in game UI
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
+		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 
