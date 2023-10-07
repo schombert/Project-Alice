@@ -1014,7 +1014,7 @@ public:
 				frame = state.actual_game_speed;
 			}
 		} else {
-			frame = state.host_game_speed;
+			frame = state.actual_game_speed;
 		}
 		topbar_pause_button::render(state, x, y);
 	}

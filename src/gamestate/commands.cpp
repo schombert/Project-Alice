@@ -4524,7 +4524,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 			state.network_state.out_of_sync = true;
 	}
 	state.single_game_tick();
-	state.host_game_speed = speed;
+	state.actual_game_speed = speed;
 }
 
 void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
