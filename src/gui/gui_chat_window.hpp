@@ -35,13 +35,10 @@ public:
 };
 
 class chat_message_entry : public listbox_row_element_base<chat_message> {
-	flag_button* country_flag = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
-			country_flag = ptr.get();
-			return ptr;
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "text_shadow") {
 			return make_element_by_type<chat_message_text>(state, id);
 		} else if(name == "text") {
@@ -61,12 +58,6 @@ public:
 		}
 		return listbox_row_element_base::get(state, payload);
 	}
-
-	void update(sys::state& state) noexcept override {
-		country_flag->set_visible(state, bool(content.source));
-		if(bool(content.source))
-			country_flag->on_update(state);
-	}
 };
 
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
@@ -79,12 +70,12 @@ public:
 		row_contents.clear();
 		for(uint8_t i = state.ui_state.chat_messages_index; i < uint8_t(state.ui_state.chat_messages.size()); i++) {
 			auto const& c = state.ui_state.chat_messages[i];
-			if(c.source)
+			if(bool(c.source))
 				row_contents.push_back(c);
 		}
 		for(uint8_t i = 0; i < state.ui_state.chat_messages_index; i++) {
 			auto const& c = state.ui_state.chat_messages[i];
-			if(c.source)
+			if(bool(c.source))
 				row_contents.push_back(c);
 		}
 		update(state);
