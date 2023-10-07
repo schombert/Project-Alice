@@ -409,6 +409,7 @@ void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
 void run_gc(sys::state& state);
 void update_blackflag_status(sys::state& state);
+void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov);
 
 bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);

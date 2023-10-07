@@ -3518,6 +3518,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
 		}
 		state.world.army_set_dig_in(a, 0);
+		state.world.army_set_is_rebel_hunter(a, false);
 	}
 }
 
@@ -3647,6 +3648,7 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 			state.world.army_set_black_flag(a, false);
 		}
 	}
+	state.world.army_set_is_rebel_hunter(a, false);
 	state.world.army_set_dig_in(a, 0);
 }
 
@@ -3665,6 +3667,10 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 	if(state.world.army_get_controller_from_army_control(b) != source)
 		return false;
 	if(state.world.army_get_is_retreating(a) || state.world.army_get_is_retreating(b))
+		return false;
+	if(state.world.army_get_navy_from_army_transport(a))
+		return false;
+	if(state.world.army_get_navy_from_army_transport(b))
 		return false;
 
 	if(state.world.army_get_location_from_army_location(a) != state.world.army_get_location_from_army_location(b))
@@ -3788,6 +3794,37 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 		state.world.delete_regiment(r);
 }
 
+void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_hunt_rebels;
+	p.source = source;
+	p.data.army_movement.a = a;
+	add_to_command_queue(state, p);
+}
+void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	auto owner = state.world.army_get_controller_from_army_control(a);
+	if(owner != source)
+		return;
+
+	auto current_state = state.world.army_get_is_rebel_hunter(a);
+	if(current_state) {
+		state.world.army_set_is_rebel_hunter(a, false);
+	} else {
+		auto path = state.world.army_get_path(a);
+		if(path.size() > 0) {
+			state.world.army_set_ai_province(a, path.at(0));
+		} else {
+			state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
+			if(!state.world.army_get_battle_from_army_battle_participation(a)
+				&& !state.world.army_get_navy_from_army_transport(a)) {
+
+				military::send_rebel_hunter_to_next_province(state, a, state.world.army_get_location_from_army_location(a));
+			}
+		}
+		state.world.army_set_is_rebel_hunter(a, true);
+	}
+}
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
@@ -3911,7 +3948,7 @@ void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	add_to_command_queue(state, p);
 }
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
+	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) && !state.world.army_get_navy_from_army_transport(a)  &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a));
 }
 void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4846,6 +4883,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::even_split_navy:
 		execute_evenly_split_navy(state, c.source, c.data.navy_movement.n);
+		break;
+	case command_type::toggle_hunt_rebels:
+		execute_toggle_rebel_hunting(state, c.source, c.data.army_movement.a);
 		break;
 
 		// common mp commands

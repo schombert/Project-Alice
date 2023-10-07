@@ -1626,6 +1626,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ is_rebel_hunter }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
 		name{ moving_to_merge }
 		type{ bitfield }
 		tag{ save }
