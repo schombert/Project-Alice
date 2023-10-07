@@ -407,6 +407,7 @@ struct nation_pick_data {
 
 struct advance_tick_data {
 	sys::checksum_key checksum;
+	int32_t speed;
 };
 
 struct update_session_info_data {
@@ -774,8 +775,10 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
-
+void notify_player_oos(sys::state& state, dcon::nation_id source);
 void update_session_info(sys::state& state, dcon::nation_id source);
+void start_game(sys::state& state, dcon::nation_id source);
+void stop_game(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);

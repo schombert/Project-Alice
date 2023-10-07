@@ -323,9 +323,6 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				}
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
-			} else if(keycode == virtual_key::TAB) {
-				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
-				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 			if(!ui_state.topbar_subwindow->is_visible()) {
 				map_state.on_key_down(keycode, mod);
@@ -338,6 +335,11 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				}
 			}
 		}
+	}
+
+	if(keycode == virtual_key::TAB) {
+		ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
+		ui_state.root->move_child_to_front(ui_state.chat_window);
 	}
 }
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
@@ -1181,6 +1183,8 @@ void state::on_create() {
 			ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("endoflandcombatpopup")->second.definition].data.window.flags |=
 			ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find("ingame_lobby_window")->second.definition].data.window.flags |=
+		ui::window_data::is_moveable_mask;
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
@@ -1259,13 +1263,6 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
-		// TODO: don't hide when on an actual multiplayer session
-		new_elm->set_visible(*this, false); // hidden by default
-		ui_state.chat_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
 		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
 		ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
 		new_elm_army->set_visible(*this, false);
@@ -1328,6 +1325,17 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "alice_land_combat");
 		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+
+	{ // One on the lobby
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
+		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
+		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
+	}
+	{ // And the other on the normal in game UI
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
+		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 
@@ -3549,18 +3557,21 @@ sys::checksum_key state::get_scenario_checksum() {
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		if(network_mode == sys::network_mode_type::client) {
+			//network::send_and_receive_commands(*this);
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
 			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
+				//network::send_and_receive_commands(*this);
 				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();
 				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
 
+				//network::send_and_receive_commands(*this);
 				command::execute_pending_commands(*this);
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 					last_update = entry_time;
@@ -3568,6 +3579,8 @@ void state::game_loop() {
 						/*
 						command::payload c;
 						c.type = command::command_type::advance_tick;
+						c.data.advance_tick.checksum = get_save_checksum();
+						c.data.advance_tick.speed = speed;
 						network_state.outgoing_commands.push(c);
 						*/
 					} else {
