@@ -544,7 +544,7 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::host) {
 			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
-			if(state.network_state.has_save_been_loaded) {
+			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
 					if(c.playing_as == n) {
 						auto completed = c.total_sent_bytes - c.save_stream_offset;

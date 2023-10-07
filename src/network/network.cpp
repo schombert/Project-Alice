@@ -217,6 +217,12 @@ static void disconnect_client(sys::state& state, client_data& client) {
 	command::notify_player_leaves(state, client.playing_as);
 	socket_shutdown(client.socket_fd);
 	client.socket_fd = 0;
+	client.send_buffer.clear();
+	client.total_sent_bytes = 0;
+	client.save_stream_size = 0;
+	client.save_stream_offset = 0;
+	client.playing_as = dcon::nation_id{};
+	client.recv_count = 0;
 }
 
 static uint8_t* write_network_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
@@ -275,7 +281,34 @@ static void accept_new_clients(sys::state& state) {
 					break;
 				}
 			}
-			// client passed banlist check, assign them to a nation!
+			{ // Tell the client general information about the game
+				command::payload c;
+				c.type = command::command_type::update_session_info;
+				c.source = dcon::nation_id{};
+				c.data.update_session_info.seed = state.game_seed;
+				c.data.update_session_info.checksum = state.get_save_checksum();
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+				// savefile streaming
+				if(state.network_state.is_new_game == false) {
+					size_t save_space = sizeof_save_section(state);
+					auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
+					write_save_section(temp_save_buffer.get(), state);
+					// this is an upper bound, since compacting the data may require less space
+					size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
+					auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
+					auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
+					auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
+					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+					client.save_stream_size = static_cast<size_t>(total_size_used);
+					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
+					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
+				} else {
+					uint32_t zero = 0;
+					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+					client.save_stream_size = 0;
+					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
+				}
+			}
 			dcon::nation_id assigned_nation{};
 			// give the client a "joining" nation, basically a temporal nation choosen
 			// "randomly" that is tied to the client iself
@@ -294,31 +327,6 @@ static void accept_new_clients(sys::state& state) {
 				c.source = dcon::nation_id{};
 				c.data.nation_pick.target = assigned_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-			{ // Tell the client general information about the game
-				command::payload c;
-				c.type = command::command_type::update_session_info;
-				c.source = dcon::nation_id{};
-				c.data.update_session_info.seed = state.game_seed;
-				c.data.update_session_info.checksum = state.get_save_checksum();
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-			{ // savefile streaming
-				if(state.network_state.has_save_been_loaded) {
-					size_t save_space = sizeof_save_section(state);
-					auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
-					write_save_section(temp_save_buffer.get(), state);
-					// this is an upper bound, since compacting the data may require less space
-					size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
-					auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
-					auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
-					auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
-				} else {
-					uint32_t zero = 0;
-					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
-				}
 			}
 			// notify the client of all current players
 			for(auto n : state.world.in_nation) {

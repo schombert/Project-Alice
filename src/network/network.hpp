@@ -69,7 +69,7 @@ struct network_state {
 	uint32_t save_size = 0; //client
 	std::vector<uint8_t> save_data; //client
 
-	bool has_save_been_loaded = false; // has save been loaded?
+	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
 

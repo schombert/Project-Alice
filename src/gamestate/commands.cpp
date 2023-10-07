@@ -25,6 +25,9 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		// Normal commands are discarded iff we are not in the game
 		if(state.mode != sys::game_mode_type::in_game)
 			return;
+		if(state.network_mode != sys::network_mode_type::single_player) {
+			state.network_state.is_new_game = false;
+		}
 		break;
 	}
 
@@ -4586,7 +4589,7 @@ void update_session_info(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
-	state.network_state.has_save_been_loaded = true;
+	state.network_state.is_new_game = false;
 	state.game_seed = seed;
 	state.session_host_checksum = k;
 }
