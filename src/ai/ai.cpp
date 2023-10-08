@@ -632,10 +632,6 @@ void take_ai_decisions(sys::state& state) {
 		auto allow = d.get_allow();
 		auto ai_will_do = d.get_ai_will_do();
 
-		if(d.id.value >= 673) {
-			auto name = text::produce_simple_string(state, d.get_name());
-		}
-
 		ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 			ve::vbitfield_type filter_a = potential
 				? (ve::compress_mask(trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0)) & !state.world.nation_get_is_player_controlled(ids)) 

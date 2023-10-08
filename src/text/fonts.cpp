@@ -1153,7 +1153,11 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	}
 }
 
-float font::kerning(char codepoint_first, char codepoint_second) const {
+float font::kerning(char codepoint_first, char codepoint_second)  {
+	if(auto it = kernings.find(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second))); it != kernings.end()) {
+		return it->second;
+	}
+
 	auto utf16_first = win1250toUTF16(codepoint_first);
 	auto utf16_second = win1250toUTF16(codepoint_second);
 	auto index_a = FT_Get_Char_Index(font_face, utf16_first);
@@ -1167,16 +1171,21 @@ float font::kerning(char codepoint_first, char codepoint_second) const {
 	}
 
 	if((index_a == 0) || (index_b == 0)) {
+		kernings.insert_or_assign(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second)), 0.0f);
 		return 0.0f;
 	}
 
 	if(FT_HAS_KERNING(font_face)) {
 		FT_Vector kerning;
 		FT_Get_Kerning(font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
-		return static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
+		auto res = static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
+		kernings.insert_or_assign(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second)), res);
+		return res;
 	} else {
 		auto rval = gpos::net_kerning(type_2_kerning_tables, index_a, index_b);
-		return rval * float(64)  / float(font_face->units_per_EM);
+		auto res = rval * float(64)  / float(font_face->units_per_EM);
+		kernings.insert_or_assign(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second)), res);
+		return res;
 	}
 }
 
@@ -1200,7 +1209,7 @@ float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
-float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) const {
+float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_string_width(state, codepoints, count);
 	} else {
@@ -1291,7 +1300,7 @@ void font::make_glyph(char ch_in) {
 	}
 }
 
-float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) const {
+float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
 	float total = 0.0f;
 	for(uint32_t i = 0; i < count; i++) {
 		auto c = uint8_t(codepoints[i]);
