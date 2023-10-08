@@ -192,7 +192,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 					if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
 						&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
 
-						selected_armies.push_back(a.get_army());
+						select(a.get_army());
 					}
 				}
 			}
@@ -209,7 +209,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 						if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
 							&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
 
-							selected_navies.push_back(a.get_navy());
+							select(a.get_navy());
 						}
 					}
 				} else {
@@ -223,12 +223,12 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 						auto map_y = vertex.position_.y;
 
 						glm::vec2 map_pos(map_x, 1.0f - map_y);
-						auto screen_size = glm::vec2{ float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale) };
+						auto screen_size = glm::vec2{ float(x_size), float(y_size) };
 						glm::vec2 screen_pos;
-						if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+						if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
 							if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
 							&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
-								selected_navies.push_back(a.get_navy());
+								select(a.get_navy());
 							}
 						}
 					}
