@@ -494,6 +494,39 @@ public:
 		dcon::army_id army_id;						 // army
 		dcon::navy_id navy_id;						 // navy
 	} data{};
+
+	bool operator==(trade_flow_data const& o) const {
+		if(value_type != o.value_type)
+			return false;
+
+		switch(type) {
+		case type::factory:
+			if(o.type != type::factory)
+				return false;
+			return data.factory_id == o.data.factory_id;
+		case type::province:
+			if(o.type != type::province)
+				return false;
+			return data.province_id == o.data.province_id;
+		case type::pop:
+			if(o.type != type::pop)
+				return false;
+			return data.pop_province_id == o.data.pop_province_id;
+		case type::military_army:
+			if(o.type != type::military_army)
+				return false;
+			return data.army_id == o.data.army_id;
+		case type::military_navy:
+			if(o.type != type::military_navy)
+				return false;
+			return data.navy_id == o.data.navy_id;
+		}
+
+		return true;
+	}
+	bool operator!=(trade_flow_data const& o) const {
+		return !(*this == o);
+	}
 };
 class trade_flow_entry : public listbox_row_element_base<trade_flow_data> {
 	image_element_base* icon = nullptr;

@@ -1150,9 +1150,14 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
 			if(i >= 0) {
 				row_windows[rw_i]->set_visible(state, true);
-				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{row_contents[i--]};
-				row_windows[rw_i]->impl_get(state, payload);
-				row_windows[rw_i]->impl_on_update(state);
+				auto new_content = row_contents[i--];
+				auto prior_content = retrieve<RowConT>(state, row_windows[rw_i]);
+
+				if(prior_content != new_content) {
+					Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ new_content };
+					row_windows[rw_i]->impl_get(state, payload);
+					row_windows[rw_i]->impl_on_update(state);
+				}
 			} else {
 				row_windows[rw_i]->set_visible(state, false);
 			}
@@ -1162,9 +1167,14 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		for(RowWinT* row_window : row_windows) {
 			if(i < row_contents.size()) {
 				row_window->set_visible(state, true);
-				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{row_contents[i++]};
-				row_window->impl_get(state, payload);
-				row_window->impl_on_update(state);
+				auto prior_content = retrieve<RowConT>(state, row_window);
+				auto new_content = row_contents[i++];
+				
+				if(prior_content != new_content) {
+					Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ new_content };
+					row_window->impl_get(state, payload);
+					row_window->impl_on_update(state);
+				}
 			} else {
 				row_window->set_visible(state, false);
 			}

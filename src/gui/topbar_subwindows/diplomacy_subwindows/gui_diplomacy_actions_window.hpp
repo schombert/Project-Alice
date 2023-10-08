@@ -771,6 +771,7 @@ public:
 					text::add_line_with_condition(state, contents, "w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.warsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.warsubsidy_diplomatic_cost));
 				}
 				text::add_line_with_condition(state, contents, "w_sub_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+				text::add_line_with_condition(state, contents, "w_sub_explain_4", state.world.nation_get_is_at_war(target));
 			}
 		
 	}

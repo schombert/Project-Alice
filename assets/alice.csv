@@ -766,6 +766,7 @@ cancel_w_sub_explain_2;You have at least $x$ diplomatic point(s)
 w_sub_explain_1;You cannot offer war subsidies to yourself
 w_sub_explain_2;You have at least $x$ diplomatic point(s)
 w_sub_explain_3;You are not currently at war with the target
+w_sub_explain_4;The target is at war
 invention_bulb_1;This invention cannot currently be discovered
 invention_bulb_2;It is possible to discover this invention
 invention_bulb_3;This invention has been discovered

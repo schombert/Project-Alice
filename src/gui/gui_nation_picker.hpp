@@ -85,6 +85,13 @@ struct save_item {
 	dcon::government_type_id as_gov;
 	sys::date save_date;
 	bool is_new_game = false;
+
+	bool operator==(save_item const& o) const {
+		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name;
+	}
+	bool operator!=(save_item const& o) const {
+		return !(*this == o);
+	}
 };
 
 class select_save_game : public button_element_base {

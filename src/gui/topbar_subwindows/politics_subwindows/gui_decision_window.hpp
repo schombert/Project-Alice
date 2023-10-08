@@ -255,6 +255,18 @@ private:
 				list.push_back(did);
 			}
 		}
+
+		std::sort(list.begin(), list.end(), [&](dcon::decision_id a, dcon::decision_id b) {
+			auto allow_a = state.world.decision_get_allow(a);
+			auto allow_b = state.world.decision_get_allow(b);
+			auto a_res = !allow_a || trigger::evaluate(state, allow_a, trigger::to_generic(n), trigger::to_generic(n), 0);
+			auto b_res = !allow_b || trigger::evaluate(state, allow_b, trigger::to_generic(n), trigger::to_generic(n), 0);
+			if(a_res != b_res)
+				return a_res;
+			else
+				return a.index() < b.index();
+		});
+
 		return list;
 	}
 

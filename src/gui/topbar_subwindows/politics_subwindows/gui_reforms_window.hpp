@@ -16,6 +16,13 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 		text::add_line_break_to_layout(state, contents);
 	}
 
+	auto total = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+	auto support = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, ref));
+	if(total > 0) {
+		text::add_line(state, contents, "there_are_backing", text::variable_type::val, text::fp_percentage{ support / total });
+		text::add_line_break_to_layout(state, contents);
+	}
+
 	auto time_limit = state.world.nation_get_last_issue_or_reform_change(state.local_player_nation);
 	auto parent = state.world.issue_option_get_parent_issue(ref);
 
