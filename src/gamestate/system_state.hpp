@@ -464,6 +464,9 @@ struct alignas(64) state {
 	std::vector<event::pending_human_p_event> pending_p_event;
 	std::vector<event::pending_human_f_p_event> pending_f_p_event;
 
+	std::vector<event::pending_human_n_event> future_n_event;
+	std::vector<event::pending_human_p_event> future_p_event;
+
 	std::vector<int32_t> unit_names_indices; // indices for the names
 	std::vector<char> unit_names;
 	// a second text buffer, this time for just the unit names
@@ -589,7 +592,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024), naval_battle_reports(256), land_battle_reports(256) { }
+	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) { }
 
 	~state();
 
