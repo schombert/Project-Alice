@@ -4947,6 +4947,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::stop_game:
 		execute_stop_game(state, c.source);
 		break;
+	case command_type::save_stream:
+		break;
 
 		// console commands
 	case command_type::switch_nation:
