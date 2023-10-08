@@ -4594,6 +4594,34 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint3
 	state.session_host_checksum = k;
 }
 
+void notify_reload_state(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_reload_state;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_notify_reload_state(sys::state& state, dcon::nation_id source) {
+	auto save_size = sizeof_save_section(state);
+	auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_size]);
+	write_save_section(temp_save_buffer.get(), state);
+	// Mirror the calls done by the client
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	state.preload();
+	read_save_section(temp_save_buffer.get(), temp_save_buffer.get() + save_size, state);
+	state.fill_unsaved_data();
+	state.local_player_nation = old_local_player_nation;
+	for(const auto n : state.world.in_nation)
+		state.world.nation_set_is_player_controlled(n, false);
+	for(const auto n : players)
+		state.world.nation_set_is_player_controlled(n, true);
+	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+}
+
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 	state.selected_armies.clear();
