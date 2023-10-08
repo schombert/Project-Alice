@@ -348,6 +348,13 @@ struct chat_message {
 	chat_message& operator=(const chat_message&) = default;
 	chat_message& operator=(chat_message&&) = default;
 	~chat_message() = default;
+
+	bool operator==(chat_message const& o) const {
+		return source == o.source && target == o.target && body == o.body;
+	}
+	bool operator!=(chat_message const& o) const {
+		return !(*this == o);
+	}
 };
 
 struct state {

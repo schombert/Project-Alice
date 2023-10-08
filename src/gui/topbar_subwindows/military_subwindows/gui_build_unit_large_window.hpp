@@ -12,6 +12,13 @@ public:
 	// true == navy
 	bool is_navy;
 	dcon::modifier_id continent;
+
+	bool operator==(buildable_unit_entry_info const& o) const {
+		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent;
+	}
+	bool operator!=(buildable_unit_entry_info const& o) const {
+		return !(*this == o);
+	}
 };
 
 class queue_unit_entry_info {
@@ -21,6 +28,13 @@ public:
 	// false == army
 	// true == navy
 	bool is_navy;
+
+	bool operator==(queue_unit_entry_info const& o) const {
+		return land_id == o.land_id && naval_id == o.naval_id && is_navy == o.is_navy;
+	}
+	bool operator!=(queue_unit_entry_info const& o) const {
+		return !(*this == o);
+	}
 };
 
 class build_unit_close_button : public button_element_base {

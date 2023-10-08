@@ -225,6 +225,8 @@ bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nat
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
+	if(!state.world.nation_get_is_at_war(target))
+		return false; // target must be at war
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && state.world.unilateral_relationship_get_war_subsidies(rel))
 		return false; // Can't already be giving war subsidies
@@ -236,6 +238,9 @@ void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon:
 	nations::adjust_relationship(state, source, target, state.defines.warsubsidy_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.warsubsidy_diplomatic_cost;
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
+	if(!rel)
+		rel = state.world.force_create_unilateral_relationship(target, source);
+
 	state.world.unilateral_relationship_set_war_subsidies(rel, true);
 
 	notification::post(state, notification::message{
@@ -284,7 +289,8 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 	nations::adjust_relationship(state, source, target, state.defines.cancelwarsubsidy_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelwarsubsidy_diplomatic_cost;
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
-	state.world.unilateral_relationship_set_war_subsidies(rel, false);
+	if(rel)
+		state.world.unilateral_relationship_set_war_subsidies(rel, false);
 
 	if(source != state.local_player_nation) {
 		notification::post(state, notification::message{
@@ -2570,7 +2576,8 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 		return;
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
-	state.world.unilateral_relationship_set_military_access(rel, false);
+	if(rel)
+		state.world.unilateral_relationship_set_military_access(rel, false);
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelaskmilaccess_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelaskmilaccess_relation_on_accept);
@@ -2617,7 +2624,8 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 		return;
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
-	state.world.unilateral_relationship_set_military_access(rel, false);
+	if(rel)
+		state.world.unilateral_relationship_set_military_access(rel, false);
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelgivemilaccess_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelgivemilaccess_relation_on_accept);
