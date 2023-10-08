@@ -4,7 +4,7 @@
 namespace ui {
 
 std::vector<std::unique_ptr<national_major_event_window>> national_major_event_window::event_pool;
-std::vector<ui::element_base*> pending_closure;
+static std::vector<ui::element_base*> pending_closure;
 
 void  national_major_event_window::new_event(sys::state& state, event::pending_human_n_event const& dat) {
 	if(event_pool.empty()) {
