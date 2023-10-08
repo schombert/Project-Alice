@@ -502,7 +502,7 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 
 			for(auto pop : state.world.province_get_pop_location(p.get_province())) {
 				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich)) {
-					auto weight = pop_vote_weight(state, pop.get_pop(), n);
+					auto weight = pop.get_pop().get_size(); // allegedly
 					if(weight > 0) {
 						for(auto i : state.world.in_ideology) {
 							if((allowed_ideo & culture::to_bits(i)) != 0)
