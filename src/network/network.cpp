@@ -281,34 +281,6 @@ static void accept_new_clients(sys::state& state) {
 					break;
 				}
 			}
-			{ // Tell the client general information about the game
-				command::payload c;
-				c.type = command::command_type::notify_save_loaded;
-				c.source = dcon::nation_id{};
-				c.data.notify_save_loaded.seed = state.game_seed;
-				c.data.notify_save_loaded.checksum = state.get_save_checksum();
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				// savefile streaming
-				if(state.network_state.is_new_game == false) {
-					size_t save_space = sizeof_save_section(state);
-					auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
-					write_save_section(temp_save_buffer.get(), state);
-					// this is an upper bound, since compacting the data may require less space
-					size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
-					auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
-					auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
-					auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = static_cast<size_t>(total_size_used);
-					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
-				} else {
-					uint32_t zero = 0;
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = 0;
-					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
-				}
-			}
 			dcon::nation_id assigned_nation{};
 			// give the client a "joining" nation, basically a temporal nation choosen
 			// "randomly" that is tied to the client iself
@@ -348,6 +320,14 @@ static void accept_new_clients(sys::state& state) {
 				command::payload c;
 				c.type = command::command_type::notify_player_joins;
 				c.source = assigned_nation;
+				state.network_state.outgoing_commands.push(c);
+			}
+			{ // Reload the save, repeating the same procedure on ALL clients and in the host
+				command::payload c;
+				c.type = command::command_type::notify_save_loaded;
+				c.source = dcon::nation_id{};
+				c.data.notify_save_loaded.seed = state.game_seed;
+				c.data.notify_save_loaded.checksum = state.get_save_checksum();
 				state.network_state.outgoing_commands.push(c);
 			}
 			return;
