@@ -2209,6 +2209,10 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
 		}
 	}
+	if(!culture_definitions.conservative) {
+		err.accumulated_errors += "NO CONSERVATIVE IDEOLOGY (fatal error)\n";
+		err.fatal = true;
+	}
 	// triggered modifier contents
 	{
 		err.file_name = "triggered_modifiers.txt";

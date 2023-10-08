@@ -632,6 +632,10 @@ void take_ai_decisions(sys::state& state) {
 		auto allow = d.get_allow();
 		auto ai_will_do = d.get_ai_will_do();
 
+		if(d.id.value >= 673) {
+			auto name = text::produce_simple_string(state, d.get_name());
+		}
+
 		ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 			ve::vbitfield_type filter_a = potential
 				? (ve::compress_mask(trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0)) & !state.world.nation_get_is_player_controlled(ids)) 
@@ -647,19 +651,23 @@ void take_ai_decisions(sys::state& state) {
 
 				ve::apply([&](dcon::nation_id n, bool passed_filter) {
 					if(passed_filter) {
-						effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
-									uint32_t(n.index() << 4 ^ d.id.index()));
+						auto second_validity = trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0) && trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0);
 
-						notification::post(state, notification::message{
-							[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
-								text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
-								text::add_line(state, contents, "msg_decision_2");
-								ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
-							},
-							"msg_decision_title",
-							n,
-							sys::message_setting_type::decision
-						});
+						if(second_validity) {
+							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
+										uint32_t(n.index() << 4 ^ d.id.index()));
+
+							notification::post(state, notification::message{
+								[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
+									text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
+									text::add_line(state, contents, "msg_decision_2");
+									ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
+								},
+								"msg_decision_title",
+								n,
+								sys::message_setting_type::decision
+							});
+						}
 					}
 				}, ids, filter_b);
 			}
