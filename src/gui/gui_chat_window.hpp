@@ -181,7 +181,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		command::stop_game(state, state.local_player_nation);
+		command::notify_stop_game(state, state.local_player_nation);
 	}
 };
 

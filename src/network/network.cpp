@@ -283,10 +283,10 @@ static void accept_new_clients(sys::state& state) {
 			}
 			{ // Tell the client general information about the game
 				command::payload c;
-				c.type = command::command_type::update_session_info;
+				c.type = command::command_type::notify_save_loaded;
 				c.source = dcon::nation_id{};
-				c.data.update_session_info.seed = state.game_seed;
-				c.data.update_session_info.checksum = state.get_save_checksum();
+				c.data.notify_save_loaded.seed = state.game_seed;
+				c.data.notify_save_loaded.checksum = state.get_save_checksum();
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				// savefile streaming
 				if(state.network_state.is_new_game == false) {
@@ -340,7 +340,7 @@ static void accept_new_clients(sys::state& state) {
 			// if already in game, allow the player to join into the lobby as if she was into it
 			if(state.mode == sys::game_mode_type::in_game) {
 				command::payload c;
-				c.type = command::command_type::start_game;
+				c.type = command::command_type::notify_start_game;
 				c.source = state.local_player_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
@@ -391,7 +391,7 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 	}
 
 	// special case for save streams
-	if(c.type == command::command_type::update_session_info) {
+	if(c.type == command::command_type::notify_save_loaded) {
 		size_t save_space = sizeof_save_section(state);
 		auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
 		write_save_section(temp_save_buffer.get(), state);
@@ -436,9 +436,11 @@ void send_and_receive_commands(sys::state& state) {
 		while(c) {
 			bool valid = !command::is_console_command(c->type);
 			if(valid) {
+				// Generate checksum on the spot
 				if(c->type == command::command_type::advance_tick) {
-					// generate checksum for the "advance tick" command!
 					c->data.advance_tick.checksum = state.get_save_checksum();
+				} else if(c->type == command::command_type::notify_save_loaded) {
+					c->data.notify_save_loaded.checksum = state.get_save_checksum();
 				}
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
@@ -509,7 +511,7 @@ void send_and_receive_commands(sys::state& state) {
 				command::execute_command(state, state.network_state.recv_buffer);
 				command_executed = true;
 				// start save stream!
-				if(state.network_state.recv_buffer.type == command::command_type::update_session_info) {
+				if(state.network_state.recv_buffer.type == command::command_type::notify_save_loaded) {
 					state.network_state.save_size = 0;
 					state.network_state.save_stream = true;
 				}

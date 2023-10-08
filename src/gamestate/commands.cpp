@@ -15,9 +15,9 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_picks_nation:
 	case command_type::notify_player_ban:
 	case command_type::notify_player_kick:
-	case command_type::update_session_info:
-	case command_type::start_game:
-	case command_type::stop_game:
+	case command_type::notify_save_loaded:
+	case command_type::notify_start_game:
+	case command_type::notify_stop_game:
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
@@ -4559,6 +4559,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 
 void advance_tick(sys::state& state, dcon::nation_id source) {
 	payload p;
+	memset(&p, 0, sizeof(payload));
 	p.type = command::command_type::advance_tick;
 	p.source = source;
 	// Postponed until it is sent!
@@ -4579,22 +4580,21 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 	state.single_game_tick();
 }
 
-void update_session_info(sys::state& state, dcon::nation_id source) {
+void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::update_session_info;
+	p.type = command::command_type::notify_save_loaded;
 	p.source = source;
-	p.data.update_session_info.seed = state.game_seed;
-	p.data.update_session_info.checksum = state.get_save_checksum();
+	p.data.notify_save_loaded.seed = state.game_seed;
 	add_to_command_queue(state, p);
 }
-void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
-	state.network_state.is_new_game = false;
+void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
 	state.game_seed = seed;
+	state.network_state.is_new_game = false;
 	state.session_host_checksum = k;
 }
 
-void execute_start_game(sys::state& state, dcon::nation_id source) {
+void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 	state.selected_armies.clear();
 	state.selected_navies.clear();
@@ -4602,23 +4602,23 @@ void execute_start_game(sys::state& state, dcon::nation_id source) {
 	state.game_state_updated.store(true, std::memory_order::release);
 }
 
-void start_game(sys::state& state, dcon::nation_id source) {
+void notify_start_game(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::start_game;
+	p.type = command::command_type::notify_start_game;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
 
-void execute_stop_game(sys::state& state, dcon::nation_id source) {
+void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::pick_nation;
 	state.game_state_updated.store(true, std::memory_order::release);
 }
 
-void stop_game(sys::state& state, dcon::nation_id source) {
+void notify_stop_game(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::stop_game;
+	p.type = command::command_type::notify_stop_game;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
@@ -4934,14 +4934,14 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::advance_tick:
 		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 		break;
-	case command_type::update_session_info:
-		execute_update_session_info(state, c.source, c.data.update_session_info.seed, c.data.update_session_info.checksum);
+	case command_type::notify_save_loaded:
+		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
 		break;
-	case command_type::start_game:
-		execute_start_game(state, c.source);
+	case command_type::notify_start_game:
+		execute_notify_start_game(state, c.source);
 		break;
-	case command_type::stop_game:
-		execute_stop_game(state, c.source);
+	case command_type::notify_stop_game:
+		execute_notify_stop_game(state, c.source);
 		break;
 
 		// console commands

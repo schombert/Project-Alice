@@ -107,7 +107,7 @@ public:
 			} else {
 				state.fill_unsaved_data();
 				if(state.network_mode == sys::network_mode_type::host)
-					command::update_session_info(state, state.local_player_nation);
+					command::notify_save_loaded(state, state.local_player_nation);
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
@@ -116,7 +116,7 @@ public:
 			} else {
 				state.fill_unsaved_data();
 				if(state.network_mode == sys::network_mode_type::host)
-					command::update_session_info(state, state.local_player_nation);
+					command::notify_save_loaded(state, state.local_player_nation);
 			}
 		}
 		// do not desync the local player nation upon selection of savefile
@@ -479,7 +479,7 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
-			command::start_game(state, state.local_player_nation);
+			command::notify_start_game(state, state.local_player_nation);
 		}
 	}
 

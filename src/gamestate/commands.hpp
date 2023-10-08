@@ -103,11 +103,11 @@ enum class command_type : uint8_t {
 	notify_player_joins = 109,
 	notify_player_leaves = 110,
 	notify_player_oos = 111,
-	advance_tick = 112,
-	chat_message = 113,
-	update_session_info = 114,
-	start_game = 115, // for synchronized "start game"
-	stop_game = 116, // "go back to lobby"
+	notify_save_loaded = 112,
+	notify_start_game = 113, // for synchronized "start game"
+	notify_stop_game = 114, // "go back to lobby"
+	advance_tick = 115,
+	chat_message = 116,
 
 	// console cheats
 	switch_nation = 128,
@@ -410,9 +410,9 @@ struct advance_tick_data {
 	int32_t speed;
 };
 
-struct update_session_info_data {
-	uint32_t seed;
+struct notify_save_loaded_data {
 	sys::checksum_key checksum;
+	uint32_t seed;
 };
 
 struct payload {
@@ -469,7 +469,7 @@ struct payload {
 		cheat_event_data cheat_event;
 		advance_tick_data advance_tick;
 		save_game_data save_game;
-		update_session_info_data update_session_info;
+		notify_save_loaded_data notify_save_loaded;
 
 		dtype() { }
 	} data;
@@ -779,9 +779,9 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_oos(sys::state& state, dcon::nation_id source);
-void update_session_info(sys::state& state, dcon::nation_id source);
-void start_game(sys::state& state, dcon::nation_id source);
-void stop_game(sys::state& state, dcon::nation_id source);
+void notify_save_loaded(sys::state& state, dcon::nation_id source);
+void notify_start_game(sys::state& state, dcon::nation_id source);
+void notify_stop_game(sys::state& state, dcon::nation_id source);
 
 void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
