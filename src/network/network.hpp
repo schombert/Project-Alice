@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #endif
 #include "SPSCQueue.h"
+#include "container_types.hpp"
 
 namespace sys {
 struct state;
@@ -72,6 +73,10 @@ struct network_state {
 	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
+	bool sent_nickname = false; // one-time send the nation_joins command to the server to update our ekename
+
+	sys::player_name nickname;
+	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}

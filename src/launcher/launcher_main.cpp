@@ -42,6 +42,7 @@ static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
 
 static std::string ip_addr = "127.0.0.1";
+static std::string player_name = "Anon_123";
 
 static HWND m_hwnd = nullptr;
 
@@ -59,11 +60,12 @@ constexpr inline int32_t ui_obj_create_scenario = 3;
 constexpr inline int32_t ui_obj_play_game = 4;
 constexpr inline int32_t ui_obj_host_game = 5;
 constexpr inline int32_t ui_obj_ip_addr = 6;
-constexpr inline int32_t ui_obj_join_game = 7;
+constexpr inline int32_t ui_obj_player_name = 7;
+constexpr inline int32_t ui_obj_join_game = 8;
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 8;
+constexpr inline int32_t ui_list_first = 9;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -83,6 +85,7 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 555, 196 + 36 * 0, 286, 33 }, // play game
 	ui_active_rect{ 555, 244 + 36 * 1, 286, 33 }, // host game
 	ui_active_rect{ 555, 244 + 36 * 2, 196, 33 }, // ip address textbox
+	ui_active_rect{ 555, 244 + 36 * 3, 196, 33 }, // player name textbox
 	ui_active_rect{ 555 + 200, 244 + 36 * 2, 86, 33 }, // join game
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
@@ -429,10 +432,16 @@ void mouse_click() {
 				native_string temp_command_line = native_string(L"Alice.exe ") + selected_scenario_file;
 				if(obj_under_mouse == ui_obj_host_game) {
 					temp_command_line += native_string(L" -host");
+
+					temp_command_line += native_string(L" -name ");
+					temp_command_line += simple_fs::utf8_to_native(player_name);
 				} else if(obj_under_mouse == ui_obj_join_game) {
 					temp_command_line += native_string(L" -join");
 					temp_command_line += native_string(L" ");
 					temp_command_line += simple_fs::utf8_to_native(ip_addr);
+
+					temp_command_line += native_string(L" -name ");
+					temp_command_line += simple_fs::utf8_to_native(player_name);
 				}
 
 				// IPv6 address
@@ -993,6 +1002,12 @@ void render() {
 		ui_rects[ui_obj_ip_addr].width,
 		ui_rects[ui_obj_ip_addr].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+		ui_rects[ui_obj_player_name].x,
+		ui_rects[ui_obj_player_name].y,
+		ui_rects[ui_obj_player_name].width,
+		ui_rects[ui_obj_player_name].height,
+		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
@@ -1009,6 +1024,9 @@ void render() {
 
 	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width / 2 - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) / 2.0f;
 	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+
+	float pn_x_pos = ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width / 2 - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) / 2.0f;
+	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_player_name].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
 	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(jg_text, uint32_t(::strlen(jg_text)), 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
@@ -1264,11 +1282,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			{
 				char turned_into = process_utf16_to_win1250(wParam);
 				if(turned_into) {
-					if(turned_into == '\b') {
-						if(!ip_addr.empty())
-							ip_addr.pop_back();
-					} else if(turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
-						ip_addr.push_back(turned_into);
+					if(obj_under_mouse == ui_obj_ip_addr) {
+						if(turned_into == '\b') {
+							if(!ip_addr.empty())
+								ip_addr.pop_back();
+						} else if(turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+							ip_addr.push_back(turned_into);
+						}
+					} else if(obj_under_mouse == ui_obj_player_name) {
+						if(turned_into == '\b') {
+							if(!player_name.empty())
+								player_name.pop_back();
+						} else if(turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
+							player_name.push_back(turned_into);
+						}
 					}
 				}
 				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
@@ -1359,6 +1386,11 @@ int WINAPI wWinMain(
 		ShowWindow((HWND)(launcher::m_hwnd), SW_SHOWNORMAL);
 		UpdateWindow((HWND)(launcher::m_hwnd));
 	}
+
+	char username[256 + 1];
+	DWORD username_len = 256 + 1;
+	GetUserNameA(username, &username_len);
+	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
 
 	MSG msg;
 	while(GetMessage(&msg, NULL, 0, 0)) {
