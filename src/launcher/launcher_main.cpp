@@ -1341,6 +1341,13 @@ int WINAPI wWinMain(
 		std::abort();
 	}
 
+	// Use by default the name of the computer
+	char username[256 + 1];
+	DWORD username_len = 256 + 1;
+	GetUserNameA(username, &username_len);
+	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
+	//
+
 	launcher::m_hwnd = CreateWindowEx(
 		0,
 		L"alice_launcher_class",
@@ -1386,11 +1393,6 @@ int WINAPI wWinMain(
 		ShowWindow((HWND)(launcher::m_hwnd), SW_SHOWNORMAL);
 		UpdateWindow((HWND)(launcher::m_hwnd));
 	}
-
-	char username[256 + 1];
-	DWORD username_len = 256 + 1;
-	GetUserNameA(username, &username_len);
-	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
 
 	MSG msg;
 	while(GetMessage(&msg, NULL, 0, 0)) {

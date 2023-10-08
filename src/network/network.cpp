@@ -334,6 +334,7 @@ static void accept_new_clients(sys::state& state) {
 					command::payload c;
 					c.type = command::command_type::notify_player_joins;
 					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
 					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				}
 			}
@@ -375,7 +376,8 @@ static void receive_from_clients(sys::state& state) {
 			int r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
 				switch(client.recv_buffer.type) {
 				case command::command_type::invalid:
-				case command::command_type::notify_player_joins:
+				case command::command_type::notify_player_ban:
+				case command::command_type::notify_player_kick:
 					break; // has to be valid/sendable by client
 				case command::command_type::notify_player_picks_nation:
 					if(command::can_notify_player_picks_nation(state, client.recv_buffer.source, client.recv_buffer.data.nation_pick.target))

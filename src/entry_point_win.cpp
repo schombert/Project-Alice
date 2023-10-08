@@ -177,6 +177,12 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
 						i++;
 					}
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-name")) {
+					if(i + 1 < num_params) {
+						std::string nickname = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
+						i++;
+					}
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v6")) {
 					game_state.network_state.as_v6 = true;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
@@ -202,6 +208,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				});
 				assert(bool(game_state.local_player_nation));
 				game_state.world.nation_set_is_player_controlled(game_state.local_player_nation, true);
+				game_state.network_state.map_of_player_names.insert_or_assign(game_state.local_player_nation.index(), game_state.network_state.nickname);
 			}
 		}
 		LocalFree(parsed_cmd);

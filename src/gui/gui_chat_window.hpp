@@ -111,13 +111,25 @@ public:
 	}
 };
 
+class chat_player_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			set_text(state, text::produce_simple_string(state, "player"));
+		} else {
+			auto n = retrieve<dcon::nation_id>(state, parent);
+			set_text(state, std::string(state.network_state.map_of_player_names[n.index()].to_string_view()));
+		}
+	}
+};
+
 class chat_player_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "name") {
-			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			return make_element_by_type<chat_player_name_text>(state, id);
 		} else if(name == "button_kick") {
 			return make_element_by_type<chat_player_kick_button>(state, id);
 		} else {
