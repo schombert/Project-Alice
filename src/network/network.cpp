@@ -344,10 +344,18 @@ static void accept_new_clients(sys::state& state) {
 				c.source = state.local_player_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
-			{ // Tell all the other clients that we have joined
+			{ // Tell all the other clients that we have joined with a given temporary name
 				command::payload c;
 				c.type = command::command_type::notify_player_joins;
 				c.source = assigned_nation;
+				c.data.player_name.data[0] = 'A';
+				c.data.player_name.data[1] = 'n';
+				c.data.player_name.data[2] = 'o';
+				c.data.player_name.data[3] = 'n';
+				c.data.player_name.data[4] = '0' + (assigned_nation.index() % 10);
+				c.data.player_name.data[5] = '0' + ((assigned_nation.index() / 10) % 10);
+				c.data.player_name.data[6] = '0' + ((assigned_nation.index() / 100) % 10);
+				c.data.player_name.data[7] = '0' + ((assigned_nation.index() / 1000) % 10);
 				state.network_state.outgoing_commands.push(c);
 			}
 			{ // Reload the save, repeating the same procedure on ALL clients and in the host
@@ -512,6 +520,11 @@ void send_and_receive_commands(sys::state& state) {
 				std::abort();
 			}
 		} else {
+			if(!state.network_state.sent_nickname && bool(state.local_player_nation)) {
+				command::notify_player_joins(state, state.local_player_nation, state.network_state.nickname);
+				state.network_state.sent_nickname = true;
+			}
+
 			// receive commands from the server and immediately execute them
 			int r = socket_recv(state.network_state.socket_fd, &state.network_state.recv_buffer, sizeof(state.network_state.recv_buffer), &state.network_state.recv_count, [&]() {
 				command::execute_command(state, state.network_state.recv_buffer);

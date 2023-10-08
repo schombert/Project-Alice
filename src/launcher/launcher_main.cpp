@@ -42,7 +42,7 @@ static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
 
 static std::string ip_addr = "127.0.0.1";
-static std::string player_name = "Anon_123";
+static std::string player_name = "AnonAnon";
 
 static HWND m_hwnd = nullptr;
 

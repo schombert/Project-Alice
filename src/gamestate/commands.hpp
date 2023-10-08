@@ -471,6 +471,7 @@ struct payload {
 		advance_tick_data advance_tick;
 		save_game_data save_game;
 		notify_save_loaded_data notify_save_loaded;
+		sys::player_name player_name;
 
 		dtype() { }
 	} data;
@@ -773,8 +774,8 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_i
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
-void notify_player_joins(sys::state& state, dcon::nation_id source);
-bool can_notify_player_joins(sys::state& state, dcon::nation_id source);
+void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void notify_player_leaves(sys::state& state, dcon::nation_id source);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);

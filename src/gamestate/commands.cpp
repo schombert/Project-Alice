@@ -4382,28 +4382,30 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	post_chat_message(state, m);
 }
 
-void notify_player_joins(sys::state& state, dcon::nation_id source) {
+void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_joins;
 	p.source = source;
+	p.data.player_name = name;
 	add_to_command_queue(state, p);
 }
-bool can_notify_player_joins(sys::state& state, dcon::nation_id source) {
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_notify_player_joins(sys::state& state, dcon::nation_id source) {
-	if(!can_notify_player_joins(state, source))
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	if(!can_notify_player_joins(state, source, name))
 		return;
 	state.world.nation_set_is_player_controlled(source, true);
+	state.network_state.map_of_player_names.insert_or_assign(source.index(), name);
 
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
 }
@@ -4429,7 +4431,7 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
 }
@@ -4465,7 +4467,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, target);
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	post_chat_message(state, m);
 }
@@ -4501,7 +4503,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, target);
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	post_chat_message(state, m);
 }
@@ -4529,6 +4531,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 		state.world.nation_set_is_player_controlled(source, false);
 	}
 	state.world.nation_set_is_player_controlled(target, true);
+	state.network_state.map_of_player_names.insert_or_assign(target.index(), state.network_state.map_of_player_names[source.index()]);
 	// TODO: To avoid abuse, clients will be given a random nation when they join the server
 	// that isn't occupied already by a player, this allows us to effectively use nation_id
 	// as a player identifier!
@@ -4541,7 +4544,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	text::add_to_substitution_map(sub, text::variable_type::country, target);
 	m.body = text::resolve_string_substitution(state, "chat_player_switch", sub);
 	post_chat_message(state, m);
@@ -4560,7 +4563,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);
 }
@@ -4956,7 +4959,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
 		break;
 	case command_type::notify_player_joins:
-		execute_notify_player_joins(state, c.source);
+		execute_notify_player_joins(state, c.source, c.data.player_name);
 		break;
 	case command_type::notify_player_leaves:
 		execute_notify_player_leaves(state, c.source);
@@ -4978,8 +4981,6 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_stop_game:
 		execute_notify_stop_game(state, c.source);
-		break;
-	case command_type::save_stream:
 		break;
 
 		// console commands

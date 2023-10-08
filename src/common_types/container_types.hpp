@@ -196,4 +196,12 @@ struct checksum_key {
 	}
 };
 
+struct player_name {
+	char data[8];
+
+	std::string_view to_string_view() noexcept {
+		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
+	}
+};
+
 } // namespace sys
