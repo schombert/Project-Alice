@@ -39,6 +39,7 @@ private:
 
 public:
 	FT_Face font_face;
+	ankerl::unordered_dense::map<uint16_t, float> kernings;
 	std::vector<uint16_t> substitution_indices;
 	std::vector<uint8_t const*> type_2_kerning_tables;
 	uint8_t const* gs = nullptr;
@@ -65,8 +66,8 @@ public:
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
-	float kerning(char codepoint_first, char codepoint_second) const;
-	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) const;
+	float kerning(char codepoint_first, char codepoint_second);
+	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size);
 
 	friend class font_manager;
 };
@@ -85,7 +86,7 @@ public:
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
-	float text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) const;
+	float text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id);
 };
 
 void load_standard_fonts(sys::state& state);

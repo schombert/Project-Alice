@@ -554,7 +554,7 @@ public:
 			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
 			switch(rel_flags & nations::influence::priority_mask) {
 			case nations::influence::priority_zero:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 4);
+				command::change_influence_priority(state, state.local_player_nation, nation_id, 3);
 				break;
 			case nations::influence::priority_one:
 				command::change_influence_priority(state, state.local_player_nation, nation_id, 0);
