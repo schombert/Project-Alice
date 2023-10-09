@@ -679,6 +679,8 @@ public:
 	MOD_PROV_FUNCTION(min_build_naval_base)
 	MOD_PROV_FUNCTION(min_build_railroad)
 	MOD_PROV_FUNCTION(min_build_fort)
+	MOD_PROV_FUNCTION(min_build_bank)
+	MOD_PROV_FUNCTION(min_build_university)
 	MOD_PROV_FUNCTION(attack)
 	template<typename T>
 	void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
@@ -1876,6 +1878,8 @@ struct technology_contents : public modifier_base {
 	void max_fort(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+	void max_bank(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+	void max_university(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 	void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
@@ -1932,6 +1936,8 @@ struct inv_effect : public modifier_base {
 	void max_fort(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 	void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 	void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
+	void max_bank(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
+	void max_university(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 };
 
 struct invention_contents : public modifier_base {

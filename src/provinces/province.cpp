@@ -402,6 +402,40 @@ bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_
 	return (max_local_lvl - current_lvl - min_build > 0) && (current_lvl > 0 || !si.get_naval_base_is_taken()) && !has_naval_base_being_built(state, id);
 }
 
+bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::nation_id n, economy::province_building_type t) {
+	auto owner = state.world.province_get_nation_from_province_ownership(id);
+
+	if(owner != state.world.province_get_nation_from_province_control(id))
+		return false;
+	if(military::province_is_under_siege(state, id))
+		return false;
+
+	if(owner != n) {
+		if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
+			return false;
+		if(state.world.nation_get_is_civilized(owner) == false)
+			return false;
+
+		auto rules = state.world.nation_get_combined_issue_rules(owner);
+		if((rules & issue_rule::allow_foreign_investment) == 0)
+			return false;
+
+		if(military::are_at_war(state, n, owner))
+			return false;
+	} else {
+		auto rules = state.world.nation_get_combined_issue_rules(n);
+		if(t == economy::province_building_type::bank && (rules & issue_rule::build_bank) == 0)
+			return false;
+		if(t == economy::province_building_type::university && (rules & issue_rule::build_university) == 0)
+			return false;
+	}
+
+	int32_t current_lvl = state.world.province_get_building_level(id, t);
+	int32_t max_local_lvl = state.world.nation_get_max_building_level(n, t);
+	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+	return (max_local_lvl - current_lvl - min_build > 0) && !has_railroads_being_built(state, id);
+}
+
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }

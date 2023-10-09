@@ -582,14 +582,13 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto id = retrieve<dcon::province_id>(state, parent);
 
+		int32_t current_lvl = state.world.province_get_building_level(id, Value);
+		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, Value);
 		if constexpr(Value == economy::province_building_type::fort) {
 			text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(id) == state.local_player_nation);
 			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
 
-			int32_t current_lvl = state.world.province_get_building_level(id, economy::province_building_type::fort);
-			int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::fort);
 			int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_fort));
-
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 
 		} else if constexpr(Value == economy::province_building_type::naval_base) {
@@ -597,9 +596,6 @@ public:
 			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
 			text::add_line_with_condition(state, contents, "nb_build_tt_1", state.world.province_get_is_coast(id));
 
-
-			int32_t current_lvl = state.world.province_get_building_level(id, economy::province_building_type::naval_base);
-			int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::naval_base);
 			int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_naval_base));
 
 			auto si = state.world.province_get_state_membership(id);
@@ -607,18 +603,23 @@ public:
 
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 
-		} if constexpr(Value == economy::province_building_type::railroad) {
+		} else {
 			text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(id) == state.local_player_nation);
 			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
 
 			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "rr_build_tt_1", (rules & issue_rule::build_railway) != 0);
 
-			int32_t current_rails_lvl = state.world.province_get_building_level(id, economy::province_building_type::railroad);
-			int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::railroad);
-			int32_t min_build_railroad =int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+			int32_t min_build = 0;
+			if constexpr(Value == economy::province_building_type::railroad) {
+				min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+			} else if constexpr(Value == economy::province_building_type::bank) {
+				min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_bank));
+			} else if constexpr(Value == economy::province_building_type::university) {
+				min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_university));
+			}
 
-			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0), text::variable_type::x, int64_t(current_rails_lvl), text::variable_type::n, int64_t(min_build_railroad), text::variable_type::y, int64_t(max_local_rails_lvl));
+			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
 	}
 };
@@ -1295,6 +1296,16 @@ public:
 		{
 			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::railroad>>(state, "building");
 			ptr->base_data.position.y = 71;
+			add_child_to_front(std::move(ptr));
+		}
+		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined) {
+			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::bank>>(state, "building");
+			ptr->base_data.position.y = 71 + 36;
+			add_child_to_front(std::move(ptr));
+		}
+		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined) {
+			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::university>>(state, "building");
+			ptr->base_data.position.y = 71 + 36 + 36;
 			add_child_to_front(std::move(ptr));
 		}
 	}

@@ -106,7 +106,7 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::r
 	if((rules & (issue_rule::build_factory | issue_rule::expand_factory | issue_rule::open_factory | issue_rule::destroy_factory |
 									issue_rule::factory_priority | issue_rule::can_subsidise | issue_rule::pop_build_factory |
 									issue_rule::pop_expand_factory | issue_rule::pop_open_factory | issue_rule::delete_factory_if_no_input |
-									issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway)) != 0) {
+									issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway | issue_rule::build_bank | issue_rule::build_university)) != 0) {
 
 		text::add_line(state, contents, "special_rules");
 

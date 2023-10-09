@@ -365,6 +365,8 @@ modifier_base
 	min_build_naval_base                      value      float            member_fn
 	min_build_railroad                        value      float            member_fn
 	min_build_fort                            value      float            member_fn
+	min_build_bank                            value      float            member_fn
+	min_build_university                      value      float            member_fn
 	commerce_tech_research_bonus              value      float            member_fn
 	army_tech_research_bonus                  value      float            member_fn
 	industry_tech_research_bonus              value      float            member_fn
@@ -1277,6 +1279,14 @@ ef_build_fort_in_capital
 	in_whole_capital_state         value     bool                       member
 	limit_to_world_greatest_level  value     bool                       member
 
+ef_build_bank_in_capital
+	in_whole_capital_state         value     bool                       member
+	limit_to_world_greatest_level  value     bool                       member
+
+ef_build_university_in_capital
+	in_whole_capital_state         value     bool                       member
+	limit_to_world_greatest_level  value     bool                       member
+
 ef_random_list
 	#any                            extern      add_to_random_list  member_fn
 
@@ -1365,6 +1375,8 @@ effect_body
 	fort                            value       int                 member_fn
 	naval_base                      value       int                 member_fn
 	railroad                        value       int                 member_fn  (infrastructure)
+	bank                            value       int                 member_fn
+	university                      value       int                 member_fn
 	set_province_flag               value       none                discard
 	clr_province_flag               value       none                discard
 	chance                          value       int                 member
@@ -1398,6 +1410,8 @@ effect_body
 	party_loyalty                   group       ef_party_loyalty            member_fn
 	build_railway_in_capital        group       ef_build_railway_in_capital member_fn
 	build_fort_in_capital           group       ef_build_fort_in_capital    member_fn
+	build_bank_in_capital           group       ef_build_bank_in_capital member_fn
+	build_university_in_capital     group       ef_build_university_in_capital member_fn
 	hidden_tooltip                  extern      ef_scope_hidden_tooltip     discard
 	any_neighbor_province           extern      ef_scope_any_neighbor_province   discard
 	any_neighbor_country            extern      ef_scope_any_neighbor_country    discard
@@ -1642,6 +1656,8 @@ inv_effect
 	max_fort              value      int                    member_fn
 	max_railroad          value      int                    member_fn
 	max_naval_base        value      int                    member_fn
+	max_bank              value      int                    member_fn
+	max_university        value      int                    member_fn
 	shared_prestige       value      float                  member_fn
 	plurality             value      float                  member_fn
 	activate_unit         value      text                   member_fn

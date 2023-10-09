@@ -1680,6 +1680,21 @@ void inv_effect::max_naval_base(association_type, int32_t value, error_handler& 
 	}
 }
 
+void inv_effect::max_bank(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	if(value == 1) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::bank, true);
+	} else {
+		err.accumulated_errors += "max_bank may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void inv_effect::max_university(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	if(value == 1) {
+		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::university, true);
+	} else {
+		err.accumulated_errors += "max_university may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 void inv_effect::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_set_shared_prestige(context.id, value);
 }

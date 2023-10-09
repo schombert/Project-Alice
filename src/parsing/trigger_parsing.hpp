@@ -3334,6 +3334,12 @@ struct trigger_body {
 			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval_base")) {
 				context.compiled_trigger.push_back(
 						uint16_t(trigger::has_building_naval_base | trigger::no_payload | association_to_bool_code(a)));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "bank")) {
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::has_building_bank | trigger::no_payload | association_to_bool_code(a)));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "university")) {
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::has_building_university | trigger::no_payload | association_to_bool_code(a)));
 			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
 				context.compiled_trigger.push_back(
 						uint16_t(trigger::has_building_factory_from_province | trigger::no_payload | association_to_bool_code(a)));
