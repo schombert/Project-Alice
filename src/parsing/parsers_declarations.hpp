@@ -1719,6 +1719,8 @@ struct option_rules {
 	void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 	void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 	void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+	void build_bank(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+	void build_university(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 
 	void finish(individual_roption_context&) { }
 	void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
@@ -1759,6 +1761,8 @@ struct option_rules {
 	void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
 	void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
 	void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+	void build_bank(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+	void build_university(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
 };
 
 struct on_execute_body {

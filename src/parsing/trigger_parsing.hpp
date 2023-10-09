@@ -3312,10 +3312,10 @@ struct trigger_body {
 	void has_building(association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::state) {
-			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory"))
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
 				context.compiled_trigger.push_back(
 						uint16_t(trigger::has_building_factory | trigger::no_payload | association_to_bool_code(a)));
-			else if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
+			}  else if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
 							it != context.outer_context.map_of_factory_names.end()) {
 				context.compiled_trigger.push_back(uint16_t(trigger::has_building_state | association_to_bool_code(a)));
 				context.compiled_trigger.push_back(trigger::payload(it->second).value);

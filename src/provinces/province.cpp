@@ -309,6 +309,7 @@ bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
 	}
 	return false;
 }
+
 bool generic_can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n) {
 	if(n != state.world.province_get_nation_from_province_control(id))
 		return false;
@@ -400,6 +401,14 @@ bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_
 	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_naval_base));
 
 	return (max_local_lvl - current_lvl - min_build > 0) && (current_lvl > 0 || !si.get_naval_base_is_taken()) && !has_naval_base_being_built(state, id);
+}
+
+bool has_province_building_being_built(sys::state& state, dcon::province_id id, economy::province_building_type t) {
+	for(auto pb : state.world.province_get_province_building_construction(id)) {
+		if(economy::province_building_type(pb.get_type()) == t)
+			return true;
+	}
+	return false;
 }
 
 bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::nation_id n, economy::province_building_type t) {

@@ -1118,6 +1118,18 @@ void option_rules::build_railway(association_type, bool value, error_handler& er
 		context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_railway;
 }
 
+void option_rules::build_bank(association_type, bool value, error_handler& err, int32_t line,
+		individual_option_context& context) {
+	if(value)
+		context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_bank;
+}
+
+void option_rules::build_university(association_type, bool value, error_handler& err, int32_t line,
+		individual_option_context& context) {
+	if(value)
+		context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_university;
+}
+
 void option_rules::build_factory(association_type, bool value, error_handler& err, int32_t line,
 		individual_roption_context& context) {
 	if(value)
@@ -1301,6 +1313,18 @@ void option_rules::build_railway(association_type, bool value, error_handler& er
 		individual_roption_context& context) {
 	if(value)
 		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_railway;
+}
+
+void option_rules::build_bank(association_type, bool value, error_handler& err, int32_t line,
+		individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_bank;
+}
+
+void option_rules::build_university(association_type, bool value, error_handler& err, int32_t line,
+		individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_university;
 }
 
 void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line,

@@ -1543,6 +1543,8 @@ option_rules
 	state_vote                  value      bool        member_fn
 	population_vote             value      bool        member_fn
 	build_railway               value      bool        member_fn
+	build_bank                  value      bool        member_fn
+	build_university            value      bool        member_fn
 
 on_execute_body
 	trigger                extern    make_execute_trigger   member
