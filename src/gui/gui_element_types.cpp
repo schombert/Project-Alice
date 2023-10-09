@@ -1147,7 +1147,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 
 	if(is_reversed()) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
-		for(int32_t rw_i = row_windows.size() - 1; rw_i >= 0; rw_i--) {
+		for(int32_t rw_i = int32_t(row_windows.size()) - 1; rw_i >= 0; rw_i--) {
 			RowWinT* row_window = row_windows[size_t(rw_i)];
 			if(i >= 0) {
 				row_window->set_visible(state, true);
