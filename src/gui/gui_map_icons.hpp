@@ -876,7 +876,7 @@ public:
 	char cached_level = 0;
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+		if(x < -32 || y < -16 + 24 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
 			return;
 
 		if(last_update != state.ui_date) {
@@ -895,7 +895,7 @@ public:
 	char cached_level = 0;
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+		if(x < -32 || y < -16 + 24 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
 			return;
 
 		if(last_update != state.ui_date) {
@@ -924,19 +924,13 @@ class map_province_values : public window_element_base {
 		} else if(name == "fort_icon") {
 			return make_element_by_type<map_pv_fort>(state, id);
 		} else if(name == "bank_icon") {
-			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined) {
+			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined)
 				return make_element_by_type<map_pv_bank>(state, id);
-			}
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "university_icon") {
-			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined) {
+			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined)
 				return make_element_by_type<map_pv_university>(state, id);
-			}
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "capital_icon") {
 			return make_element_by_type<map_pv_capital>(state, id);
 		} else {
