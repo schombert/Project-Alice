@@ -1378,8 +1378,7 @@ struct party {
 	void name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
 	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
 	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
-	void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line,
-			party_context& context);
+	void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context);
 	void finish(party_context&) { }
 };
 struct unit_names_list {

@@ -2096,6 +2096,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	world.national_identity_resize_government_flag_type(world.government_type_size());
 	world.national_identity_resize_government_name(world.government_type_size());
+	world.national_identity_resize_government_color(world.government_type_size());
 
 	// add special names
 	for(auto ident : world.in_national_identity) {
