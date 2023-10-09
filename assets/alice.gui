@@ -1049,12 +1049,12 @@ guiTypes = {
 			iconType = {
 				name ="bank_icon"
 				spriteType = "GFX_alice_map_bank"
-				position = { x=16 y=32 }
+				position = { x=0 y=24 }
 			}
 			iconType = {
 				name ="university_icon"
 				spriteType = "GFX_alice_map_university"
-				position = { x=48 y=32 }
+				position = { x=32 y=24 }
 			}
 			iconType = {
 				name ="capital_icon"
