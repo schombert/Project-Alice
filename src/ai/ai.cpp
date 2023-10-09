@@ -2790,9 +2790,13 @@ void make_war_decs(sys::state& state) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
 
+			if(real_target == n)
+				continue;
 			if(nations::are_allied(state, other, real_target))
 				continue;
 			if(real_target.get_in_sphere_of() == n)
+				continue;
+			if(state.world.nation_get_in_sphere_of(other) == n)
 				continue;
 			if(military::has_truce_with(state, n, real_target))
 				continue;
@@ -2817,11 +2821,15 @@ void make_war_decs(sys::state& state) {
 				dcon::nation_id other{dcon::nation_id::value_base_t(reduced_value)};
 				auto real_target = fatten(state.world, other).get_overlord_as_subject().get_ruler() ? fatten(state.world, other).get_overlord_as_subject().get_ruler() : fatten(state.world, other);
 
+				if(other == n || real_target == n)
+					continue;
 				if(state.world.nation_get_central_ports(other) == 0 || state.world.nation_get_central_ports(real_target) == 0)
 					continue;
 				if(nations::are_allied(state, other, real_target))
 					continue;
 				if(real_target.get_in_sphere_of() == n)
+					continue;
+				if(state.world.nation_get_in_sphere_of(other) == n)
 					continue;
 				if(military::has_truce_with(state, n, real_target))
 					continue;
