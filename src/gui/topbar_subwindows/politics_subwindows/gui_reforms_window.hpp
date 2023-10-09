@@ -201,7 +201,6 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		selected_icon->set_visible(state, politics::issue_is_selected(state, state.local_player_nation, content));
-		update(state);
 	}
 };
 

@@ -319,7 +319,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
 		if(!content.continent) {
 			build_button->set_visible(state, true);
@@ -531,7 +531,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		if(!content.is_navy) {
 			auto c = content.land_id;
 

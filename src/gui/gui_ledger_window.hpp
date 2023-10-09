@@ -111,8 +111,7 @@ public:
 		return listbox_row_element_base::get(state, payload);
 	}
 
-	void update(sys::state& state) noexcept override {
-		country_flag->on_update(state);
+	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
@@ -618,7 +617,7 @@ public:
 		return listbox_row_element_base::get(state, payload);
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
@@ -785,7 +784,7 @@ public:
 		return listbox_row_element_base::get(state, payload);
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
