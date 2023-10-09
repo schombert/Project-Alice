@@ -1878,11 +1878,6 @@ struct technology_contents : public modifier_base {
 	void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void area(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
-	void max_fort(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
-	void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
-	void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
-	void max_bank(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
-	void max_university(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 	void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
@@ -1922,6 +1917,7 @@ struct inv_rebel_org_gain {
 struct inv_effect : public modifier_base {
 	void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line,
 			invention_context& context);
+	void any_value(std::string_view name, association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	inv_rgo_goods_output rgo_goods_output;
@@ -1936,11 +1932,6 @@ struct inv_effect : public modifier_base {
 	void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context);
-	void max_fort(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
-	void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
-	void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
-	void max_bank(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
-	void max_university(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context);
 };
 
 struct invention_contents : public modifier_base {

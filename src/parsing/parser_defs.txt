@@ -1650,16 +1650,12 @@ inv_rebel_org_gain
 inv_effect
 	#base          modifier_base
 	#any                  group      unit_modifier_body     member_fn
+	#any                  value      int                    member_fn
 	rgo_goods_output      group      inv_rgo_goods_output   member
 	rgo_goods_throughput       group      inv_rgo_goods_output   member  (rgo_goods_output)
 	factory_goods_throughput group   inv_fac_goods_throughput  member
 	factory_goods_output  group      inv_fac_goods_output   member
 	factory_goods_input  group      inv_fac_goods_output   discard
-	max_fort              value      int                    member_fn
-	max_railroad          value      int                    member_fn
-	max_naval_base        value      int                    member_fn
-	max_bank              value      int                    member_fn
-	max_university        value      int                    member_fn
 	shared_prestige       value      float                  member_fn
 	plurality             value      float                  member_fn
 	activate_unit         value      text                   member_fn

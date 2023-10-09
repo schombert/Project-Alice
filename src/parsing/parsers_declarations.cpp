@@ -1682,41 +1682,20 @@ void inv_effect::activate_building(association_type, std::string_view value, err
 	}
 }
 
-void inv_effect::max_fort(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
-	if(value == 1) {
-		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::fort, true);
-	} else {
-		err.accumulated_errors += "max_fort may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+void inv_effect::any_value(std::string_view name, association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
+	if(has_fixed_prefix_ci(name.data(), name.data() + name.length(), "max_")) {
+		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+			if(std::string(name).substr(4) == economy::province_building_type_get_name(t)) {
+				if(value == 1) {
+					context.outer_context.state.world.invention_set_increase_building(context.id, t, true);
+				} else {
+					err.accumulated_errors += "max_" + std::string(economy::province_building_type_get_name(t)) + " may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+				return;
+			}
+		}
 	}
-}
-void inv_effect::max_railroad(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
-	if(value == 1) {
-		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::railroad, true);
-	} else {
-		err.accumulated_errors += "max_railroad may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	}
-}
-void inv_effect::max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
-	if(value == 1) {
-		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::naval_base, true);
-	} else {
-		err.accumulated_errors += "max_naval_base may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	}
-}
-
-void inv_effect::max_bank(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
-	if(value == 1) {
-		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::bank, true);
-	} else {
-		err.accumulated_errors += "max_bank may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	}
-}
-void inv_effect::max_university(association_type, int32_t value, error_handler& err, int32_t line, invention_context& context) {
-	if(value == 1) {
-		context.outer_context.state.world.invention_set_increase_building(context.id, economy::province_building_type::university, true);
-	} else {
-		err.accumulated_errors += "max_university may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	}
+	err.accumulated_errors += "unknown technology key (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
 }
 
 void inv_effect::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
