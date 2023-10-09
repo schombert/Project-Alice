@@ -927,12 +927,16 @@ class map_province_values : public window_element_base {
 			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined) {
 				return make_element_by_type<map_pv_bank>(state, id);
 			}
-			return nullptr;
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "university_icon") {
 			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined) {
 				return make_element_by_type<map_pv_university>(state, id);
 			}
-			return nullptr;
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "capital_icon") {
 			return make_element_by_type<map_pv_capital>(state, id);
 		} else {
