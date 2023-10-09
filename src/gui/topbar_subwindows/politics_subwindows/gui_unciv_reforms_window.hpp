@@ -149,11 +149,15 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::r
 		if((rules & issue_rule::build_railway) != 0) {
 			text::add_line(state, contents, "rule_build_railway");
 		}
-		if((rules & issue_rule::build_bank) != 0) {
-			text::add_line(state, contents, "rule_build_bank");
+		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined) {
+			if((rules & issue_rule::build_bank) != 0) {
+				text::add_line(state, contents, "rule_build_bank");
+			}
 		}
-		if((rules & issue_rule::build_university) != 0) {
-			text::add_line(state, contents, "rule_build_university");
+		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined) {
+			if((rules & issue_rule::build_university) != 0) {
+				text::add_line(state, contents, "rule_build_university");
+			}
 		}
 
 		text::add_line_break_to_layout(state, contents);
