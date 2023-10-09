@@ -89,7 +89,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		auto name_id = state.world.leader_get_name(content);
 		auto name_content = state.to_string_view(name_id);
 		leader_name->set_text(state, std::string(name_content));

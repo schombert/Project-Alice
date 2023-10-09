@@ -39,7 +39,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		amount_text->set_text(state, text::format_float(content.satisfied, 1) + "/" + text::format_float(content.needed, 1));
 	}
 

@@ -340,7 +340,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		auto const& content = listbox_row_element_base<military_unit_info<T>>::content;
 
 		bool is_building = !std::holds_alternative<T>(content);

@@ -1113,7 +1113,7 @@ message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::A
 		return message_result::consumed;
 	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
-		update(state);
+		impl_on_update(state);
 		return message_result::consumed;
 	}
 	return message_result::unseen;

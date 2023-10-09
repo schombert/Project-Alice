@@ -1624,7 +1624,7 @@ public:
 		// After this, the widget will be immediately set by the parent
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		country_window->set_visible(state, std::holds_alternative<dcon::nation_id>(content));
 		state_window->set_visible(state, std::holds_alternative<dcon::state_instance_id>(content));
 		province_window->set_visible(state, std::holds_alternative<dcon::province_id>(content));
@@ -1761,10 +1761,8 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		value_text->set_text(state, text::format_percentage(listbox_row_element_base<std::pair<T, float>>::content.second, 1));
-		for(auto& c : listbox_row_element_base<std::pair<T, float>>::children)
-			c->impl_on_update(state);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -1969,7 +1967,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		value_text->set_text(state, text::format_percentage(listbox_row_element_base<std::pair<dcon::issue_option_id, float>>::content.second, 1));
 		for(auto& c : listbox_row_element_base<std::pair<dcon::issue_option_id, float>>::children)
 			c->impl_on_update(state);
@@ -2120,10 +2118,8 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		value_text->set_text(state, text::format_percentage(listbox_row_element_base<std::pair<dcon::ideology_id, float>>::content.second, 1));
-		for(auto& c : listbox_row_element_base<std::pair<dcon::ideology_id, float>>::children)
-			c->impl_on_update(state);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -2283,7 +2279,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		value_text->set_text(state, text::format_float(content.second, 1));
 	}
 

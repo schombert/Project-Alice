@@ -76,7 +76,7 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		entry_text_box->set_text(state, content);
 	}
 };

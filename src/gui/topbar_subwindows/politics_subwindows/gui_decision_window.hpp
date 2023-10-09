@@ -218,12 +218,6 @@ public:
 			return message_result::unseen;
 		}
 	}
-
-	void update(sys::state& state) noexcept override {
-		for(auto& child : children) {
-			child->impl_on_update(state);
-		}
-	}
 };
 
 // ----------------

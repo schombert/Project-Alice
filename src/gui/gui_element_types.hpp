@@ -771,7 +771,6 @@ protected:
 	RowConT content{};
 
 public:
-	virtual void update(sys::state& state) noexcept { }
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
