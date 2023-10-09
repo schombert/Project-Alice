@@ -60,6 +60,7 @@ public:
 	}
 };
 
+template<bool B>
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -82,7 +83,7 @@ public:
 	}
 
 	bool is_reversed() override {
-		return true;
+		return B;
 	}
 };
 
@@ -209,7 +210,7 @@ public:
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "chatlog") {
-			return make_element_by_type<chat_message_listbox>(state, id);
+			return make_element_by_type<chat_message_listbox<true>>(state, id);
 		} else if(name == "multiplayer_list") {
 			return make_element_by_type<chat_player_listbox>(state, id);
 		} else if(name == "lobby_chat_edit") {

@@ -1751,8 +1751,8 @@ public:
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
 
-		auto quick_chatlog = make_element_by_type<chat_message_listbox>(state, "chat_list");
-		quick_chatlog->base_data.position.y += 32; // nudge
+		auto quick_chatlog = make_element_by_type<chat_message_listbox<false>>(state, "chat_list");
+		quick_chatlog->base_data.position.x += 156; // nudge
 		add_child_to_front(std::move(quick_chatlog));
 
 		state.ui_state.topbar_window = this;

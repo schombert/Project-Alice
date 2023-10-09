@@ -4558,6 +4558,8 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	state.debug_oos_dump();
+
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
@@ -4582,8 +4584,10 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
-		if(!current.is_equal(k))
+		if(!current.is_equal(k)) {
 			state.network_state.out_of_sync = true;
+			state.debug_oos_dump();
+		}
 	}
 	if(state.network_mode == sys::network_mode_type::client) {
 		state.actual_game_speed = speed;
