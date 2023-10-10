@@ -827,7 +827,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::popup) {
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) {
+						if((user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
@@ -837,7 +837,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::popup) {
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::pause) {
+						if((user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
@@ -847,7 +847,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::popup) {
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::pause) {
+						if((user_settings.other_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
