@@ -4527,9 +4527,8 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	if(!can_notify_player_picks_nation(state, source, target))
 		return;
 
-	if(bool(source) && source != state.national_definitions.rebel_id) {
+	if(bool(source) && source != state.national_definitions.rebel_id)
 		state.world.nation_set_is_player_controlled(source, false);
-	}
 	state.world.nation_set_is_player_controlled(target, true);
 	state.network_state.map_of_player_names.insert_or_assign(target.index(), state.network_state.map_of_player_names[source.index()]);
 	// TODO: To avoid abuse, clients will be given a random nation when they join the server
@@ -4538,16 +4537,6 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	if(state.local_player_nation == source) {
 		state.local_player_nation = target;
 	}
-
-	ui::chat_message m{};
-	m.source = source;
-	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
-	text::add_to_substitution_map(sub, text::variable_type::country, target);
-	m.body = text::resolve_string_substitution(state, "chat_player_switch", sub);
-	post_chat_message(state, m);
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source) {
@@ -4605,8 +4594,11 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 }
 void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
 	state.game_seed = seed;
-	state.network_state.is_new_game = false;
 	state.session_host_checksum = k;
+	// Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
+	state.network_state.is_new_game = false;
+	state.network_state.out_of_sync = false;
+	state.network_state.reported_oos = false;
 }
 
 void notify_reload_state(sys::state& state, dcon::nation_id source) {
