@@ -23,37 +23,26 @@ namespace ui {
 class cb_wargoal_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::cb_type_id{};
-			parent->impl_get(state, payload);
-			const dcon::cb_type_id cbt = any_cast<dcon::cb_type_id>(payload);
-			frame = state.world.cb_type_get_sprite_index(cbt) - 1;
-		}
+		const dcon::cb_type_id cbt = retrieve<dcon::cb_type_id>(state, parent);
+		frame = state.world.cb_type_get_sprite_index(cbt) - 1;
 	}
 };
 
 class cb_wargoal_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		const dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		if(parent) {
-			Cyto::Any payload = dcon::cb_type_id{};
-			parent->impl_get(state, payload);
-			const dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
-			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
-
 			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
 			disabled = selected == content;
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::cb_type_id{};
-			parent->impl_get(state, payload);
-			const dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
-			Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{ content };
-			parent->impl_get(state, newpayload);
-		}
+		const dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{ content };
+		parent->impl_get(state, newpayload);
 	}
 };
 
@@ -79,15 +68,11 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
-				if(command::can_fabricate_cb(state, state.local_player_nation, content, cb))
-					row_contents.push_back(cb);
-			});
-		}
+		dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
+			if(command::can_fabricate_cb(state, state.local_player_nation, content, cb))
+				row_contents.push_back(cb);
+		});
 		update(state);
 	}
 };
@@ -95,32 +80,16 @@ public:
 class diplomacy_make_cb_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::cb_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
-
-			Cyto::Any newpayload = dcon::nation_id{};
-			parent->impl_get(state, newpayload);
-			auto target_nation = any_cast<dcon::nation_id>(newpayload);
-
-			command::fabricate_cb(state, state.local_player_nation, target_nation, content);
-			parent->set_visible(state, false);
-		}
+		auto content = retrieve<dcon::cb_type_id>(state, parent);
+		auto target_nation = retrieve<dcon::nation_id>(state, parent);
+		command::fabricate_cb(state, state.local_player_nation, target_nation, content);
+		parent->set_visible(state, false);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::cb_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
-
-			Cyto::Any newpayload = dcon::nation_id{};
-			parent->impl_get(state, newpayload);
-			auto target_nation = any_cast<dcon::nation_id>(newpayload);
-
-			disabled = !command::can_fabricate_cb(state, state.local_player_nation, target_nation, content);
-		}
+		auto content = retrieve<dcon::cb_type_id>(state, parent);
+		auto target_nation = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_fabricate_cb(state, state.local_player_nation, target_nation, content);
 	}
 };
 
@@ -207,26 +176,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			
-				auto n = retrieve<dcon::nation_id>(state, parent);
-				text::add_line(state, contents, "diplomacy_ships", text::variable_type::value, military::total_ships(state, n));
-				text::add_line_break_to_layout(state, contents);
-
-				int32_t total = 0;
-				int32_t discovered = 0;
-				state.world.for_each_technology([&](dcon::technology_id id) {
-					auto fat_id = dcon::fatten(state.world, id);
-					if(state.culture_definitions.tech_folders[fat_id.get_folder_index()].category != culture::tech_category::navy)
-						return;
-					++total;
-					if(state.world.nation_get_active_technologies(n, id))
-						++discovered;
-				});
-
-				text::add_line(state, contents, "navy_technology_levels", text::variable_type::val, discovered, text::variable_type::max, total);
-			
-		}
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		text::add_line(state, contents, "diplomacy_ships", text::variable_type::value, military::total_ships(state, n));
+		text::add_line_break_to_layout(state, contents);
+		int32_t total = 0;
+		int32_t discovered = 0;
+		state.world.for_each_technology([&](dcon::technology_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(state.culture_definitions.tech_folders[fat_id.get_folder_index()].category != culture::tech_category::navy)
+				return;
+			++total;
+			if(state.world.nation_get_active_technologies(n, id))
+				++discovered;
+		});
+		text::add_line(state, contents, "navy_technology_levels", text::variable_type::val, discovered, text::variable_type::max, total);
 	}
 };
 
@@ -237,25 +200,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
-				auto n = retrieve<dcon::nation_id>(state, parent);
-				text::add_line(state, contents, "diplomacy_brigades", text::variable_type::value, military::total_regiments(state, n));
-				text::add_line_break_to_layout(state, contents);
-
-				int32_t total = 0;
-				int32_t discovered = 0;
-				state.world.for_each_technology([&](dcon::technology_id id) {
-					auto fat_id = dcon::fatten(state.world, id);
-					if(state.culture_definitions.tech_folders[fat_id.get_folder_index()].category != culture::tech_category::army)
-						return;
-					++total;
-					if(state.world.nation_get_active_technologies(n, id))
-						++discovered;
-				});
-
-				text::add_line(state, contents, "army_technology_levels", text::variable_type::val, discovered, text::variable_type::max, total);
-			
-		
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		text::add_line(state, contents, "diplomacy_brigades", text::variable_type::value, military::total_regiments(state, n));
+		text::add_line_break_to_layout(state, contents);
+		int32_t total = 0;
+		int32_t discovered = 0;
+		state.world.for_each_technology([&](dcon::technology_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(state.culture_definitions.tech_folders[fat_id.get_folder_index()].category != culture::tech_category::army)
+				return;
+			++total;
+			if(state.world.nation_get_active_technologies(n, id))
+				++discovered;
+		});
+		text::add_line(state, contents, "army_technology_levels", text::variable_type::val, discovered, text::variable_type::max, total);
 	}
 };
 
@@ -273,21 +231,20 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {	
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, "diplomacy_wx_1");
-			auto mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::war_exhaustion);
-			if(mod > 0) {
-				text::add_to_layout_box(state, contents, box, std::string_view("+"), text::text_color::red);
-				text::add_to_layout_box(state, contents, box, text::fp_two_places{mod}, text::text_color::red);
-			} else if(mod == 0) {
-				text::add_to_layout_box(state, contents, box, std::string_view("+0"));
-			} else {
-				text::add_to_layout_box(state, contents, box, text::fp_two_places{mod}, text::text_color::green);
-			}
-			text::close_layout_box(contents, box);
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "diplomacy_wx_1");
+		auto mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::war_exhaustion);
+		if(mod > 0) {
+			text::add_to_layout_box(state, contents, box, std::string_view("+"), text::text_color::red);
+			text::add_to_layout_box(state, contents, box, text::fp_two_places{mod}, text::text_color::red);
+		} else if(mod == 0) {
+			text::add_to_layout_box(state, contents, box, std::string_view("+0"));
+		} else {
+			text::add_to_layout_box(state, contents, box, text::fp_two_places{mod}, text::text_color::green);
+		}
+		text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::war_exhaustion, false);
-		
+		active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::war_exhaustion, false);
 	}
 };
 
@@ -296,9 +253,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(!parent)
 			return;
-		auto pp = parent->parent;
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		auto window_content = retrieve<dcon::nation_id>(state, pp);
+		auto window_content = retrieve<dcon::nation_id>(state, parent->parent);
 		if(content == window_content)
 			frame = 1;
 		else
@@ -306,8 +262,7 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		if(content)
-			send(state, parent, element_selection_wrapper<dcon::nation_id>{content});
+		send(state, parent, element_selection_wrapper<dcon::nation_id>{content});
 	}
 };
 
@@ -491,81 +446,68 @@ class diplomacy_priority_button : public right_click_button_element_base {
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
-			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
-			switch(rel_flags & nations::influence::priority_mask) {
-			case nations::influence::priority_zero:
-				frame = 0;
-				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 1);
-				break;
-			case nations::influence::priority_one:
-				frame = 1;
-				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 2);
-				break;
-			case nations::influence::priority_two:
-				frame = 2;
-				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 3);
-				break;
-			case nations::influence::priority_three:
-				frame = 3;
-				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 0);
-				break;
-			}
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+		uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+		switch(rel_flags & nations::influence::priority_mask) {
+		case nations::influence::priority_zero:
+			frame = 0;
+			disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 1);
+			break;
+		case nations::influence::priority_one:
+			frame = 1;
+			disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 2);
+			break;
+		case nations::influence::priority_two:
+			frame = 2;
+			disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 3);
+			break;
+		case nations::influence::priority_three:
+			frame = 3;
+			disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 0);
+			break;
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
-			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
-			switch(rel_flags & nations::influence::priority_mask) {
-			case nations::influence::priority_zero:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 1);
-				break;
-			case nations::influence::priority_one:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 2);
-				break;
-			case nations::influence::priority_two:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 3);
-				break;
-			case nations::influence::priority_three:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 0);
-				break;
-			}
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+		uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+		switch(rel_flags & nations::influence::priority_mask) {
+		case nations::influence::priority_zero:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 1);
+			break;
+		case nations::influence::priority_one:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 2);
+			break;
+		case nations::influence::priority_two:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 3);
+			break;
+		case nations::influence::priority_three:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 0);
+			break;
 		}
 	}
 
 	void button_right_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
-			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
-			switch(rel_flags & nations::influence::priority_mask) {
-			case nations::influence::priority_zero:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 3);
-				break;
-			case nations::influence::priority_one:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 0);
-				break;
-			case nations::influence::priority_two:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 1);
-				break;
-			case nations::influence::priority_three:
-				command::change_influence_priority(state, state.local_player_nation, nation_id, 2);
-				break;
-			}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+		uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+		switch(rel_flags & nations::influence::priority_mask) {
+		case nations::influence::priority_zero:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 3);
+			break;
+		case nations::influence::priority_one:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 0);
+			break;
+		case nations::influence::priority_two:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 1);
+			break;
+		case nations::influence::priority_three:
+			command::change_influence_priority(state, state.local_player_nation, nation_id, 2);
+			break;
 		}
 	}
 
@@ -902,51 +844,50 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
-			auto content = retrieve<dcon::nation_id>(state, parent);
-			if(content == state.local_player_nation) {
-				text::add_line_with_condition(state, contents, "add_wg_1", false);
-				return;
-			}
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		if(content == state.local_player_nation) {
+			text::add_line_with_condition(state, contents, "add_wg_1", false);
+			return;
+		}
 
-			if(state.defines.addwargoal_diplomatic_cost > 0) {
-				text::add_line_with_condition(state, contents, "add_wg_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
-			}
+		if(state.defines.addwargoal_diplomatic_cost > 0) {
+			text::add_line_with_condition(state, contents, "add_wg_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
+		}
 
-			auto w = military::find_war_between(state, state.local_player_nation, content);
-			text::add_line_with_condition(state, contents, "add_wg_2", bool(w));
-			if(!w) {
-				return;
-			}
+		auto w = military::find_war_between(state, state.local_player_nation, content);
+		text::add_line_with_condition(state, contents, "add_wg_2", bool(w));
+		if(!w) {
+			return;
+		}
 
-			bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
-			text::add_line_with_condition(state, contents, "add_wg_5", is_attacker || !military::defenders_have_status_quo_wargoal(state, w));
+		bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+		text::add_line_with_condition(state, contents, "add_wg_5", is_attacker || !military::defenders_have_status_quo_wargoal(state, w));
 
-			for(auto cb_type : state.world.in_cb_type) {
-				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
-					if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
-						for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
-							if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
-								return;
-							}
-						}
-					} else { // this is an always CB
-						// prevent duplicate war goals
-						if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
+		for(auto cb_type : state.world.in_cb_type) {
+			if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
+				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
+					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
 							return;
 						}
 					}
+				} else { // this is an always CB
+					// prevent duplicate war goals
+					if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
+						return;
+					}
 				}
 			}
+		}
 
-			// if we hit this, it means no existing cb is ready to be applied
-			auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
-			auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
-			if(state.world.war_get_is_great(w)) {
-				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
-			} else {
-				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
-			}
+		// if we hit this, it means no existing cb is ready to be applied
+		auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+		auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+		if(state.world.war_get_is_great(w)) {
+			text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
+		} else {
+			text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
+		}
 	}
 };
 
@@ -1134,7 +1075,6 @@ public:
 
 class diplomacy_country_facts : public window_element_base {
 private:
-	dcon::nation_id active_nation{};
 	flag_button* country_flag = nullptr;
 	nation_player_relations_text* country_relation = nullptr;
 	image_element_base* country_relation_icon = nullptr;
@@ -1148,7 +1088,6 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-
 		{
 			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
 			win->gp_num = 0;
@@ -1446,15 +1385,11 @@ class overlapping_attacker_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override {
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			dcon::war_id w = any_cast<dcon::war_id>(payload);
-			auto war = dcon::fatten(state.world, w);
-			for(auto o : war.get_war_participant())
-				if(o.get_is_attacker() == true)
-					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
-		}
+		dcon::war_id w = retrieve<dcon::war_id>(state, parent);
+		auto war = dcon::fatten(state.world, w);
+		for(auto o : war.get_war_participant())
+			if(o.get_is_attacker() == true)
+				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
 };
@@ -1462,15 +1397,11 @@ class overlapping_defender_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override {
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			dcon::war_id w = any_cast<dcon::war_id>(payload);
-			auto war = dcon::fatten(state.world, w);
-			for(auto o : war.get_war_participant())
-				if(o.get_is_attacker() == false)
-					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
-		}
+		dcon::war_id w = retrieve<dcon::war_id>(state, parent);
+		auto war = dcon::fatten(state.world, w);
+		for(auto o : war.get_war_participant())
+			if(o.get_is_attacker() == false)
+				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
 };
@@ -1479,18 +1410,14 @@ template<bool IsAttacker>
 class war_side_strength_text : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			dcon::war_id content = any_cast<dcon::war_id>(payload);
+		dcon::war_id content = retrieve<dcon::war_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			int32_t strength = 0;
-			for(auto o : fat_id.get_war_participant())
-				if(o.get_is_attacker() == IsAttacker)
-					strength += int32_t(o.get_nation().get_military_score());
-			set_button_text(state, std::to_string(strength));
-		}
+		auto fat_id = dcon::fatten(state.world, content);
+		int32_t strength = 0;
+		for(auto o : fat_id.get_war_participant())
+			if(o.get_is_attacker() == IsAttacker)
+				strength += int32_t(o.get_nation().get_military_score());
+		set_button_text(state, std::to_string(strength));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1498,23 +1425,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			dcon::war_id content = any_cast<dcon::war_id>(payload);
+		dcon::war_id content = retrieve<dcon::war_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			for(auto o : fat_id.get_war_participant())
-				if(o.get_is_attacker() == IsAttacker) {
-					auto name = o.get_nation().get_name();
-					auto box = text::open_layout_box(contents, 0);
-					text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
-					text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::yellow);
-					text::add_space_to_layout_box(state, contents, box);
-					auto strength = int32_t(o.get_nation().get_military_score());
-					text::add_to_layout_box(state, contents, box, std::to_string(strength), text::text_color::white);
-					text::close_layout_box(contents, box);
-				}
+		auto fat_id = dcon::fatten(state.world, content);
+		for(auto o : fat_id.get_war_participant()) {
+			if(o.get_is_attacker() == IsAttacker) {
+				auto name = o.get_nation().get_name();
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::yellow);
+				text::add_space_to_layout_box(state, contents, box);
+				auto strength = int32_t(o.get_nation().get_military_score());
+				text::add_to_layout_box(state, contents, box, std::to_string(strength), text::text_color::white);
+				text::close_layout_box(contents, box);
+			}
 		}
 	}
 };
@@ -1528,19 +1452,13 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			dcon::war_id war_id = retrieve<dcon::war_id>(state, parent);
-
-			disabled = !command::can_intervene_in_war(state, state.local_player_nation, war_id, B);
-		}
+		dcon::war_id war_id = retrieve<dcon::war_id>(state, parent);
+		disabled = !command::can_intervene_in_war(state, state.local_player_nation, war_id, B);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			dcon::war_id war_id = retrieve<dcon::war_id>(state, parent);
-
-			command::intervene_in_war(state, state.local_player_nation, war_id, B);
-		}
+		dcon::war_id war_id = retrieve<dcon::war_id>(state, parent);
+		command::intervene_in_war(state, state.local_player_nation, war_id, B);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1848,81 +1766,57 @@ public:
 class justifying_cb_type_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
 	}
 };
 
 class justifying_cb_progress : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			progress = (fat.get_constructing_cb_progress() / 100.0f);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		progress = (fat.get_constructing_cb_progress() / 100.0f);
 	}
 };
 
 class justifying_attacker_flag : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) noexcept override {
-		if(parent) {
-			row_contents.clear();
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			row_contents.push_back(fat.get_identity_from_identity_holder().id);
-			update(state);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		row_contents.clear();
+		row_contents.push_back(fat.get_identity_from_identity_holder().id);
+		update(state);
 	}
 };
 
 class justifying_defender_flag : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) noexcept override {
-		if(parent) {
-			row_contents.clear();
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
-			update(state);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		row_contents.clear();
+		row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
+		update(state);
 	}
 };
 
 class diplomacy_casus_belli_cancel_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			if(content != state.local_player_nation) {
-				disabled = true;
-			} else {
-				disabled = !command::can_cancel_cb_fabrication(state, content);
-			}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		if(content != state.local_player_nation) {
+			disabled = true;
+		} else {
+			disabled = !command::can_cancel_cb_fabrication(state, content);
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			command::cancel_cb_fabrication(state, content);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		command::cancel_cb_fabrication(state, content);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -2145,7 +2039,6 @@ private:
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
 	std::vector<element_base*> action_buttons{};
 
-	
 	dcon::nation_id facts_nation_id{};
 
 	country_filter_setting filter = country_filter_setting{};
@@ -2268,12 +2161,13 @@ public:
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
 
-		facts_nation_id = state.local_player_nation;
+		Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.local_player_nation };
+		impl_get(state, payload);
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis == sys::crisis_type::none) {
-			send(state, this, diplomacy_window_tab::great_powers);
+			send<diplomacy_window_tab>(state, this, diplomacy_window_tab::great_powers);
 		}
 	}
 

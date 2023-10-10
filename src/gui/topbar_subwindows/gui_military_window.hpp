@@ -13,12 +13,25 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		command::toggle_mobilization(state, state.local_player_nation);
 	}
-};
 
-class military_demob_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		command::toggle_mobilization(state, state.local_player_nation);
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.nation_get_is_mobilized(n)) {
+			set_button_text(state, text::produce_simple_string(state, "demobilize"));
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "mobilize"));
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, true);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_size, true);
 	}
 };
 
@@ -78,6 +91,15 @@ public:
 
 		set_text(state, std::to_string(mob_size));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_size, false);
+	}
 };
 
 class military_mob_impact_text : public simple_text_element_base {
@@ -87,13 +109,14 @@ public:
 
 		set_text(state, text::format_percentage(v, 0));
 	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, false);
+	}
 };
 
 class military_window : public window_element_base {
-private:
-	button_element_base* mob_button = nullptr;
-	button_element_base* demob_button = nullptr;
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -145,16 +168,10 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "mobilize") {
-			auto ptr = make_element_by_type<military_mob_button>(state, id);
-			ptr->set_visible(state, true);
-			mob_button = ptr.get();
-			return ptr;
+			return make_element_by_type<military_mob_button>(state, id);
 
 		} else if(name == "demobilize") {
-			auto ptr = make_element_by_type<military_demob_button>(state, id);
-			ptr->set_visible(state, false);
-			demob_button = ptr.get();
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 
 		} else if(name == "mobilize_progress") {
 			return make_element_by_type<military_mob_progress_bar>(state, id);
@@ -185,17 +202,6 @@ public:
 
 		} else {
 			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto fat = dcon::fatten(state.world, state.local_player_nation);
-		if(fat.get_is_mobilized()) {
-			demob_button->set_visible(state, true);
-			mob_button->set_visible(state, false);
-		} else {
-			demob_button->set_visible(state, false);
-			mob_button->set_visible(state, true);
 		}
 	}
 

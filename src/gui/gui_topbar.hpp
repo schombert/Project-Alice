@@ -10,6 +10,7 @@
 #include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
+#include "gui_chat_window.hpp"
 #include "gui_common_elements.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
@@ -1667,46 +1668,42 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, nation_id);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, nation_id);
 
-			auto tech_id = nations::current_research(state, nation_id);
+		auto tech_id = nations::current_research(state, nation_id);
 
-			auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
-			for(auto pt : state.world.in_pop_type) {
-				auto rp = state.world.pop_type_get_research_points(pt);
-				if(rp > 0 && state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) > 0.0f) {
-					auto amount = rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) / (total_pop * state.world.pop_type_get_research_optimum(pt)));
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		for(auto pt : state.world.in_pop_type) {
+			auto rp = state.world.pop_type_get_research_points(pt);
+			if(rp > 0 && state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) > 0.0f) {
+				auto amount = rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) / (total_pop * state.world.pop_type_get_research_optimum(pt)));
 
-					text::substitution_map sub1;
-					text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(pt));
-					text::add_to_substitution_map(sub1, text::variable_type::value, text::fp_two_places{ amount });
-					text::add_to_substitution_map(sub1, text::variable_type::fraction,
-							text::fp_two_places{ (state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) / total_pop) * 100 });
-					text::add_to_substitution_map(sub1, text::variable_type::optimal,
-						text::fp_two_places{ (state.world.pop_type_get_research_optimum(pt) * 100) });
+				text::substitution_map sub1;
+				text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(pt));
+				text::add_to_substitution_map(sub1, text::variable_type::value, text::fp_two_places{ amount });
+				text::add_to_substitution_map(sub1, text::variable_type::fraction,
+						text::fp_two_places{ (state.world.nation_get_demographics(nation_id, demographics::to_key(state, pt)) / total_pop) * 100 });
+				text::add_to_substitution_map(sub1, text::variable_type::optimal,
+					text::fp_two_places{ (state.world.pop_type_get_research_optimum(pt) * 100) });
 
-					auto box = text::open_layout_box(contents, 0);
-					text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
-					text::close_layout_box(contents, box);
-				}
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
+				text::close_layout_box(contents, box);
 			}
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
-			text::add_line_break_to_layout(state, contents);
+		}
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+		text::add_line_break_to_layout(state, contents);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
-			text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
+		text::add_line_break_to_layout(state, contents);
 
-			if(!bool(tech_id)) {
-				auto box2 = text::open_layout_box(contents, 0);
-				text::localised_single_sub_box(state, contents, box2, std::string_view("rp_accumulated"), text::variable_type::val,
-						text::fp_one_place{fat.get_research_points()});
+		if(!bool(tech_id)) {
+			auto box2 = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box2, std::string_view("rp_accumulated"), text::variable_type::val,
+					text::fp_one_place{fat.get_research_points()});
 
-				text::close_layout_box(contents, box2);
-			}
+			text::close_layout_box(contents, box2);
 		}
 	}
 };
@@ -1745,9 +1742,11 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
+
 		state.ui_state.topbar_window = this;
 		on_update(state);
 	}

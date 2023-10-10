@@ -531,8 +531,20 @@ public:
 	}
 };
 
-class military_units_construction_text : public simple_text_element_base {
+class military_armies_construction_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto cstr_range = state.world.nation_get_province_land_construction(state.local_player_nation);
+		set_text(state, std::to_string(cstr_range.end() - cstr_range.begin()));
+	}
+};
+
+class military_navies_construction_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto cstr_range = state.world.nation_get_province_naval_construction(state.local_player_nation);
+		set_text(state, std::to_string(cstr_range.end() - cstr_range.begin()));
+	}
 };
 
 class military_units_sortby_name : public button_element_base {
@@ -575,7 +587,11 @@ public:
 				return make_element_by_type<military_navies_text>(state, id);
 			}
 		} else if(name == "under_construction") {
-			return make_element_by_type<military_units_construction_text>(state, id);
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<military_armies_construction_text>(state, id);
+			} else {
+				return make_element_by_type<military_navies_construction_text>(state, id);
+			}
 
 		} else if(name == "cut_down_to_size") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);

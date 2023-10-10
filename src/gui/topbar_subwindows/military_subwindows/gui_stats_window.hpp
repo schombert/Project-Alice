@@ -16,6 +16,17 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::war_exhaustion, true);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_war_exhaustion, true);
+	}
 };
 
 class statswin_supplyconsumption : public simple_text_element_base {
@@ -29,6 +40,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_consumption, false);
+	}
 };
 
 class statswin_orgregain : public simple_text_element_base {
@@ -40,6 +60,15 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::org_regain, false);
 	}
 };
 
@@ -54,6 +83,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::land_organisation, false);
+	}
 };
 
 class statswin_navyorg : public simple_text_element_base {
@@ -66,6 +104,15 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::naval_organisation, false);
 	}
 };
 
@@ -80,6 +127,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::regular_experience_level, false);
+	}
 };
 
 class statswin_recruittime : public simple_text_element_base {
@@ -91,6 +147,15 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::reinforce_speed, false);
 	}
 };
 
@@ -105,6 +170,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::combat_width, false);
+	}
 };
 
 class statswin_digincap : public simple_text_element_base {
@@ -116,6 +190,15 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::dig_in_cap, false);
 	}
 };
 
@@ -129,6 +212,15 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state, state.local_player_nation));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::military_tactics, false);
 	}
 };
 

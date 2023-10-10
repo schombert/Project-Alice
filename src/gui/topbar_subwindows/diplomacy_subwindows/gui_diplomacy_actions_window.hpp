@@ -483,8 +483,9 @@ public:
 				}
 			}
 			text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
-			text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
-
+			if(!state.world.nation_get_is_player_controlled(target)) {
+				text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
+			}
 		
 	}
 };
@@ -784,30 +785,22 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+		dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
 
-			if(military::are_at_war(state, state.local_player_nation, content)) {
-				disabled = !command::can_start_peace_offer(state, state.local_player_nation, content,
-						military::find_war_between(state, state.local_player_nation, content), true);
-				set_button_text(state, text::produce_simple_string(state, "peace_button"));
-			} else {
-				disabled = state.local_player_nation == content || !military::can_use_cb_against(state, state.local_player_nation, content) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost;
-				set_button_text(state, text::produce_simple_string(state, "war_button"));
-			}
+		if(military::are_at_war(state, state.local_player_nation, content)) {
+			disabled = !command::can_start_peace_offer(state, state.local_player_nation, content,
+					military::find_war_between(state, state.local_player_nation, content), true);
+			set_button_text(state, text::produce_simple_string(state, "peace_button"));
+		} else {
+			disabled = state.local_player_nation == content || !military::can_use_cb_against(state, state.local_player_nation, content) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost;
+			set_button_text(state, text::produce_simple_string(state, "war_button"));
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-
-			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace
-																																														 : diplomacy_action::declare_war;
+			dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace																																							 : diplomacy_action::declare_war;
 			parent->impl_get(state, ac_payload);
 		}
 	}
@@ -1236,61 +1229,56 @@ public:
 
 class diplomacy_action_dialog_agree_button : public generic_settable_element<button_element_base, diplomacy_action> {
 	bool get_can_perform(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto target = any_cast<dcon::nation_id>(payload);
-
-			switch(content) {
-			case diplomacy_action::ally:
-				return command::can_ask_for_alliance(state, state.local_player_nation, target);
-			case diplomacy_action::cancel_ally:
-				return command::can_cancel_alliance(state, state.local_player_nation, target);
-			case diplomacy_action::call_ally: {
-				for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
-					if(command::can_call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id))
-						return true;
-				return false;
-			}
-			case diplomacy_action::declare_war:
-				return false;
-			case diplomacy_action::military_access:
-				return command::can_ask_for_access(state, state.local_player_nation, target);
-			case diplomacy_action::cancel_military_access:
-				return command::can_cancel_military_access(state, state.local_player_nation, target);
-			case diplomacy_action::give_military_access:
-				return false;
-			case diplomacy_action::cancel_give_military_access:
-				return command::can_cancel_given_military_access(state, state.local_player_nation, target);
-			case diplomacy_action::increase_relations:
-				return command::can_increase_relations(state, state.local_player_nation, target);
-			case diplomacy_action::decrease_relations:
-				return command::can_decrease_relations(state, state.local_player_nation, target);
-			case diplomacy_action::war_subsidies:
-				return command::can_give_war_subsidies(state, state.local_player_nation, target);
-			case diplomacy_action::cancel_war_subsidies:
-				return command::can_cancel_war_subsidies(state, state.local_player_nation, target);
-			case diplomacy_action::increase_opinion:
-				return command::can_increase_opinion(state, state.local_player_nation, target);
-			case diplomacy_action::add_to_sphere:
-				return command::can_add_to_sphere(state, state.local_player_nation, target);
-			case diplomacy_action::remove_from_sphere:
-				return command::can_remove_from_sphere(state, state.local_player_nation, target, state.world.nation_get_in_sphere_of(target));
-			case diplomacy_action::justify_war:
-				return false;
-			case diplomacy_action::command_units:
-				return false;
-			case diplomacy_action::cancel_command_units:
-				return false;
-			case diplomacy_action::make_peace:
-				return false;
-			case diplomacy_action::crisis_backdown:
-				return false;
-			case diplomacy_action::crisis_support:
-				return false;
-			case diplomacy_action::add_wargoal:
-				return false;
-			}
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		switch(content) {
+		case diplomacy_action::ally:
+			return command::can_ask_for_alliance(state, state.local_player_nation, target);
+		case diplomacy_action::cancel_ally:
+			return command::can_cancel_alliance(state, state.local_player_nation, target);
+		case diplomacy_action::call_ally: {
+			for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
+				if(command::can_call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id))
+					return true;
+			return false;
+		}
+		case diplomacy_action::declare_war:
+			return false;
+		case diplomacy_action::military_access:
+			return command::can_ask_for_access(state, state.local_player_nation, target);
+		case diplomacy_action::cancel_military_access:
+			return command::can_cancel_military_access(state, state.local_player_nation, target);
+		case diplomacy_action::give_military_access:
+			return false;
+		case diplomacy_action::cancel_give_military_access:
+			return command::can_cancel_given_military_access(state, state.local_player_nation, target);
+		case diplomacy_action::increase_relations:
+			return command::can_increase_relations(state, state.local_player_nation, target);
+		case diplomacy_action::decrease_relations:
+			return command::can_decrease_relations(state, state.local_player_nation, target);
+		case diplomacy_action::war_subsidies:
+			return command::can_give_war_subsidies(state, state.local_player_nation, target);
+		case diplomacy_action::cancel_war_subsidies:
+			return command::can_cancel_war_subsidies(state, state.local_player_nation, target);
+		case diplomacy_action::increase_opinion:
+			return command::can_increase_opinion(state, state.local_player_nation, target);
+		case diplomacy_action::add_to_sphere:
+			return command::can_add_to_sphere(state, state.local_player_nation, target);
+		case diplomacy_action::remove_from_sphere:
+			return command::can_remove_from_sphere(state, state.local_player_nation, target, state.world.nation_get_in_sphere_of(target));
+		case diplomacy_action::justify_war:
+			return false;
+		case diplomacy_action::command_units:
+			return false;
+		case diplomacy_action::cancel_command_units:
+			return false;
+		case diplomacy_action::make_peace:
+			return false;
+		case diplomacy_action::crisis_backdown:
+			return false;
+		case diplomacy_action::crisis_support:
+			return false;
+		case diplomacy_action::add_wargoal:
+			return false;
 		}
 		return false;
 	}
@@ -1306,71 +1294,68 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		switch(content) {
+		case diplomacy_action::ally:
+			command::ask_for_alliance(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::cancel_ally:
+			command::cancel_alliance(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::call_ally:
+			for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
+				command::call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id);
+			break;
+		case diplomacy_action::declare_war:
+			break;
+		case diplomacy_action::military_access:
+			command::ask_for_military_access(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::cancel_military_access:
+			command::cancel_military_access(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::give_military_access:
+			break;
+		case diplomacy_action::cancel_give_military_access:
+			command::cancel_given_military_access(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::increase_relations:
+			command::increase_relations(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::decrease_relations:
+			command::decrease_relations(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::war_subsidies:
+			command::give_war_subsidies(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::cancel_war_subsidies:
+			command::cancel_war_subsidies(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::increase_opinion:
+			command::increase_opinion(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::add_to_sphere:
+			command::add_to_sphere(state, state.local_player_nation, target);
+			break;
+		case diplomacy_action::remove_from_sphere:
+			command::remove_from_sphere(state, state.local_player_nation, target, state.world.nation_get_in_sphere_of(target));
+			break;
+		case diplomacy_action::justify_war:
+			break;
+		case diplomacy_action::command_units:
+			break;
+		case diplomacy_action::cancel_command_units:
+			break;
+		case diplomacy_action::make_peace:
+			break;
+		case diplomacy_action::crisis_backdown:
+			break;
+		case diplomacy_action::crisis_support:
+			break;
+		case diplomacy_action::add_wargoal:
+			break;
+		}
 		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto target = any_cast<dcon::nation_id>(payload);
-
-			switch(content) {
-			case diplomacy_action::ally:
-				command::ask_for_alliance(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::cancel_ally:
-				command::cancel_alliance(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::call_ally:
-				for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
-					command::call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id);
-				break;
-			case diplomacy_action::declare_war:
-				break;
-			case diplomacy_action::military_access:
-				command::ask_for_military_access(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::cancel_military_access:
-				command::cancel_military_access(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::give_military_access:
-				break;
-			case diplomacy_action::cancel_give_military_access:
-				command::cancel_given_military_access(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::increase_relations:
-				command::increase_relations(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::decrease_relations:
-				command::decrease_relations(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::war_subsidies:
-				command::give_war_subsidies(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::cancel_war_subsidies:
-				command::cancel_war_subsidies(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::increase_opinion:
-				command::increase_opinion(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::add_to_sphere:
-				command::add_to_sphere(state, state.local_player_nation, target);
-				break;
-			case diplomacy_action::remove_from_sphere:
-				command::remove_from_sphere(state, state.local_player_nation, target, state.world.nation_get_in_sphere_of(target));
-				break;
-			case diplomacy_action::justify_war:
-				break;
-			case diplomacy_action::command_units:
-				break;
-			case diplomacy_action::cancel_command_units:
-				break;
-			case diplomacy_action::make_peace:
-				break;
-			case diplomacy_action::crisis_backdown:
-				break;
-			case diplomacy_action::crisis_support:
-				break;
-			case diplomacy_action::add_wargoal:
-				break;
-			}
 			parent->set_visible(state, false);
 		}
 	}
@@ -1769,7 +1754,7 @@ public:
 class diplomacy_gp_action_dialog_window : public window_element_base {
 public:
 	int32_t selected_gp = 0;
-	dcon::nation_id action_target;
+	dcon::nation_id action_target{0};
 	gp_choice_actions current_action = gp_choice_actions::discredit;
 
 	void on_create(sys::state& state) noexcept override {

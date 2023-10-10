@@ -827,7 +827,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::popup) {
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) {
+						if((user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
@@ -837,7 +837,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::popup) {
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::pause) {
+						if((user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
@@ -847,7 +847,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::popup) {
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::pause) {
+						if((user_settings.other_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
@@ -1207,6 +1207,9 @@ void state::on_create() {
 			ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("ingame_lobby_window")->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
+	// Nudge, overriden by V2 to be 0 always
+	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.x = 0;
+	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.y = 0;
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
@@ -1237,6 +1240,13 @@ void state::on_create() {
 		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
 		ui_state.rgos_root->add_child_to_front(std::move(ptr));
 	});
+
+	{
+		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox>(*this, "chat_list");
+		new_elm->base_data.position.x += 156; // nudge
+		new_elm->impl_on_update(*this);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
 
 	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
@@ -1316,16 +1326,9 @@ void state::on_create() {
 		ui_state.msg_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
-
 	{
 		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(*this, "alice_leader_selection_panel");
 		ui_state.change_leader_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-
-	{
-		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
-		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
@@ -1349,6 +1352,11 @@ void state::on_create() {
 		new_elm->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+		new_elm->impl_on_update(*this);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
 
 	{ // One on the lobby
 		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
@@ -1358,6 +1366,7 @@ void state::on_create() {
 	{ // And the other on the normal in game UI
 		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
 		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
+		ui_state.chat_window = new_elm.get(); // Default for singleplayer is the in-game one, lobby one is useless in sp
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 
@@ -3554,8 +3563,8 @@ void state::single_game_tick() {
 }
 
 sys::checksum_key state::get_save_checksum() {
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(*this)]);
 	dcon::load_record loaded = world.make_serialize_record_store_save();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
 
@@ -3568,8 +3577,8 @@ sys::checksum_key state::get_save_checksum() {
 }
 
 sys::checksum_key state::get_scenario_checksum() {
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_scenario_section(*this)]);
 	dcon::load_record loaded = world.make_serialize_record_store_scenario();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
 
@@ -3581,35 +3590,47 @@ sys::checksum_key state::get_scenario_checksum() {
 	return key;
 }
 
+void state::debug_oos_dump() {
+	// save for further inspection
+	dcon::load_record loaded = world.make_serialize_record_store_save();
+	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
+	auto buffer_position = reinterpret_cast<std::byte*>(save_buffer.get());
+	world.serialize(buffer_position, loaded);
+	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - save_buffer.get();
+
+	auto sdir = simple_fs::get_or_create_save_game_directory();
+	auto ymd_date = current_date.to_ymd(start_date);
+	std::string party_name = "S";
+	if(network_mode == sys::network_mode_type::client) {
+		party_name = "C";
+	} else if(network_mode == sys::network_mode_type::host) {
+		party_name = "H";
+	}
+	auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(world.nation_get_identity_from_identity_holder(local_player_nation)));
+	auto base_str = party_name + "-" + tag + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(save_buffer.get()), uint32_t(total_size_used));
+}
+
 void state::game_loop() {
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
+		/*
+		network::send_and_receive_commands(*this);
+		*/
+		command::execute_pending_commands(*this);
 		if(network_mode == sys::network_mode_type::client) {
-			//network::send_and_receive_commands(*this);
-			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
 			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
-				//network::send_and_receive_commands(*this);
-				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();
 				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
-
-				//network::send_and_receive_commands(*this);
-				command::execute_pending_commands(*this);
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 					last_update = entry_time;
 					if(network_mode == sys::network_mode_type::host) {
-						/*
-						command::payload c;
-						c.type = command::command_type::advance_tick;
-						c.data.advance_tick.checksum = get_save_checksum();
-						c.data.advance_tick.speed = speed;
-						network_state.outgoing_commands.push(c);
-						*/
+						command::advance_tick(*this, local_player_nation);
 					} else {
 						single_game_tick();
 					}

@@ -20,11 +20,12 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 
 `notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled.
 `notify_player_pick_nation` - Picks a nation, this is useful for example on the lobby where players are switching nations constantly, IF the `source` is invalid (i.e a `dcon::nation_id{}`) then it refers to the current local player nation of the client, this is useful to set the "temporal nation" on the lobby so that clients can be identified by their nation automatically assigned by the server. Otherwise the `source` is the client who requested to pick a nation `target` in `data.nation_pick.target`.
-`update_session_info` - Updates the game seed (important to keep in sync with clients and host), and the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state.
+`notify_save_loaded` - Updates the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state. Following it comes an `uint32_t` describing the size of the save stream, and the save stream itself!
+`notify_reload_state` - Reloads the current game state, as if it was loading a savefile, this is needed when a new player joins, so it doesnt OOS
 `notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.
 `notify_player_ban` - When banning a player, it is disconnected, and not allowed to rejoin.
-`start_game` - Host has started the game, all players connected will be sent into the game.
-`stop_game` - Host has stopped the game (not paused), all players connected will be sent into the lobby.
+`notify_start_game` - Host has started the game, all players connected will be sent into the game.
+`notify_stop_game` - Host has stopped the game (not paused), all players connected will be sent into the lobby.
 
 The server will send new clients a `notify_player_joins` for each connected player. It will send a `notify_player_pick_nation` to the client, with an invalid source, telling it what is their "assigned nation".
 

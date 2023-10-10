@@ -15,9 +15,9 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_picks_nation:
 	case command_type::notify_player_ban:
 	case command_type::notify_player_kick:
-	case command_type::update_session_info:
-	case command_type::start_game:
-	case command_type::stop_game:
+	case command_type::notify_save_loaded:
+	case command_type::notify_start_game:
+	case command_type::notify_stop_game:
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
@@ -25,6 +25,11 @@ static void add_to_command_queue(sys::state& state, payload& p) {
 		// Normal commands are discarded iff we are not in the game
 		if(state.mode != sys::game_mode_type::in_game)
 			return;
+		/*
+		if(state.network_mode != sys::network_mode_type::single_player) {
+			state.network_state.is_new_game = false;
+		}
+		*/
 		break;
 	}
 
@@ -4384,28 +4389,32 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	post_chat_message(state, m);
 }
 
-void notify_player_joins(sys::state& state, dcon::nation_id source) {
+void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_joins;
 	p.source = source;
+	p.data.player_name = name;
 	add_to_command_queue(state, p);
 }
-bool can_notify_player_joins(sys::state& state, dcon::nation_id source) {
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_notify_player_joins(sys::state& state, dcon::nation_id source) {
-	if(!can_notify_player_joins(state, source))
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	if(!can_notify_player_joins(state, source, name))
 		return;
 	state.world.nation_set_is_player_controlled(source, true);
+	/*
+	state.network_state.map_of_player_names.insert_or_assign(source.index(), name);
+	*/
 
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
 }
@@ -4431,7 +4440,9 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	/*
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
+	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
 }
@@ -4453,15 +4464,15 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	if(!can_notify_player_ban(state, source, target))
 		return;
 
+	/*
 	if(state.network_mode == sys::network_mode_type::host) {
-		/*
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
 				network::ban_player(state, client);
 			}
 		}
-		*/
 	}
+	*/
 	state.world.nation_set_is_player_controlled(target, false);
 
 	ui::chat_message m{};
@@ -4469,7 +4480,9 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, target);
+	/*
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
+	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	post_chat_message(state, m);
 }
@@ -4491,15 +4504,15 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	if(!can_notify_player_kick(state, source, target))
 		return;
 
+	/*
 	if(state.network_mode == sys::network_mode_type::host) {
-		/*
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
 				network::kick_player(state, client);
 			}
 		}
-		*/
 	}
+	*/
 	state.world.nation_set_is_player_controlled(target, false);
 
 	ui::chat_message m{};
@@ -4507,7 +4520,9 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, target);
+	/*
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
+	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	post_chat_message(state, m);
 }
@@ -4531,26 +4546,18 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	if(!can_notify_player_picks_nation(state, source, target))
 		return;
 
-	if(bool(source) && source != state.national_definitions.rebel_id) {
+	if(bool(source) && source != state.national_definitions.rebel_id)
 		state.world.nation_set_is_player_controlled(source, false);
-	}
 	state.world.nation_set_is_player_controlled(target, true);
+	/*
+	state.network_state.map_of_player_names.insert_or_assign(target.index(), state.network_state.map_of_player_names[source.index()]);
+	*/
 	// TODO: To avoid abuse, clients will be given a random nation when they join the server
 	// that isn't occupied already by a player, this allows us to effectively use nation_id
 	// as a player identifier!
 	if(state.local_player_nation == source) {
 		state.local_player_nation = target;
 	}
-
-	ui::chat_message m{};
-	m.source = source;
-	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
-	text::add_to_substitution_map(sub, text::variable_type::country, target);
-	m.body = text::resolve_string_substitution(state, "chat_player_switch", sub);
-	post_chat_message(state, m);
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source) {
@@ -4561,47 +4568,95 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	state.debug_oos_dump();
+
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	text::add_to_substitution_map(sub, text::variable_type::playername, source);
+	/*
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
+	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& checksum, int32_t speed) {
-	/*
-	if(!state.network_state.out_of_sync) {
-		sys::checksum_key current = state.get_save_checksum();
-		if(!current.is_equal(checksum))
-			state.network_state.out_of_sync = true;
-	}
-	*/
-	state.single_game_tick();
-	state.actual_game_speed = speed;
-}
-
-void execute_update_session_info(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
-	/*
-	state.network_state.has_save_been_loaded = false;
-	*/
-	state.game_seed = seed;
-	state.session_host_checksum = k;
-}
-
-void update_session_info(sys::state& state, dcon::nation_id source) {
+void advance_tick(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::update_session_info;
+	p.type = command::command_type::advance_tick;
 	p.source = source;
-	p.data.update_session_info.seed = state.game_seed;
-	p.data.update_session_info.checksum = state.get_save_checksum();
+	// Postponed until it is sent!
+	//p.data.advance_tick.checksum = state.get_save_checksum();
+	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
 	add_to_command_queue(state, p);
 }
 
-void execute_start_game(sys::state& state, dcon::nation_id source) {
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
+	/*
+	if(!state.network_state.out_of_sync) {
+		sys::checksum_key current = state.get_save_checksum();
+		if(!current.is_equal(k)) {
+			state.network_state.out_of_sync = true;
+			state.debug_oos_dump();
+		}
+	}
+	*/
+	if(state.network_mode == sys::network_mode_type::client) {
+		state.actual_game_speed = speed;
+	}
+	state.single_game_tick();
+}
+
+void notify_save_loaded(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_save_loaded;
+	p.source = source;
+	p.data.notify_save_loaded.seed = state.game_seed;
+	add_to_command_queue(state, p);
+}
+void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
+	state.game_seed = seed;
+	state.session_host_checksum = k;
+	// Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
+	/*
+	state.network_state.is_new_game = false;
+	state.network_state.out_of_sync = false;
+	state.network_state.reported_oos = false;
+	*/
+}
+
+void notify_reload_state(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_reload_state;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_notify_reload_state(sys::state& state, dcon::nation_id source) {
+	auto save_size = sizeof_save_section(state);
+	auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_size]);
+	write_save_section(temp_save_buffer.get(), state);
+	// Mirror the calls done by the client
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	state.preload();
+	read_save_section(temp_save_buffer.get(), temp_save_buffer.get() + save_size, state);
+	state.fill_unsaved_data();
+	state.local_player_nation = old_local_player_nation;
+	for(const auto n : state.world.in_nation)
+		state.world.nation_set_is_player_controlled(n, false);
+	for(const auto n : players)
+		state.world.nation_set_is_player_controlled(n, true);
+	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+}
+
+void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 	state.selected_armies.clear();
 	state.selected_navies.clear();
@@ -4609,23 +4664,23 @@ void execute_start_game(sys::state& state, dcon::nation_id source) {
 	state.game_state_updated.store(true, std::memory_order::release);
 }
 
-void start_game(sys::state& state, dcon::nation_id source) {
+void notify_start_game(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::start_game;
+	p.type = command::command_type::notify_start_game;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
 
-void execute_stop_game(sys::state& state, dcon::nation_id source) {
+void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::pick_nation;
 	state.game_state_updated.store(true, std::memory_order::release);
 }
 
-void stop_game(sys::state& state, dcon::nation_id source) {
+void notify_stop_game(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::stop_game;
+	p.type = command::command_type::notify_stop_game;
 	p.source = source;
 	add_to_command_queue(state, p);
 }
@@ -4927,7 +4982,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
 		break;
 	case command_type::notify_player_joins:
-		execute_notify_player_joins(state, c.source);
+		execute_notify_player_joins(state, c.source, c.data.player_name);
 		break;
 	case command_type::notify_player_leaves:
 		execute_notify_player_leaves(state, c.source);
@@ -4941,16 +4996,14 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::advance_tick:
 		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 		break;
-	case command_type::update_session_info:
-		execute_update_session_info(state, c.source, c.data.update_session_info.seed, c.data.update_session_info.checksum);
+	case command_type::notify_save_loaded:
+		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
 		break;
-	case command_type::start_game:
-		execute_start_game(state, c.source);
+	case command_type::notify_start_game:
+		execute_notify_start_game(state, c.source);
 		break;
-	case command_type::stop_game:
-		execute_stop_game(state, c.source);
-		break;
-	case command_type::save_stream:
+	case command_type::notify_stop_game:
+		execute_notify_stop_game(state, c.source);
 		break;
 
 		// console commands

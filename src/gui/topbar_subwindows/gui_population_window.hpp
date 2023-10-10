@@ -162,23 +162,18 @@ public:
 	bool show = false;
 
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			auto rebel_fact = fat_id.get_pop_rebellion_membership().get_rebel_faction().get_type();
-			if(rebel_fact) {
-				show = true;
-				auto icon = rebel_fact.get_icon();
-				return int32_t(icon - 1);
-			} else {
-				show = false;
-				return int32_t(0);
-			}
+		auto fat_id = dcon::fatten(state.world, content);
+		auto rebel_fact = fat_id.get_pop_rebellion_membership().get_rebel_faction().get_type();
+		if(rebel_fact) {
+			show = true;
+			auto icon = rebel_fact.get_icon();
+			return int32_t(icon - 1);
+		} else {
+			show = false;
+			return int32_t(0);
 		}
-		return 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -195,11 +190,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(show && parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
+		if(show) {
+			auto content = retrieve<dcon::pop_id>(state, parent);
 			auto fat_id = dcon::fatten(state.world, content);
 			auto rebel_fact = fat_id.get_pop_rebellion_membership().get_rebel_faction().get_type();
 			auto box = text::open_layout_box(contents, 0);
@@ -218,32 +210,28 @@ public:
 
 	bool show = false;
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		Cyto::Any payload = dcon::pop_id{};
+		parent->impl_get(state, payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			auto movement_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_issue_option();
-			if(movement_fact) {
-				auto parent_issue = movement_fact.get_parent_issue();
-				if(parent_issue.get_issue_type() != uint8_t(culture::issue_category::social)) {
-					show = false;
-				} else {
-					int32_t count = 0;
-					for(; count < int32_t(state.culture_definitions.social_issues.size()); ++count) {
-						if(state.culture_definitions.social_issues[count] == parent_issue)
-							break;
-					}
-					show = true;
-					return count;
-				}
-			} else {
+		auto fat_id = dcon::fatten(state.world, content);
+		auto movement_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_issue_option();
+		if(movement_fact) {
+			auto parent_issue = movement_fact.get_parent_issue();
+			if(parent_issue.get_issue_type() != uint8_t(culture::issue_category::social)) {
 				show = false;
-				return int32_t(0);
+			} else {
+				int32_t count = 0;
+				for(; count < int32_t(state.culture_definitions.social_issues.size()); ++count) {
+					if(state.culture_definitions.social_issues[count] == parent_issue)
+						break;
+				}
+				show = true;
+				return count;
 			}
 		}
-		return 0;
+		show = false;
+		return int32_t(0);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -255,11 +243,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent && show) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
+		if(show) {
+			auto content = retrieve<dcon::pop_id>(state, parent);
 			auto fat_id = dcon::fatten(state.world, content);
 			auto movement_fact = fat_id.get_pop_movement_membership();
 			auto box = text::open_layout_box(contents, 0);
@@ -282,32 +267,25 @@ public:
 	bool show = false;
 
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, content);
-			auto movement_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_issue_option();
-			if(movement_fact) {
-				auto parent_issue = movement_fact.get_parent_issue();
-				if(parent_issue.get_issue_type() != uint8_t(culture::issue_category::political)) {
-					show = false;
-				} else {
-					int32_t count = 0;
-					for(; count < int32_t(state.culture_definitions.political_issues.size()); ++count) {
-						if(state.culture_definitions.political_issues[count] == parent_issue)
-							break;
-					}
-					show = true;
-					return count;
-				}
-			} else {
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		auto movement_fact = fat_id.get_pop_movement_membership().get_movement().get_associated_issue_option();
+		if(movement_fact) {
+			auto parent_issue = movement_fact.get_parent_issue();
+			if(parent_issue.get_issue_type() != uint8_t(culture::issue_category::political)) {
 				show = false;
-				return int32_t(0);
+			} else {
+				int32_t count = 0;
+				for(; count < int32_t(state.culture_definitions.political_issues.size()); ++count) {
+					if(state.culture_definitions.political_issues[count] == parent_issue)
+						break;
+				}
+				show = true;
+				return count;
 			}
 		}
-		return 0;
+		show = false;
+		return int32_t(0);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -319,11 +297,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent && show) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
+		if(show) {
+			auto content = retrieve<dcon::pop_id>(state, parent);
 			auto fat_id = dcon::fatten(state.world, content);
 			auto movement_fact = fat_id.get_pop_movement_membership();
 			auto box = text::open_layout_box(contents, 0);
@@ -1169,24 +1144,19 @@ public:
 class pop_growth_indicator : public opaque_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			// 0 == Going up
-			// 1 == Staying same
-			// 2 == Going down
-			auto result = demographics::get_monthly_pop_increase(state, content);
-			if(result > 0) {
-				return 0;
-			} else if(result < 0) {
-				return 2;
-			} else {
-				return 1;
-			}
+		// 0 == Going up
+		// 1 == Staying same
+		// 2 == Going down
+		auto result = demographics::get_monthly_pop_increase(state, content);
+		if(result > 0) {
+			return 0;
+		} else if(result < 0) {
+			return 2;
+		} else {
+			return 1;
 		}
-		return 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1230,12 +1200,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-			progress = get_progress(state, content);
-		}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		progress = get_progress(state, content);
 	}
 
 	void on_create(sys::state& state) noexcept override {
@@ -1252,12 +1218,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-			progress = get_progress(state, content);
-		}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		progress = get_progress(state, content);
 	}
 
 	void on_create(sys::state& state) noexcept override {
@@ -1282,21 +1244,17 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto pfat_id = dcon::fatten(state.world, content);
-			float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content))
-													? (1 - pfat_id.get_employment() / pfat_id.get_size())
-													: 0.0f;
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::fp_percentage{un_empl});
-			text::close_layout_box(contents, box);
-		}
+		auto pfat_id = dcon::fatten(state.world, content);
+		float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content))
+												? (1 - pfat_id.get_employment() / pfat_id.get_size())
+												: 0.0f;
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{un_empl});
+		text::close_layout_box(contents, box);
 	}
 };
 class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
@@ -1311,20 +1269,16 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::need,
-					state.key_to_text_sequence.find(std::string_view("life_needs"))->second);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
-			text::close_layout_box(contents, box);
-		}
+		auto fat_id = dcon::fatten(state.world, content);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::need,
+				state.key_to_text_sequence.find(std::string_view("life_needs"))->second);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1340,20 +1294,16 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::need,
-					state.key_to_text_sequence.find(std::string_view("everyday_needs"))->second);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
-			text::close_layout_box(contents, box);
-		}
+		auto fat_id = dcon::fatten(state.world, content);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::need,
+				state.key_to_text_sequence.find(std::string_view("everyday_needs"))->second);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1369,20 +1319,16 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
+		auto content = retrieve<dcon::pop_id>(state, parent);
 
-			auto fat_id = dcon::fatten(state.world, content);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::need,
-					state.key_to_text_sequence.find(std::string_view("luxury_needs"))->second);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
-			text::close_layout_box(contents, box);
-		}
+		auto fat_id = dcon::fatten(state.world, content);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::need,
+				state.key_to_text_sequence.find(std::string_view("luxury_needs"))->second);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1421,30 +1367,22 @@ template<typename T>
 class pop_left_side_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T id = any_cast<T>(payload);
-			if(state.ui_state.population_subwindow) {
-				Cyto::Any filter_payload = pop_list_filter{};
-				state.ui_state.population_subwindow->impl_get(state, filter_payload);
-				auto filter = any_cast<pop_list_filter>(filter_payload);
-				frame = std::holds_alternative<T>(filter) && std::get<T>(filter) == id ? 1 : 0;
-			}
+		T id = retrieve<T>(state, parent);
+		if(state.ui_state.population_subwindow) {
+			Cyto::Any filter_payload = pop_list_filter{};
+			state.ui_state.population_subwindow->impl_get(state, filter_payload);
+			auto filter = any_cast<pop_list_filter>(filter_payload);
+			frame = std::holds_alternative<T>(filter) && std::get<T>(filter) == id ? 1 : 0;
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T id = any_cast<T>(payload);
-			if(state.ui_state.population_subwindow) {
-				Cyto::Any new_payload = pop_list_filter(id);
-				state.ui_state.population_subwindow->impl_set(state, new_payload);
-			}
-			on_update(state);
+		T id = retrieve<T>(state, parent);
+		if(state.ui_state.population_subwindow) {
+			Cyto::Any new_payload = pop_list_filter(id);
+			state.ui_state.population_subwindow->impl_set(state, new_payload);
 		}
+		on_update(state);
 	}
 };
 class pop_left_side_country_window : public window_element_base {
@@ -1475,9 +1413,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any id_payload = dcon::state_instance_id{};
-			parent->impl_get(state, id_payload);
-			auto id = any_cast<dcon::state_instance_id>(id_payload);
+			auto id = retrieve<dcon::state_instance_id>(state, parent);
 
 			Cyto::Any payload = pop_left_side_expand_action(id);
 			parent->impl_get(state, payload);
@@ -1487,9 +1423,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto id = any_cast<dcon::state_instance_id>(payload);
+			auto id = retrieve<dcon::state_instance_id>(state, parent);
 			if(state.ui_state.population_subwindow) {
 				Cyto::Any new_payload = pop_left_side_expand_action(id);
 				state.ui_state.population_subwindow->impl_set(state, new_payload);
@@ -1502,28 +1436,19 @@ public:
 class pop_national_focus_button : public button_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			return bool(state.world.state_instance_get_owner_focus(content).id)
-								 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-								 : 0;
-		}
-		return 0;
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		return bool(state.world.state_instance_get_owner_focus(content).id)
+								? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+								: 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			disabled = true;
-			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
-			});
-			frame = get_icon_frame(state);
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		disabled = true;
+		state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
+		});
+		frame = get_icon_frame(state);
 	}
 
 	void button_action(sys::state& state) noexcept override;
@@ -1533,16 +1458,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-
-			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, focus.get_name());
-			text::close_layout_box(contents, box);
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, focus.get_name());
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1573,12 +1493,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			colonial_icon->set_visible(state, state.world.province_get_is_colonial(state.world.state_instance_get_capital(content)));
-		}
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		colonial_icon->set_visible(state, state.world.province_get_is_colonial(state.world.state_instance_get_capital(content)));
 	}
 };
 class pop_left_side_province_window : public window_element_base {
@@ -1887,8 +1803,6 @@ class issue_with_explanation : public simple_text_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		
 			auto issue = retrieve<dcon::issue_option_id>(state, parent);
-
-			
 
 			auto opt = fatten(state.world, issue);
 			auto allow = opt.get_allow();
@@ -2717,14 +2631,9 @@ public:
 class pop_details_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
-			frame = int32_t(fat_id.get_sprite() - 1);
-		}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
+		frame = int32_t(fat_id.get_sprite() - 1);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -2732,29 +2641,21 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::pop_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::pop_id>(payload);
-
-			auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, name);
-				text::close_layout_box(contents, box);
-			}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, name);
+			text::close_layout_box(contents, box);
 		}
 	}
 };
 
 class show_pop_detail_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			auto content = retrieve<dcon::pop_id>(state, parent);
-
-			Cyto::Any dt_payload = pop_details_data(content);
-			state.ui_state.population_subwindow->impl_set(state, dt_payload);
-		}
+		auto content = retrieve<dcon::pop_id>(state, parent);
+		Cyto::Any dt_payload = pop_details_data(content);
+		state.ui_state.population_subwindow->impl_set(state, dt_payload);
 	}
 };
 

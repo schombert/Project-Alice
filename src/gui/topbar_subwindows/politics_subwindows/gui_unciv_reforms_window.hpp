@@ -176,25 +176,16 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-			command::civilize_nation(state, nation_id);
-		}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		command::civilize_nation(state, nation_id);
 	}
 };
 
 class unciv_reforms_reform_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::reform_option_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::reform_option_id>(payload);
-
-			command::enact_reform(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::reform_option_id>(state, parent);
+		command::enact_reform(state, state.local_player_nation, content);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -202,20 +193,13 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::reform_option_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::reform_option_id>(payload);
-
-			disabled = !command::can_enact_reform(state, state.local_player_nation, content);
-		}
+		auto content = retrieve<dcon::reform_option_id>(state, parent);
+		disabled = !command::can_enact_reform(state, state.local_player_nation, content);
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			auto content = retrieve<dcon::reform_option_id>(state, parent);
-			describe_reform(state, contents, content);
-		}
+		auto content = retrieve<dcon::reform_option_id>(state, parent);
+		describe_reform(state, contents, content);
 	}
 };
 

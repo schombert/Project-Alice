@@ -20,8 +20,7 @@ class commodity_player_availability_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id)));
+		set_text(state, text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id)));
 	}
 };
 
@@ -29,8 +28,7 @@ class commodity_player_real_demand_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1));
+		set_text(state, text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1));
 	}
 };
 
@@ -38,8 +36,7 @@ class commodity_national_player_stockpile_text : public simple_text_element_base
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, commodity_id), 2));
+		set_text(state, text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, commodity_id), 2));
 	}
 };
 
@@ -293,14 +290,13 @@ class trade_commodity_entry_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		trade_details_select_commodity payload{retrieve<dcon::commodity_id>(state, parent)};
-		send(state, state.ui_state.trade_subwindow, payload);
+		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		text::add_line(state, contents, state.world.commodity_get_name(com));
 		text::add_line_break_to_layout(state, contents);
@@ -372,9 +368,6 @@ class commodity_stockpile_indicator : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(!com)
-			return;
-
 		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
 			if(state.world.nation_get_stockpiles(state.local_player_nation, com) > 0)
 				frame = 2;
@@ -389,9 +382,6 @@ public:
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(!com)
-			return tooltip_behavior::no_tooltip;
-
 		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
 			return tooltip_behavior::variable_tooltip;
 		} else if(state.world.nation_get_stockpiles(state.local_player_nation, com)  < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
@@ -404,9 +394,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(!com)
-			return;
-
 		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
 			if(state.world.nation_get_stockpiles(state.local_player_nation, com) > 0)
 				text::add_line(state, contents, "trade_setting_drawing");
@@ -422,9 +409,6 @@ class commodity_price_trend : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(!com)
-			return;
-
 		auto current_price = state.world.commodity_get_price_record(com, (state.ui_date.value >> 4) % 32);
 		auto previous_price = state.world.commodity_get_price_record(com, ((state.ui_date.value >> 4) - 1) % 32);
 		if(current_price > previous_price) {
@@ -438,9 +422,8 @@ public:
 };
 
 class trade_commodity_entry : public window_element_base {
-	dcon::commodity_id commodity_id{};
-
 public:
+	dcon::commodity_id commodity_id{};
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_button") {
 			return make_element_by_type<trade_commodity_entry_button>(state, id);
@@ -457,15 +440,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -626,34 +600,29 @@ protected:
 
 	template<typename F>
 	void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto commodity_id = any_cast<dcon::commodity_id>(payload);
-
-			for(auto const fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-				province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-					auto fat_id = dcon::fatten(state.world, pid);
-					fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-						auto fid = state.world.factory_location_get_factory(flid);
-						if(factory_func(fid)) {
-							trade_flow_data td{};
-							td.type = trade_flow_data::type::factory;
-							td.value_type = vt;
-							td.data.factory_id = fid;
-							row_contents.push_back(td);
-						}
-					});
-					if(vt == trade_flow_data::value_type::produced_by)
-						if(state.world.province_get_rgo(pid) == commodity_id) {
-							trade_flow_data td{};
-							td.type = trade_flow_data::type::province;
-							td.value_type = vt;
-							td.data.province_id = pid;
-							row_contents.push_back(td);
-						}
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		for(auto const fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
+				auto fat_id = dcon::fatten(state.world, pid);
+				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+					auto fid = state.world.factory_location_get_factory(flid);
+					if(factory_func(fid)) {
+						trade_flow_data td{};
+						td.type = trade_flow_data::type::factory;
+						td.value_type = vt;
+						td.data.factory_id = fid;
+						row_contents.push_back(td);
+					}
 				});
-			}
+				if(vt == trade_flow_data::value_type::produced_by)
+					if(state.world.province_get_rgo(pid) == commodity_id) {
+						trade_flow_data td{};
+						td.type = trade_flow_data::type::province;
+						td.value_type = vt;
+						td.data.province_id = pid;
+						row_contents.push_back(td);
+					}
+			});
 		}
 	}
 
@@ -699,25 +668,21 @@ public:
 class trade_flow_may_be_used_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto commodity_id = any_cast<dcon::commodity_id>(payload);
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
 
-			row_contents.clear();
-			populate_rows(
-					state,
-					[&](dcon::factory_id fid) -> bool {
-						auto ftid = state.world.factory_get_building_type(fid);
-						auto& inputs = state.world.factory_type_get_inputs(ftid);
-						for(uint32_t i = 0; i < inputs.set_size; ++i)
-							if(inputs.commodity_type[i] == commodity_id)
-								return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
-						return false;
-					},
-					trade_flow_data::value_type::may_be_used_by);
-			update(state);
-		}
+		row_contents.clear();
+		populate_rows(
+				state,
+				[&](dcon::factory_id fid) -> bool {
+					auto ftid = state.world.factory_get_building_type(fid);
+					auto& inputs = state.world.factory_type_get_inputs(ftid);
+					for(uint32_t i = 0; i < inputs.set_size; ++i)
+						if(inputs.commodity_type[i] == commodity_id)
+							return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
+					return false;
+				},
+				trade_flow_data::value_type::may_be_used_by);
+		update(state);
 	}
 };
 
@@ -831,6 +796,7 @@ public:
 				return;
 			auto ptr =
 					make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
+			ptr->commodity_id = id;
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
 			if(offset.x + cell_size.x - 1 >= base_data.size.x) {
@@ -841,8 +807,6 @@ public:
 					offset.y = 0;
 				}
 			}
-			Cyto::Any payload = id;
-			ptr->impl_set(state, payload);
 			add_child_to_front(std::move(ptr));
 		});
 	}
@@ -854,14 +818,9 @@ struct trade_details_open_window {
 class trade_details_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto commodity_id = any_cast<dcon::commodity_id>(payload);
-
-			Cyto::Any dt_payload = trade_details_open_window{commodity_id};
-			state.ui_state.trade_subwindow->impl_get(state, dt_payload);
-		}
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		Cyto::Any dt_payload = trade_details_open_window{commodity_id};
+		state.ui_state.trade_subwindow->impl_get(state, dt_payload);
 	}
 };
 
@@ -886,9 +845,6 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(!com)
-			return;
-
 		std::vector<float> datapoints(32);
 		auto newest_index = (state.ui_date.value >> 4) % 32;
 		for(uint32_t i = 0; i < 32; ++i) {
@@ -898,9 +854,7 @@ public:
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			line_graph::render(state, x, y);
-		}
+		line_graph::render(state, x, y);
 	}
 };
 
@@ -908,15 +862,11 @@ class price_chart_high : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			float max_price = state.world.commodity_get_price_record(com, 0);
-			for(int32_t i = 1; i < 32; ++i) {
-				max_price = std::max(state.world.commodity_get_price_record(com, i), max_price);
-			}
-			set_text(state, text::format_money(max_price));
-		} else {
-			set_text(state, "");
+		float max_price = state.world.commodity_get_price_record(com, 0);
+		for(int32_t i = 1; i < 32; ++i) {
+			max_price = std::max(state.world.commodity_get_price_record(com, i), max_price);
 		}
+		set_text(state, text::format_money(max_price));
 	}
 };
 
@@ -924,15 +874,11 @@ class price_chart_low : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			float min_price = state.world.commodity_get_price_record(com, 0);
-			for(int32_t i = 1; i < 32; ++i) {
-				min_price = std::min(state.world.commodity_get_price_record(com, i), min_price);
-			}
-			set_text(state, text::format_money(min_price));
-		} else {
-			set_text(state, "");
+		float min_price = state.world.commodity_get_price_record(com, 0);
+		for(int32_t i = 1; i < 32; ++i) {
+			min_price = std::min(state.world.commodity_get_price_record(com, i), min_price);
 		}
+		set_text(state, text::format_money(min_price));
 	}
 };
 
@@ -940,7 +886,7 @@ class stockpile_sell_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com && state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
+		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
 			frame = 1;
 		} else {
 			frame = 0;
@@ -949,16 +895,12 @@ public:
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			button_element_base::render(state, x, y);
-		}
+		button_element_base::render(state, x, y);
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			command::change_stockpile_settings(state, state.local_player_nation, com, state.world.nation_get_stockpile_targets(state.local_player_nation, com), !state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com));
-		}
+		command::change_stockpile_settings(state, state.local_player_nation, com, state.world.nation_get_stockpile_targets(state.local_player_nation, com), !state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com));
 	}
 };
 
@@ -966,11 +908,7 @@ class stockpile_sell_label : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			set_text(state, text::produce_simple_string(state, state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com) ? "trade_use" : "trade_fill"));
-		} else {
-			set_text(state, "");
-		}
+		set_text(state, text::produce_simple_string(state, state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com) ? "trade_use" : "trade_fill"));
 	}
 };
 
@@ -981,9 +919,7 @@ public:
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			simple_text_element_base::render(state, x, y);
-		}
+		simple_text_element_base::render(state, x, y);
 	}
 };
 
@@ -994,11 +930,7 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			set_text(state, text::produce_simple_string(state, "trade_stockpile_current") + text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, com), 1));
-		} else {
-			set_text(state, "");
-		}
+		set_text(state, text::produce_simple_string(state, "trade_stockpile_current") + text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, com), 1));
 	}
 };
 
@@ -1006,13 +938,9 @@ class detail_domestic_production : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val, text::pretty_integer{int64_t(state.world.nation_get_domestic_market_pool(state.local_player_nation, com))});
-			set_text(state, text::resolve_string_substitution(state, "produced_detail_remove", m));
-		} else {
-			set_text(state, "");
-		}
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::val, text::pretty_integer{int64_t(state.world.nation_get_domestic_market_pool(state.local_player_nation, com))});
+		set_text(state, text::resolve_string_substitution(state, "produced_detail_remove", m));
 	}
 };
 
@@ -1052,18 +980,13 @@ public:
 	}
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			scrollbar::impl_render(state, x, y);
-		}
+		scrollbar::impl_render(state, x, y);
 	}
 	void on_drag_finish(sys::state& state) noexcept override {
 		commit_changes(state);
 	}
 	void commit_changes(sys::state& state) noexcept {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(!com)
-			return;
-
 		float v = std::pow(10.0f, float(raw_value()) * (6.0f / 2000.0f)) - 1.0f;
 		command::change_stockpile_settings(state, state.local_player_nation, com, v, state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com));
 	}
@@ -1073,12 +996,8 @@ class trade_slider_amount : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		if(com) {
-			auto val = retrieve<get_stockpile_target>(state, parent);
-			set_text(state, text::prettify(int64_t(val.value)));
-		} else {
-			set_text(state, "");
-		}
+		auto val = retrieve<get_stockpile_target>(state, parent);
+		set_text(state, text::prettify(int64_t(val.value)));
 	}
 };
 
@@ -1172,7 +1091,7 @@ public:
 class trade_window : public window_element_base {
 	trade_flow_window* trade_flow_win = nullptr;
 	trade_details_window* details_win = nullptr;
-	dcon::commodity_id commodity_id{};
+	dcon::commodity_id commodity_id{1};
 
 public:
 	void on_create(sys::state& state) noexcept override {

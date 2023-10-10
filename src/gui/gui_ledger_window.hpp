@@ -329,22 +329,12 @@ public:
 // Social & Political reforms
 //
 class nation_selected_issue_text : public standard_nation_text {
-	dcon::issue_id issue_id{};
-
 public:
+	dcon::issue_id issue_id{};
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		// Obtain the active issue option for this issue id
 		auto active_issue_option = state.world.nation_get_issues(nation_id, issue_id);
 		return text::produce_simple_string(state, active_issue_option.get_name());
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::issue_id>()) {
-			issue_id = any_cast<dcon::issue_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return standard_nation_text::set(state, payload);
 	}
 };
 template<bool IsPolitical>
@@ -391,8 +381,7 @@ public:
 
 			auto ptr = make_element_by_type<nation_selected_issue_text>(state,
 					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
-			Cyto::Any payload = id;
-			ptr->impl_set(state, payload);
+			ptr->issue_id = id;
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		});
@@ -443,21 +432,11 @@ public:
 // Nation population per strata
 //
 class nation_population_per_pop_type_text : public standard_nation_text {
-	dcon::pop_type_id pop_type_id{};
-
 public:
+	dcon::pop_type_id pop_type_id{};
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_type_id>()) {
-			pop_type_id = any_cast<dcon::pop_type_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return standard_nation_text::set(state, payload);
 	}
 };
 class ledger_nation_population_entry : public listbox_row_element_base<dcon::nation_id> {
@@ -496,8 +475,7 @@ public:
 		state.world.for_each_pop_type([&](dcon::pop_type_id id) {
 			auto ptr = make_element_by_type<nation_population_per_pop_type_text>(state,
 					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
-			Cyto::Any payload = id;
-			ptr->impl_set(state, payload);
+			ptr->pop_type_id = id;
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		});
@@ -615,11 +593,6 @@ public:
 			return message_result::consumed;
 		}
 		return listbox_row_element_base::get(state, payload);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 };
 class ledger_province_listbox : public listbox_element_base<ledger_province_entry, dcon::province_id> {
@@ -782,11 +755,6 @@ public:
 			return message_result::consumed;
 		}
 		return listbox_row_element_base::get(state, payload);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 };
 class ledger_provinces_production_listbox : public listbox_element_base<ledger_provinces_production_entry, dcon::province_id> {
