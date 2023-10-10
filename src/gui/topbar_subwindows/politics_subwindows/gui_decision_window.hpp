@@ -229,13 +229,6 @@ private:
 		return list;
 	}
 public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base<decision_item, dcon::decision_id>::on_create(state);
-		// NOTE: V2 seems to override this to 0, always
-		base_data.position.x = 0; // Nudge
-		base_data.position.y = 0; // Nudge
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		row_contents = get_decisions(state);
 		update(state);
