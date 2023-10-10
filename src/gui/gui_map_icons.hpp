@@ -876,7 +876,7 @@ public:
 	char cached_level = 0;
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 + 24 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
 			return;
 
 		if(last_update != state.ui_date) {
@@ -895,7 +895,7 @@ public:
 	char cached_level = 0;
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 + 24 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
 			return;
 
 		if(last_update != state.ui_date) {
