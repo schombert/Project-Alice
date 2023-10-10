@@ -1569,13 +1569,15 @@ uint32_t ef_remove_core_reb(EFFECT_PARAMTERS) {
 }
 uint32_t ef_change_region_name_state(EFFECT_PARAMTERS) {
 	auto def = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-	ws.world.state_definition_set_name(def, trigger::payload(tval[1]).text_id);
+	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	ws.world.state_definition_set_name(def, name);
 	return 0;
 }
 uint32_t ef_change_region_name_province(EFFECT_PARAMTERS) {
 	auto def = ws.world.province_get_state_from_abstract_state_membership(trigger::to_prov(primary_slot));
 	if(def) {
-		ws.world.state_definition_set_name(def, trigger::payload(tval[1]).text_id);
+		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+		ws.world.state_definition_set_name(def, name);
 	}
 	return 0;
 }
@@ -2692,7 +2694,8 @@ uint32_t ef_release_vassal_province_random(EFFECT_PARAMTERS) {
 		return 0;
 }
 uint32_t ef_change_province_name(EFFECT_PARAMTERS) {
-	ws.world.province_set_name(trigger::to_prov(primary_slot), trigger::payload(tval[1]).text_id);
+	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	ws.world.province_set_name(trigger::to_prov(primary_slot), name);
 	return 0;
 }
 uint32_t ef_enable_canal(EFFECT_PARAMTERS) {
