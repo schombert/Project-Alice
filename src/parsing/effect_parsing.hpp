@@ -485,6 +485,16 @@ struct ef_build_fort_in_capital {
 	bool in_whole_capital_state = false;
 	void finish(effect_building_context&) { }
 };
+struct ef_build_bank_in_capital {
+	bool limit_to_world_greatest_level = false;
+	bool in_whole_capital_state = false;
+	void finish(effect_building_context&) { }
+};
+struct ef_build_university_in_capital {
+	bool limit_to_world_greatest_level = false;
+	bool in_whole_capital_state = false;
+	void finish(effect_building_context&) { }
+};
 
 struct ef_random_list {
 	int32_t chances_sum = 0;
@@ -1557,6 +1567,32 @@ struct effect_body {
 		} else {
 			err.accumulated_errors +=
 					"naval_base effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
+	void bank(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::bank));
+			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::bank_state));
+			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
+		} else {
+			err.accumulated_errors +=
+				"bank effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
+	void university(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_effect.push_back(uint16_t(effect::university));
+			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::university_state));
+			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
+		} else {
+			err.accumulated_errors +=
+				"university effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -3436,6 +3472,40 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::build_railway_in_capital_no_whole_state_yes_limit | effect::no_payload));
 		else
 			context.compiled_effect.push_back(uint16_t(effect::build_railway_in_capital_no_whole_state_no_limit | effect::no_payload));
+	}
+	void build_bank_in_capital(ef_build_bank_in_capital const& value, error_handler& err, int32_t line,
+			effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors += "build_bank_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		if(value.in_whole_capital_state && value.limit_to_world_greatest_level)
+			context.compiled_effect.push_back(
+					uint16_t(effect::build_bank_in_capital_yes_whole_state_yes_limit | effect::no_payload));
+		else if(value.in_whole_capital_state && !value.limit_to_world_greatest_level)
+			context.compiled_effect.push_back(uint16_t(effect::build_bank_in_capital_yes_whole_state_no_limit | effect::no_payload));
+		else if(!value.in_whole_capital_state && value.limit_to_world_greatest_level)
+			context.compiled_effect.push_back(uint16_t(effect::build_bank_in_capital_no_whole_state_yes_limit | effect::no_payload));
+		else
+			context.compiled_effect.push_back(uint16_t(effect::build_bank_in_capital_no_whole_state_no_limit | effect::no_payload));
+	}
+	void build_university_in_capital(ef_build_university_in_capital const& value, error_handler& err, int32_t line,
+			effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors += "build_university_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		if(value.in_whole_capital_state && value.limit_to_world_greatest_level)
+			context.compiled_effect.push_back(
+					uint16_t(effect::build_university_in_capital_yes_whole_state_yes_limit | effect::no_payload));
+		else if(value.in_whole_capital_state && !value.limit_to_world_greatest_level)
+			context.compiled_effect.push_back(uint16_t(effect::build_university_in_capital_yes_whole_state_no_limit | effect::no_payload));
+		else if(!value.in_whole_capital_state && value.limit_to_world_greatest_level)
+			context.compiled_effect.push_back(uint16_t(effect::build_university_in_capital_no_whole_state_yes_limit | effect::no_payload));
+		else
+			context.compiled_effect.push_back(uint16_t(effect::build_university_in_capital_no_whole_state_no_limit | effect::no_payload));
 	}
 	void build_fort_in_capital(ef_build_fort_in_capital const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {

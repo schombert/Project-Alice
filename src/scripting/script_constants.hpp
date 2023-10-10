@@ -421,8 +421,22 @@ constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
 constexpr inline uint16_t release_vassal_province_reb = 0x018B;
 constexpr inline uint16_t release_vassal_province_random = 0x018C;
 
+// non-vanilla compat
+constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
+constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
+constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
+constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
+constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
+constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
+constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
+constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
+constexpr inline uint16_t bank = 0x0195;
+constexpr inline uint16_t bank_state = 0x0196;
+constexpr inline uint16_t university = 0x0197;
+constexpr inline uint16_t university_state = 0x0198;
+
 // invalid
-constexpr inline uint16_t first_scope_code = 0x018D;
+constexpr inline uint16_t first_scope_code = 0x0199;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -888,6 +902,18 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
 		0, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
 		0, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
+		0, // constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
+		0,	// constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
+		0,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
+		0,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
+		0, // constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
+		0,	// constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
+		0,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
+		0,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
+		1, //constexpr inline uint16_t bank = 0x0195;
+		1, //constexpr inline uint16_t bank_state = 0x0196;
+		1, //constexpr inline uint16_t university = 0x0197;
+		1, //constexpr inline uint16_t university_state = 0x0198;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1674,8 +1700,10 @@ constexpr inline uint16_t military_score_tag = 0x02D7;
 constexpr inline uint16_t industrial_score_tag = 0x02D8;
 constexpr inline uint16_t has_factories_nation = 0x02D9;
 constexpr inline uint16_t is_coastal_state = 0x02DA;
+constexpr inline uint16_t has_building_bank = 0x02DB;
+constexpr inline uint16_t has_building_university = 0x02DC;
 
-constexpr inline uint16_t first_scope_code = 0x02DB;
+constexpr inline uint16_t first_scope_code = 0x02DD;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2484,6 +2512,8 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
 		0, //constexpr inline uint16_t has_factories_nation = 0x02D9;
 		0, //constexpr inline uint16_t is_coastal_state = 0x02DA;
+		0, // constexpr uint16_t has_building_bank = 0x02DB;
+		0, // constexpr uint16_t has_building_university = 0x02DC;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

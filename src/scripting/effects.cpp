@@ -3133,6 +3133,16 @@ uint32_t ef_naval_base(EFFECT_PARAMTERS) {
 	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
 	return 0;
 }
+uint32_t ef_bank(EFFECT_PARAMTERS) {
+	auto& building_level = ws.world.province_get_building_level(trigger::to_prov(primary_slot), economy::province_building_type::bank);
+	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
+	return 0;
+}
+uint32_t ef_university(EFFECT_PARAMTERS) {
+	auto& building_level = ws.world.province_get_building_level(trigger::to_prov(primary_slot), economy::province_building_type::university);
+	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
+	return 0;
+}
 uint32_t ef_fort_state(EFFECT_PARAMTERS) {
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		auto& building_level = ws.world.province_get_building_level(p, economy::province_building_type::fort);
@@ -3143,6 +3153,20 @@ uint32_t ef_fort_state(EFFECT_PARAMTERS) {
 uint32_t ef_naval_base_state(EFFECT_PARAMTERS) {
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		auto& building_level = ws.world.province_get_building_level(p, economy::province_building_type::naval_base);
+		building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
+	});
+	return 0;
+}
+uint32_t ef_bank_state(EFFECT_PARAMTERS) {
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+		auto& building_level = ws.world.province_get_building_level(p, economy::province_building_type::bank);
+		building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
+	});
+	return 0;
+}
+uint32_t ef_university_state(EFFECT_PARAMTERS) {
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+		auto& building_level = ws.world.province_get_building_level(p, economy::province_building_type::university);
 		building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
 	});
 	return 0;
@@ -4588,6 +4612,81 @@ uint32_t ef_treasury_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 
+//
+// Banks
+//
+uint32_t ef_build_bank_in_capital_yes_whole_state_yes_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	auto cs = ws.world.province_get_state_membership(c);
+	province::for_each_province_in_state_instance(ws, cs, [&](dcon::province_id p) {
+		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_bank) <= 1.0f)
+			ws.world.province_get_building_level(p, economy::province_building_type::bank) += uint8_t(1);
+	});
+	return 0;
+}
+uint32_t ef_build_bank_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	auto cs = ws.world.province_get_state_membership(c);
+	province::for_each_province_in_state_instance(ws, cs, [&](dcon::province_id p) {
+		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_bank) <= 1.0f)
+			ws.world.province_get_building_level(p, economy::province_building_type::bank) += uint8_t(1);
+	});
+	return 0;
+}
+uint32_t ef_build_bank_in_capital_no_whole_state_yes_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	if(c) {
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_bank) <= 1.0f)
+			ws.world.province_get_building_level(c, economy::province_building_type::bank) += uint8_t(1);
+	}
+	return 0;
+}
+uint32_t ef_build_bank_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	if(c) {
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_bank) <= 1.0f)
+			ws.world.province_get_building_level(c, economy::province_building_type::bank) += uint8_t(1);
+	}
+	return 0;
+}
+//
+// Banks
+//
+uint32_t ef_build_university_in_capital_yes_whole_state_yes_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	auto cs = ws.world.province_get_state_membership(c);
+	province::for_each_province_in_state_instance(ws, cs, [&](dcon::province_id p) {
+		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_university) <= 1.0f)
+			ws.world.province_get_building_level(p, economy::province_building_type::university) += uint8_t(1);
+	});
+	return 0;
+}
+uint32_t ef_build_university_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	auto cs = ws.world.province_get_state_membership(c);
+	province::for_each_province_in_state_instance(ws, cs, [&](dcon::province_id p) {
+		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_university) <= 1.0f)
+			ws.world.province_get_building_level(p, economy::province_building_type::university) += uint8_t(1);
+	});
+	return 0;
+}
+uint32_t ef_build_university_in_capital_no_whole_state_yes_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	if(c) {
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_university) <= 1.0f)
+			ws.world.province_get_building_level(c, economy::province_building_type::university) += uint8_t(1);
+	}
+	return 0;
+}
+uint32_t ef_build_university_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
+	if(c) {
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_university) <= 1.0f)
+			ws.world.province_get_building_level(c, economy::province_building_type::university) += uint8_t(1);
+	}
+	return 0;
+}
+
 inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -4998,6 +5097,18 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_release_vassal_province_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
 		ef_release_vassal_province_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
 		ef_release_vassal_province_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
+		ef_build_bank_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
+		ef_build_bank_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
+		ef_build_bank_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
+		ef_build_bank_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
+		ef_build_university_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
+		ef_build_university_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
+		ef_build_university_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
+		ef_build_university_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
+		ef_bank, //constexpr inline uint16_t bank = 0x0195;
+		ef_bank_state, //constexpr inline uint16_t bank_state = 0x0196;
+		ef_university, //constexpr inline uint16_t university = 0x0197;
+		ef_university_state, //constexpr inline uint16_t university_state = 0x0198;
 
 		//
 		// SCOPES
