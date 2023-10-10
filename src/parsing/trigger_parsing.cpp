@@ -850,7 +850,7 @@ void trigger_body::ruling_party(association_type a, std::string_view value, erro
 		return;
 	}
 	auto name_id = text::find_or_add_key(context.outer_context.state, value);
-	context.compiled_trigger.push_back(trigger::payload(name_id).value);
+	context.add_int32_t_to_payload(name_id.index());
 }
 
 void trigger_body::has_leader(association_type a, std::string_view value, error_handler& err, int32_t line,

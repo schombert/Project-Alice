@@ -1090,6 +1090,11 @@ public:
 		}
 	}
 };
+
+enum class invention_sort_type {
+	name, type, chance
+};
+
 class technology_possible_invention_listbox : public listbox_element_base<technology_possible_invention, dcon::invention_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -1105,6 +1110,34 @@ public:
 						 trigger::to_generic(state.local_player_nation), -1))
 				row_contents.push_back(id);
 		});
+
+		auto sort_order = retrieve< invention_sort_type>(state, parent);
+		switch(sort_order) {
+		case invention_sort_type::name:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::invention_id a, dcon::invention_id b) {
+				auto a_name = text::produce_simple_string(state, dcon::fatten(state.world, a).get_name());
+				auto b_name = text::produce_simple_string(state, dcon::fatten(state.world, b).get_name());
+				return a_name < b_name;
+			});
+			break;
+		case invention_sort_type::type:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::invention_id a, dcon::invention_id b) {
+				return state.world.invention_get_technology_type(a) < state.world.invention_get_technology_type(b);
+			});
+			break;
+		case invention_sort_type::chance:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::invention_id a, dcon::invention_id b) {
+				auto mod_a = state.world.invention_get_chance(a);
+				auto chances_a = trigger::evaluate_additive_modifier(state, mod_a, trigger::to_generic(state.local_player_nation),
+						trigger::to_generic(state.local_player_nation), 0);
+				auto mod_b = state.world.invention_get_chance(b);
+				auto chances_b = trigger::evaluate_additive_modifier(state, mod_b, trigger::to_generic(state.local_player_nation),
+						trigger::to_generic(state.local_player_nation), 0);
+
+				return chances_a > chances_b;
+			});
+			break;
+		}
 		update(state);
 	}
 };
@@ -1387,6 +1420,10 @@ public:
 				text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
+
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, element_selection_wrapper<invention_sort_type>{invention_sort_type::type});
+	}
 };
 
 class technology_sort_by_name_button : public button_element_base {
@@ -1400,6 +1437,10 @@ public:
 		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "technologyview_sort_by_name_tooltip"),
 				text::text_color::white);
 		text::close_layout_box(contents, box);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, element_selection_wrapper<invention_sort_type>{invention_sort_type::name});
 	}
 };
 
@@ -1415,12 +1456,16 @@ public:
 				text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
+
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, element_selection_wrapper<invention_sort_type>{invention_sort_type::chance});
+	}
 };
 
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 	dcon::technology_id tech_id{};
-
+	invention_sort_type invention_sort = invention_sort_type::type;
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
@@ -1566,6 +1611,13 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<invention_sort_type>>()) {
+			invention_sort = any_cast<element_selection_wrapper<invention_sort_type>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<invention_sort_type>()) {
+			payload = invention_sort;
 			return message_result::consumed;
 		}
 		return message_result::unseen;

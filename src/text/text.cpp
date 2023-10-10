@@ -54,6 +54,104 @@ std::string lowercase_str(std::string_view sv) {
 	return result;
 }
 
+text_sequence create_text_sequence(sys::state& state, std::string_view content) {
+	char const* seq_start = content.data();
+	char const* seq_end = content.data() + content.size();
+	char const* section_start = seq_start;
+
+	const auto component_start_index = state.text_components.size();
+	for(char const* pos = seq_start; pos < seq_end;) {
+		bool colour_esc = false;
+		if(uint8_t(*pos) == 0xA7) {
+			if(section_start != pos) {
+				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				state.text_components.emplace_back(added_key);
+			}
+			pos += 1;
+			section_start = pos;
+			colour_esc = true;
+		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD &&
+							is_qmark_color(*(pos + 3))) {
+			if(section_start != pos) {
+				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				state.text_components.emplace_back(added_key);
+			}
+			section_start = pos += 3;
+			colour_esc = true;
+		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
+			if(section_start != pos) {
+				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				state.text_components.emplace_back(added_key);
+			}
+			pos += 1;
+			section_start = pos;
+			colour_esc = true;
+		} else if(*pos == '$') {
+			if(section_start != pos) {
+				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				state.text_components.emplace_back(added_key);
+			}
+			const char* vend = pos + 1;
+			for(; vend != seq_end && *vend != '$'; ++vend)
+				;
+			if(vend > pos + 1)
+				state.text_components.emplace_back(variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)));
+			pos = vend + 1;
+			section_start = pos;
+		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
+			if(section_start != pos) {
+				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				state.text_components.emplace_back(added_key);
+			}
+			state.text_components.emplace_back(line_break{});
+			section_start = pos += 2;
+		} else {
+			++pos;
+		}
+
+		// This colour escape sequence must be followed by something, otherwise
+		// we should probably discard the last colour command
+		if(colour_esc && pos < seq_end) {
+			state.text_components.emplace_back(char_to_color(*pos));
+			pos += 1;
+			section_start = pos;
+		}
+	}
+
+	if(section_start < seq_end) {
+		auto added_key = state.add_to_pool(std::string_view(section_start, seq_end - section_start));
+		state.text_components.emplace_back(added_key);
+	}
+
+	// TODO: Emit error when 64K boundary is violated
+	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
+	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
+
+	return text_sequence{
+		static_cast<uint32_t>(component_start_index),
+		static_cast<uint16_t>(state.text_components.size() - component_start_index)
+	};
+}
+
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content) {
+	auto to_lower_temp = lowercase_str(key);
+	auto sequence_record = create_text_sequence(state, content);
+
+	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
+		// maybe report an error here -- repeated definition
+		state.text_sequences[it->second] = sequence_record;
+		return it->second;
+	} else {
+		const auto nh = state.text_sequences.size();
+		state.text_sequences.push_back(sequence_record);
+
+		auto main_key = state.add_to_pool_lowercase(key);
+		dcon::text_sequence_id new_k{ dcon::text_sequence_id::value_base_t(nh) };
+		state.key_to_text_sequence.insert_or_assign(main_key, new_k);
+		return new_k;
+	}
+}
+
 void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size) {
 	auto start = (file_size != 0 && file_content[0] == '#')
 									 ? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
@@ -61,91 +159,7 @@ void consume_csv_file(sys::state& state, uint32_t language, char const* file_con
 	while(start < file_content + file_size) {
 		start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';',
 				[&state](std::string_view key, std::string_view content) {
-					char const* seq_start = content.data();
-					char const* seq_end = content.data() + content.size();
-					char const* section_start = seq_start;
-
-					const auto component_start_index = state.text_components.size();
-					for(char const* pos = seq_start; pos < seq_end;) {
-						bool colour_esc = false;
-						if(uint8_t(*pos) == 0xA7) {
-							if(section_start != pos) {
-								auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-								state.text_components.emplace_back(added_key);
-							}
-							pos += 1;
-							section_start = pos;
-							colour_esc = true;
-						} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD &&
-											is_qmark_color(*(pos + 3))) {
-							if(section_start != pos) {
-								auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-								state.text_components.emplace_back(added_key);
-							}
-							section_start = pos += 3;
-							colour_esc = true;
-						} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
-							if(section_start != pos) {
-								auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-								state.text_components.emplace_back(added_key);
-							}
-							pos += 1;
-							section_start = pos;
-							colour_esc = true;
-						} else if(*pos == '$') {
-							if(section_start != pos) {
-								auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-								state.text_components.emplace_back(added_key);
-							}
-							const char* vend = pos + 1;
-							for(; vend != seq_end && *vend != '$'; ++vend)
-								;
-							if(vend > pos + 1)
-								state.text_components.emplace_back(variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)));
-							pos = vend + 1;
-							section_start = pos;
-						} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
-							if(section_start != pos) {
-								auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-								state.text_components.emplace_back(added_key);
-							}
-							state.text_components.emplace_back(line_break{});
-							section_start = pos += 2;
-						} else {
-							++pos;
-						}
-
-						// This colour escape sequence must be followed by something, otherwise
-						// we should probably discard the last colour command
-						if(colour_esc && pos < seq_end) {
-							state.text_components.emplace_back(char_to_color(*pos));
-							pos += 1;
-							section_start = pos;
-						}
-					}
-
-					if(section_start < seq_end) {
-						auto added_key = state.add_to_pool(std::string_view(section_start, seq_end - section_start));
-						state.text_components.emplace_back(added_key);
-					}
-
-					// TODO: Emit error when 64K boundary is violated
-					assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
-					assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
-
-					auto to_lower_temp = lowercase_str(key);
-					if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-						// maybe report an error here -- repeated definition
-						state.text_sequences[it->second] = text_sequence{static_cast<uint32_t>(component_start_index),
-								static_cast<uint16_t>(state.text_components.size() - component_start_index)};
-					} else {
-						const auto nh = state.text_sequences.size();
-						state.text_sequences.emplace_back(text_sequence{static_cast<uint32_t>(component_start_index),
-								static_cast<uint16_t>(state.text_components.size() - component_start_index)});
-
-						auto main_key = state.add_to_pool_lowercase(key);
-						state.key_to_text_sequence.insert_or_assign(main_key, dcon::text_sequence_id(uint16_t(nh)));
-					}
+					create_text_entry(state, key, content);
 				});
 	}
 }
@@ -609,31 +623,29 @@ variable_type variable_type_from_name(std::string_view v) {
 
 char16_t win1250toUTF16(char in) {
 	constexpr static char16_t converted[256] =
-			//       0       1         2         3         4         5         6         7         8         9         A         B C D
-			//       E F
-			/*0*/ {u' ', u'\u0001', u'\u0002', u'\u0003', u'\u0004', u' ', u' ', u' ', u' ', u'\t', u'\n', u' ', u' ', u' ', u' ', u' ',
-					/*1*/ u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ',
-					/*2*/ u' ', u'!', u'\"', u'#', u'$', u'%', u'&', u'\'', u'(', u')', u'*', u'+', u',', u'-', u'.', u'/',
-					/*3*/ u'0', u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u':', u';', u'<', u'=', u'>', u'?',
-					/*4*/ u'@', u'A', u'B', u'C', u'D', u'E', u'F', u'G', u'H', u'I', u'J', u'K', u'L', u'M', u'N', u'O',
-					/*5*/ u'P', u'Q', u'R', u'S', u'T', u'U', u'V', u'W', u'X', u'Y', u'Z', u'[', u'\\', u']', u'^', u'_',
-					/*6*/ u'`', u'a', u'b', u'c', u'd', u'e', u'f', u'g', u'h', u'i', u'j', u'k', u'l', u'm', u'n', u'o',
-					/*7*/ u'p', u'q', u'r', u's', u't', u'u', u'v', u'w', u'x', u'y', u'z', u'{', u'|', u'}', u'~', u' ',
-					/*8*/ u'\u20AC', u' ', u'\u201A', u' ', u'\u201E', u'\u2026', u'\u2020', u'\u2021', u' ', u'\u2030', u'\u0160',
-					u'\u2039', u'\u015A', u'\u0164', u'\u017D', u'\u0179',
-					/*9*/ u' ', u'\u2018', u'\u2019', u'\u201C', u'\u201D', u'\u2022', u'\u2013', u'\u2014', u' ', u'\u2122', u'\u0161',
+			//		0		1		2		3		4		5		6		7		8		9		A		B		C		D		E		F
+			/*0*/ {	u' ',		u'\u0001', u'\u0002', u'\u0003', u'\u0004', u' ', u' ', u' ', u' ', u'\t', u'\n', u' ', u' ', u' ', u' ', u' ',
+			/*1*/	u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',		u' ',
+			/*2*/	u' ',		u'!',		u'\"',		u'#',		u'$',		u'%',	u'&',		u'\'',		u'(',		u')',		u'*',		u'+',		u',',		u'-',		u'.',		u'/',
+			/*3*/ u'0', u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u':', u';', u'<', u'=', u'>', u'?',
+			/*4*/ u'@', u'A', u'B', u'C', u'D', u'E', u'F', u'G', u'H', u'I', u'J', u'K', u'L', u'M', u'N', u'O',
+			/*5*/ u'P', u'Q', u'R', u'S', u'T', u'U', u'V', u'W', u'X', u'Y', u'Z', u'[', u'\\', u']', u'^', u'_',
+			/*6*/ u'`', u'a', u'b', u'c', u'd', u'e', u'f', u'g', u'h', u'i', u'j', u'k', u'l', u'm', u'n', u'o',
+			/*7*/ u'p', u'q', u'r', u's', u't', u'u', u'v', u'w', u'x', u'y', u'z', u'{', u'|', u'}', u'~', u' ',
+			/*8*/ u'\u20AC', u' ', u'\u201A', u' ', u'\u201E', u'\u2026', u'\u2020', u'\u2021', u' ', u'\u2030', u'\u0160', u'\u2039', u'\u015A', u'\u0164', u'\u017D', u'\u0179',
+			/*9*/ u' ', u'\u2018', u'\u2019', u'\u201C', u'\u201D', u'\u2022', u'\u2013', u'\u2014', u' ', u'\u2122', u'\u0161',
 					u'\u203A', u'\u015B', u'\u0165', u'\u017E', u'\u017A',
-					/*A*/ u'\u00A0', u'\u02C7', u'\u02D8', u'\u00A2', u'\u00A3', u'\u0104', u'\u00A6', u'\u00A7', u'\u00A8', u'\u00A9',
+			/*A*/ u'\u00A0', u'\u02C7', u'\u02D8', u'\u00A2', u'\u00A3', u'\u0104', u'\u00A6', u'\u00A7', u'\u00A8', u'\u00A9',
 					u'\u015E', u'\u00AB', u'\u00AC', u'-', u'\u00AE', u'\u017B',
-					/*B*/ u'\u00B0', u'\u00B1', u'\u02DB', u'\u0142', u'\u00B4', u'\u00B5', u'\u00B6', u'\u00B7', u'\u00B8', u'\u0105',
+			/*B*/ u'\u00B0', u'\u00B1', u'\u02DB', u'\u0142', u'\u00B4', u'\u00B5', u'\u00B6', u'\u00B7', u'\u00B8', u'\u0105',
 					u'\u015F', u'\u00BB', u'\u013D', u'\u02DD', u'\u013E', u'\u017C',
-					/*C*/ u'\u0154', u'\u00C1', u'\u00C2', u'\u0102', u'\u00C4', u'\u0139', u'\u0106', u'\u00C7', u'\u010C', u'\u00C9',
+			/*C*/ u'\u0154', u'\u00C1', u'\u00C2', u'\u0102', u'\u00C4', u'\u0139', u'\u0106', u'\u00C7', u'\u010C', u'\u00C9',
 					u'\u0118', u'\u00CB', u'\u011A', u'\u00CD', u'\u00CE', u'\u010E',
-					/*D*/ u'\u0110', u'\u0143', u'\u0147', u'\u00D3', u'\u00D4', u'\u0150', u'\u00D6', u'\u00D7', u'\u0158', u'\u016E',
+			/*D*/ u'\u0110', u'\u0143', u'\u0147', u'\u00D3', u'\u00D4', u'\u0150', u'\u00D6', u'\u00D7', u'\u0158', u'\u016E',
 					u'\u00DA', u'\u0170', u'\u00DC', u'\u00DD', u'\u0162', u'\u00DF',
-					/*E*/ u'\u0115', u'\u00E1', u'\u00E2', u'\u0103', u'\u00E4', u'\u013A', u'\u0107', u'\u00E7', u'\u010D', u'\u00E9',
+			/*E*/ u'\u0115', u'\u00E1', u'\u00E2', u'\u0103', u'\u00E4', u'\u013A', u'\u0107', u'\u00E7', u'\u010D', u'\u00E9',
 					u'\u0119', u'\u00EB', u'\u011B', u'\u00ED', u'\u00EE', u'\u010F',
-					/*F*/ u'\u0111', u'\u0144', u'\u0148', u'\u00F3', u'\u00F4', u'\u0151', u'\u00F6', u'\u00F7', u'\u0159', u'\u016F',
+			/*F*/ u'\u0111', u'\u0144', u'\u0148', u'\u00F3', u'\u00F4', u'\u0151', u'\u00F6', u'\u00F7', u'\u0159', u'\u016F',
 					u'\u00FA', u'\u0171', u'\u00FC', u'\u00FD', u'\u0163', u'\u02D9'};
 
 	return converted[(uint8_t)in];
@@ -673,13 +685,7 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		return it->second;
 	} else {
 		auto new_key = state.add_to_pool_lowercase(txt);
-		auto component_sz = state.text_components.size();
-		state.text_components.push_back(new_key);
-		auto seq_size = state.text_sequences.size();
-		state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
-		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
-		state.key_to_text_sequence.insert_or_assign(new_key, new_id);
-		return new_id;
+		return create_text_entry(state, state.to_string_view(new_key), txt);
 	}
 }
 
