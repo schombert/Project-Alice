@@ -65,7 +65,7 @@ std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
 		uint32_t empty_color = 0xDDDDDD;
 		// Make the other end of the gradient dark if the color is bright and vice versa.
 		// This should make it easier to see cultures that would otherwise be problematic.
-		if((full_color & 0xFF) > 128 || (full_color >> 8 & 0xFF) > 128 || (full_color >> 16 & 0xFF) > 128) {
+		if((full_color & 0xFF) + (full_color >> 8 & 0xFF) + (full_color >> 16 & 0xFF) > 140 * 3) {
 			empty_color = 0x222222;
 		}
 
