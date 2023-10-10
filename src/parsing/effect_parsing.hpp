@@ -826,7 +826,7 @@ struct effect_body {
 			return;
 		}
 		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.compiled_effect.push_back(trigger::payload(name).value);
+		context.add_int32_t_to_payload(name.index());
 	}
 	void trade_goods(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
@@ -2036,7 +2036,7 @@ struct effect_body {
 			return;
 		}
 		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.compiled_effect.push_back(trigger::payload(name).value);
+		context.add_int32_t_to_payload(name.index());
 	}
 	void enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void set_global_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
