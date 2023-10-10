@@ -1791,81 +1791,55 @@ public:
 class justifying_cb_type_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
 	}
 };
 
 class justifying_cb_progress : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			progress = (fat.get_constructing_cb_progress() / 100.0f);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		progress = (fat.get_constructing_cb_progress() / 100.0f);
 	}
 };
 
 class justifying_attacker_flag : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) noexcept override {
-		if(parent) {
-			row_contents.clear();
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			row_contents.push_back(fat.get_identity_from_identity_holder().id);
-			update(state);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		row_contents.push_back(fat.get_identity_from_identity_holder().id);
+		update(state);
 	}
 };
 
 class justifying_defender_flag : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) noexcept override {
-		if(parent) {
-			row_contents.clear();
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
-			update(state);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
+		update(state);
 	}
 };
 
 class diplomacy_casus_belli_cancel_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			if(content != state.local_player_nation) {
-				disabled = true;
-			} else {
-				disabled = !command::can_cancel_cb_fabrication(state, content);
-			}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		if(content != state.local_player_nation) {
+			disabled = true;
+		} else {
+			disabled = !command::can_cancel_cb_fabrication(state, content);
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			const dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			command::cancel_cb_fabrication(state, content);
-		}
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		command::cancel_cb_fabrication(state, content);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -2088,7 +2062,6 @@ private:
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
 	std::vector<element_base*> action_buttons{};
 
-	
 	dcon::nation_id facts_nation_id{};
 
 	country_filter_setting filter = country_filter_setting{};
@@ -2212,11 +2185,12 @@ public:
 		add_child_to_front(std::move(new_win6));
 
 		facts_nation_id = state.local_player_nation;
+		on_update(state);
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis == sys::crisis_type::none) {
-			send(state, this, diplomacy_window_tab::great_powers);
+			send<diplomacy_window_tab>(state, this, diplomacy_window_tab::great_powers);
 		}
 	}
 
