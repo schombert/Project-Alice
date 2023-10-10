@@ -313,9 +313,9 @@ void button_element_base::on_reset_text(sys::state& state) noexcept {
 void button_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
 		auto base_text_handle = base_data.data.button.txt;
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		if(base_text_handle) {
 			stored_text = text::produce_simple_string(state, base_text_handle);
-			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 		}
 	}

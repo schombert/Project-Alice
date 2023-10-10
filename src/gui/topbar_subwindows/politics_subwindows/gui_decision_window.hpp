@@ -123,8 +123,10 @@ public:
 		auto fat_id = dcon::fatten(state.world, id);
 		description = fat_id.get_description();
 		auto container = text::create_endless_layout(delegate->internal_layout,
-				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+				base_data.data.text.font_handle, 0, text::alignment::left,
+				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
+				false});
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
