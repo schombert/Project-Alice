@@ -4336,14 +4336,12 @@ struct trigger_body {
 				context.compiled_trigger.push_back(uint16_t(trigger::produces_pop | association_to_bool_code(a)));
 			} else {
 				err.accumulated_errors += "produces trigger used in an incorrect scope type " +
-																	slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																	std::to_string(line) + ")\n";
+					slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
 		} else {
-			err.accumulated_errors +=
-					"produces trigger supplied with an invalid commodity (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "produces trigger supplied with an invalid commodity (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 	void has_pop_type(association_type a, std::string_view value, error_handler& err, int32_t line,
@@ -4360,14 +4358,12 @@ struct trigger_body {
 				context.compiled_trigger.push_back(uint16_t(trigger::has_pop_type_pop | association_to_bool_code(a)));
 			} else {
 				err.accumulated_errors += "has_pop_type trigger used in an incorrect scope type " +
-																	slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " +
-																	std::to_string(line) + ")\n";
+					slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
 		} else {
-			err.accumulated_errors +=
-					"has_pop_type trigger supplied with an invalid commodity (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "has_pop_type trigger supplied with an invalid type name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 	void total_pops(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {

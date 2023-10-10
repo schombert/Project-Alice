@@ -333,12 +333,14 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	auto ident = state.world.nation_get_identity_from_identity_holder(id);
 	auto gov_id = state.world.nation_get_government_type(id);
 	assert(!gov_id || state.world.government_type_is_valid(gov_id));
-	if(gov_id)
+	if(gov_id) {
 		state.world.nation_set_name(id, state.world.national_identity_get_government_name(ident, gov_id));
-	else
+		state.world.nation_set_color(id, state.world.national_identity_get_government_color(ident, gov_id));
+	} else {
 		state.world.nation_set_name(id, state.world.national_identity_get_name(ident));
+		state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
+	}
 	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
-	state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
 }
 
 void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type) {

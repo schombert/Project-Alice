@@ -2766,14 +2766,14 @@ void commodity_array::finish(scenario_building_context& context) {
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
 	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
+	for(auto g : context.outer_context.state.world.in_government_type) {
+		context.outer_context.state.world.national_identity_set_government_color(context.id, g, cvalue.value);
+	}
 }
 
-void country_file::any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line,
-		country_file_context& context) {
-	if(auto it = context.outer_context.map_of_governments.find(std::string(name));
-			it != context.outer_context.map_of_governments.end()) {
-		// TODO: Do something with country government types stuff
-		// I assume this is used to change colours of countries?
+void country_file::any_group(std::string_view name, color_from_3i c, error_handler& err, int32_t line, country_file_context& context) {
+	if(auto it = context.outer_context.map_of_governments.find(std::string(name)); it != context.outer_context.map_of_governments.end()) {
+		context.outer_context.state.world.national_identity_set_government_color(context.id, it->second, c.value);
 	} else {
 		err.accumulated_errors +=
 				"Invalid government type " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";

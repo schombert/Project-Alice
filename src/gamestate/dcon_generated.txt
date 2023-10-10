@@ -84,6 +84,11 @@ object{
 		tag{ scenario }
 	}
 	property{
+		name{ government_color }
+		type{ array{government_type_id}{uint32_t} }
+		tag{ scenario }
+	}
+	property{
 		name{ primary_culture }
 		type{ culture_id }
 		tag{ scenario }
