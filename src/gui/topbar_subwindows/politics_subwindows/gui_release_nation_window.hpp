@@ -95,13 +95,9 @@ public:
 class release_nation_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			const dcon::national_identity_id niid = any_cast<dcon::national_identity_id>(payload);
-			Cyto::Any e_payload = release_emplace_wrapper{state.world.national_identity_get_nation_from_identity_holder(niid)};
-			parent->impl_get(state, e_payload);
-		}
+		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
+		Cyto::Any e_payload = release_emplace_wrapper{state.world.national_identity_get_nation_from_identity_holder(niid)};
+		parent->impl_get(state, e_payload);
 	}
 };
 

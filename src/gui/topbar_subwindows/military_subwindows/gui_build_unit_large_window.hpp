@@ -164,13 +164,9 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		/*
+		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
+		dcon::province_id p = retrieve<dcon::province_id>(state, parent);
 		if(is_navy) {
-			Cyto::Any payload = dcon::unit_type_id{};
-			parent->impl_get(state, payload);
-			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
-			Cyto::Any p_payload = dcon::province_id{};
-			parent->impl_get(state, p_payload);
-			dcon::province_id p = Cyto::any_cast<dcon::province_id>(p_payload);
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
 			//Any key starting with 'alice' has been added in \assets\alice.csv
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
@@ -180,12 +176,6 @@ public:
 			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
 		} else {
-			Cyto::Any payload = dcon::unit_type_id{};
-			parent->impl_get(state, payload);
-			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
-			Cyto::Any p_payload = dcon::province_id{};
-			parent->impl_get(state, p_payload);
-			dcon::province_id p = Cyto::any_cast<dcon::province_id>(p_payload);
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
 			text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power, 2));
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
@@ -210,13 +200,9 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
-			disabled = state.world.nation_get_active_unit(n, unit_type) == false &&
-				state.military_definitions.unit_base_definitions[unit_type].active == false;
-		}
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		disabled = state.world.nation_get_active_unit(n, unit_type) == false &&
+			state.military_definitions.unit_base_definitions[unit_type].active == false;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -525,7 +511,7 @@ public:
 		} else if(name == "province") {
 			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "continent") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<generic_name_text<dcon::modifier_id>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -567,6 +553,17 @@ public:
 			}
 			payload.emplace<dcon::province_id>(p);
 			return message_result::consumed;
+		} else if(payload.holds_type<dcon::modifier_id>()) {
+			dcon::province_id p{};
+			if(!content.is_navy) {
+				auto c = content.land_id;
+				p = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
+			} else if(content.is_navy) {
+				auto c = content.naval_id;
+				p = state.world.province_naval_construction_get_province(c);
+			}
+			payload.emplace<dcon::modifier_id>(state.world.province_get_continent(p));
+			return message_result::consumed;
 		} else if(payload.holds_type<ui::queue_unit_entry_info>()) {
 			payload.emplace<ui::queue_unit_entry_info>(content);
 			return message_result::consumed;
@@ -600,20 +597,16 @@ public:
 class land_unit_under_construction_count : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		std::string txt("+");
 		auto cstr_range = state.world.nation_get_province_land_construction(state.local_player_nation);
-		txt += std::to_string(cstr_range.end() - cstr_range.begin());
-		set_text(state, txt);
+		set_text(state, std::to_string(cstr_range.end() - cstr_range.begin()));
 	}
 };
 
 class naval_unit_under_construction_count : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		std::string txt("+");
 		auto cstr_range = state.world.nation_get_province_naval_construction(state.local_player_nation);
-		txt += std::to_string(cstr_range.end() - cstr_range.begin());
-		set_text(state, txt);
+		set_text(state, std::to_string(cstr_range.end() - cstr_range.begin()));
 	}
 };
 

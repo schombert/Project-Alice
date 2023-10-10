@@ -34,22 +34,17 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			auto name = fat_id.get_national_value().get_name();
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_single_sub_box(state, contents, box, "politics_nationalvalue_tooltip", text::variable_type::nationalvalue, name);
-				text::close_layout_box(contents, box);
-			}
-			auto mod_id = fat_id.get_national_value().id;
-			if(bool(mod_id)) {
-				modifier_description(state, contents, mod_id);
-			}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		auto name = fat_id.get_national_value().get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, "politics_nationalvalue_tooltip", text::variable_type::nationalvalue, name);
+			text::close_layout_box(contents, box);
+		}
+		auto mod_id = fat_id.get_national_value().id;
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id);
 		}
 	}
 };
@@ -194,19 +189,15 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::political_party_id{};
-			parent->impl_get(state, payload);
-			auto party = any_cast<dcon::political_party_id>(payload);
-			row_contents.clear();
-			for(auto& issue : state.culture_definitions.party_issues) {
-				auto issue_option = state.world.political_party_get_party_issues(party, issue);
-				if(issue_option) {
-					row_contents.push_back(issue_option.id);
-				}
+		auto party = retrieve<dcon::political_party_id>(state, parent);
+		row_contents.clear();
+		for(auto& issue : state.culture_definitions.party_issues) {
+			auto issue_option = state.world.political_party_get_party_issues(party, issue);
+			if(issue_option) {
+				row_contents.push_back(issue_option.id);
 			}
-			update(state);
 		}
+		update(state);
 	}
 };
 
@@ -426,12 +417,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::issue_option_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::issue_option_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::issue_option_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
