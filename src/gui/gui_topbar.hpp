@@ -1747,7 +1747,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto quick_chatlog = make_element_by_type<chat_message_listbox<false>>(state, "chat_list");
+		auto quick_chatlog = make_element_by_type<chat_message_listbox>(state, "chat_list");
 		quick_chatlog->base_data.position.x += 156; // nudge
 		add_child_to_back(std::move(quick_chatlog));
 

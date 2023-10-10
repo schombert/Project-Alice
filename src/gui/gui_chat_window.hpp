@@ -60,7 +60,6 @@ public:
 	}
 };
 
-template<bool B>
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -83,11 +82,11 @@ public:
 	}
 
 	bool is_reversed() override {
-		return B;
+		return true;
 	}
 };
 
-class chat_player_kick_button : public button_element_base {
+class player_kick_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
@@ -112,7 +111,32 @@ public:
 	}
 };
 
-class chat_player_name_text : public simple_text_element_base {
+class player_ban_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_ban(state, state.local_player_nation, n);
+		if(state.network_mode != sys::network_mode_type::host)
+			disabled = true;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::notify_player_ban(state, state.local_player_nation, n);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("tip_ban"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class player_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.network_mode == sys::network_mode_type::single_player) {
@@ -130,9 +154,9 @@ public:
 		if(name == "player_shield") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "name") {
-			return make_element_by_type<chat_player_name_text>(state, id);
+			return make_element_by_type<player_name_text>(state, id);
 		} else if(name == "button_kick") {
-			return make_element_by_type<chat_player_kick_button>(state, id);
+			return make_element_by_type<player_kick_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -210,7 +234,7 @@ public:
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "chatlog") {
-			return make_element_by_type<chat_message_listbox<true>>(state, id);
+			return make_element_by_type<chat_message_listbox>(state, id);
 		} else if(name == "multiplayer_list") {
 			return make_element_by_type<chat_player_listbox>(state, id);
 		} else if(name == "lobby_chat_edit") {

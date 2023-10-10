@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_chat_window.hpp"
 #include "serialization.hpp"
 
 namespace ui {
@@ -588,56 +589,6 @@ public:
 	}
 };
 
-class nation_picker_kick_button : public button_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
-		if(state.network_mode != sys::network_mode_type::host)
-			disabled = true;
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		command::notify_player_kick(state, state.local_player_nation, n);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("tip_kick"));
-		text::close_layout_box(contents, box);
-	}
-};
-
-class nation_picker_ban_button : public button_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_notify_player_ban(state, state.local_player_nation, n);
-		if(state.network_mode != sys::network_mode_type::host)
-			disabled = true;
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		command::notify_player_ban(state, state.local_player_nation, n);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("tip_ban"));
-		text::close_layout_box(contents, box);
-	}
-};
-
 class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -647,7 +598,7 @@ public:
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "name") {
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<player_name_text>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
@@ -657,12 +608,12 @@ public:
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "button_kick") {
-			auto ptr = make_element_by_type<nation_picker_kick_button>(state, id);
+			auto ptr = make_element_by_type<player_kick_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "button_ban") {
-			auto ptr = make_element_by_type<nation_picker_ban_button>(state, id);
+			auto ptr = make_element_by_type<player_ban_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
