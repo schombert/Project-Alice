@@ -86,17 +86,19 @@ public:
 // Decision Name
 // -------------
 
+void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
+	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
+	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
+}
+
 class decision_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::decision_id{};
-		if(parent) {
-			parent->impl_get(state, payload);
-			auto id = any_cast<dcon::decision_id>(payload);
-			auto fat_id = dcon::fatten(state.world, id);
-			auto name = text::produce_simple_string(state, fat_id.get_name());
-			set_text(state, name);
-		}
+		auto id = retrieve<dcon::decision_id>(state, parent);
+		text::substitution_map m;
+		produce_decision_substitutions(state, m, state.local_player_nation);
+		set_text(state, text::resolve_string_substitution(state, state.world.decision_get_name(id), m));
 	}
 };
 
@@ -126,7 +128,9 @@ private:
 	dcon::text_sequence_id description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, description, text::substitution_map{});
+		text::substitution_map m;
+		produce_decision_substitutions(state, m, state.local_player_nation);
+		text::add_to_layout_box(state, contents, box, description, m);
 		text::close_layout_box(contents, box);
 	}
 
