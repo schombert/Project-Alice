@@ -1239,6 +1239,11 @@ void state::on_create() {
 	});
 
 	{
+		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+		new_elm->impl_on_update(*this);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
 		ui_state.console_window = window.get();
 		window->set_visible(*this, false);
@@ -1316,16 +1321,9 @@ void state::on_create() {
 		ui_state.msg_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
-
 	{
 		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(*this, "alice_leader_selection_panel");
 		ui_state.change_leader_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-
-	{
-		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
-		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
