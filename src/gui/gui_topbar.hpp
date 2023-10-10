@@ -1353,29 +1353,29 @@ public:
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
 
-			auto box = text::open_layout_box(contents, 0);
 			if(!nations::has_decision_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"),
-						text::substitution_map{});
-			} else if(nations::has_decision_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"),
-						text::substitution_map{});
-				// Display Avaliable Decisions
+				text::add_line(state, contents, "countryalert_no_candodecisions");
+			} else {
+				text::add_line(state, contents, "countryalert_candodecisions");
+
+				text::substitution_map m;
+				produce_decision_substitutions(state, m, state.local_player_nation);
+
 				state.world.for_each_decision([&](dcon::decision_id di) {
 					if(nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
 						auto lim = state.world.decision_get_potential(di);
 						if(!lim || trigger::evaluate(state, lim, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
 							auto allow = state.world.decision_get_allow(di);
 							if(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
-								text::add_line_break_to_layout_box(state, contents, box);
 								auto fat_id = dcon::fatten(state.world, di);
-								text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
+								auto box = text::open_layout_box(contents);
+								text::add_to_layout_box(state, contents, box, fat_id.get_name(), m);
+								text::close_layout_box(contents, box);
 							}
 						}
 					}
 				});
 			}
-			text::close_layout_box(contents, box);
 		}
 	}
 
