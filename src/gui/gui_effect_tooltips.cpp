@@ -6210,6 +6210,114 @@ uint32_t ef_treasury_province(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+
+//
+// Banks
+//
+uint32_t ef_build_bank_in_capital_yes_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "bank_in_capital_state", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_build_bank_in_capital_yes_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "bank_in_capital_state", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_build_bank_in_capital_no_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "bank_in_capital", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_build_bank_in_capital_no_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "bank_in_capital", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
+//
+// Universities
+//
+uint32_t ef_build_university_in_capital_yes_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "university_in_capital_state", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_build_university_in_capital_yes_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "university_in_capital_state", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_build_university_in_capital_no_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "university_in_capital", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_build_university_in_capital_no_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation + indentation_amount);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "university_in_capital", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
+uint32_t ef_bank(EFFECT_DISPLAY_PARAMS) {
+	auto type = economy::province_building_type::bank;
+	auto amount = trigger::payload(tval[1]).signed_value;
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(int64_t(amount), true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_university(EFFECT_DISPLAY_PARAMS) {
+	auto type = economy::province_building_type::university;
+	auto amount = trigger::payload(tval[1]).signed_value;
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, economy::province_building_type_get_level_text(type), m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(int64_t(amount), true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
 inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -6620,6 +6728,18 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_release_vassal_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
 		ef_release_vassal_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
 		ef_release_vassal_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
+		ef_build_bank_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
+		ef_build_bank_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
+		ef_build_bank_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
+		ef_build_bank_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
+		ef_build_university_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
+		ef_build_university_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
+		ef_build_university_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
+		ef_build_university_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
+		ef_bank, //constexpr inline uint16_t bank = 0x0195;
+		ef_bank, //constexpr inline uint16_t bank_state = 0x0196;
+		ef_university, //constexpr inline uint16_t university = 0x0197;
+		ef_university, // constexpr inline uint16_t university_state = 0x0198;
 
 		//
 		// SCOPES

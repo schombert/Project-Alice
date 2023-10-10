@@ -5765,6 +5765,14 @@ TRIGGER_FUNCTION(tf_invention_pop) {
 	auto tid = trigger::payload(tval[1]).invt_id;
 	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(nations::owner_of_pop(ws, to_pop(primary_slot)), tid));
 }
+
+TRIGGER_FUNCTION(tf_has_building_bank) {
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::bank) != 0);
+}
+TRIGGER_FUNCTION(tf_has_building_university) {
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::university) != 0);
+}
+
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(
@@ -7044,6 +7052,8 @@ struct trigger_container {
 			tf_industrial_score_tag, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
 			tf_has_factories_nation<return_type, primary_type, this_type, from_type>,	// constexpr inline uint16_t has_factories_nation = 0x02D9;
 			tf_is_coastal_state<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t is_coastal_state = 0x02DA;
+			tf_has_building_bank<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_bank = 0x02DB;
+			tf_has_building_university<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_university = 0x02DC;
 
 			//
 			// scopes

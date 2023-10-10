@@ -145,4 +145,14 @@ spriteTypes = {
 		texturefile = "assets\\small_rail.dds"
 		noOfFrames = 1
 	}
+	spriteType = {
+		name = "GFX_alice_map_bank"
+		texturefile = "assets\\small_bank.dds"
+		noOfFrames = 1
+	}
+	spriteType = {
+		name = "GFX_alice_map_university"
+		texturefile = "assets\\small_university.dds"
+		noOfFrames = 1
+	}
 }

@@ -989,42 +989,47 @@ void update_ai_econ_construction(sys::state& state) {
 		}
 
 		// try railroads
-		if((rules & issue_rule::build_railway) != 0 && max_projects > 0) {
-			project_provs.clear();
-			for(auto o : n.get_province_ownership()) {
-				if(n != o.get_province().get_nation_from_province_control())
-					continue;
-				if(military::province_is_under_siege(state, o.get_province()))
-					continue;
-
-				int32_t current_rails_lvl = state.world.province_get_building_level(o.get_province(), economy::province_building_type::railroad);
-				int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::railroad);
-				int32_t min_build_railroad =
-					int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_railroad));
-
-				if(max_local_rails_lvl - current_rails_lvl - min_build_railroad <= 0)
-					continue;
-
-				if(!province::has_railroads_being_built(state, o.get_province())) {
-					project_provs.push_back(o.get_province().id);
+		static const struct {
+			uint32_t issue_bits;
+			economy::province_building_type type;
+			dcon::provincial_modifier_value mod;
+		} econ_buildable[3] = {
+			{ issue_rule::build_railway, economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
+			{ issue_rule::build_bank, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
+			{ issue_rule::build_university, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
+		};
+		for(auto i = 0; i < 3; i++) {
+			if((rules & econ_buildable[i].issue_bits) != 0 && max_projects > 0) {
+				project_provs.clear();
+				for(auto o : n.get_province_ownership()) {
+					if(n != o.get_province().get_nation_from_province_control())
+						continue;
+					if(military::province_is_under_siege(state, o.get_province()))
+						continue;
+					int32_t current_lvl = state.world.province_get_building_level(o.get_province(), econ_buildable[i].type);
+					int32_t max_local_lvl = state.world.nation_get_max_building_level(n, econ_buildable[i].type);
+					int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), econ_buildable[i].mod));
+					if(max_local_lvl - current_lvl - min_build <= 0)
+						continue;
+					if(!province::has_province_building_being_built(state, o.get_province(), econ_buildable[i].type)) {
+						project_provs.push_back(o.get_province().id);
+					}
 				}
-			}
-
-			auto cap = n.get_capital();
-			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-				auto a_dist = province::sorting_distance(state, a, cap);
-				auto b_dist = province::sorting_distance(state, b, cap);
-				if(a_dist != b_dist)
-					return a_dist < b_dist;
-				else
-					return a.index() < b.index();
-			});
-
-			for(uint32_t i = 0; i < project_provs.size() && max_projects > 0; ++i) {
-				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
-				new_rr.set_is_pop_project(false);
-				new_rr.set_type(uint8_t(economy::province_building_type::railroad));
-				--max_projects;
+				auto cap = n.get_capital();
+				std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+					auto a_dist = province::sorting_distance(state, a, cap);
+					auto b_dist = province::sorting_distance(state, b, cap);
+					if(a_dist != b_dist)
+						return a_dist < b_dist;
+					else
+						return a.index() < b.index();
+				});
+				for(uint32_t j = 0; j < project_provs.size() && max_projects > 0; ++j) {
+					auto new_proj = fatten(state.world, state.world.force_create_province_building_construction(project_provs[j], n));
+					new_proj.set_is_pop_project(false);
+					new_proj.set_type(uint8_t(econ_buildable[i].type));
+					--max_projects;
+				}
 			}
 		}
 

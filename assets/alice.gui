@@ -1047,6 +1047,16 @@ guiTypes = {
 				position = { x=32 y=0 }
 			}
 			iconType = {
+				name ="bank_icon"
+				spriteType = "GFX_alice_map_bank"
+				position = { x=0 y=24 }
+			}
+			iconType = {
+				name ="university_icon"
+				spriteType = "GFX_alice_map_university"
+				position = { x=32 y=24 }
+			}
+			iconType = {
 				name ="capital_icon"
 				spriteType = "GFX_topbar_prestige"
 				position = { x=22 y=-20 }

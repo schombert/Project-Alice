@@ -15,6 +15,7 @@ struct building_information {
 	int32_t time = 1080;
 	dcon::modifier_id province_modifier;
 	dcon::text_sequence_id name;
+	bool defined = false;
 };
 
 inline std::string_view province_building_type_get_name(economy::province_building_type v) {
@@ -25,6 +26,10 @@ inline std::string_view province_building_type_get_name(economy::province_buildi
 		return "fort";
 	case economy::province_building_type::naval_base:
 		return "naval_base";
+	case economy::province_building_type::bank:
+		return "bank";
+	case economy::province_building_type::university:
+		return "university";
 	default:
 		return "???";
 	}
@@ -37,6 +42,10 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 		return "fort_level";
 	case economy::province_building_type::naval_base:
 		return "naval_base_level";
+	case economy::province_building_type::bank:
+		return "bank_level";
+	case economy::province_building_type::university:
+		return "university_level";
 	default:
 		return "???";
 	}

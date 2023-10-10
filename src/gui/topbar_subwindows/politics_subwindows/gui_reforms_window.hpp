@@ -98,7 +98,7 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 		text::add_line_break_to_layout(state, contents);
 	}
 
-	if((rules & (issue_rule::build_factory | issue_rule::expand_factory | issue_rule::open_factory | issue_rule::destroy_factory | issue_rule::factory_priority | issue_rule::can_subsidise | issue_rule::pop_build_factory | issue_rule::pop_expand_factory | issue_rule::pop_open_factory | issue_rule::delete_factory_if_no_input | issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway)) != 0) {
+	if((rules & (issue_rule::build_factory | issue_rule::expand_factory | issue_rule::open_factory | issue_rule::destroy_factory | issue_rule::factory_priority | issue_rule::can_subsidise | issue_rule::pop_build_factory | issue_rule::pop_expand_factory | issue_rule::pop_open_factory | issue_rule::delete_factory_if_no_input | issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway | issue_rule::build_bank | issue_rule::build_university)) != 0) {
 
 		text::add_line(state, contents, "special_rules");
 
@@ -140,6 +140,16 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 		}
 		if((rules & issue_rule::build_railway) != 0) {
 			text::add_line(state, contents, "rule_build_railway");
+		}
+		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined) {
+			if((rules & issue_rule::build_bank) != 0) {
+				text::add_line(state, contents, "rule_build_bank");
+			}
+		}
+		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined) {
+			if((rules & issue_rule::build_university) != 0) {
+				text::add_line(state, contents, "rule_build_university");
+			}
 		}
 
 		text::add_line_break_to_layout(state, contents);
