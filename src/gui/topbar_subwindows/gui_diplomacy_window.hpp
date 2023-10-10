@@ -1091,6 +1091,7 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+		active_nation = state.local_player_nation;
 
 		{
 			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
@@ -1811,6 +1812,7 @@ protected:
 	void populate_flags(sys::state& state) noexcept override {
 		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
 		auto fat = dcon::fatten(state.world, content);
+		row_contents.clear();
 		row_contents.push_back(fat.get_identity_from_identity_holder().id);
 		update(state);
 	}
@@ -1821,6 +1823,7 @@ protected:
 	void populate_flags(sys::state& state) noexcept override {
 		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
 		auto fat = dcon::fatten(state.world, content);
+		row_contents.clear();
 		row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
 		update(state);
 	}
@@ -2080,6 +2083,7 @@ public:
 		generic_tabbed_window::on_create(state);
 		set_visible(state, false);
 		state.ui_state.diplomacy_subwindow = this;
+		facts_nation_id = state.local_player_nation;
 
 		xy_pair base_gp_info_offset =
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_greatpower_pos")->second.definition].position;
@@ -2183,9 +2187,6 @@ public:
 		new_win6->set_visible(state, false);
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
-
-		facts_nation_id = state.local_player_nation;
-		on_update(state);
 	}
 
 	void on_update(sys::state& state) noexcept override {
