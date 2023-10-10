@@ -870,6 +870,44 @@ public:
 	}
 };
 
+class map_pv_bank : public image_element_base {
+public:
+	sys::date last_update;
+	char cached_level = 0;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+			return;
+
+		if(last_update != state.ui_date) {
+			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::bank);
+			last_update = state.ui_date;
+		}
+
+		image_element_base::render(state, x, y);
+		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+	}
+};
+
+class map_pv_university : public image_element_base {
+public:
+	sys::date last_update;
+	char cached_level = 0;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
+			return;
+
+		if(last_update != state.ui_date) {
+			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::university);
+			last_update = state.ui_date;
+		}
+
+		image_element_base::render(state, x, y);
+		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+	}
+};
+
 class map_pv_capital : public image_element_base {
 public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -885,6 +923,14 @@ class map_province_values : public window_element_base {
 			return make_element_by_type<map_pv_rail>(state, id);
 		} else if(name == "fort_icon") {
 			return make_element_by_type<map_pv_fort>(state, id);
+		} else if(name == "bank_icon") {
+			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined)
+				return make_element_by_type<map_pv_bank>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "university_icon") {
+			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined)
+				return make_element_by_type<map_pv_university>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "capital_icon") {
 			return make_element_by_type<map_pv_capital>(state, id);
 		} else {

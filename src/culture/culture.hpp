@@ -36,6 +36,10 @@ constexpr inline uint32_t rich_only = 0x08000000;
 constexpr inline uint32_t state_vote = 0x10000000;
 constexpr inline uint32_t population_vote = 0x20000000;
 constexpr inline uint32_t build_railway = 0x40000000;
+// TODO: Add more bits to issue rules so we can accomodate both banks and universities SEPARATEDLY
+// "Well the idea we had in mind is that universities are more of a state thing that you can build regardless of party, while banks of course are more tied to party policies"
+constexpr inline uint32_t build_bank = 0x40000000; // tied to building railroads
+constexpr inline uint32_t build_university = 0x80000000; // independent
 
 } // namespace issue_rule
 
