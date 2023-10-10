@@ -29,6 +29,9 @@
 #include "diplomatic_messages.hpp"
 #include "events.hpp"
 #include "notifications.hpp"
+/*
+#include "network.hpp"
+*/
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -509,6 +512,7 @@ struct alignas(64) state {
 
 	// synchronization data (between main update logic and ui thread)
 	std::atomic<bool> game_state_updated = false;                    // game state -> ui signal
+	std::atomic<bool> save_list_updated = false;                     // game state -> ui signal
 	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
 	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
@@ -546,6 +550,11 @@ struct alignas(64) state {
 	// graphics data
 	ogl::data open_gl;
 
+	// network data
+	/*
+	network::network_state network_state;
+	*/
+
 	// the following functions will be invoked by the window subsystem
 
 	void on_create(); // called once after the window is created and opengl is ready
@@ -571,6 +580,7 @@ struct alignas(64) state {
 	void game_loop();
 	sys::checksum_key get_save_checksum();
 	sys::checksum_key get_scenario_checksum();
+	void debug_oos_dump();
 
 	// the following function are for interacting with the string pool
 

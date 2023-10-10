@@ -1000,6 +1000,8 @@ void write_save_file(sys::state& state) {
 	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 
 	delete[] temp_buffer;
+
+	state.save_list_updated.store(true, std::memory_order::release); // update for ui
 }
 bool try_read_save_file(sys::state& state, native_string_view name) {
 	auto dir = simple_fs::get_or_create_save_game_directory();

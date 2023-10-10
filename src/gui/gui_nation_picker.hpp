@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_chat_window.hpp"
 #include "serialization.hpp"
 
 namespace ui {
@@ -114,7 +115,7 @@ public:
 			} else {
 				state.fill_unsaved_data();
 				if(state.network_mode == sys::network_mode_type::host)
-					command::update_session_info(state, state.local_player_nation);
+					command::notify_save_loaded(state, state.local_player_nation);
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
@@ -123,7 +124,7 @@ public:
 			} else {
 				state.fill_unsaved_data();
 				if(state.network_mode == sys::network_mode_type::host)
-					command::update_session_info(state, state.local_player_nation);
+					command::notify_save_loaded(state, state.local_player_nation);
 			}
 		}
 		// do not desync the local player nation upon selection of savefile
@@ -261,10 +262,8 @@ protected:
 		return "alice_savegameentry";
 	}
 
-public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base<save_game_item, save_item>::on_create(state);
-
+	void update_save_list(sys::state& state) noexcept {
+		row_contents.clear();
 		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), true });
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
@@ -286,6 +285,19 @@ public:
 		});
 
 		update(state);
+	}
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base<save_game_item, save_item>::on_create(state);
+		update_save_list(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.save_list_updated.load(std::memory_order::acquire) == true) {
+			state.save_list_updated.store(false, std::memory_order::release); // acknowledge update
+			update_save_list(state);
+		}
 	}
 };
 
@@ -464,18 +476,39 @@ public:
 
 class start_game_button : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept override {
-		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-		state.selected_armies.clear();
-		state.selected_navies.clear();
-		state.mode = sys::game_mode_type::in_game;
-		state.game_state_updated.store(true, std::memory_order::release);
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		if(state.network_mode == sys::network_mode_type::client) {
+			set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
+		}
 	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(state.network_mode == sys::network_mode_type::client) {
+			//clients cant start the game, only tell that they're "ready"
+		} else {
+			command::notify_start_game(state, state.local_player_nation);
+		}
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
-		// can't start if checksum doesn't match
-		if(state.network_mode == sys::network_mode_type::client)
-			disabled = disabled || !state.session_host_checksum.is_equal(state.get_save_checksum());
+		/*
+		if(state.network_mode == sys::network_mode_type::client) {
+			if(!state.session_host_checksum.is_equal(state.get_save_checksum())) //can't start if checksum doesn't match
+				disabled = true;
+			else if(state.network_state.save_stream) //in the middle of a save stream
+				disabled = true;
+		} else if(state.network_mode == sys::network_mode_type::host) {
+			for(auto const& client : state.network_state.clients) {
+				if(client.is_active()) {
+					if(!client.send_buffer.empty()) {
+						disabled = true; // client is pending
+					}
+				}
+			}
+		}
+		*/
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -483,11 +516,26 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.network_mode == sys::network_mode_type::client && !state.session_host_checksum.is_equal(state.get_save_checksum())) {
+		/*
+		if(state.network_mode == sys::network_mode_type::client) {
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
+			if(state.network_state.save_stream) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
+			} else if(!state.session_host_checksum.is_equal(state.get_save_checksum())) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
+			}
+			for(auto const& client : state.network_state.clients) {
+				if(client.is_active()) {
+					if(!client.send_buffer.empty()) {
+						text::substitution_map sub;
+						text::add_to_substitution_map(sub, text::variable_type::playername, client.playing_as);
+						text::localised_format_box(state, contents, box, std::string_view("alice_play_pending_client"), sub);
+					}
+				}
+			}
 			text::close_layout_box(contents, box);
 		}
+		*/
 	}
 };
 
@@ -502,15 +550,28 @@ public:
 	}
 };
 
-class multiplayer_ping_text : public simple_text_element_base {
-	uint32_t last_ms = 0;
+class multiplayer_status_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			set_text(state, "");
+		if(state.network_mode == sys::network_mode_type::host) {
+			/*
+			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
+			if(state.network_state.is_new_game == false) {
+				for(auto const& c : state.network_state.clients) {
+					if(c.playing_as == n) {
+						auto completed = c.total_sent_bytes - c.save_stream_offset;
+						auto total = c.save_stream_size;
+						float progress = (float(total) / float(completed));
+						text::substitution_map sub{};
+						text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+						set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+					}
+				}
+			}
+			*/
 		} else {
-			set_text(state, std::to_string(last_ms) + " ms");
+			set_text(state, text::produce_simple_string(state, "alice_status_ready"));
 		}
 	}
 };
@@ -534,52 +595,6 @@ public:
 	}
 };
 
-class nation_picker_kick_button : public button_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_notify_player_kick(state, state.local_player_nation, n);
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		command::notify_player_kick(state, state.local_player_nation, n);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("tip_kick"));
-		text::close_layout_box(contents, box);
-	}
-};
-
-class nation_picker_ban_button : public button_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_notify_player_ban(state, state.local_player_nation, n);
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		command::notify_player_ban(state, state.local_player_nation, n);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("tip_ban"));
-		text::close_layout_box(contents, box);
-	}
-};
-
 class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -589,22 +604,22 @@ public:
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "name") {
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<player_name_text>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "save_progress") {
-			auto ptr = make_element_by_type<multiplayer_ping_text>(state, id);
+			auto ptr = make_element_by_type<multiplayer_status_text>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "button_kick") {
-			auto ptr = make_element_by_type<nation_picker_kick_button>(state, id);
+			auto ptr = make_element_by_type<player_kick_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
 		} else if(name == "button_ban") {
-			auto ptr = make_element_by_type<nation_picker_ban_button>(state, id);
+			auto ptr = make_element_by_type<player_ban_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;

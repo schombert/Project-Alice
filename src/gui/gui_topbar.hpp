@@ -10,6 +10,7 @@
 #include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
+#include "gui_chat_window.hpp"
 #include "gui_common_elements.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
@@ -1745,9 +1746,15 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+
+		auto quick_chatlog = make_element_by_type<chat_message_listbox>(state, "chat_list");
+		quick_chatlog->base_data.position.x += 156; // nudge
+		add_child_to_back(std::move(quick_chatlog));
+
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
+
 		state.ui_state.topbar_window = this;
 		on_update(state);
 	}

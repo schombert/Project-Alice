@@ -33,7 +33,8 @@ struct command_info {
 		crisis,
 		end_game,
 		event,
-		militancy
+		militancy,
+		dump_out_of_sync
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -115,6 +116,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"id", command_info::argument_info::type::numeric, false}, command_info::argument_info{"target", command_info::argument_info::type::tag, true}}},
 		command_info{"angry", command_info::type::militancy, "Makes everyone in your nation very militant",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"oos", command_info::type::dump_out_of_sync, "Dump an OOS save",
+				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 	};
 
@@ -1058,6 +1062,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::militancy:
 		command::c_change_national_militancy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::dump_out_of_sync:
+		state.debug_oos_dump();
 		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
