@@ -524,8 +524,8 @@ inline constexpr int8_t data_sizes[] = {
 		0, // constexpr uint16_t remove_core_from_province = 0x0011;
 		0, // constexpr uint16_t remove_core_from_nation = 0x0012;
 		0, // constexpr uint16_t remove_core_reb = 0x0013;
-		1, // constexpr uint16_t change_region_name_state = 0x0014;
-		1, // constexpr uint16_t change_region_name_province = 0x0015;
+		2, // constexpr uint16_t change_region_name_state = 0x0014;
+		2, // constexpr uint16_t change_region_name_province = 0x0015;
 		1, // constexpr uint16_t trade_goods = 0x0016;
 		1, // constexpr uint16_t add_accepted_culture = 0x0017;
 		0, // constexpr uint16_t add_accepted_culture_union = 0x0018;
@@ -633,7 +633,7 @@ inline constexpr int8_t data_sizes[] = {
 		0, // constexpr uint16_t release_vassal_from_province = 0x007E;
 		0, // constexpr uint16_t release_vassal_reb = 0x007F;
 		0, // constexpr uint16_t release_vassal_random = 0x0080;
-		1, // constexpr uint16_t change_province_name = 0x0081;
+		2, // constexpr uint16_t change_province_name = 0x0081;
 		1, // constexpr uint16_t enable_canal = 0x0082;
 		1, // constexpr uint16_t set_global_flag = 0x0083;
 		1, // constexpr uint16_t clr_global_flag = 0x0084;
@@ -1964,7 +1964,7 @@ inline constexpr int8_t data_sizes[] = {
 		0, // constexpr uint16_t is_vassal = 0x00B9;
 		1, // constexpr uint16_t ruling_party_ideology_pop = 0x00BA;
 		1, // constexpr uint16_t ruling_party_ideology_nation = 0x00BB;
-		1, // constexpr uint16_t ruling_party = 0x00BC;
+		2, // constexpr uint16_t ruling_party = 0x00BC;
 		1, // constexpr uint16_t is_ideology_enabled = 0x00BD;
 		2, // constexpr uint16_t political_reform_want_nation = 0x00BE;
 		2, // constexpr uint16_t political_reform_want_pop = 0x00BF;
@@ -2541,7 +2541,6 @@ union payload {
 	dcon::national_identity_id tag_id;
 	dcon::state_definition_id state_id;
 	dcon::province_id prov_id;
-	dcon::text_sequence_id text_id;
 	dcon::technology_id tech_id;
 	dcon::invention_id invt_id;
 	dcon::national_variable_id natv_id;
@@ -2644,10 +2643,6 @@ union payload {
 	payload(dcon::province_id i) {
 		memset(this, 0, sizeof(payload));
 		prov_id = i;
-	}
-	payload(dcon::text_sequence_id i) {
-		memset(this, 0, sizeof(payload));
-		text_id = i;
 	}
 	payload(dcon::technology_id i) {
 		memset(this, 0, sizeof(payload));

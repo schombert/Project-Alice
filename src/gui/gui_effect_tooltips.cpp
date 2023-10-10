@@ -1733,7 +1733,8 @@ uint32_t ef_change_region_name_state(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, trigger::payload(tval[1]).text_id);
+		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+		text::add_to_substitution_map(m, text::variable_type::text, name);
 		text::localised_format_box(ws, layout, box, "change_name_to", m);
 		text::close_layout_box(layout, box);
 	}
@@ -1743,7 +1744,8 @@ uint32_t ef_change_region_name_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, trigger::payload(tval[1]).text_id);
+		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+		text::add_to_substitution_map(m, text::variable_type::text, name);
 		text::localised_format_box(ws, layout, box, "change_state_name_to", m);
 		text::close_layout_box(layout, box);
 	}
@@ -3081,7 +3083,8 @@ uint32_t ef_release_vassal_random(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_change_province_name(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
-	text::add_to_substitution_map(m, text::variable_type::text, trigger::payload(tval[1]).text_id);
+	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	text::add_to_substitution_map(m, text::variable_type::text, name);
 	text::localised_format_box(ws, layout, box, "change_name_to", m);
 	text::close_layout_box(layout, box);
 	return 0;
