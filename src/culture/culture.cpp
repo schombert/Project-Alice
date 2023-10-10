@@ -938,7 +938,7 @@ void discover_inventions(sys::state& state) {
 							trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
 					ve::apply(
 							[&](dcon::nation_id n, float chance, bool allow_discovery) {
-								if(!allow_discovery) {
+								if(allow_discovery) {
 									auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
 									if(int32_t(random % 100) < int32_t(chance)) {
 										apply_invention(state, n, inv);
