@@ -1314,12 +1314,12 @@ public:
 		}
 		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined) {
 			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::bank>>(state, "building");
-			ptr->base_data.position.y = 71 + 36;
+			ptr->base_data.position.y = 71 + 35 * 1;
 			add_child_to_front(std::move(ptr));
 		}
 		if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined) {
 			auto ptr = make_element_by_type<province_building_window<economy::province_building_type::university>>(state, "building");
-			ptr->base_data.position.y = 71 + 36 + 36;
+			ptr->base_data.position.y = 71 + 35 * 2;
 			add_child_to_front(std::move(ptr));
 		}
 	}
