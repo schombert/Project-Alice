@@ -483,7 +483,7 @@ public:
 				}
 			}
 			text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
-			if(!state.world.nation_get_is_player_controlled(content)) {
+			if(!state.world.nation_get_is_player_controlled(target)) {
 				text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
 			}
 		
