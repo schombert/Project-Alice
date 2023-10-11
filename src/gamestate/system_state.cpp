@@ -73,20 +73,11 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
 
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
-				if((uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0) {
-					for(auto a : selected_armies) {
-						command::move_army(*this, local_player_nation, a, dcon::province_id{});
-					}
-					for(auto a : selected_navies) {
-						command::move_navy(*this, local_player_nation, a, dcon::province_id{});
-					}
-				}
-
 				for(auto a : selected_armies) {
-					command::move_army(*this, local_player_nation, a, id);
+					command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
 				}
 				for(auto a : selected_navies) {
-					command::move_navy(*this, local_player_nation, a, id);
+					command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
 				}
 			} else {
 				sound::play_interface_sound(*this, sound::get_click_sound(*this),
@@ -3067,10 +3058,10 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 constexpr inline int32_t game_speed[] = {
 	0,		// speed 0
-	1000,	// speed 1 -- 1 second
-	500,		// speed 2 -- 0.5 seconds
-	250,		// speed 3 -- 0.25 seconds
-	125,		// speed 4 -- 0.125 seconds
+	400,		// speed 1 -- 1 second
+	200,		// speed 2 -- 0.5 seconds
+	100,		// speed 3 -- 0.25 seconds
+	50,		// speed 4 -- 0.125 seconds
 };
 
 void state::single_game_tick() {
