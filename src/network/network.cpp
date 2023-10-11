@@ -37,7 +37,7 @@ static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 	u_long has_pending = 0;
 	auto r = ioctlsocket(socket_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return (int)recv(socket_fd, reinterpret_cast<char *>(data), (int)n, 0);
+		return static_cast<int>(recv(socket_fd, reinterpret_cast<char *>(data), static_cast<int>(n), 0));
 	return 0;
 #else
 	return recv(socket_fd, data, n, MSG_DONTWAIT);
@@ -46,7 +46,7 @@ static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 
 static int internal_socket_send(socket_t socket_fd, const void *data, size_t n) {
 #ifdef _WIN64
-	return (int)send(socket_fd, reinterpret_cast<const char *>(data), (int)n, 0);
+	return static_cast<int>(send(socket_fd, reinterpret_cast<const char *>(data), static_cast<int>(n), 0));
 #else
 	return send(socket_fd, data, n, MSG_NOSIGNAL);
 #endif
@@ -105,24 +105,35 @@ static void socket_shutdown(socket_t socket_fd) {
 }
 
 static socket_t socket_init_server(struct sockaddr_in& server_address) {
-	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
+	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET, SOCK_STREAM, 0));
 	if(socket_fd < 0)
 		std::abort();
 	int opt = 1;
 #ifdef _WIN64
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt)))
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
+		MessageBoxA(NULL, ("Network setsockopt error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
+	}
 #else
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
 		std::abort();
+	}
 #endif
 	server_address.sin_addr.s_addr = INADDR_ANY;
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(default_server_port);
-	if(bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+	if(bind(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network bind error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
-	if(listen(socket_fd, 3) < 0)
+	}
+	if(listen(socket_fd, 3) < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network listen error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
+	}
 #ifdef _WIN64
 	u_long mode = 1; // 1 to enable non-blocking socket
 	ioctlsocket(socket_fd, FIONBIO, &mode);
@@ -131,24 +142,35 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 }
 
 static socket_t socket_init_server(struct sockaddr_in6& server_address) {
-	socket_t socket_fd = (socket_t)socket(AF_INET6, SOCK_STREAM, 0);
+	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET6, SOCK_STREAM, 0));
 	if(socket_fd < 0)
 		std::abort();
 	int opt = 1;
 #ifdef _WIN64
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt)))
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
+		MessageBoxA(NULL, ("Network setsockpt error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
+	}
 #else
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
 		std::abort();
+	}
 #endif
 	server_address.sin6_addr = IN6ADDR_ANY_INIT;
 	server_address.sin6_family = AF_INET6;
 	server_address.sin6_port = htons(default_server_port);
-	if(bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+	if(bind(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network bind error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
-	if(listen(socket_fd, 3) < 0)
+	}
+	if(listen(socket_fd, 3) < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network listen error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
+	}
 #ifdef _WIN64
 	u_long mode = 1; // 1 to enable non-blocking socket
 	ioctlsocket(socket_fd, FIONBIO, &mode);
@@ -157,29 +179,53 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 }
 
 static socket_t socket_init_client(struct sockaddr_in& client_address, const char *ip_address) {
-	socket_t socket_fd = (socket_t)socket(AF_INET, SOCK_STREAM, 0);
-	if(socket_fd < 0)
+	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET, SOCK_STREAM, 0));
+	if(socket_fd < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network socket error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
+	}
 	client_address.sin_family = AF_INET;
 	client_address.sin_port = htons(default_server_port);
-	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) //ipv4 fallback
+	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) { //ipv4 fallback
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network inet_pton error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
-	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0)
+	}
+	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network connect error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
+	}
 	return socket_fd;
 }
 
-static socket_t socket_init_client(struct sockaddr_in6& client_address, const char *ip_address) {
-	socket_t socket_fd = (socket_t)socket(AF_INET6, SOCK_STREAM, 0);
-	if(socket_fd < 0)
+static socket_t socket_init_client(struct sockaddr_in6& client_address, const char* ip_address) {
+	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET6, SOCK_STREAM, 0));
+	if(socket_fd < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network socket error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
+	}
 	client_address.sin6_addr = IN6ADDR_ANY_INIT;
 	client_address.sin6_family = AF_INET6;
 	client_address.sin6_port = htons(default_server_port);
-	if(inet_pton(AF_INET6, ip_address, &client_address.sin6_addr) <= 0) //ipv4 fallback
+	if(inet_pton(AF_INET6, ip_address, &client_address.sin6_addr) <= 0) { //ipv4 fallback
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network inet_pton error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
-	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0)
+	}
+	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0) {
+#ifdef _WIN64
+		MessageBoxA(NULL, ("Network connect error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
 		std::abort();
+	}
 	return socket_fd;
 }
 
@@ -193,8 +239,10 @@ void init(sys::state& state) {
 
 #ifdef _WIN64
     WSADATA data;
-    if(WSAStartup(MAKEWORD(2, 2), &data) != 0)
+	if(WSAStartup(MAKEWORD(2, 2), &data) != 0) {
+		MessageBoxA(NULL, ("WSA startup error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
+	}
 #endif
 	if(state.network_state.as_v6) {
 		if(state.network_mode == sys::network_mode_type::host) {
@@ -517,7 +565,8 @@ void send_and_receive_commands(sys::state& state) {
 			}
 			if(r < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client save stream receive error", "Network error", MB_OK);
+				int err = WSAGetLastError();
+				MessageBoxA(NULL, ("Network client save stream receive error: " + std::to_string(err)).c_str(), "Network error", MB_OK);
 #endif
 				std::abort();
 			}
@@ -539,7 +588,8 @@ void send_and_receive_commands(sys::state& state) {
 			});
 			if(r < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client command receive error", "Network error", MB_OK);
+				int err = WSAGetLastError();
+				MessageBoxA(NULL, ("Network client command receive error: " + std::to_string(err)).c_str(), "Network error", MB_OK);
 #endif
 				std::abort();
 			}
@@ -557,7 +607,8 @@ void send_and_receive_commands(sys::state& state) {
 			}
 			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, "Network client command send error", "Network error", MB_OK);
+				int err = WSAGetLastError();
+				MessageBoxA(NULL, ("Network client command send error: " + std::to_string(err)).c_str(), "Network error", MB_OK);
 #endif
 				std::abort();
 			}
