@@ -4790,7 +4790,7 @@ void apply_attrition(sys::state& state) {
 		float total_army_weight = 0;
 		for(auto ar : state.world.province_get_army_location(prov)) {
 			if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
-					!bool(ar.get_army().get_navy_from_army_transport())) {
+					!bool(ar.get_army().get_navy_from_army_transport()) && !bool(ar.get_army().get_battle_from_army_battle_participation())) {
 
 				for(auto rg : ar.get_army().get_army_membership()) {
 					total_army_weight += 3.0f * rg.get_regiment().get_strength();
@@ -4802,7 +4802,7 @@ void apply_attrition(sys::state& state) {
 
 		for(auto ar : state.world.province_get_army_location(prov)) {
 			if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
-					!bool(ar.get_army().get_navy_from_army_transport())) {
+					!bool(ar.get_army().get_navy_from_army_transport()) && !bool(ar.get_army().get_battle_from_army_battle_participation())) {
 
 				auto army_controller = ar.get_army().get_controller_from_army_control();
 				auto supply_limit = supply_limit_in_province(state, army_controller, prov);
@@ -5002,6 +5002,8 @@ void update_land_battles(sys::state& state) {
 
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(att_back[i] && def_front[i]) {
+				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
+
 				auto tech_att_nation = tech_nation_for_regiment(state, att_back[i]);
 				auto tech_def_nation = tech_nation_for_regiment(state, def_front[i]);
 
@@ -5040,6 +5042,8 @@ void update_land_battles(sys::state& state) {
 			}
 
 			if(def_back[i] && att_front[i]) {
+				assert(state.world.regiment_is_valid(def_back[i]) && state.world.regiment_is_valid(att_front[i]));
+
 				auto tech_def_nation = tech_nation_for_regiment(state, def_back[i]);
 				auto tech_att_nation = tech_nation_for_regiment(state, att_front[i]);
 
@@ -5073,6 +5077,8 @@ void update_land_battles(sys::state& state) {
 			}
 
 			if(att_front[i]) {
+				assert(state.world.regiment_is_valid(att_front[i]));
+
 				auto tech_att_nation = tech_nation_for_regiment(state, att_front[i]);
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
@@ -5087,6 +5093,8 @@ void update_land_battles(sys::state& state) {
 				}
 
 				if(att_front_target) {
+					assert(state.world.regiment_is_valid(att_front_target));
+
 					auto tech_def_nation = tech_nation_for_regiment(state, att_front_target);
 					auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(att_front_target));
 
@@ -5121,7 +5129,9 @@ void update_land_battles(sys::state& state) {
 				}
 			}
 
-			if(def_front[i] && att_front[i]) {
+			if(def_front[i]) {
+				assert(state.world.regiment_is_valid(def_front[i]));
+
 				auto tech_def_nation = tech_nation_for_regiment(state, def_front[i]);
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i]));
 
@@ -5137,6 +5147,8 @@ void update_land_battles(sys::state& state) {
 				}
 
 				if(def_front_target) {
+					assert(state.world.regiment_is_valid(def_front_target));
+
 					auto tech_att_nation = tech_nation_for_regiment(state, def_front_target);
 					auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(def_front_target));
 
