@@ -3058,10 +3058,10 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 constexpr inline int32_t game_speed[] = {
 	0,		// speed 0
-	400,		// speed 1 -- 1 second
-	200,		// speed 2 -- 0.5 seconds
-	100,		// speed 3 -- 0.25 seconds
-	50,		// speed 4 -- 0.125 seconds
+	2000,	// speed 1 -- 2 seconds
+	750,		// speed 2 -- 0.75 seconds
+	250, 	// speed 3 -- 0.25 seconds
+	125,		// speed 4 -- 0.125 seconds
 };
 
 void state::single_game_tick() {
