@@ -1242,7 +1242,7 @@ void state::on_create() {
 	});
 
 	{
-		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox>(*this, "chat_list");
+		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(*this, "chat_list");
 		new_elm->base_data.position.x += 156; // nudge
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
