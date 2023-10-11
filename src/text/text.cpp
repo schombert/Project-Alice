@@ -685,7 +685,8 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		return it->second;
 	} else {
 		auto new_key = state.add_to_pool_lowercase(txt);
-		return create_text_entry(state, state.to_string_view(new_key), txt);
+		std::string local_key_copy{ state.to_string_view(new_key) };
+		return create_text_entry(state, local_key_copy, txt);
 	}
 }
 

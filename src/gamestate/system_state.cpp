@@ -1242,10 +1242,12 @@ void state::on_create() {
 	});
 
 	{
-		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox>(*this, "chat_list");
+		new_elm->base_data.position.x += 156; // nudge
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
+
 	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
 		ui_state.console_window = window.get();
@@ -1348,6 +1350,11 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "alice_land_combat");
 		new_elm->set_visible(*this, false);
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 

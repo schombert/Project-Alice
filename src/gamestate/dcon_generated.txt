@@ -1863,6 +1863,7 @@ object {
 	name{ naval_battle }
 	storage_type{ erasable }
 	size{ 1000 }
+	tag{ save }
 
 	property{
 		name{ start_date }
@@ -2047,6 +2048,7 @@ object {
 	name{ land_battle }
 	storage_type{ erasable }
 	size{ 1000 }
+	tag{ save }
 
 	property{
 		name{ start_date }

@@ -61,33 +61,29 @@ public:
 class factory_priority_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-			const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-			frame = economy::factory_priority(state, fid);
-			auto rules = state.world.nation_get_combined_issue_rules(n);
-			disabled = (rules & issue_rule::factory_priority) == 0 || n != state.local_player_nation;
-		}
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		frame = economy::factory_priority(state, fid);
+		auto rules = state.world.nation_get_combined_issue_rules(n);
+		disabled = (rules & issue_rule::factory_priority) == 0 || n != state.local_player_nation;
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-			auto fat = dcon::fatten(state.world, fid);
-			switch(economy::factory_priority(state, fid)) {
-			case 0:
-				command::change_factory_settings(state, state.local_player_nation, fid, 1, fat.get_subsidized());
-				break;
-			case 1:
-				command::change_factory_settings(state, state.local_player_nation, fid, 2, fat.get_subsidized());
-				break;
-			case 2:
-				command::change_factory_settings(state, state.local_player_nation, fid, 3, fat.get_subsidized());
-				break;
-			case 3:
-				command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
-				break;
-			}
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		auto fat = dcon::fatten(state.world, fid);
+		switch(economy::factory_priority(state, fid)) {
+		case 0:
+			command::change_factory_settings(state, state.local_player_nation, fid, 1, fat.get_subsidized());
+			break;
+		case 1:
+			command::change_factory_settings(state, state.local_player_nation, fid, 2, fat.get_subsidized());
+			break;
+		case 2:
+			command::change_factory_settings(state, state.local_player_nation, fid, 3, fat.get_subsidized());
+			break;
+		case 3:
+			command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
+			break;
 		}
 	}
 
@@ -157,13 +153,11 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			auto fid = retrieve<dcon::factory_id>(state, parent);
-			auto fat = dcon::fatten(state.world, fid);
-			auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		auto fat = dcon::fatten(state.world, fid);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 
-			command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
-		}
+		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
