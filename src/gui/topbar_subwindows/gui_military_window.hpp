@@ -52,7 +52,7 @@ public:
 			return;
 		}
 
-		progress = mob_rem / mob_size;
+		progress = std::min(1.0f, mob_rem / mob_size);
 	}
 };
 
@@ -72,7 +72,7 @@ public:
 			set_text(state, "100%");
 			return;
 		}
-		set_text(state, text::format_percentage(mob_rem / mob_size, 0));
+		set_text(state, text::format_percentage(std::min(mob_rem / mob_size, 1.0f), 0));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

@@ -2408,13 +2408,14 @@ void daily_update(sys::state& state) {
 		{
 			float max_sp = 0.0f;
 			float total = 0.0f;
+			float spending_level = float(state.world.nation_get_naval_spending(n)) / 100.0f;
 
 			for(uint32_t k = 1; k < total_commodities; ++k) {
 				dcon::commodity_id c{dcon::commodity_id::value_base_t(k)};
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = state.world.nation_get_navy_demand(n, c);
-				refund += val * (1.0f - sat) * nations_commodity_spending * state.world.commodity_get_current_price(c);
+				refund += val * (1.0f - sat) * nations_commodity_spending * spending_level * state.world.commodity_get_current_price(c);
 				total += val;
 				max_sp += val * sat;
 			}
@@ -2422,18 +2423,19 @@ void daily_update(sys::state& state) {
 				max_sp /= total;
 
 			state.world.nation_set_effective_naval_spending(n,
-					nations_commodity_spending * max_sp * float(state.world.nation_get_naval_spending(n)) / 100.0f);
+					nations_commodity_spending * max_sp * spending_level);
 		}
 		{
 			float max_sp = 0.0f;
 			float total = 0.0f;
+			float spending_level = float(state.world.nation_get_land_spending(n)) / 100.0f;
 
 			for(uint32_t k = 1; k < total_commodities; ++k) {
 				dcon::commodity_id c{dcon::commodity_id::value_base_t(k)};
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = state.world.nation_get_army_demand(n, c);
-				refund += val * (1.0f - sat) * nations_commodity_spending * state.world.commodity_get_current_price(c);
+				refund += val * (1.0f - sat) * nations_commodity_spending * spending_level * state.world.commodity_get_current_price(c);
 				total += val;
 				max_sp += val * sat;
 			}
@@ -2441,11 +2443,12 @@ void daily_update(sys::state& state) {
 				max_sp /= total;
 
 			state.world.nation_set_effective_land_spending(n,
-					nations_commodity_spending * max_sp * float(state.world.nation_get_land_spending(n)) / 100.0f);
+					nations_commodity_spending * max_sp * spending_level);
 		}
 		{
 			float max_sp = 0.0f;
 			float total = 0.0f;
+			float spending_level = float(state.world.nation_get_construction_spending(n)) / 100.0f;
 
 			for(uint32_t k = 1; k < total_commodities; ++k) {
 				dcon::commodity_id c{dcon::commodity_id::value_base_t(k)};
@@ -2459,7 +2462,7 @@ void daily_update(sys::state& state) {
 				max_sp /= total;
 
 			state.world.nation_set_effective_construction_spending(n,
-					nations_commodity_spending * max_sp * float(state.world.nation_get_construction_spending(n)) / 100.0f);
+					nations_commodity_spending * max_sp * spending_level);
 		}
 		/*
 		fill stockpiles

@@ -72,6 +72,7 @@ void produce_decision_substitutions(sys::state& state, text::substitution_map& m
 	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
 	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
+	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(n)));
 }
 
 class decision_name : public simple_text_element_base {
