@@ -1629,9 +1629,9 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation.
 	*/
 
-	if(current_size < 100.0f && base_amount >= 0.001f) {
+	/*if(current_size < 100.0f && base_amount >= 0.001f) {
 		return current_size;
-	} else if(base_amount >= 0.001f) {
+	} else*/ if(base_amount >= 0.001f) {
 		return std::min(current_size, std::ceil(base_amount));
 	} else {
 		return 0.0f;
