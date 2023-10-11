@@ -1702,8 +1702,9 @@ constexpr inline uint16_t has_factories_nation = 0x02D9;
 constexpr inline uint16_t is_coastal_state = 0x02DA;
 constexpr inline uint16_t has_building_bank = 0x02DB;
 constexpr inline uint16_t has_building_university = 0x02DC;
+constexpr inline uint16_t has_building_province_selector = 0x02DD;
 
-constexpr inline uint16_t first_scope_code = 0x02DD;
+constexpr inline uint16_t first_scope_code = 0x02DE;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2514,6 +2515,7 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t is_coastal_state = 0x02DA;
 		0, // constexpr uint16_t has_building_bank = 0x02DB;
 		0, // constexpr uint16_t has_building_university = 0x02DC;
+		0, // constexpr inline uint16_t has_building_province_selector = 0x02DD;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };
