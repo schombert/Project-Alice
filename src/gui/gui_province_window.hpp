@@ -1486,13 +1486,13 @@ public:
 			y_offset += 35;
 			add_child_to_front(std::move(ptr));
 		}
-		if(state.economy_definitions.province_selector_defined) {
+		if(bool(state.economy_definitions.selector_modifier)) {
 			auto ptr = make_element_by_type<province_selector_window>(state, "building");
 			ptr->base_data.position.y = y_offset;
 			y_offset += 35;
 			add_child_to_front(std::move(ptr));
 		}
-		if(state.economy_definitions.province_immigrator_defined) {
+		if(bool(state.economy_definitions.immigrator_modifier)) {
 			auto ptr = make_element_by_type<province_immigrator_window>(state, "building");
 			ptr->base_data.position.y = y_offset;
 			y_offset += 35;

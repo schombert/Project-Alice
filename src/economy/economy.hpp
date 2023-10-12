@@ -53,9 +53,7 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
-	bool province_selector_defined = false;
 	dcon::modifier_id selector_modifier{};
-	bool province_immigrator_defined = false;
 	dcon::modifier_id immigrator_modifier{};
 	float craftsmen_fraction = 0.8f;
 };
@@ -177,5 +175,8 @@ int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
+
+dcon::modifier_id get_province_selector_modifier(sys::state& state);
+dcon::modifier_id get_province_immigrator_modifier(sys::state& state);
 
 } // namespace economy

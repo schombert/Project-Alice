@@ -5774,31 +5774,6 @@ TRIGGER_FUNCTION(tf_has_building_university) {
 	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::university) != 0);
 }
 
-TRIGGER_FUNCTION(tf_has_province_selector) {
-	auto result = ve::apply(
-			[&ws](dcon::province_id n) {
-				for(auto m : ws.world.province_get_current_modifiers(n)) {
-					if(m.mod_id == ws.economy_definitions.selector_modifier)
-						return true;
-				}
-				return false;
-			},
-			to_prov(primary_slot));
-	return compare_to_true(tval[0], result);
-}
-TRIGGER_FUNCTION(tf_has_province_immigrator) {
-	auto result = ve::apply(
-			[&ws](dcon::province_id n) {
-				for(auto m : ws.world.province_get_current_modifiers(n)) {
-					if(m.mod_id == ws.economy_definitions.immigrator_modifier)
-						return true;
-				}
-				return false;
-			},
-			to_prov(primary_slot));
-	return compare_to_true(tval[0], result);
-}
-
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(
@@ -7080,9 +7055,7 @@ struct trigger_container {
 			tf_is_coastal_state<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 			tf_has_building_bank<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_bank = 0x02DB;
 			tf_has_building_university<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_university = 0x02DC;
-			tf_has_province_selector<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t has_province_selector = 0x02DD;
-			tf_has_province_immigrator<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t has_province_immigrator = 0x02DE;
-
+			
 			//
 			// scopes
 			//

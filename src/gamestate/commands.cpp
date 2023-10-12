@@ -3865,10 +3865,12 @@ void execute_toggle_select_province(sys::state& state, dcon::nation_id source, d
 
 	for(auto m : state.world.province_get_current_modifiers(prov)) {
 		if(m.mod_id == state.economy_definitions.selector_modifier) {
+			// Remove the already existing modifier if it was found
 			sys::remove_modifier_from_province(state, prov, m.mod_id);
 			return;
 		}
 	}
+	// Otherwise, if it is not present on the province, add it
 	sys::add_modifier_to_province(state, prov, state.economy_definitions.selector_modifier, sys::date{});
 }
 
@@ -3893,10 +3895,12 @@ void execute_toggle_immigrator_province(sys::state& state, dcon::nation_id sourc
 
 	for(auto m : state.world.province_get_current_modifiers(prov)) {
 		if(m.mod_id == state.economy_definitions.immigrator_modifier) {
+			// Remove the already existing modifier if it was found
 			sys::remove_modifier_from_province(state, prov, m.mod_id);
 			return;
 		}
 	}
+	// Otherwise, if it is not present on the province, add it
 	sys::add_modifier_to_province(state, prov, state.economy_definitions.immigrator_modifier, sys::date{});
 }
 

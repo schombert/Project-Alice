@@ -3175,23 +3175,6 @@ uint32_t ef_university_state(EFFECT_PARAMTERS) {
 	return 0;
 }
 
-uint32_t ef_add_selector(EFFECT_PARAMTERS) {
-	sys::add_modifier_to_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.selector_modifier, sys::date{});
-	return 0;
-}
-uint32_t ef_remove_selector(EFFECT_PARAMTERS) {
-	sys::remove_modifier_from_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.selector_modifier);
-	return 0;
-}
-uint32_t ef_add_immigrator(EFFECT_PARAMTERS) {
-	sys::add_modifier_to_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.immigrator_modifier, sys::date{});
-	return 0;
-}
-uint32_t ef_remove_immigrator(EFFECT_PARAMTERS) {
-	sys::remove_modifier_from_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.immigrator_modifier);
-	return 0;
-}
-
 uint32_t ef_trigger_revolt_nation(EFFECT_PARAMTERS) {
 	rebel::trigger_revolt(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).reb_id, trigger::payload(tval[4]).ideo_id,
 			trigger::payload(tval[2]).cul_id, trigger::payload(tval[3]).rel_id);
@@ -5130,10 +5113,6 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_bank_state, //constexpr inline uint16_t bank_state = 0x0196;
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university_state, //constexpr inline uint16_t university_state = 0x0198;
-		ef_add_selector, //constexpr inline uint16_t add_selector = 0x0199;
-		ef_remove_selector, //constexpr inline uint16_t add_selector = 0x019A;
-		ef_add_immigrator, //constexpr inline uint16_t add_selector = 0x019B;
-		ef_remove_immigrator, //constexpr inline uint16_t add_selector = 0x019C;
 
 		//
 		// SCOPES

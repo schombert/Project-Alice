@@ -4,6 +4,11 @@
 #include "trigger_parsing.hpp"
 #include "text.hpp"
 
+namespace economy {
+dcon::modifier_id get_province_selector_modifier(sys::state& state);
+dcon::modifier_id get_province_immigrator_modifier(sys::state& state);
+}
+
 namespace parsers {
 
 struct effect_building_context {
@@ -1599,9 +1604,11 @@ struct effect_body {
 	void province_selector(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
 			if(value == 1) {
-				context.compiled_effect.push_back(uint16_t(effect::add_selector));
+				context.compiled_effect.push_back(uint16_t(effect::add_province_modifier_no_duration));
+				context.compiled_effect.push_back(trigger::payload(economy::get_province_selector_modifier(context.outer_context.state)).value);
 			} else if(value == -1) {
-				context.compiled_effect.push_back(uint16_t(effect::remove_selector));
+				context.compiled_effect.push_back(uint16_t(effect::remove_province_modifier));
+				context.compiled_effect.push_back(trigger::payload(economy::get_province_selector_modifier(context.outer_context.state)).value);
 			} else {
 				err.accumulated_errors +=
 					"province_selector effect with invalid value " + std::to_string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1615,9 +1622,11 @@ struct effect_body {
 	void province_immigrator(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
 			if(value == 1) {
-				context.compiled_effect.push_back(uint16_t(effect::add_immigrator));
+				context.compiled_effect.push_back(uint16_t(effect::add_province_modifier_no_duration));
+				context.compiled_effect.push_back(trigger::payload(economy::get_province_immigrator_modifier(context.outer_context.state)).value);
 			} else if(value == -1) {
-				context.compiled_effect.push_back(uint16_t(effect::remove_immigrator));
+				context.compiled_effect.push_back(uint16_t(effect::remove_province_modifier));
+				context.compiled_effect.push_back(trigger::payload(economy::get_province_immigrator_modifier(context.outer_context.state)).value);
 			} else {
 				err.accumulated_errors +=
 					"province_immigrator effect with invalid value " + std::to_string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";

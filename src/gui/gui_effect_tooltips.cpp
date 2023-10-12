@@ -6321,43 +6321,6 @@ uint32_t ef_university(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
-uint32_t ef_add_selector(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "et_add_selector", m);
-		text::close_layout_box(layout, box);
-	}
-	return 0;
-}
-uint32_t ef_remove_selector(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "et_remove_selector", m);
-		text::close_layout_box(layout, box);
-	}
-	return 0;
-}
-uint32_t ef_add_immigrator(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "et_add_immigrator", m);
-		text::close_layout_box(layout, box);
-	}
-	return 0;
-}
-uint32_t ef_remove_immigrator(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "et_remove_immigrator", m);
-		text::close_layout_box(layout, box);
-	}
-	return 0;
-}
-
 inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -6780,10 +6743,6 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_bank, //constexpr inline uint16_t bank_state = 0x0196;
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university, // constexpr inline uint16_t university_state = 0x0198;
-		ef_add_selector, //constexpr inline uint16_t add_selector = 0x0199;
-		ef_remove_selector, //constexpr inline uint16_t add_selector = 0x019A;
-		ef_add_immigrator, //constexpr inline uint16_t add_selector = 0x019B;
-		ef_remove_immigrator, //constexpr inline uint16_t add_selector = 0x019C;
 
 		//
 		// SCOPES
