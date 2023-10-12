@@ -253,6 +253,7 @@ float primary_warscore(sys::state& state, dcon::war_id w);
 float primary_warscore_from_occupation(sys::state& state, dcon::war_id w);
 float primary_warscore_from_battles(sys::state& state, dcon::war_id w);
 float primary_warscore_from_war_goals(sys::state& state, dcon::war_id w);
+float primary_warscore_from_blockades(sys::state& state, dcon::war_id w);
 
 // war score from the perspective of the primary nation offering peace to the secondary nation; 0 to 100
 // DO NOT use this when calculating the overall score of the war or when looking at a peace deal between primary attacker and

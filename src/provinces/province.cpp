@@ -147,6 +147,16 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 				state.world.nation_get_central_rebel_controlled(owner) -= uint16_t(1);
 			}
 		}
+		if(owner) {
+			if(old_con == owner) {
+				state.world.nation_get_occupied_count(owner) += uint16_t(1);
+				if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
+					state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+				}
+			} else if(n == owner) {
+				state.world.nation_get_occupied_count(owner) -= uint16_t(1);
+			}
+		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, dcon::rebel_faction_id{});
 		state.world.province_set_nation_from_province_control(p, n);
 		state.military_definitions.pending_blackflag_update = true;
@@ -162,6 +172,12 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 			state.world.nation_get_rebel_controlled_count(owner) += uint16_t(1);
 			if(!is_overseas(state, p)) {
 				state.world.nation_get_central_rebel_controlled(owner) += uint16_t(1);
+			}
+		}
+		if(owner && state.world.province_get_nation_from_province_control(p) == owner) {
+			state.world.nation_get_occupied_count(owner) += uint16_t(1);
+			if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
+				state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
 			}
 		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
@@ -990,6 +1006,10 @@ void update_crimes(sys::state& state) {
 		auto chance = uint32_t(province::crime_fighting_efficiency(state, p) * 256.0f);
 		auto rvalues = rng::get_random_pair(state, uint32_t((p.index() << 2) + 1));
 		if((rvalues.high & 0xFF) >= chance) {
+			if(state.world.province_get_crime(p)) {
+				if(!province::is_overseas(state, p))
+					state.world.nation_get_central_crime_count(owner) -= uint16_t(1);
+			}
 			state.world.province_set_crime(p, dcon::crime_id{});
 		} else {
 			if(!state.world.province_get_crime(p)) {
@@ -1011,6 +1031,8 @@ void update_crimes(sys::state& state) {
 				if(auto count = possible_crimes.size(); count != 0) {
 					auto selected = possible_crimes[rvalues.low % count];
 					state.world.province_set_crime(p, selected);
+					if(!province::is_overseas(state, p))
+						state.world.nation_get_central_crime_count(owner) += uint16_t(1);
 				}
 			}
 		}
