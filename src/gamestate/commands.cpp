@@ -3844,6 +3844,25 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 	}
 }
 
+void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_select_province;
+	p.source = source;
+	p.data.generic_location.prov = prov;
+	add_to_command_queue(state, p);
+}
+bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(state.world.province_get_nation_from_province_control(prov) != source)
+		return false;
+	return true;
+}
+void execute_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(!can_toggle_select_province(state, source, prov))
+		return;
+	state.world.province_set_is_selected(prov, !state.world.province_get_is_selected(prov));
+}
+
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4962,6 +4981,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_hunt_rebels:
 		execute_toggle_rebel_hunting(state, c.source, c.data.army_movement.a);
+		break;
+	case command_type::toggle_select_province:
+		execute_toggle_select_province(state, c.source, c.data.generic_location.prov);
 		break;
 
 		// common mp commands

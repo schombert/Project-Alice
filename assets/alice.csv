@@ -1085,6 +1085,8 @@ chat_player_joins;@$x$ $playername$ has joined the game;;;@$x$ $playername$ se h
 chat_player_leaves;@$x$ $playername$ has left the game;;;@$x$ $playername$ se ha ido;;;;;;;;;x
 chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ ha sido baneado;;;;;;;;;x
 chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ ha sido vetado;;;;;;;;;x
+alice_province_select;Selects province
+alice_province_deselect;Deselects province
 message_name_text;Message
 msg_for_us;About: your nation
 msg_for_interesting;Interesting nation

@@ -434,9 +434,11 @@ constexpr inline uint16_t bank = 0x0195;
 constexpr inline uint16_t bank_state = 0x0196;
 constexpr inline uint16_t university = 0x0197;
 constexpr inline uint16_t university_state = 0x0198;
+constexpr inline uint16_t province_select = 0x0199;
+constexpr inline uint16_t province_deselect = 0x019A;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x0199;
+constexpr inline uint16_t first_scope_code = 0x019B;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -914,6 +916,8 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t bank_state = 0x0196;
 		1, //constexpr inline uint16_t university = 0x0197;
 		1, //constexpr inline uint16_t university_state = 0x0198;
+		0, //constexpr inline uint16_t province_select = 0x0199;
+		0, //constexpr inline uint16_t province_deselect = 0x019A;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {

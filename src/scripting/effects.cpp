@@ -3146,6 +3146,14 @@ uint32_t ef_university(EFFECT_PARAMTERS) {
 	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value), 0, 255));
 	return 0;
 }
+uint32_t ef_province_select(EFFECT_PARAMTERS) {
+	ws.world.province_set_is_selected(trigger::to_prov(primary_slot), true);
+	return 0;
+}
+uint32_t ef_province_deselect(EFFECT_PARAMTERS) {
+	ws.world.province_set_is_selected(trigger::to_prov(primary_slot), false);
+	return 0;
+}
 uint32_t ef_fort_state(EFFECT_PARAMTERS) {
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		auto& building_level = ws.world.province_get_building_level(p, economy::province_building_type::fort);
@@ -5112,6 +5120,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_bank_state, //constexpr inline uint16_t bank_state = 0x0196;
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university_state, //constexpr inline uint16_t university_state = 0x0198;
+		ef_province_select, //constexpr inline uint16_t province_select = 0x0199;
+		ef_province_deselect, //constexpr inline uint16_t province_deselect = 0x019A;
 
 		//
 		// SCOPES

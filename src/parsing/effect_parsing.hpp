@@ -1596,6 +1596,22 @@ struct effect_body {
 			return;
 		}
 	}
+	void province_selector(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::province) {
+			if(value == -1) {
+				context.compiled_effect.push_back(uint16_t(effect::province_select));
+			} else if(value == 1) {
+				context.compiled_effect.push_back(uint16_t(effect::province_deselect));
+			} else {
+				err.accumulated_errors +=
+					"province_selector effect with invalid value " + std::to_string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			}
+		} else {
+			err.accumulated_errors +=
+				"province_selector effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
 	void money(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_effect.push_back(uint16_t(effect::treasury));

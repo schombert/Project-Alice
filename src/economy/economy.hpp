@@ -53,6 +53,7 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
+	bool province_selector_defined = false;
 	float craftsmen_fraction = 0.8f;
 };
 

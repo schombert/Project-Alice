@@ -90,7 +90,8 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
 		}
 	} else if(res.stored_type == economy::province_building_type::province_selector) {
-		// Discard
+		// Not a building per se, rather we will do what the modders intended this to be!
+		context.state.economy_definitions.province_selector_defined = true;
 	} else {
 		auto t = res.stored_type;
 

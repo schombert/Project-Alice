@@ -6320,6 +6320,24 @@ uint32_t ef_university(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_province_select(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "alice_province_select", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_province_deselect(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "alice_province_deselect", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 
 inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
@@ -6743,6 +6761,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_bank, //constexpr inline uint16_t bank_state = 0x0196;
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university, // constexpr inline uint16_t university_state = 0x0198;
+		ef_province_select, //constexpr inline uint16_t province_select = 0x0199;
+		ef_province_deselect, //constexpr inline uint16_t province_deselect = 0x019A;
 
 		//
 		// SCOPES
