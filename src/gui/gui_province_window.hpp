@@ -739,18 +739,24 @@ public:
 	}
 };
 
+//
+// Selector
+//
 class province_selector_button : public shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::province_id>(state, parent);
-		disabled = !command::can_toggle_select_province(state, state.local_player_nation, content);
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_toggle_select_province(state, state.local_player_nation, p);
+		if(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::selector) > 0.f) {
+			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+		}
 	}
-
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
 		command::toggle_select_province(state, state.local_player_nation, content);
 	}
-
 	virtual void button_shift_action(sys::state& state) noexcept override {
 		auto pid = retrieve<dcon::province_id>(state, parent);
 		auto si = state.world.province_get_state_membership(pid);
@@ -761,15 +767,13 @@ public:
 		}
 	}
 };
-
 class province_selector_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
-		frame = (state.world.province_get_is_selected(p)) ? 1 : 0;
+		frame = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::selector) > 0.f) ? 1 : 0;
 	}
 };
-
 class province_selector_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -784,14 +788,79 @@ public:
 			ptr->set_text(state, text::produce_simple_string(state, "province_selector"));
 			return ptr;
 		} else if(name.substr(0, 10) == "build_icon") {
-			int32_t value = name[11] - '0';
+			int32_t value = name[10] - '0';
 			int32_t num_buildings = 0;
 			for(auto& def : state.economy_definitions.building_definitions) {
 				if(def.defined)
 					num_buildings++;
 			}
-			if(value >= num_buildings) {
+			if(value == num_buildings) {
 				return make_element_by_type<province_selector_image>(state, id);
+			}
+			return make_element_by_type<invisible_element>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+//
+// Immigrator
+//
+class province_immigrator_button : public shift_button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_toggle_immigrator_province(state, state.local_player_nation, p);
+		if(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::immigrator) > 0.f) {
+			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		command::toggle_immigrator_province(state, state.local_player_nation, content);
+	}
+	virtual void button_shift_action(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
+		auto si = state.world.province_get_state_membership(pid);
+		if(si) {
+			province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+				command::toggle_immigrator_province(state, state.local_player_nation, p);
+			});
+		}
+	}
+};
+class province_immigrator_image : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		frame = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::immigrator) > 0.f) ? 1 : 0;
+	}
+};
+class province_immigrator_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "underconstruction_icon"
+		|| name == "building_progress"
+		|| name == "expand_text") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "expand") {
+			return make_element_by_type<province_immigrator_button>(state, id);
+		} else if(name == "description") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "province_immigrator"));
+			return ptr;
+		} else if(name.substr(0, 10) == "build_icon") {
+			int32_t value = name[10] - '0';
+			int32_t num_buildings = 0;
+			for(auto& def : state.economy_definitions.building_definitions) {
+				if(def.defined)
+					num_buildings++;
+			}
+			if(value == num_buildings + 1) {
+				return make_element_by_type<province_immigrator_image>(state, id);
 			}
 			return make_element_by_type<invisible_element>(state, id);
 		} else {
@@ -1389,6 +1458,12 @@ public:
 		}
 		if(state.economy_definitions.province_selector_defined) {
 			auto ptr = make_element_by_type<province_selector_window>(state, "building");
+			ptr->base_data.position.y = y_offset;
+			y_offset += 35;
+			add_child_to_front(std::move(ptr));
+		}
+		if(state.economy_definitions.province_immigrator_defined) {
+			auto ptr = make_element_by_type<province_immigrator_window>(state, "building");
 			ptr->base_data.position.y = y_offset;
 			y_offset += 35;
 			add_child_to_front(std::move(ptr));

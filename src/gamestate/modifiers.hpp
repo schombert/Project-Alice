@@ -57,8 +57,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level")                              \
 	MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level") \
 	MOD_LIST_ELEMENT(48, min_build_bank, false, modifier_display_type::integer, "bank_level") \
-	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level")
-#define MOD_PROV_LIST_COUNT 50
+	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level") \
+	MOD_LIST_ELEMENT(50, selector, false, modifier_display_type::integer, "modifier_province_selector") \
+	MOD_LIST_ELEMENT(51, immigrator, false, modifier_display_type::integer, "modifier_province_immigrator")
+#define MOD_PROV_LIST_COUNT 52
 
 #define MOD_NAT_LIST                                                                                                             \
 	MOD_LIST_ELEMENT(0, war_exhaustion, false, modifier_display_type::fp_two_places, "war_exhaustion")                             \

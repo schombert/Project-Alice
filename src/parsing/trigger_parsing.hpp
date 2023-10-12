@@ -3345,7 +3345,12 @@ struct trigger_body {
 						uint16_t(trigger::has_building_factory_from_province | trigger::no_payload | association_to_bool_code(a)));
 			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "province_selector")) {
 				context.compiled_trigger.push_back(
-						uint16_t(trigger::has_building_province_selector | trigger::no_payload | association_to_bool_code(a)));
+						uint16_t(trigger::has_province_selector | trigger::no_payload | association_to_bool_code(a)));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "immigrator")
+				|| is_fixed_token_ci(value.data(), value.data() + value.length(), "immigrator_selector")
+				|| is_fixed_token_ci(value.data(), value.data() + value.length(), "province_immigrator")) {
+				context.compiled_trigger.push_back(
+						uint16_t(trigger::has_province_immigrator | trigger::no_payload | association_to_bool_code(a)));
 			} else if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
 								it != context.outer_context.map_of_factory_names.end()) {
 				context.compiled_trigger.push_back(uint16_t(trigger::has_building_state_from_province | association_to_bool_code(a)));

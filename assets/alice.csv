@@ -1087,6 +1087,18 @@ chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ ha sido ba
 chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ ha sido vetado;;;;;;;;;x
 alice_province_select;Selects province
 alice_province_deselect;Deselects province
+alice_province_selector_on;ON
+alice_province_selector_off;OFF
+province_selector;Selector
+province_immigrator;Immigrator
+tt_a_bank;a bank
+tt_a_university;a university
+et_add_selector;enable province selector
+et_remove_selector;disable province selector
+et_add_immigrator;enable province immigrator
+et_remove_immigrator;disable province immigrator
+modifier_province_selector;Province selector
+modifier_province_immigrator;Province immigrator
 message_name_text;Message
 msg_for_us;About: your nation
 msg_for_interesting;Interesting nation

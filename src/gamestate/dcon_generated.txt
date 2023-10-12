@@ -1352,12 +1352,6 @@ object {
 	}
 
 	property{
-		name{ is_selected }
-		type{ bitfield }
-		tag{ save }
-	}
-
-	property{
 		name{ crime }
 		type{ crime_id }
 		tag{ save }

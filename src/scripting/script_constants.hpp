@@ -434,11 +434,13 @@ constexpr inline uint16_t bank = 0x0195;
 constexpr inline uint16_t bank_state = 0x0196;
 constexpr inline uint16_t university = 0x0197;
 constexpr inline uint16_t university_state = 0x0198;
-constexpr inline uint16_t province_select = 0x0199;
-constexpr inline uint16_t province_deselect = 0x019A;
+constexpr inline uint16_t add_selector = 0x0199;
+constexpr inline uint16_t remove_selector = 0x019A;
+constexpr inline uint16_t add_immigrator = 0x019B;
+constexpr inline uint16_t remove_immigrator = 0x019C;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x019B;
+constexpr inline uint16_t first_scope_code = 0x019D;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -916,8 +918,10 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t bank_state = 0x0196;
 		1, //constexpr inline uint16_t university = 0x0197;
 		1, //constexpr inline uint16_t university_state = 0x0198;
-		0, //constexpr inline uint16_t province_select = 0x0199;
-		0, //constexpr inline uint16_t province_deselect = 0x019A;
+		0, //constexpr inline uint16_t add_selector = 0x0199;
+		0, //constexpr inline uint16_t add_selector = 0x019A;
+		0, //constexpr inline uint16_t add_selector = 0x019B;
+		0, //constexpr inline uint16_t add_selector = 0x019C;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1706,9 +1710,10 @@ constexpr inline uint16_t has_factories_nation = 0x02D9;
 constexpr inline uint16_t is_coastal_state = 0x02DA;
 constexpr inline uint16_t has_building_bank = 0x02DB;
 constexpr inline uint16_t has_building_university = 0x02DC;
-constexpr inline uint16_t has_building_province_selector = 0x02DD;
+constexpr inline uint16_t has_province_selector = 0x02DD;
+constexpr inline uint16_t has_province_immigrator = 0x02DE;
 
-constexpr inline uint16_t first_scope_code = 0x02DE;
+constexpr inline uint16_t first_scope_code = 0x02DF;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2519,7 +2524,8 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t is_coastal_state = 0x02DA;
 		0, // constexpr uint16_t has_building_bank = 0x02DB;
 		0, // constexpr uint16_t has_building_university = 0x02DC;
-		0, // constexpr inline uint16_t has_building_province_selector = 0x02DD;
+		0, // constexpr inline uint16_t has_province_selector = 0x02DD;
+		0, // constexpr inline uint16_t has_province_immigrator = 0x02DE;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };

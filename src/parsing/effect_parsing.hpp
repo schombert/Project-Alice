@@ -1598,10 +1598,10 @@ struct effect_body {
 	}
 	void province_selector(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
-			if(value == -1) {
-				context.compiled_effect.push_back(uint16_t(effect::province_select));
-			} else if(value == 1) {
-				context.compiled_effect.push_back(uint16_t(effect::province_deselect));
+			if(value == 1) {
+				context.compiled_effect.push_back(uint16_t(effect::add_selector));
+			} else if(value == -1) {
+				context.compiled_effect.push_back(uint16_t(effect::remove_selector));
 			} else {
 				err.accumulated_errors +=
 					"province_selector effect with invalid value " + std::to_string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1609,6 +1609,22 @@ struct effect_body {
 		} else {
 			err.accumulated_errors +=
 				"province_selector effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
+	void province_immigrator(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::province) {
+			if(value == 1) {
+				context.compiled_effect.push_back(uint16_t(effect::add_immigrator));
+			} else if(value == -1) {
+				context.compiled_effect.push_back(uint16_t(effect::remove_immigrator));
+			} else {
+				err.accumulated_errors +=
+					"province_immigrator effect with invalid value " + std::to_string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			}
+		} else {
+			err.accumulated_errors +=
+				"province_immigrator effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
