@@ -341,13 +341,13 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto n : ws.world.in_nation) {
-				auto owned = n.get_province_ownership();
-				if(trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+				if(n.get_owned_province_count() != 0 && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
 					rlist.push_back(n.id);
 			}
 		} else {
 			for(auto n : ws.world.in_nation) {
-				rlist.push_back(n.id);
+				if(n.get_owned_province_count() != 0)
+					rlist.push_back(n.id);
 			}
 		}
 
