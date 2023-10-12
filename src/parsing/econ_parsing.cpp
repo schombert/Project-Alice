@@ -97,9 +97,11 @@ void building_file::result(std::string_view name, building_definition&& res, err
 	} else if(res.stored_type == economy::province_building_type::province_selector) {
 		// Not a building per se, rather we will do what the modders intended this to be!
 		context.state.economy_definitions.province_selector_defined = true;
+		context.state.economy_definitions.selector_modifier = context.state.world.create_modifier();
 	} else if(res.stored_type == economy::province_building_type::province_immigrator) {
 		// Not a building per se, rather we will do what the modders intended this to be!
 		context.state.economy_definitions.province_immigrator_defined = true;
+		context.state.economy_definitions.immigrator_modifier = context.state.world.create_modifier();
 	} else {
 		auto t = res.stored_type;
 

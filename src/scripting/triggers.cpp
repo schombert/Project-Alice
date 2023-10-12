@@ -5775,10 +5775,28 @@ TRIGGER_FUNCTION(tf_has_building_university) {
 }
 
 TRIGGER_FUNCTION(tf_has_province_selector) {
-	return compare_to_true(tval[0], ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::selector) > 0.f);
+	auto result = ve::apply(
+			[&ws](dcon::province_id n) {
+				for(auto m : ws.world.province_get_current_modifiers(n)) {
+					if(m.mod_id == ws.economy_definitions.selector_modifier)
+						return true;
+				}
+				return false;
+			},
+			to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_province_immigrator) {
-	return compare_to_true(tval[0], ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::immigrator) > 0.f);
+	auto result = ve::apply(
+			[&ws](dcon::province_id n) {
+				for(auto m : ws.world.province_get_current_modifiers(n)) {
+					if(m.mod_id == ws.economy_definitions.immigrator_modifier)
+						return true;
+				}
+				return false;
+			},
+			to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
 }
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>

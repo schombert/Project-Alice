@@ -3862,8 +3862,14 @@ bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon:
 void execute_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	if(!can_toggle_select_province(state, source, prov))
 		return;
-	auto f = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::selector) > 0.f ? 0.f : 1.f;
-	state.world.province_set_modifier_values(prov, sys::provincial_mod_offsets::selector, f);
+
+	for(auto m : state.world.province_get_current_modifiers(prov)) {
+		if(m.mod_id == state.economy_definitions.selector_modifier) {
+			sys::remove_modifier_from_province(state, prov, m.mod_id);
+			return;
+		}
+	}
+	sys::add_modifier_to_province(state, prov, state.economy_definitions.selector_modifier, sys::date{});
 }
 
 void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
@@ -3884,8 +3890,14 @@ bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, d
 void execute_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	if(!can_toggle_immigrator_province(state, source, prov))
 		return;
-	auto f = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::immigrator) > 0.f ? 0.f : 1.f;
-	state.world.province_set_modifier_values(prov, sys::provincial_mod_offsets::immigrator, f);
+
+	for(auto m : state.world.province_get_current_modifiers(prov)) {
+		if(m.mod_id == state.economy_definitions.immigrator_modifier) {
+			sys::remove_modifier_from_province(state, prov, m.mod_id);
+			return;
+		}
+	}
+	sys::add_modifier_to_province(state, prov, state.economy_definitions.immigrator_modifier, sys::date{});
 }
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {

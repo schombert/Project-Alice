@@ -3176,19 +3176,19 @@ uint32_t ef_university_state(EFFECT_PARAMTERS) {
 }
 
 uint32_t ef_add_selector(EFFECT_PARAMTERS) {
-	ws.world.province_set_modifier_values(trigger::to_prov(primary_slot), sys::provincial_mod_offsets::selector, 1.f);
+	sys::add_modifier_to_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.selector_modifier, sys::date{});
 	return 0;
 }
 uint32_t ef_remove_selector(EFFECT_PARAMTERS) {
-	ws.world.province_set_modifier_values(trigger::to_prov(primary_slot), sys::provincial_mod_offsets::selector, 0.f);
+	sys::remove_modifier_from_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.selector_modifier);
 	return 0;
 }
 uint32_t ef_add_immigrator(EFFECT_PARAMTERS) {
-	ws.world.province_set_modifier_values(trigger::to_prov(primary_slot), sys::provincial_mod_offsets::immigrator, 1.f);
+	sys::add_modifier_to_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.immigrator_modifier, sys::date{});
 	return 0;
 }
 uint32_t ef_remove_immigrator(EFFECT_PARAMTERS) {
-	ws.world.province_set_modifier_values(trigger::to_prov(primary_slot), sys::provincial_mod_offsets::immigrator, 0.f);
+	sys::remove_modifier_from_province(ws, trigger::to_prov(primary_slot), ws.economy_definitions.immigrator_modifier);
 	return 0;
 }
 

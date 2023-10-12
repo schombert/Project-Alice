@@ -747,7 +747,16 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
 		disabled = !command::can_toggle_select_province(state, state.local_player_nation, p);
-		if(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::selector) > 0.f) {
+
+		bool found = false;
+		for(auto m : state.world.province_get_current_modifiers(p)) {
+			if(m.mod_id == state.economy_definitions.selector_modifier) {
+				found = true;
+				break;
+			}
+		}
+
+		if(found) {
 			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
 		} else {
 			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
@@ -771,7 +780,13 @@ class province_selector_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
-		frame = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::selector) > 0.f) ? 1 : 0;
+		frame = 0;
+		for(auto m : state.world.province_get_current_modifiers(p)) {
+			if(m.mod_id == state.economy_definitions.selector_modifier) {
+				frame = 1;
+				break;
+			}
+		}
 	}
 };
 class province_selector_window : public window_element_base {
@@ -812,7 +827,16 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
 		disabled = !command::can_toggle_immigrator_province(state, state.local_player_nation, p);
-		if(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::immigrator) > 0.f) {
+
+		bool found = false;
+		for(auto m : state.world.province_get_current_modifiers(p)) {
+			if(m.mod_id == state.economy_definitions.immigrator_modifier) {
+				found = true;
+				break;
+			}
+		}
+
+		if(found) {
 			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
 		} else {
 			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
@@ -836,7 +860,13 @@ class province_immigrator_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
-		frame = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::immigrator) > 0.f) ? 1 : 0;
+		frame = 0;
+		for(auto m : state.world.province_get_current_modifiers(p)) {
+			if(m.mod_id == state.economy_definitions.immigrator_modifier) {
+				frame = 1;
+				break;
+			}
+		}
 	}
 };
 class province_immigrator_window : public window_element_base {
