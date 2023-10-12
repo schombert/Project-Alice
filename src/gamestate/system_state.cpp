@@ -3258,7 +3258,7 @@ void state::single_game_tick() {
 	demographics::regenerate_from_pop_data(*this);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
-	concurrency::parallel_for(0, 17, [&](int32_t index) {
+	concurrency::parallel_for(0, 18, [&](int32_t index) {
 		switch(index) {
 			case 0:
 				ai::refresh_home_ports(*this);
@@ -3312,6 +3312,9 @@ void state::single_game_tick() {
 			case 16:
 				military::recover_org(*this);
 				break;
+			case 17:
+				military::update_blockade_status(*this);
+				break;
 		}
 	});
 
@@ -3351,6 +3354,7 @@ void state::single_game_tick() {
 			economy::prune_factories(*this);
 			break;
 		case 2:
+			province::update_blockaded_cache(*this);
 			sys::update_modifier_effects(*this);
 			break;
 		case 3:

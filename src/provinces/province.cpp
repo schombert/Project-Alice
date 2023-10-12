@@ -273,6 +273,22 @@ void update_cached_values(sys::state& state) {
 	restore_cached_values(state);
 }
 
+void update_blockaded_cache(sys::state& state) {
+	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_blockaded(ids, ve::int_vector()); });
+	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
+		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
+
+		auto owner = state.world.province_get_nation_from_province_ownership(pid);
+		if(owner) {
+			if(!is_overseas(state, pid)) {
+				if(military::province_is_blockaded(state, pid)) {
+					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
+				}
+			}
+		}
+	}
+}
+
 void restore_unsaved_values(sys::state& state) {
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
@@ -298,7 +314,7 @@ void restore_unsaved_values(sys::state& state) {
 			}
 		});
 	}
-
+	military::update_blockade_status(state);
 	restore_cached_values(state);
 }
 

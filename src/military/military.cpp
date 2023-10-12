@@ -403,8 +403,32 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids) {
-	// TODO: implement function
+	return state.world.province_get_is_blockaded(ids);
+}
+
+bool compute_blockade_status(sys::state& state, dcon::province_id p) {
+	auto controller = state.world.province_get_nation_from_province_control(p);
+	auto owner = state.world.province_get_nation_from_province_ownership(p);
+	if(!owner)
+		return false;
+	auto port_to = state.world.province_get_port_to(p);
+	if(!port_to)
+		return false;
+	if(controller != owner)
+		return true;
+	for(auto n : state.world.province_get_navy_location(port_to)) {
+		if(n.get_navy().get_is_retreating() == false && !n.get_navy().get_battle_from_navy_battle_participation()) {
+			if(military::are_at_war(state, owner, n.get_navy().get_controller_from_navy_control()))
+				return true;
+		}
+	}
 	return false;
+}
+
+void update_blockade_status(sys::state& state) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		state.world.province_set_is_blockaded(p, compute_blockade_status(state, p));
+	});
 }
 
 template<typename T>
