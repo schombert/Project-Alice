@@ -95,6 +95,8 @@ enum class command_type : uint8_t {
 	even_split_army = 86,
 	even_split_navy = 87,
 	toggle_hunt_rebels = 88,
+	toggle_select_province = 89,
+	toggle_immigrator_province = 90,
 
 	// network
 	notify_player_ban = 106,
@@ -767,6 +769,12 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
+
+void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
+bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);

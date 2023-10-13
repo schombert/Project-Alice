@@ -311,7 +311,7 @@ inline constexpr int32_t max_issue_options = 6;
 }
 
 namespace economy {
-enum class province_building_type : uint8_t { railroad, fort, naval_base, bank, university, last, factory };
+enum class province_building_type : uint8_t { railroad, fort, naval_base, bank, university, last, factory, province_selector, province_immigrator };
 constexpr inline int32_t max_building_types = 5;
 }
 

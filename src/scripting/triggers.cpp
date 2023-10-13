@@ -7055,7 +7055,7 @@ struct trigger_container {
 			tf_is_coastal_state<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 			tf_has_building_bank<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_bank = 0x02DB;
 			tf_has_building_university<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_university = 0x02DC;
-
+			
 			//
 			// scopes
 			//

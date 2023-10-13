@@ -7572,13 +7572,13 @@ void tf_religion_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_has_building_bank(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_bank"), ws, layout, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "tt_a_bank"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_university(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_university"), ws, layout, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "tt_a_university"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 
@@ -8337,7 +8337,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_is_coastal_state, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 		tf_has_building_bank, // constexpr inline uint16_t has_building_bank = 0x02DB;
 		tf_has_building_university, // constexpr inline uint16_t has_building_university = 0x02DC;
-
+		
 		//
 		// scopes
 		//
