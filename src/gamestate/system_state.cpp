@@ -312,6 +312,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
+			} else if(keycode == virtual_key::TAB) {
+				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
+				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 
 			map_state.on_key_down(keycode, mod);
@@ -336,6 +339,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				}
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
+			} else if(keycode == virtual_key::TAB) {
+				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
+				ui_state.root->move_child_to_front(ui_state.chat_window);
 			}
 			if(!ui_state.topbar_subwindow->is_visible()) {
 				map_state.on_key_down(keycode, mod);
@@ -348,11 +354,6 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				}
 			}
 		}
-	}
-
-	if(keycode == virtual_key::TAB) {
-		ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
-		ui_state.root->move_child_to_front(ui_state.chat_window);
 	}
 }
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
