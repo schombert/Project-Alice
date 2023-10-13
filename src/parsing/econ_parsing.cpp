@@ -37,6 +37,14 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 void building_definition::type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
 		stored_type = economy::province_building_type::factory;
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "province_selector")) {
+		// Not a building, all data for it is discarded!
+		stored_type = economy::province_building_type::province_selector;
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "immigrator")
+		|| is_fixed_token_ci(value.data(), value.data() + value.length(), "immigrator_selector")
+		|| is_fixed_token_ci(value.data(), value.data() + value.length(), "province_immigrator")) {
+		// Not a building, all data for it is discarded!
+		stored_type = economy::province_building_type::province_immigrator;
 	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infrastructure")) {
 		stored_type = economy::province_building_type::railroad;
 	} else {
@@ -86,6 +94,12 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		if(res.production_type.length() > 0) {
 			context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
 		}
+	} else if(res.stored_type == economy::province_building_type::province_selector) {
+		// Not a building per se, rather we will do what the modders intended this to be!
+		context.state.economy_definitions.selector_modifier = context.state.world.create_modifier();
+	} else if(res.stored_type == economy::province_building_type::province_immigrator) {
+		// Not a building per se, rather we will do what the modders intended this to be!
+		context.state.economy_definitions.immigrator_modifier = context.state.world.create_modifier();
 	} else {
 		auto t = res.stored_type;
 

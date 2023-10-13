@@ -95,6 +95,8 @@ enum class command_type : uint8_t {
 	even_split_army = 86,
 	even_split_navy = 87,
 	toggle_hunt_rebels = 88,
+	toggle_select_province = 89,
+	toggle_immigrator_province = 90,
 
 	// network
 	notify_player_ban = 106,
@@ -342,11 +344,13 @@ struct offer_wargoal_data {
 struct army_movement_data {
 	dcon::army_id a;
 	dcon::province_id dest;
+	bool reset;
 };
 
 struct navy_movement_data {
 	dcon::navy_id n;
 	dcon::province_id dest;
+	bool reset;
 };
 
 struct merge_army_data {
@@ -669,10 +673,10 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 // Thus, if you want to move the unit to a new location from its current location,
 //     first stop its current movement and then send the new destination as a second command
 // ALSO: can returns an empty vector if no path could be made
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
 
-void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
 
 // This command is used for getting armies in/out of transports while those transports are docked in port
@@ -765,6 +769,12 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source);
+
+void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
+bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);

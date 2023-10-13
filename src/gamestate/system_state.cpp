@@ -73,20 +73,11 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
 
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
-				if((uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0) {
-					for(auto a : selected_armies) {
-						command::move_army(*this, local_player_nation, a, dcon::province_id{});
-					}
-					for(auto a : selected_navies) {
-						command::move_navy(*this, local_player_nation, a, dcon::province_id{});
-					}
-				}
-
 				for(auto a : selected_armies) {
-					command::move_army(*this, local_player_nation, a, id);
+					command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
 				}
 				for(auto a : selected_navies) {
-					command::move_navy(*this, local_player_nation, a, id);
+					command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
 				}
 			} else {
 				sound::play_interface_sound(*this, sound::get_click_sound(*this),
@@ -3067,9 +3058,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 constexpr inline int32_t game_speed[] = {
 	0,		// speed 0
-	1000,	// speed 1 -- 1 second
-	500,		// speed 2 -- 0.5 seconds
-	250,		// speed 3 -- 0.25 seconds
+	2000,	// speed 1 -- 2 seconds
+	750,		// speed 2 -- 0.75 seconds
+	250, 	// speed 3 -- 0.25 seconds
 	125,		// speed 4 -- 0.125 seconds
 };
 
@@ -3267,7 +3258,7 @@ void state::single_game_tick() {
 	demographics::regenerate_from_pop_data(*this);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
-	concurrency::parallel_for(0, 17, [&](int32_t index) {
+	concurrency::parallel_for(0, 18, [&](int32_t index) {
 		switch(index) {
 			case 0:
 				ai::refresh_home_ports(*this);
@@ -3321,6 +3312,9 @@ void state::single_game_tick() {
 			case 16:
 				military::recover_org(*this);
 				break;
+			case 17:
+				military::update_blockade_status(*this);
+				break;
 		}
 	});
 
@@ -3360,6 +3354,7 @@ void state::single_game_tick() {
 			economy::prune_factories(*this);
 			break;
 		case 2:
+			province::update_blockaded_cache(*this);
 			sys::update_modifier_effects(*this);
 			break;
 		case 3:

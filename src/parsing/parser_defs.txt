@@ -1377,6 +1377,10 @@ effect_body
 	railroad                        value       int                 member_fn  (infrastructure)
 	bank                            value       int                 member_fn
 	university                      value       int                 member_fn
+	province_selector               value       int                 member_fn
+	province_immigrator             value       int                 member_fn
+	immigrator                      value       int                 member_fn (province_immigrator)
+	immigrator_selector             value       int                 member_fn (province_immigrator)
 	set_province_flag               value       none                discard
 	clr_province_flag               value       none                discard
 	chance                          value       int                 member

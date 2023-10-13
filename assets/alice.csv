@@ -705,6 +705,7 @@ utt_noleader;no leader;;;
 war_score_1;From occupation: $x$
 war_score_2;From battles: $x$
 war_score_3;From war goals: $x$
+war_score_4;From blockades: $x$
 dp_inf_tooltip_ban;Embassy banned until $x$
 dp_inf_tooltip_discredit;Discredited until $x$
 discredit_explain_1;You cannot discredit yourself
@@ -1081,6 +1082,24 @@ uv_sort_h;Exp
 alice_retreat;Retreat from battle
 alice_retreat_1;It has been at least $x$ days since the battle started
 alice_retreat_2;You are the lead attacker or defender
+chat_player_joins;@$x$ $playername$ has joined the game;;;@$x$ $playername$ se ha unido;;;;;;;;;x
+chat_player_leaves;@$x$ $playername$ has left the game;;;@$x$ $playername$ se ha ido;;;;;;;;;x
+chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ ha sido baneado;;;;;;;;;x
+chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ ha sido vetado;;;;;;;;;x
+alice_province_select;Selects province
+alice_province_deselect;Deselects province
+alice_province_selector_on;ON
+alice_province_selector_off;OFF
+province_selector;Selector
+province_immigrator;Immigrator
+tt_a_bank;a bank
+tt_a_university;a university
+et_add_selector;enable province selector
+et_remove_selector;disable province selector
+et_add_immigrator;enable province immigrator
+et_remove_immigrator;disable province immigrator
+modifier_province_selector;Province selector
+modifier_province_immigrator;Province immigrator
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
 chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
 chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x

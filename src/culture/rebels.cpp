@@ -263,8 +263,7 @@ void update_pop_movement_membership(sys::state& state) {
 						if(rvalue < fp_prob) {
 
 							// is this issue possible to get by law?
-							if((state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index())
-								&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+							if(state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() - 1 == io.index()) {
 
 								max_option = io;
 								max_support = sup;

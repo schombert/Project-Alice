@@ -292,4 +292,6 @@ void remove_modifier_from_province(sys::state& state, dcon::province_id target_p
 void remove_expired_modifiers_from_nation(sys::state& state, dcon::nation_id target_nation);
 void remove_expired_modifiers_from_province(sys::state& state, dcon::province_id target_prov);
 
+void toggle_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration);
+
 } // namespace sys

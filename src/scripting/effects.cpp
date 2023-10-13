@@ -3174,6 +3174,7 @@ uint32_t ef_university_state(EFFECT_PARAMTERS) {
 	});
 	return 0;
 }
+
 uint32_t ef_trigger_revolt_nation(EFFECT_PARAMTERS) {
 	rebel::trigger_revolt(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).reb_id, trigger::payload(tval[4]).ideo_id,
 			trigger::payload(tval[2]).cul_id, trigger::payload(tval[3]).rel_id);

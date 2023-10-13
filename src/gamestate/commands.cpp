@@ -3451,13 +3451,14 @@ void execute_c_change_national_militancy(sys::state& state, dcon::nation_id sour
 			pop.get_pop().set_militancy(pop.get_pop().get_militancy() + value);
 }
 
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::move_army;
 	p.source = source;
 	p.data.army_movement.a = a;
 	p.data.army_movement.dest = dest;
+	p.data.army_movement.reset = reset;
 	add_to_command_queue(state, p);
 }
 
@@ -3501,21 +3502,28 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	}
 }
 
-void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return;
 	if(state.world.army_get_is_retreating(a))
 		return;
 
+	auto existing_path = state.world.army_get_path(a);
+
 	if(!dest) {
-		state.world.army_get_path(a).clear();
+		existing_path.clear();
 		state.world.army_set_arrival_time(a, sys::date{});
 		return;
 	}
 
+	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+	if(reset) {
+		existing_path.clear();
+	}
+
 	auto path = can_move_army(state, source, a, dest);
+
 	if(path.size() > 0) {
-		auto existing_path = state.world.army_get_path(a);
 		auto append_size = uint32_t(path.size());
 		auto old_size = existing_path.size();
 		auto new_size = old_size + append_size;
@@ -3528,7 +3536,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 			existing_path.at(i) = path[i];
 		}
 
-		if(old_size == 0) {
+		if(existing_path.at(new_size - 1) != old_first_prov) {
 			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
 		}
 		state.world.army_set_dig_in(a, 0);
@@ -3536,13 +3544,14 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	}
 }
 
-void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::move_navy;
 	p.source = source;
 	p.data.navy_movement.n = n;
 	p.data.navy_movement.dest = dest;
+	p.data.navy_movement.reset = reset;
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
@@ -3577,21 +3586,27 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 		return province::make_naval_path(state, last_province, dest);
 	}
 }
-void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
 	if(source != state.world.navy_get_controller_from_navy_control(n))
 		return;
 	if(state.world.navy_get_is_retreating(n))
 		return;
 
+	auto existing_path = state.world.navy_get_path(n);
+
 	if(!dest) {
-		state.world.navy_get_path(n).clear();
+		existing_path.clear();
 		state.world.navy_set_arrival_time(n, sys::date{});
 		return;
 	}
 
+	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+	if(reset) {
+		existing_path.clear();
+	}
+
 	auto path = can_move_navy(state, source, n, dest);
 	if(path.size() > 0) {
-		auto existing_path = state.world.navy_get_path(n);
 		auto append_size = uint32_t(path.size());
 		auto old_size = existing_path.size();
 		auto new_size = old_size + append_size;
@@ -3604,7 +3619,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 			existing_path.at(i) = path[i];
 		}
 
-		if(old_size == 0) {
+		if(existing_path.at(new_size - 1) != old_first_prov) {
 			state.world.navy_set_arrival_time(n, military::arrival_time_to(state, n, path.back()));
 		}
 	}
@@ -3838,6 +3853,48 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 		}
 		state.world.army_set_is_rebel_hunter(a, true);
 	}
+}
+
+void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_select_province;
+	p.source = source;
+	p.data.generic_location.prov = prov;
+	add_to_command_queue(state, p);
+}
+bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(state.world.province_get_nation_from_province_control(prov) != source)
+		return false;
+	if(state.world.province_get_nation_from_province_ownership(prov) != source)
+		return false;
+	return true;
+}
+void execute_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(!can_toggle_select_province(state, source, prov))
+		return;
+	sys::toggle_modifier_from_province(state, prov, state.economy_definitions.selector_modifier, sys::date{});
+}
+
+void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_immigrator_province;
+	p.source = source;
+	p.data.generic_location.prov = prov;
+	add_to_command_queue(state, p);
+}
+bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(state.world.province_get_nation_from_province_control(prov) != source)
+		return false;
+	if(state.world.province_get_nation_from_province_ownership(prov) != source)
+		return false;
+	return true;
+}
+void execute_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(!can_toggle_immigrator_province(state, source, prov))
+		return;
+	sys::toggle_modifier_from_province(state, prov, state.economy_definitions.immigrator_modifier, sys::date{});
 }
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4856,10 +4913,10 @@ void execute_command(sys::state& state, payload& c) {
 		execute_send_peace_offer(state, c.source);
 		break;
 	case command_type::move_army:
-		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest);
+		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset);
 		break;
 	case command_type::move_navy:
-		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest);
+		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset);
 		break;
 	case command_type::embark_army:
 		execute_embark_army(state, c.source, c.data.army_movement.a);
@@ -4938,6 +4995,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_hunt_rebels:
 		execute_toggle_rebel_hunting(state, c.source, c.data.army_movement.a);
+		break;
+	case command_type::toggle_select_province:
+		execute_toggle_select_province(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::toggle_immigrator_province:
+		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
 		break;
 
 		// common mp commands

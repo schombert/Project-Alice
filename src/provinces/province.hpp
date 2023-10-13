@@ -43,6 +43,7 @@ void ve_for_each_land_province(sys::state& state, F const& func);
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);
 void update_cached_values(sys::state& state);
+void update_blockaded_cache(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void restore_distances(sys::state& state);
 

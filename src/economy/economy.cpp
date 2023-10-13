@@ -3980,4 +3980,12 @@ void prune_factories(sys::state& state) {
 	}
 }
 
+dcon::modifier_id get_province_selector_modifier(sys::state& state) {
+	return state.economy_definitions.selector_modifier;
+}
+
+dcon::modifier_id get_province_immigrator_modifier(sys::state& state) {
+	return state.economy_definitions.immigrator_modifier;
+}
+
 } // namespace economy

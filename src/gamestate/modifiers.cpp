@@ -89,6 +89,7 @@ void remove_modifier_from_nation(sys::state& state, dcon::nation_id target_natio
 		}
 	}
 }
+
 void remove_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id) {
 	auto modifiers_range = state.world.province_get_current_modifiers(target_prov);
 	auto count = modifiers_range.size();
@@ -98,6 +99,19 @@ void remove_modifier_from_province(sys::state& state, dcon::province_id target_p
 			return;
 		}
 	}
+}
+
+void toggle_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration) {
+	auto lst = state.world.province_get_current_modifiers(target_prov);
+	auto modifiers_range = state.world.province_get_current_modifiers(target_prov);
+	auto count = modifiers_range.size();
+	for(uint32_t i = count; i-- > 0;) {
+		if(modifiers_range.at(i).mod_id == mod_id) {
+			modifiers_range.remove_at(i);
+			return;
+		}
+	}
+	lst.push_back(sys::dated_modifier{ expiration, mod_id });
 }
 
 template<typename F>
