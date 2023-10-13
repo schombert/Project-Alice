@@ -606,16 +606,18 @@ protected:
 	}
 };
 
-class scrollbar_left : public button_element_base {
+class scrollbar_left : public shift_button_element_base {
 public:
 	int32_t step_size = 1;
 	void button_action(sys::state& state) noexcept final;
+	void button_shift_action(sys::state& state) noexcept final;
 };
 
-class scrollbar_right : public button_element_base {
+class scrollbar_right : public shift_button_element_base {
 public:
 	int32_t step_size = 1;
 	void button_action(sys::state& state) noexcept final;
+	void button_shift_action(sys::state& state) noexcept final;
 };
 
 class scrollbar_track : public opaque_element_base {

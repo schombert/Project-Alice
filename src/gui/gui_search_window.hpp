@@ -22,8 +22,11 @@ class province_search_list_item : public listbox_row_button_base<dcon::province_
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto map_prov_id = content;
-		state.map_state.set_selected_province(map_prov_id);
-		static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
+		if(map_prov_id) {
+			state.map_state.set_selected_province(map_prov_id);
+			static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
+			state.map_state.center_map_on_province(state, map_prov_id);
+		}
 	}
 
 	void update(sys::state& state) noexcept override {
@@ -66,6 +69,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		move_child_to_front(search_listbox);
+		state.ui_state.edit_target = edit_box;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

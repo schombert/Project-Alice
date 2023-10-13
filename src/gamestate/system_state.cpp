@@ -349,12 +349,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			}
 		}
 	}
-
-	if(keycode == virtual_key::TAB) {
-		ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
-		ui_state.root->move_child_to_front(ui_state.chat_window);
-	}
 }
+
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	map_state.on_key_up(keycode, mod);
 }
