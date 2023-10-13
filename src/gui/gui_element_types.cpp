@@ -1668,9 +1668,21 @@ void scrollbar_left::button_action(sys::state& state) noexcept {
 		parent->impl_get(state, payload);
 	}
 }
+void scrollbar_left::button_shift_action(sys::state& state) noexcept {
+	if(parent) {
+		Cyto::Any payload = value_change{ -step_size * 5, true, true };
+		parent->impl_get(state, payload);
+	}
+}
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	if(parent) {
 		Cyto::Any payload = value_change{step_size, true, true};
+		parent->impl_get(state, payload);
+	}
+}
+void scrollbar_right::button_shift_action(sys::state& state) noexcept {
+	if(parent) {
+		Cyto::Any payload = value_change{ step_size * 5, true, true };
 		parent->impl_get(state, payload);
 	}
 }

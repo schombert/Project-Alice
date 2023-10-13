@@ -356,6 +356,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		}
 	}
 }
+
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	map_state.on_key_up(keycode, mod);
 }
