@@ -20,7 +20,8 @@ class commodity_player_availability_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id)));
+		if(commodity_id)
+			set_text(state, text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id)));
 	}
 };
 
@@ -28,7 +29,8 @@ class commodity_player_real_demand_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1));
+		if(commodity_id)
+			set_text(state, text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1));
 	}
 };
 
@@ -36,7 +38,8 @@ class commodity_national_player_stockpile_text : public simple_text_element_base
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, commodity_id), 2));
+		if(commodity_id)
+			set_text(state, text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, commodity_id), 2));
 	}
 };
 
@@ -72,7 +75,8 @@ class commodity_player_domestic_market_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f, 2));
+		if(commodity_id)
+			set_text(state, text::format_float(commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
@@ -80,7 +84,8 @@ class commodity_player_factory_needs_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
+		if(commodity_id)
+			set_text(state, text::format_float(commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
@@ -88,7 +93,8 @@ class commodity_player_pop_needs_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
+		if(commodity_id)
+			set_text(state, text::format_float(commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
@@ -96,7 +102,8 @@ class commodity_player_government_needs_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
+		if(commodity_id)
+			set_text(state, text::format_float(commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
 	}
 };
 
