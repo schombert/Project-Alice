@@ -403,8 +403,34 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids) {
-	// TODO: implement function
+	return state.world.province_get_is_blockaded(ids);
+}
+
+bool compute_blockade_status(sys::state& state, dcon::province_id p) {
+	auto controller = state.world.province_get_nation_from_province_control(p);
+	auto owner = state.world.province_get_nation_from_province_ownership(p);
+	if(!owner)
+		return false;
+	if(controller != owner)
+		return false;
+
+	auto port_to = state.world.province_get_port_to(p);
+	if(!port_to)
+		return false;
+	
+	for(auto n : state.world.province_get_navy_location(port_to)) {
+		if(n.get_navy().get_is_retreating() == false && !n.get_navy().get_battle_from_navy_battle_participation()) {
+			if(military::are_at_war(state, owner, n.get_navy().get_controller_from_navy_control()))
+				return true;
+		}
+	}
 	return false;
+}
+
+void update_blockade_status(sys::state& state) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		state.world.province_set_is_blockaded(p, compute_blockade_status(state, p));
+	});
 }
 
 template<typename T>
@@ -3559,10 +3585,24 @@ void update_ticking_war_score(sys::state& state) {
 	}
 }
 
+float primary_warscore_from_blockades(sys::state& state, dcon::war_id w) {
+	auto pattacker = state.world.war_get_primary_attacker(w);
+	auto pdefender = state.world.war_get_primary_defender(w);
+
+	auto d_cpc = state.world.nation_get_central_ports(pdefender);
+	auto def_b_frac = std::clamp(d_cpc > 0 ? float(state.world.nation_get_central_blockaded(pdefender)) / float(d_cpc) : 0.0f, 0.0f, 1.0f);
+
+	auto a_cpc = state.world.nation_get_central_ports(pattacker);
+	auto att_b_frac = std::clamp(a_cpc > 0 ? float(state.world.nation_get_central_blockaded(pattacker)) / float(a_cpc) : 0.0f, 0.0f, 1.0f);
+
+	return 25.0f * (def_b_frac - att_b_frac);
+}
+
 float primary_warscore(sys::state& state, dcon::war_id w) {
 	return std::clamp(
 		primary_warscore_from_occupation(state, w)
 		+ primary_warscore_from_battles(state, w)
+		+ primary_warscore_from_blockades(state, w)
 		+ primary_warscore_from_war_goals(state, w), -100.0f, 100.0f);
 }
 

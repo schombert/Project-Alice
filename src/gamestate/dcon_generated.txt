@@ -1481,6 +1481,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ is_blockaded }
+		type{ bitfield }
+	}
+	property{
 		name{ former_controller }
 		type{ dcon::nation_id }
 	}
