@@ -1589,7 +1589,7 @@ void technology_contents::any_value(std::string_view name, association_type, int
 			}
 		}
 	}
-	err.accumulated_errors += "unknown technology key (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
+	err.accumulated_errors += "unknown technology key " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
 }
 
 void inv_rgo_goods_output::any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line,
@@ -1695,7 +1695,7 @@ void inv_effect::any_value(std::string_view name, association_type, int32_t valu
 			}
 		}
 	}
-	err.accumulated_errors += "unknown technology key (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
+	err.accumulated_errors += "unknown technology key " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
 }
 
 void inv_effect::shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
