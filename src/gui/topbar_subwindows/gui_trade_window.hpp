@@ -21,7 +21,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
 		if(commodity_id)
-			set_text(state, text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id)));
+			set_text(state, text::format_float(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id), 2));
 	}
 };
 
@@ -113,6 +113,8 @@ public:
 		if(name == "goods_type") {
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "cost") {
+			return make_element_by_type<commodity_price_text>(state, id);
+		} else if(name == "activity") {
 			return make_element_by_type<commodity_player_availability_text>(state, id);
 		} else {
 			return nullptr;
