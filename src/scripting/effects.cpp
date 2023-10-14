@@ -4704,6 +4704,18 @@ uint32_t ef_build_university_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS
 	return 0;
 }
 
+uint32_t ef_annex_to_null_nation(EFFECT_PARAMTERS) {
+	auto sprovs = ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot));
+	while(sprovs.begin() != sprovs.end()) {
+		province::change_province_owner(ws, (*sprovs.begin()).get_province().id, dcon::nation_id{});
+	}
+	return 0;
+}
+uint32_t ef_annex_to_null_province(EFFECT_PARAMTERS) {
+	province::change_province_owner(ws, trigger::to_prov(primary_slot), dcon::nation_id{ });
+	return 0;
+}
+
 inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -5127,6 +5139,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university_state, //constexpr inline uint16_t university_state = 0x0198;
 		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
+		ef_annex_to_null_nation, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
+		ef_annex_to_null_province, //constexpr inline uint16_t annex_to_null_province = 0x019B;
 
 		//
 		// SCOPES

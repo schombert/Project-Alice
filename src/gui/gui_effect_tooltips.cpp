@@ -6331,6 +6331,11 @@ uint32_t ef_university(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
+uint32_t ef_annex_to_null(EFFECT_DISPLAY_PARAMS) {
+	text::add_line(ws, layout, text::produce_simple_string(ws, "e_annex_null"));
+	return 0;
+}
+
 inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -6754,6 +6759,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university, // constexpr inline uint16_t university_state = 0x0198;
 		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
+		ef_annex_to_null, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
+		ef_annex_to_null, //constexpr inline uint16_t annex_to_null_province = 0x019B;
 
 		//
 		// SCOPES
