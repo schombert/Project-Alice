@@ -879,8 +879,8 @@ public:
 			reg = state.world.land_battle_get_defender_back_line(b).at(slot);
 			break;
 		}
-		if(reg) {
-			auto utid = state.world.regiment_get_type(reg);
+		auto utid = state.world.regiment_get_type(reg);
+		if(reg && utid) {
 			auto p = state.world.land_battle_get_location_from_land_battle_location(b);
 
 			auto box = text::open_layout_box(contents);
