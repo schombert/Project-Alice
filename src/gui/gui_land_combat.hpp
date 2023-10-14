@@ -894,8 +894,9 @@ public:
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			auto n = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg));
+			std::string tag_str = "";
 			if(bool(n)) {
-				auto tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
+				tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
 				tag_str += " " + text::produce_simple_string(state, state.world.nation_get_name(n));
 				text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			} else {
@@ -905,7 +906,7 @@ public:
 					if(!bool(n))
 						n = state.national_definitions.rebel_id;
 				}
-				auto tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
+				tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
 				tag_str += " " + rebel::rebel_name(state, rf);
 				text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			}
