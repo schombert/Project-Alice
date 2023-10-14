@@ -632,6 +632,9 @@ void scrollbar::stepsize(association_type, std::string_view t, error_handler& er
 		target.data.scrollbar.flags |= uint8_t(ui::step_size::one_hundredth);
 	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "0.001")) {
 		target.data.scrollbar.flags |= uint8_t(ui::step_size::one_thousandth);
+	//	Non vanilla accomodation
+	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "25")) {
+		target.data.scrollbar.flags |= uint8_t(ui::step_size::twenty_five);
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(t) + " as a step size on line " + std::to_string(line) +
 															" of file " + err.file_name + "\n";

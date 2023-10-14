@@ -27,6 +27,10 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 	} else if(name == "consumer_goods") {
 		good_group_context new_context{sys::commodity_group::consumer_goods, context};
 		parse_goods_group(gen, err, new_context);
+	// Non-vanilla
+	} else if(name == "industrial_and_consumer_goods") {
+		good_group_context new_context{ sys::commodity_group::industrial_and_consumer_goods, context };
+		parse_goods_group(gen, err, new_context);
 	} else {
 		err.accumulated_errors += "Unknown goods category " + std::string(name) + " found in " + err.file_name + "\n";
 		good_group_context new_context{sys::commodity_group::military_goods, context};

@@ -1843,9 +1843,11 @@ void scrollbar::on_create(sys::state& state) noexcept {
 		auto step = base_data.data.scrollbar.get_step_size();
 		settings.scaling_factor = 1;
 		switch(step) {
-		case step_size::one:
+		case step_size::twenty_five:
 			break;
 		case step_size::two:
+			break;
+		case step_size::one:
 			break;
 		case step_size::one_tenth:
 			settings.scaling_factor = 10;
@@ -1897,7 +1899,9 @@ void scrollbar::on_create(sys::state& state) noexcept {
 				add_child_to_back(std::move(ch_res));
 
 				settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
-				if(step_size::two == step)
+				if(step_size::twenty_five == step)
+					left->step_size = 25;
+				else if(step_size::two == step)
 					left->step_size = 2;
 				else
 					left->step_size = 1;
@@ -1908,7 +1912,9 @@ void scrollbar::on_create(sys::state& state) noexcept {
 				right = ch_res.get();
 				add_child_to_back(std::move(ch_res));
 
-				if(step_size::two == step)
+				if(step_size::twenty_five == step)
+					right->step_size = 25;
+				else if(step_size::two == step)
 					right->step_size = 2;
 				else
 					right->step_size = 1;
