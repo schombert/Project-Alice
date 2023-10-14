@@ -1381,7 +1381,15 @@ void effect_body::define_general(ef_define_general const& value, error_handler& 
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
-
+void effect_body::kill_leader(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_effect.push_back(effect::kill_leader);
+		context.add_int32_t_to_payload(context.outer_context.state.add_unit_name(value).index());
+	} else {
+		err.accumulated_errors += "kill_leader effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+}
 void effect_body::define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line,
 		effect_building_context& context) {
 	if(context.main_slot != trigger::slot_contents::nation) {

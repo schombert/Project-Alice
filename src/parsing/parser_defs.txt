@@ -231,8 +231,11 @@ modifier_base
 	org_regain                                value      float            member_fn
 	reinforce_speed                           value      float            member_fn
 	land_organisation                         value      float            member_fn
+	land_organization                         value      float            member_fn (land_organisation)
 	army_organization                         value      float            member_fn (land_organisation)
+	army_organisation                         value      float            member_fn (land_organisation)
 	naval_organisation                        value      float            member_fn
+	naval_organization                        value      float            member_fn (naval_organisation)
 	research_points                           value      float            member_fn
 	research_points_modifier                  value      float            member_fn
 	research_points_on_conquer                value      float            member_fn
@@ -346,6 +349,7 @@ modifier_base
 	naval_unit_start_experience               value      float            member_fn
 	naval_attack_modifier                     value      float            member_fn
 	naval_defense_modifier                    value      float            member_fn
+	naval_defence_modifier                    value      float            member_fn (naval_defense_modifier)
 	land_attack_modifier                      value      float            member_fn
 	land_defense_modifier                     value      float            member_fn
 	land_defence_modifier                     value      float            member_fn (land_defense_modifier)
@@ -1377,6 +1381,7 @@ effect_body
 	railroad                        value       int                 member_fn  (infrastructure)
 	bank                            value       int                 member_fn
 	university                      value       int                 member_fn
+	kill_leader                      value       text                 member_fn
 	province_selector               value       int                 member_fn
 	province_immigrator             value       int                 member_fn
 	immigrator                      value       int                 member_fn (province_immigrator)

@@ -3391,8 +3391,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void scaled_consciousness(ef_scaled_consciousness const& value, error_handler& err, int32_t line,
-			effect_building_context& context) {
+	void scaled_consciousness(ef_scaled_consciousness const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			if(bool(value.ideology_)) {
 				context.compiled_effect.push_back(effect::scaled_consciousness_ideology);
@@ -3453,6 +3452,7 @@ struct effect_body {
 	}
 	void define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context);
 	void define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context);
+	void kill_leader(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void add_war_goal(ef_add_war_goal const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation || context.from_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=

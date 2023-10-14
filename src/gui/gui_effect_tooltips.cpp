@@ -6213,6 +6213,16 @@ uint32_t ef_treasury_province(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_kill_leader(EFFECT_DISPLAY_PARAMS) {
+	dcon::unit_name_id ename{ dcon::unit_name_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	auto esv = ws.to_string_view(ename);
+	auto box = text::open_layout_box(layout, indentation);
+	text::localised_format_box(ws, layout, box, "e_kill_leader");
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, esv);
+	text::close_layout_box(layout, box);
+	return 0;
+}
 
 //
 // Banks
@@ -6743,6 +6753,7 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_bank, //constexpr inline uint16_t bank_state = 0x0196;
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university, // constexpr inline uint16_t university_state = 0x0198;
+		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
 
 		//
 		// SCOPES
