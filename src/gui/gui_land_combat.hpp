@@ -637,9 +637,13 @@ public:
 		} else if(name == "leader_name") {
 			return make_element_by_type<lc_defending_leader_name>(state, id);
 		} else if(name == "morale") {
-			return make_element_by_type<lc_defender_org>(state, id);
+			auto ptr = make_element_by_type<lc_defender_org>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
 		} else if(name == "strength") {
-			return make_element_by_type<lc_defender_str>(state, id);
+			auto ptr = make_element_by_type<lc_defender_str>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
 		} else if(name == "morale_text") {
 			return make_element_by_type<lc_defender_org_txt>(state, id);
 		} else if(name == "strength_text") {
@@ -674,9 +678,13 @@ public:
 		} else if(name == "leader_name") {
 			return make_element_by_type<lc_attacking_leader_name>(state, id);
 		} else if(name == "morale") {
-			return make_element_by_type<lc_attacker_org>(state, id);
+			auto ptr = make_element_by_type<lc_attacker_org>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
 		} else if(name == "strength") {
-			return make_element_by_type<lc_attacker_str>(state, id);
+			auto ptr = make_element_by_type<lc_attacker_str>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
 		} else if(name == "morale_text") {
 			return make_element_by_type<lc_attacker_org_txt>(state, id);
 		} else if(name == "strength_text") {
