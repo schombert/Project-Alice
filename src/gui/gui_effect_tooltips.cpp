@@ -6332,7 +6332,7 @@ uint32_t ef_university(EFFECT_DISPLAY_PARAMS) {
 }
 
 uint32_t ef_annex_to_null(EFFECT_DISPLAY_PARAMS) {
-	text::add_line(ws, layout, text::produce_simple_string(ws, "annex_null_effect"));
+	text::add_line(ws, layout, text::produce_simple_string(ws, "e_annex_null"));
 	return 0;
 }
 
