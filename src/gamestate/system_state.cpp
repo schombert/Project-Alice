@@ -1112,8 +1112,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if((std::chrono::steady_clock::now() - tooltip_timer) > tooltip_delay) {
 			//floating by mouse
 			if(user_settings.bind_tooltip_mouse) {
-				int32_t aim_x = mouse_x_position;
-				int32_t aim_y = mouse_y_position;
+				int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale);
+				int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale);
 				int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
 				int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
 				//this only works if the tooltip isnt bigger than the entire window, wont crash though
