@@ -572,7 +572,7 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		if(dig_in_value != 0)
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::digin, dig_in_value });
 		if(terrain_bonus != 0)
-			row_contents.push_back(lc_modifier_data{ lc_mod_type::digin, int32_t(terrain_bonus) });
+			row_contents.push_back(lc_modifier_data{ lc_mod_type::terrain, int32_t(terrain_bonus) });
 		if(defence_bonus != 0)
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::leader, defence_bonus });
 		if(defender_gas)
