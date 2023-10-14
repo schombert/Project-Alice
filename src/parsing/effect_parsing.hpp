@@ -1250,9 +1250,12 @@ struct effect_body {
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
 					err.accumulated_errors +=
-							"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(value == "null") {
+				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+				return;
 			} else {
 				err.accumulated_errors +=
 						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
