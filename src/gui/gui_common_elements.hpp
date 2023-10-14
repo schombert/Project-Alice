@@ -1436,39 +1436,139 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		if(!com)
 			return;
+
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto p = retrieve<dcon::province_id>(state, parent);
 
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::yellow);
 		text::close_layout_box(contents, box);
 
-		auto commodity_mod_description = [&](float value, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::white);
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(com) ? locale_base_name : locale_farm_base_name), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::white);
-			text::add_space_to_layout_box(state, contents, box);
-			auto color = value > 0.f ? text::text_color::green : text::text_color::red;
-			text::add_to_layout_box(state, contents, box, (value > 0.f ? "+" : "") + text::format_percentage(value, 1), color);
-			text::close_layout_box(contents, box);
-		};
-		commodity_mod_description(state.world.nation_get_factory_goods_output(n, com), "tech_output", "tech_output");
-		commodity_mod_description(state.world.nation_get_rgo_goods_output(n, com), "tech_mine_output", "tech_farm_output");
-		commodity_mod_description(state.world.nation_get_rgo_size(n, com), "tech_mine_size", "tech_farm_size");
+		// Nation modifiers
+		if(bool(n)) {
+			auto commodity_mod_description = [&](float value, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+				if(value == 0.f)
+					return;
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::white);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(com) ? locale_base_name : locale_farm_base_name), text::text_color::white);
+				text::add_to_layout_box(state, contents, box, std::string{ ":" }, text::text_color::white);
+				text::add_space_to_layout_box(state, contents, box);
+				auto color = value > 0.f ? text::text_color::green : text::text_color::red;
+				text::add_to_layout_box(state, contents, box, (value > 0.f ? "+" : "") + text::format_percentage(value, 1), color);
+				text::close_layout_box(contents, box);
+			};
+			commodity_mod_description(state.world.nation_get_factory_goods_output(n, com), "tech_output", "tech_output");
+			commodity_mod_description(state.world.nation_get_rgo_goods_output(n, com), "tech_mine_output", "tech_farm_output");
+			commodity_mod_description(state.world.nation_get_rgo_size(n, com), "tech_mine_size", "tech_farm_size");
+		}
 		if(state.world.commodity_get_key_factory(com)) {
-			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_output, true);
-			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_throughput, true);
+			if(bool(n)) {
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_output, true);
+			}
+			if(bool(p)) {
+				active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_factory_output, true);
+			}
+			if(bool(n)) {
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_throughput, true);
+			}
+			if(bool(p)) {
+				active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_factory_throughput, true);
+			}
 		} else {
 			if(state.world.commodity_get_is_mine(com)) {
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_eff, true);
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_size, true);
+				if(bool(n)) {
+					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_eff, true);
+				}
+				if(bool(p)) {
+					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_eff, true);
+				}
+				if(bool(n)) {
+					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_size, true);
+				}
+				if(bool(p)) {
+					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_size, true);
+				}
 			} else {
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_eff, true);
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_size, true);
+				if(bool(n)) {
+					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_eff, true);
+				}
+				if(bool(p)) {
+					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_eff, true);
+				}
+				if(bool(n)) {
+					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_size, true);
+				}
+				if(bool(p)) {
+					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_size, true);
+				}
+			}
+		}
+
+		for(const auto tid : state.world.in_technology) {
+			if(state.world.nation_get_active_technologies(n, tid)) {
+				bool have_header = false;
+				auto commodity_technology_mod_description = [&](auto const& list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+					for(const auto mod : list) {
+						if(mod.type != com || mod.amount == 0.f)
+							return;
+						auto box = text::open_layout_box(contents, 0);
+						if(!have_header) {
+							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.technology_get_name(tid)), text::text_color::yellow);
+							text::add_line_break_to_layout_box(state, contents, box);
+							have_header = true;
+						}
+						auto name = state.world.commodity_get_name(mod.type);
+						if(bool(name)) {
+							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::white);
+							text::add_space_to_layout_box(state, contents, box);
+						}
+						text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white);
+						text::add_to_layout_box(state, contents, box, std::string{ ":" }, text::text_color::white);
+						text::add_space_to_layout_box(state, contents, box);
+						auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red;
+						text::add_to_layout_box(state, contents, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color);
+						text::close_layout_box(contents, box);
+					}
+				};
+				commodity_technology_mod_description(state.world.technology_get_factory_goods_output(tid), "tech_output", "tech_output");
+				commodity_technology_mod_description(state.world.technology_get_rgo_goods_output(tid), "tech_mine_output", "tech_farm_output");
+				commodity_technology_mod_description(state.world.technology_get_rgo_size(tid), "tech_mine_size", "tech_farm_size");
+			}
+		}
+		for(const auto iid : state.world.in_invention) {
+			if(state.world.nation_get_active_inventions(n, iid)) {
+				bool have_header = false;
+				auto commodity_invention_mod_description = [&](auto const& list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+					for(const auto mod : list) {
+						if(mod.type != com || mod.amount == 0.f)
+							return;
+						auto box = text::open_layout_box(contents, 0);
+						if(!have_header) {
+							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.invention_get_name(iid)), text::text_color::yellow);
+							text::add_line_break_to_layout_box(state, contents, box);
+							have_header = true;
+						}
+						auto name = state.world.commodity_get_name(mod.type);
+						if(bool(name)) {
+							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::white);
+							text::add_space_to_layout_box(state, contents, box);
+						}
+						text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white);
+						text::add_to_layout_box(state, contents, box, std::string{ ":" }, text::text_color::white);
+						text::add_space_to_layout_box(state, contents, box);
+						auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red;
+						text::add_to_layout_box(state, contents, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color);
+						text::close_layout_box(contents, box);
+					}
+				};
+				commodity_invention_mod_description(state.world.invention_get_factory_goods_output(iid), "tech_output", "tech_output");
+				commodity_invention_mod_description(state.world.invention_get_rgo_goods_output(iid), "tech_mine_output", "tech_farm_output");
+				commodity_invention_mod_description(state.world.invention_get_rgo_size(iid), "tech_mine_size", "tech_farm_size");
 			}
 		}
 	}

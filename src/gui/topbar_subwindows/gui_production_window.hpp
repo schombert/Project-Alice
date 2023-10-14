@@ -21,12 +21,8 @@ struct production_selection_wrapper {
 class factory_employment_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_id>(payload);
-			frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
-		}
+		auto content = retrieve<dcon::factory_id>(state, parent);
+		frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -410,11 +406,7 @@ struct production_factory_slot_data : public state_factory_slot {
 class factory_build_progress_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = economy::new_factory{};
-			parent->impl_get(state, payload);
-			progress = any_cast<economy::new_factory>(payload).progress;
-		}
+		progress = retrieve<economy::new_factory>(state, parent).progress;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -450,11 +442,7 @@ public:
 class factory_upgrade_progress_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = economy::upgraded_factory{};
-			parent->impl_get(state, payload);
-			progress = any_cast<economy::upgraded_factory>(payload).progress;
-		}
+		progress = retrieve<economy::upgraded_factory>(state, parent).progress;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -493,90 +481,82 @@ class normal_factory_background : public opaque_element_base {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto fid = any_cast<dcon::factory_id>(payload);
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		if(!fid)
+			return;
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+		auto type = state.world.factory_get_building_type(fid);
 
-			if(!fid)
-				return;
+		auto& inputs = type.get_inputs();
+		auto& einputs = type.get_efficiency_inputs();
 
-			auto type = state.world.factory_get_building_type(fid);
-
-			auto& inputs = type.get_inputs();
-			auto& einputs = type.get_efficiency_inputs();
-
-			float min_input = 1.0f;
-			float min_efficiency_input = 1.0f;
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				if(inputs.commodity_type[i]) {
-					min_input = std::min(min_input, state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]));
-				} else {
-					break;
-				}
+		float min_input = 1.0f;
+		float min_efficiency_input = 1.0f;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(inputs.commodity_type[i]) {
+				min_input = std::min(min_input, state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]));
+			} else {
+				break;
 			}
+		}
 
-			// and for efficiency inputs
-			for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
-				if(einputs.commodity_type[i]) {
-					min_efficiency_input = std::min(min_efficiency_input, state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]));
-				} else {
-					break;
-				}
+		// and for efficiency inputs
+		for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
+			if(einputs.commodity_type[i]) {
+				min_efficiency_input = std::min(min_efficiency_input, state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]));
+			} else {
+				break;
 			}
+		}
 
-			auto amount = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_production_scale(fid);
+		auto amount = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_production_scale(fid);
 
-			text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
+		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
 
-			text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
-					text::fp_percentage{state.world.factory_get_production_scale(fid)});
+		text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
+				text::fp_percentage{state.world.factory_get_production_scale(fid)});
 
-			text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
-					text::fp_one_place{state.world.factory_get_actual_production(fid) }, text::variable_type::x, type.get_output().get_name());
+		text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
+				text::fp_one_place{state.world.factory_get_actual_production(fid) }, text::variable_type::x, type.get_output().get_name());
 
-			text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
-					text::fp_currency{state.world.factory_get_full_profit(fid)});
+		text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
+				text::fp_currency{state.world.factory_get_full_profit(fid)});
 
-			text::add_line_break_to_layout(state, contents);
+		text::add_line_break_to_layout(state, contents);
 
-			text::add_line(state, contents, "factory_stats_5");
+		text::add_line(state, contents, "factory_stats_5");
 
 			
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				if(inputs.commodity_type[i]) {
-					auto box = text::open_layout_box(contents);
-					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(inputs.commodity_type[i]));
-					text::add_to_layout_box(state, contents, box, std::string_view{": "});
-					auto sat = state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]);
-					text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
-							sat >= 0.9f ? text::text_color::green : text::text_color::red);
-					text::close_layout_box(contents, box);
-				} else {
-					break;
-				}
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(inputs.commodity_type[i]) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(inputs.commodity_type[i]));
+				text::add_to_layout_box(state, contents, box, std::string_view{": "});
+				auto sat = state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
+						sat >= 0.9f ? text::text_color::green : text::text_color::red);
+				text::close_layout_box(contents, box);
+			} else {
+				break;
 			}
+		}
 
-			text::add_line_break_to_layout(state, contents);
+		text::add_line_break_to_layout(state, contents);
 
-			text::add_line(state, contents, "factory_stats_6");
+		text::add_line(state, contents, "factory_stats_6");
 
-			for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
-				if(einputs.commodity_type[i]) {
-					auto box = text::open_layout_box(contents);
-					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(einputs.commodity_type[i]));
-					text::add_to_layout_box(state, contents, box, std::string_view{": "});
-					auto sat = state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]);
-					text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
-							sat >= 0.9f ? text::text_color::green : text::text_color::red);
-					text::close_layout_box(contents, box);
-				} else {
-					break;
-				}
+		for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
+			if(einputs.commodity_type[i]) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(einputs.commodity_type[i]));
+				text::add_to_layout_box(state, contents, box, std::string_view{": "});
+				auto sat = state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
+						sat >= 0.9f ? text::text_color::green : text::text_color::red);
+				text::close_layout_box(contents, box);
+			} else {
+				break;
 			}
 		}
 	}
@@ -812,17 +792,6 @@ public:
 					e->set_visible(state, true);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
-
-				auto& cset = fat_btid.get_construction_costs();
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(input_icons[size_t(i)]) {
-						dcon::commodity_id cid = cset.commodity_type[size_t(i)];
-						input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
-						input_icons[size_t(i)]->com = cid;
-						bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
-						input_lack_icons[size_t(i)]->set_visible(state, is_lack);
-					}
-				}
 			} else if(std::holds_alternative<economy::upgraded_factory>(content.activity)) {
 				// Upgrade
 				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.activity);
@@ -836,17 +805,6 @@ public:
 					e->set_visible(state, false);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
-
-				auto& cset = fat_btid.get_inputs();
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(input_icons[size_t(i)]) {
-						dcon::commodity_id cid = cset.commodity_type[size_t(i)];
-						input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
-						input_icons[size_t(i)]->com = cid;
-						bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
-						input_lack_icons[size_t(i)]->set_visible(state, is_lack);
-					}
-				}
 			} else {
 				// "Normal" factory, not being upgraded or built
 				dcon::factory_id fid = content.id;
@@ -861,22 +819,19 @@ public:
 					e->set_visible(state, false);
 				for(auto const& e : closed_elements)
 					e->set_visible(state, is_closed);
-
-				auto& cset = fat_btid.get_inputs();
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(input_icons[size_t(i)]) {
-						dcon::commodity_id cid = cset.commodity_type[size_t(i)];
-						input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
-						input_icons[size_t(i)]->com = cid;
-						bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
-						input_lack_icons[size_t(i)]->set_visible(state, is_lack);
-					}
-				}
 			}
 
+			auto& cset = fat_btid.get_inputs();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(input_icons[size_t(i)]) {
+					dcon::commodity_id cid = cset.commodity_type[size_t(i)];
+					input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
+					input_icons[size_t(i)]->com = cid;
+					bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+				}
+			}
 			output_commodity = fat_btid.get_output().id;
-			
-			
 		}
 	}
 
@@ -898,6 +853,10 @@ public:
 				return message_result::consumed;
 			} else if(payload.holds_type<dcon::commodity_id>()) {
 				payload.emplace<dcon::commodity_id>(output_commodity);
+				return message_result::consumed;
+			} else if(payload.holds_type<dcon::province_id>()) {
+				payload.emplace<dcon::province_id>(state.world.factory_get_province_from_factory_location(content.id));
+				return message_result::consumed;
 			}
 		}
 		return message_result::unseen;

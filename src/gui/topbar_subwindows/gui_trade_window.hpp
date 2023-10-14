@@ -1161,6 +1161,9 @@ public:
 				details_win->trade_amount = state.world.nation_get_stockpile_targets(state.local_player_nation, commodity_id);
 			details_win->impl_on_update(state);
 			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
