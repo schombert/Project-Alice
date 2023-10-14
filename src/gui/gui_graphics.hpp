@@ -201,11 +201,13 @@ enum class step_size : uint8_t { // 2 bits
 	two = 0x01,
 	one_tenth = 0x02,
 	one_hundredth = 0x03,
-	one_thousandth = 0x04
+	one_thousandth = 0x04,
+	// Non-vanilla
+	twenty_five = 0x40
 };
 
 struct scrollbar_data {
-	static constexpr uint8_t step_size_mask = 0x07;
+	static constexpr uint8_t step_size_mask = 0x47;
 	static constexpr uint8_t is_range_limited_mask = 0x08;
 	static constexpr uint8_t is_lockable_mask = 0x10;
 	static constexpr uint8_t is_horizontal_mask = 0x20;

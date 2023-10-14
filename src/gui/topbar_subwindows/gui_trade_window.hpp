@@ -1140,6 +1140,9 @@ public:
 			auto ptr = make_element_by_type<trade_details_window>(state, id);
 			details_win = ptr.get();
 			return ptr;
+			// Non-vanila
+		} else if(name == "group_industrial_and_consumer_goods") {
+			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::industrial_and_consumer_goods>>(state, id);
 		} else {
 			return nullptr;
 		}

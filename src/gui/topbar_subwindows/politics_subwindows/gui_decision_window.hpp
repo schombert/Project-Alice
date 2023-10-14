@@ -75,13 +75,16 @@ void produce_decision_substitutions(sys::state& state, text::substitution_map& m
 	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(n)));
 }
 
-class decision_name : public simple_text_element_base {
+class decision_name : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		text::substitution_map m;
 		produce_decision_substitutions(state, m, state.local_player_nation);
-		set_text(state, text::resolve_string_substitution(state, state.world.decision_get_name(id), m));
+		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::right, text::text_color::white, true });
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, state.world.decision_get_name(id), m);
+		text::close_layout_box(contents, box);
 	}
 };
 

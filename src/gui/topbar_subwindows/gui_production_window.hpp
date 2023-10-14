@@ -1450,6 +1450,10 @@ public:
 			case sys::commodity_group::consumer_goods:
 				goods_cat_name->set_text(state, text::produce_simple_string(state, "consumer_goods"));
 				break;
+			// Non-vanilla
+			case sys::commodity_group::industrial_and_consumer_goods:
+				goods_cat_name->set_text(state, text::produce_simple_string(state, "industrial_and_consumer_goods"));
+				break;
 			default:
 				break;
 			}
