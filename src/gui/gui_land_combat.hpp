@@ -991,19 +991,34 @@ public:
 			break;
 		}
 		if(reg) {
-			auto n = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg));
+			auto utid = state.world.regiment_get_type(reg);
+			auto p = state.world.land_battle_get_location_from_land_battle_location(b);
+
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
-			auto tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
-			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
+			auto n = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg));
+			if(bool(n)) {
+				auto tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
+				tag_str += " " + text::produce_simple_string(state, state.world.nation_get_name(n));
+				text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
+			} else {
+				auto rf = state.world.army_get_controller_from_army_rebel_control(state.world.regiment_get_army_from_army_membership(reg));
+				if(bool(rf)) {
+					n = state.world.rebellion_within_get_ruler(state.world.rebel_faction_get_rebellion_within(rf));
+					if(!bool(n))
+						n = state.national_definitions.rebel_id;
+				}
+				auto tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
+				tag_str += " " + rebel::rebel_name(state, rf);
+				text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
+			}
 			text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(state.world.regiment_get_name(reg)));
+			text::add_to_substitution_map(sub, text::variable_type::type, state.military_definitions.unit_base_definitions[utid].name);
 			text::add_to_substitution_map(sub, text::variable_type::organisation, text::fp_two_places{ state.world.regiment_get_org(reg) });
 			text::add_to_substitution_map(sub, text::variable_type::strength, text::fp_two_places{ state.world.regiment_get_strength(reg) });
 			text::localised_format_box(state, contents, box, "alice_regiment_battle_info", sub);
 			text::close_layout_box(contents, box);
 
-			auto p = state.world.land_battle_get_location_from_land_battle_location(b);
-			auto utid = state.world.regiment_get_type(reg);
 			if(state.world.nation_get_unit_stats(n, utid).reconnaissance_or_fire_range > 0) {
 				text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).reconnaissance_or_fire_range, 2));
 			}
