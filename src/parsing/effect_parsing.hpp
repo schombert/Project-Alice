@@ -1393,7 +1393,17 @@ struct effect_body {
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
 					err.accumulated_errors +=
-							"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(value == "null") {
+				if(context.from_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(uint16_t(effect::annex_to_null_nation | effect::no_payload));
+				else if(context.from_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+				else {
+					err.accumulated_errors += "annex_to = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else {
