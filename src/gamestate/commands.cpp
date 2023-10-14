@@ -3523,7 +3523,6 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 	if(reset) {
 		existing_path.clear();
-		state.world.army_set_arrival_time(a, sys::date{});
 	}
 
 	auto path = can_move_army(state, source, a, dest);
@@ -3546,6 +3545,8 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
+	} else if(reset) {
+		state.world.army_set_arrival_time(a, sys::date{});
 	}
 }
 
@@ -3608,7 +3609,6 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 	if(reset) {
 		existing_path.clear();
-		state.world.navy_set_arrival_time(n, sys::date{});
 	}
 
 	auto path = can_move_navy(state, source, n, dest);
@@ -3628,6 +3628,8 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 		if(existing_path.at(new_size - 1) != old_first_prov) {
 			state.world.navy_set_arrival_time(n, military::arrival_time_to(state, n, path.back()));
 		}
+	} else if(reset) {
+		state.world.navy_set_arrival_time(n, sys::date{});
 	}
 }
 
