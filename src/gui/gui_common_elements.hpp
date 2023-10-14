@@ -1436,8 +1436,41 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		text::add_line(state, contents, state.world.commodity_get_name(com));
+		if(!com)
+			return;
+
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::yellow);
+		text::close_layout_box(contents, box);
+
+		auto commodity_mod_description = [&](float value, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(com) ? locale_base_name : locale_farm_base_name), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			auto color = value > 0.f ? text::text_color::green : text::text_color::red;
+			text::add_to_layout_box(state, contents, box, (value > 0.f ? "+" : "") + text::format_percentage(value, 1), color);
+			text::close_layout_box(contents, box);
+		};
+		commodity_mod_description(state.world.nation_get_factory_goods_output(n, com), "tech_output", "tech_output");
+		commodity_mod_description(state.world.nation_get_rgo_goods_output(n, com), "tech_mine_output", "tech_farm_output");
+		commodity_mod_description(state.world.nation_get_rgo_size(n, com), "tech_mine_size", "tech_farm_size");
+		if(state.world.commodity_get_key_factory(com)) {
+			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_output, true);
+			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_throughput, true);
+		} else {
+			if(state.world.commodity_get_is_mine(com)) {
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_eff, true);
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_size, true);
+			} else {
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_eff, true);
+				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_size, true);
+			}
+		}
 	}
 };
 
