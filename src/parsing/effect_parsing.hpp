@@ -1402,7 +1402,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "annex_to = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "annex_to = null effect used in an incorrect scope type (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
