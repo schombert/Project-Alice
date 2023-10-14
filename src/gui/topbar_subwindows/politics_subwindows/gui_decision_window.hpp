@@ -81,7 +81,7 @@ public:
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		text::substitution_map m;
 		produce_decision_substitutions(state, m, state.local_player_nation);
-		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::right, text::text_color::white, true });
+		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, state.world.decision_get_name(id), m);
 		text::close_layout_box(contents, box);
