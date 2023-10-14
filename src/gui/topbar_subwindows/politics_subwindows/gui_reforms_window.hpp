@@ -226,13 +226,36 @@ public:
 	}
 };
 
+
+class issue_name_text : public multiline_text_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.y -= int16_t(7);
+		multiline_text_element_base::on_create(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::issue_id>(state, parent);
+		auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
+				text::layout_parameters{ 0, 0, multiline_text_element_base::base_data.size.x,
+						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, -4, text::alignment::left, color, false });
+		auto fat_id = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(container);
+		text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
+		text::close_layout_box(container, box);
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
+	}
+};
+
 class reforms_reform_window : public window_element_base {
 	dcon::issue_id issue_id{};
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
-			return make_element_by_type<generic_multiline_name_text<dcon::issue_id>>(state, id);
+			return make_element_by_type<issue_name_text>(state, id);
 		} else {
 			return nullptr;
 		}
