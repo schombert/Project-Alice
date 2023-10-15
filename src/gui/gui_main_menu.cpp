@@ -137,6 +137,7 @@ bool fow_checkbox::is_active(sys::state& state) noexcept {
 }
 void fow_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
+	state.map_state.map_data.update_fog_of_war(state);
 	send(state, parent, notify_setting_update{});
 }
 
