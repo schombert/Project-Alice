@@ -753,9 +753,25 @@ guiTypes = {
 		
 		iconType = {
 			name = "port_collapsed_small"
-			spriteType = "GFX_alice_small_port"
+			spriteType = "GFX_alice_small_port_expanded"
 			position = { x=-18 y=-18 }
 			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "port_collapsed_small_icon"
+			spriteType = "GFX_alice_small_port_icon"
+			position = { x=-18 y=-18 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType={
+			position = {x = -4 y = -14 }
+			name = "collapsed_ship_count"
+			font = "Arial16"
+			borderSize = {x = 0 y = 0}
+			maxWidth = 30
+			maxHeight = 17
+			orientation = "UPPER_LEFT"
+			format = centre
 		}
 		iconType = {
 			name ="port_minimized"
