@@ -17,6 +17,7 @@ linegraph_mode_aesthetic;Aesthetic;;;Aestetica;;;;;;;;;x
 gui_mode;GUI Mode;;;;;;;;;;;;x
 gui_mode_faithful;Classic;;;;;;;;;;;;x
 gui_mode_new;Enhanced;;;;;;;;;;;;x
+fow_label;Fog of War
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
 music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
