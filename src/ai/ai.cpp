@@ -989,17 +989,17 @@ void update_ai_econ_construction(sys::state& state) {
 		}
 
 		// try railroads
-		static const struct {
-			uint32_t issue_bits;
+		const struct {
+			bool buildable;
 			economy::province_building_type type;
 			dcon::provincial_modifier_value mod;
 		} econ_buildable[3] = {
-			{ issue_rule::build_railway, economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
-			{ issue_rule::build_bank, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
-			{ issue_rule::build_university, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
+			{ (rules & issue_rule::build_railway) != 0, economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
+			{  (rules & issue_rule::build_bank) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
+			{ (rules & issue_rule::build_university) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
 		};
 		for(auto i = 0; i < 3; i++) {
-			if((rules & econ_buildable[i].issue_bits) != 0 && max_projects > 0) {
+			if(econ_buildable[i].buildable && max_projects > 0) {
 				project_provs.clear();
 				for(auto o : n.get_province_ownership()) {
 					if(n != o.get_province().get_nation_from_province_control())

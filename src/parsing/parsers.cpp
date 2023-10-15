@@ -148,7 +148,7 @@ token_and_type token_generator::internal_next() {
 			position = non_ws + 1;
 			return token_and_type{std::string_view(non_ws, 1), current_line, token_type::special_identifier};
 		} else {
-			position = advance_position_to_breaking_char(non_ws, file_end, current_line);
+			position = advance_position_to_breaking_char(non_ws + 1, file_end, current_line);
 			return token_and_type{std::string_view(non_ws, position - non_ws), current_line, token_type::identifier};
 		}
 	} else {

@@ -939,7 +939,7 @@ void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nat
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
 	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, std::max(val, 100.0f));
+	val = std::clamp(val + delta, -200.0f, std::min(val, 100.0f));
 }
 
 void update_monthly_points(sys::state& state) {
@@ -1785,7 +1785,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 				auto pop_of_culture = si.get_demographics(demographics::to_key(state, si.get_flashpoint_tag().get_primary_culture()));
 				if(state_pop > 0) {
 					total_increase += std::min(state.defines.tension_from_movement_max,
-							state.defines.tension_from_movement * radicalism * pop_of_culture * support / state_pop);
+							state.defines.tension_from_movement * radicalism * pop_of_culture * support / (state_pop * 4000.0f));
 				}
 			}
 
