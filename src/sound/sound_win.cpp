@@ -257,14 +257,80 @@ void initialize_sound_system(sys::state& state) {
 		auto file_name = get_full_name(mp3_file);
 		state.sound_ptr->music_list.emplace_back(file_name);
 		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
-					 NATIVE("thecoronation_titletheme.mp3")))
+			NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
 	}
 
 	auto const sound_directory = open_directory(root_dir, NATIVE("\\sound"));
-	auto click_peek = peek_file(sound_directory, NATIVE("GI_ValidClick.wav"));
 
-	state.sound_ptr->click_sound.set_file(click_peek ? get_full_name(*click_peek) : std::wstring());
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_ValidClick.wav"));
+		state.sound_ptr->click_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("UI_TechnologyFinished.wav"));
+		state.sound_ptr->technology_finished_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_InfantryMove.wav"));
+		state.sound_ptr->army_move_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_InfantrySelected.wav"));
+		state.sound_ptr->army_select_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("UI_SailMove.wav"));
+		state.sound_ptr->navy_move_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("UI_SailSelected.wav"));
+		state.sound_ptr->navy_select_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("DeclarationofWar.wav"));
+		state.sound_ptr->declaration_of_war_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_ChatMessage.wav"));
+		state.sound_ptr->chat_message_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_ErrorBlip.wav"));
+		state.sound_ptr->error_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Peace.wav"));
+		state.sound_ptr->peace_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("UI_LandUnitFinished.wav"));
+		state.sound_ptr->army_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("UI_NavalUnitFinished.wav"));
+		state.sound_ptr->navy_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_NewFactory.wav"));
+		state.sound_ptr->factory_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_revolt.wav"));
+		state.sound_ptr->revolt_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Fortification.wav"));
+		state.sound_ptr->fort_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Infrastructure.wav"));
+		state.sound_ptr->railroad_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_CoalingStation.wav"));
+		state.sound_ptr->naval_base_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
 }
 
 // these functions are called to change the volume of the currently playing track or effect
@@ -303,15 +369,63 @@ void start_music(sys::state& state, float v) {
 	}
 }
 
+void update_music_track(sys::state& state) {
+	if(state.sound_ptr->music_finished())
+		state.sound_ptr->play_new_track(state);
+}
+
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state) {
 	return state.sound_ptr->click_sound;
 }
-
-void update_music_track(sys::state& state) {
-	if(state.sound_ptr->music_finished())
-		state.sound_ptr->play_new_track(state);
+audio_instance& get_army_select_sound(sys::state& state) {
+	return state.sound_ptr->army_select_sound;
+}
+audio_instance& get_army_move_sound(sys::state& state) {
+	return state.sound_ptr->army_move_sound;
+}
+audio_instance& get_navy_select_sound(sys::state& state) {
+	return state.sound_ptr->navy_select_sound;
+}
+audio_instance& get_navy_move_sound(sys::state& state) {
+	return state.sound_ptr->navy_move_sound;
+}
+audio_instance& get_error_sound(sys::state& state) {
+	return state.sound_ptr->error_sound;
+}
+audio_instance& get_peace_sound(sys::state& state) {
+	return state.sound_ptr->peace_sound;
+}
+audio_instance& get_army_built_sound(sys::state& state) {
+	return state.sound_ptr->army_built_sound;
+}
+audio_instance& get_navy_built_sound(sys::state& state) {
+	return state.sound_ptr->navy_built_sound;
+}
+audio_instance& get_declaration_of_war_sound(sys::state& state) {
+	return state.sound_ptr->declaration_of_war_sound;
+}
+audio_instance& get_technology_finished_sound(sys::state& state) {
+	return state.sound_ptr->technology_finished_sound;
+}
+audio_instance& get_factory_built_sound(sys::state& state) {
+	return state.sound_ptr->factory_built_sound;
+}
+audio_instance& get_election_sound(sys::state& state) {
+	return state.sound_ptr->election_sound;
+}
+audio_instance& get_revolt_sound(sys::state& state) {
+	return state.sound_ptr->revolt_sound;
+}
+audio_instance& get_fort_built_sound(sys::state& state) {
+	return state.sound_ptr->fort_built_sound;
+}
+audio_instance& get_railroad_built_sound(sys::state& state) {
+	return state.sound_ptr->railroad_built_sound;
+}
+audio_instance& get_naval_base_built_sound(sys::state& state) {
+	return state.sound_ptr->naval_base_built_sound;
 }
 
 } // namespace sound

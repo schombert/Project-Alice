@@ -31,7 +31,26 @@ public:
 	std::optional<ma_sound> music;
 
 	ma_engine engine;
+
 	audio_instance click_sound;
+	audio_instance technology_finished_sound;
+	audio_instance army_move_sound;
+	audio_instance army_select_sound;
+	audio_instance navy_move_sound;
+	audio_instance navy_select_sound;
+	audio_instance declaration_of_war_sound;
+	audio_instance chat_message_sound;
+	audio_instance error_sound;
+	audio_instance peace_sound;
+	audio_instance army_built_sound;
+	audio_instance navy_built_sound;
+	audio_instance factory_built_sound;
+	audio_instance election_sound;
+	audio_instance revolt_sound;
+	audio_instance fort_built_sound;
+	audio_instance railroad_built_sound;
+	audio_instance naval_base_built_sound;
+
 	std::vector<audio_instance> music_list;
 	int32_t last_music = -1;
 	int32_t first_music = -1;
