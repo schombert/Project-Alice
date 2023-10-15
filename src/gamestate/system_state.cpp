@@ -1655,20 +1655,20 @@ void state::save_user_settings() const {
 	US_SAVE(bind_tooltip_mouse);
 	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
-	constexpr inline size_t lower_half_count = 98;
-	std::memcpy(ptr, &user_settings.self_message_settings, lower_half_count));
+	constexpr size_t lower_half_count = 98;
+	std::memcpy(ptr, &user_settings.self_message_settings, lower_half_count);
 	ptr += 98;
-	std::memcpy(ptr, &user_settings.interesting_message_settings, lower_half_count));
+	std::memcpy(ptr, &user_settings.interesting_message_settings, lower_half_count);
 	ptr += 98;
-	std::memcpy(ptr, &user_settings.other_message_settings, lower_half_count));
+	std::memcpy(ptr, &user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
 	US_SAVE(fow_enabled);
-	constexpr inline size_t upper_half_count = 128 - 98;
-	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count));
+	constexpr size_t upper_half_count = 128 - 98;
+	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
-	std::memcpy(ptr, &user_settings.interesting_message_settings[98], upper_half_count));
+	std::memcpy(ptr, &user_settings.interesting_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
-	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count));
+	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
 #undef US_SAVE
 
@@ -1694,7 +1694,7 @@ void state::load_user_settings() {
 		US_LOAD(bind_tooltip_mouse);
 		US_LOAD(use_classic_fonts);
 		US_LOAD(outliner_views);
-		constexpr inline size_t lower_half_count = 98;
+		constexpr size_t lower_half_count = 98;
 		std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
 		ptr += 98;
 		std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
@@ -1702,7 +1702,7 @@ void state::load_user_settings() {
 		std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
 		ptr += 98;
 		US_LOAD(fow_enabled);
-		constexpr inline size_t upper_half_count = 128 - 98;
+		constexpr size_t upper_half_count = 128 - 98;
 		std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
 		ptr += upper_half_count;
 		std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
