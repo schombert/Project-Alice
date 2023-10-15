@@ -59,6 +59,28 @@ public:
 	int32_t first_music = -1;
 
 	audio_instance click_sound;
+	audio_instance technology_finished_sound;
+	audio_instance army_move_sound;
+	audio_instance army_select_sound;
+	audio_instance navy_move_sound;
+	audio_instance navy_select_sound;
+	audio_instance declaration_of_war_sound;
+	audio_instance chat_message_sound;
+	audio_instance error_sound;
+	audio_instance peace_sound;
+	audio_instance army_built_sound;
+	audio_instance navy_built_sound;
+	audio_instance factory_built_sound;
+	audio_instance election_sound;
+	audio_instance revolt_sound;
+	audio_instance fort_built_sound;
+	audio_instance railroad_built_sound;
+	audio_instance naval_base_built_sound;
+	audio_instance minor_event_sound;
+	audio_instance major_event_sound;
+	audio_instance decline_sound;
+	audio_instance accept_sound;
+	audio_instance diplomatic_request_sound;
 
 	std::vector<audio_instance> music_list;
 

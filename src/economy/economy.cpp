@@ -3736,6 +3736,16 @@ void resolve_constructions(sys::state& state) {
 			state.world.try_create_regiment_source(new_reg, c.get_pop());
 			move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
 
+			if(c.get_nation() == state.local_player_nation) {
+				notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "amsg_army_built");
+					},
+					"amsg_army_built",
+					state.local_player_nation,
+					sys::message_setting_type::army_built
+				});
+			}
+
 			state.world.delete_province_land_construction(c);
 		}
 	}
@@ -3776,6 +3786,16 @@ void resolve_constructions(sys::state& state) {
 					state.world.try_create_navy_membership(new_ship, a);
 					move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
+					if(c.get_nation() == state.local_player_nation) {
+						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "amsg_navy_built");
+							},
+							"amsg_navy_built",
+							state.local_player_nation,
+							sys::message_setting_type::navy_built
+						});
+					}
+
 					state.world.delete_province_naval_construction(c);
 				}
 			}
@@ -3802,6 +3822,40 @@ void resolve_constructions(sys::state& state) {
 		if(all_finished) {
 			if(state.world.province_get_building_level(for_province, t) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), t)) {
 				state.world.province_get_building_level(for_province, t) += 1;
+
+				if(state.world.province_building_construction_get_nation(c) == state.local_player_nation) {
+					switch(t) {
+					case province_building_type::naval_base:
+						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "amsg_naval_base_complete");
+							},
+							"amsg_naval_base_complete",
+							state.local_player_nation,
+							sys::message_setting_type::naval_base_complete
+						});
+						break;
+					case province_building_type::fort:
+						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "amsg_fort_complete");
+							},
+							"amsg_fort_complete",
+							state.local_player_nation,
+							sys::message_setting_type::fort_complete
+						});
+						break;
+					case province_building_type::railroad:
+						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+								text::add_line(state, contents, "amsg_rr_complete");
+							},
+							"amsg_rr_complete",
+							state.local_player_nation,
+							sys::message_setting_type::rr_complete
+						});
+						break;
+					default:
+						break;
+					}
+				}
 			}
 			state.world.delete_province_building_construction(c);
 		}
@@ -3849,6 +3903,17 @@ void resolve_constructions(sys::state& state) {
 			if(all_finished) {
 				add_factory_level_to_state(state, state.world.state_building_construction_get_state(c), type,
 						state.world.state_building_construction_get_is_upgrade(c));
+
+				if(state.world.state_building_construction_get_nation(c) == state.local_player_nation) {
+					notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "amsg_factory_complete");
+						},
+						"amsg_factory_complete",
+						state.local_player_nation,
+						sys::message_setting_type::factory_complete
+					});
+				}
+
 				state.world.delete_state_building_construction(c);
 			}
 		}

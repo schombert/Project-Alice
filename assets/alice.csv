@@ -1099,6 +1099,7 @@ msg_for_interesting;Interesting nation
 msg_for_other;Other nation
 msg_handling_ignore;Ignore the message
 msg_handling_log;Log the message
+msg_handling_sound;Log the message with a sound effect
 msg_handling_popup;Pop up a notification for the message
 msg_handling_pause;Pop up a notification for the message and pause the game until it is dismissed
 amsg_revolt;A revolt happens in the nation

@@ -36,5 +36,26 @@ void update_music_track(
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state);
+audio_instance& get_army_select_sound(sys::state& state);
+audio_instance& get_army_move_sound(sys::state& state);
+audio_instance& get_navy_select_sound(sys::state& state);
+audio_instance& get_navy_move_sound(sys::state& state);
+audio_instance& get_error_sound(sys::state& state);
+audio_instance& get_peace_sound(sys::state& state);
+audio_instance& get_army_built_sound(sys::state& state);
+audio_instance& get_navy_built_sound(sys::state& state);
+audio_instance& get_declaration_of_war_sound(sys::state& state);
+audio_instance& get_technology_finished_sound(sys::state& state);
+audio_instance& get_factory_built_sound(sys::state& state);
+audio_instance& get_election_sound(sys::state& state);
+audio_instance& get_revolt_sound(sys::state& state);
+audio_instance& get_fort_built_sound(sys::state& state);
+audio_instance& get_railroad_built_sound(sys::state& state);
+audio_instance& get_naval_base_built_sound(sys::state& state);
+audio_instance& get_minor_event_sound(sys::state& state);
+audio_instance& get_major_event_sound(sys::state& state);
+audio_instance& get_decline_sound(sys::state& state);
+audio_instance& get_accept_sound(sys::state& state);
+audio_instance& get_diplomatic_request_sound(sys::state& state);
 
 } // namespace sound
