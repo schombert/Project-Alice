@@ -826,11 +826,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 			// Diplomatic messages
 			auto* c5 = new_requests.front();
+			bool had_diplo_msg = false;
 			while(c5) {
 				static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				had_diplo_msg = true;
 				new_requests.pop();
 				c5 = new_requests.front();
 			}
+			if(had_diplo_msg) {
+				sound::play_effect(*this, sound::get_diplomatic_request_sound(*this), user_settings.interface_volume* user_settings.master_volume);
+			}
+
 			// Log messages
 			auto* c6 = new_messages.front();
 			while(c6) {
@@ -884,9 +890,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::province_event:
-					case message_setting_type::national_event:
 						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
 						break;
+					case message_setting_type::national_event:
 					case message_setting_type::major_event:
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
 						break;

@@ -164,6 +164,10 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("GI_SuccessBlip.wav"));
 		state.sound_ptr->accept_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
 	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_MessageWindow.wav"));
+		state.sound_ptr->diplomatic_request_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
+	}
 }
 void change_effect_volume(sys::state& state, float v) {
 	state.sound_ptr->set_volume(state.sound_ptr->effect_sound, v);
@@ -262,6 +266,9 @@ audio_instance& get_decline_sound(sys::state& state) {
 }
 audio_instance& get_accept_sound(sys::state& state) {
 	return state.sound_ptr->accept_sound;
+}
+audio_instance& get_diplomatic_request_sound(sys::state& state) {
+	return state.sound_ptr->diplomatic_request_sound;
 }
 
 } // namespace sound

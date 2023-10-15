@@ -80,6 +80,7 @@ public:
 	audio_instance major_event_sound;
 	audio_instance decline_sound;
 	audio_instance accept_sound;
+	audio_instance diplomatic_request_sound;
 
 	std::vector<audio_instance> music_list;
 

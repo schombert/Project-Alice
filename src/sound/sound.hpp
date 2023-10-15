@@ -56,5 +56,6 @@ audio_instance& get_minor_event_sound(sys::state& state);
 audio_instance& get_major_event_sound(sys::state& state);
 audio_instance& get_decline_sound(sys::state& state);
 audio_instance& get_accept_sound(sys::state& state);
+audio_instance& get_diplomatic_request_sound(sys::state& state);
 
 } // namespace sound
