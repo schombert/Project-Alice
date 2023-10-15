@@ -274,9 +274,10 @@ enum class message_setting_type : uint8_t {
 	cb_fab_finished = 95, // added
 	cb_fab_cancelled = 96, // added
 	crisis_voluntary_join = 97, // added
+	// split
 	army_built = 98, // added
 	navy_built = 99, // added
-	count = 100
+	count = 128
 };
 
 namespace  message_response {
