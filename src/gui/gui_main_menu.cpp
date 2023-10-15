@@ -131,6 +131,15 @@ void tooltip_mode_display::on_update(sys::state& state) noexcept {
 	if (state.user_settings.bind_tooltip_mouse)set_text(state, text::produce_simple_string(state, "bind_tooltip_mouse_stick"));
 	else set_text(state, text::produce_simple_string(state, "bind_tooltip_mouse_static"));
 }
+
+bool fow_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.fow_enabled;
+}
+void fow_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
+	send(state, parent, notify_setting_update{});
+}
+
 /*
 class autosave_left : public button_element_base {
 public:

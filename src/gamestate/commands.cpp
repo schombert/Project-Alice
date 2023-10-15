@@ -3541,6 +3541,8 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
+	} else if(reset) {
+		state.world.army_set_arrival_time(a, sys::date{});
 	}
 }
 
@@ -3622,6 +3624,8 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 		if(existing_path.at(new_size - 1) != old_first_prov) {
 			state.world.navy_set_arrival_time(n, military::arrival_time_to(state, n, path.back()));
 		}
+	} else if(reset) {
+		state.world.navy_set_arrival_time(n, sys::date{});
 	}
 }
 
@@ -5043,6 +5047,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_stop_game:
 		execute_notify_stop_game(state, c.source);
+		break;
+	case command_type::notify_reload_state:
+		// TODO: leaf, what is supposed to go here?
 		break;
 
 		// console commands

@@ -1966,7 +1966,8 @@ public:
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods &&
-						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
+						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
 				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
 				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) *
@@ -2006,7 +2007,8 @@ public:
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods &&
-						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
+						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
 				v.insert({state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index()});
 			}

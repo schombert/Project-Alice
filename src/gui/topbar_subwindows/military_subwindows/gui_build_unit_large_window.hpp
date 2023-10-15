@@ -307,6 +307,9 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
+		if(!utid)
+			return;
+
 		if(!content.continent) {
 			build_button->set_visible(state, true);
 			pop_size->set_visible(state, true);
@@ -522,21 +525,25 @@ public:
 			auto c = content.land_id;
 
 			dcon::unit_type_id utid = state.world.province_land_construction_get_type(c);
-			unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+			if(utid) {
+				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
 
-			auto culture_content = text::produce_simple_string(state,
-					state.world.pop_get_culture(state.world.province_land_construction_get_pop(c)).get_name());
-			auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
-			unit_name->set_text(state, culture_content + " " + unit_type_name);
-			queue_button->is_navy = false;
+				auto culture_content = text::produce_simple_string(state,
+						state.world.pop_get_culture(state.world.province_land_construction_get_pop(c)).get_name());
+				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
+				unit_name->set_text(state, culture_content + " " + unit_type_name);
+				queue_button->is_navy = false;
+			}
 		} else if(content.is_navy) {
 			auto c = content.naval_id;
 
 			dcon::unit_type_id utid = state.world.province_naval_construction_get_type(c);
-			unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+			if(utid) {
+				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
 
-			unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
-			queue_button->is_navy = true;
+				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+				queue_button->is_navy = true;
+			}
 		}
 	}
 

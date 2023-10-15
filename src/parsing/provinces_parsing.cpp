@@ -347,7 +347,7 @@ void province_history_file::any_value(std::string_view name, association_type, u
 			return;
 		}
 	}
-	err.accumulated_errors += "unknown province history key (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
+	err.accumulated_errors += "unknown province history key " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
 }
 
 void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {

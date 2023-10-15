@@ -106,6 +106,12 @@ class tooltip_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class fow_checkbox : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override;
+	void button_action(sys::state& state) noexcept override;
+};
+
 struct notify_setting_update { };
 
 class controls_menu_window : public window_element_base {
@@ -185,10 +191,10 @@ class graphics_menu_window : public window_element_base {
 
 		} else if(name == "fonts_left") {
 			return make_element_by_type<fonts_mode_right>(state, id);
-
 		} else if(name == "fonts_right") {
 			return make_element_by_type<fonts_mode_right>(state, id);
-
+		} else if(name == "fow_checkbox") {
+			return make_element_by_type<fow_checkbox>(state, id);
 		} else {
 			return nullptr;
 		}

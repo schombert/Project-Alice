@@ -205,7 +205,8 @@ void acting_modifiers_description_province(sys::state& state, text::layout_base&
 
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
 		dcon::provincial_modifier_value nmid, bool have_header) {
-	acting_modifiers_description_province(state, layout, p, identation, have_header, nmid);
+	bool header = !have_header;
+	acting_modifiers_description_province(state, layout, p, identation, header, nmid);
 }
 
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,

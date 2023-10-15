@@ -4342,6 +4342,19 @@ uint32_t ef_variable_good_name_province(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
+uint32_t ef_kill_leader(EFFECT_PARAMTERS) {
+	dcon::unit_name_id ename{ dcon::unit_name_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	auto esv = ws.to_string_view(ename);
+	for(auto l : ws.world.nation_get_leader_loyalty(trigger::to_nation(primary_slot))) {
+		auto n = l.get_leader().get_name();
+		auto nsv = ws.to_string_view(n);
+		if(nsv == esv) {
+			military::kill_leader(ws, l.get_leader());
+			return 0;
+		}
+	}
+	return 0;
+}
 uint32_t ef_define_general(EFFECT_PARAMTERS) {
 	auto l = fatten(ws.world, ws.world.create_leader());
 	l.set_since(ws.current_date);
@@ -4688,6 +4701,18 @@ uint32_t ef_build_university_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS
 		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_university) <= 1.0f)
 			ws.world.province_get_building_level(c, economy::province_building_type::university) += uint8_t(1);
 	}
+	return 0;
+}
+
+uint32_t ef_annex_to_null_nation(EFFECT_PARAMTERS) {
+	auto sprovs = ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot));
+	while(sprovs.begin() != sprovs.end()) {
+		province::change_province_owner(ws, (*sprovs.begin()).get_province().id, dcon::nation_id{});
+	}
+	return 0;
+}
+uint32_t ef_annex_to_null_province(EFFECT_PARAMTERS) {
+	province::change_province_owner(ws, trigger::to_prov(primary_slot), dcon::nation_id{ });
 	return 0;
 }
 
@@ -5113,6 +5138,9 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_bank_state, //constexpr inline uint16_t bank_state = 0x0196;
 		ef_university, //constexpr inline uint16_t university = 0x0197;
 		ef_university_state, //constexpr inline uint16_t university_state = 0x0198;
+		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
+		ef_annex_to_null_nation, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
+		ef_annex_to_null_province, //constexpr inline uint16_t annex_to_null_province = 0x019B;
 
 		//
 		// SCOPES

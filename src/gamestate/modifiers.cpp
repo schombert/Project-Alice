@@ -355,7 +355,7 @@ void recreate_national_modifiers(sys::state& state) {
 							}
 						}
 						if(total > 0.0f)
-							return occupied / total;
+							return 100.0f * occupied / total;
 						else
 							return 0.0f;
 					},

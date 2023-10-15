@@ -1250,9 +1250,12 @@ struct effect_body {
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
 					err.accumulated_errors +=
-							"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(value == "null") {
+				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+				return;
 			} else {
 				err.accumulated_errors +=
 						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1373,7 +1376,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::annex_to_this_pop | effect::no_payload));
 				else {
 					err.accumulated_errors += "annex_to = this effect used in an incorrect scope type (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1383,7 +1386,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::annex_to_from_province | effect::no_payload));
 				else {
 					err.accumulated_errors += "annex_to = from effect used in an incorrect scope type (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+						std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(value.length() == 3) {
@@ -1393,15 +1396,26 @@ struct effect_body {
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
 					err.accumulated_errors +=
-							"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(value == "null") {
+				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_nation | effect::no_payload));
+				return;
 			} else {
 				err.accumulated_errors +=
-						"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-
+		} else if(context.main_slot == trigger::slot_contents::province) {
+			if(value == "null") {
+				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+				return;
+			} else {
+				err.accumulated_errors += "annex_to effect used in an incorrect scope type (" + err.file_name + ", line " +
+					std::to_string(line) + ")\n";
+				return;
+			}
 		} else {
 			err.accumulated_errors +=
 					"annex_to effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3391,8 +3405,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void scaled_consciousness(ef_scaled_consciousness const& value, error_handler& err, int32_t line,
-			effect_building_context& context) {
+	void scaled_consciousness(ef_scaled_consciousness const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			if(bool(value.ideology_)) {
 				context.compiled_effect.push_back(effect::scaled_consciousness_ideology);
@@ -3453,6 +3466,7 @@ struct effect_body {
 	}
 	void define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context);
 	void define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context);
+	void kill_leader(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void add_war_goal(ef_add_war_goal const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation || context.from_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=

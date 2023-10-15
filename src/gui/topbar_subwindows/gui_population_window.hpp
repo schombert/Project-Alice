@@ -2163,8 +2163,7 @@ public:
 			content = any_cast<dcon::pop_type_id>(payload);
 			on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type<dcon::pop_location_id>() || payload.holds_type<dcon::value_modifier_key>() ||
-							payload.holds_type<float>()) {
+		} else if(payload.holds_type<dcon::pop_location_id>() || payload.holds_type<dcon::value_modifier_key>() || payload.holds_type<float>()) {
 			percent_text->impl_set(state, payload);
 			return message_result::consumed;
 		}
@@ -2434,8 +2433,6 @@ public:
 		set_visible(state, false);
 
 		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
-
-
 		{
 			auto win = make_element_by_type<pop_detailed_ideology_distribution>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
 			dist_windows.push_back(win.get());
@@ -2608,21 +2605,23 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_id>()) {
-			if(!std::holds_alternative<dcon::pop_id>(content))
-				return message_result::unseen;
-			payload.emplace<dcon::pop_id>(std::get<dcon::pop_id>(content));
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::religion_id>()) {
-			if(!std::holds_alternative<dcon::pop_id>(content))
-				return message_result::unseen;
-			payload.emplace<dcon::religion_id>(state.world.pop_get_religion(std::get<dcon::pop_id>(content)));
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::pop_type_id>()) {
-			if(!std::holds_alternative<dcon::pop_id>(content))
-				return message_result::unseen;
-			payload.emplace<dcon::pop_type_id>(state.world.pop_get_poptype(std::get<dcon::pop_id>(content)).id);
-			return message_result::consumed;
+		if(std::holds_alternative<dcon::pop_id>(content)) {
+			if(payload.holds_type<dcon::pop_id>()) {
+				payload.emplace<dcon::pop_id>(std::get<dcon::pop_id>(content));
+				return message_result::consumed;
+			} else if(payload.holds_type<dcon::religion_id>()) {
+				payload.emplace<dcon::religion_id>(state.world.pop_get_religion(std::get<dcon::pop_id>(content)));
+				return message_result::consumed;
+			} else if(payload.holds_type<dcon::pop_type_id>()) {
+				payload.emplace<dcon::pop_type_id>(state.world.pop_get_poptype(std::get<dcon::pop_id>(content)).id);
+				return message_result::consumed;
+			} else if(payload.holds_type<dcon::province_id>()) {
+				payload.emplace<dcon::province_id>(state.world.pop_get_province_from_pop_location(std::get<dcon::pop_id>(content)));
+				return message_result::consumed;
+			} else if(payload.holds_type<dcon::nation_id>()) {
+				payload.emplace<dcon::nation_id>(state.local_player_nation);
+				return message_result::consumed;
+			}
 		}
 		return message_result::unseen;
 	}
