@@ -82,6 +82,7 @@ public:
 	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
 			glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
+	void update_fog_of_war(sys::state& state);
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
@@ -128,6 +129,7 @@ private:
 	GLuint province_highlight = 0;
 	GLuint stripes_texture = 0;
 	GLuint unit_arrow_texture = 0;
+	GLuint province_fow = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;

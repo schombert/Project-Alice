@@ -231,6 +231,10 @@ public:
 				visible = false;
 				return;
 			}
+			if(!state.map_state.visible_provinces[province::to_map_id(port_for)]) {
+				visible = false;
+				return;
+			}
 			visible = true;
 
 			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
@@ -1544,6 +1548,10 @@ public:
 				visible = false;
 				return;
 			}
+			if(!state.map_state.visible_provinces[province::to_map_id(prov)]) {
+				visible = false;
+				return;
+			}
 			visible = true;
 		
 			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
@@ -1556,6 +1564,10 @@ public:
 				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 			glm::vec2 screen_pos;
 			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+				visible = false;
+				return;
+			}
+			if(!state.map_state.visible_provinces[province::to_map_id(prov)]) {
 				visible = false;
 				return;
 			}

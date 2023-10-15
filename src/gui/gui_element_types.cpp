@@ -1778,7 +1778,12 @@ void scrollbar::update_raw_value(sys::state& state, int32_t v) {
 	}
 }
 void scrollbar::update_scaled_value(sys::state& state, float v) {
-	int32_t rv = std::clamp(int32_t(v * float(settings.scaling_factor)), settings.lower_value, settings.upper_value);
+	float scaling_factor = float(settings.scaling_factor);
+	// Non-vanilla special accomodation
+	if(base_data.data.scrollbar.get_step_size() == ui::step_size::twenty_five) {
+		scaling_factor = 0.25f;
+	}
+	int32_t rv = std::clamp(int32_t(v * scaling_factor), settings.lower_value, settings.upper_value);
 	update_raw_value(state, rv);
 }
 float scrollbar::scaled_value() const {

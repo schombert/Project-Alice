@@ -247,6 +247,22 @@ guiTypes = {
 				quadTextureSprite = "option_next"
 			}
 
+			instantTextBoxType={
+				position = {x = 58 y = 330 }
+				name = "fow_label"
+				text = "fow_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			checkboxType = {
+				name = "fow_checkbox"
+				position = { x = 51 y = 330 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {
