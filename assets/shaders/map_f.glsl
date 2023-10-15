@@ -41,6 +41,8 @@ layout(location = 1) subroutine uniform get_water_class get_water;
 layout(index = 3) subroutine(get_water_class)
 vec4 get_water_terrain()
 {
+	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
+
 	// Water effect taken from Vic2 fx/water/PixelShader_HoiWater_2_0
 	const float WRAP = 0.8;
 	const float WaveModOne = 3.0;
@@ -98,7 +100,6 @@ vec4 get_water_terrain()
 	OutColor += (specular / SpecValueTwo);
 	OutColor *= 1.5;
 
-	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
 	OutColor *= texture(province_fow, prov_id).rgb;
 
 	return vec4(OutColor, vWaterTransparens);
