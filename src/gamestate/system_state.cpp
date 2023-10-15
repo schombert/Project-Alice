@@ -89,12 +89,12 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 				if(!fail) {
 					if(army_play) {
-						sound::play_effect(*this, sound::get_army_move_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_army_move_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						sound::play_effect(*this, sound::get_navy_move_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_navy_move_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
-					sound::play_effect(*this, sound::get_error_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+					sound::play_effect(*this, sound::get_error_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				}
 			} else {
 				sound::play_interface_sound(*this, sound::get_click_sound(*this),
@@ -757,8 +757,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 				if(auto_choice == 0) {
 					if(world.national_event_get_is_major(c1->e)) {
 						ui::national_major_event_window::new_event(*this, *c1);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					} else {
 						ui::national_event_window::new_event(*this, *c1);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					}
 				} else {
 					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
@@ -773,8 +775,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 				if(auto_choice == 0) {
 					if(world.free_national_event_get_is_major(c2->e)) {
 						ui::national_major_event_window::new_event(*this, *c2);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					} else {
 						ui::national_event_window::new_event(*this, *c2);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					}
 				} else {
 					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
@@ -788,6 +792,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
 				if(auto_choice == 0) {
 					ui::provincial_event_window::new_event(*this, *c3);
+					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
 				}
@@ -800,6 +805,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
 					ui::provincial_event_window::new_event(*this, *c4);
+					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
 				}
@@ -855,46 +861,46 @@ void state::render() { // called to render the frame may (and should) delay retu
 					switch(c6->type) {
 					case message_setting_type::war_on_nation:
 					case message_setting_type::war_by_nation:
-						sound::play_effect(*this, sound::get_declaration_of_war_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_declaration_of_war_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::peace_accepted_by_nation:
 					case message_setting_type::peace_accepted_from_nation:
-						sound::play_effect(*this, sound::get_peace_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_peace_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::tech:
-						sound::play_effect(*this, sound::get_technology_finished_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_technology_finished_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::factory_complete:
-						sound::play_effect(*this, sound::get_factory_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_factory_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::fort_complete:
-						sound::play_effect(*this, sound::get_fort_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_fort_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::rr_complete:
-						sound::play_effect(*this, sound::get_railroad_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_railroad_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::naval_base_complete:
-						sound::play_effect(*this, sound::get_naval_base_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_naval_base_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::electionstart:
 					case message_setting_type::electiondone:
-						sound::play_effect(*this, sound::get_election_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_election_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::revolt:
-						sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::army_built:
-						sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::navy_built:
-						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::province_event:
-						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::national_event:
 					case message_setting_type::major_event:
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::alliance_declined_by_nation:
 					case message_setting_type::alliance_declined_on_nation:
@@ -906,7 +912,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_setting_type::mil_access_declined_on_nation:
 					case message_setting_type::peace_rejected_by_nation:
 					case message_setting_type::peace_rejected_from_nation:
-						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_setting_type::alliance_starts:
 					case message_setting_type::ally_called_accepted_by_nation:
@@ -915,7 +921,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_setting_type::crisis_resolution_accepted:
 					case message_setting_type::mil_access_start_by_nation:
 					case message_setting_type::mil_access_start_on_nation:
-						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					default:
 						break;
@@ -940,8 +946,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
-
 				}
+
 				new_messages.pop();
 				c6 = new_messages.front();
 			}
