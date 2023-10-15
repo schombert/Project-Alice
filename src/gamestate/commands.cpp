@@ -5072,6 +5072,9 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::notify_stop_game:
 		execute_notify_stop_game(state, c.source);
 		break;
+	case command_type::notify_reload_state:
+		// TODO: leaf, what is supposed to go here?
+		break;
 
 		// console commands
 	case command_type::switch_nation:
