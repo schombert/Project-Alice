@@ -101,6 +101,55 @@ void display_data::update_borders(sys::state& state) {
 	}
 }
 
+void add_nation_visible_provinces(sys::state& state, std::vector<dcon::province_id>& list, dcon::nation_id n) {
+	for(auto pc : state.world.nation_get_province_control_as_nation(n))
+		list.push_back(pc.get_province());
+	for(auto ac : state.world.nation_get_army_control_as_controller(n))
+		list.push_back(ac.get_army().get_location_from_army_location());
+	for(auto nc : state.world.nation_get_navy_control_as_controller(n))
+		list.push_back(nc.get_navy().get_location_from_navy_location());
+}
+
+void display_data::update_fog_of_war(sys::state& state) {
+	std::vector<dcon::province_id> direct_provinces;
+	add_nation_visible_provinces(state, direct_provinces, state.local_player_nation);
+	for(auto urel : state.world.nation_get_overlord_as_ruler(state.local_player_nation))
+		add_nation_visible_provinces(state, direct_provinces, urel.get_subject());
+	for(auto rel : state.world.nation_get_diplomatic_relation(state.local_player_nation)) {
+		if(rel.get_are_allied()) {
+			auto n = rel.get_related_nations(0) == state.local_player_nation ? rel.get_related_nations(1) : rel.get_related_nations(0);
+			add_nation_visible_provinces(state, direct_provinces, n);
+			for(auto urel : state.world.nation_get_overlord_as_ruler(n))
+				add_nation_visible_provinces(state, direct_provinces, urel.get_subject());
+		}
+	}
+
+	// update fog of war too
+	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
+	if(fow_enabled) {
+		state.map_state.visible_provinces.clear();
+		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
+		for(auto p : direct_provinces) {
+			if(bool(p)) {
+				state.map_state.visible_provinces[province::to_map_id(p)] = true;
+				for(auto c : state.world.province_get_province_adjacency(p)) {
+					auto pc = c.get_connected_provinces(0) == p ? c.get_connected_provinces(1) : c.get_connected_provinces(0);
+					if(bool(pc)) {
+						state.map_state.visible_provinces[province::to_map_id(pc)] = true;
+					}
+				}
+			}
+		}
+		for(auto p : state.world.in_province)
+			province_fows[province::to_map_id(p)] = uint32_t(state.map_state.visible_provinces[province::to_map_id(p)] ? 0xFFFFFFFF : 0x7B7B7B7B);
+		gen_prov_color_texture(province_fow, province_fows);
+	} else {
+		state.map_state.visible_provinces.clear();
+		state.map_state.visible_provinces.resize(state.world.province_size() + 1, true);
+		gen_prov_color_texture(province_fow, province_fows);
+	}
+}
+
 void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void const* offset) {
 	glVertexAttribFormat(index, size, type, normalized, stride);
 	glEnableVertexAttribArray(index);
@@ -284,6 +333,8 @@ display_data::~display_data() {
 		glDeleteTextures(1, &stripes_texture);
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
+	if(province_fow)
+		glDeleteTextures(1, &province_fow);
 	if(unit_arrow_texture)
 		glDeleteTextures(1, &unit_arrow_texture);
 
@@ -385,6 +436,8 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindTexture(GL_TEXTURE_2D, stripes_texture);
 	glActiveTexture(GL_TEXTURE12);
 	glBindTexture(GL_TEXTURE_2D, unit_arrow_texture);
+	glActiveTexture(GL_TEXTURE13);
+	glBindTexture(GL_TEXTURE_2D, province_fow);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -563,8 +616,9 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 
 void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
-	if(prov_id)
+	if(prov_id) {
 		province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
+	}
 	gen_prov_color_texture(province_highlight, province_highlights);
 }
 
@@ -810,6 +864,13 @@ void display_data::load_map(sys::state& state) {
 	glBindTexture(GL_TEXTURE_2D, province_highlight);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(province_highlight, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Get the province_fow handle
+	glGenTextures(1, &province_fow);
+	glBindTexture(GL_TEXTURE_2D, province_fow);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
+	set_gltex_parameters(province_fow, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	uint32_t province_size = state.world.province_size() + 1;

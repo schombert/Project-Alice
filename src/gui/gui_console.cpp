@@ -34,7 +34,8 @@ struct command_info {
 		end_game,
 		event,
 		militancy,
-		dump_out_of_sync
+		dump_out_of_sync,
+		fog_of_war
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -118,6 +119,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"oos", command_info::type::dump_out_of_sync, "Dump an OOS save",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"fow", command_info::type::fog_of_war, "Toggles fog of war ON/OFF",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 	};
@@ -1065,6 +1069,10 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::dump_out_of_sync:
 		state.debug_oos_dump();
+		break;
+	case command_info::type::fog_of_war:
+		state.map_state.map_data.fow_enabled = !state.map_state.map_data.fow_enabled;
+		state.map_state.map_data.update_fog_of_war(state);
 		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");

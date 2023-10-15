@@ -11,6 +11,7 @@ layout (binding = 8) uniform sampler2DArray province_color;
 layout (binding = 9) uniform sampler2D colormap_political;
 layout (binding = 10) uniform sampler2D province_highlight;
 layout (binding = 11) uniform sampler2D stripes_texture;
+layout (binding = 13) uniform sampler2D province_fow;
 
 // location 0 : offset
 // location 1 : zoom
@@ -97,6 +98,9 @@ vec4 get_water_terrain()
 	OutColor += (specular / SpecValueTwo);
 	OutColor *= 1.5;
 
+	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
+	OutColor *= texture(province_fow, prov_id).rgb;
+
 	return vec4(OutColor, vWaterTransparens);
 }
 
@@ -173,6 +177,7 @@ vec4 get_land_political_close() {
 	// Mix together the primary and secondary colors with the stripes
 	float stripeFactor = texture(stripes_texture, stripe_coord).a;
 	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + texture(province_highlight, prov_id), 0.0, 1.0).rgb;
+	political *= texture(province_fow, prov_id).rgb;
 	political = political - 0.7;
 
 	// Mix together the terrain and map mode color
