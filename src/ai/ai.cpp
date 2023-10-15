@@ -999,7 +999,7 @@ void update_ai_econ_construction(sys::state& state) {
 			{ issue_rule::build_university, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
 		};
 		for(auto i = 0; i < 3; i++) {
-			if((rules & econ_buildable[i].issue_bits) != 0 && max_projects > 0) {
+			if(state.economy_definitions.building_definitions[int32_t(econ_buildable[i].type)].defined && (rules& econ_buildable[i].issue_bits) != 0 && max_projects > 0) {
 				project_provs.clear();
 				for(auto o : n.get_province_ownership()) {
 					if(n != o.get_province().get_nation_from_province_control())
