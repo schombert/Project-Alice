@@ -78,6 +78,8 @@ public:
 	audio_instance naval_base_built_sound;
 	audio_instance minor_event_sound;
 	audio_instance major_event_sound;
+	audio_instance decline_sound;
+	audio_instance accept_sound;
 
 	std::vector<audio_instance> music_list;
 

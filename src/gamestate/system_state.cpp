@@ -890,6 +890,27 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_setting_type::major_event:
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
 						break;
+					case message_setting_type::alliance_declined_by_nation:
+					case message_setting_type::alliance_declined_on_nation:
+					case message_setting_type::ally_called_declined_by_nation:
+					case message_setting_type::crisis_join_offer_declined_by_nation:
+					case message_setting_type::crisis_join_offer_declined_from_nation:
+					case message_setting_type::crisis_resolution_declined_from_nation:
+					case message_setting_type::mil_access_declined_by_nation:
+					case message_setting_type::mil_access_declined_on_nation:
+					case message_setting_type::peace_rejected_by_nation:
+					case message_setting_type::peace_rejected_from_nation:
+						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						break;
+					case message_setting_type::alliance_starts:
+					case message_setting_type::ally_called_accepted_by_nation:
+					case message_setting_type::crisis_join_offer_accepted_by_nation:
+					case message_setting_type::crisis_join_offer_accepted_from_nation:
+					case message_setting_type::crisis_resolution_accepted:
+					case message_setting_type::mil_access_start_by_nation:
+					case message_setting_type::mil_access_start_on_nation:
+						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						break;
 					default:
 						break;
 					}

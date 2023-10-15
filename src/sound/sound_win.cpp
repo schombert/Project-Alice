@@ -339,6 +339,14 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Attention.wav"));
 		state.sound_ptr->major_event_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
 	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_FailureBlip.wav"));
+		state.sound_ptr->decline_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_SuccessBlip.wav"));
+		state.sound_ptr->accept_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
 }
 
 // these functions are called to change the volume of the currently playing track or effect
@@ -440,6 +448,12 @@ audio_instance& get_minor_event_sound(sys::state& state) {
 }
 audio_instance& get_major_event_sound(sys::state& state) {
 	return state.sound_ptr->major_event_sound;
+}
+audio_instance& get_decline_sound(sys::state& state) {
+	return state.sound_ptr->decline_sound;
+}
+audio_instance& get_accept_sound(sys::state& state) {
+	return state.sound_ptr->accept_sound;
 }
 
 } // namespace sound
