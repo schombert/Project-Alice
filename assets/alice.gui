@@ -743,6 +743,20 @@ guiTypes = {
 			borderSize = { x = 0 y = 0 }
 		}
 	}
+
+	windowType = {
+		name = "alice_small_port_icon"
+		position = { x= 0 y = 0 }
+		size = { x=1 y = 1 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+		iconType = {
+			name = "icon"
+			spriteType = "GFX_alice_small_port"
+			position = { x=-18 y=-18 }
+			Orientation = "UPPER_LEFT"
+		}
+	}
 	
 	windowType = {
 		name = "alice_port_icon"
