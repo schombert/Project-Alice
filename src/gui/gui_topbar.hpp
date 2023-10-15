@@ -1520,24 +1520,24 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto nation_fat_id = dcon::fatten(state.world, nation_id);
-		if(nations::can_expand_colony(state, nation_id)) {
-			nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
-				auto sdef = state.world.colonization_get_state(colony);
-				if(province::can_invest_in_colony(state, nation_id, sdef)) {
-					text::add_line(state, contents, "countryalert_colonialgood_state", text::variable_type::region, sdef);
+
+		bool is_empty = true;
+		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
+			auto sdef = state.world.colonization_get_state(colony);
+			if(province::can_invest_in_colony(state, nation_id, sdef)) {
+				text::add_line(state, contents, "countryalert_colonialgood_state", text::variable_type::region, sdef);
+				is_empty = false;
+			}
+			auto lvl = state.world.colonization_get_level(colony);
+			for(auto cols : state.world.state_definition_get_colonization(sdef)) {
+				if(lvl < cols.get_level()) {
+					text::add_line(state, contents, "countryalert_colonialbad_influence", text::variable_type::region, sdef);
+					is_empty = false;
 				}
-			});
-		} else if(nations::is_losing_colonial_race(state, nation_id)) {
-			nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
-				auto sdef = state.world.colonization_get_state(colony);
-				auto lvl = state.world.colonization_get_level(colony);
-				for(auto cols : state.world.state_definition_get_colonization(sdef)) {
-					if(lvl < cols.get_level()) {
-						text::add_line(state, contents, "countryalert_colonialbad_influence", text::variable_type::region, sdef);
-					}
-				}
-			});
-		} else {
+			}
+		});
+
+		if(is_empty) {
 			text::add_line(state, contents, "countryalert_no_colonial");
 		}
 	}
