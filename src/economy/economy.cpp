@@ -846,6 +846,12 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 	auto fac = fatten(state.world, f);
 	auto fac_type = fac.get_building_type();
 
+	assert(fac_type);
+	assert(fac_type.get_output());
+	assert(n);
+	assert(p);
+	assert(s);
+
 	float input_total = 0.0f;
 	float min_input_available = 1.0f;
 	auto& inputs = fac_type.get_inputs();

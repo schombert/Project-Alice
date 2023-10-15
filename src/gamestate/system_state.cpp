@@ -2505,6 +2505,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			parsers::production_context new_context{context};
 			parsers::parse_production_types_file(gen, err, new_context);
 
+			for(const auto ft : world.in_factory_type) {
+				if(!bool(world.factory_type_get_output(ft))) {
+					err.accumulated_errors += "No output defined for factory " + std::string(text::produce_simple_string(*this, world.factory_type_get_name(ft))) + " (" + err.file_name + ")\n";
+				}
+			}
 			if(!new_context.found_worker_types) {
 				err.fatal = true;
 				err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
