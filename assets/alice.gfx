@@ -85,6 +85,16 @@ spriteTypes = {
 		noOfFrames = 5
 	}
 	spriteType = {
+		name = "GFX_alice_small_port_expanded"
+		texturefile = "assets\\port_small.png"
+		noOfFrames = 5
+	}
+	spriteType = {
+		name = "GFX_alice_small_port_icon"
+		texturefile = "assets\\port_small_nc.png"
+		noOfFrames = 5
+	}
+	spriteType = {
 		name = "GFX_alice_port_levels"
 		texturefile = "assets\\port_bars.png"
 		noOfFrames = 5
