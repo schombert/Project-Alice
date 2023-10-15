@@ -128,11 +128,13 @@ public:
 
 		if(current == sys::message_response::standard_pause) {
 			frame = 3;
-		} else  if(current == sys::message_response::standard_popup) {
+		} else if(current == sys::message_response::standard_popup) {
 			frame = 2;
-		} else  if(current == sys::message_response::log) {
+		} else if(current == sys::message_response::standard_sound) {
+			frame = 4;
+		} else if(current == sys::message_response::log) {
 			frame = 1;
-		} else  if(current == sys::message_response::ignore) {
+		} else if(current == sys::message_response::ignore) {
 			frame = 0;
 		} else {
 			frame = 0;
@@ -151,11 +153,13 @@ public:
 
 		if(current == sys::message_response::standard_pause) {
 			current = sys::message_response::ignore;
-		} else  if(current == sys::message_response::standard_popup) {
+		} else if(current == sys::message_response::standard_popup) {
 			current = sys::message_response::standard_pause;
-		} else  if(current == sys::message_response::log) {
+		} else if(current == sys::message_response::standard_sound) {
 			current = sys::message_response::standard_popup;
-		} else  if(current == sys::message_response::ignore) {
+		} else if(current == sys::message_response::log) {
+			current = sys::message_response::standard_sound;
+		} else if(current == sys::message_response::ignore) {
 			current = sys::message_response::log;
 		} else {
 			current = sys::message_response::ignore;
@@ -186,6 +190,8 @@ public:
 		if(current == sys::message_response::standard_pause) {
 			current = sys::message_response::standard_popup;
 		} else  if(current == sys::message_response::standard_popup) {
+			current = sys::message_response::standard_sound;
+		} else  if(current == sys::message_response::standard_sound) {
 			current = sys::message_response::log;
 		} else  if(current == sys::message_response::log) {
 			current = sys::message_response::ignore;
@@ -224,6 +230,8 @@ public:
 			text::add_line(state, contents, "msg_handling_pause");
 		} else  if(current == sys::message_response::standard_popup) {
 			text::add_line(state, contents, "msg_handling_popup");
+		} else  if(current == sys::message_response::standard_sound) {
+			text::add_line(state, contents, "msg_handling_sound");
 		} else  if(current == sys::message_response::log) {
 			text::add_line(state, contents, "msg_handling_log");
 		} else  if(current == sys::message_response::ignore) {
