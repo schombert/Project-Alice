@@ -25,10 +25,18 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
-class projection_mode_checkbox : public checkbox_button {
+class projection_mode_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
-	bool is_active(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class projection_mode_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class projection_mode_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
 };
 class fonts_mode_checkbox : public checkbox_button {
 public:
@@ -127,8 +135,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<ui_scale_right>(state, id);
 		} else if(name == "window_mode_checkbox") {
 			return make_element_by_type<window_mode_checkbox>(state, id);
-		} else if(name == "projection_checkbox") {
-			return make_element_by_type<projection_mode_checkbox>(state, id);
+		} else if(name == "projection_left") {
+			return make_element_by_type<projection_mode_left>(state, id);
+		} else if(name == "projection_right") {
+			return make_element_by_type<projection_mode_right>(state, id);
+		} else if(name == "projection_value") {
+			return make_element_by_type<projection_mode_display>(state, id);
 		} else if(name == "fonts_checkbox") {
 			return make_element_by_type<fonts_mode_checkbox>(state, id);
 		} else if(name == "fow_checkbox") {

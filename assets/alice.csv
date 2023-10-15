@@ -6,7 +6,9 @@ sound_options;Sound Options;;;Opciones de audio;;;;;;;;;x
 controls_options;Misc. Options;;;Opciones de controles;;;;;;;;;x
 message_settings_options;Message Settings;;;Configuracion de mensajes;;;;;;;;;x
 window_mode_label;Fullscreen;;;Pantalla completa;;;;;;;;;x
-map_projection_label;Equirectangular map;;;Mapa equirectangular;;;;;;;;;x
+map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
+map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
+map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x

@@ -127,20 +127,38 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 168 }
+				position = {x = 58 y = 157 }
 				name = "projection_label"
-				text = "map_projection_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "map_projection"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			instantTextBoxType={
+				position = {x = 58 y = 175 }
+				name = "projection_value"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = left
+				format = centre
 			}
+
 			guiButtonType = {
-				name = "projection_checkbox"
+				name = "projection_left"
 				position = { x = 51 y = 168 }
-				quadTextureSprite = "GFX_checkbox_default"
+				quadTextureSprite = "option_prev"
+			}
+
+			guiButtonType = {
+				name = "projection_right"
+				position = { x = 269 y = 168 }
+				quadTextureSprite = "option_next"
 			}
 
 			instantTextBoxType={

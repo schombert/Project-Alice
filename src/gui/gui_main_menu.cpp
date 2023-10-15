@@ -149,12 +149,19 @@ bool window_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.prefer_fullscreen;
 }
 
-void projection_mode_checkbox::button_action(sys::state& state) noexcept {
+void projection_mode_left::button_action(sys::state& state) noexcept {
 	state.user_settings.map_is_globe = !state.user_settings.map_is_globe;
 	send(state, parent, notify_setting_update{});
 }
-bool projection_mode_checkbox::is_active(sys::state& state) noexcept {
-	return state.user_settings.map_is_globe;
+void projection_mode_left::on_update(sys::state& state) noexcept { }
+void projection_mode_right::button_action(sys::state& state) noexcept {
+	state.user_settings.map_is_globe = !state.user_settings.map_is_globe;
+	send(state, parent, notify_setting_update{});
+}
+void projection_mode_right::on_update(sys::state& state) noexcept { }
+void projection_mode_display::on_update(sys::state& state) noexcept {
+	auto it = state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
+	set_text(state, text::produce_simple_string(state, it));
 }
 
 void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
