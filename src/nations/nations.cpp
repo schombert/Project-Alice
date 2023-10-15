@@ -939,7 +939,7 @@ void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nat
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
 	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, std::max(val, 100.0f));
+	val = std::clamp(val + delta, -200.0f, std::min(val, 100.0f));
 }
 
 void update_monthly_points(sys::state& state) {
