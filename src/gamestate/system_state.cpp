@@ -1647,6 +1647,7 @@ void state::save_user_settings() const {
 		ptr += sizeof(user_settings.x);
 	US_SAVE(ui_scale);
 	US_SAVE(master_volume);
+	US_SAVE(music_volume);
 	US_SAVE(effects_volume);
 	US_SAVE(interface_volume);
 	US_SAVE(prefer_fullscreen);
@@ -1686,6 +1687,7 @@ void state::load_user_settings() {
 		ptr += sizeof(user_settings.x);
 		US_LOAD(ui_scale);
 		US_LOAD(master_volume);
+		US_LOAD(music_volume);
 		US_LOAD(effects_volume);
 		US_LOAD(interface_volume);
 		US_LOAD(prefer_fullscreen);
