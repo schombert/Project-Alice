@@ -1917,11 +1917,9 @@ public:
 			return make_element_by_type<topbar_nation_mobilization_size_text>(state, id);
 		} else if(name == "military_leadership_value") {
 			return make_element_by_type<topbar_nation_leadership_points_text>(state, id);
-		} else if(name == "topbar_outlinerbutton") {
+		} else if(name == "topbar_outlinerbutton" || name == "topbar_outlinerbutton_bg") {
 			// Fake button isn't used - we create it manually instead...
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name.substr(0, 13) == "topbar_import") {
 			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
 			std::string var = std::string{name.substr(13)};

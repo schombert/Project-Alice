@@ -495,9 +495,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "button2") {
 			auto ptr = make_element_by_type<ui::unit_queue_button>(state, id);
 			ptr->set_button_text(state, "");
@@ -651,9 +649,7 @@ public:
 			units_queue = ptr.get();
 			return ptr;
 		} else if(name == "external_scroll_slider_list") {
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "units_being_built_number") {
 			{
 				auto ptr = make_element_by_type<land_unit_under_construction_count>(state, id);
@@ -666,9 +662,7 @@ public:
 				return ptr;
 			}
 		} else if(name == "external_scroll_slider_queue") {
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name.substr(0, 12) == "unit_folder_") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			int32_t value = std::stoi(std::string(name.substr(12)));

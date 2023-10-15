@@ -466,17 +466,11 @@ public:
 		} else if(name == "flashpoint_indicator") {
 			return make_element_by_type<province_flashpoint_indicator>(state, id);
 		} else if(name == "occupation_progress") {
-			auto ptr = make_element_immediate(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "occupation_icon") {
-			auto ptr = make_element_immediate(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "occupation_flag") {
-			auto ptr = make_element_immediate(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
@@ -1128,10 +1122,7 @@ public:
 			|| name == "rallypoint_merge_checkbox"
 			|| name == "rallypoint_checkbox_naval"
 			|| name == "rallypoint_merge_checkbox_naval") {
-
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1520,10 +1511,7 @@ public:
 			|| name == "build_army"
 			|| name == "build_navy"
 			|| name == "navy_icon") {
-
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1895,10 +1883,7 @@ public:
 			|| name == "rallypoint_merge_checkbox"
 			|| name == "rallypoint_checkbox_naval"
 			|| name == "rallypoint_merge_checkbox_naval") {
-
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}

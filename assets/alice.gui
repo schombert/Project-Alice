@@ -110,20 +110,9 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 104 }
+				position = {x = 58 y = 115 }
 				name = "window_mode_label"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "window_mode"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = {x = 58 y = 122 }
-				name = "window_mode_value"
+				text = "window_mode_label"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
@@ -131,52 +120,27 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-
 			guiButtonType = {
-				name = "window_mode_left"
+				name = "window_mode_checkbox"
 				position = { x = 51 y = 115 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "window_mode_right"
-				position = { x = 269 y = 115 }
-				quadTextureSprite = "option_next"
+				quadTextureSprite = "GFX_checkbox_default"
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 157 }
+				position = {x = 58 y = 168 }
 				name = "projection_label"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "map_projection"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = {x = 58 y = 175 }
-				name = "projection_value"
+				text = "projection_label"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
-
 			guiButtonType = {
-				name = "projection_left"
+				name = "projection_checkbox"
 				position = { x = 51 y = 168 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "projection_right"
-				position = { x = 269 y = 168 }
-				quadTextureSprite = "option_next"
+				quadTextureSprite = "GFX_checkbox_default"
 			}
 
 			instantTextBoxType={
@@ -213,38 +177,22 @@ guiTypes = {
 				position = { x = 269 y = 221 }
 				quadTextureSprite = "option_next"
 			}
+
 			instantTextBoxType={
-				position = {x = 58 y = 270 }
+				position = {x = 58 y = 281 }
 				name = "fonts_label"
+				text = "fonts_label"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
-
-			instantTextBoxType={
-				position = {x = 58 y = 288 }
-				name = "fonts_value"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
 			guiButtonType = {
-				name = "fonts_left"
+				name = "fonts_checkbox"
 				position = { x = 51 y = 281 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "fonts_right"
-				position = { x = 269 y = 281 }
-				quadTextureSprite = "option_next"
+				quadTextureSprite = "GFX_checkbox_default"
 			}
 
 			instantTextBoxType={
@@ -256,7 +204,7 @@ guiTypes = {
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			checkboxType = {
 				name = "fow_checkbox"
@@ -358,38 +306,20 @@ guiTypes = {
 			}
 			
 			instantTextBoxType={
-				position = {x = 58 y = 210 }
+				position = {x = 58 y = 221 }
 				name = "tooltip_mode_label"
-				font = "Arial16"
-				borderSize = {x = 0 y = 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "bind_tooltip_mouse_label"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = {x = 58 y = 228 }
-				name = "tooltip_mode_value"
+				text = "tooltip_mode_label"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
-
 			guiButtonType = {
-				name = "tooltip_mode_left"
+				name = "tooltip_mode_checkbox"
 				position = { x = 51 y = 221 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "tooltip_mode_right"
-				position = { x = 269 y = 221 }
-				quadTextureSprite = "option_next"
+				quadTextureSprite = "GFX_checkbox_default"
 			}
 		}
 
