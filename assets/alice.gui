@@ -1111,7 +1111,7 @@ guiTypes = {
 			instantTextBoxType={
 				position = {x = 26 y = 3 }
 				name = "strength"
-				font = "Arial12"
+				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 32
 				maxHeight = 13
