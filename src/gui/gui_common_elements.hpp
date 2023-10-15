@@ -48,19 +48,13 @@ class country_sort_button : public button_element_base {
 public:
 	uint8_t offset = 0;
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<country_list_sort>{country_list_sort(uint8_t(Sort) | offset)};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<country_list_sort>{country_list_sort(uint8_t(Sort) | offset)});
 	}
 };
 
 class country_sort_by_player_investment : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<country_list_sort>{country_list_sort::player_investment};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<country_list_sort>{country_list_sort::player_investment});
 	}
 };
 
@@ -493,14 +487,9 @@ public:
 class nation_overlord_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id sphereling_id = Cyto::any_cast<dcon::nation_id>(payload);
-			auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
-			return ovr_id.get_identity_from_identity_holder();
-		}
-		return dcon::national_identity_id{};
+		dcon::nation_id sphereling_id = retrieve<dcon::nation_id>(state, parent);
+		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
+		return ovr_id.get_identity_from_identity_holder();
 	}
 
 	void on_update(sys::state& state) noexcept override {

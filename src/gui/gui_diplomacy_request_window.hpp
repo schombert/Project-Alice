@@ -15,10 +15,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{Left};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<bool>{Left});
 	}
 };
 
@@ -29,15 +26,9 @@ template<bool B>
 class diplomacy_request_reply_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = diplomatic_message::message{};
-			parent->impl_get(state, payload);
-			diplomatic_message::message m = any_cast<diplomatic_message::message>(payload);
-			command::respond_to_diplomatic_message(state, state.local_player_nation, m.from, m.type, B);
-
-			Cyto::Any n_payload = diplomacy_reply_taken_notification{};
-			parent->impl_get(state, n_payload);
-		}
+		diplomatic_message::message m = retrieve<diplomatic_message::message>(state, parent);
+		command::respond_to_diplomatic_message(state, state.local_player_nation, m.from, m.type, B);
+		send(state, parent, diplomacy_reply_taken_notification{});
 	}
 };
 

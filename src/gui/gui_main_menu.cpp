@@ -194,9 +194,7 @@ void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 		else
 			sound::stop_music(state);
 	}
-	Cyto::Any payload = notify_setting_update{};
-	if(parent)
-		parent->impl_get(state, payload);
+	send(state, parent, notify_setting_update{});
 }
 void music_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 	auto float_v = float(v) / 128.0f;

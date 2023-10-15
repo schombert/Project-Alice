@@ -298,10 +298,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = open_msg_log_data{};
-			parent->impl_set(state, payload);
-		}
+		send(state, parent, open_msg_log_data{});
 	}
 };
 

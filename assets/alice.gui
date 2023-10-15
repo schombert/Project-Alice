@@ -110,7 +110,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 115 }
+				position = {x = 68 y = 115 }
 				name = "window_mode_label"
 				text = "window_mode_label"
 				font = "Arial16"
@@ -127,9 +127,9 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 168 }
+				position = {x = 68 y = 168 }
 				name = "projection_label"
-				text = "projection_label"
+				text = "map_projection_label"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
@@ -179,7 +179,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 281 }
+				position = {x = 68 y = 281 }
 				name = "fonts_label"
 				text = "fonts_label"
 				font = "Arial16"
@@ -196,7 +196,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 330 }
+				position = {x = 68 y = 330 }
 				name = "fow_label"
 				text = "fow_label"
 				font = "Arial16"
@@ -306,7 +306,7 @@ guiTypes = {
 			}
 			
 			instantTextBoxType={
-				position = {x = 58 y = 221 }
+				position = {x = 68 y = 221 }
 				name = "tooltip_mode_label"
 				text = "tooltip_mode_label"
 				font = "Arial16"

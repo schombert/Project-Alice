@@ -15,10 +15,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{Left};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<bool>{Left});
 	}
 };
 
@@ -29,10 +26,7 @@ struct message_dismiss_notification {
 class message_dismiss_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = message_dismiss_notification{};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, message_dismiss_notification{});
 	}
 };
 

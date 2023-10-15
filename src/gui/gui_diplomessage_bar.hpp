@@ -49,21 +49,14 @@ public:
 
 class diplomessage_listbox : public overlapping_listbox_element_base<diplomessage_entry_win, evententry> {
 public:
-    void on_update(sys::state& state) noexcept override {
-        if(parent) {
-            Cyto::Any payload = std::vector<evententry>{};
-            parent->impl_get(state, payload);
-            std::vector<evententry> entries = any_cast<std::vector<evententry>>(payload);
-
-            row_contents.clear();
-
-            for(auto n : entries) {
-                row_contents.push_back(n);
-            }
-
-            update(state);
-        }
-    }
+	void on_update(sys::state& state) noexcept override {
+		std::vector<evententry> entries = retrieve<std::vector<evententry>>(state, parent);
+		row_contents.clear();
+		for(auto n : entries) {
+			row_contents.push_back(n);
+		}
+		update(state);
+	}
 };
 
 class diplomessage_window : public window_element_base {
