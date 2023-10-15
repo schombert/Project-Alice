@@ -1027,13 +1027,9 @@ public:
 		} else if(name == "goods_price") {
 			return make_element_by_type<commodity_price_text>(state, id);
 		} else if(name == "automate_label") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "automate") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "price_linechart") {
 			return make_element_by_type<prices_line_graph>(state, id);
 		} else if(name == "price_chart_low") {
@@ -1041,13 +1037,7 @@ public:
 		} else if(name == "price_chart_high") {
 			return make_element_by_type<price_chart_high>(state, id);
 		} else if(name == "price_chart_time") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "automate") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "sell_stockpile") {
 			return make_element_by_type<stockpile_sell_button>(state, id);
 		} else if(name == "sell_stockpile_label") {
@@ -1065,19 +1055,13 @@ public:
 		} else if(name == "goods_details") {
 			return make_element_by_type<trade_details_button>(state, id);
 		} else if(name == "goods_need_gov_desc") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "goods_need_factory_desc") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "produced_detail_desc") {
 			return make_element_by_type<detail_domestic_production>(state, id);
 		} else if(name == "goods_need_pop_desc") {
-			auto ptr = std::make_unique<ui::element_base>();
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}

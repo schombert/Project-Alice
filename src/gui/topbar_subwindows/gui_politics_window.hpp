@@ -347,9 +347,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "politics_selectparty_entrybg") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "party_name") {
 			return make_element_by_type<politics_change_party_button>(state, id);
 		} else if(name == "party_icon") {

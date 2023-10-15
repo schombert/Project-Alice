@@ -376,10 +376,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<message_settings_category>{Filter};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<message_settings_category>{Filter});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

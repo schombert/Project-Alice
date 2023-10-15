@@ -375,8 +375,7 @@ protected:
 	}
 
 	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) {
-		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
-		subwindow.impl_get(state, payload);
+		send(state, &subwindow, wrapped_listbox_row_content<ItemConT>(content));
 		subwindow.impl_on_update(state);
 	}
 
@@ -501,10 +500,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept final {
-		if(parent) {
-			Cyto::Any payload = target;
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, target);
 	}
 
 	TabT target = TabT();
@@ -518,10 +514,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept final {
-		if(parent) {
-			Cyto::Any payload = target;
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, target);
 	}
 
 	void on_create(sys::state& state) noexcept final{};

@@ -131,17 +131,12 @@ public:
 			auto ptr = make_element_by_type<window_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
-
-		} else if(name == "back_button") { // Handle Junk Button
-			auto ptr = make_element_by_type<opaque_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-
-		} else if(name == "start_button") { // Handle Junk Button
-			auto ptr = make_element_by_type<opaque_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-
+		} else if(name == "back_button") {
+			// Handle Junk Button
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "start_button") {
+			// Handle Junk Button
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}

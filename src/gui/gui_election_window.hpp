@@ -78,18 +78,14 @@ public:
 		if(name == "legend_color") {
 			return make_element_by_type<ideology_plupp>(state, id);
 		} else if(name == "legend_title") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			partyname = ptr.get();
-			return ptr;
+			return make_element_by_type<generic_name_text<dcon::political_party_id>>(state, id);
 		} else if(name == "legend_desc") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			ptr->base_data.position.x += 4;	// Nudge
 			partyvalue = ptr.get();
 			return ptr;
 		} else if(name == "legend_value") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false); // Unused ?
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -97,9 +93,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto issid = retrieve<dcon::issue_id>(state, parent);
-		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
-		partyvalue->set_text(state,
-				text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
+		partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -227,9 +221,7 @@ public:
 			return ptr;
 
 		} else if(name == "perc_of_parlament") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false); // This does not appear to be used in Vic2 ?
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 
 		} else if(name == "ideology_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);

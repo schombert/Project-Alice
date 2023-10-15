@@ -293,6 +293,8 @@ ogl::color3f get_text_color(text::text_color text_color) {
 		return ogl::color3f{0.f, 0.5f, 0.f};
 	case text::text_color::gold:
 		return ogl::color3f{232.0f / 255.0f, 210.0f / 255.0f, 124.0f / 255.0f};
+	case text::text_color::brown:
+		return ogl::color3f{ 150.0f / 255.0f, 75.0f / 255.0f, 0.f };
 	default:
 		return ogl::color3f{0.f, 0.f, 0.f};
 	}
@@ -1155,8 +1157,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 				auto new_content = row_contents[i--];
 
 				if(prior_content != new_content) {
-					Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ new_content };
-					row_window->impl_get(state, payload);
+					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
 					row_window->impl_on_update(state);
 				}
 			} else {
@@ -1172,8 +1173,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 				auto new_content = row_contents[i++];
 				
 				if(prior_content != new_content) {
-					Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ new_content };
-					row_window->impl_get(state, payload);
+					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
 					row_window->impl_on_update(state);
 				}
 			} else {
@@ -1408,12 +1408,8 @@ void overlapping_flags_box::update_subwindow(sys::state& state, overlapping_flag
 }
 
 void overlapping_flags_box::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = dcon::nation_id{};
-		parent->impl_get(state, payload);
-		current_nation = any_cast<dcon::nation_id>(payload);
-		populate_flags(state);
-	}
+	current_nation = retrieve<dcon::nation_id>(state, parent);
+	populate_flags(state);
 }
 
 void overlapping_friendly_flags::populate_flags(sys::state& state) {
@@ -1530,19 +1526,12 @@ void overlapping_truce_flags::on_update(sys::state& state) noexcept {
 
 
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any identity_payload = dcon::national_identity_id{};
-		parent->impl_get(state, identity_payload);
-		auto nation = any_cast<dcon::national_identity_id>(identity_payload);
-		if(bool(nation)) {
-			return nation;
-		} else {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			return state.world.nation_get_identity_from_identity_holder(any_cast<dcon::nation_id>(payload));
-		}
+	auto nation = retrieve<dcon::national_identity_id>(state, parent);
+	if(bool(nation)) {
+		return nation;
+	} else {
+		return state.world.nation_get_identity_from_identity_holder(retrieve<dcon::nation_id>(state, parent));
 	}
-	return dcon::national_identity_id{};
 }
 
 void flag_button::button_action(sys::state& state) noexcept {
@@ -1665,45 +1654,24 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 }
 
 void scrollbar_left::button_action(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = value_change{-step_size, true, true};
-		parent->impl_get(state, payload);
-	}
+	send(state, parent, value_change{ -step_size, true, true });
 }
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = value_change{ -step_size * 5, true, true };
-		parent->impl_get(state, payload);
-	}
+	send(state, parent, value_change{ -step_size * 5, true, true });
 }
 void scrollbar_right::button_action(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = value_change{step_size, true, true};
-		parent->impl_get(state, payload);
-	}
+	send(state, parent, value_change{ step_size, true, true });
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = value_change{ step_size * 5, true, true };
-		parent->impl_get(state, payload);
-	}
+	send(state, parent, value_change{ step_size * 5, true, true });
 }
 
 message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(parent) {
-		Cyto::Any payload = scrollbar_settings{};
-		if(parent->impl_get(state, payload) == message_result::consumed) {
-			scrollbar_settings parent_state = any_cast<scrollbar_settings>(payload);
-			int32_t pos_in_track = parent_state.vertical ? y : x;
-			int32_t clamped_pos =
-					std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
-			float fp_pos =
-					float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
-			Cyto::Any adjustment_payload = value_change{
-					int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)), true, false};
-			parent->impl_get(state, adjustment_payload);
-		}
-	}
+	scrollbar_settings parent_state = retrieve<scrollbar_settings>(state, parent);
+	int32_t pos_in_track = parent_state.vertical ? y : x;
+	int32_t clamped_pos = std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
+	float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
+	send(state, parent, value_change{ int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)), true, false });
 	return message_result::consumed;
 }
 
@@ -1718,14 +1686,7 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 
 	auto location_abs = get_absolute_location(*this);
 
-	scrollbar_settings parent_settings = [&]() {
-		Cyto::Any payload = scrollbar_settings{};
-		if(parent->impl_get(state, payload) == message_result::consumed) {
-			return any_cast<scrollbar_settings>(payload);
-		}
-		return scrollbar_settings{};
-	}();
-
+	scrollbar_settings parent_settings = retrieve<scrollbar_settings>(state, parent);
 	if(parent_settings.vertical) {
 		if(!(location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y)) {
 			return; // drag has left slider behind
