@@ -1524,7 +1524,7 @@ public:
 		bool is_empty = true;
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
-			if(province::can_invest_in_colony(state, nation_id, sdef)) {
+			if(province::can_invest_in_colony(state, nation_id, sdef) || state.world.state_definition_get_colonization_stage(sdef) == 3) {
 				text::add_line(state, contents, "countryalert_colonialgood_state", text::variable_type::region, sdef);
 				is_empty = false;
 			}
