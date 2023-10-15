@@ -133,7 +133,7 @@ spriteTypes = {
 	spriteType = {
 		name = "GFX_alice_message_type"
 		texturefile = "assets\\message_disp_options.png"
-		noOfFrames = 4
+		noOfFrames = 5
 	}
 	spriteType = {
 		name = "GFX_alice_event_auto"
