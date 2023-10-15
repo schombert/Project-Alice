@@ -1196,7 +1196,7 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 template<typename contents_type>
 message_result listbox2_base<contents_type>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(int32_t(row_contents.size()) > visible_row_count) {
-		amount = is_reversed() ? -amount : amount;
+		//amount = is_reversed() ? -amount : amount;
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
 		impl_on_update(state);
 	}
