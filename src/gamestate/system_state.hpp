@@ -353,6 +353,7 @@ struct user_settings_s {
 		message_response::ignore,//cb_fab_cancelled = 96,
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 	};
+	bool fow_enabled = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

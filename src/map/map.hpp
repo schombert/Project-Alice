@@ -101,7 +101,6 @@ public:
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
-	bool fow_enabled = false;
 
 private:
 	// Meshes

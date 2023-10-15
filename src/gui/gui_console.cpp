@@ -1071,7 +1071,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		state.debug_oos_dump();
 		break;
 	case command_info::type::fog_of_war:
-		state.map_state.map_data.fow_enabled = !state.map_state.map_data.fow_enabled;
+		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 		state.map_state.map_data.update_fog_of_war(state);
 		break;
 	case command_info::type::none:
