@@ -11,11 +11,14 @@
 
 namespace ui {
 
+inline constexpr float big_counter_cutoff = 12.0f;
+inline constexpr float prov_details_cutoff = 18.0f;
 
 struct toggle_unit_grid {
 	bool with_shift;
 };
 
+template<bool IsNear>
 class port_ex_bg : public shift_button_element_base {
 	bool visible = false;
 
@@ -25,25 +28,26 @@ class port_ex_bg : public shift_button_element_base {
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
+		if(visible && (state.map_state.get_zoom() >= big_counter_cutoff) == IsNear)
 			button_element_base::render(state, x, y);
 	}
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(visible)
+		if(visible && (state.map_state.get_zoom() >= big_counter_cutoff) == IsNear)
 			return button_element_base::impl_probe_mouse(state, x, y, type);
 		else
 			return mouse_probe{ nullptr, ui::xy_pair{} };
 	}
 	void button_shift_action(sys::state& state) noexcept override {
-		if(visible)
+		if(visible && (state.map_state.get_zoom() >= big_counter_cutoff) == IsNear)
 			send(state, parent, toggle_unit_grid{ true });
 	}
 	void button_action(sys::state& state) noexcept override {
-		if(visible)
+		if(visible && (state.map_state.get_zoom() >= big_counter_cutoff) == IsNear)
 			send(state, parent, toggle_unit_grid{ false });
 	}
 };
 
+template<bool IsNear>
 class port_sm_bg : public image_element_base {
 	bool visible = false;
 
@@ -53,7 +57,7 @@ class port_sm_bg : public image_element_base {
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
+		if(visible && (state.map_state.get_zoom() >= big_counter_cutoff) == IsNear)
 			image_element_base::render(state, x, y);
 	}
 };
@@ -70,11 +74,12 @@ public:
 		frame = int32_t(retrieve<outline_color>(state, parent));
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
+		if(visible && state.map_state.get_zoom() >= big_counter_cutoff)
 			image_element_base::render(state, x, y);
 	}
 };
 
+template<bool IsNear>
 class port_ship_count : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -85,6 +90,10 @@ public:
 		} else {
 			set_text(state, std::to_string(count));
 		}
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if((state.map_state.get_zoom() >= big_counter_cutoff) == IsNear)
+			color_text_element::render(state, x, y);
 	}
 };
 
@@ -124,11 +133,17 @@ public:
 			ptr->level = 6;
 			return ptr;
 		} else if(name == "ship_count") {
-			return make_element_by_type<port_ship_count>(state, id);
+			return make_element_by_type<port_ship_count<true>>(state, id);
 		} else if(name == "port_minimized") {
-			return make_element_by_type<port_sm_bg>(state, id);
+			return make_element_by_type<port_sm_bg<true>>(state, id);
 		} else if(name == "port_expanded") {
-			return make_element_by_type<port_ex_bg>(state, id);
+			return make_element_by_type<port_ex_bg<true>>(state, id);
+		} else if(name == "port_collapsed_small") {
+			return make_element_by_type<port_ex_bg<false>>(state, id);
+		} else if(name == "port_collapsed_small_icon") {
+			return make_element_by_type<port_sm_bg<false>>(state, id);
+		} else if(name == "collapsed_ship_count") {
+			return make_element_by_type<port_ship_count<false>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -284,9 +299,6 @@ public:
 			return mouse_probe{ nullptr, ui::xy_pair{} };
 	}
 };
-
-inline constexpr float big_counter_cutoff = 12.0f;
-inline constexpr float prov_details_cutoff = 18.0f;
 
 struct top_display_parameters {
 	float top_left_value = 0.0f;
