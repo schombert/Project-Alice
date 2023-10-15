@@ -994,9 +994,9 @@ void update_ai_econ_construction(sys::state& state) {
 			economy::province_building_type type;
 			dcon::provincial_modifier_value mod;
 		} econ_buildable[3] = {
-			{ (rules & issue_rule::build_railway != 0), economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
-			{  (rules & issue_rule::build_bank != 0) && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
-			{ (rules & issue_rule::build_university != 0) && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
+			{ (rules & issue_rule::build_railway) != 0, economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
+			{  (rules & issue_rule::build_bank) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
+			{ (rules & issue_rule::build_university) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
 		};
 		for(auto i = 0; i < 3; i++) {
 			if(econ_buildable[i].buildable && max_projects > 0) {
