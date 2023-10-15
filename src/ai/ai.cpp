@@ -989,7 +989,7 @@ void update_ai_econ_construction(sys::state& state) {
 		}
 
 		// try railroads
-		static const struct {
+		const struct {
 			bool buildable;
 			economy::province_building_type type;
 			dcon::provincial_modifier_value mod;
