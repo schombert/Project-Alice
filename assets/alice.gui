@@ -250,6 +250,7 @@ guiTypes = {
 			instantTextBoxType={
 				position = {x = 58 y = 330 }
 				name = "fow_label"
+				text = "fow_label"
 				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 236
