@@ -743,20 +743,6 @@ guiTypes = {
 			borderSize = { x = 0 y = 0 }
 		}
 	}
-
-	windowType = {
-		name = "alice_small_port_icon"
-		position = { x= 0 y = 0 }
-		size = { x=1 y = 1 }
-		moveable = 0
-		Orientation = "UPPER_LEFT"
-		iconType = {
-			name = "icon"
-			spriteType = "GFX_alice_small_port"
-			position = { x=-18 y=-18 }
-			Orientation = "UPPER_LEFT"
-		}
-	}
 	
 	windowType = {
 		name = "alice_port_icon"
@@ -765,6 +751,12 @@ guiTypes = {
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 		
+		iconType = {
+			name = "port_collapsed_small"
+			spriteType = "GFX_alice_small_port"
+			position = { x=-18 y=-18 }
+			Orientation = "UPPER_LEFT"
+		}
 		iconType = {
 			name ="port_minimized"
 			spriteType = "GFX_alice_port"
@@ -2677,7 +2669,6 @@ guiTypes = {
 	listboxType = {
 		name = "alice_nation_event_opts_list"
 		position = { x= 0 y = 0}
-				
 		backGround=""
 		size = { x=512 y= 145 }
 		spacing = 1

@@ -60,6 +60,20 @@ class port_sm_bg : public image_element_base {
 	}
 };
 
+class port_mc_bg : public image_element_base {
+	bool visible = false;
+
+	void on_update(sys::state& state) noexcept override {
+		visible = retrieve<int32_t>(state, parent) == 0;
+		frame = int32_t(retrieve<outline_color>(state, parent));
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible && state.map_state.get_zoom() < big_counter_cutoff)
+			image_element_base::render(state, x, y);
+	}
+};
+
 class port_level_bar : public image_element_base {
 public:
 	bool visible = false;
@@ -136,7 +150,7 @@ public:
 		} else if(name == "port_expanded") {
 			return make_element_by_type<port_ex_bg>(state, id);
 		} else if(name == "port_collapsed_small") {
-			return make_element_by_type<port_sm_bg>(state, id);
+			return make_element_by_type<port_mc_bg>(state, id);
 		} else {
 			return nullptr;
 		}
