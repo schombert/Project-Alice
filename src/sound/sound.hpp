@@ -52,5 +52,7 @@ audio_instance& get_revolt_sound(sys::state& state);
 audio_instance& get_fort_built_sound(sys::state& state);
 audio_instance& get_railroad_built_sound(sys::state& state);
 audio_instance& get_naval_base_built_sound(sys::state& state);
+audio_instance& get_minor_event_sound(sys::state& state);
+audio_instance& get_major_event_sound(sys::state& state);
 
 } // namespace sound

@@ -877,6 +877,19 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_setting_type::revolt:
 						sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.interface_volume * user_settings.master_volume);
 						break;
+					case message_setting_type::army_built:
+						sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						break;
+					case message_setting_type::navy_built:
+						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						break;
+					case message_setting_type::province_event:
+					case message_setting_type::national_event:
+						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						break;
+					case message_setting_type::major_event:
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+						break;
 					default:
 						break;
 					}

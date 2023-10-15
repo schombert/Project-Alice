@@ -331,6 +331,14 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("Misc_CoalingStation.wav"));
 		state.sound_ptr->naval_base_built_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
 	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("GI_MinorBlip.wav"));
+		state.sound_ptr->minor_event_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Attention.wav"));
+		state.sound_ptr->major_event_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
 }
 
 // these functions are called to change the volume of the currently playing track or effect
@@ -426,6 +434,12 @@ audio_instance& get_railroad_built_sound(sys::state& state) {
 }
 audio_instance& get_naval_base_built_sound(sys::state& state) {
 	return state.sound_ptr->naval_base_built_sound;
+}
+audio_instance& get_minor_event_sound(sys::state& state) {
+	return state.sound_ptr->minor_event_sound;
+}
+audio_instance& get_major_event_sound(sys::state& state) {
+	return state.sound_ptr->major_event_sound;
 }
 
 } // namespace sound
