@@ -98,9 +98,6 @@ void map_state::update(sys::state& state) {
 		last_update_time = now;
 
 	update_unit_arrows(state, map_data);
-	if(state.game_state_updated.load(std::memory_order::acquire) == true) {
-		map_data.update_fog_of_war(state);
-	}
 
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
 	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
