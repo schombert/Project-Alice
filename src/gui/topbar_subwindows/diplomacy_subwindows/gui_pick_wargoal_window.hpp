@@ -54,10 +54,7 @@ public:
 			//ptr->base_data.position.x += 16; // Nudge
 			return ptr;
 		} else if(name == "select_goal_invalid") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			//ptr->base_data.position.x += 16; // Nudge
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "select_goal") {
 			auto ptr = make_element_by_type<wargoal_type_item_button>(state, id);
 			//ptr->base_data.position.x += 16; // Nudge
@@ -1545,26 +1542,16 @@ public:
 			return make_element_by_type<wargoal_offer_description1>(state, id);
 		} else if(name == "wargoal_add_effect") {
 			return make_element_by_type<wargoal_offer_add_window>(state, id);
-		} else if(name == "wargoal_success_effect") {
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "wargoal_failure_effect") {
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+		} else if(name == "wargoal_success_effect" || name == "wargoal_failure_effect") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "description2") {
 			return make_element_by_type<wargoal_offer_description2>(state, id);
 		} else if(name == "acceptance") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "call_allies_checkbox") {
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "call_allies_text") {
-			auto ptr = make_element_by_type<element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "agreebutton") {
 			return make_element_by_type<wargoal_offer_agree_button>(state, id);
 		} else if(name == "declinebutton") {

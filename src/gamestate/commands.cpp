@@ -3291,7 +3291,7 @@ void c_change_money(sys::state& state, dcon::nation_id source, float value) {
 	add_to_command_queue(state, p);
 }
 void execute_c_change_money(sys::state& state, dcon::nation_id source, float value) {
-	// state.world.nation_get_diplomatic_points(source) += value;
+	state.world.nation_get_stockpiles(source, economy::money) += value;
 }
 void c_westernize(sys::state& state, dcon::nation_id source) {
 	payload p;

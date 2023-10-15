@@ -5,27 +5,19 @@ graphics_options;Graphics Options;;;Opciones graficas;;;;;;;;;x
 sound_options;Sound Options;;;Opciones de audio;;;;;;;;;x
 controls_options;Misc. Options;;;Opciones de controles;;;;;;;;;x
 message_settings_options;Message Settings;;;Configuracion de mensajes;;;;;;;;;x
-window_mode;Window mode;;;Modo de ventanilla;;;;;;;;;x
+window_mode_label;Fullscreen;;;Pantalla completa;;;;;;;;;x
 map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
 map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
-linegraph_mode;Linegraph mode;;;Modo de grafica linear;;;;;;;;;x
-linegraph_mode_accurate;Accurate;;;Reliable;;;;;;;;;x
-linegraph_mode_aesthetic;Aesthetic;;;Aestetica;;;;;;;;;x
-gui_mode;GUI Mode;;;;;;;;;;;;x
-gui_mode_faithful;Classic;;;;;;;;;;;;x
-gui_mode_new;Enhanced;;;;;;;;;;;;x
-fow_label;Fog of War
+fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
 music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;Volumen de los efectos de sonido;;;;;;;;;x
-alice_mode_window;Windowed;;;Ventaneada;;;;;;;;;x
-alice_mode_fullscreen;Fullscreen;;;Pantalla completa;;;;;;;;;x
-use_standard_fonts;Use Standard Fonts;;;Usar letra estandar;;;;;;;;;x
-use_classic_fonts;Use Classic Fonts;;;Usar letra clasica;;;;;;;;;x
+fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
+tooltip_mode_label;Floating tooltip
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -1115,6 +1107,7 @@ msg_for_interesting;Interesting nation
 msg_for_other;Other nation
 msg_handling_ignore;Ignore the message
 msg_handling_log;Log the message
+msg_handling_sound;Log the message with a sound effect
 msg_handling_popup;Pop up a notification for the message
 msg_handling_pause;Pop up a notification for the message and pause the game until it is dismissed
 amsg_revolt;A revolt happens in the nation
@@ -1234,9 +1227,6 @@ im_em_header;Predicted immigration/emigration for ;
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$)
 unit_standing_text;$m$ $n$/$x$/$y$
 disarmed_pop;a member of a disarmed nation
-bind_tooltip_mouse_label;Tooltip Mode
-bind_tooltip_mouse_stick;Stick to Mouse
-bind_tooltip_mouse_static;Place on UI Element
 cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
 kierkegaard_1;Either

@@ -73,11 +73,28 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
 
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
+				bool fail = false;
+				bool army_play = false;
 				for(auto a : selected_armies) {
+					if(command::can_move_army(*this, local_player_nation, a, id).empty())
+						fail = true;
 					command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					army_play = true;
 				}
 				for(auto a : selected_navies) {
+					if(command::can_move_navy(*this, local_player_nation, a, id).empty())
+						fail = true;
 					command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+				}
+
+				if(!fail) {
+					if(army_play) {
+						sound::play_effect(*this, sound::get_army_move_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+					} else {
+						sound::play_effect(*this, sound::get_navy_move_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+					}
+				} else {
+					sound::play_effect(*this, sound::get_error_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				}
 			} else {
 				sound::play_interface_sound(*this, sound::get_click_sound(*this),
@@ -233,6 +250,12 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		if(!selected_armies.empty() || !selected_navies.empty()) {
 			if(this->ui_state.province_window) {
 				this->ui_state.province_window->set_visible(*this, false);
+			}
+			// Play selection sound effect
+			if(!selected_armies.empty()) {
+				sound::play_effect(*this, sound::get_army_select_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+			} else {
+				sound::play_effect(*this, sound::get_navy_select_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 			}
 		}
 		game_state_updated.store(true, std::memory_order_release);
@@ -740,8 +763,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 				if(auto_choice == 0) {
 					if(world.national_event_get_is_major(c1->e)) {
 						ui::national_major_event_window::new_event(*this, *c1);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					} else {
 						ui::national_event_window::new_event(*this, *c1);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					}
 				} else {
 					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
@@ -756,8 +781,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 				if(auto_choice == 0) {
 					if(world.free_national_event_get_is_major(c2->e)) {
 						ui::national_major_event_window::new_event(*this, *c2);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					} else {
 						ui::national_event_window::new_event(*this, *c2);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 					}
 				} else {
 					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
@@ -771,6 +798,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
 				if(auto_choice == 0) {
 					ui::provincial_event_window::new_event(*this, *c3);
+					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
 				}
@@ -783,6 +811,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
 					ui::provincial_event_window::new_event(*this, *c4);
+					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
 				}
@@ -809,11 +838,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 			// Diplomatic messages
 			auto* c5 = new_requests.front();
+			bool had_diplo_msg = false;
 			while(c5) {
 				static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				had_diplo_msg = true;
 				new_requests.pop();
 				c5 = new_requests.front();
 			}
+			if(had_diplo_msg) {
+				sound::play_effect(*this, sound::get_diplomatic_request_sound(*this), user_settings.interface_volume* user_settings.master_volume);
+			}
+
 			// Log messages
 			auto* c6 = new_messages.front();
 			while(c6) {
@@ -825,6 +860,78 @@ void state::render() { // called to render the frame may (and should) delay retu
 						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
 						if((user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
+						}
+					}
+
+					// Sound effects(tm)
+					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::sound) {
+						switch(c6->type) {
+						case message_setting_type::war_on_nation:
+						case message_setting_type::war_by_nation:
+							sound::play_effect(*this, sound::get_declaration_of_war_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::peace_accepted_by_nation:
+						case message_setting_type::peace_accepted_from_nation:
+							sound::play_effect(*this, sound::get_peace_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::tech:
+							sound::play_effect(*this, sound::get_technology_finished_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::factory_complete:
+							sound::play_effect(*this, sound::get_factory_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::fort_complete:
+							sound::play_effect(*this, sound::get_fort_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::rr_complete:
+							sound::play_effect(*this, sound::get_railroad_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::naval_base_complete:
+							sound::play_effect(*this, sound::get_naval_base_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::electionstart:
+						case message_setting_type::electiondone:
+							sound::play_effect(*this, sound::get_election_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::revolt:
+							sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::army_built:
+							sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::navy_built:
+							sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::province_event:
+							sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::national_event:
+						case message_setting_type::major_event:
+							sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::alliance_declined_by_nation:
+						case message_setting_type::alliance_declined_on_nation:
+						case message_setting_type::ally_called_declined_by_nation:
+						case message_setting_type::crisis_join_offer_declined_by_nation:
+						case message_setting_type::crisis_join_offer_declined_from_nation:
+						case message_setting_type::crisis_resolution_declined_from_nation:
+						case message_setting_type::mil_access_declined_by_nation:
+						case message_setting_type::mil_access_declined_on_nation:
+						case message_setting_type::peace_rejected_by_nation:
+						case message_setting_type::peace_rejected_from_nation:
+							sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						case message_setting_type::alliance_starts:
+						case message_setting_type::ally_called_accepted_by_nation:
+						case message_setting_type::crisis_join_offer_accepted_by_nation:
+						case message_setting_type::crisis_join_offer_accepted_from_nation:
+						case message_setting_type::crisis_resolution_accepted:
+						case message_setting_type::mil_access_start_by_nation:
+						case message_setting_type::mil_access_start_on_nation:
+							sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+							break;
+						default:
+							break;
 						}
 					}
 				} else if(notification::nation_is_interesting(*this, c6->about)) {
@@ -847,8 +954,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 							ui_pause.store(true, std::memory_order_release);
 						}
 					}
-
 				}
+
 				new_messages.pop();
 				c6 = new_messages.front();
 			}
@@ -1537,16 +1644,81 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 
 void state::save_user_settings() const {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
-	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const*>(&user_settings),
-			uint32_t(sizeof(user_settings_s)));
+
+	char buffer[sizeof(user_settings_s)];
+	char* ptr = &buffer[0];
+
+#define US_SAVE(x) \
+		std::memcpy(ptr, &user_settings.x, sizeof(user_settings.x)); \
+		ptr += sizeof(user_settings.x);
+	US_SAVE(ui_scale);
+	US_SAVE(master_volume);
+	US_SAVE(music_volume);
+	US_SAVE(effects_volume);
+	US_SAVE(interface_volume);
+	US_SAVE(prefer_fullscreen);
+	US_SAVE(map_is_globe);
+	US_SAVE(autosaves);
+	US_SAVE(bind_tooltip_mouse);
+	US_SAVE(use_classic_fonts);
+	US_SAVE(outliner_views);
+	constexpr size_t lower_half_count = 98;
+	std::memcpy(ptr, &user_settings.self_message_settings, lower_half_count);
+	ptr += 98;
+	std::memcpy(ptr, &user_settings.interesting_message_settings, lower_half_count);
+	ptr += 98;
+	std::memcpy(ptr, &user_settings.other_message_settings, lower_half_count);
+	ptr += 98;
+	US_SAVE(fow_enabled);
+	constexpr size_t upper_half_count = 128 - 98;
+	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
+	ptr += upper_half_count;
+	std::memcpy(ptr, &user_settings.interesting_message_settings[98], upper_half_count);
+	ptr += upper_half_count;
+	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
+	ptr += upper_half_count;
+#undef US_SAVE
+
+	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(sizeof(buffer)));
 }
 void state::load_user_settings() {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
 	auto settings_file = open_file(settings_location, NATIVE("user_settings.dat"));
 	if(settings_file) {
 		auto content = view_contents(*settings_file);
-		std::memcpy(&user_settings, content.data, std::min(uint32_t(sizeof(user_settings_s)), content.file_size));
+		auto ptr = content.data;
 
+#define US_LOAD(x) \
+		std::memcpy(&user_settings.x, ptr, std::min(sizeof(user_settings.x), size_t(content.file_size))); \
+		ptr += sizeof(user_settings.x);
+		US_LOAD(ui_scale);
+		US_LOAD(master_volume);
+		US_LOAD(music_volume);
+		US_LOAD(effects_volume);
+		US_LOAD(interface_volume);
+		US_LOAD(prefer_fullscreen);
+		US_LOAD(map_is_globe);
+		US_LOAD(autosaves);
+		US_LOAD(bind_tooltip_mouse);
+		US_LOAD(use_classic_fonts);
+		US_LOAD(outliner_views);
+		constexpr size_t lower_half_count = 98;
+		std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
+		ptr += 98;
+		std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
+		ptr += 98;
+		std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
+		ptr += 98;
+		US_LOAD(fow_enabled);
+		constexpr size_t upper_half_count = 128 - 98;
+		std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
+		ptr += upper_half_count;
+		std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
+		ptr += upper_half_count;
+		std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
+		ptr += upper_half_count;
+#undef US_LOAD
+		
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);

@@ -15,10 +15,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{Left};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<bool>{Left});
 	}
 };
 
@@ -29,10 +26,7 @@ struct message_dismiss_notification {
 class message_dismiss_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = message_dismiss_notification{};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, message_dismiss_notification{});
 	}
 };
 
@@ -190,9 +184,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "header") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "line1") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			ptr->base_data.size.x = base_data.size.x - (ptr->base_data.position.x * 2);
@@ -204,17 +196,11 @@ public:
 			desc_text = ptr.get();
 			return ptr;
 		} else if(name.substr(0, 4) == "line") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "agreebutton") {
-			auto ptr = make_element_by_type<message_dismiss_button>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "declinebutton") {
-			auto ptr = make_element_by_type<message_dismiss_button>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "centerok") {
 			return make_element_by_type<message_dismiss_button>(state, id);
 		} else if(name == "leftshield") {

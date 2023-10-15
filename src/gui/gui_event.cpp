@@ -302,8 +302,7 @@ void event_auto_button::button_action(sys::state& state) noexcept {
 		state.world.free_provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	}
-	Cyto::Any n_payload = option_taken_notification{};
-	parent->impl_get(state, n_payload);
+	send(state, parent, option_taken_notification{});
 }
 
 void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -974,10 +973,8 @@ void provincial_event_window::on_update(sys::state& state) noexcept {
 }
 
 void close_expired_event_windows(sys::state& state) {
-	for(auto e : pending_closure) {
-		Cyto::Any p = option_taken_notification{ };
-		e->impl_get(state, p);
-	}
+	for(auto e : pending_closure)
+		send(state, e, option_taken_notification{});
 	pending_closure.clear();
 }
 

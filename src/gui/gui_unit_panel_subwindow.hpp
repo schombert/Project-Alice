@@ -283,15 +283,8 @@ public:
 		} else if(name == "unitname_2") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else if(name == "cell_window_left") {
-			auto ptr = make_element_by_type<window_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-
-		} else if(name == "cell_window_right") {
-			auto ptr = make_element_by_type<window_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+		} else if(name == "cell_window_left" || name == "cell_window_right") {
+			return make_element_by_type<invisible_element>(state, id);
 
 		} else if(name == "balancebutton") {
 			return make_element_by_type<unit_reorg_balance_button>(state, id);
@@ -329,15 +322,8 @@ public:
 				return ptr;
 			}
 
-		} else if(name == "external_scroll_slider_left") {
-			auto ptr = make_element_by_type<scrollbar>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-
-		} else if(name == "external_scroll_slider_right") {
-			auto ptr = make_element_by_type<scrollbar>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+		} else if(name == "external_scroll_slider_left" || name == "external_scroll_slider_right") {
+			return make_element_by_type<invisible_element>(state, id);
 
 		} else {
 			return nullptr;

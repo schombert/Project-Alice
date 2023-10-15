@@ -123,14 +123,8 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			cost_text = ptr.get();
 			return ptr;
-		} else if(name == "pop_icon") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "pop_amount") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+		} else if(name == "pop_icon" || name == "pop_amount") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "invest_project") {
 			return make_element_by_type<production_project_invest_button>(state, id);
 		} else if(name == "input_goods") {

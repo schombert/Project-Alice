@@ -150,6 +150,8 @@ struct user_settings_s {
 		message_response::standard_popup,//cb_fab_finished = 95,
 		message_response::standard_popup,//cb_fab_cancelled = 96,
 		message_response::ignore,//crisis_voluntary_joi_on = 97,
+		message_response::log,//army_built = 98,
+		message_response::log,//navy_built = 99,
 	};
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::log,//revolt = 0,
@@ -250,6 +252,8 @@ struct user_settings_s {
 		message_response::ignore,//cb_fab_finished = 95,
 		message_response::ignore,//cb_fab_cancelled = 96,
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
+		message_response::ignore,//army_built = 98,
+		message_response::ignore,//navy_built = 99,
 	};
 	uint8_t other_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::ignore,//revolt = 0,
@@ -350,6 +354,8 @@ struct user_settings_s {
 		message_response::ignore,//cb_fab_finished = 95,
 		message_response::ignore,//cb_fab_cancelled = 96,
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
+		message_response::ignore,//army_built = 98,
+		message_response::ignore,//navy_built = 99,
 	};
 	bool fow_enabled = false;
 };

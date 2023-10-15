@@ -34,6 +34,8 @@ text_color char_to_color(char in) {
 		return text_color::dark_red;
 	case 'J':
 		return text_color::dark_green;
+	case 'I':
+		return text_color::brown;
 	case '!':
 		return text_color::reset;
 	default:

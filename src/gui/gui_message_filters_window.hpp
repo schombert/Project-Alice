@@ -13,24 +13,16 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
-		}
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-
-			auto fat_id = dcon::fatten(state.world, content);
-			fat_id.set_is_interesting(!fat_id.get_is_interesting());
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		fat_id.set_is_interesting(!fat_id.get_is_interesting());
+		if(parent)
 			parent->impl_on_update(state);
-		}
 	}
 };
 

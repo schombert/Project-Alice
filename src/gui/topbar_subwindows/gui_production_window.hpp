@@ -1423,6 +1423,24 @@ public:
 class production_goods_category_name : public window_element_base {
 	simple_text_element_base* goods_cat_name = nullptr;
 
+	std::string_view get_commodity_group_name(sys::commodity_group g) {
+		switch(g) {
+		case sys::commodity_group::military_goods:
+			return "military_goods";
+		case sys::commodity_group::raw_material_goods:
+			return "raw_material_goods";
+		case sys::commodity_group::industrial_goods:
+			return "industrial_goods";
+		case sys::commodity_group::consumer_goods:
+			return "consumer_goods";
+		// Non-vanilla
+		case sys::commodity_group::industrial_and_consumer_goods:
+			return "industrial_and_consumer_goods";
+		default:
+			return "???";
+		}
+	}
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cat_name") {
@@ -1437,44 +1455,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<sys::commodity_group>()) {
 			auto group = any_cast<sys::commodity_group>(payload);
-			switch(group) {
-			case sys::commodity_group::military_goods:
-				goods_cat_name->set_text(state, text::produce_simple_string(state, "military_goods"));
-				break;
-			case sys::commodity_group::raw_material_goods:
-				goods_cat_name->set_text(state, text::produce_simple_string(state, "raw_material_goods"));
-				break;
-			case sys::commodity_group::industrial_goods:
-				goods_cat_name->set_text(state, text::produce_simple_string(state, "industrial_goods"));
-				break;
-			case sys::commodity_group::consumer_goods:
-				goods_cat_name->set_text(state, text::produce_simple_string(state, "consumer_goods"));
-				break;
-			// Non-vanilla
-			case sys::commodity_group::industrial_and_consumer_goods:
-				goods_cat_name->set_text(state, text::produce_simple_string(state, "industrial_and_consumer_goods"));
-				break;
-			default:
-				break;
-			}
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-
-class commodity_output_total_text : public simple_text_element_base {
-	dcon::commodity_id commodity_id{};
-
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			on_update(state);
+			goods_cat_name->set_text(state, text::produce_simple_string(state, get_commodity_group_name(group)));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -1483,45 +1464,31 @@ public:
 
 class commodity_primary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::commodity_id>(payload);
-
-			float total = 0.0f;
-
-			for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
-				for(auto fac : p.get_province().get_factory_location()) {
-					if(fac.get_factory().get_building_type().get_output() == content) {
-						total += economy::factory_primary_employment(state, fac.get_factory());
-					}
+		auto content = retrieve<dcon::commodity_id>(state, parent);
+		float total = 0.0f;
+		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_building_type().get_output() == content) {
+					total += economy::factory_primary_employment(state, fac.get_factory());
 				}
 			}
-
-			set_text(state, text::prettify(int64_t(total)));
 		}
+		set_text(state, text::prettify(int64_t(total)));
 	}
 };
 
 class commodity_secondary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::commodity_id>(payload);
-
-			float total = 0.0f;
-
-			for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
-				for(auto fac : p.get_province().get_factory_location()) {
-					if(fac.get_factory().get_building_type().get_output() == content) {
-						total += economy::factory_secondary_employment(state, fac.get_factory());
-					}
+		auto content = retrieve<dcon::commodity_id>(state, parent);
+		float total = 0.0f;
+		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_building_type().get_output() == content) {
+					total += economy::factory_secondary_employment(state, fac.get_factory());
 				}
 			}
-
-			set_text(state, text::prettify(int64_t(total)));
 		}
+		set_text(state, text::prettify(int64_t(total)));
 	}
 };
 
@@ -1723,21 +1690,13 @@ public:
 			ptr->target = production_window_tab::goods;
 			return ptr;
 		} else if(name == "tab_factories_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "tab_invest_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "tab_goodsproduction_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "tab_popprojects_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_visible(state, false);
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "factory_buttons") {
 			auto ptr = make_element_by_type<factory_buttons_window>(state, id);
 			factory_elements.push_back(ptr.get());
