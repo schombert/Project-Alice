@@ -188,6 +188,43 @@ public:
 	}
 };
 
+class cancel_all_units_button : public button_element_base {
+public:
+	bool is_navy = false;
+
+	void button_action(sys::state& state) noexcept override {
+		if(is_navy) {
+			for(auto lc : state.world.nation_get_province_naval_construction(state.local_player_nation)) {
+				command::cancel_naval_unit_construction(state, state.local_player_nation, lc.get_province(), lc.get_type());
+			}
+		} else {
+			for(auto lc : state.world.nation_get_province_land_construction(state.local_player_nation)) {
+				command::cancel_land_unit_construction(state, state.local_player_nation, lc.get_pop().get_province_from_pop_location(), lc.get_pop().get_culture(), lc.get_type());
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "mil_construction_cancel_all");
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::army_id>()) {
+			is_navy = false;
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::navy_id>()) {
+			is_navy = true;
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+};
+
 class unit_folder_button : public button_element_base {
 public:
 	dcon::unit_type_id unit_type{};
@@ -246,6 +283,17 @@ public:
 		}
 	}
 
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<element_selection_wrapper<dcon::unit_type_id>>()) {
+			if(unit_type == Cyto::any_cast<element_selection_wrapper<dcon::unit_type_id>>(payload).data) {
+				frame = 1;
+			} else {
+				frame = 0;
+			}
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
@@ -628,7 +676,8 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cancel_all_units") {
-			return make_element_by_type<invisible_element>(state, id);
+			auto ptr = make_element_by_type<cancel_all_units_button>(state, id);
+			return ptr;
 		} else if(name == "build_army_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			army_elements.push_back(ptr.get());
@@ -719,11 +768,15 @@ public:
 			unit_type = first_land_type;
 			set_navy_invisible(state);
 			set_army_visible(state);
+			Cyto::Any unit_type_payload = element_selection_wrapper<dcon::unit_type_id>{ first_land_type };
+			impl_set(state, unit_type_payload);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::navy_id>()) {
 			unit_type = first_naval_type;
 			set_army_invisible(state);
 			set_navy_visible(state);
+			Cyto::Any unit_type_payload = element_selection_wrapper<dcon::unit_type_id>{ first_naval_type };
+			impl_set(state, unit_type_payload);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -734,6 +787,7 @@ public:
 			unit_type = Cyto::any_cast<element_selection_wrapper<dcon::unit_type_id>>(payload).data;
 			units_listbox->impl_on_update(state);
 			units_queue->impl_on_update(state);
+			impl_set(state, payload);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::unit_type_id>()) {
 			payload.emplace<dcon::unit_type_id>(unit_type);
