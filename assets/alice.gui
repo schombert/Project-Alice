@@ -764,7 +764,7 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = 11 y = -8 }
+			position = {x = 26 y = -7 }
 			name = "ship_count"
 			font = "Arial16"
 			borderSize = {x = 0 y = 0}
@@ -1073,7 +1073,7 @@ guiTypes = {
 			guiButtonType = {
 				name ="controller_flag"
 				quadTextureSprite = "GFX_mapicon_flag"
-				position = { x = 1 y = 1 }
+				position = { x = 4 y = 2 }
 			}
 			iconType = {
 				name ="frame_bg"
@@ -1083,7 +1083,7 @@ guiTypes = {
 			instantTextBoxType={
 				position = {x = 26 y = 3 }
 				name = "strength"
-				font = "Arial12"
+				font = "Arial16"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 32
 				maxHeight = 13
