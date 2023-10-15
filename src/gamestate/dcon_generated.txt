@@ -1584,7 +1584,7 @@ object {
 object {
 	name{ ship }
 	storage_type{ erasable }
-	size{ 8000 }
+	size{ 10000 }
 	tag{ save }
 
 	property{
