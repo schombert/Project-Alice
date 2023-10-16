@@ -245,13 +245,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// state->map_provinces_texture.size_x, state->map_provinces_texture.size_y });
 
 		return 0;
-	};
+	}
 	case WM_MOUSEWHEEL: {
-		auto x = GET_X_LPARAM(lParam);
-		auto y = GET_Y_LPARAM(lParam);
-		state->on_mouse_wheel(x, y, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
-		state->mouse_x_position = x;
-		state->mouse_y_position = y;
+		state->on_mouse_wheel(state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
 		return 0;
 	}
 	case WM_KEYDOWN: // fallthrough
@@ -309,7 +305,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	wcex.hInstance = GetModuleHandleW(nullptr);
 	wcex.hbrBackground = NULL;
 	wcex.lpszMenuName = NULL;
-	wcex.hCursor = nullptr;
+	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcex.hIcon = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, GetSystemMetrics(SM_CXICON),
 			GetSystemMetrics(SM_CYICON), 0);
 	// wcex.hIconSm = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON,
