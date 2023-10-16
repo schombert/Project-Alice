@@ -298,6 +298,31 @@ public:
 	}
 };
 
+class minimap_zoom_in_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.map_state.zoom = std::clamp(state.map_state.zoom * 2.0f,map::min_zoom, map::max_zoom);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "zoom_in");
+	}
+};
+class minimap_zoom_out_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.map_state.zoom = std::clamp(state.map_state.zoom * 0.5f, map::min_zoom, map::max_zoom);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "zoom_out");
+	}
+};
+
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 
@@ -318,6 +343,10 @@ public:
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
 			return make_element_by_type<minimap_ledger_button>(state, id);
+		} else if(name == "map_zoom_in") {
+			return make_element_by_type<minimap_zoom_in_button>(state, id);
+		} else if(name == "map_zoom_out") {
+			return make_element_by_type<minimap_zoom_out_button>(state, id);
 		} else if(name == "menubar_msg_settings") {
 			return make_element_by_type<minimap_msg_settings_button>(state, id);
 		} else if(name == "menubar_msg_combat") {
