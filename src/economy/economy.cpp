@@ -846,6 +846,12 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 	auto fac = fatten(state.world, f);
 	auto fac_type = fac.get_building_type();
 
+	assert(fac_type);
+	assert(fac_type.get_output());
+	assert(n);
+	assert(p);
+	assert(s);
+
 	float input_total = 0.0f;
 	float min_input_available = 1.0f;
 	auto& inputs = fac_type.get_inputs();
@@ -1426,7 +1432,7 @@ void populate_private_construction_consumption(sys::state& state) {
 			auto& base_cost = c.get_type().get_construction_costs();
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
-			float factory_mod = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_cost) + 1.0f) * state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_owner_cost);
+			float factory_mod = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_cost) + 1.0f) * std::max(0.1f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_owner_cost));
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
@@ -1957,7 +1963,7 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
 			float factory_mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f) *
-													state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost);
+													std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost));
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
@@ -3888,7 +3894,7 @@ void resolve_constructions(sys::state& state) {
 			}
 		} else {
 			float factory_mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f) *
-													state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost);
+				std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost));
 
 			bool all_finished = true;
 			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
