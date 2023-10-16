@@ -57,9 +57,13 @@ public:
 
 		if(is_navy == false) {
 			dcon::culture_id c = retrieve<dcon::culture_id>(state, parent);
-			command::start_land_unit_construction(state, n, p, c, utid);
+			if(command::can_start_land_unit_construction(state, n, p, c, utid)) {
+				command::start_land_unit_construction(state, n, p, c, utid);
+			}
 		} else {
-			command::start_naval_unit_construction(state, n, p, utid);
+			if(command::can_start_naval_unit_construction(state, n, p, utid)) {
+				command::start_naval_unit_construction(state, n, p, utid);
+			}
 		}
 	}
 

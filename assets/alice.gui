@@ -110,7 +110,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 115 }
+				position = {x = 78 y = 116 }
 				name = "window_mode_label"
 				text = "window_mode_label"
 				font = "Arial16"
@@ -118,7 +118,7 @@ guiTypes = {
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			guiButtonType = {
 				name = "window_mode_checkbox"
@@ -197,7 +197,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 281 }
+				position = {x = 78 y = 282 }
 				name = "fonts_label"
 				text = "fonts_label"
 				font = "Arial16"
@@ -214,7 +214,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 330 }
+				position = {x = 78 y = 331 }
 				name = "fow_label"
 				text = "fow_label"
 				font = "Arial16"
@@ -324,7 +324,7 @@ guiTypes = {
 			}
 			
 			instantTextBoxType={
-				position = {x = 68 y = 221 }
+				position = {x = 78 y = 222 }
 				name = "tooltip_mode_label"
 				text = "tooltip_mode_label"
 				font = "Arial16"
@@ -1008,46 +1008,57 @@ guiTypes = {
 		}
 	}
 	
+	windowType = {
+		name = "alice_province_values"
+		position = { x = 0 y = 0 }
+		size = { x= 0 y = 0 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+			
+		iconType = {
+			name ="capital_icon"
+			spriteType = "GFX_topbar_prestige"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name ="rail_icon"
+			spriteType = "GFX_alice_map_rail_2"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name ="rail_dots"
+			spriteType = "GFX_alice_map_dots"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name ="fort_icon"
+			spriteType = "GFX_alice_map_fort_2"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name ="fort_dots"
+			spriteType = "GFX_alice_map_dots"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name ="bank_icon"
+			spriteType = "GFX_alice_map_bank"
+			position = { x=0 y=0 }
+		}
+		iconType = {
+			name ="university_icon"
+			spriteType = "GFX_alice_map_university"
+			position = { x=0 y=0 }
+		}
+		
+	}
+	
 	windowType={
 		name = "alice_map_unit"
 		position = { x= 0 y = 0 }
 		size = { x=1 y = 1 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
-		
-		windowType = {
-			name = "province_values"
-			position = { x = -28 y = -8 }
-			size = { x= 64 y = 16 }
-			moveable = 0
-			Orientation = "UPPER_LEFT"
-			
-			iconType = {
-				name ="rail_icon"
-				spriteType = "GFX_alice_map_rail"
-				position = { x=0 y=0 }
-			}
-			iconType = {
-				name ="fort_icon"
-				spriteType = "GFX_alice_map_fort"
-				position = { x=32 y=0 }
-			}
-			iconType = {
-				name ="bank_icon"
-				spriteType = "GFX_alice_map_bank"
-				position = { x=0 y=24 }
-			}
-			iconType = {
-				name ="university_icon"
-				spriteType = "GFX_alice_map_university"
-				position = { x=32 y=24 }
-			}
-			iconType = {
-				name ="capital_icon"
-				spriteType = "GFX_topbar_prestige"
-				position = { x=22 y=-20 }
-			}
-		}
 		
 		windowType = {
 			name = "small_top_unit_icon"

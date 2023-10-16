@@ -165,4 +165,19 @@ spriteTypes = {
 		texturefile = "assets\\small_university.dds"
 		noOfFrames = 1
 	}
+	spriteType = {
+		name = "GFX_alice_map_rail_2"
+		texturefile = "assets\\sm_gold_train.png"
+		noOfFrames = 1
+	}
+	spriteType = {
+		name = "GFX_alice_map_fort_2"
+		texturefile = "assets\\sm_gold_cannon.png"
+		noOfFrames = 1
+	}
+	spriteType = {
+		name = "GFX_alice_map_dots"
+		texturefile = "assets\\gold_dot_strip.png"
+		noOfFrames = 6
+	}
 }

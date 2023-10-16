@@ -290,11 +290,7 @@ struct open_msg_log_data {
 class open_msg_log_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = open_msg_log_data{};
-			parent->impl_get(state, payload);
-			frame = any_cast<bool>(payload) ? 1 : 0;
-		}
+		frame = state.ui_state.msg_log_window->is_visible() ? 1 : 0;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -361,17 +357,9 @@ public:
 		window_element_base::render(state, x, y);
 	}
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<open_msg_log_data>()) {
-			state.ui_state.msg_log_window->set_visible(state, !state.ui_state.msg_log_window->is_visible());
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<open_msg_log_data>()) {
-			payload.emplace<bool>(state.ui_state.msg_log_window->is_visible());
+			state.ui_state.msg_log_window->set_visible(state, !state.ui_state.msg_log_window->is_visible());
 			return message_result::consumed;
 		}
 		return message_result::unseen;

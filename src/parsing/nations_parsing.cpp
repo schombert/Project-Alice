@@ -826,46 +826,48 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 	auto gfx = open_directory(root, NATIVE("gfx"));
 	auto pictures = open_directory(gfx, NATIVE("pictures"));
 	auto decisions = open_directory(pictures, NATIVE("decisions"));
-
-	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + [&]() {
-		if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
-			return std::string(name) + ".tga";
-		} else {
-			return std::string("noimage.tga");
-		}
-	}());
-
-	if(auto it = context.gfx_context.map_of_names.find(file_name); it != context.gfx_context.map_of_names.end()) {
-		context.state.world.decision_set_image(new_decision, it->second);
-	} else {
-		auto gfxindex = context.state.ui_defs.gfx.size();
-		context.state.ui_defs.gfx.emplace_back();
-		ui::gfx_object& new_obj = context.state.ui_defs.gfx.back();
-		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
-
-		context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
-
-		new_obj.number_of_frames = uint8_t(1);
-
-		if(auto itb = context.gfx_context.map_of_texture_names.find(file_name);
-				itb != context.gfx_context.map_of_texture_names.end()) {
-			new_obj.primary_texture_handle = itb->second;
-		} else {
-			auto index = context.state.ui_defs.textures.size();
-			context.state.ui_defs.textures.emplace_back(context.state.add_to_pool(file_name));
-			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
-		}
-		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
-
-		context.state.world.decision_set_image(new_decision, new_id);
-	}
+	
 
 	context.state.world.decision_set_name(new_decision, name_id);
 	context.state.world.decision_set_description(new_decision, desc_id);
 
 	decision_context new_context{context, new_decision};
 	parse_decision(gen, err, new_context);
+
+	if(!context.state.world.decision_get_image(new_decision)) {
+		std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + [&]() {
+			if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+				return std::string(name) + ".tga";
+			} else {
+				return std::string("noimage.tga");
+			}
+		}());
+		if(auto it = context.gfx_context.map_of_names.find(file_name); it != context.gfx_context.map_of_names.end()) {
+			context.state.world.decision_set_image(new_decision, it->second);
+		} else {
+			auto gfxindex = context.state.ui_defs.gfx.size();
+			context.state.ui_defs.gfx.emplace_back();
+			ui::gfx_object& new_obj = context.state.ui_defs.gfx.back();
+			auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+			context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+
+			new_obj.number_of_frames = uint8_t(1);
+
+			if(auto itb = context.gfx_context.map_of_texture_names.find(file_name);
+					itb != context.gfx_context.map_of_texture_names.end()) {
+				new_obj.primary_texture_handle = itb->second;
+			} else {
+				auto index = context.state.ui_defs.textures.size();
+				context.state.ui_defs.textures.emplace_back(context.state.add_to_pool(file_name));
+				new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+				context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+			}
+			new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+
+			context.state.world.decision_set_image(new_decision, new_id);
+		}
+	}
 }
 
 void scan_province_event(token_generator& gen, error_handler& err, scenario_building_context& context) {

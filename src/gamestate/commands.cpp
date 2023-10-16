@@ -716,6 +716,9 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 	if(state.world.nation_get_active_unit(source, type) == false &&
 			state.military_definitions.unit_base_definitions[type].active == false)
 		return false;
+	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && std::count(state.world.nation_get_accepted_cultures(source).begin(), state.world.nation_get_accepted_cultures(source).end(), soldier_culture) == 0) {
+		return false;
+	}
 
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
 		/*
@@ -3212,8 +3215,7 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 	auto target = state.world.peace_offer_get_target(pending_offer);
 
 	// A peace offer must be accepted when war score reaches 100.
-	if(military::directed_warscore(state, in_war, source, target) >= 100.0f
-		&& (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer))) {
+	if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
 
 		military::implement_peace_offer(state, pending_offer);
 	} else {

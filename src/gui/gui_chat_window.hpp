@@ -91,6 +91,10 @@ public:
 	bool is_reversed() override {
 		return true;
 	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+	}
 };
 
 class player_kick_button : public button_element_base {

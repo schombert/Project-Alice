@@ -372,6 +372,7 @@ struct state {
 	xy_pair relative_mouse_location = xy_pair{0, 0};
 	std::unique_ptr<element_base> units_root;
 	std::unique_ptr<element_base> rgos_root;
+	std::unique_ptr<element_base> province_details_root;
 	std::unique_ptr<element_base> root;
 	std::unique_ptr<element_base> nation_picker;
 	std::unique_ptr<element_base> end_screen;
@@ -424,6 +425,7 @@ struct state {
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
 
 	uint16_t tooltip_font = 0;
+	bool ctrl_held_down = false;
 
 	state();
 	~state();
