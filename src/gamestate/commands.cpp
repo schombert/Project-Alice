@@ -720,6 +720,9 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 	if(state.world.nation_get_active_unit(source, type) == false &&
 			state.military_definitions.unit_base_definitions[type].active == false)
 		return false;
+	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && std::count(state.world.nation_get_accepted_cultures(source).begin(), state.world.nation_get_accepted_cultures(source).end(), soldier_culture) == 0) {
+		return false;
+	}
 
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
 		/*
