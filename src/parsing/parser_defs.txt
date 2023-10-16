@@ -1797,7 +1797,7 @@ decision
 	news_title                              value      text                              discard
 	news_picture                              value      text                              discard
 	alert                           value      bool                              discard
-	picture                         value      text                              discard
+	picture                         value      text                              member_fn
 
 decision_list
 	#any                            extern     make_decision                     discard

@@ -826,7 +826,6 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 	auto gfx = open_directory(root, NATIVE("gfx"));
 	auto pictures = open_directory(gfx, NATIVE("pictures"));
 	auto decisions = open_directory(pictures, NATIVE("decisions"));
-
 	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + [&]() {
 		if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
 			return std::string(name) + ".tga";
@@ -834,7 +833,6 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 			return std::string("noimage.tga");
 		}
 	}());
-
 	if(auto it = context.gfx_context.map_of_names.find(file_name); it != context.gfx_context.map_of_names.end()) {
 		context.state.world.decision_set_image(new_decision, it->second);
 	} else {
