@@ -411,6 +411,7 @@ struct state {
 	element_base* msg_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
 	element_base* chat_window = nullptr;
+	element_base* r_chat_window = nullptr;
 	std::array<chat_message, 32> chat_messages;
 	uint8_t chat_messages_index = 0;
 

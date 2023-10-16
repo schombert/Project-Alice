@@ -230,10 +230,6 @@ public:
 
 class chat_window : public window_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		state.ui_state.chat_window = this; // This is required to dynamically switch between the lobby and in-game chat!
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_button") {
 			return make_element_by_type<generic_close_button>(state, id);
