@@ -329,6 +329,9 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 	}
 }
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
+	if(keycode == virtual_key::CONTROL)
+		ui_state.ctrl_held_down = true;
+
 	if(ui_state.edit_target) {
 		ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
 	} else if(mode == sys::game_mode_type::pick_nation) {
@@ -375,6 +378,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 }
 
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
+	if(keycode == virtual_key::CONTROL)
+		ui_state.ctrl_held_down = false;
+
 	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char c) { // c is win1250 codepage value
@@ -726,14 +732,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
-		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
-			// RGO doesn't need clicks... yet
-		} else {
-			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-			if(!tooltip_probe.under_mouse) {
-				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+		if(!ui_state.ctrl_held_down) {
+			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+				// RGO doesn't need clicks... yet
+			} else {
+				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+				if(!tooltip_probe.under_mouse) {
+					tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+				}
 			}
 		}
 	}
@@ -985,6 +993,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		ui_state.rgos_root->impl_on_update(*this);
 		ui_state.units_root->impl_on_update(*this);
+		if(ui_state.ctrl_held_down && map_state.get_zoom() >= ui::big_counter_cutoff) {
+			ui_state.province_details_root->impl_on_update(*this);
+		}
 
 		if(selected_armies.size() + selected_navies.size() > 1) {
 			ui_state.multi_unit_selection_window->set_visible(*this, true);
@@ -1203,13 +1214,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 
 	if(map_state.get_zoom() > 5) {
-		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
-			ui_state.rgos_root->impl_render(*this, 0, 0);
-		} else {
-			ui_state.units_root->impl_render(*this, 0, 0);
-		}
-		if(ui_state.unit_details_box->is_visible()) {
-			ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
+		if(!ui_state.ctrl_held_down) {
+			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+				ui_state.rgos_root->impl_render(*this, 0, 0);
+			} else {
+				ui_state.units_root->impl_render(*this, 0, 0);
+			}
+			if(ui_state.unit_details_box->is_visible()) {
+				ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
+			}
+		} else if(map_state.get_zoom() >= ui::big_counter_cutoff) {
+			ui_state.province_details_root->impl_render(*this, 0, 0);
 		}
 	}
 	ui_state.root->impl_render(*this, 0, 0);
@@ -1336,6 +1351,11 @@ void state::on_create() {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
 		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
 		ui_state.rgos_root->add_child_to_front(std::move(ptr));
+	});
+	province::for_each_land_province(*this, [&](dcon::province_id id) {
+		auto ptr = ui::make_element_by_type<ui::province_details_container>(*this, "alice_province_values");
+		static_cast<ui::province_details_container*>(ptr.get())->prov = id;
+		ui_state.province_details_root->add_child_to_front(std::move(ptr));
 	});
 
 	{

@@ -5967,7 +5967,7 @@ void update_movement(sys::state& state) {
 			path.pop_back();
 
 			if(dest.index() < state.province_definitions.first_sea_province.index()) { // land province
-				if(province::has_access_to_province(state, n.get_controller_from_navy_control(), dest)) {
+				if(province::has_naval_access_to_province(state, n.get_controller_from_navy_control(), dest)) {
 
 					n.set_location_from_navy_location(dest);
 

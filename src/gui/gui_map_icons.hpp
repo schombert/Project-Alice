@@ -849,121 +849,6 @@ class small_top_unit_icon : public window_element_base {
 	}
 };
 
-class map_pv_rail : public image_element_base {
-public:
-	sys::date last_update;
-	char cached_level = 0;
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
-			return;
-
-		if(last_update != state.ui_date) {
-			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::railroad);
-			last_update = state.ui_date;
-		}
-
-		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
-	}
-};
-class map_pv_fort : public image_element_base {
-public:
-	sys::date last_update;
-	char cached_level = 0;
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
-			return;
-
-		if(last_update != state.ui_date) {
-			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::fort);
-			last_update = state.ui_date;
-		}
-
-		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
-	}
-};
-
-class map_pv_bank : public image_element_base {
-public:
-	sys::date last_update;
-	char cached_level = 0;
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
-			return;
-
-		if(last_update != state.ui_date) {
-			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::bank);
-			last_update = state.ui_date;
-		}
-
-		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
-	}
-};
-
-class map_pv_university : public image_element_base {
-public:
-	sys::date last_update;
-	char cached_level = 0;
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(x < -32 || y < -16 || x > state.ui_state.root->base_data.size.x || y > state.ui_state.root->base_data.size.y)
-			return;
-
-		if(last_update != state.ui_date) {
-			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::university);
-			last_update = state.ui_date;
-		}
-
-		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
-	}
-};
-
-class map_pv_capital : public image_element_base {
-public:
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto p = retrieve<dcon::province_id>(state, parent);
-		if(state.world.nation_get_capital(state.world.province_get_nation_from_province_ownership(p)) == p)
-			image_element_base::render(state, x, y);
-	}
-};
-
-class map_province_values : public window_element_base {
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "rail_icon") {
-			return make_element_by_type<map_pv_rail>(state, id);
-		} else if(name == "fort_icon") {
-			return make_element_by_type<map_pv_fort>(state, id);
-		} else if(name == "bank_icon") {
-			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::bank)].defined)
-				return make_element_by_type<map_pv_bank>(state, id);
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "university_icon") {
-			if(state.economy_definitions.building_definitions[int32_t(economy::province_building_type::university)].defined)
-				return make_element_by_type<map_pv_university>(state, id);
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "capital_icon") {
-			return make_element_by_type<map_pv_capital>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return mouse_probe{ nullptr, ui::xy_pair{0,0} };
-	}
-	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.map_state.get_zoom() >= prov_details_cutoff && retrieve<dcon::province_id>(state, parent).index() < state.province_definitions.first_sea_province.index()) {
-			window_element_base::impl_render(state, x, y);
-		}
-	}
-};
-
 class unit_counter_window : public window_element_base {
 public:
 	bool visible = true;
@@ -976,7 +861,6 @@ public:
 	element_base* small_top_right_icon = nullptr;
 	element_base* siege = nullptr;
 	element_base* battle = nullptr;
-	element_base* map_pv = nullptr;
 
 	top_display_parameters display;
 
@@ -1004,10 +888,6 @@ public:
 		} else if(name == "battle") {
 			auto ptr = make_element_by_type<map_battle>(state, id);
 			battle = ptr.get();
-			return ptr;
-		} else if(name == "province_values") {
-			auto ptr = make_element_by_type<map_province_values>(state, id);
-			map_pv = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
@@ -1056,7 +936,6 @@ public:
 				}
 			}
 			if(!populated) {
-				map_pv->base_data.position.y = -8;
 				return;
 			}
 		} else {
@@ -1081,12 +960,10 @@ public:
 				}
 			}
 			if(!populated) {
-				map_pv->base_data.position.y = -8;
 				return;
 			}
 		}
 
-		map_pv->base_data.position.y = -48;
 
 		bool player_involved_battle = false;
 		dcon::land_battle_id lbattle;
@@ -1557,27 +1434,6 @@ public:
 			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
 			window_element_base::base_data.position = new_position;
 			window_element_base::impl_render(state, new_position.x, new_position.y);
-		} else if(prov.index() < state.province_definitions.first_sea_province.index()) {
-			auto mid_point = state.world.province_get_mid_point(prov);
-			auto map_pos = state.map_state.normalize_map_coord(mid_point);
-			auto screen_size =
-				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
-				visible = false;
-				return;
-			}
-			if(!state.map_state.visible_provinces[province::to_map_id(prov)]) {
-				visible = false;
-				return;
-			}
-			visible = true;
-
-			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
-			window_element_base::base_data.position = new_position;
-
-			auto relative_location = child_relative_location(*this, *map_pv);
-			map_pv->impl_render(state, new_position.x + relative_location.x, new_position.y + relative_location.y);
 		}
 	}
 
@@ -1680,6 +1536,242 @@ public:
 			return window_element_base::impl_probe_mouse(state, x, y, type);
 		else
 			return mouse_probe{ nullptr, ui::xy_pair{} };
+	}
+};
+
+
+class map_pv_rail_dots : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		frame = 6 - state.world.province_get_building_level(p, economy::province_building_type::railroad);
+	}
+};
+class map_pv_fort_dots : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		frame = 6 - state.world.province_get_building_level(p, economy::province_building_type::fort);
+	}
+};
+
+class map_pv_bank : public image_element_base {
+public:
+	sys::date last_update;
+	char cached_level = 0;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(last_update != state.ui_date) {
+			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::bank);
+			last_update = state.ui_date;
+		}
+
+		image_element_base::render(state, x, y);
+		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+	}
+};
+
+class map_pv_university : public image_element_base {
+public:
+	sys::date last_update;
+	char cached_level = 0;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(last_update != state.ui_date) {
+			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::university);
+			last_update = state.ui_date;
+		}
+
+		image_element_base::render(state, x, y);
+		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+	}
+};
+
+class province_details_container : public window_element_base {
+public:
+	
+	dcon::province_id prov;
+	sys::date last_update;
+	bool visible = false;
+	
+	element_base* capital_icon = nullptr;
+	element_base* rails_icon = nullptr;
+	element_base* rails_dots = nullptr;
+	element_base* fort_icon = nullptr;
+	element_base* fort_dots = nullptr;
+	element_base* bank_icon = nullptr;
+	element_base* unv_icon = nullptr;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "capital_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			capital_icon = ptr.get();
+			return ptr;
+		} else if(name == "rail_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			rails_icon = ptr.get();
+			return ptr;
+		} else if(name == "rail_dots") {
+			auto ptr = make_element_by_type<map_pv_rail_dots>(state, id);
+			rails_dots = ptr.get();
+			return ptr;
+		} else if(name == "fort_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			fort_icon = ptr.get();
+			return ptr;
+		} else if(name == "fort_dots") {
+			auto ptr = make_element_by_type<map_pv_fort_dots>(state, id);
+			fort_dots = ptr.get();
+			return ptr;
+		} else if(name == "bank_icon") {
+			auto ptr = make_element_by_type<map_pv_bank>(state, id);
+			bank_icon = ptr.get();
+			return ptr;
+		} else if(name == "university_icon") {
+			auto ptr = make_element_by_type<map_pv_university>(state, id);
+			unv_icon = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_on_update(sys::state& state) noexcept override {
+		if(!visible)
+			return;
+		if(last_update && state.ui_date == last_update)
+			return;
+
+		last_update = state.ui_date;
+		on_update(state);
+
+		for(auto& c : children) {
+			if(c->is_visible()) {
+				c->impl_on_update(state);
+			}
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		int32_t rows = 0;
+		if(state.world.nation_get_capital(state.world.province_get_nation_from_province_ownership(prov)) == prov) {
+			capital_icon->set_visible(state, true);
+			++rows;
+		} else {
+			capital_icon->set_visible(state, false);
+		}
+		if(state.world.province_get_building_level(prov, economy::province_building_type::railroad) != 0) {
+			++rows;
+			rails_icon->set_visible(state, true);
+			rails_dots->set_visible(state, true);
+		} else {
+			rails_icon->set_visible(state, false);
+			rails_dots->set_visible(state, false);
+		}
+		if(state.world.province_get_building_level(prov, economy::province_building_type::fort) != 0) {
+			++rows;
+			fort_icon->set_visible(state, true);
+			fort_dots->set_visible(state, true);
+		} else {
+			fort_icon->set_visible(state, false);
+			fort_dots->set_visible(state, false);
+		}
+		if((state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined && state.world.province_get_building_level(prov, economy::province_building_type::university) != 0)
+			|| (state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined && state.world.province_get_building_level(prov, economy::province_building_type::bank) != 0)) {
+			++rows;
+		} else {
+			bank_icon->set_visible(state, false);
+			unv_icon->set_visible(state, false);
+		}
+
+		auto top = (-16 * rows) / 2;
+		if(state.world.nation_get_capital(state.world.province_get_nation_from_province_ownership(prov)) == prov) {
+			capital_icon->base_data.position.y = int16_t(top - 2);
+			capital_icon->base_data.position.x = int16_t(-10);
+			top += 16;
+		}
+		if(state.world.province_get_building_level(prov, economy::province_building_type::railroad) != 0) {
+			rails_icon->base_data.position.y = int16_t(top );
+			rails_dots->base_data.position.y = int16_t(top);
+			int32_t total_width = 18 + 2 + 3 + 4 * state.world.province_get_building_level(prov, economy::province_building_type::railroad);
+			rails_icon->base_data.position.x = int16_t(-total_width / 2);
+			rails_dots->base_data.position.x = int16_t(20 -total_width / 2);
+			top += 16;
+		}
+		if(state.world.province_get_building_level(prov, economy::province_building_type::fort) != 0) {
+			fort_icon->base_data.position.y = int16_t(top);
+			fort_dots->base_data.position.y = int16_t(top);
+			int32_t total_width = 18 + 2 + 3 + 4 * state.world.province_get_building_level(prov, economy::province_building_type::fort);
+			fort_icon->base_data.position.x = int16_t(-total_width / 2);
+			fort_dots->base_data.position.x = int16_t(20 - total_width / 2);
+			top += 16;
+		}
+		if((state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined && state.world.province_get_building_level(prov, economy::province_building_type::university) != 0)
+			|| (state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined && state.world.province_get_building_level(prov, economy::province_building_type::bank) != 0)) {
+
+
+			if((state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined && state.world.province_get_building_level(prov, economy::province_building_type::university) != 0)
+			&& (state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined && state.world.province_get_building_level(prov, economy::province_building_type::bank) != 0)) {
+
+				unv_icon->base_data.position.y = int16_t(top);
+				unv_icon->base_data.position.x = int16_t(0);
+				bank_icon->base_data.position.y = int16_t(top);
+				bank_icon->base_data.position.x = int16_t(-32);
+				bank_icon->set_visible(state, true);
+				unv_icon->set_visible(state, true);
+			} else if(state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined && state.world.province_get_building_level(prov, economy::province_building_type::university) != 0) {
+
+				unv_icon->base_data.position.y = int16_t(top);
+				unv_icon->base_data.position.x = int16_t(-16);
+				bank_icon->set_visible(state, false);
+				unv_icon->set_visible(state, true);
+			} else if(state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined && state.world.province_get_building_level(prov, economy::province_building_type::bank) != 0) {
+
+				bank_icon->base_data.position.y = int16_t(top);
+				bank_icon->base_data.position.x = int16_t(-16);
+				bank_icon->set_visible(state, true);
+				unv_icon->set_visible(state, false);
+			}
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto mid_point = state.world.province_get_mid_point(prov);
+		auto map_pos = state.map_state.normalize_map_coord(mid_point);
+		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+		glm::vec2 screen_pos;
+
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+			visible = false;
+			return;
+		}
+
+		if(screen_pos.x < -32 || screen_pos.y < -32 || screen_pos.x > state.ui_state.root->base_data.size.x + 32 || screen_pos.y > state.ui_state.root->base_data.size.y + 32) {
+			visible = false;
+			return;
+		}
+		if(visible == false) {
+			visible = true;
+			impl_on_update(state);
+		}
+			
+
+		auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+		window_element_base::base_data.position = new_position;
+
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			payload.emplace<dcon::province_id>(prov);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return mouse_probe{ nullptr, ui::xy_pair{} };
 	}
 };
 
