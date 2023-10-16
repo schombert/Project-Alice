@@ -2588,9 +2588,8 @@ bool will_accept_peace_offer_value(sys::state& state,
 
 	int32_t personal_po_value = target_personal_po_value;
 
-	if(concession) {
-		if((is_attacking && overall_score <= -50.0f) || (!is_attacking && overall_score >= 50.0f))
-			return true;
+	if(concession && overall_score <= -50.0f) {
+		return true;
 	}
 	if(!concession) {
 		overall_po_value = -overall_po_value;
@@ -2602,8 +2601,11 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(overall_score <= -50 && overall_score <= overall_po_value * 2)
 			return true;
 
+		if(concession && my_side_peace_cost <= overall_po_value)
+			return true; // offer contains everything
+
 		if(war_duration < 365) {
-			return concession && my_side_peace_cost >= -overall_po_value;
+			return false;
 		}
 		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 		if(overall_score >= 0) {
@@ -2658,9 +2660,8 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 
 	auto concession = state.world.peace_offer_get_is_concession(p);
 
-	if(concession) {
-		if((is_attacking && overall_score <= -50.0f) || (!is_attacking && overall_score >= 50.0f))
-			return true;
+	if(concession && overall_score <= -50.0f) {
+		return true;
 	}
 
 	for(auto wg : state.world.peace_offer_get_peace_offer_item(p)) {
@@ -2673,6 +2674,8 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	if(!concession) {
 		overall_po_value = -overall_po_value;
 	}
+	if(overall_po_value < -100)
+		return false;
 
 	int32_t potential_peace_score_against = 0;
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
@@ -2694,12 +2697,15 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			return true;
 
 		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
+		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
+			return true; // offer contains everything
+
 		if(war_duration < 365) {
-			return concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) >= -overall_po_value;
+			return false;
 		}
 		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 		if(overall_score >= 0) {
-			if(concession && (overall_score * 2 - overall_po_value - willingness_factor) < 0)
+			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
 				return true;
 		} else {
 			if(overall_score <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)

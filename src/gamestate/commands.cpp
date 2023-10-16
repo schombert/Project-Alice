@@ -3219,8 +3219,7 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 	auto target = state.world.peace_offer_get_target(pending_offer);
 
 	// A peace offer must be accepted when war score reaches 100.
-	if(military::directed_warscore(state, in_war, source, target) >= 100.0f
-		&& (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer))) {
+	if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
 
 		military::implement_peace_offer(state, pending_offer);
 	} else {

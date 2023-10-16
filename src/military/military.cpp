@@ -3229,6 +3229,12 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	}
 
 	if(war) {
+		// remove successful WG
+		auto offer_range = state.world.peace_offer_get_peace_offer_item(offer);
+		while(offer_range.begin() != offer_range.end()) {
+			state.world.delete_wargoal((*offer_range.begin()).get_wargoal());
+		}
+
 		auto truce_months = military::peace_offer_truce_months(state, offer);
 
 		if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
@@ -3307,7 +3313,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 				cleanup_war(state, war, war_result::attacker_won);
 			} else {
 				add_truce_from_nation(state, war, from, truce_months);
-				remove_from_war(state, war, from, state.world.peace_offer_get_is_concession(offer) == false);
+				remove_from_war(state, war, from, state.world.peace_offer_get_is_concession(offer) == true);
 			}
 		} else {
 			assert(false);
