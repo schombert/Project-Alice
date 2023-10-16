@@ -2122,6 +2122,7 @@ struct decision {
 	void allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context);
 	void effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context);
 	void ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context);
+	void picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context);
 };
 struct decision_list {
 	void finish(scenario_building_context&) { }

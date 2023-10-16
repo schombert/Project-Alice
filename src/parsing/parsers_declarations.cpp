@@ -2182,6 +2182,44 @@ void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, in
 	context.outer_context.state.world.decision_set_ai_will_do(context.id, value);
 }
 
+void decision::picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
+	auto root = get_root(context.outer_context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto pictures = open_directory(gfx, NATIVE("pictures"));
+	auto decisions = open_directory(pictures, NATIVE("decisions"));
+	if(!peek_file(decisions, simple_fs::utf8_to_native(value) + NATIVE(".dds")).has_value()) {
+		err.accumulated_warnings += "Picture " + std::string(value) + " does not exist " + " (" + err.file_name + ")\n";
+		return; // Picture not found
+	}
+
+	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + std::string(value) + ".tga");
+	if(auto it = context.outer_context.gfx_context.map_of_names.find(file_name); it != context.outer_context.gfx_context.map_of_names.end()) {
+		context.outer_context.state.world.decision_set_image(context.id, it->second);
+	} else {
+		auto gfxindex = context.outer_context.state.ui_defs.gfx.size();
+		context.outer_context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = context.outer_context.state.ui_defs.gfx.back();
+		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+		context.outer_context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+
+		new_obj.number_of_frames = uint8_t(1);
+
+		if(auto itb = context.outer_context.gfx_context.map_of_texture_names.find(file_name);
+				itb != context.outer_context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = context.outer_context.state.ui_defs.textures.size();
+			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			context.outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+
+		context.outer_context.state.world.decision_set_image(context.id, new_id);
+	}
+}
+
 void oob_leader::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
 	name_ = context.outer_context.state.add_unit_name(value);
 }
