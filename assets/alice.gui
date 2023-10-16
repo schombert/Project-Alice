@@ -110,7 +110,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 115 }
+				position = {x = 78 y = 116 }
 				name = "window_mode_label"
 				text = "window_mode_label"
 				font = "Arial16"
@@ -118,7 +118,7 @@ guiTypes = {
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			guiButtonType = {
 				name = "window_mode_checkbox"
@@ -197,7 +197,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 281 }
+				position = {x = 78 y = 282 }
 				name = "fonts_label"
 				text = "fonts_label"
 				font = "Arial16"
@@ -214,7 +214,7 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 68 y = 330 }
+				position = {x = 78 y = 331 }
 				name = "fow_label"
 				text = "fow_label"
 				font = "Arial16"
@@ -324,7 +324,7 @@ guiTypes = {
 			}
 			
 			instantTextBoxType={
-				position = {x = 68 y = 221 }
+				position = {x = 78 y = 222 }
 				name = "tooltip_mode_label"
 				text = "tooltip_mode_label"
 				font = "Arial16"
