@@ -1078,12 +1078,12 @@ guiTypes = {
 				position = { x=0 y=0 }
 			}
 			instantTextBoxType={
-				position = {x = 26 y = 3 }
+				position = {x = 26 y = 4 }
 				name = "strength"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 32
-				maxHeight = 13
+				maxHeight = 10
 				orientation = "UPPER_LEFT"
 				format = centre
 			}

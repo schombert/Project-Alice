@@ -662,8 +662,8 @@ public:
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
 		auto box = text::open_layout_box(layout, 0);
 
-
-		text::add_to_layout_box(state, layout, box, text::format_float(strength, 1), text::text_color::gold);
+		
+		text::add_to_layout_box(state, layout, box, text::format_float(strength, 1), text::text_color::white);
 		//if(!is_ship)
 			//text::add_to_layout_box(state, layout, box, std::string("k"), text::text_color::gold);
 
