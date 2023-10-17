@@ -1874,13 +1874,18 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_nation([&](dcon::nation_id id) {
-			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() ||
-					(id == state.local_player_nation &&
-							dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid())) {
+		// Put player wargoals first
+		for(const auto id : state.world.in_nation) {
+			if(id == state.local_player_nation && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid()) {
 				row_contents.push_back(id);
 			}
-		});
+		}
+		// And after - everyone elses
+		for(const auto id : state.world.in_nation) {
+			if(id != state.local_player_nation && dcon::fatten(state.world, id).get_constructing_cb_is_discovered()) {
+				row_contents.push_back(id);
+			}
+		}
 		update(state);
 	}
 };
