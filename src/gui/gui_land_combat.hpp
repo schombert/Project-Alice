@@ -984,6 +984,12 @@ public:
 
 	}
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		window_element_base::render(state, x, y);
+		// Play sound effects
+		sound::play_effect(state, sound::get_random_land_battle_sound(state), state.user_settings.effects_volume * state.user_settings.master_volume);
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "combat_bg") {
 			return make_element_by_type<opaque_element_base>(state, id);
