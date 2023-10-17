@@ -3222,10 +3222,13 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 		});
 	}
 
+	bool contains_sq = false;
 	for(auto wg_offered : state.world.peace_offer_get_peace_offer_item(offer)) {
 		auto wg = wg_offered.get_wargoal();
 		implement_war_goal(state, state.world.peace_offer_get_war_from_war_settlement(offer), wg.get_type(),
 				wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+		if((wg.get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
+			contains_sq = true;
 	}
 
 	if(war) {
@@ -3237,7 +3240,9 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 
 		auto truce_months = military::peace_offer_truce_months(state, offer);
 
-		if(state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target) {
+		if((state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target)
+			|| (contains_sq && military::is_attacker(state, war, from))) {
+
 			if(state.world.war_get_is_great(war)) {
 				if(state.world.peace_offer_get_is_concession(offer) == false) {
 					for(auto par : state.world.war_get_war_participant(war)) {
@@ -3259,7 +3264,9 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			cleanup_war(state, war,
 					state.world.peace_offer_get_is_concession(offer) ? war_result::defender_won : war_result::attacker_won);
 
-		} else if(state.world.war_get_primary_attacker(war) == target && state.world.war_get_primary_defender(war) == from) {
+		} else if((state.world.war_get_primary_attacker(war) == target && state.world.war_get_primary_defender(war) == from)
+			|| (contains_sq && !military::is_attacker(state, war, from))) {
+
 			if(state.world.war_get_is_great(war)) {
 				if(state.world.peace_offer_get_is_concession(offer) == false) {
 					for(auto par : state.world.war_get_war_participant(war)) {

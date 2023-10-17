@@ -2578,7 +2578,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 	int32_t overall_po_value, int32_t my_po_target,
 	int32_t target_personal_po_value, int32_t potential_peace_score_against,
 	int32_t my_side_against_target, int32_t my_side_peace_cost,
-	int32_t war_duration) {
+	int32_t war_duration, bool contains_sq) {
 
 	bool is_attacking = !offer_from_attacker;
 
@@ -2629,6 +2629,9 @@ bool will_accept_peace_offer_value(sys::state& state,
 				return true;
 		}
 	} else {
+		if(contains_sq)
+			return false;
+
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
@@ -2649,6 +2652,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	auto prime_attacker = state.world.war_get_primary_attacker(w);
 	auto prime_defender = state.world.war_get_primary_defender(w);
 	bool is_attacking = military::is_attacker(state, w, n);
+	bool contains_sq = false;
 
 	auto overall_score = military::primary_warscore(state, w);
 	if(!is_attacking)
@@ -2667,6 +2671,10 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	for(auto wg : state.world.peace_offer_get_peace_offer_item(p)) {
 		auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
 		overall_po_value += wg_value;
+
+		if((wg.get_wargoal().get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
+			contains_sq = true;
+
 		if(wg.get_wargoal().get_target_nation() == n) {
 			personal_po_value += wg_value;
 		}
@@ -2736,6 +2744,9 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		}
 
 	} else {
+		if(contains_sq)
+			return false;
+
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
 
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)

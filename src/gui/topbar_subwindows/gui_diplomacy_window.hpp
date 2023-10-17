@@ -1484,6 +1484,10 @@ public:
 			}
 			text::add_line_with_condition(state, contents, "intervene_6", military::joining_war_does_not_violate_constraints(state, state.local_player_nation, w, B));
 
+			if constexpr(!B) {
+				text::add_line_with_condition(state, contents, "intervene_8", !military::has_truce_with(state, state.local_player_nation, state.world.war_get_primary_attacker(w)));
+			}
+
 			if(!state.world.war_get_is_great(w)) {
 				auto defender = state.world.war_get_primary_defender(w);
 				auto rel_w_defender = state.world.get_gp_relationship_by_gp_influence_pair(defender, state.local_player_nation);

@@ -1812,6 +1812,8 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		return false;
 	if(for_attacker && military::joining_as_attacker_would_break_truce(state, source, w))
 		return false;
+	if(!for_attacker && military::has_truce_with(state, source, state.world.war_get_primary_attacker(w)))
+		return false;
 
 	if(!state.world.war_get_is_great(w)) {
 		/*
