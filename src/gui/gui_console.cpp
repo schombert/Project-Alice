@@ -35,7 +35,9 @@ struct command_info {
 		event,
 		militancy,
 		dump_out_of_sync,
-		fog_of_war
+		fog_of_war,
+		prestige,
+		force_ally
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -110,12 +112,15 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"crisis", command_info::type::crisis, "Force a crisis to occur",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"end_game", command_info::type::end_game, "ends the game",
+		command_info{"end_game", command_info::type::end_game, "Ends the game",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"event", command_info::type::event, "Triggers a random country event by its legacy id",
 				{command_info::argument_info{"id", command_info::argument_info::type::numeric, false}, command_info::argument_info{"target", command_info::argument_info::type::tag, true}}},
 		command_info{"angry", command_info::type::militancy, "Makes everyone in your nation very militant",
+				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
+						command_info::argument_info{}}},
+		command_info{"pr", command_info::type::prestige, "Increases prestige by amount",
 				{command_info::argument_info{"amount", command_info::argument_info::type::numeric, false}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"oos", command_info::type::dump_out_of_sync, "Dump an OOS save",
@@ -124,7 +129,10 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"fow", command_info::type::fog_of_war, "Toggles fog of war ON/OFF",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-	};
+		command_info{"fa", command_info::type::force_ally, "Force an alliance between you and a country",
+				{command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+};
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 	// NOTE: Change parameters as you wish - but these work fine for the majority of mods
@@ -473,12 +481,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	switch(pstate.cmd.mode) {
 	case command_info::type::mainmenu:
 		state.ui_state.main_menu_win->is_visible() ? state.ui_state.main_menu_win->set_visible(state, false)
-																							 : state.ui_state.main_menu_win->set_visible(state, true);
+			: state.ui_state.main_menu_win->set_visible(state, true);
 		state.ui_state.main_menu_win->impl_on_update(state);
 		break;
 	case command_info::type::elecwin:
 		state.ui_state.election_window->is_visible() ? state.ui_state.election_window->set_visible(state, false)
-																								 : state.ui_state.election_window->set_visible(state, true);
+			: state.ui_state.election_window->set_visible(state, true);
 		state.ui_state.election_window->impl_on_update(state);
 		break;
 	case command_info::type::reload:
@@ -502,7 +510,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			state.ui_state.root->move_child_to_front(state.ui_state.fps_counter);
 		}
 		break;
-	case command_info::type::set_tag: {
+	case command_info::type::set_tag:
+	{
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
 		if(set_active_tag(state, tag) == false) {
 			std::pair<uint32_t, dcon::national_identity_id> closest_tag_match{};
@@ -558,11 +567,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
-	case command_info::type::help: {
+	case command_info::type::help:
+	{
 		auto log_command_info = [&](auto cmd) {
 			std::string text = "\x95"
-												 "\xA7Y" +
-												 std::string(cmd.name) + "\xA7W ";
+				"\xA7Y" +
+				std::string(cmd.name) + "\xA7W ";
 			for(const auto& arg : cmd.args)
 				if(arg.mode != command_info::argument_info::type::none) {
 					if(arg.optional)
@@ -572,7 +582,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				}
 			text += "- " + std::string(cmd.desc);
 			log_to_console(state, parent, text);
-		};
+			};
 		if(std::holds_alternative<std::string>(pstate.arg_slots[0])) {
 			auto cmd_name = std::get<std::string>(pstate.arg_slots[0]);
 			bool found = false;
@@ -605,7 +615,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_command_info(cmd);
 		}
 	} break;
-	case command_info::type::show_stats: {
+	case command_info::type::show_stats:
+	{
 		if(!std::holds_alternative<std::string>(pstate.arg_slots[0])) {
 			log_to_console(state, parent, "Valid options: demo(graphics), diplo(macy), eco(nomy), event(s), mil(itary)");
 			log_to_console(state, parent, "tech(nology), pol(itics), a(ll)/all");
@@ -1043,7 +1054,10 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_unwesternize(state, state.local_player_nation);
 		break;
 	case command_info::type::cheat:
-		log_to_console(state, parent, "You cheater >:(");
+		command::c_westernize(state, state.local_player_nation);
+		command::c_change_cb_progress(state, state.local_player_nation, float(1000.f));
+		command::c_change_research_points(state, state.local_player_nation, float(100000.f));
+		command::c_change_diplo_points(state, state.local_player_nation, float(99.f));
 		break;
 	case command_info::type::crisis:
 		command::c_force_crisis(state, state.local_player_nation);
@@ -1063,10 +1077,23 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		else
 			command::c_event(state, state.local_player_nation, std::get<int32_t>(pstate.arg_slots[0]));
 	}
-		break;
+	break;
 	case command_info::type::militancy:
 		command::c_change_national_militancy(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
 		break;
+	case command_info::type::prestige:
+		command::c_change_prestige(state, state.local_player_nation, float(std::get<int32_t>(pstate.arg_slots[0])));
+		break;
+	case command_info::type::force_ally:
+	{
+		dcon::national_identity_id nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+			command::c_force_ally(state, state.local_player_nation, state.world.national_identity_get_nation_from_identity_holder(nid));
+		}
+	}
+	break;
 	case command_info::type::dump_out_of_sync:
 		state.debug_oos_dump();
 		break;
