@@ -339,3 +339,8 @@ constexpr inline uint8_t river_crossing_bit = 0x20;
 constexpr inline uint8_t test_bit = 0x40;
 } // namespace border
 } // namespace province
+
+namespace map {
+constexpr inline float min_zoom = 1.0f;
+constexpr inline float max_zoom = 75.0f;
+ }

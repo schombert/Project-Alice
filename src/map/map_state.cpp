@@ -151,7 +151,7 @@ void map_state::update(sys::state& state) {
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom += zoom_diff;
 	zoom_change *= std::exp(-seconds_since_last_update * 20);
-	zoom = glm::clamp(zoom, 1.f, 75.f);
+	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
 	glm::vec2 pos_after_zoom;
 	if(valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {

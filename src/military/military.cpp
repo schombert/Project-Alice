@@ -3391,8 +3391,8 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 
 		if(crisis_attackers_won) {
 
-			float p_factor = state.defines.crisis_winner_prestige_factor_base +
-											 state.defines.crisis_winner_prestige_factor_year * float(state.current_date.value) / float(365);
+			float p_factor = 0.05f * (state.defines.crisis_winner_prestige_factor_base +
+											 state.defines.crisis_winner_prestige_factor_year * float(state.current_date.value) / float(365));
 
 			nations::adjust_prestige(state, state.primary_crisis_defender,
 					-p_factor * nations::prestige_score(state, state.primary_crisis_attacker));
@@ -3407,8 +3407,8 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			}
 		} else {
 
-			float p_factor = state.defines.crisis_winner_prestige_factor_base +
-											 state.defines.crisis_winner_prestige_factor_year * float(state.current_date.value) / float(365);
+			float p_factor = 0.05f * (state.defines.crisis_winner_prestige_factor_base +
+											 state.defines.crisis_winner_prestige_factor_year * float(state.current_date.value) / float(365));
 
 			nations::adjust_prestige(state, state.primary_crisis_attacker,
 					-p_factor * nations::prestige_score(state, state.primary_crisis_attacker));

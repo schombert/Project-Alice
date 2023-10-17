@@ -339,8 +339,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
 			} else if(keycode == virtual_key::TAB) {
-				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
-				ui_state.root->move_child_to_front(ui_state.chat_window);
+				ui_state.r_chat_window->set_visible(*this, !ui_state.r_chat_window->is_visible());
+				ui_state.root->move_child_to_front(ui_state.r_chat_window);
 			}
 
 			map_state.on_key_down(keycode, mod);
@@ -1484,6 +1484,7 @@ void state::on_create() {
 	{ // One on the lobby
 		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
 		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
+		ui_state.r_chat_window = new_elm.get();
 		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
 	}
 	{ // And the other on the normal in game UI
