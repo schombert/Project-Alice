@@ -2621,7 +2621,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(scoreagainst_me > 50)
 			return true;
 
-		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing
+		if(overall_score < 0.0f) { // we are losing
 			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
 				return true;
 		} else {
@@ -2632,12 +2632,12 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
-		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing	
-			if(scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
+		if(overall_score < 0.0f) { // we are losing	
+			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
 
 		} else { // we are winning
-			if(std::min(scoreagainst_me, 0.0f) - my_po_target >= -overall_po_value)
+			if(my_po_target > 0 && my_po_target >= overall_po_value)
 				return true;
 		}
 	}
@@ -2727,8 +2727,8 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			}
 		}
 
-		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing
-			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
+		if(overall_score < 0.0f) { // we are losing
+			if( my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
 				return true;
 		} else {
 			if(my_side_against_target <= overall_po_value)
@@ -2741,12 +2741,12 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
-		if((is_attacking && overall_score < 0.0f) || (!is_attacking && overall_score > 0.0f)) { // we are losing	
-			if(scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
+		if(overall_score < 0.0f) { // we are losing	
+			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
 
 		} else { // we are winning
-			if(std::min(scoreagainst_me, 0.0f) - my_po_target >= -overall_po_value)
+			if(my_po_target > 0 && my_po_target >= overall_po_value)
 				return true;
 		}
 	}

@@ -1903,7 +1903,7 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::intervene_in_war;
+	p.type = command_type::suppress_movement;
 	p.source = source;
 	p.data.movement.iopt = state.world.movement_get_associated_issue_option(m);
 	p.data.movement.tag = state.world.movement_get_associated_independence(m);

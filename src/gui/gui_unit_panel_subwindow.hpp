@@ -70,6 +70,9 @@ public:
 		auto fat = dcon::fatten(state.world, listbox_row_element_base<T>::content);
 		subunit_name->set_text(state, std::string{state.to_string_view(fat.get_name())});
 		dcon::unit_type_id utid = dcon::fatten(state.world, listrow::content).get_type();
+		if(!utid)
+			return;
+
 		subunit_type->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 		subunit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
 		subunit_orgbar->progress = (fat.get_org() * 100);

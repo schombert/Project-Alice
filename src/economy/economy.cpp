@@ -3639,6 +3639,8 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 		dest = find_land_rally_pt(state, by, start);
 	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
 		return;
+	if(state.world.army_get_battle_from_army_battle_participation(a))
+		return;
 
 	if(dest == start) { // merge in place
 		for(auto ar : state.world.province_get_army_location(start)) {
@@ -3727,19 +3729,12 @@ void resolve_constructions(sys::state& state) {
 			auto pop_location = c.get_pop().get_province_from_pop_location();
 
 			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
-			auto a = [&]() {
-				// auto merge eliminated: this makes it easier for the ai to handle merging
-				//for(auto ar : state.world.province_get_army_location(pop_location)) {
-				//	if(ar.get_army().get_controller_from_army_control() == c.get_nation())
-				//		return ar.get_army().id;
-				//}
-				auto new_army = fatten(state.world, state.world.create_army());
-				new_army.set_controller_from_army_control(c.get_nation());
-				military::army_arrives_in_province(state, new_army, pop_location, military::crossing_type::none);
-				return new_army.id;
-			}();
+			auto a = fatten(state.world, state.world.create_army());
+
+			a.set_controller_from_army_control(c.get_nation());
 			state.world.try_create_army_membership(new_reg, a);
 			state.world.try_create_regiment_source(new_reg, c.get_pop());
+			military::army_arrives_in_province(state, a, pop_location, military::crossing_type::none);
 			move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
 
 			if(c.get_nation() == state.local_player_nation) {
@@ -3778,17 +3773,9 @@ void resolve_constructions(sys::state& state) {
 
 				if(all_finished) {
 					auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
-					auto a = [&]() {
-						// auto merge eliminated: this makes it easier for the ai to handle merging
-						//auto navies = state.world.province_get_navy_location(p);
-						//if(navies.begin() != navies.end()) {
-						//	return navies.begin().operator*().get_navy().id;
-						//}
-						auto new_navy = fatten(state.world, state.world.create_navy());
-						new_navy.set_controller_from_navy_control(c.get_nation());
-						new_navy.set_location_from_navy_location(p);
-						return new_navy.id;
-					}();
+					auto a = fatten(state.world, state.world.create_navy());
+					a.set_controller_from_navy_control(c.get_nation());
+					a.set_location_from_navy_location(p);
 					state.world.try_create_navy_membership(new_ship, a);
 					move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
