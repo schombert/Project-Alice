@@ -728,13 +728,13 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = -4 y = -14 }
+			position = {x = 6 y = -14 }
 			name = "collapsed_ship_count"
-			font = "Arial16"
+			font = "Arial14"
 			borderSize = {x = 0 y = 0}
 			maxWidth = 30
 			maxHeight = 17
-			orientation = "UPPER_LEFT"
+			orientation = "CENTER"
 			format = centre
 		}
 		iconType = {
