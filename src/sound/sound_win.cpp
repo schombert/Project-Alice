@@ -351,6 +351,57 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("GI_MessageWindow.wav"));
 		state.sound_ptr->diplomatic_request_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
 	}
+
+	// Land battles
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_1.wav"));
+		state.sound_ptr->land_battle_sounds[0].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_2.wav"));
+		state.sound_ptr->land_battle_sounds[1].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_3.wav"));
+		state.sound_ptr->land_battle_sounds[2].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Infantry_1.wav"));
+		state.sound_ptr->land_battle_sounds[3].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Infantry_2.wav"));
+		state.sound_ptr->land_battle_sounds[4].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Infantry_3.wav"));
+		state.sound_ptr->land_battle_sounds[5].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MajorShip_1.wav"));
+		state.sound_ptr->naval_battle_sounds[0].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MajorShip_2.wav"));
+		state.sound_ptr->naval_battle_sounds[1].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MajorShip_3.wav"));
+		state.sound_ptr->naval_battle_sounds[2].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_1.wav"));
+		state.sound_ptr->naval_battle_sounds[3].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_2.wav"));
+		state.sound_ptr->naval_battle_sounds[4].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_3.wav"));
+		state.sound_ptr->naval_battle_sounds[5].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
 }
 
 // these functions are called to change the volume of the currently playing track or effect
@@ -461,6 +512,13 @@ audio_instance& get_accept_sound(sys::state& state) {
 }
 audio_instance& get_diplomatic_request_sound(sys::state& state) {
 	return state.sound_ptr->diplomatic_request_sound;
+}
+
+audio_instance& get_random_land_battle_sound(sys::state& state) {
+	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
+}
+audio_instance& get_random_naval_battle_sound(sys::state& state) {
+	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
 }
 
 } // namespace sound

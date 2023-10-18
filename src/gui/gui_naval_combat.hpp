@@ -670,6 +670,7 @@ public:
 			set_visible(state, false);
 			battle = dcon::naval_battle_id{};
 		}
+		sound::play_effect(state, sound::get_random_naval_battle_sound(state), state.user_settings.effects_volume * state.user_settings.master_volume);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
