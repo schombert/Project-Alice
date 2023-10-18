@@ -81,6 +81,8 @@ public:
 	audio_instance decline_sound;
 	audio_instance accept_sound;
 	audio_instance diplomatic_request_sound;
+	audio_instance land_battle_sounds[6];
+	audio_instance naval_battle_sounds[6];
 
 	std::vector<audio_instance> music_list;
 
