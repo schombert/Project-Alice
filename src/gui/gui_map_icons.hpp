@@ -84,7 +84,7 @@ class port_ship_count : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		int32_t count = retrieve<int32_t>(state, parent);
-		color = text::text_color::gold;
+		color = text::text_color::white;
 		if(count <= 0) {
 			set_text(state, "");
 		} else {
