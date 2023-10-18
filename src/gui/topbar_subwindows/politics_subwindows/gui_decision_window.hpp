@@ -17,10 +17,26 @@ public:
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto condition = state.world.decision_get_allow(id);
 		if(condition)
-			trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation),
-					trigger::to_generic(state.local_player_nation), -1);
+			trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 	}
-	
+};
+
+class decision_ai_will_do : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto id = retrieve<dcon::decision_id>(state, parent);
+		auto potential = state.world.decision_get_potential(id);
+		if(potential)
+			trigger_description(state, contents, potential, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		auto mkey = state.world.decision_get_ai_will_do(id);
+		if(mkey) {
+			multiplicative_value_modifier_description(state, contents, mkey, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		}
+	}
 };
 
 class make_decision : public button_element_base {
@@ -72,7 +88,10 @@ void produce_decision_substitutions(sys::state& state, text::substitution_map& m
 	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
 	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
+	text::add_to_substitution_map(m, text::variable_type::capital, state.world.province_get_name(state.world.nation_get_capital(n)));
 	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(n)));
+	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
+
 }
 
 class decision_name : public multiline_text_element_base {
@@ -185,6 +204,10 @@ public:
 		} else if(name == "decision_desc") {
 			return make_element_by_type<decision_desc>(state, id);
 		} else if(name == "requirements") {
+			// Extra button to tell if AI will do
+			auto ptr = make_element_by_type<decision_ai_will_do>(state, id);
+			ptr->base_data.position.x -= ptr->base_data.size.x;
+			add_child_to_front(std::move(ptr));
 			return make_element_by_type<decision_requirements>(state, id);
 		} else if(name == "ignore_checkbox") {
 			return make_element_by_type<ignore_checkbox>(state, id);
