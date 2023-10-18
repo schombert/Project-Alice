@@ -14,9 +14,7 @@ class commodity_filter_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::commodity_id();
-			parent->impl_get(state, payload);
-			auto cid = any_cast<dcon::commodity_id>(payload);
+			auto cid = retrieve<dcon::commodity_id>(state, parent);
 			Cyto::Any f_payload = commodity_filter_toggle_data{cid};
 			parent->impl_get(state, f_payload);
 		}
@@ -28,9 +26,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		Cyto::Any payload = dcon::commodity_id{};
-		parent->impl_get(state, payload);
-		auto content = any_cast<dcon::commodity_id>(payload); // Runtime Error >w<
+		auto content = retrieve<dcon::commodity_id>(state, parent); // Runtime Error >w<
 		text::localised_single_sub_box(state, contents, box, std::string_view("production_toggle_filter_tooltip"),
 				text::variable_type::goods, dcon::fatten(state.world, content).get_name());
 		text::close_layout_box(contents, box);
@@ -41,9 +37,7 @@ class commodity_filter_enabled_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::commodity_id();
-			parent->impl_get(state, payload);
-			auto cid = any_cast<dcon::commodity_id>(payload);
+			auto cid = retrieve<dcon::commodity_id>(state, parent);
 			Cyto::Any f_payload = commodity_filter_query_data{cid, false};
 			parent->impl_get(state, f_payload);
 			auto content = any_cast<commodity_filter_query_data>(f_payload);
