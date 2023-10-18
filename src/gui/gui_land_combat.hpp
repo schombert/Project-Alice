@@ -984,9 +984,7 @@ public:
 
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		window_element_base::render(state, x, y);
-		// Play sound effects
+	void on_update(sys::state& state) noexcept override {
 		sound::play_effect(state, sound::get_random_land_battle_sound(state), state.user_settings.effects_volume * state.user_settings.master_volume);
 	}
 
