@@ -3617,6 +3617,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 		for(auto padj : c.get_province().get_province_adjacency()) {
 			auto other = padj.get_connected_provinces(0) == c.get_province() ? padj.get_connected_provinces(1) : padj.get_connected_provinces(0);
 			auto n_controller = other.get_nation_from_province_control();
+			auto ovr = n_controller.get_overlord_as_subject().get_ruler();
 
 			if(n_controller == n) {
 				// own province
@@ -3625,12 +3626,13 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 			} else if(other.get_rebel_faction_from_province_rebel_control()) {
 				cls = province_class::hostile_border;
 				break;
-			} else if(nations::are_allied(state, n, n_controller) || n_controller.get_overlord_as_subject().get_ruler() == n) {
-				// allied controller
+			} else if(nations::are_allied(state, n, n_controller) || (ovr && ovr == n) || (ovr && nations::are_allied(state, n, ovr))) {
+				// allied controller or subject of allied controller or our "parent" overlord
 				if(uint8_t(cls) < uint8_t(province_class::low_priority_border)) {
 					cls = province_class::low_priority_border;
 				}
-			} else if(military::are_at_war(state, n, n_controller)) {
+			} else if(military::are_at_war(state, n, n_controller) || n_controller.get_constructing_cb_target() == n || n_controller.get_ai_rival() == n || state.world.nation_get_ai_rival(n) == n_controller.id) {
+				// fabricating against us or at war with us
 				cls = province_class::hostile_border;
 				break;
 			} else { // other border
