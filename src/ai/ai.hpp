@@ -61,7 +61,8 @@ bool will_accept_peace_offer_value(sys::state& state,
 	int32_t overall_po_value, int32_t my_po_target,
 	int32_t target_personal_po_value, int32_t potential_peace_score_against,
 	int32_t my_side_against_target, int32_t my_side_peace_cost,
-	int32_t war_duration);
+	int32_t war_duration, bool contains_sq);
+
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg);
 
 }

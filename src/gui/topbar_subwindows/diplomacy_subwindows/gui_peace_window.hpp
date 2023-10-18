@@ -438,6 +438,7 @@ public:
 			int32_t my_po_target = 0;
 			auto prime_attacker = state.world.war_get_primary_attacker(w);
 			auto prime_defender = state.world.war_get_primary_defender(w);
+			bool contains_sq = false;
 
 			for(auto& twg : wargoals) {
 				auto wg = fatten(state.world, twg.wg);
@@ -451,6 +452,8 @@ public:
 					if(wg.get_target_nation() == state.local_player_nation) {
 						my_side_against_target += wg_value;
 					}
+					if((wg.get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
+						contains_sq = true;
 				}
 				if(wg.get_target_nation() == target || wg.get_added_by() == target) {
 					if(wg.get_target_nation() == target && (wg.get_added_by() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
@@ -470,7 +473,7 @@ public:
 				overall_po_value, my_po_target,
 				target_personal_po_value, potential_peace_score_against,
 				my_side_against_target, my_side_peace_cost,
-				war_duration);
+				war_duration, contains_sq);
 
 			payload.emplace<test_acceptance>(test_acceptance{ acceptance });
 			return message_result::consumed;

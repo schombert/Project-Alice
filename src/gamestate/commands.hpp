@@ -125,7 +125,9 @@ enum class command_type : uint8_t {
 	c_change_national_militancy = 137,
 	c_end_game = 138,
 	c_event = 139,
-	c_event_as = 140
+	c_event_as = 140,
+	c_change_prestige = 141,
+	c_force_ally = 142
 };
 
 struct national_focus_data {
@@ -807,9 +809,11 @@ void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value
 void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
 void c_force_crisis(sys::state& state, dcon::nation_id source);
 void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
+void c_change_prestige(sys::state& state, dcon::nation_id source, float value);
 void c_end_game(sys::state& state, dcon::nation_id source);
 void c_event(sys::state& state, dcon::nation_id source, int32_t id);
 void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id);
+void c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);

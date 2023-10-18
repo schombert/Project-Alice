@@ -1484,6 +1484,10 @@ public:
 			}
 			text::add_line_with_condition(state, contents, "intervene_6", military::joining_war_does_not_violate_constraints(state, state.local_player_nation, w, B));
 
+			if constexpr(!B) {
+				text::add_line_with_condition(state, contents, "intervene_8", !military::has_truce_with(state, state.local_player_nation, state.world.war_get_primary_attacker(w)));
+			}
+
 			if(!state.world.war_get_is_great(w)) {
 				auto defender = state.world.war_get_primary_defender(w);
 				auto rel_w_defender = state.world.get_gp_relationship_by_gp_influence_pair(defender, state.local_player_nation);
@@ -1874,13 +1878,18 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_nation([&](dcon::nation_id id) {
-			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() ||
-					(id == state.local_player_nation &&
-							dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid())) {
+		// Put player wargoals first
+		for(const auto id : state.world.in_nation) {
+			if(id == state.local_player_nation && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid()) {
 				row_contents.push_back(id);
 			}
-		});
+		}
+		// And after - everyone elses
+		for(const auto id : state.world.in_nation) {
+			if(id != state.local_player_nation && dcon::fatten(state.world, id).get_constructing_cb_is_discovered()) {
+				row_contents.push_back(id);
+			}
+		}
 		update(state);
 	}
 };

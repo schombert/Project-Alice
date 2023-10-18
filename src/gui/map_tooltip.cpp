@@ -50,15 +50,17 @@ void revolt_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value, text::fp_one_place{ state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::pop_militancy_modifier) });
-
+		text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, prov) });
+		ui::active_modifiers_description(state, contents, prov, 0, sys::provincial_mod_offsets::pop_militancy_modifier, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::global_pop_militancy_modifier, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, true);
 		if(fat.get_crime()) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, state.culture_definitions.crimes[fat.get_crime()].name);
 			text::add_divider_to_layout_box(state, contents, box);
 		}
 		text::close_layout_box(contents, box);
-
 		ui::modifier_description(state, contents, state.culture_definitions.crimes[fat.get_crime()].modifier);
 	}
 }

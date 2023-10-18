@@ -1808,6 +1808,8 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		return false;
 	if(for_attacker && military::joining_as_attacker_would_break_truce(state, source, w))
 		return false;
+	if(!for_attacker && military::has_truce_with(state, source, state.world.war_get_primary_attacker(w)))
+		return false;
 
 	if(!state.world.war_get_is_great(w)) {
 		/*
@@ -1899,7 +1901,7 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::intervene_in_war;
+	p.type = command_type::suppress_movement;
 	p.source = source;
 	p.data.movement.iopt = state.world.movement_get_associated_issue_option(m);
 	p.data.movement.tag = state.world.movement_get_associated_independence(m);
@@ -3451,6 +3453,30 @@ void execute_c_change_national_militancy(sys::state& state, dcon::nation_id sour
 	for(auto pr : state.world.nation_get_province_ownership(source))
 		for(auto pop : pr.get_province().get_pop_location())
 			pop.get_pop().set_militancy(pop.get_pop().get_militancy() + value);
+}
+
+void c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_force_ally;
+	p.source = source;
+	p.data.nation_pick.target = target;
+	add_to_command_queue(state, p);
+}
+void execute_c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	nations::make_alliance(state, source, target);
+}
+
+void c_change_prestige(sys::state& state, dcon::nation_id source, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_prestige;
+	p.source = source;
+	p.data.cheat.value = value;
+	add_to_command_queue(state, p);
+}
+void execute_c_change_prestige(sys::state& state, dcon::nation_id source, float value) {
+	state.world.nation_get_prestige(source) += value;
 }
 
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
@@ -5085,6 +5111,9 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_change_national_militancy:
 		execute_c_change_national_militancy(state, c.source, c.data.cheat.value);
 		break;
+	case command_type::c_change_prestige:
+		execute_c_change_prestige(state, c.source, c.data.cheat.value);
+		break;
 	case command_type::c_end_game:
 		execute_c_end_game(state, c.source);
 		break;
@@ -5093,6 +5122,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_event_as:
 		execute_c_event_as(state, c.source, c.data.cheat_event.as, c.data.cheat_event.value);
+		break;
+	case command_type::c_force_ally:
+		execute_c_force_ally(state, c.source, c.data.nation_pick.target);
 		break;
 	}
 }
