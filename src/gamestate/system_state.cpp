@@ -3684,6 +3684,9 @@ void state::single_game_tick() {
 		if(ymd_date.month == 4 && ymd_date.year % 2 == 0) { // the purge
 			demographics::remove_small_pops(*this);
 		}
+		if(ymd_date.month == 5) {
+			ai::prune_alliances(*this);
+		}
 		if(ymd_date.month == 6 && !national_definitions.on_quarterly_pulse.empty()) {
 			for(auto n : world.in_nation) {
 				if(n.get_owned_province_count() > 0) {
@@ -3707,6 +3710,9 @@ void state::single_game_tick() {
 					event::fire_fixed_event(*this, national_definitions.on_yearly_pulse, trigger::to_generic(n.id), event::slot_type::nation, n.id, -1, event::slot_type::none);
 				}
 			}
+		}
+		if(ymd_date.month == 11) {
+			ai::prune_alliances(*this);
 		}
 		if(ymd_date.month == 12 && !national_definitions.on_quarterly_pulse.empty()) {
 			for(auto n : world.in_nation) {

@@ -160,6 +160,62 @@ void form_alliances(sys::state& state) {
 	}
 }
 
+void prune_alliances(sys::state& state) {
+	static std::vector<dcon::nation_id> prune_targets;
+	for(auto n : state.world.in_nation) {
+		if(!n.get_is_player_controlled() && !n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
+			prune_targets.clear();
+			for(auto dr : n.get_diplomatic_relation()) {
+				if(dr.get_are_allied()) {
+					auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
+					if(other.get_in_sphere_of() != n) {
+						prune_targets.push_back(other);
+					}
+				}
+			}
+
+			if(prune_targets.empty())
+				continue;
+
+			std::sort(prune_targets.begin(), prune_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				if(estimate_strength(state, a) != estimate_strength(state, b))
+					return estimate_strength(state, a) < estimate_strength(state, b);
+				else
+					return a.index() > b.index();
+			});
+
+			float greatest_neighbor = 0.0f;
+			auto in_sphere_of = state.world.nation_get_in_sphere_of(n);
+
+			for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(n)) {
+				auto other = b.get_connected_nations(0) != n ? b.get_connected_nations(0) : b.get_connected_nations(1);
+				if(!nations::are_allied(state, n, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
+					greatest_neighbor = std::max(greatest_neighbor, estimate_strength(state, other));
+				}
+			}
+
+			float defensive_str = estimate_defensive_strength(state, n);
+			auto ll = state.world.nation_get_last_war_loss(n);
+			float safety_factor = 1.2f;
+			if(ll && state.current_date < ll + 365 * 4) {
+				safety_factor = 1.8f;
+			}
+
+			auto safety_margin = defensive_str - safety_factor * greatest_neighbor;
+
+			for(auto pt : prune_targets) {
+				auto weakest_str = estimate_strength(state, pt);
+				if(weakest_str * 1.25 < safety_margin) {
+					safety_margin -= weakest_str;
+					command::execute_cancel_alliance(state, n, pt);
+				} else {
+					break;
+				}
+			}
+		}
+	}
+}
+
 bool ai_is_close_enough(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
 	auto target_continent = state.world.province_get_continent(state.world.nation_get_capital(target));
 	auto source_continent = state.world.province_get_continent(state.world.nation_get_capital(from));
