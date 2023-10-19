@@ -23,7 +23,6 @@
 #include "gui_chat_window.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
-#include "main_menu/gui_country_selection_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
