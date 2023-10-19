@@ -166,6 +166,7 @@ public:
 };
 
 class right_click_button_element_base : public button_element_base {
+public:
 	virtual void button_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
@@ -177,6 +178,7 @@ class right_click_button_element_base : public button_element_base {
 };
 
 class shift_button_element_base : public button_element_base {
+public:
 	virtual void button_shift_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
@@ -201,6 +203,21 @@ class shift_button_element_base : public button_element_base {
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class shift_right_button_element_base : public shift_button_element_base {
+	virtual void button_right_action(sys::state& state) noexcept { }
+	virtual void button_shift_right_action(sys::state& state) noexcept { }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_right_action(state);
+			else
+				button_right_action(state);
+		}
+		return message_result::consumed;
 	}
 };
 
