@@ -892,9 +892,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::state_instance_id{};
-		parent->impl_get(state, payload);
-		auto state_id = any_cast<dcon::state_instance_id>(payload);
+		auto state_id = retrieve<dcon::state_instance_id>(state, parent);
 
 		for(auto const c : infos)
 			c->set_visible(state, false);
@@ -1603,9 +1601,17 @@ public:
 
 		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count;
 				curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
+
+			bool is_empty = true;
+			for(auto id : state.world.in_commodity) {
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id) || id == economy::money)
+					continue;
+				is_empty = false;
+			}
+			if(is_empty)
+				continue;
+
 			commodity_offset.x = base_commodity_offset.x;
-
-
 
 			// Place legend for this category...
 			auto ptr = make_element_by_type<production_goods_category_name>(state,
@@ -1620,11 +1626,9 @@ public:
 
 			int16_t cell_height = 0;
 			// Place infoboxes for each of the goods...
-			state.world.for_each_commodity([&](dcon::commodity_id id) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id))
-					return;
-				if(id == economy::money)
-					return;
+			for(auto id : state.world.in_commodity) {
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id) || id == economy::money)
+					continue;
 
 				auto info_ptr = make_element_by_type<production_good_info>(state,
 						state.ui_state.defs_by_name.find("production_info")->second.definition);
@@ -1644,7 +1648,7 @@ public:
 
 				good_elements.push_back(info_ptr.get());
 				add_child_to_front(std::move(info_ptr));
-			});
+			}
 			// Has atleast 1 good on this row? skip to next row then...
 			if(commodity_offset.x > base_commodity_offset.x)
 				commodity_offset.y += cell_height;
