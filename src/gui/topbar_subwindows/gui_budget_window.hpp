@@ -845,8 +845,10 @@ public:
 				}
 				{
 					auto box = text::open_layout_box(contents, 0);
-					text::localised_single_sub_box(state, contents, box, std::string_view("percent_of_pop_strata"),
-							text::variable_type::val, text::fp_percentage{total / total_pop});
+					text::localised_single_sub_box(state, contents, box, std::string_view("percent_of_pop_strata"), text::variable_type::val, text::fp_percentage{total / total_pop});
+					text::add_to_layout_box(state, contents, box, std::string("("));
+					text::add_to_layout_box(state, contents, box, text::prettify(int64_t(total_pop)));
+					text::add_to_layout_box(state, contents, box, std::string(")"));
 					text::close_layout_box(contents, box);
 					//percent_of_pop_strata
 				}
