@@ -4173,6 +4173,13 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 				army_target{ province::sorting_distance(state, o.get_province(), ready_armies[0]), o.get_province().id }
 			);
 		}
+		for(auto o : state.world.nation_get_province_ownership(w)) {
+			if(!o.get_province().get_nation_from_province_control()) {
+				potential_targets.push_back(
+					army_target{ province::sorting_distance(state, o.get_province(), ready_armies[0]), o.get_province().id }
+				);
+			}
+		}
 	}
 	for(auto& pt : potential_targets) {
 		for(uint32_t i = uint32_t(ready_armies.size()); i-- > 1;) {
