@@ -699,13 +699,53 @@ std::string prettify(int64_t num) {
 	char buffer[200] = {0};
 	double dval = double(num);
 
-	constexpr static double mag[] = {1.0, 1'000.0, 1'000'000.0, 1'000'000'000.0, 1'000'000'000'000.0, 1'000'000'000'000'000.0,
-			1'000'000'000'000'000'000.0};
-	constexpr static char const* sufx[] = {"%.0f", "%.2fK", "%.2fM", "%.2fB", "%.2fT", "%.2fP", "%.2fZ"};
+	constexpr static double mag[] = {
+		1.0,
+		1'000.0,
+		1'000'000.0,
+		1'000'000'000.0,
+		1'000'000'000'000.0,
+		1'000'000'000'000'000.0,
+		1'000'000'000'000'000'000.0
+	};
+	constexpr static char const* sufx_two[] = {
+		"%.0f",
+		"%.2fK",
+		"%.2fM",
+		"%.2fB",
+		"%.2fT",
+		"%.2fP",
+		"%.2fZ"
+	};
+	constexpr static char const* sufx_one[] = {
+		"%.0f",
+		"%.1fK",
+		"%.1fM",
+		"%.1fB",
+		"%.1fT",
+		"%.1fP",
+		"%.1fZ"
+	};
+	constexpr static char const* sufx_zero[] = {
+		"%.0f",
+		"%.0fK",
+		"%.0fM",
+		"%.0fB",
+		"%.0fT",
+		"%.0fP",
+		"%.0fZ"
+	};
 
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
-			snprintf(buffer, sizeof(buffer), sufx[i], num / mag[i]);
+			auto reduced = num / mag[i];
+			if(reduced < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
+			} else if(reduced < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+			} else {
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+			}
 			return std::string(buffer);
 		}
 	}
