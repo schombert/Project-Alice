@@ -750,7 +750,7 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = 26 y = -7 }
+			position = {x = -11	 y = 24 }
 			name = "ship_count"
 			font = "Arial16"
 			borderSize = {x = 0 y = 0}
