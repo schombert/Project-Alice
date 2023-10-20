@@ -503,7 +503,7 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		auto strength = params->top_right_value;
 		if(params->is_army) {
-			strength *= 3000;
+			strength *= state.defines.pop_size_per_regiment;
 			strength = floor(strength);
 		}
 		auto layout = text::create_endless_layout(internal_layout,
@@ -673,7 +673,7 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		auto strength = params->top_left_value;
 		if(params->is_army) {
-			strength *= 3000;
+			strength *= state.defines.pop_size_per_regiment;
 			strength = floor(strength);
 		}
 		auto layout = text::create_endless_layout(internal_layout,
