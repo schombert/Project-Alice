@@ -915,6 +915,21 @@ void update_research(sys::state& state, uint32_t current_year) {
 			}
 		}
 	}
+
+	if(state.cheat_data.instant_research && state.world.nation_get_current_research(state.local_player_nation)) {
+		auto n = dcon::fatten(state.world, state.local_player_nation);
+		apply_technology(state, n, n.get_current_research());
+		notification::post(state, notification::message{
+			[t = n.get_current_research()](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_tech_1", text::variable_type::x, state.world.technology_get_name(t));
+				ui::technology_description(state, contents, t);
+			},
+			"msg_tech_title",
+			n,
+			sys::message_setting_type::tech
+		});
+		n.set_current_research(dcon::technology_id{});
+	}
 }
 
 void discover_inventions(sys::state& state) {

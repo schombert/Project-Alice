@@ -365,6 +365,14 @@ struct user_settings_s {
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
 };
 
+struct cheat_data_s {
+	bool always_allow_wargoals = false;
+	bool always_allow_reforms = false;
+	bool always_accept_deals = false;
+	bool instant_research = false;
+	bool instant_construction = false;
+};
+
 struct crisis_member_def {
 	dcon::nation_id id;
 
@@ -556,6 +564,9 @@ struct alignas(64) state {
 
 	// graphics data
 	ogl::data open_gl;
+
+	// cheat data
+	cheat_data_s cheat_data;
 
 	// network data
 	/*

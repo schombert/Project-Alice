@@ -113,7 +113,7 @@ enum class command_type : uint8_t {
 	chat_message = 121,
 
 	// console cheats
-	switch_nation = 128,
+	c_switch_nation = 128,
 	c_change_diplo_points = 129,
 	c_change_money = 130,
 	c_westernize = 131,
@@ -127,7 +127,8 @@ enum class command_type : uint8_t {
 	c_event = 139,
 	c_event_as = 140,
 	c_change_prestige = 141,
-	c_force_ally = 142
+	c_force_ally = 142,
+	c_toggle_ai = 143,
 };
 
 struct national_focus_data {
@@ -798,24 +799,9 @@ void notify_reload_state(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 
-void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value);
-void c_change_money(sys::state& state, dcon::nation_id source, float value);
-void c_westernize(sys::state& state, dcon::nation_id source);
-void c_unwesternize(sys::state& state, dcon::nation_id source);
-void c_change_research_points(sys::state& state, dcon::nation_id source, float value);
-void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value);
-void c_change_infamy(sys::state& state, dcon::nation_id source, float value);
-void c_force_crisis(sys::state& state, dcon::nation_id source);
-void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value);
-void c_change_prestige(sys::state& state, dcon::nation_id source, float value);
-void c_end_game(sys::state& state, dcon::nation_id source);
-void c_event(sys::state& state, dcon::nation_id source, int32_t id);
-void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id);
-void c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target);
-
 void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
 
 } // namespace command
+
+#include "cheats.hpp"

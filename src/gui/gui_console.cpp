@@ -37,7 +37,14 @@ struct command_info {
 		dump_out_of_sync,
 		fog_of_war,
 		prestige,
-		force_ally
+		force_ally,
+		win_wars,
+		toggle_ai,
+		always_allow_wargoals,
+		always_allow_reforms,
+		always_accept_deals,
+		instant_construction,
+		instant_research
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -132,6 +139,27 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"fa", command_info::type::force_ally, "Force an alliance between you and a country",
 				{command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"ww", command_info::type::win_wars, "Win all current wars youre involved at",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"tai", command_info::type::toggle_ai, "Toggles ON/OFF AI for countries",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"aw", command_info::type::always_allow_wargoals, "Always allow adding wargoals",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"ar", command_info::type::always_allow_reforms, "Always allow enacting reforms",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"ic", command_info::type::instant_construction, "Instant construction",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"ir", command_info::type::instant_research, "Instant research",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"ym", command_info::type::always_accept_deals, "AI always accepts our deals",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -178,7 +206,7 @@ bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
 	state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 		auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
 		if(curr == tag) {
-			command::switch_nation(state, state.local_player_nation, id);
+			command::c_switch_nation(state, state.local_player_nation, id);
 			found = true;
 		}
 	});
@@ -193,10 +221,9 @@ void log_to_console(sys::state& state, ui::element_base* parent, std::string_vie
 struct parser_state {
 	command_info cmd{};
 	std::variant< std::monostate, // none
-			std::string,							// tag/string
-			int32_t										// numeric
-			>
-			arg_slots[command_info::max_arg_slots] = {};
+		std::string, // tag/string
+		int32_t // numeric
+	> arg_slots[command_info::max_arg_slots] = {};
 };
 
 dcon::national_identity_id smart_get_national_identity_from_tag(sys::state& state, ui::element_base* parent, std::string_view tag) noexcept {
@@ -560,7 +587,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		} else {
 			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 			if(bool(nid)) {
-				command::switch_nation(state, state.local_player_nation, nid);
+				command::c_switch_nation(state, state.local_player_nation, nid);
 				log_to_console(state, parent, "Switching to @" + std::string(tag) + " \xA7Y" + std::string(tag) + "\xA7W");
 				state.game_state_updated.store(true, std::memory_order::release);
 			}
@@ -1100,6 +1127,28 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 		state.map_state.map_data.update_fog_of_war(state);
+		break;
+	case command_info::type::win_wars:
+		break;
+	case command_info::type::toggle_ai:
+		for(auto n : state.world.in_nation)
+			command::c_toggle_ai(state, state.local_player_nation, n);
+		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+		break;
+	case command_info::type::always_allow_wargoals:
+		state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
+		break;
+	case command_info::type::always_allow_reforms:
+		state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
+		break;
+	case command_info::type::instant_construction:
+		state.cheat_data.instant_construction = !state.cheat_data.instant_construction;
+		break;
+	case command_info::type::instant_research:
+		state.cheat_data.instant_research = !state.cheat_data.instant_research;
+		break;
+	case command_info::type::always_accept_deals:
+		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
 		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
