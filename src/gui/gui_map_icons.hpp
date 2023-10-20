@@ -301,6 +301,7 @@ public:
 };
 
 struct top_display_parameters {
+	float is_army = false;
 	float top_left_value = 0.0f;
 	float top_right_value = 0.0f;
 	float top_left_org_value = 0.0f;
@@ -496,12 +497,26 @@ public:
 	}
 };
 
-class tr_strength : public color_text_element {
+class tr_strength : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		color = text::text_color::gold;
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
-		set_text(state, text::format_float(params->top_right_value, 1));
+		auto strength = params->top_right_value;
+		if(params->is_army) {
+			strength *= state.defines.pop_size_per_regiment;
+			strength = floor(strength);
+		}
+		auto layout = text::create_endless_layout(internal_layout,
+		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
+		auto box = text::open_layout_box(layout, 0);
+
+		
+		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(strength)}, text::text_color::white);
+		text::close_layout_box(layout, box);
+
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
 	}
 };
 
@@ -657,16 +672,16 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		auto strength = params->top_left_value;
-		//bool is_ship = float(int32_t(strength)) == strength;
+		if(params->is_army) {
+			strength *= state.defines.pop_size_per_regiment;
+			strength = floor(strength);
+		}
 		auto layout = text::create_endless_layout(internal_layout,
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
 		auto box = text::open_layout_box(layout, 0);
 
-		
-		text::add_to_layout_box(state, layout, box, text::format_float(strength, 1), text::text_color::white);
-		//if(!is_ship)
-			//text::add_to_layout_box(state, layout, box, std::string("k"), text::text_color::gold);
 
+		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(strength)}, text::text_color::white);
 		text::close_layout_box(layout, box);
 
 	}
@@ -1032,8 +1047,11 @@ public:
 		display.top_left_org_value = 0.0f;
 		display.top_right_org_value = 0.0f;
 		display.top_right_org_value = 0.0f;
+		display.is_army = false;
+
 
 		if(lbattle) {
+			display.is_army = true;
 			float max_str = 0.0f;
 			float max_opp_str = 0.0f;
 			int32_t total_count = 0;
@@ -1143,7 +1161,8 @@ public:
 			top_right_icon->set_visible(state, true);
 			small_top_icon->base_data.position.x = -62;
 			small_top_right_icon->set_visible(state, true);
-		} else if(nbattle) {
+		}
+		else if(nbattle) {
 			float max_str = 0.0f;
 			float max_opp_str = 0.0f;
 			int32_t total_count = 0;
@@ -1230,7 +1249,8 @@ public:
 			top_right_icon->set_visible(state, true);
 			small_top_icon->base_data.position.x = -62;
 			small_top_right_icon->set_visible(state, true);
-		} else if(prov.index() < state.province_definitions.first_sea_province.index()) {
+		}
+		else if(prov.index() < state.province_definitions.first_sea_province.index()) {
 			std::function<bool(dcon::army_id)> filter;
 
 			if(display.colors[0] == outline_color::gold) {
@@ -1274,6 +1294,7 @@ public:
 						++total_count;
 
 						str += m.get_regiment().get_strength();
+						display.is_army = true;
 						display.top_left_value += m.get_regiment().get_strength();
 						display.top_left_org_value += m.get_regiment().get_org();
 					}
@@ -1314,7 +1335,8 @@ public:
 			top_right_icon->set_visible(state, false);
 			small_top_icon->base_data.position.x = -30;
 			small_top_right_icon->set_visible(state, false);
-		} else {
+		}
+		else {
 			std::function<bool(dcon::navy_id)> filter;
 
 			if(display.colors[0] == outline_color::gold) {
@@ -1411,8 +1433,8 @@ public:
 					display.common_unit_2 = int8_t(max_index);
 			}
 		}
-
 	}
+
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(populated) {
