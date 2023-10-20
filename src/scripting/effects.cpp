@@ -2768,6 +2768,7 @@ uint32_t ef_social_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).opt_id;
 	politics::set_issue_option(ws, trigger::to_nation(primary_slot), opt);
 	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
+	sys::update_single_nation_modifiers(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_social_reform_province(EFFECT_PARAMTERS) {
@@ -2776,6 +2777,7 @@ uint32_t ef_social_reform_province(EFFECT_PARAMTERS) {
 	if(owner) {
 		politics::set_issue_option(ws, owner, opt);
 		culture::update_nation_issue_rules(ws, owner);
+		sys::update_single_nation_modifiers(ws, owner);
 	}
 	return 0;
 }
@@ -2783,6 +2785,7 @@ uint32_t ef_political_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).opt_id;
 	politics::set_issue_option(ws, trigger::to_nation(primary_slot), opt);
 	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
+	sys::update_single_nation_modifiers(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_political_reform_province(EFFECT_PARAMTERS) {
@@ -2791,6 +2794,7 @@ uint32_t ef_political_reform_province(EFFECT_PARAMTERS) {
 	if(owner) {
 		politics::set_issue_option(ws, owner, opt);
 		culture::update_nation_issue_rules(ws, owner);
+		sys::update_single_nation_modifiers(ws, owner);
 	}
 	return 0;
 }
@@ -2882,11 +2886,15 @@ uint32_t ef_prestige_factor_negative(EFFECT_PARAMTERS) {
 uint32_t ef_military_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).ropt_id;
 	politics::set_reform_option(ws, trigger::to_nation(primary_slot), opt);
+	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
+	sys::update_single_nation_modifiers(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_economic_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).ropt_id;
 	politics::set_reform_option(ws, trigger::to_nation(primary_slot), opt);
+	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
+	sys::update_single_nation_modifiers(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_remove_random_military_reforms(EFFECT_PARAMTERS) {
@@ -2900,7 +2908,11 @@ uint32_t ef_remove_random_military_reforms(EFFECT_PARAMTERS) {
 	for(int32_t i = tval[1] - 1; active_reforms.size() != 0 && i >= 0; --i) {
 		auto r = rng::get_random(ws, r_hi, uint32_t(r_lo + i)) % active_reforms.size();
 		politics::set_reform_option(ws, nation_id, active_reforms[r]);
+		active_reforms[r] = active_reforms.back();
+		active_reforms.pop_back();
 	}
+	culture::update_nation_issue_rules(ws, nation_id);
+	sys::update_single_nation_modifiers(ws, nation_id);
 	return tval[1];
 }
 uint32_t ef_remove_random_economic_reforms(EFFECT_PARAMTERS) {
@@ -2914,7 +2926,11 @@ uint32_t ef_remove_random_economic_reforms(EFFECT_PARAMTERS) {
 	for(int32_t i = tval[1] - 1; active_reforms.size() != 0 && i >= 0; --i) {
 		auto r = rng::get_random(ws, r_hi, uint32_t(r_lo + i)) % active_reforms.size();
 		politics::set_reform_option(ws, nation_id, active_reforms[r]);
+		active_reforms[r] = active_reforms.back();
+		active_reforms.pop_back();
 	}
+	culture::update_nation_issue_rules(ws, nation_id);
+	sys::update_single_nation_modifiers(ws, nation_id);
 	return tval[1];
 }
 uint32_t ef_add_crime(EFFECT_PARAMTERS) {
