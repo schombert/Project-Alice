@@ -619,7 +619,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / 24.f);
+		glUniform1f(ogl::parameters::border_size, 0.05f);
 		glBindVertexArray(text_line_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
@@ -877,7 +877,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
 	for(const auto& e : data) {
-		std::string text = "Russian Empire";// text::produce_simple_string(state, e.text);
+		std::string text = text::produce_simple_string(state, e.text);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
