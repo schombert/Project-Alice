@@ -399,6 +399,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated) {
+		map::update_text_lines(*this, map_state.map_data);
 		map_state.map_data.update_fog_of_war(*this);
 	}
 

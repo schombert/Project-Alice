@@ -63,6 +63,17 @@ struct unit_arrow_vertex {
 	glm::vec2 texture_coord_;
 	float type_;
 };
+
+struct text_line_vertex {
+	text_line_vertex() { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord) { };
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	glm::vec2 direction_;
+	glm::vec2 texture_coord_;
+};
+
 struct border {
 	int start_index = -1;
 	int count = -1;
@@ -87,6 +98,7 @@ public:
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses);
+	void set_text_lines(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts);
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -95,6 +107,7 @@ public:
 	std::vector<border_vertex> border_vertices;
 	std::vector<border_vertex> river_vertices;
 	std::vector<unit_arrow_vertex> unit_arrow_vertices;
+	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
@@ -112,6 +125,8 @@ private:
 	GLuint river_vbo = 0;
 	GLuint unit_arrow_vao = 0;
 	GLuint unit_arrow_vbo = 0;
+	GLuint text_line_vao = 0;
+	GLuint text_line_vbo = 0;
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
@@ -130,12 +145,14 @@ private:
 	GLuint stripes_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
+	GLuint font_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
 	GLuint line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
+	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);

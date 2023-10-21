@@ -214,6 +214,32 @@ void create_unit_arrow_vbo(GLuint& vbo) {
 	glVertexAttribBinding(4, 0);
 }
 
+void create_text_line_vbo(GLuint& vbo) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(text_line_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, position_));
+	// Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, normal_direction_));
+	// Set up vertex attribute format for the direction
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
+	// Set up vertex attribute format for the texture coordinates
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
+}
+
 void create_drag_box_vbo(GLuint& vbo) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
@@ -241,6 +267,10 @@ void display_data::create_border_ogl_objects() {
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
 	create_unit_arrow_vbo(unit_arrow_vbo);
+
+	glGenVertexArrays(1, &text_line_vao);
+	glBindVertexArray(text_line_vao);
+	create_text_line_vbo(text_line_vbo);
 
 	glGenVertexArrays(1, &drag_box_vao);
 	glBindVertexArray(drag_box_vao);
@@ -346,6 +376,8 @@ display_data::~display_data() {
 		glDeleteVertexArrays(1, &border_vao);
 	if(unit_arrow_vao)
 		glDeleteVertexArrays(1, &unit_arrow_vao);
+	if(text_line_vao)
+		glDeleteVertexArrays(1, &text_line_vao);
 
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
@@ -355,6 +387,8 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &river_vbo);
 	if(unit_arrow_vbo)
 		glDeleteBuffers(1, &unit_arrow_vbo);
+	if(text_line_vbo)
+		glDeleteBuffers(1, &text_line_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
@@ -364,6 +398,8 @@ display_data::~display_data() {
 		glDeleteProgram(line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
+	if(text_line_shader)
+		glDeleteProgram(text_line_shader);
 	if(drag_box_shader)
 		glDeleteProgram(drag_box_shader);
 }
@@ -398,12 +434,16 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
 
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/text_line_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
+
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
 	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
 
 	line_border_shader = create_program(*line_vshader, *line_border_fshader);
 	line_river_shader = create_program(*line_vshader, *line_river_fshader);
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
+	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
 	drag_box_shader = create_program(*screen_vshader, *black_color_fshader);
 }
 
@@ -438,6 +478,8 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindTexture(GL_TEXTURE_2D, unit_arrow_texture);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, province_fow);
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, font_texture);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -557,6 +599,12 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glBindVertexArray(drag_box_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+
+	load_shader(text_line_shader);
+	glUniform1f(4, 0.005f);
+	glBindVertexArray(text_line_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -807,6 +855,58 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+
+void add_text_line(
+	std::vector<text_line_vertex>& text_line_vertices,
+	glm::vec2 const& pos1,
+	glm::vec2 const& pos2,
+	char ch) {
+
+	if(ch >= 'a' && ch <= 'z')
+		ch -= 'a';
+	else if(ch >= 'A' && ch <= 'Z')
+		ch -= 'A';
+	else if(ch == ' ')
+		ch = 27;
+	else
+		ch = 26;
+	float xch0 = float(ch) / 28.f;
+	float xch1 = xch0 + (1.f / 28.f);
+
+	// First vertex of the line segment
+	text_line_vertices.emplace_back(pos1, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch0, 0.0f));
+	text_line_vertices.emplace_back(pos1, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch0, 1.0f));
+	text_line_vertices.emplace_back(pos2, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch1, 1.0f));
+	// Second vertex of the line segment
+	text_line_vertices.emplace_back(pos2, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch1, 1.0f));
+	text_line_vertices.emplace_back(pos2, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch1, 0.0f));
+	text_line_vertices.emplace_back(pos1, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch0, 0.0f));
+}
+
+void display_data::set_text_lines(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts) {
+	text_line_vertices.clear();
+	for(size_t arrow_index = 0; arrow_index < arrows.size(); arrow_index++) {
+		auto arrow = arrows[arrow_index];
+		auto text = texts[arrow_index];
+		if(arrow.size() <= 1)
+			continue;
+		for(int32_t i = 0; i < static_cast<int32_t>(arrow.size()); i++) {
+			auto pos1 = arrow[i];
+			auto pos2 = i < int32_t(arrow.size() - 1) ? arrow[i + 1] : arrow[i - 1];
+			// Rescale the coordinate to 0-1
+			pos1 /= glm::vec2(size_x, size_y);
+			pos2 /= glm::vec2(size_x, size_y);
+			int32_t border_index = int32_t(text_line_vertices.size());
+			add_text_line(text_line_vertices, pos1, pos2, text[i]);
+		}
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
+	if(text_line_vertices.size() > 0) {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = simple_fs::open_file(dir, file_name);
 	if(!bool(file)) {
@@ -872,6 +972,10 @@ void display_data::load_map(sys::state& state) {
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(province_fow, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	font_texture = make_gl_texture(root, NATIVE("assets/mapfont.png"));
+	//render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c,
+	//state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
 
 	uint32_t province_size = state.world.province_size() + 1;
 	province_size += 256 - province_size % 256;

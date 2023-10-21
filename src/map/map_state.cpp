@@ -61,6 +61,27 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 
+void greedy_get_continous_cluster(sys::state& state, std::vector<bool>& visited, dcon::province_id p1, glm::vec2& min_x, glm::vec2& min_y, glm::vec2& max_x, glm::vec2& max_y) {
+	if(visited[province::to_map_id(p1)])
+		return;
+	visited[province::to_map_id(p1)] = true;
+	for(auto adj : state.world.province_get_province_adjacency(p1)) {
+		auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1 ? 1 : 0);
+		if(!visited[province::to_map_id(p2)] && state.world.province_get_nation_from_province_ownership(p1) == p2.get_nation_from_province_ownership()) {
+			if(p2.get_mid_point().x <= min_x.x) {
+				min_x = p2.get_mid_point();
+			} if(p2.get_mid_point().y <= min_y.y) {
+				min_y = p2.get_mid_point();
+			} if(p2.get_mid_point().x >= max_x.x) {
+				max_x = p2.get_mid_point();
+			} if(p2.get_mid_point().y >= max_y.y) {
+				max_y = p2.get_mid_point();
+			}
+			greedy_get_continous_cluster(state, visited, p2, min_x, min_y, max_x, max_y);
+		}
+	}
+}
+
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	std::vector<std::vector<glm::vec2>> arrows;
 	std::vector<float> progresses;
@@ -89,6 +110,78 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		}
 	}
 	map_data.set_unit_arrows(arrows, progresses);
+}
+
+void update_text_lines(sys::state& state, display_data& map_data) {
+	// retroscipt
+	std::vector<std::vector<glm::vec2>> text_line;
+	std::vector<std::string> text;
+	for(auto n : state.world.in_nation) {
+		if(n.get_owned_province_count() != 0) {
+			std::vector<bool> visited(state.world.province_size() + 1, false);
+			std::array<glm::vec2, 5> key_provs{
+				n.get_capital().get_mid_point(), //capital
+				n.get_capital().get_mid_point(), //min x
+				n.get_capital().get_mid_point(), //min y
+				n.get_capital().get_mid_point(), //max x
+				n.get_capital().get_mid_point() //max y
+			};
+			greedy_get_continous_cluster(state, visited, n.get_capital(), key_provs[1], key_provs[2], key_provs[3], key_provs[4]);
+			// Columns -> n
+			// Rows -> fixed size of 4
+			// [ x0^0 x0^1 x0^2 x0^3 ]
+			// [ x1^0 x1^1 x1^2 x1^3 ]
+			// [ ...  ...  ...  ...  ]
+			// [ xn^0 xn^1 xn^2 xn^3 ]
+			std::vector<std::array<float, 4>> mx;
+			std::vector<float> my;
+
+			glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
+			glm::vec2 basis{ key_provs[1].x, key_provs[2].y };
+			glm::vec2 ratio{ key_provs[3].x - key_provs[1].x, key_provs[4].y - key_provs[2].y };
+			for(auto p : state.world.in_province) {
+				if(visited[province::to_map_id(p)]) {
+					auto e = p.get_mid_point();
+					e -= basis;
+					e /= ratio;
+					mx.push_back(std::array<float, 4>{ 1.f, e.x, e.x* e.x, e.x* e.x* e.x });
+					my.push_back(e.y);
+				}
+			}
+			// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
+			// [ x0^0 x0^1 x0^2 x0^3 ] * [ x0^0 x1^0 ... xn^0 ] = [ a0 a1 a2 ... an ]
+			// [ x1^0 x1^1 x1^2 x1^3 ] * [ x0^1 x1^1 ... xn^1 ] = [ b0 b1 b2 ... bn ]
+			// [ ...  ...  ...  ...  ] * [ x0^2 x1^2 ... xn^2 ] = [ c0 c1 c2 ... cn ]
+			// [ xn^0 xn^1 xn^2 xn^3 ] * [ x0^3 x1^3 ... xn^3 ] = [ d0 d1 d2 ... dn ]
+			glm::mat4x4 m0(0.f);
+			for(glm::length_t i = 0; i < 4; i++)
+				for(glm::length_t j = 0; j < 4; j++)
+					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+						m0[i][j] += mx[r][j] * mx[r][i];
+			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
+			glm::vec4 m1(0.f); // m1 = T(X)*Y
+			for(glm::length_t i = 0; i < 4; i++)
+				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+					m1[i] += mx[r][i] * my[r];
+			glm::vec4 mo(0.f); // mo = m1 * m0
+			for(glm::length_t i = 0; i < 4; i++)
+				for(glm::length_t j = 0; j < 4; j++)
+					mo[i] += m0[i][j] * m1[j];
+			// y = a + bx + cx^2 + dx^3
+			// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
+			auto poly_fn = [&](float x) {
+				return mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x;
+			};
+			//MessageBoxA(NULL, ("y=(" + std::to_string(mo[0]) + "+" + std::to_string(mo[1]) + "x+" + std::to_string(mo[2]) + "x*x+" + std::to_string(mo[3]) + "x*x*x)").c_str(), "MSG", MB_OK);
+			auto name = text::produce_simple_string(state, n.get_name());
+			text.push_back(name);
+			text_line.push_back(std::vector<glm::vec2>());
+			for(float x = 0.f; x <= 1.f; x += 1.f / float(name.length())) {
+				text_line.back().push_back((glm::vec2(x, poly_fn(x)) * ratio) + basis);
+			}
+		}
+	}
+	map_data.set_text_lines(text_line, text);
 }
 
 void map_state::update(sys::state& state) {
