@@ -612,7 +612,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(!text_line_vertices.empty()) {
 		load_shader(text_line_shader);
-		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
+		auto const& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "ToolTip_Font")) - 1];
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
 		glActiveTexture(GL_TEXTURE1);
@@ -621,8 +621,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		auto size = 24.f;
-		glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / size);
+		glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / 24.f);
 		glBindVertexArray(text_line_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
@@ -880,7 +879,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
 	for(const auto& e : data) {
-		auto text = text::produce_simple_string(state, e.text);
+		std::string text = "Russian Empire";// text::produce_simple_string(state, e.text);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
@@ -896,7 +895,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		}
 
 		float text_length = 0.f;
-		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
+		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "ToolTip_Font")) - 1];
 		for(const auto c : text)
 			text_length += f.glyph_advances[uint8_t(c)] + f.kernings[uint8_t(c)];
 		float thickness = (curve_length / text_length) * 64.f * 0.9f * 0.00005f;
