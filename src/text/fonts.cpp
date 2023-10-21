@@ -1340,6 +1340,11 @@ void load_standard_fonts(sys::state& state) {
 		auto file_content = view_contents(*font_b);
 		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size, font_feature::small_caps);
 	}
+	auto font_c = open_file(root, NATIVE("assets/fonts/Diplomata-Regular.ttf"));
+	if(font_c) {
+		auto file_content = view_contents(*font_b);
+		state.font_collection.load_font(state.font_collection.fonts[2], file_content.data, file_content.file_size, text::font_feature::none);
+	}
 }
 
 void load_bmfonts(sys::state& state) { }

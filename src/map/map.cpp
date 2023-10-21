@@ -612,7 +612,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(!text_line_vertices.empty()) {
 		load_shader(text_line_shader);
-		auto const& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "ToolTip_Font")) - 1];
+		auto const& f = state.font_collection.fonts[2];
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
 		glActiveTexture(GL_TEXTURE1);
@@ -895,7 +895,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		}
 
 		float text_length = 0.f;
-		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "ToolTip_Font")) - 1];
+		auto& f = state.font_collection.fonts[2];
 		for(const auto c : text)
 			text_length += f.glyph_advances[uint8_t(c)] + f.kernings[uint8_t(c)];
 		float thickness = (curve_length / text_length) * 64.f * 0.9f * 0.00005f;
