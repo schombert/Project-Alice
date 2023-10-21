@@ -301,7 +301,6 @@ public:
 };
 
 struct top_display_parameters {
-	float is_army = false;
 	float top_left_value = 0.0f;
 	float top_right_value = 0.0f;
 	float top_left_org_value = 0.0f;
@@ -317,6 +316,7 @@ struct top_display_parameters {
 	int8_t common_unit_1 = -1;
 	int8_t common_unit_2 = -1;
 	std::array<outline_color, 5> colors;
+	bool is_army = false;
 };
 
 class prov_map_siege_bar : public progress_bar {
