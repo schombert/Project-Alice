@@ -178,6 +178,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				auto poly_fn = [&](float x) {
 					return mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x;
 				};
+				auto dx_fn = [&](float x) {
+					return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
+				};
 				float xstep = 1.f / float(name.length());
 				for(float x = 0.f; x <= 1.f; x += xstep) {
 					float y = poly_fn(x);
@@ -185,19 +188,19 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						use_cuadratic = true;
 						break;
 					}
+					// Steep change in curve => use cuadratic
+					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
+					if(dx >= 0.33f) {
+						use_cuadratic = true;
+						break;
+					}
 				}
 				if(!use_cuadratic)
 					text_data.emplace_back(n.get_name(), mo, basis, ratio);
 			}
+			bool use_linear = false;
 			if(use_cuadratic) {
 				// Now lets try quadratic
-
-				// Columns -> n
-				// Rows -> fixed size of 4
-				// [ x0^0 x0^1 x0^2 x0^3 ]
-				// [ x1^0 x1^1 x1^2 x1^3 ]
-				// [ ...  ...  ...  ...  ]
-				// [ xn^0 xn^1 xn^2 xn^3 ]
 				std::vector<std::array<float, 3>> mx;
 				std::vector<float> my;
 				for(auto p : state.world.in_province) {
@@ -209,11 +212,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						my.push_back(e.y);
 					}
 				}
-				// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
-				// [ x0^0 x0^1 x0^2 x0^3 ] * [ x0^0 x1^0 ... xn^0 ] = [ a0 a1 a2 ... an ]
-				// [ x1^0 x1^1 x1^2 x1^3 ] * [ x0^1 x1^1 ... xn^1 ] = [ b0 b1 b2 ... bn ]
-				// [ ...  ...  ...  ...  ] * [ x0^2 x1^2 ... xn^2 ] = [ c0 c1 c2 ... cn ]
-				// [ xn^0 xn^1 xn^2 xn^3 ] * [ x0^3 x1^3 ... xn^3 ] = [ d0 d1 d2 ... dn ]
 				glm::mat3x3 m0(0.f);
 				for(glm::length_t i = 0; i < m0.length(); i++)
 					for(glm::length_t j = 0; j < m0.length(); j++)
@@ -233,7 +231,56 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				auto poly_fn = [&](float x) {
 					return mo[0] + mo[1] * x + mo[2] * x * x;
 				};
-				text_data.emplace_back(n.get_name(), glm::vec4(mo, 0.f), basis, ratio);
+				auto dx_fn = [&](float x) {
+					return 1.f + 2.f * mo[2] * x;
+				};
+				float xstep = 1.f / float(name.length());
+				for(float x = 0.f; x <= 1.f; x += xstep) {
+					float y = poly_fn(x);
+					if(y < 0.f || y > 1.f) {
+						use_linear = true;
+						break;
+					}
+					// Steep change in curve => use cuadratic
+					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
+					if(dx >= 0.33f) {
+						use_linear = true;
+						break;
+					}
+				}
+				if(!use_linear)
+					text_data.emplace_back(n.get_name(), glm::vec4(mo, 0.f), basis, ratio);
+			}
+			if(use_linear) {
+				// Now lets try quadratic
+				std::vector<std::array<float, 2>> mx;
+				std::vector<float> my;
+				for(auto p : state.world.in_province) {
+					if(visited[province::to_map_id(p)]) {
+						auto e = p.get_mid_point();
+						e -= basis;
+						e /= ratio;
+						mx.push_back(std::array<float, 2>{ 1.f, e.x });
+						my.push_back(e.y);
+					}
+				}
+				glm::mat2x2 m0(0.f);
+				for(glm::length_t i = 0; i < m0.length(); i++)
+					for(glm::length_t j = 0; j < m0.length(); j++)
+						for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+							m0[i][j] += mx[r][j] * mx[r][i];
+				m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
+				glm::vec2 m1(0.f); // m1 = T(X)*Y
+				for(glm::length_t i = 0; i < m1.length(); i++)
+					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+						m1[i] += mx[r][i] * my[r];
+				glm::vec2 mo(0.f); // mo = m1 * m0
+				for(glm::length_t i = 0; i < mo.length(); i++)
+					for(glm::length_t j = 0; j < mo.length(); j++)
+						mo[i] += m0[i][j] * m1[j];
+				// y = a + bx
+				// y = mo[0] + mo[1] * x
+				text_data.emplace_back(n.get_name(), glm::vec4(mo, 0.f, 0.f), basis, ratio);
 			}
 		}
 	}
