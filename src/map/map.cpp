@@ -484,8 +484,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, unit_arrow_texture);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, province_fow);
-	glActiveTexture(GL_TEXTURE14);
-	glBindTexture(GL_TEXTURE_2D, font_texture);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -1039,10 +1037,6 @@ void display_data::load_map(sys::state& state) {
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(province_fow, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	font_texture = make_gl_texture(root, NATIVE("assets/mapfont.png"));
-	//render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c,
-	//state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
 
 	uint32_t province_size = state.world.province_size() + 1;
 	province_size += 256 - province_size % 256;

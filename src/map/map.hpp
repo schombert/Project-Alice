@@ -156,7 +156,6 @@ private:
 	GLuint stripes_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
-	GLuint font_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
