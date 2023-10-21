@@ -229,6 +229,23 @@ guiTypes = {
 				position = { x = 51 y = 330 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+
+			instantTextBoxType={
+				position = {x = 78 y = 381 }
+				name = "map_label_label"
+				text = "map_label_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "map_label_checkbox"
+				position = { x = 51 y = 380 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {

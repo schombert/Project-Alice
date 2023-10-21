@@ -122,6 +122,15 @@ void fow_checkbox::button_action(sys::state& state) noexcept {
 	send(state, parent, notify_setting_update{});
 }
 
+bool map_label_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.map_labels_enabled;
+}
+void map_label_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.map_labels_enabled = !state.user_settings.map_labels_enabled;
+	map::update_text_lines(state, state.map_state.map_data);
+	send(state, parent, notify_setting_update{});
+}
+
 /*
 class autosave_left : public button_element_base {
 public:

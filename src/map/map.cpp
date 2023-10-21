@@ -608,7 +608,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 	}
 
-	if(!text_line_vertices.empty()) {
+	if(state.user_settings.map_labels_enabled && zoom < 5 && !text_line_vertices.empty()) {
 		load_shader(text_line_shader);
 		auto const& f = state.font_collection.fonts[2];
 		glActiveTexture(GL_TEXTURE0);
@@ -877,92 +877,71 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
 	for(const auto& e : data) {
+		// omit invalid, nan or infinite coefficients
+		if(e.coeff[0] != e.coeff[0] || e.coeff[1] != e.coeff[1] || e.coeff[2] != e.coeff[2] || e.coeff[3] != e.coeff[3])
+			continue;
+		if(e.coeff[0] == INFINITY || e.coeff[1] == INFINITY || e.coeff[2] == INFINITY || e.coeff[3] == INFINITY)
+			continue;
+
 		std::string text = text::produce_simple_string(state, e.text);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-		};
-		float xstep = 1.f / float(text.length());
-
+			};
+		float x_step = 1.f / float(text.length() * 2);
 		float curve_length = 0.f; //width of whole string polynomial
-		for(float x = 0.f; x <= 1.f; x += xstep) {
-			auto p0 = (glm::vec2(x, poly_fn(x)) * e.ratio) + e.basis;
-			auto p1 = (glm::vec2(x + xstep, poly_fn(x + xstep)) * e.ratio) + e.basis;
-			curve_length += glm::distance(p0, p1);
-		}
-
-		float text_length = 0.f;
+		for(float x = 0.f; x <= 1.f - x_step; x += x_step)
+			curve_length += glm::distance(glm::vec2(x, poly_fn(x)) * e.ratio + e.basis, glm::vec2(x + x_step, poly_fn(x + x_step)) * e.ratio + e.basis);
 		auto& f = state.font_collection.fonts[2];
+		float text_length = 0.f;
 		for(const auto c : text)
 			text_length += f.glyph_advances[uint8_t(c)] + f.kernings[uint8_t(c)];
-		float thickness = (curve_length / text_length) * 64.f * 0.9f * 0.0001f;
-
-		glm::vec2 prev_normal_dir;
-		{
-			auto p0 = (glm::vec2(0.f, poly_fn(0.f)) * e.ratio) + e.basis;
-			auto p1 = (glm::vec2(xstep, poly_fn(xstep)) * e.ratio) + e.basis;
-			auto prev_pos = p0;
-			auto next_pos = p1;
-			if(next_pos.x + size_x / 2 < prev_pos.x)
-				next_pos.x += size_x;
-			if(next_pos.x - size_x / 2 > prev_pos.x)
-				next_pos.x -= size_x;
-			auto direction1 = normalize(next_pos - prev_pos);
-			prev_normal_dir = glm::vec2(-direction1.y, direction1.x);
-		}
-
-		int32_t i = 0;
-		for(float x = 0.f; x <= 1.f; x += xstep, i++) {
-			auto p0 = (glm::vec2(x + 0.f * xstep, poly_fn(x + 0.f * xstep)) * e.ratio) + e.basis;
-			auto p1 = (glm::vec2(x + 1.f * xstep, poly_fn(x + 1.f * xstep)) * e.ratio) + e.basis;
-			auto p2 = (glm::vec2(x + 2.f * xstep, poly_fn(x + 2.f * xstep)) * e.ratio) + e.basis;
+		float thickness = ((curve_length / text_length) * 64.f) * 0.9f * 0.00005f;
+		float x = 0.f;
+		for(int32_t i = 0; i < int32_t(text.length()); i++) {
+			float text_x_advance = (f.glyph_advances[uint8_t(text[i])] + f.kernings[uint8_t(text[i])]) / text_length;
+			assert(text_x_advance >= 0.f && text_x_advance <= 1.f);
+			float glyph_length = 0.f;
+			constexpr float xf_step = 0.01f;
+			float xf = x;
+			for(; glyph_length <= text_x_advance; xf += xf_step)
+				glyph_length += glm::abs(glm::distance(glm::vec2(xf, poly_fn(xf)), glm::vec2(xf + xf_step, poly_fn(xf + xf_step))));
+			assert(glyph_length >= 0.f && glyph_length <= curve_length);
+			auto p0 = (glm::vec2(x, poly_fn(x)) * e.ratio) + e.basis;
+			auto p1 = (glm::vec2(xf, poly_fn(xf)) * e.ratio) + e.basis;
 			if(p1.x + size_x / 2 < p0.x)
 				p1.x += size_x;
 			if(p1.x - size_x / 2 > p0.x)
 				p1.x -= size_x;
-
-			if(p2.x + size_x / 2 < p1.x)
-				p2.x += size_x;
-			if(p2.x - size_x / 2 > p1.x)
-				p2.x -= size_x;
-
+			float y_offset = ((p1.y - p0.y) / 2.f);
+			p0.y += y_offset;
+			p1.y += y_offset;
 			glm::vec2 curr_dir = glm::normalize(p1 - p0);
-			glm::vec2 next_dir = glm::normalize(p2 - p1);
-			glm::vec2 average_direction = glm::normalize(curr_dir + next_dir);
-			glm::vec2 curr_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
-
-			// derivate = tangent
-			// a + bx + cx^2 + dx^3
-			// d(a + bx + cx^2 + dx^3)
-			// 0 + b + 2cx + 3dx^3
+			glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+			// derivate = tangent of a + bx + cx^2 + dx^3:
+			// = d(a + bx + cx^2 + dx^3) = 0 + b + 2cx + 3dx^3
 			float tangent = e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-			const glm::vec2 square_rb = glm::vec2(x, poly_fn(x)) + glm::normalize(glm::vec2(1.f, tangent));
+			const glm::vec2 square_rb = glm::normalize(glm::vec2(1.f, tangent));
 			const glm::vec2 square_lt = glm::normalize(glm::vec2(-tangent, 1.f));
-			glm::vec2 offset{ square_rb.x, square_lt.x };
+			glm::vec2 offset{ square_lt.x, square_rb.y };
 			p1 = p0 + offset * thickness;
-			//p1 = p0 + (offset * xstep * e.ratio);
-
 			// Rescale the coordinate to 0-1
 			p0 /= glm::vec2(size_x, size_y);
 			p1 /= glm::vec2(size_x, size_y);
-			p2 /= glm::vec2(size_x, size_y);
-
 			auto type = float(uint8_t(text::win1250toUTF16(text[i]) >> 6));
 			float step = 1.f / 8.f;
 			float tx = float(text[i] & 7) * step;
 			float ty = float((text[i] & 63) >> 3) * step;
-
 			// First vertex of the line segment
-			text_line_vertices.emplace_back(glm::vec2(p0.x, p0.y), +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
-			text_line_vertices.emplace_back(glm::vec2(p0.x, p1.y), -prev_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p0.x, p0.y), +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p0.x, p1.y), -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, thickness);
 			text_line_vertices.emplace_back(glm::vec2(p1.x, p1.y), -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
 			// Second vertex of the line segment
 			text_line_vertices.emplace_back(glm::vec2(p1.x, p1.y), -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
 			text_line_vertices.emplace_back(glm::vec2(p1.x, p0.y), +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, thickness);
-			text_line_vertices.emplace_back(glm::vec2(p0.x, p0.y), +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
-
-			prev_normal_dir = curr_normal_dir;
+			text_line_vertices.emplace_back(glm::vec2(p0.x, p0.y), +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
+			x = xf;
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
