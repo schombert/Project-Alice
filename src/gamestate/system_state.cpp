@@ -3659,7 +3659,8 @@ void state::single_game_tick() {
 		if(ymd_date.month == 1) {
 			// yearly update : redo the upper house
 			for(auto n : world.in_nation) {
-				politics::recalculate_upper_house(*this, n);
+				if(n.get_owned_province_count() != 0)
+					politics::recalculate_upper_house(*this, n);
 			}
 
 			ai::update_influence_priorities(*this);
