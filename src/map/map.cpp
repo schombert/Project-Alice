@@ -896,7 +896,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		auto& f = state.font_collection.fonts[2];
 		for(const auto c : text)
 			text_length += f.glyph_advances[uint8_t(c)] + f.kernings[uint8_t(c)];
-		float thickness = (curve_length / text_length) * 64.f * 0.9f * 0.00005f;
+		float thickness = (curve_length / text_length) * 64.f * 0.9f * 0.0001f;
 
 		glm::vec2 prev_normal_dir;
 		{

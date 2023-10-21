@@ -190,7 +190,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 					// Steep change in curve => use cuadratic
 					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-					if(dx >= 0.33f) {
+					if(dx >= 0.5f) {
 						use_cuadratic = true;
 						break;
 					}
@@ -243,7 +243,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 					// Steep change in curve => use cuadratic
 					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-					if(dx >= 0.33f) {
+					if(dx >= 0.5f) {
 						use_linear = true;
 						break;
 					}
