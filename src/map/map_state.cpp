@@ -30,7 +30,7 @@ void map_state::set_selected_province(dcon::province_id prov_id) {
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
 	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
-	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom,
+	map_data.render(state, glm::vec2(screen_x, screen_y), offset, zoom,
 			state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
 }
 
@@ -172,8 +172,21 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto poly_fn = [&](float x) {
 				return mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x;
 			};
-			//MessageBoxA(NULL, ("y=(" + std::to_string(mo[0]) + "+" + std::to_string(mo[1]) + "x+" + std::to_string(mo[2]) + "x*x+" + std::to_string(mo[3]) + "x*x*x)").c_str(), "MSG", MB_OK);
+
 			auto name = text::produce_simple_string(state, n.get_name());
+			bool omit = false;
+			for(float x = 0.f; x <= 1.f; x += 1.f / float(name.length())) {
+				float y = poly_fn(x);
+				if(y < 0.f || y > 1.f) {
+					omit = true;
+					break;
+				}
+			}
+			if(omit)
+				continue;
+
+			//MessageBoxA(NULL, ("y=(" + std::to_string(mo[0]) + "+" + std::to_string(mo[1]) + "x+" + std::to_string(mo[2]) + "x*x+" + std::to_string(mo[3]) + "x*x*x)").c_str(), "MSG", MB_OK);
+			
 			text.push_back(name);
 			text_line.push_back(std::vector<glm::vec2>());
 			for(float x = 0.f; x <= 1.f; x += 1.f / float(name.length())) {
@@ -181,7 +194,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 	}
-	map_data.set_text_lines(text_line, text);
+	map_data.set_text_lines(state, text_line, text);
 }
 
 void map_state::update(sys::state& state) {

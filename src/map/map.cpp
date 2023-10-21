@@ -230,14 +230,20 @@ void create_text_line_vbo(GLuint& vbo) {
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
 	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, type_));
+	glVertexAttribFormat(5, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
 	glVertexAttribBinding(0, 0);
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
+	glVertexAttribBinding(4, 0);
+	glVertexAttribBinding(5, 0);
 }
 
 void create_drag_box_vbo(GLuint& vbo) {
@@ -447,7 +453,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	drag_box_shader = create_program(*screen_vshader, *black_color_fshader);
 }
 
-void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
+void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -601,10 +607,40 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 
 	load_shader(text_line_shader);
-	glUniform1f(4, 0.005f);
+	glUniform1f(4, zoom);
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, f.textures[0]);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, f.textures[1]);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, f.textures[2]);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, f.textures[3]);
+	auto size = 24.f;
+	glUniform3f(ogl::parameters::inner_color, 0.0f, 0.0f, 0.0f);
+	glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / size);
 	glBindVertexArray(text_line_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
+
+	/*load_shader(text_line_shader);
+	glUniform1f(4, zoom);
+	for(const auto e : text_line_vertices) {
+		char codepoint = e.codepoint_;
+		auto size = 16.f;
+		auto x = e.position_.x;
+		auto y = e.position_.y;
+		if(text::win1250toUTF16(codepoint) != ' ') {
+			// f.make_glyph(codepoint);
+			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "vic_18_black")) - 1].textures[uint8_t(codepoint) >> 6]);
+			glUniform3f(ogl::parameters::inner_color, 0.0f, 0.0f, 0.0f);
+			glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / size);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+	}*/
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -860,44 +896,120 @@ void add_text_line(
 	std::vector<text_line_vertex>& text_line_vertices,
 	glm::vec2 const& pos1,
 	glm::vec2 const& pos2,
-	char ch) {
+	glm::vec2 const& prev_normal_dir,
+	glm::vec2 const& curr_normal_dir,
+	glm::vec2 const& curr_dir,
+	char ch,
+	float thickness) {
 
-	if(ch >= 'a' && ch <= 'z')
-		ch -= 'a';
-	else if(ch >= 'A' && ch <= 'Z')
-		ch -= 'A';
-	else if(ch == ' ')
-		ch = 27;
-	else
-		ch = 26;
-	float xch0 = float(ch) / 28.f;
-	float xch1 = xch0 + (1.f / 28.f);
+	auto type = float(uint8_t(text::win1250toUTF16(ch) >> 6));
+	float step = 1.f / 8.f;
+	float tx = float(ch & 7) * step;
+	float ty = float((ch & 63) >> 3) * step;
 
 	// First vertex of the line segment
-	text_line_vertices.emplace_back(pos1, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch0, 0.0f));
-	text_line_vertices.emplace_back(pos1, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch0, 1.0f));
-	text_line_vertices.emplace_back(pos2, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch1, 1.0f));
+	text_line_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
+	text_line_vertices.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, thickness);
+	text_line_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
 	// Second vertex of the line segment
-	text_line_vertices.emplace_back(pos2, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch1, 1.0f));
-	text_line_vertices.emplace_back(pos2, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch1, 0.0f));
-	text_line_vertices.emplace_back(pos1, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(xch0, 0.0f));
+	text_line_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
+	text_line_vertices.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, thickness);
+	text_line_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
 }
 
-void display_data::set_text_lines(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts) {
+void display_data::set_text_lines(sys::state& state, std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts) {
 	text_line_vertices.clear();
 	for(size_t arrow_index = 0; arrow_index < arrows.size(); arrow_index++) {
 		auto arrow = arrows[arrow_index];
 		auto text = texts[arrow_index];
 		if(arrow.size() <= 1)
 			continue;
-		for(int32_t i = 0; i < static_cast<int32_t>(arrow.size()); i++) {
+
+		float curve_length = 0.f; //width of whole string polynomial
+		for(int32_t i = 0; i < int32_t(arrow.size() - 1); i++)
+			curve_length += glm::distance(arrow[i], arrow[i + 1]);
+
+		float text_length = 0.f;
+		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
+		for(const auto c : text)
+			text_length += f.glyph_advances[uint8_t(c)] + f.kernings[uint8_t(c)];
+		float thickness = (curve_length / text_length) * 64.f * 0.9f;
+
+		// Use the appropriate new text (need to call it explicitly in case the user fonts are classic) and find how long the line of text is at some given height (say, 64 pixels)
+		glm::vec2 prev_normal_dir;
+		{
+			auto prev_pos = arrow[0];
+			auto next_pos = arrow[1];
+			if(next_pos.x + size_x / 2 < prev_pos.x)
+				next_pos.x += size_x;
+			if(next_pos.x - size_x / 2 > prev_pos.x)
+				next_pos.x -= size_x;
+
+			auto direction1 = normalize(next_pos - prev_pos);
+			prev_normal_dir = glm::vec2(-direction1.y, direction1.x);
+		}
+		for(int i = 0; i < static_cast<int>(arrow.size()) - 2; i++) {
 			auto pos1 = arrow[i];
-			auto pos2 = i < int32_t(arrow.size() - 1) ? arrow[i + 1] : arrow[i - 1];
+			auto pos2 = arrow[i + 1];
+			auto pos3 = arrow[i + 2];
+			if(pos2.x + size_x / 2 < pos1.x)
+				pos2.x += size_x;
+			if(pos2.x - size_x / 2 > pos1.x)
+				pos2.x -= size_x;
+
+			if(pos3.x + size_x / 2 < pos2.x)
+				pos3.x += size_x;
+			if(pos3.x - size_x / 2 > pos2.x)
+				pos3.x -= size_x;
+
+			glm::vec2 curr_dir = normalize(pos2 - pos1);
+			glm::vec2 next_dir = normalize(pos3 - pos2);
+			glm::vec2 average_direction = normalize(curr_dir + next_dir);
+			glm::vec2 curr_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
+			if(pos1 == pos3) {
+				prev_normal_dir = -glm::vec2(-curr_dir.y, curr_dir.x);
+				continue;
+			}
+
 			// Rescale the coordinate to 0-1
 			pos1 /= glm::vec2(size_x, size_y);
 			pos2 /= glm::vec2(size_x, size_y);
+
 			int32_t border_index = int32_t(text_line_vertices.size());
-			add_text_line(text_line_vertices, pos1, pos2, text[i]);
+			add_text_line(text_line_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, curr_dir, text[i], thickness);
+
+			prev_normal_dir = curr_normal_dir;
+		}
+		{
+			int i = static_cast<int>(arrow.size()) - 2;
+			auto pos1 = arrow[i];
+			auto pos2 = arrow[i + 1];
+
+			glm::vec2 direction = normalize(pos2 - pos1);
+			glm::vec2 curr_normal_dir = glm::vec2(-direction.y, direction.x);
+
+			// Rescale the coordinate to 0-1
+			pos1 /= glm::vec2(size_x, size_y);
+			pos2 /= glm::vec2(size_x, size_y);
+
+			int32_t border_index = int32_t(text_line_vertices.size());
+
+			add_text_line(text_line_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, direction, text[i], thickness);
+
+			// Type for arrow
+			char ch = text[i + 1];
+			float type = float(uint8_t(text::win1250toUTF16(ch) >> 6));
+			float step = 1.f / 8.f;
+			float tx = float(ch & 7) * step;
+			float ty = float((ch & 63) >> 3) * step;
+			// First vertex of the line segment
+			text_line_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(tx, ty), type, thickness);
+			text_line_vertices.emplace_back(pos2, -curr_normal_dir, +direction, glm::vec2(tx, ty + step), type, thickness);
+			text_line_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(tx + step, ty + step), type, thickness);
+			// Second vertex of the line segment
+			text_line_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(tx + step, ty + step), type, thickness);
+			text_line_vertices.emplace_back(pos2, +curr_normal_dir, -direction, glm::vec2(tx + step, ty), type, thickness);
+			text_line_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(tx, ty), type, thickness);
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);

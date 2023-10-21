@@ -3,8 +3,11 @@ layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
 layout (location = 2) in vec2 direction;
 layout (location = 3) in vec2 texture_coord;
+layout (location = 4) in float codepoint_tn;
+layout (location = 5) in float thickness;
 
 out vec2 tex_coord;
+out float type;
 // Camera position
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
@@ -12,8 +15,6 @@ layout (location = 1) uniform float aspect_ratio;
 layout (location = 2) uniform float zoom;
 // The size of the map in pixels
 layout (location = 3) uniform vec2 map_size;
-// The scaling factor for the width
-layout (location = 4) uniform float border_width;
 layout (location = 5) uniform mat3 rotation;
 
 subroutine vec4 calc_gl_position_class(vec2 world_pos);
@@ -61,7 +62,7 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	float thickness = border_width;
+	float thickness = 0.005 * thickness;
 	vec2 rot_direction = vec2(-direction.y, direction.x);
 	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.
@@ -75,4 +76,5 @@ void main() {
 
 	gl_Position = calc_gl_position(world_pos);
 	tex_coord = texture_coord;
+	type = codepoint_tn;
 }

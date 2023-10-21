@@ -66,12 +66,14 @@ struct unit_arrow_vertex {
 
 struct text_line_vertex {
 	text_line_vertex() { };
-	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord)
-		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord) { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type, float thickness)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{ type }, thickness_{ thickness }  { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
 	glm::vec2 texture_coord_;
+	float type_;
+	float thickness_;
 };
 
 struct border {
@@ -90,7 +92,7 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
+	void render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
 			glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
 	void update_fog_of_war(sys::state& state);
@@ -98,7 +100,7 @@ public:
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses);
-	void set_text_lines(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts);
+	void set_text_lines(sys::state& state, std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts);
 
 	uint32_t size_x;
 	uint32_t size_y;
