@@ -77,10 +77,12 @@ struct text_line_vertex {
 };
 
 struct text_line_generator_data {
-	std::string text;
-	glm::vec4 coeff;
-	glm::vec2 basis;
-	glm::vec2 ratio;
+	text_line_generator_data() { };
+	text_line_generator_data(dcon::text_sequence_id text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(text_), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
+	dcon::text_sequence_id text{};
+	glm::vec4 coeff{0.f};
+	glm::vec2 basis{0.f};
+	glm::vec2 ratio{0.f};
 };
 
 struct border {

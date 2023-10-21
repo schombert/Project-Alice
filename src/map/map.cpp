@@ -594,53 +594,39 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 	*/
 
-	// Draw the unit arrows
-	load_shader(line_unit_arrow_shader);
-	glUniform1f(4, 0.005f);
-	glBindVertexArray(unit_arrow_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)unit_arrow_vertices.size());
+	if(!unit_arrow_vertices.empty()) {
+		// Draw the unit arrows
+		load_shader(line_unit_arrow_shader);
+		glUniform1f(4, 0.005f);
+		glBindVertexArray(unit_arrow_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)unit_arrow_vertices.size());
+	}
 
-	glUseProgram(drag_box_shader);
-	glBindVertexArray(drag_box_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+	if(!drag_box_vertices.empty()) {
+		glUseProgram(drag_box_shader);
+		glBindVertexArray(drag_box_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+	}
 
-	load_shader(text_line_shader);
-	glUniform1f(4, zoom);
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, f.textures[0]);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, f.textures[1]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, f.textures[2]);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-	auto size = 24.f;
-	glUniform3f(ogl::parameters::inner_color, 0.0f, 0.0f, 0.0f);
-	glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / size);
-	glBindVertexArray(text_line_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
-
-	/*load_shader(text_line_shader);
-	glUniform1f(4, zoom);
-	for(const auto e : text_line_vertices) {
-		char codepoint = e.codepoint_;
-		auto size = 16.f;
-		auto x = e.position_.x;
-		auto y = e.position_.y;
-		if(text::win1250toUTF16(codepoint) != ' ') {
-			// f.make_glyph(codepoint);
-			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "vic_18_black")) - 1].textures[uint8_t(codepoint) >> 6]);
-			glUniform3f(ogl::parameters::inner_color, 0.0f, 0.0f, 0.0f);
-			glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / size);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-	}*/
+	if(!text_line_vertices.empty()) {
+		load_shader(text_line_shader);
+		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, f.textures[1]);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
+		auto size = 24.f;
+		glUniform1f(ogl::parameters::border_size, 0.06f * 16.0f / size);
+		glBindVertexArray(text_line_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
+	}
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -894,31 +880,24 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
 	for(const auto& e : data) {
+		auto text = text::produce_simple_string(state, e.text);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 		};
-		float xstep = 1.f / float(e.text.length());
+		float xstep = 1.f / float(text.length());
 
 		float curve_length = 0.f; //width of whole string polynomial
-		bool omit = false;
 		for(float x = 0.f; x <= 1.f; x += xstep) {
-			float y = poly_fn(x);
-			if(y < 0.f || y > 1.f) {
-				omit = true;
-				break;
-			}
 			auto p0 = (glm::vec2(x, poly_fn(x)) * e.ratio) + e.basis;
 			auto p1 = (glm::vec2(x + xstep, poly_fn(x + xstep)) * e.ratio) + e.basis;
 			curve_length += glm::distance(p0, p1);
 		}
-		if(omit)
-			continue;
 
 		float text_length = 0.f;
 		auto& f = state.font_collection.fonts[text::font_index_from_font_id(text::name_into_font_id(state, "mapfont_56")) - 1];
-		for(const auto c : e.text)
+		for(const auto c : text)
 			text_length += f.glyph_advances[uint8_t(c)] + f.kernings[uint8_t(c)];
 		float thickness = (curve_length / text_length) * 64.f * 0.9f * 0.00005f;
 
@@ -938,55 +917,53 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		int32_t i = 0;
 		for(float x = 0.f; x <= 1.f; x += xstep, i++) {
-			auto pos1 = (glm::vec2(x + 0.f * xstep, poly_fn(x + 0.f * xstep)) * e.ratio) + e.basis;
-			auto pos2 = (glm::vec2(x + 1.f * xstep, poly_fn(x + 1.f * xstep)) * e.ratio) + e.basis;
-			auto pos3 = (glm::vec2(x + 2.f * xstep, poly_fn(x + 2.f * xstep)) * e.ratio) + e.basis;
-			if(pos2.x + size_x / 2 < pos1.x)
-				pos2.x += size_x;
-			if(pos2.x - size_x / 2 > pos1.x)
-				pos2.x -= size_x;
+			auto p0 = (glm::vec2(x + 0.f * xstep, poly_fn(x + 0.f * xstep)) * e.ratio) + e.basis;
+			auto p1 = (glm::vec2(x + 1.f * xstep, poly_fn(x + 1.f * xstep)) * e.ratio) + e.basis;
+			auto p2 = (glm::vec2(x + 2.f * xstep, poly_fn(x + 2.f * xstep)) * e.ratio) + e.basis;
+			if(p1.x + size_x / 2 < p0.x)
+				p1.x += size_x;
+			if(p1.x - size_x / 2 > p0.x)
+				p1.x -= size_x;
 
-			if(pos3.x + size_x / 2 < pos2.x)
-				pos3.x += size_x;
-			if(pos3.x - size_x / 2 > pos2.x)
-				pos3.x -= size_x;
+			if(p2.x + size_x / 2 < p1.x)
+				p2.x += size_x;
+			if(p2.x - size_x / 2 > p1.x)
+				p2.x -= size_x;
 
-			glm::vec2 curr_dir = normalize(pos2 - pos1);
-			glm::vec2 next_dir = normalize(pos3 - pos2);
-			glm::vec2 average_direction = normalize(curr_dir + next_dir);
+			glm::vec2 curr_dir = glm::normalize(p1 - p0);
+			glm::vec2 next_dir = glm::normalize(p2 - p1);
+			glm::vec2 average_direction = glm::normalize(curr_dir + next_dir);
 			glm::vec2 curr_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
-			if(pos1 == pos3) {
-				prev_normal_dir = -glm::vec2(-curr_dir.y, curr_dir.x);
-				continue;
-			}
 
 			// derivate = tangent
 			// a + bx + cx^2 + dx^3
 			// d(a + bx + cx^2 + dx^3)
 			// 0 + b + 2cx + 3dx^3
 			float tangent = e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-			glm::vec2 offset = pos1 + glm::vec2(1.f, tangent) / glm::length(glm::vec2(1.f, tangent));
-			offset *= thickness;
-
-			//pos1 += offset;
-			pos2 += offset;
+			const glm::vec2 square_rb = glm::vec2(x, poly_fn(x)) + glm::normalize(glm::vec2(1.f, tangent));
+			const glm::vec2 square_lt = glm::normalize(glm::vec2(-tangent, 1.f));
+			glm::vec2 offset{ square_rb.x, square_lt.x };
+			p1 = p0 + offset * thickness;
+			//p1 = p0 + (offset * xstep * e.ratio);
 
 			// Rescale the coordinate to 0-1
-			pos1 /= glm::vec2(size_x, size_y);
-			pos2 /= glm::vec2(size_x, size_y);
-			auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
+			p0 /= glm::vec2(size_x, size_y);
+			p1 /= glm::vec2(size_x, size_y);
+			p2 /= glm::vec2(size_x, size_y);
+
+			auto type = float(uint8_t(text::win1250toUTF16(text[i]) >> 6));
 			float step = 1.f / 8.f;
-			float tx = float(e.text[i] & 7) * step;
-			float ty = float((e.text[i] & 63) >> 3) * step;
+			float tx = float(text[i] & 7) * step;
+			float ty = float((text[i] & 63) >> 3) * step;
 
 			// First vertex of the line segment
-			text_line_vertices.emplace_back(glm::vec2(pos1.x, pos1.y), +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
-			text_line_vertices.emplace_back(glm::vec2(pos1.x, pos2.y), -prev_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, thickness);
-			text_line_vertices.emplace_back(glm::vec2(pos2.x, pos2.y), -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p0.x, p0.y), +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p0.x, p1.y), -prev_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p1.x, p1.y), -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
 			// Second vertex of the line segment
-			text_line_vertices.emplace_back(glm::vec2(pos2.x, pos2.y), -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
-			text_line_vertices.emplace_back(glm::vec2(pos2.x, pos1.y), +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, thickness);
-			text_line_vertices.emplace_back(glm::vec2(pos1.x, pos1.y), +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p1.x, p1.y), -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p1.x, p0.y), +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, thickness);
+			text_line_vertices.emplace_back(glm::vec2(p0.x, p0.y), +prev_normal_dir, +curr_dir, glm::vec2(tx, ty), type, thickness);
 
 			prev_normal_dir = curr_normal_dir;
 		}

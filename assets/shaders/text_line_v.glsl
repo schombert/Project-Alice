@@ -8,6 +8,7 @@ layout (location = 5) in float thickness;
 
 out vec2 tex_coord;
 out float type;
+
 // Camera position
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
@@ -62,7 +63,6 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	float thickness = 0.005 * thickness;
 	vec2 rot_direction = vec2(-direction.y, direction.x);
 	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.

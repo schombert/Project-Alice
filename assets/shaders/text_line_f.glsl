@@ -8,9 +8,9 @@ layout (binding = 2) uniform sampler2D texture2;
 layout (binding = 3) uniform sampler2D texture3;
 
 layout (location = 6) uniform float border_size;
-layout (location = 7) uniform vec3 inner_color;
 
 void main() {
+	vec3 inner_color = vec3(0.0, 0.0, 0.0);
 	vec4 color_in = texture(texture0, tex_coord);
 	if(type == 0.f) {
 		color_in = texture(texture0, tex_coord);
