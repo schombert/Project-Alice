@@ -76,6 +76,13 @@ struct text_line_vertex {
 	float thickness_;
 };
 
+struct text_line_generator_data {
+	std::string text;
+	glm::vec4 coeff;
+	glm::vec2 basis;
+	glm::vec2 ratio;
+};
+
 struct border {
 	int start_index = -1;
 	int count = -1;
@@ -100,7 +107,7 @@ public:
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses);
-	void set_text_lines(sys::state& state, std::vector<std::vector<glm::vec2>> const& arrows, std::vector<std::string> const& texts);
+	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	uint32_t size_x;
 	uint32_t size_y;

@@ -114,8 +114,7 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 
 void update_text_lines(sys::state& state, display_data& map_data) {
 	// retroscipt
-	std::vector<std::vector<glm::vec2>> text_line;
-	std::vector<std::string> text;
+	std::vector<text_line_generator_data> text_data;
 	for(auto n : state.world.in_nation) {
 		if(n.get_owned_province_count() != 0) {
 			std::vector<bool> visited(state.world.province_size() + 1, false);
@@ -174,27 +173,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			};
 
 			auto name = text::produce_simple_string(state, n.get_name());
-			bool omit = false;
-			for(float x = 0.f; x <= 1.f; x += 1.f / float(name.length())) {
-				float y = poly_fn(x);
-				if(y < 0.f || y > 1.f) {
-					omit = true;
-					break;
-				}
-			}
-			if(omit)
-				continue;
-
 			//MessageBoxA(NULL, ("y=(" + std::to_string(mo[0]) + "+" + std::to_string(mo[1]) + "x+" + std::to_string(mo[2]) + "x*x+" + std::to_string(mo[3]) + "x*x*x)").c_str(), "MSG", MB_OK);
-			
-			text.push_back(name);
-			text_line.push_back(std::vector<glm::vec2>());
-			for(float x = 0.f; x <= 1.f; x += 1.f / float(name.length())) {
-				text_line.back().push_back((glm::vec2(x, poly_fn(x)) * ratio) + basis);
-			}
+			text_data.push_back(text_line_generator_data{ name, mo, basis, ratio });
 		}
 	}
-	map_data.set_text_lines(state, text_line, text);
+	map_data.set_text_lines(state, text_data);
 }
 
 void map_state::update(sys::state& state) {
