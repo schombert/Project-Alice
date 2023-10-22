@@ -670,12 +670,16 @@ void update_focuses(sys::state& state) {
 				} else {
 					auto total = state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 					auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / total;
+#if 0
 					auto pwfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.primary_factory_worker)) / total;
 					auto swfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / total;
+#endif
 					if(cfrac < state.defines.max_clergy_for_literacy * 0.8f) {
 						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
 						--num_focuses_total;
-					} else if(int32_t(pwfrac * 100.f) > int32_t(swfrac * 100.f)) {
+					}
+#if 0
+					else if(int32_t(pwfrac * 100.f) > int32_t(swfrac * 100.f)) {
 						// Keep balance between ratio of factory workers
 						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.secondary_factory_worker_focus);
 						--num_focuses_total;
@@ -695,6 +699,7 @@ void update_focuses(sys::state& state) {
 						}
 						--num_focuses_total;
 					}
+#endif
 				}
 			} else {
 				// If we haven't maxxed out clergy on this state, then our number 1 priority is to maximize clergy
