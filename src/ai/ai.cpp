@@ -614,6 +614,14 @@ void identify_focuses(sys::state& state) {
 				state.national_definitions.clergy_focus = f;
 			if(f.get_promotion_type() == state.culture_definitions.soldiers)
 				state.national_definitions.soldier_focus = f;
+			if(f.get_promotion_type() == state.culture_definitions.aristocrat)
+				state.national_definitions.aristocrat_focus = f;
+			if(f.get_promotion_type() == state.culture_definitions.capitalists)
+				state.national_definitions.capitalist_focus = f;
+			if(f.get_promotion_type() == state.culture_definitions.primary_factory_worker)
+				state.national_definitions.primary_factory_worker_focus = f;
+			if(f.get_promotion_type() == state.culture_definitions.secondary_factory_worker)
+				state.national_definitions.secondary_factory_worker_focus = f;
 		}
 	}
 }
@@ -660,13 +668,36 @@ void update_focuses(sys::state& state) {
 					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.soldier_focus);
 					--num_focuses_total;
 				} else {
-					auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
+					auto total = state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
+					auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / total;
+					auto pwfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.primary_factory_worker)) / total;
+					auto swfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / total;
 					if(cfrac < state.defines.max_clergy_for_literacy * 0.8f) {
 						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
+						--num_focuses_total;
+					} else if(int32_t(pwfrac * 100.f) > int32_t(swfrac * 100.f)) {
+						// Keep balance between ratio of factory workers
+						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.secondary_factory_worker_focus);
+						--num_focuses_total;
+					} else if(int32_t(swfrac * 100.f) > int32_t(pwfrac * 100.f)) {
+						// Keep balance between ratio of factory workers
+						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.primary_factory_worker_focus);
+						--num_focuses_total;
+					} else {
+						/* If we are a civilized nation, and we allow pops to operate on the economy
+						   i.e Laissez faire, we WILL promote capitalists, since they will help to
+						   build new factories for us */
+						auto rules = n.get_combined_issue_rules();
+						if(n.get_is_civilized() && (rules & (issue_rule::pop_build_factory | issue_rule::pop_build_factory_invest | issue_rule::pop_expand_factory | issue_rule::pop_expand_factory_invest | issue_rule::pop_open_factory | issue_rule::pop_open_factory_invest)) != 0) {
+							state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.capitalist_focus);
+						} else {
+							state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.aristocrat_focus);
+						}
 						--num_focuses_total;
 					}
 				}
 			} else {
+				// If we haven't maxxed out clergy on this state, then our number 1 priority is to maximize clergy
 				auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 				if(cfrac < base_opt * 1.2f) {
 					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
