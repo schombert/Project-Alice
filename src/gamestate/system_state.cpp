@@ -753,9 +753,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(game_state_was_updated) {
 		if(!ui_state.tech_queue.empty()) {
-			if(!state.world.nation_get_current_research(state.local_player_nation)) {
+			if(!world.nation_get_current_research(local_player_nation)) {
 				auto tech = ui_state.tech_queue.back();
-				command::start_research(state, state.local_player_nation, tech);
+				command::start_research(*this, local_player_nation, tech);
 				ui_state.tech_queue.pop_back();
 			}
 		}
