@@ -859,7 +859,7 @@ void rebel_risings_check(sys::state& state) {
 
 					// first, sum up all strength in province
 					for(auto ar : state.world.province_get_army_location(p)) {
-						if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport())) {
+						if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport()) && ar.get_army().get_controller_from_army_control() == faction_owner) {
 
 							for(auto r : ar.get_army().get_army_membership()) {
 								total_army_strength += r.get_regiment().get_strength();
@@ -891,7 +891,7 @@ void rebel_risings_check(sys::state& state) {
 
 					// deal damage to any armies present
 					for(auto ar : state.world.province_get_army_location(p)) {
-						if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport())) {
+						if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport()) && ar.get_army().get_controller_from_army_control() == faction_owner) {
 
 							for(auto r : ar.get_army().get_army_membership()) {
 								auto& str = r.get_regiment().get_strength();
