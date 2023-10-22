@@ -413,6 +413,7 @@ struct state {
 	element_base* chat_window = nullptr;
 	element_base* r_chat_window = nullptr;
 	std::array<chat_message, 32> chat_messages;
+	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;
 
 	element_base* naval_combat_window = nullptr;

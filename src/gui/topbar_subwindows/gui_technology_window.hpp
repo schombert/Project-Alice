@@ -896,17 +896,35 @@ public:
 struct technology_select_tech {
 	dcon::technology_id tech_id;
 };
-class technology_item_button : public button_element_base {
+class technology_item_button : public shift_right_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-			if(state.ui_state.technology_subwindow) {
-				Cyto::Any sl_payload = technology_select_tech{content};
-				state.ui_state.technology_subwindow->impl_set(state, sl_payload);
-			}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		if(state.ui_state.technology_subwindow) {
+			Cyto::Any sl_payload = technology_select_tech{content};
+			state.ui_state.technology_subwindow->impl_set(state, sl_payload);
+		}
+	}
+
+	void button_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
+		if(it != state.ui_state.tech_queue.end()) {
+			state.ui_state.tech_queue.erase(it);
+			parent->impl_on_update(state);
+		}
+	}
+
+	void button_shift_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
+		if(it == state.ui_state.tech_queue.end()) {
+			state.ui_state.tech_queue.push_back(content);
+			parent->impl_on_update(state);
+		} else {
+			state.ui_state.tech_queue.erase(it);
+			state.ui_state.tech_queue.push_back(content);
+			parent->impl_on_update(state);
 		}
 	}
 
@@ -915,19 +933,31 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		technology_description(state, contents, content);
+	}
+};
 
-			auto fat_id = dcon::fatten(state.world, content);
-			auto name = fat_id.get_name();
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
-				text::close_layout_box(contents, box);
-			}
-			technology_description(state, contents, content);
+class technology_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+
+		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
+		if(it != state.ui_state.tech_queue.end()) {
+			// not queued
+			simple_text_element_base::set_text(state, text::get_name_as_string(state, fat_id));
+		} else {
+			// queued
+			simple_text_element_base::set_text(state, "(" + std::to_string(std::distance(state.ui_state.tech_queue.begin(), it)) + ") " + text::get_name_as_string(state, fat_id));
 		}
 	}
 };
@@ -945,7 +975,7 @@ public:
 			tech_button = ptr.get();
 			return ptr;
 		} else if(name == "tech_name") {
-			return make_element_by_type<generic_name_text<dcon::technology_id>>(state, id);
+			return make_element_by_type<technology_name_text>(state, id);
 		} else {
 			return nullptr;
 		}
