@@ -752,6 +752,19 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	if(game_state_was_updated) {
+		if(!ui_state.tech_queue.empty()) {
+			if(!world.nation_get_current_research(local_player_nation)) {
+				for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
+					if(command::can_start_research(*this, local_player_nation, *it)) {
+						// can research, so research it
+						command::start_research(*this, local_player_nation, *it);
+						ui_state.tech_queue.erase(it);
+						break;
+					}
+				}
+			}
+		}
+
 		if(ui_state.army_combat_window && ui_state.army_combat_window->is_visible()) {
 			ui::land_combat_window* win = static_cast<ui::land_combat_window*>(ui_state.army_combat_window);
 			if(win->battle && !world.land_battle_is_valid(win->battle)) {
