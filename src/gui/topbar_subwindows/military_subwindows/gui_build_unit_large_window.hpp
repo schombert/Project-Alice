@@ -15,7 +15,7 @@ public:
 	int16_t number_of_units_on_continent;
 
 	bool operator==(buildable_unit_entry_info const& o) const {
-		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent;
+		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent && number_of_units_on_continent == o.number_of_units_on_continent;
 	}
 	bool operator!=(buildable_unit_entry_info const& o) const {
 		return !(*this == o);
@@ -406,10 +406,10 @@ public:
 			}
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
-					resource_cost_elements[r]->set_visible(state, true);
-					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
 					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r];
+					resource_cost_elements[r]->set_visible(state, true);
+					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					r++;
 				}
 			}
@@ -472,10 +472,10 @@ public:
 			}
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
+					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
+					resource_cost_elements[r]->good_quantity = (state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * float(content.number_of_units_on_continent));
 					resource_cost_elements[r]->set_visible(state, true);
 					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
-					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
-					resource_cost_elements[r]->good_quantity = (state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r]*float(content.number_of_units_on_continent));
 					r++;
 				}
 			}
