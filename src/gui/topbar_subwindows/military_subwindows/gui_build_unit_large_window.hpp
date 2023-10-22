@@ -12,9 +12,10 @@ public:
 	// true == navy
 	bool is_navy;
 	dcon::modifier_id continent;
+	int16_t number_of_units_on_continent;
 
 	bool operator==(buildable_unit_entry_info const& o) const {
-		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent;
+		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent && number_of_units_on_continent == o.number_of_units_on_continent;
 	}
 	bool operator!=(buildable_unit_entry_info const& o) const {
 		return !(*this == o);
@@ -140,6 +141,31 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 
+	}
+};
+
+class resource_cost : public window_element_base {
+public:
+	uint8_t good_frame = 0;
+	float good_quantity = 0.0f;
+	image_element_base* goods_type = nullptr;
+	simple_text_element_base* value = nullptr;
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "goods_type") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			goods_type = ptr.get();
+			return ptr;
+		} else if(name == "value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			value = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		value->set_text(state, text::format_float(good_quantity, 0));
+		goods_type->frame = good_frame;
 	}
 };
 
@@ -310,10 +336,16 @@ public:
 	ui::simple_text_element_base* brigades = nullptr;
 	ui::unit_build_button_group* build_button_group = nullptr;
 	ui::simple_text_element_base* province = nullptr;
+	std::vector<resource_cost*> resource_cost_elements;
 
 	std::string pop_size_text;
 
 	void on_create(sys::state& state) noexcept override {
+		for(int i = 0; i < 6; i++) {
+			auto ptr = make_element_by_type<resource_cost>(state, state.ui_state.defs_by_name.find("build_resource_cost")->second.definition);
+			resource_cost_elements.push_back(ptr.get());
+			add_child_to_front(std::move(ptr));
+		}
 		listbox_row_element_base::on_create(state);
 	}
 
@@ -368,6 +400,20 @@ public:
 			brigades->set_visible(state, true);
 			build_time->set_visible(state, true);
 
+			int16_t r = 0;
+			for(auto ele : resource_cost_elements) {
+				ele->set_visible(state, false);
+			}
+			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
+				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
+					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
+					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r];
+					resource_cost_elements[r]->set_visible(state, true);
+					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
+					r++;
+				}
+			}
+
 			build_button_group->set_visible(state, false);
 
 			//unit_strip
@@ -420,6 +466,19 @@ public:
 				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 			}
 		} else {
+			int16_t r = 0;
+			for(auto ele : resource_cost_elements) {
+				ele->set_visible(state, false);
+			}
+			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
+				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
+					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
+					resource_cost_elements[r]->good_quantity = (state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * float(content.number_of_units_on_continent));
+					resource_cost_elements[r]->set_visible(state, true);
+					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
+					r++;
+				}
+			}
 			build_button->set_visible(state, false);
 			pop_size->set_visible(state, false);
 			brigades->set_visible(state, false);
@@ -430,7 +489,7 @@ public:
 
 			unit_icon->frame = int32_t(state.military_definitions.unit_base_definitions[utid].icon - 1);
 			province->set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(content.continent)));
-			unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			unit_name->set_text(state, std::to_string(content.number_of_units_on_continent)+" "+text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 		}
 	}
 
@@ -496,8 +555,15 @@ public:
 			group_info.pop_info = dcon::pop_id{};
 			group_info.province_info = dcon::province_id{};
 			group_info.is_navy = false;
+			int16_t num_units_on_con = 0;
 			for(auto con : continent_list) {
 				group_info.continent = con;
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con) {
+						num_units_on_con++;
+					}
+				}
+				group_info.number_of_units_on_continent = num_units_on_con;
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
 					if(bu.continent == con) {
@@ -505,6 +571,7 @@ public:
 						row_contents.push_back(bu);
 					}
 				}
+				num_units_on_con = 0;
 			}
 		} else {
 			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
@@ -524,8 +591,15 @@ public:
 			group_info.pop_info = dcon::pop_id{};
 			group_info.province_info = dcon::province_id{};
 			group_info.is_navy = true;
+			int16_t num_units_on_con = 0;
 			for(auto con : continent_list) {
 				group_info.continent = con;
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con) {
+						num_units_on_con++;
+					}
+				}
+				group_info.number_of_units_on_continent = num_units_on_con;
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
 					if(bu.continent == con) {
@@ -533,6 +607,7 @@ public:
 						row_contents.push_back(bu);
 					}
 				}
+				num_units_on_con = 0;
 			}
 		}
 		update(state);
