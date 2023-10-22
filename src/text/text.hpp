@@ -673,6 +673,7 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 std::string date_to_string(sys::state const& state, sys::date date);
 
 std::string prettify(int64_t num);
+std::string prettify_currency(float num);
 std::string format_money(float num);
 std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
