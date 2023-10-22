@@ -1107,7 +1107,7 @@ guiTypes = {
 		}
 		windowType = {
 			name = "small_top_right_unit_icon"
-			position = { x = 1 y = -10 }
+			position = { x = 0 y = -10 }
 			size = { x= 60 y = 19 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"

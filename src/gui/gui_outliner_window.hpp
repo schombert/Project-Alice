@@ -377,8 +377,13 @@ public:
 			float purchased = 0.0f;
 			auto& goods = state.world.factory_type_get_construction_costs(st_con.get_type());
 
+			float factory_mod = state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
+			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
+			auto admin_eff = st_con.get_nation().get_administrative_efficiency();
+			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				total += goods.commodity_amounts[i];
+				total += goods.commodity_amounts[i] * admin_cost_factor;
 				purchased += st_con.get_purchased_goods().commodity_amounts[i];
 			}
 			auto progress = total > 0.0f ? purchased / total : 0.0f;

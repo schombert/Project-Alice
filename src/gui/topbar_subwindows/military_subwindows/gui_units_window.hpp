@@ -32,6 +32,9 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto container = retrieve<military_unit_info<T>>(state, parent);
+		float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
+		float admin_cost_factor = 2.0f - admin_eff;
+
 		if(std::holds_alternative<dcon::province_land_construction_id>(container)) {
 			auto c = std::get<dcon::province_land_construction_id>(container);
 
@@ -48,7 +51,7 @@ public:
 					text::add_to_layout_box(state, contents, box, std::string_view{": " });
 					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_eff });
 					text::close_layout_box(contents, box);
 				}
 			}
@@ -68,7 +71,7 @@ public:
 					text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_eff });
 					text::close_layout_box(contents, box);
 				}
 			}
