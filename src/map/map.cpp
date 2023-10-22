@@ -884,6 +884,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			continue;
 
 		std::string text = text::produce_simple_string(state, e.text);
+		auto& f = state.font_collection.fonts[2];
+		float text_length = f.text_extent(state, text.data(), uint32_t(text.length()), 1);
+		if(text_length != text_length || text_length == INFINITY || text_length == 0.f)
+			continue;
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
@@ -893,9 +897,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
 			curve_length += glm::distance(glm::vec2(x, poly_fn(x)) * e.ratio + e.basis, glm::vec2(x + x_step, poly_fn(x + x_step)) * e.ratio + e.basis);
-		auto& f = state.font_collection.fonts[2];
-		float text_length = f.text_extent(state, text.data(), uint32_t(text.length()), 1);
-		float thickness = (curve_length / text_length) * 0.9f * 0.0001f;
+		float thickness = (curve_length / text_length) * 0.9f * 0.000075f;
 		float x = 0.f;
 		for(int32_t i = 0; i < int32_t(text.length()); i++) {
 			float text_x_advance = ((f.glyph_advances[uint8_t(text[i])] / 64.f) + ((i != int32_t(text.length() - 1)) ? f.kerning(text[i], text[i + 1]) / 64.f : 0)) / text_length;
@@ -911,9 +913,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				glm::vec2 text_offset{ f.glyph_positions[uint8_t(text[i])].x / 64.f, f.glyph_positions[uint8_t(text[i])].y / 64.f };
 				assert(text_offset.x >= -1.f && text_offset.x <= 1.f && text_offset.y >= -1.f && text_offset.y <= 1.f);
 				text_offset /= text_length;
+				glm::vec2 center_nudge{ (1.f / text_length) / 2.f, (1.f / text_length) / 2.f };
 				float xm = x + ((xf - x) / 2.f);
-				auto p0 = (glm::vec2(x + text_offset.x, poly_fn(x) - (1.f / text_length) - text_offset.y) * e.ratio) + e.basis;
-				auto p1 = (glm::vec2(xf + text_offset.x, poly_fn(xf) - (1.f / text_length) - text_offset.y) * e.ratio) + e.basis;
+				auto p0 = (glm::vec2(x + center_nudge.x + text_offset.x, poly_fn(x) - center_nudge.y - text_offset.y) * e.ratio) + e.basis;
+				auto p1 = (glm::vec2(xf + center_nudge.x + text_offset.x, poly_fn(xf) - center_nudge.y - text_offset.y) * e.ratio) + e.basis;
 				// Add up baseline and kerning offsets
 				glm::vec2 curr_dir = glm::normalize(p1 - p0);
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
