@@ -2723,6 +2723,9 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	if(source == target || source == real_target)
 		return false;
 
+	if(state.world.nation_get_owned_province_count(target) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
+		return false;
+
 	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
 		return false;
 

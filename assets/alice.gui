@@ -728,13 +728,13 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = -4 y = -14 }
+			position = {x = 6 y = -14 }
 			name = "collapsed_ship_count"
-			font = "Arial16"
+			font = "Arial14"
 			borderSize = {x = 0 y = 0}
 			maxWidth = 30
 			maxHeight = 17
-			orientation = "UPPER_LEFT"
+			orientation = "CENTER"
 			format = centre
 		}
 		iconType = {
@@ -750,7 +750,7 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = 26 y = -7 }
+			position = {x = -11	 y = 24 }
 			name = "ship_count"
 			font = "Arial16"
 			borderSize = {x = 0 y = 0}
@@ -1078,7 +1078,7 @@ guiTypes = {
 				position = { x=0 y=0 }
 			}
 			instantTextBoxType={
-				position = {x = 26 y = 4 }
+				position = {x = 34 y = 4 }
 				name = "strength"
 				font = "Arial14"
 				borderSize = {x = 0 y = 0}
@@ -1090,7 +1090,7 @@ guiTypes = {
 		}
 		windowType = {
 			name = "small_top_right_unit_icon"
-			position = { x = 1 y = -10 }
+			position = { x = 0 y = -10 }
 			size = { x= 60 y = 19 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
@@ -1106,9 +1106,9 @@ guiTypes = {
 				position = { x=0 y=0 }
 			}
 			instantTextBoxType={
-				position = {x = 26 y = 3 }
+				position = {x = 34 y = 4 }
 				name = "strength"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 32
 				maxHeight = 13

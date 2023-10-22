@@ -419,6 +419,11 @@ public:
 			return;
 		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
 			if(p.get_type() == nf.type) {
+				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
+				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
+				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
+				float admin_cost_factor = (p.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+
 				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
 				auto& cgoods = p.get_purchased_goods();
 
@@ -429,7 +434,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
 						text::close_layout_box(contents, box);
 					}
 				}
@@ -455,6 +460,11 @@ public:
 			return;
 		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
 			if(p.get_type() == nf.type) {
+				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
+				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
+				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
+				float admin_cost_factor = (p.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+
 				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
 				auto& cgoods = p.get_purchased_goods();
 
@@ -465,7 +475,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
 						text::close_layout_box(contents, box);
 					}
 				}
@@ -892,9 +902,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::state_instance_id{};
-		parent->impl_get(state, payload);
-		auto state_id = any_cast<dcon::state_instance_id>(payload);
+		auto state_id = retrieve<dcon::state_instance_id>(state, parent);
 
 		for(auto const c : infos)
 			c->set_visible(state, false);
@@ -1603,9 +1611,17 @@ public:
 
 		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count;
 				curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
+
+			bool is_empty = true;
+			for(auto id : state.world.in_commodity) {
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id) || id == economy::money)
+					continue;
+				is_empty = false;
+			}
+			if(is_empty)
+				continue;
+
 			commodity_offset.x = base_commodity_offset.x;
-
-
 
 			// Place legend for this category...
 			auto ptr = make_element_by_type<production_goods_category_name>(state,
@@ -1620,11 +1636,9 @@ public:
 
 			int16_t cell_height = 0;
 			// Place infoboxes for each of the goods...
-			state.world.for_each_commodity([&](dcon::commodity_id id) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id))
-					return;
-				if(id == economy::money)
-					return;
+			for(auto id : state.world.in_commodity) {
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id) || id == economy::money)
+					continue;
 
 				auto info_ptr = make_element_by_type<production_good_info>(state,
 						state.ui_state.defs_by_name.find("production_info")->second.definition);
@@ -1644,7 +1658,7 @@ public:
 
 				good_elements.push_back(info_ptr.get());
 				add_child_to_front(std::move(info_ptr));
-			});
+			}
 			// Has atleast 1 good on this row? skip to next row then...
 			if(commodity_offset.x > base_commodity_offset.x)
 				commodity_offset.y += cell_height;

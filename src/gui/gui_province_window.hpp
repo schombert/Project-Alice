@@ -467,7 +467,7 @@ public:
 	}
 };
 template<economy::province_building_type Value>
-class province_building_expand_button : public shift_button_element_base {
+class province_building_expand_button : public shift_right_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
@@ -489,6 +489,13 @@ public:
 					command::begin_province_building_construction(state, state.local_player_nation, p, Value);
 				});
 			}
+		}
+	}
+	virtual void button_shift_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		auto within_nation = state.world.province_get_nation_from_province_ownership(content);
+		for(auto p : state.world.nation_get_province_ownership(within_nation)) {
+			command::begin_province_building_construction(state, state.local_player_nation, p.get_province(), Value);
 		}
 	}
 
@@ -567,6 +574,9 @@ public:
 				auto& goods = state.economy_definitions.building_definitions[int32_t(Value)].cost;
 				auto& cgoods = pb_con.get_purchased_goods();
 
+				float admin_eff = state.world.nation_get_administrative_efficiency(pb_con.get_nation());
+				float admin_cost_factor = pb_con.get_is_pop_project() ? 1.0f :  2.0f - admin_eff;
+
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
 						auto box = text::open_layout_box(contents, 0);
@@ -574,7 +584,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
 						text::close_layout_box(contents, box);
 					}
 				}
@@ -816,7 +826,7 @@ public:
 	}
 };
 
-class province_invest_railroad_button : public shift_button_element_base {
+class province_invest_railroad_button : public shift_right_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
@@ -829,6 +839,13 @@ public:
 			province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 				command::begin_province_building_construction(state, state.local_player_nation, p, economy::province_building_type::railroad);
 			});
+		}
+	}
+	virtual void button_shift_right_action(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			command::begin_province_building_construction(state, state.local_player_nation, p.get_province(), economy::province_building_type::railroad);
 		}
 	}
 	void on_update(sys::state& state) noexcept override {

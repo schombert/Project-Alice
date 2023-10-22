@@ -7,6 +7,7 @@ namespace ai {
 
 void update_ai_general_status(sys::state& state);
 void form_alliances(sys::state& state);
+void prune_alliances(sys::state& state);
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from);
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent);
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from);
@@ -19,6 +20,7 @@ void update_focuses(sys::state& state);
 void identify_focuses(sys::state& state);
 void take_ai_decisions(sys::state& state);
 void update_ai_ruling_party(sys::state& state);
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vector<dcon::factory_type_id>& desired_types);
 void update_ai_econ_construction(sys::state& state);
 void update_ai_colonial_investment(sys::state& state);
 void update_ai_colony_starting(sys::state& state);

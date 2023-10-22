@@ -442,7 +442,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		for(auto i : state.world.in_ideology) {
 			state.world.nation_set_upper_house(n, i, 0.0f);
 		}
-		state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
+		if(rp_ideology)
+			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 	} else if((rules & issue_rule::state_vote) != 0) {
 		for(auto i : state.world.in_ideology) {
 			state.world.nation_set_upper_house(n, i, 0.0f);
@@ -492,7 +493,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_set_upper_house(n, i, 0.0f);
 			}
-			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
+			if(rp_ideology)
+				state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	} else if((rules & issue_rule::rich_only) != 0) {
 		for(auto i : state.world.in_ideology) {
@@ -529,7 +531,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_set_upper_house(n, i, 0.0f);
 			}
-			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
+			if(rp_ideology)
+				state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	} else {
 		for(auto i : state.world.in_ideology) {
@@ -564,7 +567,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				state.world.nation_set_upper_house(n, i, 0.0f);
 			}
-			state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
+			if(rp_ideology)
+				state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
 		}
 	}
 
@@ -883,23 +887,27 @@ void update_elections(sys::state& state) {
 
 void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_id opt) {
 	auto parent = state.world.issue_option_get_parent_issue(opt);
-	state.world.nation_set_issues(n, parent, opt);
+	
 	auto effect_t = state.world.issue_option_get_on_execute_trigger(opt);
 	auto effect_k = state.world.issue_option_get_on_execute_effect(opt);
 	if(effect_k && (!effect_t || trigger::evaluate(state, effect_t, trigger::to_generic(n), trigger::to_generic(n), 0))) {
 		effect::execute(state, effect_k, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
 				uint32_t((opt.index() << 2) ^ n.index()));
 	}
+
+	state.world.nation_set_issues(n, parent, opt);
 }
 void set_reform_option(sys::state& state, dcon::nation_id n, dcon::reform_option_id opt) {
 	auto parent = state.world.reform_option_get_parent_reform(opt);
-	state.world.nation_set_reforms(n, parent, opt);
+	
 	auto effect_t = state.world.reform_option_get_on_execute_trigger(opt);
 	auto effect_k = state.world.reform_option_get_on_execute_effect(opt);
 	if(effect_k && (!effect_t || trigger::evaluate(state, effect_t, trigger::to_generic(n), trigger::to_generic(n), 0))) {
 		effect::execute(state, effect_k, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
 				uint32_t((opt.index() << 2) ^ n.index()));
 	}
+
+	state.world.nation_set_reforms(n, parent, opt);
 }
 
 } // namespace politics

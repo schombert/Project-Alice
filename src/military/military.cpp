@@ -3592,9 +3592,10 @@ void update_ticking_war_score(sys::state& state) {
 				}
 			}
 		}
+		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 
 		wg.get_ticking_war_score() =
-				std::clamp(wg.get_ticking_war_score(), -state.defines.tws_cb_limit_default, state.defines.tws_cb_limit_default);
+				std::clamp(wg.get_ticking_war_score(), -float(max_score), float(max_score));
 	}
 }
 

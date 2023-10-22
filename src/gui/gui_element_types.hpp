@@ -166,6 +166,7 @@ public:
 };
 
 class right_click_button_element_base : public button_element_base {
+public:
 	virtual void button_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
@@ -177,6 +178,7 @@ class right_click_button_element_base : public button_element_base {
 };
 
 class shift_button_element_base : public button_element_base {
+public:
 	virtual void button_shift_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
@@ -201,6 +203,21 @@ class shift_button_element_base : public button_element_base {
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class shift_right_button_element_base : public shift_button_element_base {
+	virtual void button_right_action(sys::state& state) noexcept { }
+	virtual void button_shift_right_action(sys::state& state) noexcept { }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_right_action(state);
+			else
+				button_right_action(state);
+		}
+		return message_result::consumed;
 	}
 };
 
@@ -1020,23 +1037,26 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto u = retrieve< unit_var>(state, parent);
 		color = text::text_color::gold;
-		float total = 0.0f;
+		
 
 		if(std::holds_alternative<dcon::army_id>(u)) {
+			int64_t total = 0;
 			auto a = std::get<dcon::army_id>(u);
 
 			for(auto m : state.world.army_get_army_membership(a)) {
-				total += m.get_regiment().get_strength();
+				total += int64_t(floor(m.get_regiment().get_strength() * state.defines.pop_size_per_regiment));
 			}
+			set_text(state, text::prettify(total));
 		} else if(std::holds_alternative<dcon::navy_id>(u)) {
+			float total = 0.0f;
 			auto a = std::get<dcon::navy_id>(u);
 
 			for(auto m : state.world.navy_get_navy_membership(a)) {
 				total += m.get_ship().get_strength();
 			}
+			set_text(state, text::format_float(total, 1));
 		}
 
-		set_text(state, text::format_float(total, 1));
 	}
 };
 

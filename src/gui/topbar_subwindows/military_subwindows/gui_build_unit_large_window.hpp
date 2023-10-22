@@ -12,9 +12,10 @@ public:
 	// true == navy
 	bool is_navy;
 	dcon::modifier_id continent;
+	int16_t number_of_units_on_continent;
 
 	bool operator==(buildable_unit_entry_info const& o) const {
-		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent;
+		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent && number_of_units_on_continent == o.number_of_units_on_continent;
 	}
 	bool operator!=(buildable_unit_entry_info const& o) const {
 		return !(*this == o);
@@ -50,6 +51,13 @@ public:
 class unit_build_button : public button_element_base {
 public:
 	bool is_navy = false;
+	bool visible = false;
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<buildable_unit_entry_info>(state, parent);
+		visible = state.world.pop_get_size(content.pop_info) >= state.defines.pop_size_per_regiment;
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
@@ -65,6 +73,11 @@ public:
 				command::start_naval_unit_construction(state, n, p, utid);
 			}
 		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			button_element_base::render(state, x, y);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -91,6 +104,12 @@ public:
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
 		} else {
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
+
+			buildable_unit_entry_info info = retrieve< buildable_unit_entry_info>(state, parent);
+			if(state.world.pop_get_size(info.pop_info) < state.defines.pop_size_per_regiment) {
+				text::add_line(state, contents, "alice_understaffed_regiment", text::variable_type::value, text::format_wholenum(int32_t(state.world.pop_get_size(info.pop_info))));
+			}
+
 			if(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range > 0) {
 				text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range, 2));
 			}
@@ -106,6 +125,52 @@ public:
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
 			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
+		}
+	}
+};
+
+class unit_build_understaff_overlay : public tinted_image_element_base {
+public:
+	bool visible = false;
+
+	void on_create(sys::state& state) noexcept override {
+		tinted_image_element_base::on_create(state);
+		color = sys::pack_color(255, 196, 196);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<buildable_unit_entry_info>(state, parent);
+		if(content.is_navy || content.continent)
+			visible = false;
+		else
+			visible = state.world.pop_get_size(content.pop_info) < state.defines.pop_size_per_regiment;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(!visible)
+			return;
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				if(gfx_def.number_of_frames > 1) {
+					ogl::render_tinted_subsprite(state, frame,
+						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped());
+				} else {
+					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped());
+				}
+			}
 		}
 	}
 };
@@ -140,6 +205,31 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 
+	}
+};
+
+class resource_cost : public window_element_base {
+public:
+	uint8_t good_frame = 0;
+	float good_quantity = 0.0f;
+	image_element_base* goods_type = nullptr;
+	simple_text_element_base* value = nullptr;
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "goods_type") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			goods_type = ptr.get();
+			return ptr;
+		} else if(name == "value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			value = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		value->set_text(state, text::format_float(good_quantity, 0));
+		goods_type->frame = good_frame;
 	}
 };
 
@@ -302,7 +392,8 @@ public:
 
 class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
 public:
-	ui::unit_build_button* build_button;
+	ui::unit_build_button* build_button = nullptr;
+	ui::unit_build_understaff_overlay* build_overlay = nullptr;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
 	ui::simple_text_element_base* build_time = nullptr;
@@ -310,15 +401,26 @@ public:
 	ui::simple_text_element_base* brigades = nullptr;
 	ui::unit_build_button_group* build_button_group = nullptr;
 	ui::simple_text_element_base* province = nullptr;
+	std::vector<resource_cost*> resource_cost_elements;
 
 	std::string pop_size_text;
 
 	void on_create(sys::state& state) noexcept override {
+		for(int i = 0; i < 6; i++) {
+			auto ptr = make_element_by_type<resource_cost>(state, state.ui_state.defs_by_name.find("build_resource_cost")->second.definition);
+			resource_cost_elements.push_back(ptr.get());
+			add_child_to_front(std::move(ptr));
+		}
 		listbox_row_element_base::on_create(state);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "build_button") {
+			{
+				auto ptr = make_element_by_type<unit_build_understaff_overlay>(state, id);
+				build_overlay = ptr.get();
+				add_child_to_back(std::move(ptr));
+			}
 			auto ptr = make_element_by_type<unit_build_button>(state, id);
 			ptr->set_button_text(state, "");
 			build_button = ptr.get();
@@ -367,6 +469,20 @@ public:
 			pop_size->set_visible(state, true);
 			brigades->set_visible(state, true);
 			build_time->set_visible(state, true);
+
+			int16_t r = 0;
+			for(auto ele : resource_cost_elements) {
+				ele->set_visible(state, false);
+			}
+			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
+				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
+					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
+					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r];
+					resource_cost_elements[r]->set_visible(state, true);
+					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
+					r++;
+				}
+			}
 
 			build_button_group->set_visible(state, false);
 
@@ -420,6 +536,19 @@ public:
 				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 			}
 		} else {
+			int16_t r = 0;
+			for(auto ele : resource_cost_elements) {
+				ele->set_visible(state, false);
+			}
+			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
+				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
+					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
+					resource_cost_elements[r]->good_quantity = (state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * float(content.number_of_units_on_continent));
+					resource_cost_elements[r]->set_visible(state, true);
+					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
+					r++;
+				}
+			}
 			build_button->set_visible(state, false);
 			pop_size->set_visible(state, false);
 			brigades->set_visible(state, false);
@@ -430,7 +559,7 @@ public:
 
 			unit_icon->frame = int32_t(state.military_definitions.unit_base_definitions[utid].icon - 1);
 			province->set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(content.continent)));
-			unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			unit_name->set_text(state, std::to_string(content.number_of_units_on_continent)+" "+text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 		}
 	}
 
@@ -496,15 +625,31 @@ public:
 			group_info.pop_info = dcon::pop_id{};
 			group_info.province_info = dcon::province_id{};
 			group_info.is_navy = false;
+			int16_t num_units_on_con = 0;
 			for(auto con : continent_list) {
 				group_info.continent = con;
-				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
 					if(bu.continent == con) {
+						num_units_on_con++;
+					}
+				}
+				group_info.number_of_units_on_continent = num_units_on_con;
+				// pass 1 - put fully staffed regiments first
+				row_contents.push_back(group_info);
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con && state.world.pop_get_size(bu.pop_info) >= state.defines.pop_size_per_regiment) {
 						bu.continent = dcon::modifier_id{};
 						row_contents.push_back(bu);
 					}
 				}
+				// pass 2 - put the understaffed regiments AFTER
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con && state.world.pop_get_size(bu.pop_info) < state.defines.pop_size_per_regiment) {
+						bu.continent = dcon::modifier_id{};
+						row_contents.push_back(bu);
+					}
+				}
+				num_units_on_con = 0;
 			}
 		} else {
 			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
@@ -524,8 +669,15 @@ public:
 			group_info.pop_info = dcon::pop_id{};
 			group_info.province_info = dcon::province_id{};
 			group_info.is_navy = true;
+			int16_t num_units_on_con = 0;
 			for(auto con : continent_list) {
 				group_info.continent = con;
+				for(auto bu : list_of_possible_units) {
+					if(bu.continent == con) {
+						num_units_on_con++;
+					}
+				}
+				group_info.number_of_units_on_continent = num_units_on_con;
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
 					if(bu.continent == con) {
@@ -533,6 +685,7 @@ public:
 						row_contents.push_back(bu);
 					}
 				}
+				num_units_on_con = 0;
 			}
 		}
 		update(state);

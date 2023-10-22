@@ -1261,6 +1261,8 @@ change_state_name_to;change state name to $text$
 alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 alice_unit_disable_rebel_hunt;Stop hunting rebels
 alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$§W\nStrength: §Y$strength$§W
+alice_understaffed_regiment;§RThis regiment is understaffed and will only have $value$ soldiers!§W
+alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 ;;;;;;;;;;;;;x

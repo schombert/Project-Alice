@@ -1960,7 +1960,7 @@ object {
 
 	property{
 		name{ slots }
-		type{vector_pool{2500}{military::ship_in_battle}}
+		type{vector_pool{6000}{military::ship_in_battle}}
 		tag{ save }
 	}
 }

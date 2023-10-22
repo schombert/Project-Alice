@@ -58,4 +58,7 @@ audio_instance& get_decline_sound(sys::state& state);
 audio_instance& get_accept_sound(sys::state& state);
 audio_instance& get_diplomatic_request_sound(sys::state& state);
 
+audio_instance& get_random_land_battle_sound(sys::state& state);
+audio_instance& get_random_naval_battle_sound(sys::state& state);
+
 } // namespace sound

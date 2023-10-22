@@ -158,6 +158,14 @@ public:
 			name_text->set_text(state, text::produce_simple_string(state, fat_id.get_type().get_name()));
 			needed_commodities = fat_id.get_type().get_construction_costs();
 			satisfied_commodities = fat_id.get_purchased_goods();
+
+			float factory_mod = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::factory_cost) + 1.0f;
+			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::factory_owner_cost));
+			float admin_cost_factor =  pop_factory_mod * factory_mod;
+
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				needed_commodities.commodity_amounts[i] *= admin_cost_factor;
+			}
 		}
 
 		if(input_listbox) {
