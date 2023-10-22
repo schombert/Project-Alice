@@ -75,7 +75,7 @@ public:
 		}
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept {
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
 			button_element_base::render(state, x, y);
 	}
@@ -146,7 +146,7 @@ public:
 			visible = state.world.pop_get_size(content.pop_info) < state.defines.pop_size_per_regiment;
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept {
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(!visible)
 			return;
 		dcon::gfx_object_id gid;
