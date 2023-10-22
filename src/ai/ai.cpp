@@ -786,6 +786,49 @@ void update_ai_ruling_party(sys::state& state) {
 	}
 }
 
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vector<dcon::factory_type_id>& desired_types) {
+	assert(desired_types.empty());
+	auto n = dcon::fatten(state.world, nid);
+	// first pass: try to fill shortages
+	for(auto type : state.world.in_factory_type) {
+		if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 1.0f;
+			if(lacking_output) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
+				if(!lacking_input)
+					desired_types.push_back(type.id);
+			}
+		} // END if building unlocked
+	}
+	if(desired_types.empty()) { // second pass: try to make money
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
+				if(!lacking_input)
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
+}
+
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
@@ -801,51 +844,7 @@ void update_ai_econ_construction(sys::state& state) {
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			static::std::vector<dcon::factory_type_id> desired_types;
 			desired_types.clear();
-
-			// first pass: try to fill shortages
-			for(auto type : state.world.in_factory_type) {
-				if(n.get_active_building(type) || type.get_is_available_from_start()) {
-					bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 1.0f;
-
-					if(lacking_output) {
-						auto& inputs = type.get_inputs();
-						bool lacking_input = false;
-
-						for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-							if(inputs.commodity_type[i]) {
-								if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
-									lacking_input = true;
-							} else {
-								break;
-							}
-						}
-
-						if(!lacking_input)
-							desired_types.push_back(type.id);
-					}
-				} // END if building unlocked
-			}
-
-			if(desired_types.empty()) { // second pass: try to make money
-				for(auto type : state.world.in_factory_type) {
-					if(n.get_active_building(type) || type.get_is_available_from_start()) {
-						auto& inputs = type.get_inputs();
-						bool lacking_input = false;
-
-						for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-							if(inputs.commodity_type[i]) {
-								if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
-									lacking_input = true;
-							} else {
-								break;
-							}
-						}
-
-						if(!lacking_input)
-							desired_types.push_back(type.id);
-					} // END if building unlocked
-				}
-			}
+			get_desired_factory_types(state, n, desired_types);
 
 			// desired types filled: try to construct or upgrade
 			if(!desired_types.empty()) {
@@ -863,8 +862,7 @@ void update_ai_econ_construction(sys::state& state) {
 					else
 						return a.index() < b.index();
 				});
-
-				if((rules & issue_rule::build_factory) == 0) { // can't build -- by elimination, can upgrade
+				if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
 					for(auto si : ordered_states) {
 						if(max_projects <= 0)
 							break;
@@ -904,7 +902,7 @@ void update_ai_econ_construction(sys::state& state) {
 							}
 						});
 					} // END for(auto si : ordered_states) {
-				} else { // if if((rules & issue_rule::build_factory) == 0) -- i.e. if building is possible
+				} else if((rules & issue_rule::build_factory) != 0) // -- i.e. if building is possible
 					for(auto si : ordered_states) {
 						if(max_projects <= 0)
 							break;
@@ -960,45 +958,30 @@ void update_ai_econ_construction(sys::state& state) {
 								new_up.set_is_pop_project(false);
 								new_up.set_is_upgrade(true);
 								new_up.set_type(type_selection);
-
 								--max_projects;
 								continue;
 							}
 						}
 
 						// else -- try to build -- must have room
-						int32_t num_factories = 0;
-
-						auto d = state.world.state_instance_get_definition(si);
-						for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-							if(p.get_province().get_nation_from_province_ownership() == n) {
-								for(auto f : p.get_province().get_factory_location()) {
-									++num_factories;
-								}
-							}
-						}
-						for(auto p : state.world.state_instance_get_state_building_construction(si)) {
-							if(p.get_is_upgrade() == false)
-								++num_factories;
-						}
+						int32_t num_factories = economy::state_factory_count(state, si, n);
 						if(num_factories < int32_t(state.defines.factories_per_state)) {
 							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 							new_up.set_is_pop_project(false);
 							new_up.set_is_upgrade(false);
 							new_up.set_type(type_selection);
-
 							--max_projects;
 							continue;
 						} else {
 							// TODO: try to delete a factory here
 						}
-
 					} // END for(auto si : ordered_states) {
 				} // END if((rules & issue_rule::build_factory) == 0) 
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
 		static std::vector<dcon::province_id> project_provs;
+		project_provs.clear();
 
 		// try naval bases
 		if(max_projects > 0) {
@@ -1051,7 +1034,7 @@ void update_ai_econ_construction(sys::state& state) {
 			dcon::provincial_modifier_value mod;
 		} econ_buildable[3] = {
 			{ (rules & issue_rule::build_railway) != 0, economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
-			{  (rules & issue_rule::build_bank) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
+			{ (rules & issue_rule::build_bank) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
 			{ (rules & issue_rule::build_university) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
 		};
 		for(auto i = 0; i < 3; i++) {
