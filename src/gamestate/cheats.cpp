@@ -136,7 +136,7 @@ void execute_c_complete_constructions(sys::state& state, dcon::nation_id source)
 		auto const& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j)
-			current_purchased.commodity_amounts[j] = base_cost.commodity_amounts[j];
+			current_purchased.commodity_amounts[j] = base_cost.commodity_amounts[j] * 2.f;
 	}
 }
 
