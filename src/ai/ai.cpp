@@ -902,7 +902,7 @@ void update_ai_econ_construction(sys::state& state) {
 							}
 						});
 					} // END for(auto si : ordered_states) {
-				} else if((rules & issue_rule::build_factory) != 0) // -- i.e. if building is possible
+				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
 					for(auto si : ordered_states) {
 						if(max_projects <= 0)
 							break;
