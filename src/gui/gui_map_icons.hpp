@@ -301,7 +301,6 @@ public:
 };
 
 struct top_display_parameters {
-	float is_army = false;
 	float top_left_value = 0.0f;
 	float top_right_value = 0.0f;
 	float top_left_org_value = 0.0f;
@@ -317,6 +316,7 @@ struct top_display_parameters {
 	int8_t common_unit_1 = -1;
 	int8_t common_unit_2 = -1;
 	std::array<outline_color, 5> colors;
+	bool is_army = false;
 };
 
 class prov_map_siege_bar : public progress_bar {
@@ -433,7 +433,7 @@ public:
 		if(state.map_state.get_zoom() >= big_counter_cutoff)
 			window_element_base::impl_render(state, x, y);
 		else
-			window_element_base::impl_render(state, x, y - 23);
+			window_element_base::impl_render(state, x, y - 22);
 	}
 };
 
@@ -603,7 +603,6 @@ public:
 			window_element_base::impl_render(state, x, y);
 	}
 };
-
 
 class tl_edge : public image_element_base {
 public:
@@ -1159,7 +1158,7 @@ public:
 			siege->set_visible(state, false);
 			top_icon->base_data.position.x = -68;
 			top_right_icon->set_visible(state, true);
-			small_top_icon->base_data.position.x = -62;
+			small_top_icon->base_data.position.x = -78;
 			small_top_right_icon->set_visible(state, true);
 		}
 		else if(nbattle) {
@@ -1247,7 +1246,7 @@ public:
 			siege->set_visible(state, false);
 			top_icon->base_data.position.x = -68;
 			top_right_icon->set_visible(state, true);
-			small_top_icon->base_data.position.x = -62;
+			small_top_icon->base_data.position.x = -78;
 			small_top_right_icon->set_visible(state, true);
 		}
 		else if(prov.index() < state.province_definitions.first_sea_province.index()) {
@@ -1560,7 +1559,6 @@ public:
 			return mouse_probe{ nullptr, ui::xy_pair{} };
 	}
 };
-
 
 class map_pv_rail_dots : public image_element_base {
 public:
