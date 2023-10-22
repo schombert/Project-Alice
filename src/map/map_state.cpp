@@ -181,7 +181,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				auto dx_fn = [&](float x) {
 					return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
 				};
-				float xstep = 1.f / float(name.length());
+				float xstep = (1.f / float(name.length() * 2.f));
 				for(float x = 0.f; x <= 1.f; x += xstep) {
 					float y = poly_fn(x);
 					if(y < 0.f || y > 1.f) {
@@ -190,7 +190,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 					// Steep change in curve => use cuadratic
 					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-					if(dx >= 0.5f) {
+					if(1) {// dx >= 0.75f) {
 						use_cuadratic = true;
 						break;
 					}
@@ -234,7 +234,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				auto dx_fn = [&](float x) {
 					return 1.f + 2.f * mo[2] * x;
 				};
-				float xstep = 1.f / float(name.length());
+				float xstep = (1.f / float(name.length() * 2.f));
 				for(float x = 0.f; x <= 1.f; x += xstep) {
 					float y = poly_fn(x);
 					if(y < 0.f || y > 1.f) {
@@ -243,7 +243,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 					// Steep change in curve => use cuadratic
 					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-					if(dx >= 0.75f) {
+					if(1) {// if(dx >= 0.75f) {
 						use_linear = true;
 						break;
 					}
@@ -252,7 +252,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					text_data.emplace_back(n.get_name(), glm::vec4(mo, 0.f), basis, ratio);
 			}
 			if(use_linear) {
-				// Now lets try quadratic
+				// Now lets try linear
 				std::vector<std::array<float, 2>> mx;
 				std::vector<float> my;
 				for(auto p : state.world.in_province) {

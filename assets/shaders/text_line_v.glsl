@@ -64,7 +64,7 @@ vec4 flat_coords(vec2 world_pos) {
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
 	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
+	vec2 normal_vector = normalize(normal_direction) * thickness / dot(normalize(normal_direction) * thickness, normalize(rot_direction) * thickness);
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.
 	vec2 extend_vector = -normalize(direction) * thickness;
 	vec2 world_pos = vertex_position;
