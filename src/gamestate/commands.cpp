@@ -2,6 +2,8 @@
 #include "system_state.hpp"
 #include "nations.hpp"
 
+#include "cheats.cpp"
+
 namespace command {
 
 bool is_console_command(command_type t) {
@@ -4545,8 +4547,6 @@ void notify_stop_game(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	add_to_command_queue(state, p);
 }
-
-#include "cheats.cpp"
 
 void execute_command(sys::state& state, payload& c) {
 	switch(c.type) {
