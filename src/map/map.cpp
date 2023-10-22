@@ -908,15 +908,16 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				//assert(xf >= 0.f && xf <= 1.f);
 			}
 			if(text[i] != ' ') { // skip spaces, only leaving a , well, space!
-				float xm = x + ((xf - x) / 2.f);
-				auto p0 = (glm::vec2(x, poly_fn(x)) * e.ratio) + e.basis;
-				auto p1 = (glm::vec2(xf, poly_fn(xf)) * e.ratio) + e.basis;
-				// Add up baseline and kerning offsets
 				glm::vec2 text_offset{ f.glyph_positions[uint8_t(text[i])].x / 64.f, f.glyph_positions[uint8_t(text[i])].y / 64.f };
 				assert(text_offset.x >= -1.f && text_offset.x <= 1.f && text_offset.y >= -1.f && text_offset.y <= 1.f);
+				text_offset /= text_length;
+				float xm = x + ((xf - x) / 2.f);
+				auto p0 = (glm::vec2(x + text_offset.x, poly_fn(x) - (1.f / text_length) - text_offset.y) * e.ratio) + e.basis;
+				auto p1 = (glm::vec2(xf + text_offset.x, poly_fn(xf) - (1.f / text_length) - text_offset.y) * e.ratio) + e.basis;
+				// Add up baseline and kerning offsets
 				glm::vec2 curr_dir = glm::normalize(p1 - p0);
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-				p0 += text_offset * glm::vec2(thickness, thickness) * e.ratio;
+				//p0 += text_offset * glm::vec2(thickness, thickness) * e.ratio;
 				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
 				auto type = float(uint8_t(text::win1250toUTF16(text[i]) >> 6));
 				float step = 1.f / 8.f;

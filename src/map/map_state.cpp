@@ -243,7 +243,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 					// Steep change in curve => use cuadratic
 					float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-					if(dx >= 0.5f) {
+					if(dx >= 0.75f) {
 						use_linear = true;
 						break;
 					}
