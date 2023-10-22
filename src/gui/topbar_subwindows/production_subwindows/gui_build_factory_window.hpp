@@ -72,11 +72,16 @@ public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
 		auto& name = fat.get_construction_costs();
+
+		float factory_mod = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::factory_cost) + 1.0f;
+		float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
+		float admin_cost_factor =  (2.0f - admin_eff) * factory_mod;
+
 		auto total = 0.0f;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 			auto cid = name.commodity_type[i];
 			if(bool(cid)) {
-				total += state.world.commodity_get_current_price(cid) * name.commodity_amounts[i];
+				total += state.world.commodity_get_current_price(cid) * name.commodity_amounts[i] * admin_cost_factor;
 			}
 		} // Credit to leaf for this code :3
 		return text::format_money(total);
