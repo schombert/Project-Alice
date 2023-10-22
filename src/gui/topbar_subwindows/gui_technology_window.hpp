@@ -942,6 +942,11 @@ public:
 			text::close_layout_box(contents, box);
 		}
 		technology_description(state, contents, content);
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_tech_queue_info");
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -952,12 +957,12 @@ public:
 		auto fat_id = dcon::fatten(state.world, content);
 
 		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
-		if(it != state.ui_state.tech_queue.end()) {
+		if(it == state.ui_state.tech_queue.end()) {
 			// not queued
 			simple_text_element_base::set_text(state, text::get_name_as_string(state, fat_id));
 		} else {
 			// queued
-			simple_text_element_base::set_text(state, "(" + std::to_string(std::distance(state.ui_state.tech_queue.begin(), it)) + ") " + text::get_name_as_string(state, fat_id));
+			simple_text_element_base::set_text(state, "(" + std::to_string(std::distance(state.ui_state.tech_queue.begin(), it) + 1) + ") " + text::get_name_as_string(state, fat_id));
 		}
 	}
 };
