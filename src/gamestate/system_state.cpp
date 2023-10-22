@@ -754,9 +754,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(game_state_was_updated) {
 		if(!ui_state.tech_queue.empty()) {
 			if(!world.nation_get_current_research(local_player_nation)) {
-				auto tech = ui_state.tech_queue.back();
-				command::start_research(*this, local_player_nation, tech);
-				ui_state.tech_queue.pop_back();
+				auto it = ui_state.tech_queue.begin();
+				if(command::can_start_research(*this, local_player_nation, *it)) {
+					// can research, so research it
+					command::start_research(*this, local_player_nation, *it);
+					ui_state.tech_queue.erase(it);
+				} else {
+					// cant research, add to back of queue
+					ui_state.tech_queue.erase(it);
+					ui_state.tech_queue.push_back(*it);
+				}
 			}
 		}
 
