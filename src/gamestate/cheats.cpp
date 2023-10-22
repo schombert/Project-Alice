@@ -121,6 +121,25 @@ void c_end_game(sys::state& state, dcon::nation_id source) {
 void execute_c_end_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::end_screen;
 }
+
+void c_complete_constructions(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_complete_constructions;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_complete_constructions(sys::state& state, dcon::nation_id source) {
+	for(uint32_t i = state.world.province_building_construction_size(); i-- > 0;) {
+		dcon::province_building_construction_id c{ dcon::province_building_construction_id::value_base_t(i) };
+		auto t = province_building_type(state.world.province_building_construction_get_type(c));
+		auto const& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
+		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
+		for(uint32_t j = 0; j < commodity_set::set_size; ++j)
+			current_purchased.commodity_amounts[j] = base_cost.commodity_amounts[j];
+	}
+}
+
 void c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));

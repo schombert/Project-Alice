@@ -43,7 +43,7 @@ struct command_info {
 		always_allow_wargoals,
 		always_allow_reforms,
 		always_accept_deals,
-		instant_construction,
+		complete_constructions,
 		instant_research
 	} mode = type::none;
 	std::string_view desc;
@@ -151,7 +151,7 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"ar", command_info::type::always_allow_reforms, "Always allow enacting reforms",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
-		command_info{"ic", command_info::type::instant_construction, "Instant construction",
+		command_info{"cc", command_info::type::complete_constructions, "Complete all current constructions",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"ir", command_info::type::instant_research, "Instant research",
@@ -1141,11 +1141,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::always_allow_reforms:
 		state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
 		break;
-	case command_info::type::instant_construction:
-		state.cheat_data.instant_construction = !state.cheat_data.instant_construction;
+	case command_info::type::complete_constructions:
+		command::c_complete_constructions(state, state.local_player_nation);
 		break;
 	case command_info::type::instant_research:
-		state.cheat_data.instant_research = !state.cheat_data.instant_research;
+		command::c_change_research_points(state, state.local_player_nation, float(640000000.f));
 		break;
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;

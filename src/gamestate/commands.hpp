@@ -129,6 +129,7 @@ enum class command_type : uint8_t {
 	c_change_prestige = 141,
 	c_force_ally = 142,
 	c_toggle_ai = 143,
+	c_complete_constructions = 144,
 };
 
 struct national_focus_data {

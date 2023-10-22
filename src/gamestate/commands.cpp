@@ -4927,6 +4927,9 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_toggle_ai:
 		execute_c_toggle_ai(state, c.source, c.data.nation_pick.target);
 		break;
+	case command_type::c_complete_constructions:
+		execute_c_complete_constructions(state, c.source);
+		break;
 	}
 }
 

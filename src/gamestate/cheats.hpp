@@ -23,5 +23,6 @@ void c_event(sys::state& state, dcon::nation_id source, int32_t id);
 void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id);
 void c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void c_toggle_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+void c_complete_constructions(sys::state& state, dcon::nation_id source);
 
 } // namespace command

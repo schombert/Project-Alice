@@ -369,8 +369,6 @@ struct cheat_data_s {
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
-	bool instant_research = false;
-	bool instant_construction = false;
 };
 
 struct crisis_member_def {
