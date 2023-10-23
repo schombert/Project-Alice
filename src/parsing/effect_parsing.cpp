@@ -1201,7 +1201,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 
 	if(context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
 		err.accumulated_errors += "effect is " + std::to_string(context.compiled_effect.size()) +
-															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
 		return dcon::effect_key{0};
 	}
 
