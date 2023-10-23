@@ -1,6 +1,7 @@
 gfx_xy_pair
 	x        value     int     member
 	y        value     int     member
+	#free    value     int     member_fn
 
 gfx_object
 	name               value     text         member
