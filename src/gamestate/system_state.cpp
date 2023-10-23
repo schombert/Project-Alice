@@ -3265,14 +3265,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	game_state_updated.store(true, std::memory_order::release);
 }
 
-constexpr inline int32_t game_speed[] = {
-	0,		// speed 0
-	2000,	// speed 1 -- 2 seconds
-	750,		// speed 2 -- 0.75 seconds
-	250, 	// speed 3 -- 0.25 seconds
-	125,		// speed 4 -- 0.125 seconds
-};
-
 void state::single_game_tick() {
 	// do update logic
 	province::update_connected_regions(*this);
@@ -3823,6 +3815,18 @@ void state::debug_oos_dump() {
 }
 
 void state::game_loop() {
+	static int32_t game_speed[] = {
+		0,		// speed 0
+		2000,	// speed 1 -- 2 seconds
+		750,		// speed 2 -- 0.75 seconds
+		250, 	// speed 3 -- 0.25 seconds
+		125,		// speed 4 -- 0.125 seconds
+	};
+	game_speed[1] = int32_t(defines.alice_speed_1);
+	game_speed[2] = int32_t(defines.alice_speed_2);
+	game_speed[3] = int32_t(defines.alice_speed_3);
+	game_speed[4] = int32_t(defines.alice_speed_4);
+
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		/*
 		network::send_and_receive_commands(*this);

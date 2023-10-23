@@ -646,6 +646,10 @@
 	LUA_DEFINES_LIST_ELEMENT(cities_size_max_population_k, 1000.000000)                                                            \
 	/* Non-vanilla defines */                                                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(factories_per_state, 8.000000)                                                                        \
+	LUA_DEFINES_LIST_ELEMENT(alice_speed_1, 2000.000000)                                                                           \
+	LUA_DEFINES_LIST_ELEMENT(alice_speed_2, 750.000000)                                                                            \
+	LUA_DEFINES_LIST_ELEMENT(alice_speed_3, 250.000000)                                                                            \
+	LUA_DEFINES_LIST_ELEMENT(alice_speed_4, 125.000000)                                                                            \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_gather_radius, -0.996000)                                                                    \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_radius, -0.996000)                                                                    \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_overestimate, 1.150000)                                                               \
