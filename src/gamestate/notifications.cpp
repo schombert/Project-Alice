@@ -14,7 +14,7 @@ void post(sys::state& state, message&& m) {
 }
 
 bool nation_is_interesting(sys::state& state, dcon::nation_id n) {
-	return false;
+	return state.world.nation_get_is_interesting(n);
 }
 
 } // namespace notification

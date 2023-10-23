@@ -20,6 +20,7 @@ void update_focuses(sys::state& state);
 void identify_focuses(sys::state& state);
 void take_ai_decisions(sys::state& state);
 void update_ai_ruling_party(sys::state& state);
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vector<dcon::factory_type_id>& desired_types);
 void update_ai_econ_construction(sys::state& state);
 void update_ai_colonial_investment(sys::state& state);
 void update_ai_colony_starting(sys::state& state);

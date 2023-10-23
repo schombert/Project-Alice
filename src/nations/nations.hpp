@@ -100,6 +100,11 @@ struct global_national_state {
 	dcon::national_focus_id flashpoint_focus;
 	dcon::national_focus_id clergy_focus;
 	dcon::national_focus_id soldier_focus;
+	dcon::national_focus_id aristocrat_focus;
+	dcon::national_focus_id capitalist_focus;
+	dcon::national_focus_id primary_factory_worker_focus;
+	dcon::national_focus_id secondary_factory_worker_focus;
+
 	float flashpoint_amount = 0.15f;
 
 	std::vector<fixed_event> on_yearly_pulse;
