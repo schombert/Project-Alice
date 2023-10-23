@@ -297,12 +297,12 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto ita = context.map_of_governments.find(std::string("prussian_constitutionalism"));
 		REQUIRE(ita != context.map_of_governments.end());
 		auto ida = ita->second;
-		REQUIRE(state->culture_definitions.governments[ida].has_elections == true);
-		REQUIRE(state->culture_definitions.governments[ida].duration == 48);
-		REQUIRE(state->culture_definitions.governments[ida].can_appoint_ruling_party == true);
-		REQUIRE(state->culture_definitions.governments[ida].flag == ::culture::flag_type::monarchy);
+		REQUIRE(state->world.government_type_get_has_elections(ida) == true);
+		REQUIRE(state->world.government_type_get_duration(ida) == 48);
+		REQUIRE(state->world.government_type_get_can_appoint_ruling_party(ida) == true);
+		REQUIRE(state->world.government_type_get_flag(ida) == uint8_t(::culture::flag_type::monarchy));
 		REQUIRE(
-		    (state->culture_definitions.governments[ida].ideologies_allowed &
+		    (state->world.government_type_get_ideologies_allowed(ida) &
 		     ::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
 	}
 	{
@@ -687,14 +687,14 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.invention_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
 	state->world.invention_resize_activate_crime(uint32_t(state->culture_definitions.crimes.size()));
 
-	state->world.rebel_type_resize_government_change(uint32_t(state->culture_definitions.governments.size()));
+	state->world.rebel_type_resize_government_change(state->world.government_type_size());
 
 	state->world.nation_resize_max_building_level(economy::max_building_types);
 	state->world.nation_resize_active_inventions(state->world.invention_size());
 	state->world.nation_resize_active_technologies(state->world.technology_size());
 	state->world.nation_resize_upper_house(state->world.ideology_size());
 
-	state->world.national_identity_resize_government_flag_type(uint32_t(state->culture_definitions.governments.size()));
+	state->world.national_identity_resize_government_flag_type(state->world.government_type_size());
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -1540,12 +1540,12 @@ REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::
 	auto ita = context.map_of_governments.find(std::string("prussian_constitutionalism"));
 	REQUIRE(ita != context.map_of_governments.end());
 	auto ida = ita->second;
-	REQUIRE(state->culture_definitions.governments[ida].has_elections == true);
-	REQUIRE(state->culture_definitions.governments[ida].duration == 48);
-	REQUIRE(state->culture_definitions.governments[ida].can_appoint_ruling_party == true);
-	REQUIRE(state->culture_definitions.governments[ida].flag == ::culture::flag_type::monarchy);
+	REQUIRE(state->world.government_type_get_has_elections(ida) == true);
+	REQUIRE(state->world.government_type_get_duration(ida) == 48);
+	REQUIRE(state->world.government_type_get_can_appoint_ruling_party(ida) == true);
+	REQUIRE(state->world.government_type_get_flag(ida) == uint8_t(::culture::flag_type::monarchy));
 	REQUIRE(
-	    (state->culture_definitions.governments[ida].ideologies_allowed &
+	    (state->world.government_type_get_ideologies_allowed(ida)&
 	     ::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
 }
 {
