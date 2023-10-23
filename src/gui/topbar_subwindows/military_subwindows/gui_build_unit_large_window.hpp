@@ -51,12 +51,6 @@ public:
 class unit_build_button : public button_element_base {
 public:
 	bool is_navy = false;
-	bool visible = false;
-
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<buildable_unit_entry_info>(state, parent);
-		visible = state.world.pop_get_size(content.pop_info) >= state.defines.pop_size_per_regiment;
-	}
 
 	void button_action(sys::state& state) noexcept override {
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
@@ -73,11 +67,6 @@ public:
 				command::start_naval_unit_construction(state, n, p, utid);
 			}
 		}
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
-			button_element_base::render(state, x, y);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -105,11 +94,6 @@ public:
 		} else {
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
 
-			buildable_unit_entry_info info = retrieve< buildable_unit_entry_info>(state, parent);
-			if(state.world.pop_get_size(info.pop_info) < state.defines.pop_size_per_regiment) {
-				text::add_line(state, contents, "alice_understaffed_regiment", text::variable_type::value, text::format_wholenum(int32_t(state.world.pop_get_size(info.pop_info))));
-			}
-
 			if(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range > 0) {
 				text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range, 2));
 			}
@@ -125,52 +109,6 @@ public:
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
 			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
-		}
-	}
-};
-
-class unit_build_understaff_overlay : public tinted_image_element_base {
-public:
-	bool visible = false;
-
-	void on_create(sys::state& state) noexcept override {
-		tinted_image_element_base::on_create(state);
-		color = sys::pack_color(255, 196, 196);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<buildable_unit_entry_info>(state, parent);
-		if(content.is_navy || content.continent)
-			visible = false;
-		else
-			visible = state.world.pop_get_size(content.pop_info) < state.defines.pop_size_per_regiment;
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(!visible)
-			return;
-		dcon::gfx_object_id gid;
-		if(base_data.get_element_type() == element_type::image) {
-			gid = base_data.data.image.gfx_object;
-		} else if(base_data.get_element_type() == element_type::button) {
-			gid = base_data.data.button.button_image;
-		}
-		if(gid) {
-			auto& gfx_def = state.ui_defs.gfx[gid];
-			if(gfx_def.primary_texture_handle) {
-				if(gfx_def.number_of_frames > 1) {
-					ogl::render_tinted_subsprite(state, frame,
-						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
-						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
-						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-						base_data.get_rotation(), gfx_def.is_vertically_flipped());
-				} else {
-					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
-						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
-						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-						base_data.get_rotation(), gfx_def.is_vertically_flipped());
-				}
-			}
 		}
 	}
 };
@@ -393,7 +331,6 @@ public:
 class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
 public:
 	ui::unit_build_button* build_button = nullptr;
-	ui::unit_build_understaff_overlay* build_overlay = nullptr;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
 	ui::simple_text_element_base* build_time = nullptr;
@@ -416,11 +353,6 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "build_button") {
-			{
-				auto ptr = make_element_by_type<unit_build_understaff_overlay>(state, id);
-				build_overlay = ptr.get();
-				add_child_to_back(std::move(ptr));
-			}
 			auto ptr = make_element_by_type<unit_build_button>(state, id);
 			ptr->set_button_text(state, "");
 			build_button = ptr.get();
@@ -634,17 +566,9 @@ public:
 					}
 				}
 				group_info.number_of_units_on_continent = num_units_on_con;
-				// pass 1 - put fully staffed regiments first
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
-					if(bu.continent == con && state.world.pop_get_size(bu.pop_info) >= state.defines.pop_size_per_regiment) {
-						bu.continent = dcon::modifier_id{};
-						row_contents.push_back(bu);
-					}
-				}
-				// pass 2 - put the understaffed regiments AFTER
-				for(auto bu : list_of_possible_units) {
-					if(bu.continent == con && state.world.pop_get_size(bu.pop_info) < state.defines.pop_size_per_regiment) {
+					if(bu.continent == con) {
 						bu.continent = dcon::modifier_id{};
 						row_contents.push_back(bu);
 					}
