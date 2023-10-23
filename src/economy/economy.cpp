@@ -3856,6 +3856,7 @@ void resolve_constructions(sys::state& state) {
 				break;
 			}
 		}
+
 		if(all_finished) {
 			if(state.world.province_get_building_level(for_province, t) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), t)) {
 				state.world.province_get_building_level(for_province, t) += 1;

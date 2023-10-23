@@ -1002,7 +1002,7 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 	if(e_context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
 		err.accumulated_errors += "effect " + text::produce_simple_string(context.outer_context.state, opt_result.name_) + " is " +
 															std::to_string(e_context.compiled_effect.size()) +
-															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
 		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
 	}
 
