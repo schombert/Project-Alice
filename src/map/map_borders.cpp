@@ -343,6 +343,10 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 		auto frel = fatten(world, id);
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
+
+		if(!prov_a || !prov_b)
+			return; // goto next
+
 		auto mid_point_a = world.province_get_mid_point(prov_a.id);
 		auto mid_point_b = world.province_get_mid_point(prov_b.id);
 		glm::ivec2 tile_pos_a = glm::round(mid_point_a);
@@ -362,6 +366,8 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 				for(int k = -2; k <= 2; k++) {
 					int y = tile_pos_b.y + int(y_difference * t) + k;
 					y = std::clamp(y, min_y, max_y);
+					if(x < 0 || y < 0)
+						continue;
 					is_river_crossing |= is_river(river_data[x + y * map_size.x]);
 				}
 				if(is_river_crossing)
@@ -379,6 +385,8 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 				for(int k = -2; k <= 2; k++) {
 					int x = tile_pos_b.x + int(x_difference * t) + k;
 					x = std::clamp(x, min_x, max_x);
+					if(x < 0 || y < 0)
+						continue;
 					is_river_crossing |= is_river(river_data[x + y * map_size.x]);
 				}
 				if(is_river_crossing)
