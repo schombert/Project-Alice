@@ -2918,6 +2918,9 @@ void daily_update(sys::state& state) {
 
 	// make new investments
 	for(auto n : state.world.in_nation) {
+		if(n.get_owned_province_count() == 0 || !n.get_is_civilized())
+			continue;
+
 		auto nation_rules = n.get_combined_issue_rules();
 
 		if(n.get_private_investment() > 0.001f &&
