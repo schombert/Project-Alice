@@ -1735,7 +1735,7 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 
 	auto other_cbs = state.world.nation_get_available_cbs(from);
 	for(auto& cb : other_cbs) {
-		if(cb.target == target && cb_conditions_satisfied(state, from, target, cb.cb_type))
+		if(cb.target == target && cb.cb_type == type && cb_conditions_satisfied(state, from, target, cb.cb_type))
 			return 0.0f;
 	}
 
