@@ -6562,8 +6562,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 		for(auto reg : ar.get_army_membership()) {
 			auto pop = reg.get_regiment().get_pop_from_regiment_source();
 			auto pop_size = pop.get_size();
-			auto limit_fraction = std::min(1.0f, pop_size / state.defines.pop_size_per_regiment);
-			reg.get_regiment().set_strength(std::min(reg.get_regiment().get_strength() + combined, limit_fraction));
+			reg.get_regiment().set_strength(std::min(reg.get_regiment().get_strength() + combined, 1.0f));
 		}
 	}
 }
