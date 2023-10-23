@@ -695,7 +695,7 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 
 std::string prettify_currency(float num) {
 	if(num == 0)
-		return std::string("0");
+		return std::string("0  \xA4");
 
 	char buffer[200] = { 0 };
 	double dval = double(num);
@@ -710,7 +710,7 @@ std::string prettify_currency(float num) {
 		1'000'000'000'000'000'000.0
 	};
 	constexpr static char const* sufx_two[] = {
-		"%.0f \xA4",
+		"%.2f \xA4",
 		"%.2fK \xA4",
 		"%.2fM \xA4",
 		"%.2fB \xA4",
@@ -719,7 +719,7 @@ std::string prettify_currency(float num) {
 		"%.2fZ \xA4"
 	};
 	constexpr static char const* sufx_one[] = {
-		"%.0f \xA4",
+		"%.1f \xA4",
 		"%.1fK \xA4",
 		"%.1fM \xA4",
 		"%.1fB \xA4",
@@ -750,8 +750,8 @@ std::string prettify_currency(float num) {
 			return std::string(buffer);
 		}
 	}
-
-	return std::string("#inf");
+	snprintf(buffer, sizeof(buffer), "%.2f \xA4", dval);
+	return std::string(buffer);
 }
 
 
