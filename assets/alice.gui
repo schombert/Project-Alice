@@ -1,7 +1,7 @@
 guiTypes = {
 	instantTextBoxType = { 
 		name = "alice_investment_text"
-		position = { x = 0 y = 0 }
+		position = { 0 0 }
 		font = "vic_18_black"
 		text = "INCOME"	
 		maxWidth = 90
@@ -11,29 +11,29 @@ guiTypes = {
 
 	windowType = {
 		name = "alice_main_menu"
-		position = { x= -176 y = -216 }
-		size = { x=352 y = 432 }
+		position = {  -176 -216 }
+		size = { 352 432 }
 		moveable = 1
 		Orientation = "CENTER"
 
 		iconType = {
 			name = "background"
 			spriteType = "GFX_menu"
-			position = { x= 0 y = 0 }
+			position = {  0 0 }
 			Orientation = "UPPER_LEFT"
 		}
 
 		guiButtonType = {
 			name = "close_button"
 			quadTextureSprite = "GFX_main_close_button"
-			position = { x = -32 y = 0 }
+			position = { -32 0 }
 			Orientation = "UPPER_RIGHT"
 			shortcut = "ESCAPE"
 		}
 
 		guiButtonType = {
 			name = "save_and_exit"
-			position = { x = 58 y = 104 }
+			position = { 58 104 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "alice_save_exit"
 			buttonFont = "vic_22_black"
@@ -41,7 +41,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "save"
-			position = { x = 58 y = 142 }
+			position = { 58 142 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "alice_save"
 			buttonFont = "vic_22_black"
@@ -49,7 +49,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "exit"
-			position = { x = 58 y = 180 }
+			position = { 58 180 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "alice_exit"
 			buttonFont = "vic_22_black"
@@ -57,7 +57,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "graphics"
-			position = { x = 58 y = 218 }
+			position = { 58 218 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "graphics_options"
 			buttonFont = "vic_22_black"
@@ -65,7 +65,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "sound"
-			position = { x = 58 y = 256 }
+			position = { 58 256 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "sound_options"
 			buttonFont = "vic_22_black"
@@ -73,7 +73,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "controls"
-			position = { x = 58 y = 294 }
+			position = { 58 294 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "controls_options"
 			buttonFont = "vic_22_black"
@@ -81,7 +81,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "message_settings"
-			position = { x = 58 y = 332 }
+			position = { 58 332 }
 			quadTextureSprite ="GFX_frontend_button_236"
 			buttonText = "message_settings_options"
 			buttonFont = "vic_22_black"
@@ -89,32 +89,32 @@ guiTypes = {
 
 		windowType = {
 			name = "alice_graphics_menu"
-			position = { x= 0 y = 0 }
-			size = { x=352 y = 432 }
+			position = {  0 0 }
+			size = { 352 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
-				position = { x= 0 y = 0 }
+				position = {  0 0 }
 				Orientation = "UPPER_LEFT"
 			}
 
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
-				position = { x = -32 y = 0 }
+				position = { -32 0 }
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
 
 			instantTextBoxType={
-				position = {x = 78 y = 116 }
+				position = { 78 116 }
 				name = "window_mode_label"
 				text = "window_mode_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -122,15 +122,15 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "window_mode_checkbox"
-				position = { x = 51 y = 115 }
+				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 157 }
+				position = { 58 157 }
 				name = "projection_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "map_projection"
@@ -139,10 +139,10 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 175 }
+				position = { 58 175 }
 				name = "projection_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -151,21 +151,21 @@ guiTypes = {
 
 			guiButtonType = {
 				name = "projection_left"
-				position = { x = 51 y = 168 }
+				position = { 51 168 }
 				quadTextureSprite = "option_prev"
 			}
 
 			guiButtonType = {
 				name = "projection_right"
-				position = { x = 269 y = 168 }
+				position = { 269 168 }
 				quadTextureSprite = "option_next"
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 210 }
+				position = { 58 210 }
 				name = "ui_scale_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "ui_scale"
@@ -174,10 +174,10 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 228 }
+				position = { 58 228 }
 				name = "ui_scale_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -186,22 +186,22 @@ guiTypes = {
 
 			guiButtonType = {
 				name = "ui_scale_left"
-				position = { x = 51 y = 221 }
+				position = { 51 221 }
 				quadTextureSprite = "option_prev"
 			}
 
 			guiButtonType = {
 				name = "ui_scale_right"
-				position = { x = 269 y = 221 }
+				position = { 269 221 }
 				quadTextureSprite = "option_next"
 			}
 
 			instantTextBoxType={
-				position = {x = 78 y = 282 }
+				position = { 78 282 }
 				name = "fonts_label"
 				text = "fonts_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -209,16 +209,16 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "fonts_checkbox"
-				position = { x = 51 y = 281 }
+				position = { 51 281 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 
 			instantTextBoxType={
-				position = {x = 78 y = 331 }
+				position = { 78 331 }
 				name = "fow_label"
 				text = "fow_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -226,38 +226,38 @@ guiTypes = {
 			}
 			checkboxType = {
 				name = "fow_checkbox"
-				position = { x = 51 y = 330 }
+				position = { 51 330 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 		}
 
 		windowType = {
 			name = "alice_controls_menu"
-			position = { x= 0 y = 0 }
-			size = { x=352 y = 432 }
+			position = {  0 0 }
+			size = { 352 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
-				position = { x= 0 y = 0 }
+				position = {  0 0 }
 				Orientation = "UPPER_LEFT"
 			}
 
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
-				position = { x = -32 y = 0 }
+				position = { -32 0 }
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 104 }
+				position = { 58 104 }
 				name = "zoom_mode_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "zoom_mode_label"
@@ -266,10 +266,10 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 122 }
+				position = { 58 122 }
 				name = "zoom_mode_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -278,21 +278,21 @@ guiTypes = {
 
 			guiButtonType = {
 				name = "zoom_mode_left"
-				position = { x = 51 y = 115 }
+				position = { 51 115 }
 				quadTextureSprite = "option_prev"
 			}
 
 			guiButtonType = {
 				name = "zoom_mode_right"
-				position = { x = 269 y = 115 }
+				position = { 269 115 }
 				quadTextureSprite = "option_next"
 			}
 			
 			instantTextBoxType={
-				position = {x = 58 y = 157 }
+				position = { 58 157 }
 				name = "auto_save_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "auto_save_lb"
@@ -301,10 +301,10 @@ guiTypes = {
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 175 }
+				position = { 58 175 }
 				name = "auto_save_value"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -313,22 +313,22 @@ guiTypes = {
 
 			guiButtonType = {
 				name = "auto_save_left"
-				position = { x = 51 y = 168 }
+				position = { 51 168 }
 				quadTextureSprite = "option_prev"
 			}
 
 			guiButtonType = {
 				name = "auto_save_right"
-				position = { x = 269 y = 168 }
+				position = { 269 168 }
 				quadTextureSprite = "option_next"
 			}
 			
 			instantTextBoxType={
-				position = {x = 78 y = 222 }
+				position = { 78 222 }
 				name = "tooltip_mode_label"
 				text = "tooltip_mode_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				orientation = "UPPER_LEFT"
@@ -336,38 +336,38 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "tooltip_mode_checkbox"
-				position = { x = 51 y = 221 }
+				position = { 51 221 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 		}
 
 		windowType = {
 			name = "alice_audio_menu"
-			position = { x= 0 y = 0 }
-			size = { x=352 y = 432 }
+			position = {  0 0 }
+			size = { 352 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
-				position = { x= 0 y = 0 }
+				position = {  0 0 }
 				Orientation = "UPPER_LEFT"
 			}
 
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
-				position = { x = -32 y = 0 }
+				position = { -32 0 }
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 104 }
+				position = { 58 104 }
 				name = "master_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "master_volume_label"
@@ -381,8 +381,8 @@ guiTypes = {
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
-				size = {x = 236 y = 16 }
-				position = {x= 58 y = 123 }
+				size = { 236 16 }
+				position = { 58 123 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
@@ -392,30 +392,30 @@ guiTypes = {
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}
+					position = { 0 236}
 				}
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 157 }
+				position = { 58 157 }
 				name = "music_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "music_volume_label"
@@ -429,8 +429,8 @@ guiTypes = {
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
-				size = {x = 236 y = 16 }
-				position = {x= 58 y = 176 }
+				size = { 236  16 }
+				position = { 58 176 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
@@ -440,30 +440,30 @@ guiTypes = {
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}
+					position = { 0 236}
 				}
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 210 }
+				position = { 58 210 }
 				name = "interface_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "interface_volume_label"
@@ -477,8 +477,8 @@ guiTypes = {
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
-				size = {x = 236 y = 16 }
-				position = {x= 58 y = 229 }
+				size = { 236 16 }
+				position = { 58 229 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
@@ -488,30 +488,30 @@ guiTypes = {
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}
+					position = { 0 236}
 				}
 			}
 
 			instantTextBoxType={
-				position = {x = 58 y = 263 }
+				position = { 58 263 }
 				name = "effect_volume_label"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
 				text = "effect_volume_label"
@@ -525,8 +525,8 @@ guiTypes = {
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
-				size = {x = 236 y = 16 }
-				position = {x= 58 y = 282 }
+				size = { 236 16 }
+				position = { 58 282 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
@@ -536,22 +536,22 @@ guiTypes = {
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "track"
 					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "up"
 					quadTextureSprite = "GFX_slider_left"
-					position = { x=0 y =0}
+					position = { 0 0}
 				}
 				guiButtonType = {
 					name = "down"
 					quadTextureSprite = "GFX_slider_right"
-					position = { x=0 y =236}
+					position = { 0 236}
 				}
 			}
 		}
@@ -559,14 +559,14 @@ guiTypes = {
 
 	guiButtonType = {
 		name = "alice_left_right_button"
-		position = { x = 0 y = 0 }
+		position = { 0 0 }
 		quadTextureSprite = "GFX_alice_left_right"
 		clicksound = click
 	}
 	instantTextBoxType = {
 		name = "alice_page_count"
 		font = "vic_18_black"
-		borderSize = {x = 0 y = 0}
+		borderSize = { 0 0}
 		maxWidth = 32
 		maxHeight = 18
 		orientation = "UPPER_LEFT"
@@ -574,15 +574,15 @@ guiTypes = {
 	}
 	iconType = {
 		name = "alice_event_requirements"
-		position = { x = 0 y = 0 }
-		size = { x = 24 y = 24 }
+		position = { 0 0 }
+		size = { 24 24 }
 		spriteType = "GFX_decision_info"
 		Orientation = "UPPER_LEFT"
 	}
 	iconType = {
 		name = "alice_event_odds"
-		position = { x = 0 y = 0 }
-		size = { x = 24 y = 24 }
+		position = { 0 0 }
+		size = { 24 24 }
 		spriteType = "GFX_alice_odds"
 		Orientation = "UPPER_LEFT"
 	}
@@ -590,8 +590,8 @@ guiTypes = {
 	guiButtonType = {
 		name = "goto_location_button"
 		quadTextureSprite = "GFX_goto_location_button"
-		position = { x=0 y=0 }
-		size = { x=240, y=24 }
+		position = { 0 0 }
+		size = { 240, 24 }
 		orientation = "UPPER_LEFT"
 		buttonText = "GOTO_GOTO"
 		buttonFont = "vic_18_black"
@@ -600,7 +600,7 @@ guiTypes = {
 	iconType = {
 		name ="flag_list_flag"
 		spriteType = "GFX_flag_new"
-		position = { x=0 y=6 }
+		position = { 0 6 }
 		Orientation = "UPPER_LEFT"
 	}
 
@@ -612,8 +612,8 @@ guiTypes = {
 	windowType = {
 		name = "pop_left_side_list_base_window"
 		backGround =""
-		position = { x=0 y=0 }
-		size = { x=200 y=38 }
+		position = { 0 0 }
+		size = { 200 38 }
 		moveable = 0
 		dontRender = ""
 		fullScreen = no
@@ -622,36 +622,36 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_base_unit_icon"
-		position = { x= 0 y = 0 }
-		size = { x=1 y = 1 }
+		position = {  0 0 }
+		size = { 1 1 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 		
 		iconType = {
 			name ="frame_bg"
 			spriteType = "GFX_alice_unit_frames"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name = "org_bar"
 			spriteType = "GFX_alice_org_bar"
-			position = { x = 5 y = 33 }
+			position = { 5 33 }
 		}
 		iconType = {
 			name = "status"
 			spriteType = "GFX_alice_unit_status"
-			position = { x = 46 y = 5 }
+			position = { 46 5 }
 		}
 		iconType = {
 			name = "dig_in"
 			spriteType = "GFX_alice_dig_in"
-			position = { x = 46 y = 16 }
+			position = { 46 16 }
 		}
 		instantTextBoxType={
-			position = {x = 4 y = 39 }
+			position = { 4 39 }
 			name = "strength"
 			font = "Arial16"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 53
 			maxHeight = 17
 			orientation = "UPPER_LEFT"
@@ -661,77 +661,77 @@ guiTypes = {
 		iconType = {
 			name = "unit_2"
 			spriteType = "GFX_unit_strip"
-			position = { x = 12 y = 2 }
+			position = { 12 2 }
 		}
 		iconType = {
 			name = "unit_1"
 			spriteType = "GFX_unit_strip"
-			position = { x = 1 y = 2 }
+			position = { 1 2 }
 		}
 		iconType = {
 			name = "controller_flag"
 			spriteType = "GFX_alice_unit_flag"
-			position = { x = 7 y = 6 }
+			position = { 7 6 }
 		}
 	}
 	
 	windowType = {
 		name = "alice_grid_row"
-		position = { x= 0 y = 0 }
-		size = { x = 268 y = 66 }
+		position = {  0 0 }
+		size = { 268 66 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 	}
 	
 	windowType = {
 		name = "alice_grid_panel"
-		position = { x = 0 y = 0 }
-		size = { x = 290 y = 138 }
+		position = { 0 0 }
+		size = { 290 138 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 		
 		iconType = {
 			name = "grid_bg"
 			spriteType = "GFX_alice_panel_bg"
-			position = { x = 0 y = 0 }
-			size = { x = 290 y = 138 }
+			position = { 0 0 }
+			size = { 290 138 }
 		}
 		
 		listboxType = 	{
 			name ="grid_listbox"
-			position = { x = 3 y = 3 }
-			size = { x = 268 y = 132 }
+			position = { 3 3 }
+			size = { 268 132 }
 			Orientation = "UPPER_LEFT"
 			spacing = 0
 			scrollbartype = "standardlistbox_slider"
-			borderSize = { x = 0 y = 0 }
+			borderSize = { 0 0 }
 		}
 	}
 	
 	windowType = {
 		name = "alice_port_icon"
-		position = { x= 0 y = 0 }
-		size = { x=1 y = 1 }
+		position = {  0 0 }
+		size = { 1 1 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 		
 		iconType = {
 			name = "port_collapsed_small"
 			spriteType = "GFX_alice_small_port_expanded"
-			position = { x=-18 y=-18 }
+			position = { -18 -18 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name = "port_collapsed_small_icon"
 			spriteType = "GFX_alice_small_port_icon"
-			position = { x=-18 y=-18 }
+			position = { -18 -18 }
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = 6 y = -14 }
+			position = { 6 -14 }
 			name = "collapsed_ship_count"
 			font = "Arial14"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 30
 			maxHeight = 17
 			orientation = "CENTER"
@@ -740,20 +740,20 @@ guiTypes = {
 		iconType = {
 			name ="port_minimized"
 			spriteType = "GFX_alice_port"
-			position = { x=-18 y=-18 }
+			position = { -18 -18 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="port_expanded"
 			spriteType = "GFX_alice_expanded_port"
-			position = { x=-18 y=-18 }
+			position = { -18 -18 }
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = {x = -11	 y = 24 }
+			position = { -11	 24 }
 			name = "ship_count"
 			font = "Arial16"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 30
 			maxHeight = 17
 			orientation = "UPPER_LEFT"
@@ -762,37 +762,37 @@ guiTypes = {
 		iconType = {
 			name ="level1"
 			spriteType = "GFX_alice_port_levels"
-			position = { x=-23 y=-7 }
+			position = { -23 -7 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="level2"
 			spriteType = "GFX_alice_port_levels"
-			position = { x=-28 y=-7 }
+			position = { -28 -7 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="level3"
 			spriteType = "GFX_alice_port_levels"
-			position = { x=-33 y=-7 }
+			position = { -33 -7 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="level4"
 			spriteType = "GFX_alice_port_levels"
-			position = { x=-38 y=-7 }
+			position = { -38 -7 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="level5"
 			spriteType = "GFX_alice_port_levels"
-			position = { x=-43 y=-7 }
+			position = { -43 -7 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="level6"
 			spriteType = "GFX_alice_port_levels"
-			position = { x=-48 y=-7 }
+			position = { -48 -7 }
 			Orientation = "UPPER_LEFT"
 		}
 	}
@@ -800,8 +800,8 @@ guiTypes = {
 	windowType = {
 		name = "alice_unit_row"
 		backGround=""
-		position = { x=0 y=0 }	
-		size = { x=332 y=64 }
+		position = { 0 0 }	
+		size = { 332 64 }
 		moveable = 0
 		dontRender = ""
 		horizontalBorder= ""
@@ -813,24 +813,24 @@ guiTypes = {
 		{
 			name ="unitpanel_bg"
 			spriteType = "GFX_unit_toppanel_bg"
-			position = { x= -1 y = 0 }
+			position = {  -1 0 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		iconType =	{
 			name ="leader_photo"
 			spriteType = "GFX_leader_generic0"
-			position = { x = 18 y = 6 }
+			position = { 18 6 }
 			Orientation = "UPPER_LEFT"
 		}
 
 
 		instantTextBoxType = {
 			name = "unitstrength"
-			position = { x = 201 y = 28 }
+			position = { 201 28 }
 			textureFile = ""
 			font = "Arial14_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 100
 			maxHeight = 17	
@@ -840,14 +840,14 @@ guiTypes = {
 		iconType = {
 			name ="unitattrition_icon"
 			spriteType = "GFX_unit_attr"
-			position = { x = 245  y = 42 }
+			position = { 245  42 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		iconType = {
 			name ="org_bar"
 			spriteType = "GFX_morale_progress"
-			position = { x= 312 y = 52 }
+			position = {  312 52 }
 			Orientation = "UPPER_LEFT"
 			rotation = 1.5708
 		}
@@ -855,40 +855,40 @@ guiTypes = {
 		iconType = {
 			name ="str_bar"
 			spriteType = "GFX_strength_progress"
-			position = { x= 320 y = 52 }
+			position = {  320 52 }
 			Orientation = "UPPER_LEFT"
 			rotation = 1.5708
 		}
 		guiButtonType = {
 			name = "disbandbutton"
-			position = { x = 254 y = 6 }
+			position = { 254 6 }
 			quadTextureSprite ="GFX_unit_disband"
 		}	
 
 		guiButtonType = {
 			name = "splitinhalf"
-			position = { x = 279 y = 6 }
+			position = { 279 6 }
 			quadTextureSprite ="GFX_unit_splitinhalf"
 			shortcut = "s"
 		}		
 
 		guiButtonType = {
 			name = "remove_unit_from_selection_button"
-			position = { x = 303 y = 6 }
+			position = { 303 6 }
 			quadTextureSprite ="GFX_unit_close"
 		}
 		
 		iconType = {
 			name = "unit_inf"
 			spriteType = "GFX_unit_strip"
-			position = { x = 49 y = 24 }
+			position = { 49 24 }
 		}
 		
 		instantTextBoxType={
-			position = {x = 87 y = 35 }
+			position = { 87 35 }
 			name = "unit_inf_count"
 			font = "Arial16_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 29
 			maxHeight = 17
 			orientation = "UPPER_LEFT"
@@ -898,14 +898,14 @@ guiTypes = {
 		iconType = {
 			name = "unit_cav"
 			spriteType = "GFX_unit_strip"
-			position = { x = 114 y = 24 }
+			position = { 114 24 }
 		}
 		
 		instantTextBoxType={
-			position = {x = 152 y = 35 }
+			position = { 152 35 }
 			name = "unit_cav_count"
 			font = "Arial16_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 29
 			maxHeight = 17
 			orientation = "UPPER_LEFT"
@@ -915,14 +915,14 @@ guiTypes = {
 		iconType = {
 			name = "unit_art"
 			spriteType = "GFX_unit_strip"
-			position = { x = 179 y = 24 }
+			position = { 179 24 }
 		}
 		
 		instantTextBoxType={
-			position = {x = 217 y = 35 }
+			position = { 217 35 }
 			name = "unit_art_count"
 			font = "Arial16_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 29
 			maxHeight = 17
 			orientation = "UPPER_LEFT"
@@ -930,11 +930,11 @@ guiTypes = {
 		}
 		
 		instantTextBoxType = {
-			position = { x = 45 y = 5 }
+			position = { 45 5 }
 			name = "location"
 			font = "Arial14"
-			borderSize = {x = 8 y = 4}	
-			size = { x=180 y=24}
+			borderSize = { 8 4}	
+			size = { 180 24}
 			text = ""	
 			orientation = "UPPER_LEFT"
 		}
@@ -943,8 +943,8 @@ guiTypes = {
 	windowType = {
 		name = "alice_multi_unitpanel"
 		backGround=""
-		position = { x=-1 y=152 }	
-		size = { x=332 y=436 }
+		position = { -1 152 }	
+		size = { 332 436 }
 		moveable = 0
 		dontRender = ""
 		horizontalBorder= ""
@@ -957,17 +957,17 @@ guiTypes = {
 		{
 			name ="multiselect_bg"
 			spriteType = "GFX_unit_multiunit_bg"
-			position = { x= 0 y = 0 }
+			position = {  0 0 }
 			Orientation = "UPPER_LEFT"
 		}
 
 
 		instantTextBoxType = {
 			name = "desc"
-			position = { x = 10	 y = 6 }
+			position = { 10	 6 }
 			textureFile = ""
 			font = "Arial14_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 300
 			maxHeight = 32	
@@ -975,7 +975,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "mergebutton"
-			position = { x = 275 y = 4 }
+			position = { 275 4 }
 			quadTextureSprite ="GFX_unit_multiunit_merge"
 			tooltip = ""
 			tooltipText =""
@@ -987,101 +987,101 @@ guiTypes = {
 			
 		guiButtonType = {
 			name = "close_multiunit"
-			position = { x = 305 y = 4 }
+			position = { 305 4 }
 			quadTextureSprite ="GFX_unit_multiunit_close"
 		}
 
 		guiButtonType = {
 			name = "disband_multiunit"
-			position = { x = 215 y = 4 }
+			position = { 215 4 }
 			quadTextureSprite ="GFX_unit_disband"
 		}
 		
 		listboxType = 	{
 			name ="unit_listbox"
-			position = { x = 0 y = 28 }
-			size = { x = 332 y = 408 }
+			position = { 0 28 }
+			size = { 332 408 }
 			Orientation = "UPPER_LEFT"
 			spacing = 0
 			scrollbartype = "standardlistbox_slider"
-			borderSize = { x = 0 y = 0 }
+			borderSize = { 0 0 }
 		}
 	}
 	
 	windowType = {
 		name = "alice_province_values"
-		position = { x = 0 y = 0 }
-		size = { x= 0 y = 0 }
+		position = { 0 0 }
+		size = {  0 0 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 			
 		iconType = {
 			name ="capital_icon"
 			spriteType = "GFX_topbar_prestige"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name ="rail_icon"
 			spriteType = "GFX_alice_map_rail_2"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name ="rail_dots"
 			spriteType = "GFX_alice_map_dots"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name ="fort_icon"
 			spriteType = "GFX_alice_map_fort_2"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name ="fort_dots"
 			spriteType = "GFX_alice_map_dots"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name ="bank_icon"
 			spriteType = "GFX_alice_map_bank"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		iconType = {
 			name ="university_icon"
 			spriteType = "GFX_alice_map_university"
-			position = { x=0 y=0 }
+			position = { 0 0 }
 		}
 		
 	}
 	
 	windowType={
 		name = "alice_map_unit"
-		position = { x= 0 y = 0 }
-		size = { x=1 y = 1 }
+		position = {  0 0 }
+		size = { 1 1 }
 		moveable = 0
 		Orientation = "UPPER_LEFT"
 		
 		windowType = {
 			name = "small_top_unit_icon"
-			position = { x = -30 y = -10 }
-			size = { x= 60 y = 19 }
+			position = { -30 -10 }
+			size = {  60 19 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 		
 			guiButtonType = {
 				name ="controller_flag"
 				quadTextureSprite = "GFX_mapicon_flag"
-				position = { x = 4 y = 2 }
+				position = { 4 2 }
 			}
 			iconType = {
 				name ="frame_bg"
 				spriteType = "GFX_alice_small_unit_frames"
-				position = { x=0 y=0 }
+				position = { 0 0 }
 			}
 			instantTextBoxType={
-				position = {x = 34 y = 4 }
+				position = { 34 4 }
 				name = "strength"
 				font = "Arial14"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 32
 				maxHeight = 10
 				orientation = "UPPER_LEFT"
@@ -1090,26 +1090,26 @@ guiTypes = {
 		}
 		windowType = {
 			name = "small_top_right_unit_icon"
-			position = { x = 0 y = -10 }
-			size = { x= 60 y = 19 }
+			position = { 0 -10 }
+			size = {  60 19 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 		
 			guiButtonType = {
 				name ="controller_flag"
 				quadTextureSprite = "GFX_mapicon_flag"
-				position = { x = 1 y = 1 }
+				position = { 1 1 }
 			}
 			iconType = {
 				name ="frame_bg"
 				spriteType = "GFX_alice_small_unit_frames"
-				position = { x=0 y=0 }
+				position = { 0 0 }
 			}
 			instantTextBoxType={
-				position = {x = 34 y = 4 }
+				position = { 34 4 }
 				name = "strength"
 				font = "Arial14"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 32
 				maxHeight = 13
 				orientation = "UPPER_LEFT"
@@ -1118,56 +1118,56 @@ guiTypes = {
 		}
 		windowType = {
 			name = "top_unit_icon"
-			position = { x= -30 y = -30 }
-			size = { x=1 y = 1 }
+			position = {  -30 -30 }
+			size = { 1 1 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 			
 			iconType = {
 				name ="frame_bg"
 				spriteType = "GFX_alice_unit_frames"
-				position = { x=4 y=0 }
+				position = { 4 0 }
 			}
 			iconType = {
 				name ="edge1"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-4 y=0 }
+				position = { -4 0 }
 			}
 			iconType = {
 				name ="edge2"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-12 y=0 }
+				position = { -12 0 }
 			}
 			iconType = {
 				name ="edge3"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-20 y=0 }
+				position = { -20 0 }
 			}
 			iconType = {
 				name ="edge4"
 				spriteType = "GFX_alice_unit_left_edge"
-				position = { x=-28 y=0 }
+				position = { -28 0 }
 			}
 			iconType = {
 				name = "org_bar"
 				spriteType = "GFX_alice_org_bar"
-				position = { x = 9 y = 33 }
+				position = { 9 33 }
 			}
 			iconType = {
 				name = "status"
 				spriteType = "GFX_alice_unit_status"
-				position = { x = 50 y = 5 }
+				position = { 50 5 }
 			}
 			iconType = {
 				name = "dig_in"
 				spriteType = "GFX_alice_dig_in"
-				position = { x = 50 y = 16 }
+				position = { 50 16 }
 			}
 			instantTextBoxType={
-				position = {x = 8 y = 39 }
+				position = { 8 39 }
 				name = "strength"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 53
 				maxHeight = 17
 				orientation = "UPPER_LEFT"
@@ -1177,72 +1177,72 @@ guiTypes = {
 			iconType = {
 				name = "unit_2"
 				spriteType = "GFX_unit_strip"
-				position = { x = 16 y = 2 }
+				position = { 16 2 }
 			}
 			iconType = {
 				name = "unit_1"
 				spriteType = "GFX_unit_strip"
-				position = { x = 5 y = 2 }
+				position = { 5 2 }
 			}
 			iconType = {
 				name = "controller_flag"
 				spriteType = "GFX_alice_unit_flag"
-				position = { x = 12 y = 6 }
+				position = { 12 6 }
 			}
 		}
 		
 		windowType = {
 			name = "top_right_unit_icon"
-			position = { x= 2 y = -30 }
-			size = { x=1 y = 1 }
+			position = {  2 -30 }
+			size = { 1 1 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 			
 			iconType = {
 				name ="frame_bg"
 				spriteType = "GFX_alice_unit_frames"
-				position = { x=0 y=0 }
+				position = { 0 0 }
 			}
 			iconType = {
 				name ="edge1"
 				spriteType = "GFX_alice_unit_right_edge"
-				position = { x=61 y=0 }
+				position = { 61 0 }
 			}
 			iconType = {
 				name ="edge2"
 				spriteType = "GFX_alice_unit_right_edge"
-				position = { x=69 y=0 }
+				position = { 69 0 }
 			}
 			iconType = {
 				name ="edge3"
 				spriteType = "GFX_alice_unit_right_edge"
-				position = { x=77 y=0 }
+				position = { 77 0 }
 			}
 			iconType = {
 				name ="edge4"
 				spriteType = "GFX_alice_unit_right_edge"
-				position = { x=85 y=0 }
+				position = { 85 0 }
 			}
 			iconType = {
 				name = "org_bar"
 				spriteType = "GFX_alice_org_bar"
-				position = { x = 5 y = 33 }
+				position = { 5 33 }
 			}
 			iconType = {
 				name = "status"
 				spriteType = "GFX_alice_unit_status"
-				position = { x = 46 y = 5 }
+				position = { 46 5 }
 			}
 			iconType = {
 				name = "dig_in"
 				spriteType = "GFX_alice_dig_in"
-				position = { x = 46 y = 16 }
+				position = { 46 16 }
 			}
 			instantTextBoxType={
-				position = {x = 4 y = 39 }
+				position = { 4 39 }
 				name = "strength"
 				font = "Arial16"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				maxWidth = 53
 				maxHeight = 17
 				orientation = "UPPER_LEFT"
@@ -1251,50 +1251,50 @@ guiTypes = {
 			iconType = {
 				name = "controller_flag"
 				spriteType = "GFX_alice_unit_flag"
-				position = { x = 8 y = 6 }
+				position = { 8 6 }
 			}
 		}
 		
 		windowType = {
 			name = "siege"
-			position = { x= -49 y = 34 }
-			size = { x = 97 y = 18 }
+			position = {  -49 34 }
+			size = { 97 18 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 			
 			iconType = {
 				name = "overlay"
 				spriteType = "GFX_alice_siege_frame"
-				position = { x = 0 y = 0 }
+				position = { 0 0 }
 			}
 			iconType = {
 				name ="progress"
 				spriteType = "GFX_alice_siege_bar"
-				position = { x=31 y=4 }
+				position = { 31 4 }
 			}
 			
 		}
 		windowType = {
 			name = "battle"
-			position = { x= -49 y = 34 }
-			size = { x = 97 y = 18 }
+			position = {  -49 34 }
+			size = { 97 18 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
 				
 			iconType = {
 				name ="progress"
 				spriteType = "GFX_alice_battle_bar"
-				position = { x=5 y=0 }
+				position = { 5 0 }
 			}
 			iconType = {
 				name = "overlay_left"
 				spriteType = "GFX_alice_battle_caps"
-				position = { x = -13 y = 0 }
+				position = { -13 0 }
 			}
 			iconType = {
 				name = "overlay_right"
 				spriteType = "GFX_alice_battle_caps"
-				position = { x = 79 y = 0 }
+				position = { 79 0 }
 			}
 		}
 	}
@@ -1302,8 +1302,8 @@ guiTypes = {
 	windowType = {
 		name = "alice_leader_selection_panel"
 		backGround=""
-		position = { x=345 y=210 }	
-		size = { x=584 y=420 }
+		position = { 345 210 }	
+		size = { 584 420 }
 		moveable = 0
 		dontRender = ""
 		horizontalBorder= ""
@@ -1315,13 +1315,13 @@ guiTypes = {
 		{
 			name ="select_leader_bg"
 			spriteType = "GFX_unit_leader_bg"
-			position = { x= -8 y = -64 }
+			position = {  -8 -64 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		iconType = {
 			name = "leader_button"
-			position = { x = 10 y = -51 }
+			position = { 10 -51 }
 			spriteType ="GFX_alice_unit_select_leader"
 			Orientation = "UPPER_LEFT"
 		}
@@ -1329,12 +1329,12 @@ guiTypes = {
 		#iconType = {
 		#	name ="prestige_bar_frame"
 		#	spriteType = "GFX_prestige_bar_frame"
-		#	position = { x = 12 y = -52 }
+		#	position = { 12 -52 }
 		#}
 		#iconType = {
 		#	name ="current_leader_prestige_bar"
 		#	spriteType = "GFX_leader_prestige_progress_bar"
-		#	position = { x = 22 y = -22 }
+		#	position = { 22 -22 }
 		#	Orientation = "UPPER_LEFT"
 		#	rotation = 1.5708
 		#}
@@ -1342,16 +1342,16 @@ guiTypes = {
 		iconType =	{
 			name ="selected_photo"
 			spriteType = "GFX_leader_generic0"
-			position = { x= 30 y = -54 }
+			position = {  30 -54 }
 			Orientation = "UPPER_LEFT"
 		}
 
 		instantTextBoxType = {
 			name = "selected_leader_name"
-			position = { x = 65 y = -40 }
+			position = { 65 -40 }
 			textureFile = ""
 			font = "Arial12_bold_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			maxWidth = 190
 			maxHeight = 16	
 			Orientation = "UPPER_LEFT"
@@ -1360,7 +1360,7 @@ guiTypes = {
 			
 		guiButtonType = {
 			name = "sort_prestige"
-			position = { x=10 y=-16}
+			position = { 10 -16}
 			quadTextureSprite ="GFX_sortbutton_20"	
 			buttonText = ""
 			buttonFont = "vic_18_black"
@@ -1369,13 +1369,13 @@ guiTypes = {
 		iconType = {
 			name ="sort_prestige_icon"
 			spriteType = "GFX_prestige_icon_2"
-			position = { x=12 y=-8 }
+			position = { 12 -8 }
 			Orientation = "UPPER_LEFT"
 		}
 				
 		guiButtonType = {
 			name = "sort_name"
-			position = { x=29 y=-16}
+			position = { 29 -16}
 			quadTextureSprite ="GFX_sortbutton_224"	
 			buttonText = "NAME"
 			buttonFont = "vic_18_black"
@@ -1383,7 +1383,7 @@ guiTypes = {
 			
 		guiButtonType = {
 			name = "sort_a"
-			position = { x=250 y=-16}
+			position = { 250 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_A"
 			buttonFont = "vic_18_black"
@@ -1391,10 +1391,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_a"
-			position = { x = 255 y = -40 }
+			position = { 255 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1405,7 +1405,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sort_b"
-			position = { x=289 y=-16}
+			position = { 289 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_B"
 			buttonFont = "vic_18_black"
@@ -1413,10 +1413,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_b"
-			position = { x = 294 y = -40 }
+			position = { 294 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1427,7 +1427,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sort_c"
-			position = { x=328 y=-16}
+			position = { 328 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_C"
 			buttonFont = "vic_18_black"
@@ -1435,10 +1435,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_c"
-			position = { x = 333 y = -40 }
+			position = { 333 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1449,7 +1449,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sort_d"
-			position = { x=367 y=-16}
+			position = { 367 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_D"
 			buttonFont = "vic_18_black"
@@ -1457,10 +1457,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_d"
-			position = { x = 372 y = -40 }
+			position = { 372 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1472,7 +1472,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "sort_e"
-			position = { x=406 y=-16}
+			position = { 406 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_E"
 			buttonFont = "vic_18_black"
@@ -1480,10 +1480,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_e"
-			position = { x = 411 y = -40 }
+			position = { 411 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1494,7 +1494,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sort_f"
-			position = { x=445 y=-16}
+			position = { 445 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_F"
 			buttonFont = "vic_18_black"
@@ -1502,10 +1502,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_f"
-			position = { x = 450 y = -40 }
+			position = { 450 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1516,7 +1516,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sort_g"
-			position = { x=484 y=-16}
+			position = { 484 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_G"
 			buttonFont = "vic_18_black"
@@ -1524,10 +1524,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_g"
-			position = { x = 489 y = -40 }
+			position = { 489 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1538,7 +1538,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sort_h"
-			position = { x=523 y=-16}
+			position = { 523 -16}
 			quadTextureSprite ="GFX_sortbutton_40"	
 			buttonText = "UV_SORT_H"
 			buttonFont = "vic_18_black"
@@ -1546,10 +1546,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_h"
-			position = { x = 528 y = -40 }
+			position = { 528 -40 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1561,7 +1561,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "back_button"
-			position = { x=367 y=375}
+			position = { 367 375}
 			quadTextureSprite ="GFX_button_standard_144"	
 			buttonText = "CLOSE"
 			buttonFont = "vic_18_black"
@@ -1569,7 +1569,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "noleader_button"
-			position = { x=54 y=375}
+			position = { 54 375}
 			quadTextureSprite ="GFX_button_standard_144"	
 			buttonText = "NO_LEADER"
 			buttonFont = "vic_18_black"
@@ -1577,13 +1577,13 @@ guiTypes = {
 
 		listboxType = {
 			name ="leaderlist"
-			position = { x = 4 y = 10 }
+			position = { 4 10 }
 			backGround=""
-			size = { x=543  y =360}
+			size = { 543  360}
 			Orientation = "UPPER_LEFT"
 			spacing = 2
 			scrollbartype = "standardlistbox_slider"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 		}
 		
 		
@@ -1592,8 +1592,8 @@ guiTypes = {
 	windowType = {
 		name = "alice_leader_entry"
 		backGround=""
-		position = { x=0 y=0 }	
-		size = { x=380 y= 36 }
+		position = { 0 0 }	
+		size = { 380  36 }
 		moveable = 0
 		dontRender = ""
 		horizontalBorder= ""
@@ -1602,19 +1602,19 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "leader_button"
-			position = { x = 6 y = 3 }
+			position = { 6 3 }
 			quadTextureSprite ="GFX_alice_unit_select_leader"	
 		}
 
 		#iconType = {
 		#	name ="prestige_bar_frame"
 		#	spriteType = "GFX_prestige_bar_frame"
-		#	position = { x = 8 y = 2 }
+		#	position = { 8 2 }
 		#}
 		#iconType = {
 		#	name ="leader_prestige_bar"
 		#	spriteType = "GFX_leader_prestige_progress_bar"
-		#	position = { x = 18 y = 32 }
+		#	position = { 18 32 }
 		#	Orientation = "UPPER_LEFT"
 		#	rotation = 1.5708
 		#}	
@@ -1622,16 +1622,16 @@ guiTypes = {
 		iconType =	{
 			name ="photo"
 			spriteType = "GFX_leader_generic0"
-			position = { x = 26 y = 0 }
+			position = { 26 0 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		instantTextBoxType = {
 			name = "leader_name"
-			position = { x = 62 y = 14 }
+			position = { 62 14 }
 			textureFile = ""
 			font = "Arial12_bold_black"
-			borderSize = { x = 0 y = 0 }
+			borderSize = { 0 0 }
 			text = ""	
 			maxWidth = 190
 			maxHeight = 16	
@@ -1641,10 +1641,10 @@ guiTypes = {
 			
 		instantTextBoxType = {
 			name = "unitleader_a"
-			position = { x = 252 y = 14 }
+			position = { 252 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1655,10 +1655,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_b"
-			position = { x = 291 y = 14 }
+			position = { 291 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1669,10 +1669,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_c"
-			position = { x = 330 y = 14 }
+			position = { 330 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1683,10 +1683,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_d"
-			position = { x = 369 y = 14 }
+			position = { 369 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1697,10 +1697,10 @@ guiTypes = {
 			
 		instantTextBoxType = {
 			name = "unitleader_e"
-			position = { x = 408 y = 14 }
+			position = { 408 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1711,10 +1711,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_f"
-			position = { x = 447 y = 14 }
+			position = { 447 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1725,10 +1725,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_g"
-			position = { x = 486 y = 14 }
+			position = { 486 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1739,10 +1739,10 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "unitleader_h"
-			position = { x = 525 y = 14 }
+			position = { 525 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 35
 			maxHeight = 32	
@@ -1754,23 +1754,23 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_combat_modifier"
-		position = { x=0 y=0 }	
-		size = { x=32 y=58 }
+		position = { 0 0 }	
+		size = { 32 58 }
 		moveable = 0
 		fullScreen = no	
 
 		iconType = {
 			name ="modifier_icon"
 			spriteType = "GFX_combat_modifiers"
-			position = { x= 0 y = 0 }
+			position = {  0 0 }
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
 			name = "modifier_value"
-			position = { x = -2 y = 40 }
+			position = { -2 40 }
 			textureFile = ""
 			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}
+			borderSize = { 0 0}
 			text = ""	
 			maxWidth = 34
 			maxHeight = 32	
@@ -1780,8 +1780,8 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_land_combat"
-		position = { x=0 y=-536 }	
-		size = { x=512 y=512 }
+		position = { 0 -536 }	
+		size = { 512 512 }
 		moveable = 0
 		fullScreen = no	
 		Orientation = "LOWER_LEFT"
@@ -1790,28 +1790,28 @@ guiTypes = {
 		iconType = {
 			name ="combat_bg"
 			spriteType = "GFX_combat_bg"
-			position = { x= 0 y = 0 }
+			position = {  0 0 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="combat_terrain1"
 			spriteType = "GFX_terrainimg_mountain"
-			position = { x= 14 y = 241 }
+			position = {  14 241 }
 			Orientation = "UPPER_LEFT"
 		}
 		iconType = {
 			name ="combat_counter_bg"
 			spriteType = "GFX_combat_counter_bg"
-			position = { x= 9 y = 226 }
+			position = {  9 226 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		instantTextBoxType = {
 			name = "label_battlename"
-			position = { x = 3 y = 19 }
+			position = { 3 19 }
 			textureFile = ""
 			font = "vic_22"
-			borderSize = {x = 4 y = 4}
+			borderSize = { 4 4}
 			text = ""	
 			maxWidth = 400
 			maxHeight = 40
@@ -1821,13 +1821,13 @@ guiTypes = {
 		guiButtonType = {
 			name ="combat_retreat"
 			spriteType = "GFX_alice_retreat"
-			position = { x= 13 y = 21 }
+			position = {  13 21 }
 			Orientation = "UPPER_LEFT"
 		}
 
 		guiButtonType = {
 			name = "closebutton"
-			position = { x= 374 y = 6 }
+			position = {  374 6 }
 			quadTextureSprite ="GFX_main_close_button"
 			Orientation = "UPPER_LEFT"
 			shortcut = "ESCAPE"
@@ -1837,30 +1837,30 @@ guiTypes = {
 
 		windowType = {
 			name = "attacker"
-			position = { x=0 y=70 }	
-			size = { x=256 y=160 }
+			position = { 0 70 }	
+			size = { 256 160 }
 			moveable = 0
 			fullScreen = no	
 
 			iconType = {
 				name ="shield"
 				spriteType = "GFX_thinshield"
-				position = { x= 12 y = 0 }
+				position = {  12 0 }
 				Orientation = "UPPER_LEFT"
 				rotation = -1.5708
 			}
 			iconType = {
 				name ="leader_icon"
 				spriteType = "GFX_leader_generic0"
-				position = { x= 74 y = -10 }
+				position = {  74 -10 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "leader_name"
-				position = { x = 108 y = -7 }
+				position = { 108 -7 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 150
 				maxHeight = 32
@@ -1869,8 +1869,8 @@ guiTypes = {
 			
 			OverlappingElementsBoxType = {
 				name = "modifiers"
-				position = { x = 78 y = 39 }
-				size = { x = 185 y = 60 }
+				position = { 78 39 }
+				size = { 185 60 }
 				Orientation = "UPPER_LEFT"
 				format = left
 				spacing = 1.0
@@ -1879,21 +1879,21 @@ guiTypes = {
 			iconType = {
 				name ="morale"
 				spriteType = "GFX_combat_org_progress"
-				position = { x= 76 y = 111 }
+				position = {  76 111 }
 				Orientation = "UPPER_LEFT"
 			}
 			iconType = {
 				name ="strength"
 				spriteType = "GFX_combat_str_progress"
-				position = { x= 76 y = 130 }
+				position = {  76 130 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "morale_text"
-				position = { x = 79 y = 110 }
+				position = { 79 110 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "97%"	
 				maxWidth = 190
 				maxHeight = 32
@@ -1902,10 +1902,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "strength_text"
-				position = { x = 79 y = 129 }
+				position = { 79 129 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "32,567"	
 				maxWidth = 190
 				maxHeight = 32
@@ -1915,29 +1915,29 @@ guiTypes = {
 			iconType = {
 				name ="unit_type_1"
 				spriteType = "GFX_unit_strip"
-				position = { x= 275 y = 1 }
+				position = {  275 1 }
 				Orientation = "UPPER_LEFT"
 			}
 
 			iconType = {
 				name ="unit_type_2"
 				spriteType = "GFX_unit_strip"
-				position = { x= 275 y = 53 }
+				position = {  275 53 }
 				Orientation = "UPPER_LEFT"
 			}
 
 			iconType = {
 				name ="unit_type_3"
 				spriteType = "GFX_unit_strip"
-				position = { x= 275 y = 105 }
+				position = {  275 105 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "unit_type_1_value"
-				position = { x = 294 y = 8 }
+				position = { 294 8 }
 				textureFile = ""
 				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 80
 				maxHeight = 32	
@@ -1945,10 +1945,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "unit_type_2_value"
-				position = { x = 294 y = 60 }
+				position = { 294 60 }
 				textureFile = ""
 				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 80
 				maxHeight = 32	
@@ -1956,10 +1956,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "unit_type_3_value"
-				position = { x = 294 y = 112 }
+				position = { 294 112 }
 				textureFile = ""
 				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 80
 				maxHeight = 32	
@@ -1970,8 +1970,8 @@ guiTypes = {
 		windowType = {
 			name = "defender"
 			backGround=""
-			position = { x=0 y=368 }	
-			size = { x=256 y=160 }
+			position = { 0 368 }	
+			size = { 256 160 }
 			moveable = 0
 			dontRender = ""
 			horizontalBorder= ""
@@ -1981,22 +1981,22 @@ guiTypes = {
 			iconType = {
 				name ="shield"
 				spriteType = "GFX_thinshield"
-				position = { x= 12 y = 0 }
+				position = {  12 0 }
 				Orientation = "UPPER_LEFT"
 				rotation = -1.5708
 			}
 			iconType = {
 				name ="leader_icon"
 				spriteType = "GFX_leader_generic0"
-				position = { x= 74 y = -10 }
+				position = {  74 -10 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "leader_name"
-				position = { x = 108 y = -7 }
+				position = { 108 -7 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 150
 				maxHeight = 32
@@ -2004,8 +2004,8 @@ guiTypes = {
 			}
 			OverlappingElementsBoxType = {
 				name = "modifiers"
-				position = { x = 78 y = 39 }
-				size = { x = 185 y = 60 }
+				position = { 78 39 }
+				size = { 185 60 }
 				Orientation = "UPPER_LEFT"
 				format = left
 				spacing = 1.0
@@ -2013,21 +2013,21 @@ guiTypes = {
 			iconType = {
 				name ="morale"
 				spriteType = "GFX_combat_org_progress"
-				position = { x= 76 y = 111 }
+				position = {  76 111 }
 				Orientation = "UPPER_LEFT"
 			}
 			iconType = {
 				name ="strength"
 				spriteType = "GFX_combat_str_progress"
-				position = { x= 76 y = 130 }
+				position = {  76 130 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "morale_text"
-				position = { x = 79 y = 110 }
+				position = { 79 110 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "97%"	
 				maxWidth = 190
 				maxHeight = 32
@@ -2036,10 +2036,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "strength_text"
-				position = { x = 79 y = 129 }
+				position = { 79 129 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "32,567"	
 				maxWidth = 190
 				maxHeight = 32
@@ -2049,27 +2049,27 @@ guiTypes = {
 			iconType = {
 				name ="unit_type_1"
 				spriteType = "GFX_unit_strip"
-				position = { x= 275 y = 1 }
+				position = {  275 1 }
 				Orientation = "UPPER_LEFT"
 			}
 			iconType = {
 				name ="unit_type_2"
 				spriteType = "GFX_unit_strip"
-				position = { x= 275 y = 53 }
+				position = {  275 53 }
 				Orientation = "UPPER_LEFT"
 			}
 			iconType = {
 				name ="unit_type_3"
 				spriteType = "GFX_unit_strip"
-				position = { x= 275 y = 105 }
+				position = {  275 105 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "unit_type_1_value"
-				position = { x = 294 y = 8 }
+				position = { 294 8 }
 				textureFile = ""
 				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 80
 				maxHeight = 32	
@@ -2077,10 +2077,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "unit_type_2_value"
-				position = { x = 294 y = 60 }
+				position = { 294 60 }
 				textureFile = ""
 				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 80
 				maxHeight = 32	
@@ -2088,10 +2088,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "unit_type_3_value"
-				position = { x = 294 y = 112 }
+				position = { 294 112 }
 				textureFile = ""
 				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 80
 				maxHeight = 32	
@@ -2103,8 +2103,8 @@ guiTypes = {
 	windowType = {
 		name = "alice_naval_combat"
 		backGround=""
-		position = { x=0 y=-176 }	
-		size = { x=512 y=512 }
+		position = { 0 -176 }	
+		size = { 512 512 }
 		moveable = 0
 		fullScreen = no	
 		Orientation = "LOWER_LEFT"
@@ -2113,17 +2113,17 @@ guiTypes = {
 		iconType = {
 			name ="combat_bg"
 			spriteType = "GFX_alice_naval_combat_bg"
-			position = { x= 0 y = -75 }
+			position = {  0 -75 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		
 		instantTextBoxType = {
 			name = "label_battlename"
-			position = { x = 3 y = -47 }
+			position = { 3 -47 }
 			textureFile = ""
 			font = "vic_22"
-			borderSize = {x = 4 y = 4}
+			borderSize = { 4 4}
 			text = ""	
 			maxWidth = 400
 			maxHeight = 40
@@ -2133,13 +2133,13 @@ guiTypes = {
 		guiButtonType = {
 			name ="combat_retreat"
 			spriteType = "GFX_alice_retreat"
-			position = { x= 13 y = -44 }
+			position = {  13 -44 }
 			Orientation = "UPPER_LEFT"
 		}
 
 		guiButtonType = {
 			name = "closebutton"
-			position = { x= 374 y = -59 }
+			position = {  374 -59 }
 			quadTextureSprite ="GFX_main_close_button"
 			Orientation = "UPPER_LEFT"
 			shortcut = "ESCAPE"
@@ -2149,22 +2149,22 @@ guiTypes = {
 		windowType = {
 			name = "attacker"
 			backGround=""
-			position = { x=18 y=-4 }	
-			size = { x=182 y=452 }
+			position = { 18 -4 }	
+			size = { 182 452 }
 			moveable = 0
 			fullScreen = no	
 
 			iconType = {
 				name ="shield"
 				spriteType = "GFX_thinshield"
-				position = { x=-9 y=-5 }
+				position = { -9 -5 }
 				Orientation = "UPPER_LEFT"
 				rotation = -1.5708
 			}
 			OverlappingElementsBoxType = {
 				name = "modifiers"
-				position = { x = 54 y = -1 }
-				size = { x = 125 y = 60 }
+				position = { 54 -1 }
+				size = { 125 60 }
 				Orientation = "UPPER_LEFT"
 				format = left
 				spacing = 1.0
@@ -2172,15 +2172,15 @@ guiTypes = {
 			iconType = {
 				name ="leader_icon"
 				spriteType = "GFX_leader_generic0"
-				position = { x=-6 y=58 }
+				position = { -6 58 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "leader_name"
-				position = { x=30 y=63 }
+				position = { 30 63 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 148
 				maxHeight = 32
@@ -2190,22 +2190,22 @@ guiTypes = {
 			iconType = {
 				name ="morale"
 				spriteType = "GFX_combat_org_progress_naval"
-				position = { x=-2 y=99 }
+				position = { -2 99 }
 				Orientation = "UPPER_LEFT"
 			}
 			iconType = {
 				name ="strength"
 				spriteType = "GFX_combat_str_progress_naval"
-				position = { x=-2 y=118 }
+				position = { -2 118 }
 				Orientation = "UPPER_LEFT"
 			}
 		
 			instantTextBoxType = {
 				name = "morale_text"
-				position = { x=-3 y=100 }
+				position = { -3 100 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "0%"
 				maxWidth = 179
 				maxHeight = 32
@@ -2214,10 +2214,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "strength_text"
-				position = { x=3 y=118 }
+				position = { 3 118 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "0"	
 				maxWidth = 179
 				maxHeight = 32
@@ -2228,14 +2228,14 @@ guiTypes = {
 			iconType = {
 				name ="morale_frame"
 				spriteType = "GFX_combat_org_progress_naval_frame"
-				position = { x=-3 y=98 }
+				position = { -3 98 }
 				Orientation = "UPPER_LEFT"
 			}
 			
 			iconType = {
 				name ="strength_frame"
 				spriteType = "GFX_combat_org_progress_naval_frame"
-				position = { x=-3 y=116 }
+				position = { -3 116 }
 				Orientation = "UPPER_LEFT"
 			}
 			
@@ -2243,7 +2243,7 @@ guiTypes = {
 			iconType = {
 				name ="big_ship_icon"
 				spriteType = "GFX_naval_combat_unit_normal_L"
-				position = { x=-8 y=138 }
+				position = { -8 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 1
 			}
@@ -2251,7 +2251,7 @@ guiTypes = {
 			iconType = {
 				name ="small_ship_icon"
 				spriteType = "GFX_naval_combat_unit_normal_L"
-				position = { x=54 y=138 }
+				position = { 54 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 2
 			}
@@ -2259,17 +2259,17 @@ guiTypes = {
 			iconType = {
 				name ="trade_ship_icon"
 				spriteType = "GFX_naval_combat_unit_normal_L"
-				position = { x=118 y=138 }
+				position = { 118 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 3
 			}
 			
 			instantTextBoxType = {
 				name = "big_ship_value"
-				position = { x=26 y=150 }
+				position = { 26 150 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "999"
 				maxWidth = 26
 				maxHeight = 32
@@ -2279,10 +2279,10 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "small_ship_value"
-				position = { x=85 y=150 }
+				position = { 85 150 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "999"
 				maxWidth = 28
 				maxHeight = 32
@@ -2292,10 +2292,10 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "trade_ship_value"
-				position = { x=150 y=150 }
+				position = { 150 150 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "999"
 				maxWidth = 27
 				maxHeight = 32
@@ -2308,8 +2308,8 @@ guiTypes = {
 		windowType = {
 			name = "defender"
 			backGround=""
-			position = { x=201 y=-4 }
-			size = { x=182 y=452 }
+			position = { 201 -4 }
+			size = { 182 452 }
 			moveable = 0
 			dontRender = ""
 			horizontalBorder= ""
@@ -2319,14 +2319,14 @@ guiTypes = {
 			iconType = {
 				name ="shield"
 				spriteType = "GFX_thinshield"
-				position = { x=-2 y=-5 }
+				position = { -2 -5 }
 				Orientation = "UPPER_LEFT"
 				rotation = -1.5708
 			}
 			OverlappingElementsBoxType = {
 				name = "modifiers"
-				position = { x = 61 y = -1 }
-				size = { x = 125 y = 60 }
+				position = { 61 -1 }
+				size = { 125 60 }
 				Orientation = "UPPER_LEFT"
 				format = left
 				spacing = 1.0
@@ -2334,15 +2334,15 @@ guiTypes = {
 			iconType = {
 				name ="leader_icon"
 				spriteType = "GFX_leader_generic0"
-				position = { x=1 y=58 }
+				position = { 1 58 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "leader_name"
-				position = { x=37 y=63 }
+				position = { 37 63 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = ""	
 				maxWidth = 148
 				maxHeight = 32
@@ -2351,21 +2351,21 @@ guiTypes = {
 			iconType = {
 				name ="morale"
 				spriteType = "GFX_combat_org_progress_naval"
-				position = { x=5 y=99 }
+				position = { 5 99 }
 				Orientation = "UPPER_LEFT"
 			}
 			iconType = {
 				name ="strength"
 				spriteType = "GFX_combat_str_progress_naval"
-				position = { x=6 y=118 }
+				position = { 6 118 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
 				name = "morale_text"
-				position = { x=5 y=100 }
+				position = { 5 100 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "0%"	
 				maxWidth = 179
 				maxHeight = 32
@@ -2374,10 +2374,10 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "strength_text"
-				position = { x=5 y=118 }
+				position = { 5 118 }
 				textureFile = ""
 				font = "vic_18"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "0"	
 				maxWidth = 179
 				maxHeight = 32
@@ -2388,14 +2388,14 @@ guiTypes = {
 			iconType = {
 				name ="morale_frame"
 				spriteType = "GFX_combat_org_progress_naval_frame"
-				position = { x=5 y=98 }
+				position = { 5 98 }
 				Orientation = "UPPER_LEFT"
 			}
 			
 			iconType = {
 				name ="strength_frame"
 				spriteType = "GFX_combat_org_progress_naval_frame"
-				position = { x=5 y=116 }
+				position = { 5 116 }
 				Orientation = "UPPER_LEFT"
 			}
 			
@@ -2403,7 +2403,7 @@ guiTypes = {
 			iconType = {
 				name ="big_ship_icon"
 				spriteType = "GFX_naval_combat_unit_normal_R"
-				position = { x=2 y=138 }
+				position = { 2 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 1
 			}
@@ -2411,7 +2411,7 @@ guiTypes = {
 			iconType = {
 				name ="small_ship_icon"
 				spriteType = "GFX_naval_combat_unit_normal_R"
-				position = { x=64 y=138 }
+				position = { 64 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 2
 			}
@@ -2419,17 +2419,17 @@ guiTypes = {
 			iconType = {
 				name ="trade_ship_icon"
 				spriteType = "GFX_naval_combat_unit_normal_R"
-				position = { x=128 y=138 }
+				position = { 128 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 3
 			}
 			
 			instantTextBoxType = {
 				name = "big_ship_value"
-				position = { x=34 y=150 }
+				position = { 34 150 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "999"
 				maxWidth = 26
 				maxHeight = 32
@@ -2439,10 +2439,10 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "small_ship_value"
-				position = { x=93 y=150 }
+				position = { 93 150 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "999"
 				maxWidth = 28
 				maxHeight = 32
@@ -2452,10 +2452,10 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "trade_ship_value"
-				position = { x=158 y=150 }
+				position = { 158 150 }
 				textureFile = ""
 				font = "vic_18_black"
-				borderSize = {x = 0 y = 0}
+				borderSize = { 0 0}
 				text = "999"
 				maxWidth = 27
 				maxHeight = 32
@@ -2469,30 +2469,30 @@ guiTypes = {
 	windowType = {
 		name ="alice_message_settings"
 		backGround=""
-		position = { x = -390 y = -232 }	
-		size = { x = 780 y = 464}
+		position = { -390 -232 }	
+		size = { 780 464}
 		Orientation = "CENTER"
 			
 		iconType = {
 			name ="messagesettings_bg"
 			spriteType = "GFX_messagesettings_bg"
-			position = { x = 0 y = 0 }
+			position = { 0 0 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		guiButtonType = {
 			name = "close"
 			quadTextureSprite = "GFX_main_close_button"
-			position = { x = -32 y = 0 }
+			position = { -32 0 }
 			Orientation = "UPPER_RIGHT"
 			shortcut = "ESCAPE"
 		}
 
 		instantTextBoxType = {
-			position = {x = 16 y = 16 }
+			position = { 16 16 }
 			name = "messagesettings_label"
 			font = "vic_22"
-			borderSize = {x = 0 y = 0}	
+			borderSize = { 0 0}	
 			maxWidth = 749
 			maxHeight = 24
 			text = "MENU_BAR_MESSAGE_SETTINGS"	
@@ -2501,10 +2501,10 @@ guiTypes = {
 		}
 			
 		instantTextBoxType = {
-			position = {x = 30 y = 54 }
+			position = { 30 54 }
 			name = "message_type_header"
 			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}	
+			borderSize = { 0 0}	
 			maxWidth = 340
 			maxHeight = 18
 			text = "message_name_text"	
@@ -2513,10 +2513,10 @@ guiTypes = {
 		}
 			
 		instantTextBoxType = {
-			position = {x = 370 y = 54 }
+			position = { 370 54 }
 			name = "message_for_us_header"
 			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}	
+			borderSize = { 0 0}	
 			maxWidth = 120
 			maxHeight = 18
 			text = "msg_for_us"	
@@ -2525,10 +2525,10 @@ guiTypes = {
 		}
 		
 		instantTextBoxType = {
-			position = {x = 490 y = 54 }
+			position = { 490 54 }
 			name = "message_for_interesting_header"
 			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}	
+			borderSize = { 0 0}	
 			maxWidth = 120
 			maxHeight = 18
 			text = "msg_for_interesting"	
@@ -2537,10 +2537,10 @@ guiTypes = {
 		}
 		
 		instantTextBoxType = {
-			position = {x = 610 y = 54 }
+			position = { 610 54 }
 			name = "message_for_us_header"
 			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}	
+			borderSize = { 0 0}	
 			maxWidth = 120
 			maxHeight = 18
 			text = "msg_for_other"	
@@ -2550,13 +2550,13 @@ guiTypes = {
 		
 		listboxType = {
 			name = "message_settings_items"
-			position = { x= 30 y = 89}
+			position = {  30 89}
 				
 			backGround=""
-			size = { x=725 y= 321 }
+			size = { 725  321 }
 			spacing = 1
 			scrollbartype = "standardlistbox_slider"
-			borderSize = {x = 20 y = 5}
+			borderSize = { 20 5}
 			Orientation = "UPPER_LEFT"
 		}
 		
@@ -2564,24 +2564,24 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_message_setting_item"
-		position = { x=0 y=0 }	
-		size = { x=725 y=20 }
+		position = { 0 0 }	
+		size = { 725 20 }
 		moveable = 0
 		fullScreen = no
 
 		iconType = {
 			name ="message_bg"
 			spriteType = "GFX_messagesettings_listbutton"
-			position = { x= 0 y = 0 }
+			position = {  0 0 }
 			Orientation = "UPPER_LEFT"
 		}
 		
 		
 		instantTextBoxType = {
-			position = {x = 30 y = 4 }
+			position = { 30 4 }
 			name = "entry_text"
 			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}	
+			borderSize = { 0 0}	
 			maxWidth = 340
 			maxHeight = 18
 			text = "message_name_text"	
@@ -2590,19 +2590,19 @@ guiTypes = {
 		}
 			
 		guiButtonType = {
-			position = {x = 370 y = 2 }
+			position = { 370 2 }
 			name = "us_button"
 			quadTextureSprite = "GFX_alice_message_type"
 		}
 		
 		guiButtonType = {
-			position = {x = 490 y = 2 }
+			position = { 490 2 }
 			name = "interesting_button"
 			quadTextureSprite = "GFX_alice_message_type"
 		}
 		
 		guiButtonType = {
-			position = {x = 610 y = 2 }
+			position = { 610 2 }
 			name = "other_button"
 			quadTextureSprite = "GFX_alice_message_type"
 		}
@@ -2610,29 +2610,29 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_prov_event_button"
-		position = { x=0 y=0 }	
-		size = { x=316 y= 28 }
+		position = { 0 0 }	
+		size = { 316  28 }
 		
 		guiButtonType = {
 			name = "opt_button"
-			position = { x=-2 y =-2}
+			position = { -2 -2}
 			quadTextureSprite ="GFX_event_province_button"
 			buttonFont = "vic_18_black"
 		}
 		
 		guiButtonType = {
 			name = "auto_button"
-			position = { x = 288 y = -2 }
+			position = { 288 -2 }
 			quadTextureSprite = "GFX_alice_event_auto"
 		}
 	}
 	
 	listboxType = {
 		name = "alice_povince_event_opts_list"
-		position = { x= 0 y = 0}
+		position = {  0 0}
 				
 		backGround=""
-		size = { x=316 y= 116 }
+		size = { 316  116 }
 		spacing = 1
 		scrollbartype = "standardlistbox_slider"
 		Orientation = "UPPER_LEFT"
@@ -2640,28 +2640,28 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_nation_event_button"
-		position = { x=0 y=0 }	
-		size = { x=512 y= 28 }
+		position = { 0 0 }	
+		size = { 512  28 }
 		
 		guiButtonType = {
 			name = "opt_button"
-			position = { x=0 y =-1}
+			position = { 0 -1}
 			quadTextureSprite ="GFX_event_country_button"
 			buttonFont = "vic_18_black"
 		}
 		
 		guiButtonType = {
 			name = "auto_button"
-			position = { x = 482 y = -1 }
+			position = { 482 -1 }
 			quadTextureSprite = "GFX_alice_event_auto"
 		}
 	}
 	
 	listboxType = {
 		name = "alice_nation_event_opts_list"
-		position = { x= 0 y = 0}
+		position = {  0 0}
 		backGround=""
-		size = { x=512 y= 145 }
+		size = { 512  145 }
 		spacing = 1
 		scrollbartype = "standardlistbox_slider"
 		Orientation = "UPPER_LEFT"
@@ -2669,8 +2669,8 @@ guiTypes = {
 	
 	windowType = {
 		name = "alice_savegameentry"
-		position = { x=0 y=0 }	
-		size = { x=212 y= 32 }
+		position = { 0 0 }	
+		size = { 212  32 }
 		moveable = 0
 		fullScreen = no
 		
@@ -2680,12 +2680,12 @@ guiTypes = {
 			tooltip = ""
 			tooltipText =""	
 			delayedTooltipText = ""
-			position = { x=0 y = 0}
+			position = { 0 0}
 		}
 		
 		guiButtonType = {
 			name ="shield"
-			position = { x = 6 y = 8 }
+			position = { 6 8 }
 			quadTextureSprite = "GFX_flag_new"
 			Orientation = "UPPER_LEFT"
 			tooltip = ""
@@ -2695,10 +2695,10 @@ guiTypes = {
 		
 		textBoxType = {
 			name = "title"
-			position = { x = 38 y = 1 }
+			position = { 38 1 }
 			textureFile = ""
 			font = "Arial12_bold_black"
-			borderSize = {x = 1 y = 1}
+			borderSize = { 1 1}
 			text = ""	
 			maxWidth = 160
 			maxHeight = 18	
@@ -2709,10 +2709,10 @@ guiTypes = {
 		
 		textBoxType = {
 			name = "date"
-			position = { x = 38 y = 14 }
+			position = { 38 14 }
 			textureFile = ""
 			font = "Arial12_black"
-			borderSize = {x = 1 y = 1}
+			borderSize = { 1 1}
 			text = ""	
 			maxWidth = 160
 			maxHeight = 18	
