@@ -1037,23 +1037,26 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto u = retrieve< unit_var>(state, parent);
 		color = text::text_color::gold;
-		float total = 0.0f;
+		
 
 		if(std::holds_alternative<dcon::army_id>(u)) {
+			int64_t total = 0;
 			auto a = std::get<dcon::army_id>(u);
 
 			for(auto m : state.world.army_get_army_membership(a)) {
-				total += m.get_regiment().get_strength();
+				total += int64_t(floor(m.get_regiment().get_strength() * state.defines.pop_size_per_regiment));
 			}
+			set_text(state, text::prettify(total));
 		} else if(std::holds_alternative<dcon::navy_id>(u)) {
+			float total = 0.0f;
 			auto a = std::get<dcon::navy_id>(u);
 
 			for(auto m : state.world.navy_get_navy_membership(a)) {
 				total += m.get_ship().get_strength();
 			}
+			set_text(state, text::format_float(total, 1));
 		}
 
-		set_text(state, text::format_float(total, 1));
 	}
 };
 

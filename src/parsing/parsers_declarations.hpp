@@ -29,6 +29,7 @@ struct building_gfx_context {
 	ui::definitions& ui_defs;
 	ankerl::unordered_dense::map<std::string, dcon::gfx_object_id> map_of_names;
 	ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_texture_names;
+	bool on_second_pair_y = false;
 	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) { }
 };
 
@@ -36,7 +37,20 @@ struct gfx_xy_pair {
 	int32_t x = 0;
 	int32_t y = 0;
 
-	void finish(building_gfx_context& context) { }
+	void free_value(int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
+		if(context.on_second_pair_y) {
+			if(y != 0) {
+				err.accumulated_errors += "More than 2 elements for pair " + err.file_name + " line " + std::to_string(line) + "\n"; 
+			}
+			y = v;
+		} else {
+			x = v;
+			context.on_second_pair_y = true;
+		}
+	}
+	void finish(building_gfx_context& context) {
+		context.on_second_pair_y = false;
+	}
 };
 
 struct gfx_object {

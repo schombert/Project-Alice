@@ -5421,7 +5421,7 @@ TRIGGER_FUNCTION(tf_check_variable) {
 }
 TRIGGER_FUNCTION(tf_upper_house) {
 	auto id = payload(tval[3]).ideo_id;
-	return compare_values(tval[0], ws.world.nation_get_upper_house(to_nation(primary_slot), id), read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ws.world.nation_get_upper_house(to_nation(primary_slot), id), 100.0f * read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_unemployment_by_type_nation) {
 	return tf_pop_unemployment_nation<return_type>(tval, ws, primary_slot, int32_t(), int32_t());

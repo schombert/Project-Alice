@@ -148,7 +148,7 @@ class autosave_display : public simple_text_element_base {
 */
 
 void window_mode_checkbox::on_update(sys::state& state) noexcept {
-	disabled = (state.user_settings.prefer_fullscreen == true);
+
 }
 void window_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.prefer_fullscreen = !state.user_settings.prefer_fullscreen;

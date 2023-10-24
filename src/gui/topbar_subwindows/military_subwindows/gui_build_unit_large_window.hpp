@@ -51,6 +51,7 @@ public:
 class unit_build_button : public button_element_base {
 public:
 	bool is_navy = false;
+
 	void button_action(sys::state& state) noexcept override {
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
@@ -92,6 +93,7 @@ public:
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
 		} else {
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
+
 			if(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range > 0) {
 				text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range, 2));
 			}
@@ -328,7 +330,7 @@ public:
 
 class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
 public:
-	ui::unit_build_button* build_button;
+	ui::unit_build_button* build_button = nullptr;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
 	ui::simple_text_element_base* build_time = nullptr;
@@ -341,7 +343,7 @@ public:
 	std::string pop_size_text;
 
 	void on_create(sys::state& state) noexcept override {
-		for(int i = 0; i < 6; i++) {
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			auto ptr = make_element_by_type<resource_cost>(state, state.ui_state.defs_by_name.find("build_resource_cost")->second.definition);
 			resource_cost_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
@@ -407,7 +409,7 @@ public:
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
 					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
-					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r];
+					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r]*(2.0f-state.world.nation_get_administrative_efficiency(state.local_player_nation));
 					resource_cost_elements[r]->set_visible(state, true);
 					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					r++;
@@ -473,7 +475,7 @@ public:
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
 					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
-					resource_cost_elements[r]->good_quantity = (state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * float(content.number_of_units_on_continent));
+					resource_cost_elements[r]->good_quantity = ((state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * (2.0f - state.world.nation_get_administrative_efficiency(state.local_player_nation))) * float(content.number_of_units_on_continent));
 					resource_cost_elements[r]->set_visible(state, true);
 					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					r++;

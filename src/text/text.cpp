@@ -692,6 +692,69 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 	}
 }
 
+
+std::string prettify_currency(float num) {
+	if(num == 0)
+		return std::string("0  \xA4");
+
+	char buffer[200] = { 0 };
+	double dval = double(num);
+
+	constexpr static double mag[] = {
+		1.0,
+		1'000.0,
+		1'000'000.0,
+		1'000'000'000.0,
+		1'000'000'000'000.0,
+		1'000'000'000'000'000.0,
+		1'000'000'000'000'000'000.0
+	};
+	constexpr static char const* sufx_two[] = {
+		"%.2f \xA4",
+		"%.2fK \xA4",
+		"%.2fM \xA4",
+		"%.2fB \xA4",
+		"%.2fT \xA4",
+		"%.2fP \xA4",
+		"%.2fZ \xA4"
+	};
+	constexpr static char const* sufx_one[] = {
+		"%.1f \xA4",
+		"%.1fK \xA4",
+		"%.1fM \xA4",
+		"%.1fB \xA4",
+		"%.1fT \xA4",
+		"%.1fP \xA4",
+		"%.1fZ \xA4"
+	};
+	constexpr static char const* sufx_zero[] = {
+		"%.0f \xA4",
+		"%.0fK \xA4",
+		"%.0fM \xA4",
+		"%.0fB \xA4",
+		"%.0fT \xA4",
+		"%.0fP \xA4",
+		"%.0fZ \xA4"
+	};
+
+	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
+		if(std::abs(dval) >= mag[i]) {
+			auto reduced = num / mag[i];
+			if(reduced < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
+			} else if(reduced < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+			} else {
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+			}
+			return std::string(buffer);
+		}
+	}
+	snprintf(buffer, sizeof(buffer), "%.2f \xA4", dval);
+	return std::string(buffer);
+}
+
+
 std::string prettify(int64_t num) {
 	if(num == 0)
 		return std::string("0");

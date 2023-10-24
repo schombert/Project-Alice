@@ -425,7 +425,8 @@ void accept(sys::state& state, message const& m) {
 }
 
 bool ai_will_accept(sys::state& state, message const& m) {
-	// TODO : call AI logic to decide responses to requests
+	if(m.from == state.local_player_nation && state.cheat_data.always_accept_deals)
+		return true;
 
 	switch(m.type) {
 		case type::none:

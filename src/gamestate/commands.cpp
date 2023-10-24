@@ -2,13 +2,15 @@
 #include "system_state.hpp"
 #include "nations.hpp"
 
+#include "cheats.cpp"
+
 namespace command {
 
 bool is_console_command(command_type t) {
 	return uint8_t(t) >= 0x80;
 }
 
-static void add_to_command_queue(sys::state& state, payload& p) {
+void add_to_command_queue(sys::state& state, payload& p) {
 	switch(p.type) {
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
@@ -2001,6 +2003,9 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 	add_to_command_queue(state, p);
 }
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
+	if(source == state.local_player_nation && state.cheat_data.always_allow_reforms)
+		return true;
+
 	bool is_military = state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(r)) ==
 		uint8_t(culture::issue_category::military);
 	if(is_military)
@@ -2024,6 +2029,9 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 	add_to_command_queue(state, p);
 }
 bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
+	if(source == state.local_player_nation && state.cheat_data.always_allow_reforms)
+		return true;
+
 	auto type = state.world.issue_get_issue_type(state.world.issue_option_get_parent_issue(i));
 	if(type == uint8_t(culture::issue_type::political))
 		return politics::can_enact_political_reform(state, source, i);
@@ -2727,6 +2735,9 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	if(source == target || source == real_target)
 		return false;
 
+	if(state.world.nation_get_owned_province_count(target) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
+		return false;
+
 	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
 		return false;
 
@@ -2824,6 +2835,9 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 	if(source == target)
 		return false;
 
+	if(source == state.local_player_nation && state.cheat_data.always_allow_wargoals)
+		return true;
+
 	if(state.world.nation_get_diplomatic_points(source) < state.defines.addwargoal_diplomatic_cost)
 		return false;
 
@@ -2894,38 +2908,6 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 	military::add_wargoal(state, w, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation);
 }
 
-void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::switch_nation;
-	p.source = source;
-	p.data.tag_target.ident = t;
-	add_to_command_queue(state, p);
-}
-bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	dcon::nation_id n = state.world.national_identity_get_nation_from_identity_holder(t);
-	if(state.world.nation_get_is_player_controlled(n) || source == n)
-		return false;
-
-	return true;
-}
-void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	if(!can_switch_nation(state, source, t))
-		return;
-
-	dcon::nation_id target = state.world.national_identity_get_nation_from_identity_holder(t);
-	if(bool(source) && source != state.national_definitions.rebel_id) {
-		state.world.nation_set_is_player_controlled(source, false);
-	}
-	if(bool(target) && target != state.national_definitions.rebel_id) {
-		if(source == state.local_player_nation) {
-			state.local_player_nation = target;
-		}
-		state.world.nation_set_is_player_controlled(target, true);
-		ai::remove_ai_data(state, target);
-	}
-}
-
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2937,7 +2919,6 @@ void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_i
 	add_to_command_queue(state, p);
 }
 bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
-
 	{
 		auto ol = state.world.nation_get_overlord_as_subject(source);
 		if(state.world.overlord_get_ruler(ol))
@@ -3277,210 +3258,6 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 	m.type = diplomatic_message::type::crisis_peace_offer;
 
 	diplomatic_message::post(state, m);
-}
-
-void c_change_diplo_points(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_diplo_points;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_diplo_points(sys::state& state, dcon::nation_id source, float value) {
-	state.world.nation_get_diplomatic_points(source) += value;
-}
-void c_change_money(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_money;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_money(sys::state& state, dcon::nation_id source, float value) {
-	state.world.nation_get_stockpiles(source, economy::money) += value;
-}
-void c_westernize(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_westernize;
-	p.source = source;
-	add_to_command_queue(state, p);
-}
-void execute_c_westernize(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_civilized(source, true);
-}
-void c_unwesternize(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_unwesternize;
-	p.source = source;
-	add_to_command_queue(state, p);
-}
-void execute_c_unwesternize(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_civilized(source, false);
-}
-void c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_research_points;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_research_points(sys::state& state, dcon::nation_id source, float value) {
-	state.world.nation_get_research_points(source) += value;
-}
-void c_change_cb_progress(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_cb_progress;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_cb_progress(sys::state& state, dcon::nation_id source, float value) {
-	state.world.nation_get_constructing_cb_progress(source) += value;
-}
-void c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_infamy;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_infamy(sys::state& state, dcon::nation_id source, float value) {
-	state.world.nation_get_infamy(source) += value;
-}
-void c_end_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_end_game;
-	p.source = source;
-	add_to_command_queue(state, p);
-}
-void execute_c_end_game(sys::state& state, dcon::nation_id source) {
-	state.mode = sys::game_mode_type::end_screen;
-}
-void c_event(sys::state& state, dcon::nation_id source, int32_t id) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_event;
-	p.source = source;
-	p.data.cheat_int.value = id;
-	add_to_command_queue(state, p);
-}
-void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
-	if(!source)
-		return;
-	dcon::free_national_event_id e;
-	for(auto v : state.world.in_free_national_event) {
-		if(v.get_legacy_id() == uint32_t(id)) {
-			e = v;
-			break;
-		}
-	}
-	if(!e)
-		return;
-
-	event::trigger_national_event(state, e, source, 0, 0);
-}
-void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_event_as;
-	p.source = source;
-	p.data.cheat_event.as = as;
-	p.data.cheat_event.value = id;
-	add_to_command_queue(state, p);
-}
-void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
-	if(!as)
-		return;
-	dcon::free_national_event_id e;
-	for(auto v : state.world.in_free_national_event) {
-		if(v.get_legacy_id() == uint32_t(id)) {
-			e = v;
-			break;
-		}
-	}
-	if(!e)
-		return;
-
-	event::trigger_national_event(state, e, as, 0, 0);
-}
-void c_force_crisis(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_force_crisis;
-	p.source = source;
-	add_to_command_queue(state, p);
-}
-void execute_c_force_crisis(sys::state& state, dcon::nation_id source) {
-	if(state.current_crisis == sys::crisis_type::none) {
-		state.last_crisis_end_date = sys::date{};
-		nations::monthly_flashpoint_update(state);
-		nations::daily_update_flashpoint_tension(state);
-		float max_tension = 0.0f;
-		dcon::state_instance_id max_state;
-		for(auto si : state.world.in_state_instance) {
-			if(si.get_flashpoint_tension() > max_tension && si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
-				max_tension = si.get_flashpoint_tension();
-				max_state = si;
-			}
-		}
-		if(!max_state) {
-			for(auto si : state.world.in_state_instance) {
-				if(si.get_flashpoint_tag() && !si.get_nation_from_state_ownership().get_is_great_power() && si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
-					max_state = si;
-					break;
-				}
-			}
-		}
-		assert(max_state);
-		state.world.state_instance_set_flashpoint_tension(max_state, 10000.0f / state.defines.crisis_base_chance);
-		nations::update_crisis(state);
-	}
-}
-
-void c_change_national_militancy(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_national_militancy;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_national_militancy(sys::state& state, dcon::nation_id source, float value) {
-	for(auto pr : state.world.nation_get_province_ownership(source))
-		for(auto pop : pr.get_province().get_pop_location())
-			pop.get_pop().set_militancy(pop.get_pop().get_militancy() + value);
-}
-
-void c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_force_ally;
-	p.source = source;
-	p.data.nation_pick.target = target;
-	add_to_command_queue(state, p);
-}
-void execute_c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	nations::make_alliance(state, source, target);
-}
-
-void c_change_prestige(sys::state& state, dcon::nation_id source, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::c_change_prestige;
-	p.source = source;
-	p.data.cheat.value = value;
-	add_to_command_queue(state, p);
-}
-void execute_c_change_prestige(sys::state& state, dcon::nation_id source, float value) {
-	state.world.nation_get_prestige(source) += value;
 }
 
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
@@ -5105,8 +4882,8 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 
 		// console commands
-	case command_type::switch_nation:
-		execute_switch_nation(state, c.source, c.data.tag_target.ident);
+	case command_type::c_switch_nation:
+		execute_c_switch_nation(state, c.source, c.data.tag_target.ident);
 		break;
 	case command_type::c_change_diplo_points:
 		execute_c_change_diplo_points(state, c.source, c.data.cheat.value);
@@ -5149,6 +4926,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_force_ally:
 		execute_c_force_ally(state, c.source, c.data.nation_pick.target);
+		break;
+	case command_type::c_toggle_ai:
+		execute_c_toggle_ai(state, c.source, c.data.nation_pick.target);
+		break;
+	case command_type::c_complete_constructions:
+		execute_c_complete_constructions(state, c.source);
 		break;
 	}
 }
