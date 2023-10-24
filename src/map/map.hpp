@@ -24,12 +24,33 @@ struct image {
 	int32_t size_y = 0;
 	int32_t channels = 0;
 
+	image() { }
+
 	image(uint8_t* data, int32_t size_x, int32_t size_y, int32_t channels) {
 		this->data = data;
 		this->size_x = size_x;
 		this->size_y = size_y;
 		this->channels = channels;
 	}
+	image(image const& other) = delete;
+
+	image(image&& other) {
+		data = other.data;
+		size_x = other.size_x;
+		size_y = other.size_y;
+		channels = other.channels;
+		other.data = nullptr;
+	}
+
+	image& operator=(image&& other) {
+		data = other.data;
+		size_x = other.size_x;
+		size_y = other.size_y;
+		channels = other.channels;
+		other.data = nullptr;
+		return *this;
+	}
+	image& operator=(image const& other) = delete;
 
 	~image() {
 		if(data)

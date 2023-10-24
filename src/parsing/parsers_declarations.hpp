@@ -387,6 +387,7 @@ struct scenario_building_context {
 
 	int32_t number_of_commodities_seen = 0;
 	int32_t number_of_national_values_seen = 0;
+	bool new_maps = false;
 };
 
 struct national_identity_file {
