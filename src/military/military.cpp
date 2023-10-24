@@ -1958,7 +1958,7 @@ void daily_leaders_update(sys::state& state) {
 
 	for(uint32_t i = state.world.leader_size(); i-- > 0;) {
 		dcon::leader_id l{dcon::leader_id::value_base_t(i)};
-		auto age_in_days = state.world.leader_get_since(l).to_raw_value() * 365;
+		auto age_in_days = state.current_date.to_raw_value() - state.world.leader_get_since(l).to_raw_value();
 		if(age_in_days > 365 * 26) { // assume leaders are created at age 20; no death chance prior to 46
 			float age_in_years = float(age_in_days) / 365.0f;
 			float death_chance =
