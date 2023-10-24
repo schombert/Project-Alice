@@ -143,6 +143,7 @@ public:
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
+	std::vector<uint32_t> province_area;
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
