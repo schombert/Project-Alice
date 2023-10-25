@@ -895,7 +895,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
 		glm::vec2 line_end = glm::vec2(1.f) * e.ratio + e.basis;
 		float straight_length = (line_end.x - e.basis.x) / map_size.x;
-		float size = (curve_length / text_length) * straight_length * 0.5f;
+		float size = (curve_length / text_length) * straight_length * 0.75f;
 		float x = 0.f;
 		for(int32_t i = 0; i < int32_t(text.length()); i++) {
 			float glyph_advance = ((f.glyph_advances[uint8_t(text[i])] / 64.f) + ((i != int32_t(text.length() - 1)) ? f.kerning(text[i], text[i + 1]) / 64.f : 0)) / text_length;
@@ -918,7 +918,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(text[i])].x / 64.f, -f.glyph_positions[uint8_t(text[i])].y / 64.f };
 
 				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
-				auto p1 = glm::vec2(x + x_step, poly_fn(x + x_step)) * e.ratio + e.basis;
+				auto p1 = glm::vec2(xf, poly_fn(xf)) * e.ratio + e.basis;
 
 				glm::vec2 curr_dir = glm::normalize(p1 - p0);
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
