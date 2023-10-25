@@ -138,18 +138,37 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		if(!terrain_file)
 			terrain_data = load_stb_image(*terrain_file);
 
+		auto terrain_resolution = internal_make_index_map();
+
 		if(terrain_data.size_x == int32_t(size_x) && terrain_data.size_y == int32_t(size_y)) {
-			for(uint32_t x = 0; x < size_x; ++x) {
-				for(uint32_t ty = 0; ty < size_y; ++ty) {
-					uint32_t y = size_y - ty - 1;
-					uint8_t resolved_index = 255;
+			for(uint32_t ty = 0; ty < size_y; ++ty) {
+				uint32_t y = size_y - ty - 1;
+				for(uint32_t x = 0; x < size_x; ++x) {
+					
 
 					uint8_t* ptr = terrain_data.data + (x + size_x * y) * 4;
 					auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 
-					// TODO
-
-					terrain_id_map[y * size_x + x] = resolved_index;
+					if(auto it = terrain_resolution.find(color); it != terrain_resolution.end()) {
+						terrain_id_map[ty * size_x + x] = it->second;
+					} else {
+						uint8_t resolved_index = 255;
+						int32_t min_distance = std::numeric_limits<int32_t>::max();
+						for(auto& p : terrain_resolution) {
+							if(p.second == 255)
+								continue;
+							auto c = p.first;
+							auto r = sys::int_red_from_int(c);
+							auto g = sys::int_green_from_int(c);
+							auto b = sys::int_blue_from_int(c);
+							auto dist = (r - ptr[0]) * (r - ptr[0]) + (b - ptr[1]) * (b - ptr[1]) + (g - ptr[2]) * (g - ptr[2]);
+							if(dist < min_distance) {
+								min_distance = dist;
+								resolved_index = p.second;
+							}
+						}
+						terrain_id_map[ty * size_x + x] = resolved_index;
+					}
 				}
 			}
 		}

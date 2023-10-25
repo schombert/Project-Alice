@@ -1807,7 +1807,12 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 }
 
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l) {
-	// TODO: implement
+	auto army = state.world.leader_get_army_from_army_leadership(l);
+	if(state.world.army_get_battle_from_army_battle_participation(army))
+		return true;
+	auto navy = state.world.leader_get_navy_from_navy_leadership(l);
+	if(state.world.navy_get_battle_from_navy_battle_participation(navy))
+		return true;
 	return false;
 }
 
@@ -1958,6 +1963,9 @@ void daily_leaders_update(sys::state& state) {
 
 	for(uint32_t i = state.world.leader_size(); i-- > 0;) {
 		dcon::leader_id l{dcon::leader_id::value_base_t(i)};
+		if(!state.world.leader_is_valid(l))
+			continue;
+
 		auto age_in_days = state.current_date.to_raw_value() - state.world.leader_get_since(l).to_raw_value();
 		if(age_in_days > 365 * 26) { // assume leaders are created at age 20; no death chance prior to 46
 			float age_in_years = float(age_in_days) / 365.0f;
