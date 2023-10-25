@@ -4073,7 +4073,7 @@ bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dc
 	return true;
 }
 void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	if(!military::can_retreat_from_battle(state, b))
+	if(!can_retreat_from_naval_battle(state, source, b))
 		return;
 
 	if(source == military::get_naval_battle_lead_attacker(state, b)) {
@@ -4101,13 +4101,55 @@ bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dco
 	return true;
 }
 void execute_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
-	if(!military::can_retreat_from_battle(state, b))
+	if(!can_retreat_from_land_battle(state, source, b))
 		return;
 
 	if(source == military::get_land_battle_lead_attacker(state, b)) {
 		military::end_battle(state, b, military::battle_result::defender_won);
 	} else if(source == military::get_land_battle_lead_defender(state, b)) {
 		military::end_battle(state, b, military::battle_result::attacker_won);
+	}
+}
+
+void partial_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::land_partial_retreat;
+	p.source = source;
+	p.data.partial_retreat.b = b;
+	p.data.partial_retreat.a = a;
+	add_to_command_queue(state, p);
+}
+bool can_partial_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b, dcon::army_id a) {
+	/* Only if we can retreat from the battle, we are the lead attacker/defender and only if we control such army
+	   AND we also have another army within the battle */
+	// It's not a normal "retreat" per se!
+	//if(!military::can_retreat_from_battle(state, b))
+	//	return false;
+	if(source != military::get_land_battle_lead_attacker(state, b) && source != military::get_land_battle_lead_defender(state, b))
+		return false;
+	if(state.world.army_get_controller_from_army_control(a) != source)
+		return false;
+	if(state.world.army_get_battle_from_army_battle_participation(a) != b)
+		return false;
+	// TODO: Rebels may also do cycling
+	int32_t our_armies = 0;
+	for(auto ap : state.world.land_battle_get_army_battle_participation(b))
+		if(ap.get_army().get_controller_from_army_control() == source)
+			our_armies++;
+	return our_armies > 1;
+}
+void execute_partial_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b, dcon::army_id a) {
+	if(!can_partial_retreat_from_land_battle(state, source, b, a))
+		return;
+
+	// Only you can retreat if you also have another army!
+	if(military::retreat(state, a)) {
+		for(auto ap : state.world.land_battle_get_army_battle_participation_as_battle(b))
+			if(ap.get_army() == a) {
+				state.world.delete_army_battle_participation(ap);
+				break;
+			}
 	}
 }
 
@@ -4783,6 +4825,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::land_retreat:
 		execute_retreat_from_land_battle(state, c.source, c.data.land_battle.b);
+		break;
+	case command_type::land_partial_retreat:
+		execute_partial_retreat_from_land_battle(state, c.source, c.data.partial_retreat.b, c.data.partial_retreat.a);
 		break;
 	case command_type::start_crisis_peace_offer:
 		execute_start_crisis_peace_offer(state, c.source, c.data.new_offer.is_concession);

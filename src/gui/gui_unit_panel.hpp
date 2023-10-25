@@ -81,9 +81,7 @@ class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
+			auto content = retrieve<T>(state, parent);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				command::delete_army(state, state.local_player_nation, content);
 			} else {
@@ -665,13 +663,9 @@ template<class T>
 class subunit_details_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T content = any_cast<T>(payload);
-			std::string str{state.to_string_view(dcon::fatten(state.world, content).get_name())};
-			set_text(state, str);
-		}
+		T content = retrieve<T>(state, parent);
+		std::string str{state.to_string_view(dcon::fatten(state.world, content).get_name())};
+		set_text(state, str);
 	}
 };
 
@@ -679,16 +673,12 @@ template<class T>
 class subunit_details_type_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T content = any_cast<T>(payload);
-			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
-			if(utid)
-				set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
-			else
-				set_text(state, "");
-		}
+		T content = retrieve<T>(state, parent);
+		dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
+		if(utid)
+			set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+		else
+			set_text(state, "");
 	}
 };
 
@@ -696,14 +686,10 @@ template<class T>
 class subunit_details_type_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			T content = any_cast<T>(payload);
-			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
-			if(utid)
-				frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
-		}
+		T content = retrieve<T>(state, parent);
+		dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
+		if(utid)
+			frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
 	}
 };
 
@@ -711,12 +697,8 @@ template<class T>
 class subunit_organisation_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
-			progress = fat.get_org();
-		}
+		auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+		progress = fat.get_org();
 	}
 };
 
@@ -1774,6 +1756,34 @@ public:
 	}
 };
 
+class u_row_partial_retreat : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			auto ap = state.world.army_get_army_battle_participation_as_army(a);
+			disabled = !command::can_partial_retreat_from_land_battle(state, state.local_player_nation, state.world.army_battle_participation_get_battle(ap), a);
+		} else {
+			disabled = true;
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			auto ap = state.world.army_get_army_battle_participation_as_army(a);
+			command::partial_retreat_from_land_battle(state, state.local_player_nation, state.world.army_battle_participation_get_battle(ap), a);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "partial_retreat_unit");
+	}
+};
+
 class selected_unit_item : public listbox_row_element_base<unit_var> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1790,6 +1800,9 @@ public:
 		} else if(name == "str_bar") {
 			return make_element_by_type<u_row_str_bar>(state, id);
 		} else if(name == "disbandbutton") {
+			auto ptr = make_element_by_type<u_row_partial_retreat>(state, id);
+			ptr->base_data.position.x -= ptr->base_data.size.x;
+			add_child_to_front(std::move(ptr));
 			return make_element_by_type<u_row_disband>(state, id);
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<u_row_split>(state, id);

@@ -11,14 +11,10 @@ template<typename T>
 class military_unit_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = military_unit_info<T>{};
-			parent->impl_get(state, payload);
-			auto content = Cyto::any_cast<military_unit_info<T>>(payload);
-			if(std::holds_alternative<T>(content)) {
-				auto fat_id = dcon::fatten(state.world, std::get<T>(content));
-				set_text(state, std::string{state.to_string_view(fat_id.get_name())});
-			}
+		auto content = retrieve<military_unit_info<T>>(state, parent);
+		if(std::holds_alternative<T>(content)) {
+			auto fat_id = dcon::fatten(state.world, std::get<T>(content));
+			set_text(state, std::string{state.to_string_view(fat_id.get_name())});
 		}
 	}
 };

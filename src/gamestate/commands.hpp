@@ -97,6 +97,7 @@ enum class command_type : uint8_t {
 	toggle_hunt_rebels = 88,
 	toggle_select_province = 89,
 	toggle_immigrator_province = 90,
+	land_partial_retreat = 91,
 
 	// network
 	notify_player_ban = 106,
@@ -385,6 +386,11 @@ struct land_battle_data {
 	dcon::land_battle_id b;
 };
 
+struct partial_retreat_data {
+	dcon::land_battle_id b;
+	dcon::army_id a;
+};
+
 constexpr inline size_t num_packed_units = 10;
 
 struct split_regiments_data {
@@ -468,6 +474,7 @@ struct payload {
 		split_ships_data split_ships;
 		naval_battle_data naval_battle;
 		land_battle_data land_battle;
+		partial_retreat_data partial_retreat;
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
 		new_admiral_data new_admiral;
@@ -731,6 +738,9 @@ bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dc
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
+
+void partial_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b, dcon::army_id a);
+bool can_partial_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b, dcon::army_id a);
 
 void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l);
 bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l);

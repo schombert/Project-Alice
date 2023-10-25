@@ -1260,4 +1260,5 @@ alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$
 alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
+partial_retreat_unit;Partially retreat this unit, this allows for §Ycycling§W units within battle, leaving out low organization and strength units of the battle to allow new units to give a bigger impact.
 ;;;;;;;;;;;;;x
