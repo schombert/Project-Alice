@@ -399,6 +399,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated) {
+		if(user_settings.map_label != sys::map_label_mode::none)
+			map::update_text_lines(*this, map_state.map_data);
 		map_state.map_data.update_fog_of_war(*this);
 	}
 
@@ -1704,6 +1706,7 @@ void state::save_user_settings() const {
 	ptr += upper_half_count;
 	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
+	US_SAVE(map_label);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(sizeof(buffer)));
@@ -1744,6 +1747,7 @@ void state::load_user_settings() {
 		ptr += upper_half_count;
 		std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
 		ptr += upper_half_count;
+		US_LOAD(map_label);
 #undef US_LOAD
 		
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);

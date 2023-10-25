@@ -229,6 +229,38 @@ guiTypes = {
 				position = { 51 330 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+
+			instantTextBoxType={
+				position = { 78 362 }
+				name = "map_label_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "map_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				position = { 58 380 }
+				name = "map_label_value"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "map_label_left"
+				position = { 51 380 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "map_label_right"
+				position = { 269 380 }
+				quadTextureSprite = "option_next"
+			}
 		}
 
 		windowType = {

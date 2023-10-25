@@ -18,6 +18,11 @@ interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;Volumen de los efectos de sonido;;;;;;;;;x
 fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip
+map_label;Map labels
+map_label_0;None
+map_label_1;Linear
+map_label_2;Quadratic
+map_label_3;Cubic
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x

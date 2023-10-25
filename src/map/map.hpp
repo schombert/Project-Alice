@@ -84,6 +84,28 @@ struct unit_arrow_vertex {
 	glm::vec2 texture_coord_;
 	float type_;
 };
+
+struct text_line_vertex {
+	text_line_vertex() { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type, float thickness)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{ type }, thickness_{ thickness }  { };
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	glm::vec2 direction_;
+	glm::vec2 texture_coord_;
+	float type_;
+	float thickness_;
+};
+
+struct text_line_generator_data {
+	text_line_generator_data() { };
+	text_line_generator_data(std::string text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(text_), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
+	std::string text{};
+	glm::vec4 coeff{0.f};
+	glm::vec2 basis{0.f};
+	glm::vec2 ratio{0.f};
+};
+
 struct border {
 	int start_index = -1;
 	int count = -1;
@@ -100,7 +122,7 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
+	void render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
 			glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
 	void update_fog_of_war(sys::state& state);
@@ -108,6 +130,7 @@ public:
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses);
+	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -116,9 +139,11 @@ public:
 	std::vector<border_vertex> border_vertices;
 	std::vector<border_vertex> river_vertices;
 	std::vector<unit_arrow_vertex> unit_arrow_vertices;
+	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
+	std::vector<uint32_t> province_area;
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
@@ -133,6 +158,8 @@ private:
 	GLuint river_vbo = 0;
 	GLuint unit_arrow_vao = 0;
 	GLuint unit_arrow_vbo = 0;
+	GLuint text_line_vao = 0;
+	GLuint text_line_vbo = 0;
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
@@ -157,6 +184,7 @@ private:
 	GLuint line_border_shader = 0;
 	GLuint line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
+	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);

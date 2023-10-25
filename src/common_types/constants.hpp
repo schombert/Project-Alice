@@ -173,6 +173,13 @@ enum class autosave_frequency : uint8_t {
 	daily = 3,
 };
 
+enum class map_label_mode : uint8_t {
+	none = 0,
+	linear = 1,
+	quadratic = 2,
+	cubic = 3
+};
+
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, industrial_and_consumer_goods, count };
 
 enum class message_setting_type : uint8_t {
