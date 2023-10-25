@@ -145,6 +145,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				// [ xn^0 xn^1 xn^2 xn^3 ]
 				std::vector<std::array<float, 4>> mx;
 				std::vector<float> my;
+				std::vector<float> w;
 				for(auto p : state.world.in_province) {
 					if(visited[province::to_map_id(p)]) {
 						auto e = p.get_mid_point();
@@ -152,6 +153,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						e /= ratio;
 						mx.push_back(std::array<float, 4>{ 1.f, e.x, e.x* e.x, e.x* e.x* e.x });
 						my.push_back(e.y);
+						w.push_back(float(map_data.province_area[province::to_map_id(p)]));
 					}
 				}
 				// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
@@ -163,12 +165,12 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				for(glm::length_t i = 0; i < m0.length(); i++)
 					for(glm::length_t j = 0; j < m0.length(); j++)
 						for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-							m0[i][j] += mx[r][j] * mx[r][i];
+							m0[i][j] += mx[r][j] * w[r] * mx[r][i];
 				m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
 				glm::vec4 m1(0.f); // m1 = T(X)*Y
 				for(glm::length_t i = 0; i < m1.length(); i++)
 					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-						m1[i] += mx[r][i] * my[r];
+						m1[i] += mx[r][i] * w[r] * my[r];
 				glm::vec4 mo(0.f); // mo = m1 * m0
 				for(glm::length_t i = 0; i < mo.length(); i++)
 					for(glm::length_t j = 0; j < mo.length(); j++)
@@ -203,6 +205,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				// Now lets try quadratic
 				std::vector<std::array<float, 3>> mx;
 				std::vector<float> my;
+				std::vector<float> w;
 				for(auto p : state.world.in_province) {
 					if(visited[province::to_map_id(p)]) {
 						auto e = p.get_mid_point();
@@ -210,18 +213,19 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						e /= ratio;
 						mx.push_back(std::array<float, 3>{ 1.f, e.x, e.x* e.x });
 						my.push_back(e.y);
+						w.push_back(float(map_data.province_area[province::to_map_id(p)]));
 					}
 				}
 				glm::mat3x3 m0(0.f);
 				for(glm::length_t i = 0; i < m0.length(); i++)
 					for(glm::length_t j = 0; j < m0.length(); j++)
 						for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-							m0[i][j] += mx[r][j] * mx[r][i];
+							m0[i][j] += mx[r][j] * w[r] * mx[r][i];
 				m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
 				glm::vec3 m1(0.f); // m1 = T(X)*Y
 				for(glm::length_t i = 0; i < m1.length(); i++)
 					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-						m1[i] += mx[r][i] * my[r];
+						m1[i] += mx[r][i] * w[r] * my[r];
 				glm::vec3 mo(0.f); // mo = m1 * m0
 				for(glm::length_t i = 0; i < mo.length(); i++)
 					for(glm::length_t j = 0; j < mo.length(); j++)
@@ -255,6 +259,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				// Now lets try linear
 				std::vector<std::array<float, 2>> mx;
 				std::vector<float> my;
+				std::vector<float> w;
 				for(auto p : state.world.in_province) {
 					if(visited[province::to_map_id(p)]) {
 						auto e = p.get_mid_point();
@@ -262,18 +267,19 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						e /= ratio;
 						mx.push_back(std::array<float, 2>{ 1.f, e.x });
 						my.push_back(e.y);
+						w.push_back(float(map_data.province_area[province::to_map_id(p)]));
 					}
 				}
 				glm::mat2x2 m0(0.f);
 				for(glm::length_t i = 0; i < m0.length(); i++)
 					for(glm::length_t j = 0; j < m0.length(); j++)
 						for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-							m0[i][j] += mx[r][j] * mx[r][i];
+							m0[i][j] += mx[r][j] * w[r] * mx[r][i];
 				m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
 				glm::vec2 m1(0.f); // m1 = T(X)*Y
 				for(glm::length_t i = 0; i < m1.length(); i++)
 					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-						m1[i] += mx[r][i] * my[r];
+						m1[i] += mx[r][i] * w[r] * my[r];
 				glm::vec2 mo(0.f); // mo = m1 * m0
 				for(glm::length_t i = 0; i < mo.length(); i++)
 					for(glm::length_t j = 0; j < mo.length(); j++)
