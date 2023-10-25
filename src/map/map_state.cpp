@@ -183,7 +183,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				auto dx_fn = [&](float x) {
 					return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
 				};
-				float xstep = (1.f / float(name.length() * 5.f));
+				float xstep = (1.f / float(name.length() * 2.f));
 				for(float x = 0.f; x <= 1.f; x += xstep) {
 					float y = poly_fn(x);
 					if(y < 0.f || y > 1.f) {
@@ -238,7 +238,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				auto dx_fn = [&](float x) {
 					return 1.f + 2.f * mo[2] * x;
 				};
-				float xstep = (1.f / float(name.length() * 5.f));
+				float xstep = (1.f / float(name.length() * 2.f));
 				for(float x = 0.f; x <= 1.f; x += xstep) {
 					float y = poly_fn(x);
 					if(y < 0.f || y > 1.f) {
