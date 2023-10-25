@@ -610,7 +610,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_labels_enabled && zoom < 5 && !text_line_vertices.empty()) {
 		load_shader(text_line_shader);
-		auto const& f = state.font_collection.fonts[2];
+		auto const& f = state.font_collection.fonts[1];
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
 		glActiveTexture(GL_TEXTURE1);
@@ -880,7 +880,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 		std::string text = text::produce_simple_string(state, e.text);
-		auto& f = state.font_collection.fonts[2];
+		auto& f = state.font_collection.fonts[1];
 		float text_length = f.text_extent(state, text.data(), uint32_t(text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		// y = a + bx + cx^2 + dx^3
@@ -895,18 +895,19 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
 		glm::vec2 line_end = glm::vec2(1.f) * e.ratio + e.basis;
 		float straight_length = (line_end.x - e.basis.x) / map_size.x;
-		float size = (curve_length / text_length) * straight_length * 0.65f;
+		float size = (curve_length / text_length) * straight_length * 0.5f;
 		float x = 0.f;
 		for(int32_t i = 0; i < int32_t(text.length()); i++) {
 			float glyph_advance = ((f.glyph_advances[uint8_t(text[i])] / 64.f) + ((i != int32_t(text.length() - 1)) ? f.kerning(text[i], text[i + 1]) / 64.f : 0)) / text_length;
 			assert(glyph_advance >= 0.f && glyph_advance <= 1.f);
-			float xf = x + glyph_advance; //Final X vertice
+			//float xf = x + glyph_advance; //Final X vertice
+			float xf = x;
 			// ^^ This is better than the for loop below right?
-			//for(float glyph_length = 0.f; glyph_length <= glyph_advance; xf += x_step) {
-			//	glyph_length += glm::distance(glm::vec2(xf, poly_fn(xf)), glm::vec2(xf + x_step, poly_fn(xf + x_step)));
-			//	assert(glyph_length >= 0.f && glyph_length <= curve_length);
-			//	//assert(xf >= 0.f && xf <= 1.f);
-			//}
+			for(float glyph_length = 0.f; glyph_length <= glyph_advance; xf += x_step) {
+				glyph_length += glm::distance(glm::vec2(xf, poly_fn(xf)), glm::vec2(xf + x_step, poly_fn(xf + x_step)));
+				assert(glyph_length >= 0.f && glyph_length <= curve_length);
+				//assert(xf >= 0.f && xf <= 1.f);
+			}
 			if(text[i] != ' ') { // skip spaces, only leaving a , well, space!
 				// Add up baseline and kerning offsets
 				auto dpoly_fn = [&](float x) {
@@ -917,15 +918,15 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(text[i])].x / 64.f, -f.glyph_positions[uint8_t(text[i])].y / 64.f };
 
 				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
-				auto p1 = glm::vec2(x+x_step, poly_fn(x+x_step)) * e.ratio + e.basis;
+				auto p1 = glm::vec2(x + x_step, poly_fn(x + x_step)) * e.ratio + e.basis;
 
 				glm::vec2 curr_dir = glm::normalize(p1 - p0);
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
 
 				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
 
-				p0 -= (1.5f - 2 * glyph_positions.y) * curr_normal_dir * size  * glm::vec2(size_y / float(size_x), 1);
-				p0 += (1 + 2 * glyph_positions.x) * curr_dir * size * glm::vec2(size_y / float(size_x), 1);
+				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * size * glm::vec2(size_y / float(size_x), 1);
+				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * size * glm::vec2(size_y / float(size_x), 1);
 
 				auto type = float(uint8_t(text::win1250toUTF16(text[i]) >> 6));
 				float step = 1.f / 8.f;
