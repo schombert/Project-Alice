@@ -21,19 +21,46 @@ class nation_picker_poptypes_chart : public piechart<dcon::pop_type_id> {
 protected:
 	void on_update(sys::state& state) noexcept override {
 		distribution.clear();
-
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		for(auto pt : state.world.in_pop_type) {
 			auto amount = state.world.nation_get_demographics(n, demographics::to_key(state, pt));
 			distribution.emplace_back(pt.id, amount);
 		}
-		
 		update_chart(state);
 	}
+};
 
+class nation_picker_cultures_chart : public piechart<dcon::culture_id> {
+protected:
+	void on_update(sys::state& state) noexcept override {
+		distribution.clear();
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		for(auto c : state.world.in_culture) {
+			auto amount = state.world.nation_get_demographics(n, demographics::to_key(state, c));
+			distribution.emplace_back(c.id, amount);
+		}
+		update_chart(state);
+	}
+};
+
+class nation_picker_ideologies_chart : public piechart<dcon::ideology_id> {
+protected:
+	void on_update(sys::state& state) noexcept override {
+		distribution.clear();
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		for(auto c : state.world.in_ideology) {
+			auto amount = state.world.nation_get_demographics(n, demographics::to_key(state, c));
+			distribution.emplace_back(c.id, amount);
+		}
+		update_chart(state);
+	}
 };
 
 class nation_details_window : public window_element_base {
+	int16_t piechart_offset = 0;
+	element_base* overlay1 = nullptr;
+	element_base* overlay2 = nullptr;
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
 			return make_element_by_type<picker_flag>(state, id);
@@ -56,7 +83,40 @@ class nation_details_window : public window_element_base {
 		} else if(name == "selected_population_amount") {
 			return make_element_by_type<nation_population_text>(state, id);
 		} else if(name == "selected_population_chart") {
-			return make_element_by_type<nation_picker_poptypes_chart>(state, id);
+			// at left
+			auto aptr = make_element_by_type<nation_picker_cultures_chart>(state, id);
+			if(piechart_offset == 0)
+				piechart_offset = aptr->base_data.size.x + 4;
+			aptr->base_data.position.x -= piechart_offset;
+			add_child_to_front(std::move(aptr));
+			// at middle
+			auto bptr = make_element_by_type<nation_picker_ideologies_chart>(state, id);
+			add_child_to_front(std::move(bptr));
+			// at right
+			auto cptr = make_element_by_type<nation_picker_poptypes_chart>(state, id);
+			cptr->base_data.position.x += piechart_offset;
+			// bring overlays on top
+			if(overlay1)
+				move_child_to_front(overlay1);
+			if(overlay2)
+				move_child_to_front(overlay2);
+			return cptr;
+		} else if(name == "selected_population_chart_overlay") {
+			// at left
+			auto aptr = make_element_by_type<image_element_base>(state, id);
+			if(piechart_offset == 0)
+				piechart_offset = aptr->base_data.size.x + 4;
+			aptr->base_data.position.x -= piechart_offset;
+			overlay1 = aptr.get();
+			add_child_to_front(std::move(aptr));
+			// at middle
+			auto bptr = make_element_by_type<image_element_base>(state, id);
+			overlay2 = bptr.get();
+			add_child_to_front(std::move(bptr));
+			// at right
+			auto cptr = make_element_by_type<image_element_base>(state, id);
+			cptr->base_data.position.x += piechart_offset;
+			return cptr;
 		} else if(name == "wars_overlappingbox") {
 			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
 			ptr->base_data.position.y -= 8 - 1; // Nudge
