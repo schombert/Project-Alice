@@ -4114,6 +4114,16 @@ void perform_battle_cycling(sys::state& state) {
 				continue;
 			}
 
+			int32_t our_units = 0;
+			auto b = ar.get_army().get_battle_from_army_battle_participation();
+			for(auto ap : b.get_army_battle_participation())
+				if(ap.get_army().get_controller_from_army_control() == ar.get_controller())
+					++our_units;
+			// won't retreat since we only have this unit on this battle...
+			if(our_units <= 1) {
+				continue;
+			}
+
 			int32_t unit_count = 0;
 			float total_org = 0.f;
 			float total_str = 0.f;
@@ -4126,7 +4136,7 @@ void perform_battle_cycling(sys::state& state) {
 			float org = total_org / float(unit_count);
 			float str = total_str / float(unit_count);
 			if(org <= 0.25f || str <= 0.25f) {
-				command::execute_partial_retreat_from_land_battle(state, ar.get_controller(), ar.get_army().get_battle_from_army_battle_participation(), ar.get_army());
+				command::execute_partial_retreat_from_land_battle(state, ar.get_controller(), b, ar.get_army());
 			}
 		}
 	}
