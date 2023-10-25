@@ -4136,7 +4136,7 @@ void perform_battle_cycling(sys::state& state) {
 			float org = total_org / float(unit_count);
 			float str = total_str / float(unit_count);
 			if(org <= 0.25f || str <= 0.25f) {
-				command::execute_partial_retreat_from_land_battle(state, ar.get_controller(), b, ar.get_army());
+				command::execute_partial_retreat_from_land_battle(state, n, b, ar.get_army());
 			}
 		}
 	}
