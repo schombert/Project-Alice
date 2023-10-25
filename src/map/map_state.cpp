@@ -30,7 +30,7 @@ void map_state::set_selected_province(dcon::province_id prov_id) {
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
 	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
-	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom,
+	map_data.render(state, glm::vec2(screen_x, screen_y), offset, zoom,
 			state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
 }
 
@@ -89,6 +89,213 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		}
 	}
 	map_data.set_unit_arrows(arrows, progresses);
+}
+
+void update_text_lines(sys::state& state, display_data& map_data) {
+	// retroscipt
+	std::vector<text_line_generator_data> text_data;
+	std::vector<bool> visited(65536, false);
+	for(auto p : state.world.in_province) {
+		auto rid = p.get_connected_region_id();
+		if(visited[uint16_t(rid)])
+			continue;
+		visited[uint16_t(rid)] = true;
+		//
+		auto n = p.get_nation_from_province_control();
+		if(!n || !n.get_name())
+			continue;
+		std::array<glm::vec2, 5> key_provs{
+			p.get_mid_point(), //capital
+			p.get_mid_point(), //min x
+			p.get_mid_point(), //min y
+			p.get_mid_point(), //max x
+			p.get_mid_point() //max y
+		};
+		for(auto p2 : state.world.in_province) {
+			if(p2.get_connected_region_id() == rid) {
+				if(p2.get_mid_point().x <= key_provs[1].x) {
+					key_provs[1] = p2.get_mid_point();
+				} if(p2.get_mid_point().y <= key_provs[2].y) {
+					key_provs[2] = p2.get_mid_point();
+				} if(p2.get_mid_point().x >= key_provs[3].x) {
+					key_provs[3] = p2.get_mid_point();
+				} if(p2.get_mid_point().y >= key_provs[4].y) {
+					key_provs[4] = p2.get_mid_point();
+				}
+			}
+		}
+		
+		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
+		glm::vec2 basis{ key_provs[1].x, key_provs[2].y };
+		glm::vec2 ratio{ key_provs[3].x - key_provs[1].x, key_provs[4].y - key_provs[2].y };
+
+		// Populate common dataset points
+		std::vector<float> my;
+		std::vector<float> w;
+		for(auto p2 : state.world.in_province) {
+			if(p2.get_connected_region_id() == rid) {
+				auto e = p2.get_mid_point();
+				e -= basis;
+				e /= ratio;
+				my.push_back(e.y);
+				w.push_back(float(map_data.province_area[province::to_map_id(p2)]));
+			}
+		}
+
+		std::string name = text::produce_simple_string(state, n.get_name());
+		if(n.get_capital().get_connected_region_id() != rid) {
+			// Adjective + " " + Continent
+			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
+		}
+
+		bool use_quadratic = false;
+		// We will try cubic regression first, if that results in very
+		// weird lines, for example, lines that go to the infinite
+		// we will "fallback" to using a quadratic instead
+		if(state.user_settings.map_label == sys::map_label_mode::cubic) {
+			// Columns -> n
+			// Rows -> fixed size of 4
+			// [ x0^0 x0^1 x0^2 x0^3 ]
+			// [ x1^0 x1^1 x1^2 x1^3 ]
+			// [ ...  ...  ...  ...  ]
+			// [ xn^0 xn^1 xn^2 xn^3 ]
+			std::vector<std::array<float, 4>> mx;
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == rid) {
+					auto e = p2.get_mid_point();
+					e -= basis;
+					e /= ratio;
+					mx.push_back(std::array<float, 4>{ 1.f, e.x, e.x* e.x, e.x* e.x* e.x });
+				}
+			}
+			// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
+			// [ x0^0 x0^1 x0^2 x0^3 ] * [ x0^0 x1^0 ... xn^0 ] = [ a0 a1 a2 ... an ]
+			// [ x1^0 x1^1 x1^2 x1^3 ] * [ x0^1 x1^1 ... xn^1 ] = [ b0 b1 b2 ... bn ]
+			// [ ...  ...  ...  ...  ] * [ x0^2 x1^2 ... xn^2 ] = [ c0 c1 c2 ... cn ]
+			// [ xn^0 xn^1 xn^2 xn^3 ] * [ x0^3 x1^3 ... xn^3 ] = [ d0 d1 d2 ... dn ]
+			glm::mat4x4 m0(0.f);
+			for(glm::length_t i = 0; i < m0.length(); i++)
+				for(glm::length_t j = 0; j < m0.length(); j++)
+					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+						m0[i][j] += mx[r][j] * w[r] * mx[r][i];
+			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
+			glm::vec4 m1(0.f); // m1 = T(X)*Y
+			for(glm::length_t i = 0; i < m1.length(); i++)
+				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+					m1[i] += mx[r][i] * w[r] * my[r];
+			glm::vec4 mo(0.f); // mo = m1 * m0
+			for(glm::length_t i = 0; i < mo.length(); i++)
+				for(glm::length_t j = 0; j < mo.length(); j++)
+					mo[i] += m0[i][j] * m1[j];
+			// y = a + bx + cx^2 + dx^3
+			// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
+			auto poly_fn = [&](float x) {
+				return mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x;
+			};
+			auto dx_fn = [&](float x) {
+				return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
+			};
+			float xstep = (1.f / float(name.length() * 4.f));
+			for(float x = 0.f; x <= 1.f; x += xstep) {
+				float y = poly_fn(x);
+				if(y < 0.f || y > 1.f) {
+					use_quadratic = true;
+					break;
+				}
+				// Steep change in curve => use cuadratic
+				float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
+				if(dx >= 0.45f) {
+					use_quadratic = true;
+					break;
+				}
+			}
+			if(!use_quadratic)
+				text_data.emplace_back(name, mo, basis, ratio);
+		}
+
+		bool use_linear = false;
+		if(state.user_settings.map_label == sys::map_label_mode::quadratic || use_quadratic) {
+			// Now lets try quadratic
+			std::vector<std::array<float, 3>> mx;
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == rid) {
+					auto e = p2.get_mid_point();
+					e -= basis;
+					e /= ratio;
+					mx.push_back(std::array<float, 3>{ 1.f, e.x, e.x* e.x });
+				}
+			}
+			glm::mat3x3 m0(0.f);
+			for(glm::length_t i = 0; i < m0.length(); i++)
+				for(glm::length_t j = 0; j < m0.length(); j++)
+					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+						m0[i][j] += mx[r][j] * w[r] * mx[r][i];
+			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
+			glm::vec3 m1(0.f); // m1 = T(X)*Y
+			for(glm::length_t i = 0; i < m1.length(); i++)
+				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+					m1[i] += mx[r][i] * w[r] * my[r];
+			glm::vec3 mo(0.f); // mo = m1 * m0
+			for(glm::length_t i = 0; i < mo.length(); i++)
+				for(glm::length_t j = 0; j < mo.length(); j++)
+					mo[i] += m0[i][j] * m1[j];
+			// y = a + bx + cx^2
+			// y = mo[0] + mo[1] * x + mo[2] * x * x
+			auto poly_fn = [&](float x) {
+				return mo[0] + mo[1] * x + mo[2] * x * x;
+			};
+			auto dx_fn = [&](float x) {
+				return 1.f + 2.f * mo[2] * x;
+			};
+			float xstep = (1.f / float(name.length() * 4.f));
+			for(float x = 0.f; x <= 1.f; x += xstep) {
+				float y = poly_fn(x);
+				if(y < 0.f || y > 1.f) {
+					use_linear = true;
+					break;
+				}
+				// Steep change in curve => use cuadratic
+				float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
+				if(dx >= 0.45f) {
+					use_linear = true;
+					break;
+				}
+			}
+			if(!use_linear)
+				text_data.emplace_back(name, glm::vec4(mo, 0.f), basis, ratio);
+		}
+
+		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
+			// Now lets try linear
+			std::vector<std::array<float, 2>> mx;
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == rid) {
+					auto e = p2.get_mid_point();
+					e -= basis;
+					e /= ratio;
+					mx.push_back(std::array<float, 2>{ 1.f, e.x });
+				}
+			}
+			glm::mat2x2 m0(0.f);
+			for(glm::length_t i = 0; i < m0.length(); i++)
+				for(glm::length_t j = 0; j < m0.length(); j++)
+					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+						m0[i][j] += mx[r][j] * w[r] * mx[r][i];
+			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
+			glm::vec2 m1(0.f); // m1 = T(X)*Y
+			for(glm::length_t i = 0; i < m1.length(); i++)
+				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
+					m1[i] += mx[r][i] * w[r] * my[r];
+			glm::vec2 mo(0.f); // mo = m1 * m0
+			for(glm::length_t i = 0; i < mo.length(); i++)
+				for(glm::length_t j = 0; j < mo.length(); j++)
+					mo[i] += m0[i][j] * m1[j];
+			// y = a + bx
+			// y = mo[0] + mo[1] * x
+			text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
+		}
+	}
+	map_data.set_text_lines(state, text_data);
 }
 
 void map_state::update(sys::state& state) {

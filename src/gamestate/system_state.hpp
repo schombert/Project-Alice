@@ -358,6 +358,7 @@ struct user_settings_s {
 		message_response::ignore,//navy_built = 99,
 	};
 	bool fow_enabled = false;
+	map_label_mode map_label = map_label_mode::quadratic;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -523,6 +524,7 @@ struct alignas(64) state {
 
 	// synchronization data (between main update logic and ui thread)
 	std::atomic<bool> game_state_updated = false;                    // game state -> ui signal
+	std::atomic<bool> province_ownership_changed = true;                    // game state -> ui signal
 	std::atomic<bool> save_list_updated = false;                     // game state -> ui signal
 	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message

@@ -95,4 +95,7 @@ public:
 		return zoom;
 	}
 };
+
+void update_text_lines(sys::state& state, display_data& map_data);
+
 } // namespace map

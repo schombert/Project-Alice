@@ -122,6 +122,50 @@ void fow_checkbox::button_action(sys::state& state) noexcept {
 	send(state, parent, notify_setting_update{});
 }
 
+void map_label_left::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.map_label);
+	if(scale_index > 0) {
+		state.user_settings.map_label = sys::map_label_mode(scale_index - 1);
+		state.province_ownership_changed.store(true, std::memory_order::release);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void map_label_left::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.map_label);
+	disabled = (scale_index == 0);
+}
+void map_label_right::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.map_label);
+	if(scale_index < 3) {
+		state.user_settings.map_label = sys::map_label_mode(scale_index + 1);
+		state.province_ownership_changed.store(true, std::memory_order::release);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void map_label_right::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.map_label);
+	disabled = (scale_index >= 3);
+}
+void map_label_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.map_label) {
+	case sys::map_label_mode::none:
+		set_text(state, text::produce_simple_string(state, "map_label_0"));
+		break;
+	case sys::map_label_mode::linear:
+		set_text(state, text::produce_simple_string(state, "map_label_1"));
+		break;
+	case sys::map_label_mode::quadratic:
+		set_text(state, text::produce_simple_string(state, "map_label_2"));
+		break;
+	case sys::map_label_mode::cubic:
+		set_text(state, text::produce_simple_string(state, "map_label_3"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
+}
+
 /*
 class autosave_left : public button_element_base {
 public:
@@ -139,7 +183,7 @@ class autosave_display : public simple_text_element_base {
 */
 
 void window_mode_checkbox::on_update(sys::state& state) noexcept {
-	disabled = (state.user_settings.prefer_fullscreen == true);
+
 }
 void window_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.prefer_fullscreen = !state.user_settings.prefer_fullscreen;

@@ -143,6 +143,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_id_map);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_area);
 	}
 	{
 		memcpy(&(state.defines), ptr_in, sizeof(parsing::defines));
@@ -314,6 +315,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_id_map);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.province_area);
 	}
 	{
 		memcpy(ptr_in, &(state.defines), sizeof(parsing::defines));
@@ -485,6 +487,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.map_state.map_data.borders);
 		sz += serialize_size(state.map_state.map_data.terrain_id_map);
 		sz += serialize_size(state.map_state.map_data.province_id_map);
+		sz += serialize_size(state.map_state.map_data.province_area);
 	}
 	{ sz += sizeof(parsing::defines); }
 	{ sz += sizeof(economy::global_economy_state); }
@@ -684,6 +687,8 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	dcon::load_record loaded;
 	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+
+	state.province_ownership_changed.store(true, std::memory_order::release);
 
 	return section_end;
 }

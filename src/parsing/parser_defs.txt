@@ -1,6 +1,7 @@
 gfx_xy_pair
 	x        value     int     member
 	y        value     int     member
+	#free    value     int     member_fn
 
 gfx_object
 	name               value     text         member
@@ -1928,13 +1929,9 @@ vassal_description
 	end_date                        value      date                              discard
 	start_date                      value      date                              member_fn
 
-alliance_file
+diplomacy_file
 	alliance                        extern     make_alliance                     discard
-
-union_file
 	union                           extern     make_vassal                       discard
-
-puppets_file
 	substate                        extern     make_substate                     discard
 	vassal                          extern     make_vassal                       discard
 

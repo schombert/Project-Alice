@@ -77,7 +77,7 @@ public:
 	font_manager();
 	~font_manager();
 
-	font fonts[2];
+	font fonts[3];
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
 	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;

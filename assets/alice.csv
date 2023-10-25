@@ -18,6 +18,11 @@ interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;Volumen de los efectos de sonido;;;;;;;;;x
 fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip
+map_label;Map labels
+map_label_0;None
+map_label_1;Linear
+map_label_2;Quadratic
+map_label_3;Cubic
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -1261,7 +1266,6 @@ change_state_name_to;change state name to $text$
 alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 alice_unit_disable_rebel_hunt;Stop hunting rebels
 alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$§W\nStrength: §Y$strength$§W
-alice_understaffed_regiment;§RThis regiment is understaffed and will only have $value$ soldiers!§W
 alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;

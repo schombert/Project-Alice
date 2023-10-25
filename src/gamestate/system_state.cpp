@@ -398,6 +398,11 @@ inline constexpr int32_t tooltip_width = 400;
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
+	if(ownership_update) {
+		if(user_settings.map_label != sys::map_label_mode::none)
+			map::update_text_lines(*this, map_state.map_data);
+	}
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
 	}
@@ -1704,6 +1709,7 @@ void state::save_user_settings() const {
 	ptr += upper_half_count;
 	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
+	US_SAVE(map_label);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(sizeof(buffer)));
@@ -1716,36 +1722,45 @@ void state::load_user_settings() {
 		auto ptr = content.data;
 
 #define US_LOAD(x) \
-		std::memcpy(&user_settings.x, ptr, std::min(sizeof(user_settings.x), size_t(content.file_size))); \
+		if(ptr > content.data + content.file_size - sizeof(user_settings.x)) break; \
+		std::memcpy(&user_settings.x, ptr, sizeof(user_settings.x)); \
 		ptr += sizeof(user_settings.x);
-		US_LOAD(ui_scale);
-		US_LOAD(master_volume);
-		US_LOAD(music_volume);
-		US_LOAD(effects_volume);
-		US_LOAD(interface_volume);
-		US_LOAD(prefer_fullscreen);
-		US_LOAD(map_is_globe);
-		US_LOAD(autosaves);
-		US_LOAD(bind_tooltip_mouse);
-		US_LOAD(use_classic_fonts);
-		US_LOAD(outliner_views);
-		constexpr size_t lower_half_count = 98;
-		std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
-		ptr += 98;
-		std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
-		ptr += 98;
-		std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
-		ptr += 98;
-		US_LOAD(fow_enabled);
-		constexpr size_t upper_half_count = 128 - 98;
-		std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
-		ptr += upper_half_count;
-		std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
-		ptr += upper_half_count;
-		std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
-		ptr += upper_half_count;
+
+		do {
+			US_LOAD(ui_scale);
+			US_LOAD(master_volume);
+			US_LOAD(music_volume);
+			US_LOAD(effects_volume);
+			US_LOAD(interface_volume);
+			US_LOAD(prefer_fullscreen);
+			US_LOAD(map_is_globe);
+			US_LOAD(autosaves);
+			US_LOAD(bind_tooltip_mouse);
+			US_LOAD(use_classic_fonts);
+			US_LOAD(outliner_views);
+			constexpr size_t lower_half_count = 98;
+
+			std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += 98;
+
+			std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += 98;
+
+			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += 98;
+
+			US_LOAD(fow_enabled);
+			constexpr size_t upper_half_count = 128 - 98;
+			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += upper_half_count;
+			std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += upper_half_count;
+			std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += upper_half_count;
+			US_LOAD(map_label);
 #undef US_LOAD
-		
+		} while(false);
+
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
@@ -2631,38 +2646,14 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	// parse diplomacy history
 	{
-		auto diplomacy = open_directory(history, NATIVE("diplomacy"));
-		{
-			auto dip_file = open_file(diplomacy, NATIVE("Alliances.txt"));
-			if(dip_file) {
-				auto content = view_contents(*dip_file);
-				err.file_name = "Alliances.txt";
+		auto diplomacy_dir = open_directory(history, NATIVE("diplomacy"));
+		for(auto dip_file : list_files(diplomacy_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(dip_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_alliance_file(gen, err, context);
-			} else {
-				err.accumulated_errors += "File history/diplomacy/Alliances.txt could not be opened\n";
-			}
-		}
-		{
-			auto dip_file = open_file(diplomacy, NATIVE("PuppetStates.txt"));
-			if(dip_file) {
-				auto content = view_contents(*dip_file);
-				err.file_name = "PuppetStates.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_puppets_file(gen, err, context);
-			} else {
-				err.accumulated_errors += "File history/diplomacy/PuppetStates.txt could not be opened\n";
-			}
-		}
-		{
-			auto dip_file = open_file(diplomacy, NATIVE("Unions.txt"));
-			if(dip_file) {
-				auto content = view_contents(*dip_file);
-				err.file_name = "Unions.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_union_file(gen, err, context);
-			} else {
-				err.accumulated_errors += "File history/diplomacy/Unions.txt could not be opened\n";
+				parsers::parse_diplomacy_file(gen, err, context);
 			}
 		}
 	}
@@ -3265,14 +3256,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	game_state_updated.store(true, std::memory_order::release);
 }
 
-constexpr inline int32_t game_speed[] = {
-	0,		// speed 0
-	2000,	// speed 1 -- 2 seconds
-	750,		// speed 2 -- 0.75 seconds
-	250, 	// speed 3 -- 0.25 seconds
-	125,		// speed 4 -- 0.125 seconds
-};
-
 void state::single_game_tick() {
 	// do update logic
 	province::update_connected_regions(*this);
@@ -3823,6 +3806,18 @@ void state::debug_oos_dump() {
 }
 
 void state::game_loop() {
+	static int32_t game_speed[] = {
+		0,		// speed 0
+		2000,	// speed 1 -- 2 seconds
+		750,		// speed 2 -- 0.75 seconds
+		250, 	// speed 3 -- 0.25 seconds
+		125,		// speed 4 -- 0.125 seconds
+	};
+	game_speed[1] = int32_t(defines.alice_speed_1);
+	game_speed[2] = int32_t(defines.alice_speed_2);
+	game_speed[3] = int32_t(defines.alice_speed_3);
+	game_speed[4] = int32_t(defines.alice_speed_4);
+
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		network::send_and_receive_commands(*this);
 		command::execute_pending_commands(*this);

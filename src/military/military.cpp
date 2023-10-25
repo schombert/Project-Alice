@@ -1735,7 +1735,7 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 
 	auto other_cbs = state.world.nation_get_available_cbs(from);
 	for(auto& cb : other_cbs) {
-		if(cb.target == target && cb_conditions_satisfied(state, from, target, cb.cb_type))
+		if(cb.target == target && cb.cb_type == type && cb_conditions_satisfied(state, from, target, cb.cb_type))
 			return 0.0f;
 	}
 
@@ -1807,7 +1807,12 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 }
 
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l) {
-	// TODO: implement
+	auto army = state.world.leader_get_army_from_army_leadership(l);
+	if(state.world.army_get_battle_from_army_battle_participation(army))
+		return true;
+	auto navy = state.world.leader_get_navy_from_navy_leadership(l);
+	if(state.world.navy_get_battle_from_navy_battle_participation(navy))
+		return true;
 	return false;
 }
 
@@ -1958,7 +1963,10 @@ void daily_leaders_update(sys::state& state) {
 
 	for(uint32_t i = state.world.leader_size(); i-- > 0;) {
 		dcon::leader_id l{dcon::leader_id::value_base_t(i)};
-		auto age_in_days = state.world.leader_get_since(l).to_raw_value() * 365;
+		if(!state.world.leader_is_valid(l))
+			continue;
+
+		auto age_in_days = state.current_date.to_raw_value() - state.world.leader_get_since(l).to_raw_value();
 		if(age_in_days > 365 * 26) { // assume leaders are created at age 20; no death chance prior to 46
 			float age_in_years = float(age_in_days) / 365.0f;
 			float death_chance =
@@ -6562,7 +6570,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 		for(auto reg : ar.get_army_membership()) {
 			auto pop = reg.get_regiment().get_pop_from_regiment_source();
 			auto pop_size = pop.get_size();
-			auto limit_fraction = std::min(1.0f, pop_size / state.defines.pop_size_per_regiment);
+			auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
 			reg.get_regiment().set_strength(std::min(reg.get_regiment().get_strength() + combined, limit_fraction));
 		}
 	}

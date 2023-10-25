@@ -214,6 +214,38 @@ void create_unit_arrow_vbo(GLuint& vbo) {
 	glVertexAttribBinding(4, 0);
 }
 
+void create_text_line_vbo(GLuint& vbo) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(text_line_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, position_));
+	// Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, normal_direction_));
+	// Set up vertex attribute format for the direction
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
+	// Set up vertex attribute format for the texture coordinates
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, type_));
+	glVertexAttribFormat(5, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
+	glVertexAttribBinding(4, 0);
+	glVertexAttribBinding(5, 0);
+}
+
 void create_drag_box_vbo(GLuint& vbo) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
@@ -241,6 +273,10 @@ void display_data::create_border_ogl_objects() {
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
 	create_unit_arrow_vbo(unit_arrow_vbo);
+
+	glGenVertexArrays(1, &text_line_vao);
+	glBindVertexArray(text_line_vao);
+	create_text_line_vbo(text_line_vbo);
 
 	glGenVertexArrays(1, &drag_box_vao);
 	glBindVertexArray(drag_box_vao);
@@ -346,6 +382,8 @@ display_data::~display_data() {
 		glDeleteVertexArrays(1, &border_vao);
 	if(unit_arrow_vao)
 		glDeleteVertexArrays(1, &unit_arrow_vao);
+	if(text_line_vao)
+		glDeleteVertexArrays(1, &text_line_vao);
 
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
@@ -355,6 +393,8 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &river_vbo);
 	if(unit_arrow_vbo)
 		glDeleteBuffers(1, &unit_arrow_vbo);
+	if(text_line_vbo)
+		glDeleteBuffers(1, &text_line_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
@@ -364,6 +404,8 @@ display_data::~display_data() {
 		glDeleteProgram(line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
+	if(text_line_shader)
+		glDeleteProgram(text_line_shader);
 	if(drag_box_shader)
 		glDeleteProgram(drag_box_shader);
 }
@@ -398,16 +440,20 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
 
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/text_line_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
+
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
 	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
 
 	line_border_shader = create_program(*line_vshader, *line_border_fshader);
 	line_river_shader = create_program(*line_vshader, *line_river_fshader);
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
+	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
 	drag_box_shader = create_program(*screen_vshader, *black_color_fshader);
 }
 
-void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
+void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -546,17 +592,37 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	}
 	*/
 
-	// Draw the unit arrows
-	load_shader(line_unit_arrow_shader);
-	glUniform1f(4, 0.005f);
-	glBindVertexArray(unit_arrow_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)unit_arrow_vertices.size());
+	if(!unit_arrow_vertices.empty()) {
+		// Draw the unit arrows
+		load_shader(line_unit_arrow_shader);
+		glUniform1f(4, 0.005f);
+		glBindVertexArray(unit_arrow_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)unit_arrow_vertices.size());
+	}
 
-	glUseProgram(drag_box_shader);
-	glBindVertexArray(drag_box_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+	if(!drag_box_vertices.empty()) {
+		glUseProgram(drag_box_shader);
+		glBindVertexArray(drag_box_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+	}
+
+	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
+		load_shader(text_line_shader);
+		auto const& f = state.font_collection.fonts[1];
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, f.textures[1]);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
+		glBindVertexArray(text_line_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
+	}
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -803,6 +869,89 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
 	if(unit_arrow_vertices.size() > 0) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), &unit_arrow_vertices[0], GL_STATIC_DRAW);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
+	text_line_vertices.clear();
+	for(const auto& e : data) {
+		// omit invalid, nan or infinite coefficients
+		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
+			continue;
+
+		auto& f = state.font_collection.fonts[1];
+		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
+		assert(std::isfinite(text_length) && text_length != 0.f);
+		// y = a + bx + cx^2 + dx^3
+		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
+		auto poly_fn = [&](float x) {
+			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
+		};
+		float x_step = (1.f / float(e.text.length() * 4.f));
+		float curve_length = 0.f; //width of whole string polynomial
+		for(float x = 0.f; x <= 1.f; x += x_step)
+			curve_length += glm::distance(glm::vec2(x, poly_fn(x)), glm::vec2(x + x_step, poly_fn(x + x_step)));
+		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
+		glm::vec2 line_end = glm::vec2(1.f) * e.ratio + e.basis;
+		float straight_length = (line_end.x - e.basis.x) / map_size.x;
+		float size = (curve_length / text_length) * straight_length * 0.75f;
+
+		// omit small text
+		if(size <= 0.0095f)
+			continue;
+
+		float x = 0.f;
+		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
+			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) / text_length;
+			assert(glyph_advance >= 0.f && glyph_advance <= 1.f);
+			//float xf = x + glyph_advance; //Final X vertice
+			float xf = x;
+			// ^^ This is better than the for loop below right?
+			for(float glyph_length = 0.f; glyph_length <= glyph_advance; xf += x_step) {
+				glyph_length += glm::distance(glm::vec2(xf, poly_fn(xf)), glm::vec2(xf + x_step, poly_fn(xf + x_step)));
+				assert(glyph_length >= 0.f && glyph_length <= curve_length);
+				//assert(xf >= 0.f && xf <= 1.f);
+			}
+			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
+				// Add up baseline and kerning offsets
+				auto dpoly_fn = [&](float x) {
+					// y = a + 1bx^1 + 1cx^2 + 1dx^3
+					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
+					return 1.f + e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
+				};
+				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
+
+				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
+				auto p1 = glm::vec2(xf, poly_fn(xf)) * e.ratio + e.basis;
+
+				glm::vec2 curr_dir = glm::normalize(p1 - p0);
+				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+
+				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
+
+				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * size * glm::vec2(size_y / float(size_x), 1);
+				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * size * glm::vec2(size_y / float(size_x), 1);
+
+				auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
+				float step = 1.f / 8.f;
+				float tx = float(e.text[i] & 7) * step;
+				float ty = float((e.text[i] & 63) >> 3) * step;
+				// First vertex of the line segment
+				text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
+				text_line_vertices.emplace_back(p0, -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, size);
+				text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
+				// Second vertex of the line segment
+				text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
+				text_line_vertices.emplace_back(p0, +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, size);
+				text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
+			}
+			x = xf;
+		}
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
+	if(text_line_vertices.size() > 0) {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

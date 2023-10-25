@@ -106,7 +106,7 @@ public:
 			text::add_line(state, contents, "military_build_unit_tooltip", text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name, text::variable_type::loc, state.world.province_get_name(p));
 
 			buildable_unit_entry_info info = retrieve< buildable_unit_entry_info>(state, parent);
-			if(state.world.pop_get_size(info.pop_info) < state.defines.pop_size_per_regiment) {
+			if(std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(info.pop_info) / state.defines.pop_size_per_regiment) < 1.f) {
 				text::add_line(state, contents, "alice_understaffed_regiment", text::variable_type::value, text::format_wholenum(int32_t(state.world.pop_get_size(info.pop_info))));
 			}
 
@@ -142,8 +142,10 @@ public:
 		auto content = retrieve<buildable_unit_entry_info>(state, parent);
 		if(content.is_navy || content.continent)
 			visible = false;
+		else if(std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(content.pop_info) / state.defines.pop_size_per_regiment) < 1.f)
+			visible = true;
 		else
-			visible = state.world.pop_get_size(content.pop_info) < state.defines.pop_size_per_regiment;
+			visible = false;
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -406,7 +408,7 @@ public:
 	std::string pop_size_text;
 
 	void on_create(sys::state& state) noexcept override {
-		for(int i = 0; i < 6; i++) {
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			auto ptr = make_element_by_type<resource_cost>(state, state.ui_state.defs_by_name.find("build_resource_cost")->second.definition);
 			resource_cost_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
@@ -477,7 +479,7 @@ public:
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
 					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
-					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r];
+					resource_cost_elements[r]->good_quantity = state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * (2.0f - state.world.nation_get_administrative_efficiency(state.local_player_nation));
 					resource_cost_elements[r]->set_visible(state, true);
 					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					r++;
@@ -543,7 +545,7 @@ public:
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
 					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
-					resource_cost_elements[r]->good_quantity = (state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * float(content.number_of_units_on_continent));
+					resource_cost_elements[r]->good_quantity = ((state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * (2.0f - state.world.nation_get_administrative_efficiency(state.local_player_nation))) * float(content.number_of_units_on_continent));
 					resource_cost_elements[r]->set_visible(state, true);
 					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					r++;
@@ -559,7 +561,7 @@ public:
 
 			unit_icon->frame = int32_t(state.military_definitions.unit_base_definitions[utid].icon - 1);
 			province->set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(content.continent)));
-			unit_name->set_text(state, std::to_string(content.number_of_units_on_continent)+" "+text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			unit_name->set_text(state, std::to_string(content.number_of_units_on_continent) + " " + text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 		}
 	}
 
@@ -637,14 +639,14 @@ public:
 				// pass 1 - put fully staffed regiments first
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
-					if(bu.continent == con && state.world.pop_get_size(bu.pop_info) >= state.defines.pop_size_per_regiment) {
+					if(bu.continent == con && std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(bu.pop_info) / state.defines.pop_size_per_regiment) >= 1.f) {
 						bu.continent = dcon::modifier_id{};
 						row_contents.push_back(bu);
 					}
 				}
 				// pass 2 - put the understaffed regiments AFTER
 				for(auto bu : list_of_possible_units) {
-					if(bu.continent == con && state.world.pop_get_size(bu.pop_info) < state.defines.pop_size_per_regiment) {
+					if(bu.continent == con && std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(bu.pop_info) / state.defines.pop_size_per_regiment) < 1.f) {
 						bu.continent = dcon::modifier_id{};
 						row_contents.push_back(bu);
 					}
