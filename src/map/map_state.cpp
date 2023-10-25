@@ -152,7 +152,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		// We will try cubic regression first, if that results in very
 		// weird lines, for example, lines that go to the infinite
 		// we will "fallback" to using a quadratic instead
-		{
+		if(uint8_t(state.user_settings.map_label) >= uint8_t(sys::map_label_mode::cubic)) {
 			// Columns -> n
 			// Rows -> fixed size of 4
 			// [ x0^0 x0^1 x0^2 x0^3 ]
@@ -213,7 +213,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				text_data.emplace_back(name, mo, basis, ratio);
 		}
 		bool use_linear = false;
-		if(use_cuadratic) {
+		if(uint8_t(state.user_settings.map_label) >= uint8_t(sys::map_label_mode::quadratic) && use_cuadratic) {
 			// Now lets try quadratic
 			std::vector<std::array<float, 3>> mx;
 			for(auto p2 : state.world.in_province) {
@@ -263,7 +263,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			if(!use_linear)
 				text_data.emplace_back(name, glm::vec4(mo, 0.f), basis, ratio);
 		}
-		if(use_linear) {
+		if(uint8_t(state.user_settings.map_label) >= uint8_t(sys::map_label_mode::linear) && use_linear) {
 			// Now lets try linear
 			std::vector<std::array<float, 2>> mx;
 			for(auto p2 : state.world.in_province) {
