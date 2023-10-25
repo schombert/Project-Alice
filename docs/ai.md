@@ -80,6 +80,9 @@ Internal function. Decides on targets to attack, orders gather commands to attac
 `void make_attacks(sys::state& state)`:
 Public function that does the above in parallel for all nations
 
+`void perform_battle_cycling(sys::state& state)`:
+Retreats units that are below organisation and strength threshold.
+
 `void move_gathered_attackers(sys::state& state)`:
 Gives move orders to attacking units that are not currently moving (or moves them back to guard status if the attack has ended). Is also responsible for arranging for transport for units that cannot reach their target over land.
 

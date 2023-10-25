@@ -492,6 +492,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			compare_game_states(ws1, ws2);
 			ai::make_attacks(ws1);
 			ai::make_attacks(ws2);
+			ai::perform_battle_cycling(ws1);
+			ai::perform_battle_cycling(ws2);
 			break;
 		case 7:
 			ai::update_ai_general_status(ws1);
@@ -575,6 +577,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			compare_game_states(ws1, ws2);
 			ai::make_attacks(ws1);
 			ai::make_attacks(ws2);
+			ai::perform_battle_cycling(ws1);
+			ai::perform_battle_cycling(ws2);
 			break;
 		case 25:
 			rebel::execute_province_defections(ws1);

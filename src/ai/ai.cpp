@@ -4097,6 +4097,41 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 	}
 }
 
+void perform_battle_cycling(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+
+		for(auto ar : state.world.nation_get_army_control(n)) {
+			army_activity activity = army_activity(ar.get_army().get_ai_activity());
+			if(!ar.get_army().get_battle_from_army_battle_participation()
+				|| ar.get_army().get_navy_from_army_transport()
+				|| ar.get_army().get_black_flag()
+				|| ar.get_army().get_arrival_time()
+				|| (activity != army_activity::on_guard && activity != army_activity::attacking && activity != army_activity::attack_gathered && activity != army_activity::attack_transport)
+				|| !army_ready_for_battle(state, n, ar.get_army())) {
+
+				continue;
+			}
+
+			int32_t unit_count = 0;
+			float total_org = 0.f;
+			float total_str = 0.f;
+			state.world.army_for_each_army_membership_as_army(ar.get_army(), [&](dcon::army_membership_id nmid) {
+				auto regiment = dcon::fatten(state.world, state.world.army_membership_get_regiment(nmid));
+				total_org += regiment.get_org();
+				total_str += regiment.get_strength();
+				++unit_count;
+			});
+			float org = total_org / float(unit_count);
+			float str = total_str / float(unit_count);
+			if(org <= 0.25f || str <= 0.25f) {
+				command::execute_partial_retreat_from_land_battle(state, ar.get_controller(), ar.get_army().get_battle_from_army_battle_participation(), ar.get_army());
+			}
+		}
+	}
+}
+
 bool rebel_army_in_province(sys::state& state, dcon::province_id p) {
 	for(auto ar : state.world.province_get_army_location(p)) {
 		if(!ar.get_army().get_controller_from_army_control())

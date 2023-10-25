@@ -3564,6 +3564,7 @@ void state::single_game_tick() {
 		case 6:
 			ai::form_alliances(*this);
 			ai::make_attacks(*this);
+			ai::perform_battle_cycling(*this);
 			break;
 		case 7:
 			ai::update_ai_general_status(*this);
@@ -3622,6 +3623,7 @@ void state::single_game_tick() {
 		case 24:
 			rebel::execute_rebel_victories(*this);
 			ai::make_attacks(*this);
+			ai::perform_battle_cycling(*this);
 			break;
 		case 25:
 			rebel::execute_province_defections(*this);
