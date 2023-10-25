@@ -2176,6 +2176,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		declare_war_win->set_visible(state, false);
 		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis == sys::crisis_type::none) {
 			send<diplomacy_window_tab>(state, this, diplomacy_window_tab::great_powers);
 		}
