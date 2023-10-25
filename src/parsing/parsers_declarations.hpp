@@ -926,6 +926,12 @@ public:
 					temp.values[temp_next] = constructed_definition_p.values[i];
 					++temp_next;
 				}
+			} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::supply_limit) {
+				if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+					temp.offsets[temp_next] = sys::national_mod_offsets::supply_limit;
+					temp.values[temp_next] = constructed_definition_p.values[i];
+					++temp_next;
+				}
 			}
 		}
 		return temp;
