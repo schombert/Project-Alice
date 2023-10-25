@@ -879,16 +879,16 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		// omit invalid, nan or infinite coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
-		std::string text = text::produce_simple_string(state, e.text);
+
 		auto& f = state.font_collection.fonts[1];
-		float text_length = f.text_extent(state, text.data(), uint32_t(text.length()), 1);
+		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 		};
-		float x_step = (1.f / float(text.length() * 4.f));
+		float x_step = (1.f / float(e.text.length() * 4.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
 			curve_length += glm::distance(glm::vec2(x, poly_fn(x)), glm::vec2(x + x_step, poly_fn(x + x_step)));
@@ -896,9 +896,14 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		glm::vec2 line_end = glm::vec2(1.f) * e.ratio + e.basis;
 		float straight_length = (line_end.x - e.basis.x) / map_size.x;
 		float size = (curve_length / text_length) * straight_length * 0.75f;
+
+		// omit small text
+		if(size <= 0.0095f)
+			continue;
+
 		float x = 0.f;
-		for(int32_t i = 0; i < int32_t(text.length()); i++) {
-			float glyph_advance = ((f.glyph_advances[uint8_t(text[i])] / 64.f) + ((i != int32_t(text.length() - 1)) ? f.kerning(text[i], text[i + 1]) / 64.f : 0)) / text_length;
+		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
+			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) / text_length;
 			assert(glyph_advance >= 0.f && glyph_advance <= 1.f);
 			//float xf = x + glyph_advance; //Final X vertice
 			float xf = x;
@@ -908,14 +913,14 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				assert(glyph_length >= 0.f && glyph_length <= curve_length);
 				//assert(xf >= 0.f && xf <= 1.f);
 			}
-			if(text[i] != ' ') { // skip spaces, only leaving a , well, space!
+			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
 				// Add up baseline and kerning offsets
 				auto dpoly_fn = [&](float x) {
 					// y = a + 1bx^1 + 1cx^2 + 1dx^3
 					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 					return 1.f + e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
 				};
-				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(text[i])].x / 64.f, -f.glyph_positions[uint8_t(text[i])].y / 64.f };
+				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
 				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
 				auto p1 = glm::vec2(xf, poly_fn(xf)) * e.ratio + e.basis;
@@ -928,10 +933,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * size * glm::vec2(size_y / float(size_x), 1);
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * size * glm::vec2(size_y / float(size_x), 1);
 
-				auto type = float(uint8_t(text::win1250toUTF16(text[i]) >> 6));
+				auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
 				float step = 1.f / 8.f;
-				float tx = float(text[i] & 7) * step;
-				float ty = float((text[i] & 63) >> 3) * step;
+				float tx = float(e.text[i] & 7) * step;
+				float ty = float((e.text[i] & 63) >> 3) * step;
 				// First vertex of the line segment
 				text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
 				text_line_vertices.emplace_back(p0, -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, size);
