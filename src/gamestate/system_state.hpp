@@ -360,7 +360,7 @@ struct user_settings_s {
 		message_response::ignore,//navy_built = 99,
 	};
 	bool fow_enabled = false;
-	bool map_labels_enabled = false;
+	map_label_mode map_label = map_label_mode::linear;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

@@ -608,7 +608,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 	}
 
-	if(state.user_settings.map_labels_enabled && zoom < 5 && !text_line_vertices.empty()) {
+	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
 		load_shader(text_line_shader);
 		auto const& f = state.font_collection.fonts[1];
 		glActiveTexture(GL_TEXTURE0);
