@@ -2425,13 +2425,7 @@ struct vassal_description {
 	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
 };
 
-struct alliance_file {
-	void finish(scenario_building_context&) { }
-};
-struct union_file {
-	void finish(scenario_building_context&) { }
-};
-struct puppets_file {
+struct diplomacy_file {
 	void finish(scenario_building_context&) { }
 };
 
