@@ -148,11 +148,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
 		}
 
-		bool use_cuadratic = false;
+		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
 		// weird lines, for example, lines that go to the infinite
 		// we will "fallback" to using a quadratic instead
-		if(uint8_t(state.user_settings.map_label) >= uint8_t(sys::map_label_mode::cubic)) {
+		if(state.user_settings.map_label == sys::map_label_mode::cubic) {
 			// Columns -> n
 			// Rows -> fixed size of 4
 			// [ x0^0 x0^1 x0^2 x0^3 ]
@@ -199,21 +199,22 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
-					use_cuadratic = true;
+					use_quadratic = true;
 					break;
 				}
 				// Steep change in curve => use cuadratic
 				float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
 				if(dx >= 0.45f) {
-					use_cuadratic = true;
+					use_quadratic = true;
 					break;
 				}
 			}
-			if(!use_cuadratic)
+			if(!use_quadratic)
 				text_data.emplace_back(name, mo, basis, ratio);
 		}
+
 		bool use_linear = false;
-		if(uint8_t(state.user_settings.map_label) >= uint8_t(sys::map_label_mode::quadratic) && use_cuadratic) {
+		if(state.user_settings.map_label == sys::map_label_mode::quadratic || use_quadratic) {
 			// Now lets try quadratic
 			std::vector<std::array<float, 3>> mx;
 			for(auto p2 : state.world.in_province) {
@@ -263,7 +264,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			if(!use_linear)
 				text_data.emplace_back(name, glm::vec4(mo, 0.f), basis, ratio);
 		}
-		if(uint8_t(state.user_settings.map_label) >= uint8_t(sys::map_label_mode::linear) && use_linear) {
+
+		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
 			// Now lets try linear
 			std::vector<std::array<float, 2>> mx;
 			for(auto p2 : state.world.in_province) {

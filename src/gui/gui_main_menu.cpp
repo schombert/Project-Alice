@@ -126,6 +126,7 @@ void map_label_left::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.map_label);
 	if(scale_index > 0) {
 		state.user_settings.map_label = sys::map_label_mode(scale_index - 1);
+		state.province_ownership_changed.store(true, std::memory_order::release);
 		send(state, parent, notify_setting_update{});
 	}
 }
@@ -137,6 +138,7 @@ void map_label_right::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.map_label);
 	if(scale_index < 3) {
 		state.user_settings.map_label = sys::map_label_mode(scale_index + 1);
+		state.province_ownership_changed.store(true, std::memory_order::release);
 		send(state, parent, notify_setting_update{});
 	}
 }

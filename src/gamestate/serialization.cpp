@@ -688,6 +688,8 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
 
+	state.province_ownership_changed.store(true, std::memory_order::release);
+
 	return section_end;
 }
 

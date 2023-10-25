@@ -398,9 +398,12 @@ inline constexpr int32_t tooltip_width = 400;
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
-	if(game_state_was_updated) {
+	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
+	if(ownership_update) {
 		if(user_settings.map_label != sys::map_label_mode::none)
 			map::update_text_lines(*this, map_state.map_data);
+	}
+	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
 	}
 
@@ -1719,37 +1722,45 @@ void state::load_user_settings() {
 		auto ptr = content.data;
 
 #define US_LOAD(x) \
-		std::memcpy(&user_settings.x, ptr, std::min(sizeof(user_settings.x), size_t(content.file_size))); \
+		if(ptr > content.data + content.file_size - sizeof(user_settings.x)) break; \
+		std::memcpy(&user_settings.x, ptr, sizeof(user_settings.x)); \
 		ptr += sizeof(user_settings.x);
-		US_LOAD(ui_scale);
-		US_LOAD(master_volume);
-		US_LOAD(music_volume);
-		US_LOAD(effects_volume);
-		US_LOAD(interface_volume);
-		US_LOAD(prefer_fullscreen);
-		US_LOAD(map_is_globe);
-		US_LOAD(autosaves);
-		US_LOAD(bind_tooltip_mouse);
-		US_LOAD(use_classic_fonts);
-		US_LOAD(outliner_views);
-		constexpr size_t lower_half_count = 98;
-		std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
-		ptr += 98;
-		std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
-		ptr += 98;
-		std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(content.file_size)));
-		ptr += 98;
-		US_LOAD(fow_enabled);
-		constexpr size_t upper_half_count = 128 - 98;
-		std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
-		ptr += upper_half_count;
-		std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
-		ptr += upper_half_count;
-		std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(content.file_size)));
-		ptr += upper_half_count;
-		US_LOAD(map_label);
+
+		do {
+			US_LOAD(ui_scale);
+			US_LOAD(master_volume);
+			US_LOAD(music_volume);
+			US_LOAD(effects_volume);
+			US_LOAD(interface_volume);
+			US_LOAD(prefer_fullscreen);
+			US_LOAD(map_is_globe);
+			US_LOAD(autosaves);
+			US_LOAD(bind_tooltip_mouse);
+			US_LOAD(use_classic_fonts);
+			US_LOAD(outliner_views);
+			constexpr size_t lower_half_count = 98;
+
+			std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += 98;
+
+			std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += 98;
+
+			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += 98;
+
+			US_LOAD(fow_enabled);
+			constexpr size_t upper_half_count = 128 - 98;
+			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += upper_half_count;
+			std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += upper_half_count;
+			std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
+			ptr += upper_half_count;
+			US_LOAD(map_label);
 #undef US_LOAD
-		
+		} while(false);
+
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
