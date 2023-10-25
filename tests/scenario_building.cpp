@@ -1179,9 +1179,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	{
 		auto diplomacy_dir = open_directory(history, NATIVE("diplomacy"));
 		for(auto dip_file : list_files(diplomacy_dir, NATIVE(".txt"))) {
-			if(dip_file) {
-				auto content = view_contents(*dip_file);
-				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*dip_file));
+			auto opened_file = open_file(dip_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_diplomacy_file(gen, err, context);
 			}
