@@ -115,6 +115,8 @@ void update_connected_regions(sys::state& state) {
 			to_fill_list.clear();
 		}
 	}
+
+	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
@@ -930,8 +932,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		event::fire_fixed_event(state, state.national_definitions.on_state_conquest, trigger::to_generic(new_si),
 				event::slot_type::state, new_owner, -1, event::slot_type::none);
 	}
-
-	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
