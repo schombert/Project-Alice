@@ -1914,7 +1914,7 @@ void monthly_leaders_update(sys::state& state) {
 				auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) *
 										state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
 
-				state.world.nation_set_leadership_points(ids, state.world.nation_get_leadership_points(ids) + omod + nmod);
+				state.world.nation_set_leadership_points(ids, ve::select(state.world.nation_get_owned_province_count(ids) != 0, state.world.nation_get_leadership_points(ids) + omod + nmod, 0.0f));
 			});
 
 	for(auto n : state.world.in_nation) {
