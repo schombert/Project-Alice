@@ -2075,6 +2075,10 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			nations::break_alliance(state, n, wp.get_nation());
 	}
 
+	if(!as_attacker && state.world.nation_get_rank(state.world.war_get_primary_defender(w)) > state.world.nation_get_rank(n)) {
+		state.world.war_set_primary_defender(w, n);
+	}
+
 	for(auto ul : state.world.nation_get_unilateral_relationship_as_source(n)) {
 		if(ul.get_war_subsidies()) {
 			auto role = get_role(state, w, ul.get_target());
@@ -2157,7 +2161,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 					populate_war_text_subsitutions(state, w, sub);
 					std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 					std::string old_war_name = text::resolve_string_substitution(state, old_name, sub);
-					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::val, std::string_view{resolved_war_name});
+					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::y, std::string_view{resolved_war_name});
 				},
 				"msg_war_becomes_great_title",
 				state.local_player_nation,

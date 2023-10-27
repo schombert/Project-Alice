@@ -136,6 +136,7 @@ struct available_cb {
 	dcon::nation_id target;
 	sys::date expiration;
 	dcon::cb_type_id cb_type;
+	uint8_t padding = 0;
 };
 
 struct wg_summary {

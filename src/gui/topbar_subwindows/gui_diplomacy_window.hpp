@@ -1387,8 +1387,9 @@ protected:
 		row_contents.clear();
 		dcon::war_id w = retrieve<dcon::war_id>(state, parent);
 		auto war = dcon::fatten(state.world, w);
+		row_contents.push_back(war.get_primary_attacker().get_identity_from_identity_holder().id);
 		for(auto o : war.get_war_participant())
-			if(o.get_is_attacker() == true)
+			if(o.get_is_attacker() == true && o.get_nation() != war.get_primary_attacker())
 				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
@@ -1399,8 +1400,9 @@ protected:
 		row_contents.clear();
 		dcon::war_id w = retrieve<dcon::war_id>(state, parent);
 		auto war = dcon::fatten(state.world, w);
+		row_contents.push_back(war.get_primary_defender().get_identity_from_identity_holder().id);
 		for(auto o : war.get_war_participant())
-			if(o.get_is_attacker() == false)
+			if(o.get_is_attacker() == false && o.get_nation() != war.get_primary_defender())
 				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
