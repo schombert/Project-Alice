@@ -2075,6 +2075,10 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			nations::break_alliance(state, n, wp.get_nation());
 	}
 
+	if(!as_attacker && state.world.nation_get_rank(state.world.war_get_primary_defender(w)) > state.world.nation_get_rank(n)) {
+		state.world.war_set_primary_defender(w, n);
+	}
+
 	for(auto ul : state.world.nation_get_unilateral_relationship_as_source(n)) {
 		if(ul.get_war_subsidies()) {
 			auto role = get_role(state, w, ul.get_target());
