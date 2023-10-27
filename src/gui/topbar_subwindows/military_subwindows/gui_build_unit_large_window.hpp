@@ -55,7 +55,11 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<buildable_unit_entry_info>(state, parent);
-		visible = state.world.pop_get_size(content.pop_info) >= state.defines.pop_size_per_regiment;
+		if(std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(content.pop_info) / state.defines.pop_size_per_regiment) < 1.f) {
+			visible = false;
+		} else {
+			visible = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
