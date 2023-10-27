@@ -295,7 +295,8 @@ constexpr inline uint8_t popup = 0x02;
 constexpr inline uint8_t pause = 0x04;
 constexpr inline uint8_t sound = 0x08;
 
-constexpr inline uint8_t standard_sound = log | sound;
+constexpr inline uint8_t standard_sound = sound;
+constexpr inline uint8_t standard_log = log | sound;
 constexpr inline uint8_t standard_popup = log | sound | popup;
 constexpr inline uint8_t standard_pause = log | sound | popup | pause;
 

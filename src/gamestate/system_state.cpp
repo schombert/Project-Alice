@@ -893,7 +893,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 
 					// Sound effects(tm)
-					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::sound) {
+					if(user_settings.self_message_settings[int32_t(c6->type)] != 0) {
 						switch(c6->type) {
 						case message_setting_type::war_on_nation:
 						case message_setting_type::war_by_nation:
