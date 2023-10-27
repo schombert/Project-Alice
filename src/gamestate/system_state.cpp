@@ -760,6 +760,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(!ui_state.tech_queue.empty()) {
 			if(!world.nation_get_current_research(local_player_nation)) {
 				for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
+					if(world.nation_get_active_technologies(local_player_nation, *it)) {
+						ui_state.tech_queue.erase(it);
+						break;
+					}
 					if(command::can_start_research(*this, local_player_nation, *it)) {
 						// can research, so research it
 						command::start_research(*this, local_player_nation, *it);
