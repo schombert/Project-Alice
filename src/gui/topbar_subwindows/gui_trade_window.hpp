@@ -793,6 +793,7 @@ public:
 		if(name == "current_price_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			ptr->set_text(state, text::produce_simple_string(state, "alice_trade_flow_label"));
+			ptr->base_data.size.x *= 2; // Nudge
 			return ptr;
 		} else if(name == "current_price_value"
 			|| name == "price_linechart"
@@ -818,14 +819,14 @@ public:
 			}
 			{
 				auto ov_elm = make_element_by_type<image_element_base>(state, "generic_piechart_overlay");
-				ov_elm->base_data.position.x = ptr->base_data.position.x + ov_elm->base_data.size.x * 1;
+				ov_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 16) * 1;
 				ov_elm->base_data.position.y = ptr->base_data.position.y;
 				auto pc_elm = make_element_by_type<trade_flow_consumers_piechart>(state, "generic_piechart");
 				pc_elm->base_data.position.x += ov_elm->base_data.position.x;
 				pc_elm->base_data.position.y += ov_elm->base_data.position.y;
 				auto lg_elm = make_element_by_type<simple_text_element_base>(state, id);
 				lg_elm->set_text(state, text::produce_simple_string(state, "alice_trade_flow_piechart_consumers"));
-				lg_elm->base_data.position.x = ptr->base_data.position.x + ov_elm->base_data.size.x * 1;
+				lg_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 16) * 1;
 				lg_elm->base_data.position.y = ptr->base_data.position.y - 4;
 				add_child_to_front(std::move(lg_elm));
 				add_child_to_front(std::move(pc_elm));
@@ -833,14 +834,14 @@ public:
 			}
 			{
 				auto ov_elm = make_element_by_type<image_element_base>(state, "generic_piechart_overlay");
-				ov_elm->base_data.position.x = ptr->base_data.position.x + ov_elm->base_data.size.x * 2;
+				ov_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 16) * 2;
 				ov_elm->base_data.position.y = ptr->base_data.position.y;
 				auto pc_elm = make_element_by_type<trade_flow_workers_piechart>(state, "generic_piechart");
 				pc_elm->base_data.position.x += ov_elm->base_data.position.x;
 				pc_elm->base_data.position.y += ov_elm->base_data.position.y;
 				auto lg_elm = make_element_by_type<simple_text_element_base>(state, id);
 				lg_elm->set_text(state, text::produce_simple_string(state, "alice_trade_flow_piechart_workforce"));
-				lg_elm->base_data.position.x = ptr->base_data.position.x + ov_elm->base_data.size.x * 2;
+				lg_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 16) * 2;
 				lg_elm->base_data.position.y = ptr->base_data.position.y - 4;
 				add_child_to_front(std::move(lg_elm));
 				add_child_to_front(std::move(pc_elm));
