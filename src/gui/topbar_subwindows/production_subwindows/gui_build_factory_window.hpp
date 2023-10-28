@@ -170,7 +170,7 @@ public:
 			hl_elm->base_data.size.x *= 2;	 // Nudge
 			hl_elm->base_data.size.x += 42; // Nudge
 			hl_elm->base_data.size.y += 5;	 // Nudge
-			add_child_to_front(std::move(hl_elm));
+			add_child_to_back(std::move(hl_elm));
 
 			auto ptr = make_element_by_type<factory_build_item_button>(state, id);
 			ptr->base_data.size.x *= 2;	 // Nudge
