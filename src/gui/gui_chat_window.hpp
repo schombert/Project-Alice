@@ -79,7 +79,7 @@ public:
 			if(bool(c.source))
 				row_contents.push_back(c);
 		}
-		if constexpr(ShowFull) {
+		if constexpr(!ShowFull) {
 			std::vector<chat_message> v;
 			for(auto it = row_contents.rbegin(); it != row_contents.rend() && v.size() < row_windows.size(); it++)
 				v.push_back(*it);
