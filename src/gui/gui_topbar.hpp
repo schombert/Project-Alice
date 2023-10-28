@@ -1111,8 +1111,6 @@ public:
 };
 
 class topbar_unemployment_icon : public image_element_base {
-private:
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
@@ -1199,8 +1197,9 @@ public:
 					for(auto o : state.world.issue_get_options(i)) {
 						if(o && politics::can_enact_political_reform(state, nation_id, o)) {
 							auto fat_id = dcon::fatten(state.world, o);
-							auto name = text::produce_simple_string(state, fat_id.get_name());
-							text::add_to_layout_box(state, contents, box, name);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_issue().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
 							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
@@ -1210,8 +1209,9 @@ public:
 					for(auto o : state.world.issue_get_options(i)) {
 						if(o && politics::can_enact_social_reform(state, nation_id, o)) {
 							auto fat_id = dcon::fatten(state.world, o);
-							auto name = text::produce_simple_string(state, fat_id.get_name());
-							text::add_to_layout_box(state, contents, box, name);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_issue().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
 							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
@@ -1224,8 +1224,9 @@ public:
 					for(auto o : state.world.reform_get_options(i)) {
 						if(o && politics::can_enact_military_reform(state, nation_id, o)) {
 							auto fat_id = dcon::fatten(state.world, o);
-							auto name = text::produce_simple_string(state, fat_id.get_name());
-							text::add_to_layout_box(state, contents, box, name);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_reform().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
 							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
@@ -1235,8 +1236,9 @@ public:
 					for(auto o : state.world.reform_get_options(i)) {
 						if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
 							auto fat_id = dcon::fatten(state.world, o);
-							auto name = text::produce_simple_string(state, fat_id.get_name());
-							text::add_to_layout_box(state, contents, box, name);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_reform().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
 							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
