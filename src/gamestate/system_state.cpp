@@ -2281,6 +2281,16 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				parsers::parse_unit_file(gen, err, context);
 			}
 		}
+
+		if(!bool(military_definitions.infantry)) {
+			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
+		}
+		if(!bool(military_definitions.irregular)) {
+			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
+		}
+		if(!bool(military_definitions.artillery)) {
+			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
+		}
 	}
 	// make space in arrays
 
