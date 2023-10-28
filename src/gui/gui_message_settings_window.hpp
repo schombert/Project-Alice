@@ -339,6 +339,10 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "logtext";
 	}
+
+	bool is_reversed() override {
+		return true;
+	}
 };
 
 enum class message_settings_category : uint8_t {
