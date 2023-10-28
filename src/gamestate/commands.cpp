@@ -958,6 +958,12 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	if(state.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(state, holder);
 
+	if(state.world.nation_get_is_player_controlled(source)) {
+		state.network_state.map_of_player_names.insert_or_assign(holder.index(), state.network_state.map_of_player_names[source.index()]);
+	} else if(state.world.nation_get_is_player_controlled(holder)) {
+		state.network_state.map_of_player_names.insert_or_assign(source.index(), state.network_state.map_of_player_names[holder.index()]);
+	}
+
 	if(state.local_player_nation == source) {
 		state.local_player_nation = holder;
 	} else if(state.local_player_nation == holder) {
