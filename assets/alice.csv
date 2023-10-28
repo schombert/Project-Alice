@@ -1277,6 +1277,9 @@ alice_trade_flow_label;Market overview:
 alice_trade_flow_piechart_producers;Producers
 alice_trade_flow_piechart_consumers;Consumers
 alice_trade_flow_piechart_workforce;Workforce
+alice_diplo_release_subject;Release subject
+alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
+alice_diplo_release_subject_0;Is our subject
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 ;;;;;;;;;;;;;x

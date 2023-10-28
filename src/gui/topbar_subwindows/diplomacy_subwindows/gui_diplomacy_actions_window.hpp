@@ -722,27 +722,21 @@ public:
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
-
 		set_button_text(state, text::produce_simple_string(state, subsidies ? "cancel_warsubsidies_button" : "warsubsidies_button"));
-
 		disabled = subsidies
 			? !command::can_cancel_war_subsidies(state, state.local_player_nation, target)
 			: !command::can_give_war_subsidies(state, state.local_player_nation, target);
-		
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
-
-		
 		if(subsidies) {
 			command::cancel_war_subsidies(state, state.local_player_nation, target);
 		} else {
 			command::give_war_subsidies(state, state.local_player_nation, target);
 		}
-		
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -753,37 +747,31 @@ public:
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
-
 		
-			if(subsidies) {
-				text::add_line(state, contents, "cancel_w_sub_explain_1", text::variable_type::x, text::fp_currency{economy::estimate_war_subsidies(state, target)});
-				if(state.defines.cancelwarsubsidy_diplomatic_cost > 0) {
-					text::add_line_break_to_layout(state, contents);
-					text::add_line_with_condition(state, contents, "cancel_w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelwarsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.cancelwarsubsidy_diplomatic_cost));
-				}
-			} else {
-				text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_one_place{economy::estimate_war_subsidies(state, target)});
+		if(subsidies) {
+			text::add_line(state, contents, "cancel_w_sub_explain_1", text::variable_type::x, text::fp_currency{economy::estimate_war_subsidies(state, target)});
+			if(state.defines.cancelwarsubsidy_diplomatic_cost > 0) {
 				text::add_line_break_to_layout(state, contents);
-
-				if(state.local_player_nation == target) {
-					text::add_line_with_condition(state, contents, "w_sub_explain_1", false);
-				}
-				if(state.defines.warsubsidy_diplomatic_cost > 0) {
-					text::add_line_with_condition(state, contents, "w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.warsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.warsubsidy_diplomatic_cost));
-				}
-				text::add_line_with_condition(state, contents, "w_sub_explain_3", !military::are_at_war(state, state.local_player_nation, target));
-				text::add_line_with_condition(state, contents, "w_sub_explain_4", state.world.nation_get_is_at_war(target));
+				text::add_line_with_condition(state, contents, "cancel_w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelwarsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.cancelwarsubsidy_diplomatic_cost));
 			}
-		
+		} else {
+			text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_one_place{economy::estimate_war_subsidies(state, target)});
+			text::add_line_break_to_layout(state, contents);
+
+			if(state.local_player_nation == target) {
+				text::add_line_with_condition(state, contents, "w_sub_explain_1", false);
+			}
+			if(state.defines.warsubsidy_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.warsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.warsubsidy_diplomatic_cost));
+			}
+			text::add_line_with_condition(state, contents, "w_sub_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "w_sub_explain_4", state.world.nation_get_is_at_war(target));
+		}
 	}
 };
 
 class diplomacy_action_declare_war_button : public button_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
 
@@ -869,20 +857,21 @@ public:
 	}
 };
 
-class diplomacy_action_command_units_button : public button_element_base {
-
+class diplomacy_action_release_subject_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
-		set_visible(state, false);
+		button_element_base::on_create(state);
+		set_button_text(state, text::produce_simple_string(state, "alice_diplo_release_subject"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = true;
-		set_button_text(state, text::produce_simple_string(state, "give_unit_command_button"));
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_release_subject(state, state.local_player_nation, n);
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::release_subject(state, state.local_player_nation, n);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -890,10 +879,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line_with_condition(state, contents, "not_implemented", false);
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		text::add_line(state, contents, "alice_diplo_release_subject_desc");
+		text::add_line_with_condition(state, contents, "alice_diplo_release_subject_0", state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n)) == state.local_player_nation);
 	}
 };
-
 
 class diplomacy_action_increase_opinion_button : public button_element_base {
 public:
