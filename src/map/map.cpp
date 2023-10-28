@@ -898,7 +898,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		float size = (curve_length / text_length) * straight_length * 0.75f;
 
 		// omit small text
-		if(size <= 0.0095f)
+		if(size <= 0.0025f)
 			continue;
 
 		float x = 0.f;
