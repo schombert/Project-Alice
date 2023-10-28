@@ -802,7 +802,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
-		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || !n.get_is_civilized())
 			continue;
 		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
 			continue;

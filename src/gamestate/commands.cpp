@@ -3806,6 +3806,23 @@ void execute_toggle_immigrator_province(sys::state& state, dcon::nation_id sourc
 	sys::toggle_modifier_from_province(state, prov, state.economy_definitions.immigrator_modifier, sys::date{});
 }
 
+void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::release_subject;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	return state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) == source;
+}
+void execute_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_release_subject(state, source, target))
+		return;
+	nations::release_vassal(state, state.world.nation_get_overlord_as_subject(target));
+}
+
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4930,6 +4947,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_immigrator_province:
 		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::release_subject:
+		execute_release_subject(state, c.source, c.data.diplo_action.target);
 		break;
 
 		// common mp commands

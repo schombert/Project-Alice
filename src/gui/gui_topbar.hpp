@@ -1111,32 +1111,23 @@ public:
 };
 
 class topbar_unemployment_icon : public image_element_base {
-private:
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		bool has_unemployed = false;
-
-		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
-			auto state_instance = si.get_state();
-
-			auto prim_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-			auto prim_unemployed = prim_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-
-			auto sec_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			auto sec_unemployed = sec_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
-
-			if(prim_unemployed >= 1.0f) {
-				has_unemployed = true;
-				break;
+		for(auto pt : state.world.in_pop_type) {
+			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+				auto state_instance = si.get_state();
+				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
+				auto unemployed = total - state_instance.get_demographics(demographics::to_employment_key(state, pt));
+				if(unemployed >= 1.0f) {
+					has_unemployed = true;
+					break;
+				}
 			}
-			if(sec_unemployed >= 1.0f) {
-				has_unemployed = true;
+			if(has_unemployed)
 				break;
-			}
 		}
-
 		frame = has_unemployed ? 0 : 1;
 	}
 
@@ -1146,60 +1137,32 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
 		bool header = false;
-
-		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
-			auto state_instance = si.get_state();
-
-			auto prim_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-			auto prim_unemployed = prim_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-
-			auto sec_total = state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			auto sec_unemployed = sec_total - state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
-
-			if(prim_unemployed >= 1.0f) {
-				if(!header) {
-					text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
-					header = true;
+		for(auto pt : state.world.in_pop_type) {
+			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+				auto state_instance = si.get_state();
+				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
+				auto unemployed = total - state_instance.get_demographics(demographics::to_employment_key(state, pt));
+				if(unemployed >= 1.f) {
+					if(!header) {
+						text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
+						header = true;
+					}
+					text::substitution_map sub;
+					text::add_to_substitution_map(sub, text::variable_type::num, int64_t(total));
+					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker));
+					auto state_name = text::get_dynamic_state_name(state, state_instance);
+					text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
+					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage_one_place{ unemployed / total });
+					auto box = text::open_layout_box(contents);
+					text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
+					text::close_layout_box(contents, box);
 				}
-
-				text::substitution_map sub;
-
-				text::add_to_substitution_map(sub, text::variable_type::num, int64_t(prim_total));
-				text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker));
-				auto state_name = text::get_dynamic_state_name(state, state_instance);
-				text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
-				text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_one_place{ 100.0f * prim_unemployed / prim_total });
-
-				auto box = text::open_layout_box(contents);
-				text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
-				text::close_layout_box(contents, box);
-			}
-			if(sec_unemployed >= 1.0f) {
-				if(!header) {
-					text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
-					header = true;
-				}
-
-				text::substitution_map sub;
-
-				text::add_to_substitution_map(sub, text::variable_type::num, int64_t(sec_total));
-				text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
-				auto state_name = text::get_dynamic_state_name(state, state_instance);
-				text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
-				text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_one_place{ 100.0f * sec_unemployed / sec_total });
-
-				auto box = text::open_layout_box(contents);
-				text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
-				text::close_layout_box(contents, box);
 			}
 		}
-
 		if(!header) {
 			text::add_line(state, contents, "countryalert_no_hasunemployedworkers");
 		}
-
 	}
 };
 
@@ -1214,76 +1177,75 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			if(!nations::has_reform_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candoreforms"),
-						text::substitution_map{});
-			} else if(nations::has_reform_available(state, nation_id)) {
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
-				text::add_divider_to_layout_box(state, contents, box);
-				// Display Avaliable Reforms
-				// Mostly a copy of nations::has_reform_avaliable
-				auto last_date = state.world.nation_get_last_issue_or_reform_change(nation_id);
-				if(bool(last_date) && (last_date + int32_t(state.defines.min_delay_between_reforms * 30.0f)) > state.current_date) {
-					text::close_layout_box(contents, box);
-					return;
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::has_reform_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candoreforms"),
+					text::substitution_map{});
+		} else if(nations::has_reform_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
+			text::add_divider_to_layout_box(state, contents, box);
+			// Display Avaliable Reforms
+			// Mostly a copy of nations::has_reform_avaliable
+			auto last_date = state.world.nation_get_last_issue_or_reform_change(nation_id);
+			if(bool(last_date) && (last_date + int32_t(state.defines.min_delay_between_reforms * 30.0f)) > state.current_date) {
+				text::close_layout_box(contents, box);
+				return;
+			}
+			if(state.world.nation_get_is_civilized(nation_id)) {
+				for(auto i : state.culture_definitions.political_issues) {
+					for(auto o : state.world.issue_get_options(i)) {
+						if(o && politics::can_enact_political_reform(state, nation_id, o)) {
+							auto fat_id = dcon::fatten(state.world, o);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_issue().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
+							text::add_line_break_to_layout_box(state, contents, box);
+						}
+					}
 				}
-				if(state.world.nation_get_is_civilized(nation_id)) {
-					for(auto i : state.culture_definitions.political_issues) {
-						for(auto o : state.world.issue_get_options(i)) {
-							if(o && politics::can_enact_political_reform(state, nation_id, o)) {
-								auto fat_id = dcon::fatten(state.world, o);
-								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(state, contents, box, name);
-								text::add_line_break_to_layout_box(state, contents, box);
-							}
+
+				for(auto i : state.culture_definitions.social_issues) {
+					for(auto o : state.world.issue_get_options(i)) {
+						if(o && politics::can_enact_social_reform(state, nation_id, o)) {
+							auto fat_id = dcon::fatten(state.world, o);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_issue().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
+							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
+				}
 
-					for(auto i : state.culture_definitions.social_issues) {
-						for(auto o : state.world.issue_get_options(i)) {
-							if(o && politics::can_enact_social_reform(state, nation_id, o)) {
-								auto fat_id = dcon::fatten(state.world, o);
-								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(state, contents, box, name);
-								text::add_line_break_to_layout_box(state, contents, box);
-							}
+				text::close_layout_box(contents, box);
+				return;
+			} else {
+				for(auto i : state.culture_definitions.military_issues) {
+					for(auto o : state.world.reform_get_options(i)) {
+						if(o && politics::can_enact_military_reform(state, nation_id, o)) {
+							auto fat_id = dcon::fatten(state.world, o);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_reform().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
+							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
+				}
 
-					text::close_layout_box(contents, box);
-					return;
-				} else {
-					for(auto i : state.culture_definitions.military_issues) {
-						for(auto o : state.world.reform_get_options(i)) {
-							if(o && politics::can_enact_military_reform(state, nation_id, o)) {
-								auto fat_id = dcon::fatten(state.world, o);
-								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(state, contents, box, name);
-								text::add_line_break_to_layout_box(state, contents, box);
-							}
-						}
-					}
-
-					for(auto i : state.culture_definitions.economic_issues) {
-						for(auto o : state.world.reform_get_options(i)) {
-							if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
-								auto fat_id = dcon::fatten(state.world, o);
-								auto name = text::produce_simple_string(state, fat_id.get_name());
-								text::add_to_layout_box(state, contents, box, name);
-								text::add_line_break_to_layout_box(state, contents, box);
-							}
+				for(auto i : state.culture_definitions.economic_issues) {
+					for(auto o : state.world.reform_get_options(i)) {
+						if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
+							auto fat_id = dcon::fatten(state.world, o);
+							text::add_to_layout_box(state, contents, box, fat_id.get_parent_reform().get_name());
+							text::add_to_layout_box(state, contents, box, std::string_view(": "));
+							text::add_to_layout_box(state, contents, box, fat_id.get_name());
+							text::add_line_break_to_layout_box(state, contents, box);
 						}
 					}
 				}
 			}
-			text::close_layout_box(contents, box);
 		}
+		text::close_layout_box(contents, box);
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -1320,34 +1282,29 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		if(!nations::has_decision_available(state, nation_id)) {
+			text::add_line(state, contents, "countryalert_no_candodecisions");
+		} else {
+			text::add_line(state, contents, "countryalert_candodecisions");
 
-			if(!nations::has_decision_available(state, nation_id)) {
-				text::add_line(state, contents, "countryalert_no_candodecisions");
-			} else {
-				text::add_line(state, contents, "countryalert_candodecisions");
+			text::substitution_map m;
+			produce_decision_substitutions(state, m, state.local_player_nation);
 
-				text::substitution_map m;
-				produce_decision_substitutions(state, m, state.local_player_nation);
-
-				state.world.for_each_decision([&](dcon::decision_id di) {
-					if(nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
-						auto lim = state.world.decision_get_potential(di);
-						if(!lim || trigger::evaluate(state, lim, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
-							auto allow = state.world.decision_get_allow(di);
-							if(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
-								auto fat_id = dcon::fatten(state.world, di);
-								auto box = text::open_layout_box(contents);
-								text::add_to_layout_box(state, contents, box, fat_id.get_name(), m);
-								text::close_layout_box(contents, box);
-							}
+			state.world.for_each_decision([&](dcon::decision_id di) {
+				if(nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
+					auto lim = state.world.decision_get_potential(di);
+					if(!lim || trigger::evaluate(state, lim, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
+						auto allow = state.world.decision_get_allow(di);
+						if(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
+							auto fat_id = dcon::fatten(state.world, di);
+							auto box = text::open_layout_box(contents);
+							text::add_to_layout_box(state, contents, box, fat_id.get_name(), m);
+							text::close_layout_box(contents, box);
 						}
 					}
-				});
-			}
+				}
+			});
 		}
 	}
 
@@ -1385,26 +1342,21 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			if(politics::has_elections(state, nation_id)) {
-				if(!politics::is_election_ongoing(state, nation_id)) {
-					text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"),
-							text::substitution_map{});
-				} else if(politics::is_election_ongoing(state, nation_id)) {
-					text::substitution_map sub;
-					text::add_to_substitution_map(sub, text::variable_type::date, dcon::fatten(state.world, nation_id).get_election_ends());
-					text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
-				}
-			} else {
-				text::localised_format_box(state, contents, box, std::string_view("term_for_life"));
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		if(politics::has_elections(state, nation_id)) {
+			if(!politics::is_election_ongoing(state, nation_id)) {
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"),
+						text::substitution_map{});
+			} else if(politics::is_election_ongoing(state, nation_id)) {
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::date, dcon::fatten(state.world, nation_id).get_election_ends());
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
 			}
-			text::close_layout_box(contents, box);
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("term_for_life"));
 		}
+		text::close_layout_box(contents, box);
 	}
 };
 
