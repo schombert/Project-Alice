@@ -351,6 +351,10 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("GI_MessageWindow.wav"));
 		state.sound_ptr->diplomatic_request_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
 	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_ElectionHeld.wav"));
+		state.sound_ptr->election_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
 
 	// Land battles
 	{

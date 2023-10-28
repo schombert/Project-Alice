@@ -298,11 +298,7 @@ class state_factory_count_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		int32_t count = 0;
-		province::for_each_province_in_state_instance(state, content, [&](dcon::province_id pid) {
-			auto fat_id = dcon::fatten(state.world, pid);
-			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) { ++count; });
-		});
+		int32_t count = economy::state_factory_count(state, content, state.local_player_nation);
 		auto txt = std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
 		set_text(state, txt);
 	}

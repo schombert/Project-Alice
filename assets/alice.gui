@@ -2753,4 +2753,17 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}			
 	}
+
+	iconType = {
+		name = "generic_piechart_overlay"
+		spriteType = "GFX_chart_overlay_small"
+		position = { 0 0 }
+		Orientation = "UPPER_LEFT"
+	}
+	iconType = {
+		name = "generic_piechart"
+		spriteType = "GFX_selected_chart"
+		position = { 31 7 }
+		Orientation = "UPPER_LEFT"
+	}
 }

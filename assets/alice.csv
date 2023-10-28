@@ -1267,7 +1267,19 @@ change_state_name_to;change state name to $text$
 alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 alice_unit_disable_rebel_hunt;Stop hunting rebels
 alice_regiment_battle_info;$m$ $name$ 即$type$劬\nOrganisation: 即$organisation$劬\nStrength: 即$strength$劬
+alice_understaffed_regiment;刪This regiment is understaffed and will only have $value$ soldiers!劬
 alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
+alice_commodity_shortage;刪There is a shortage of this commodity
+alice_commodity_surplus;佈There is a surplus of this commodity
+alice_trade_flow_produced;即Domestic production:
+alice_trade_flow_consumed;即Domestic consumption:
+alice_trade_flow_label;Market overview:
+alice_trade_flow_piechart_producers;Producers
+alice_trade_flow_piechart_consumers;Consumers
+alice_trade_flow_piechart_workforce;Workforce
+alice_diplo_release_subject;Release subject
+alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
+alice_diplo_release_subject_0;Is our subject
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 ;;;;;;;;;;;;;x
