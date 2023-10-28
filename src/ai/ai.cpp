@@ -522,7 +522,7 @@ void perform_influence_actions(sys::state& state) {
 			if(state.defines.increaseopinion_influence_cost <= gprl.get_influence() && clevel != nations::influence::level_friendly) {
 				command::execute_increase_opinion(state, gprl.get_great_power(), gprl.get_influence_target());
 			} else if(state.defines.removefromsphere_influence_cost <= gprl.get_influence() && current_sphere /* && current_sphere != gprl.get_great_power()*/ && clevel == nations::influence::level_friendly) { // condition taken care of by check above
-				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
+				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
 			} else if(state.defines.addtosphere_influence_cost <= gprl.get_influence() && !current_sphere && clevel == nations::influence::level_friendly) {
 				command::execute_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
 			}

@@ -4539,7 +4539,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::declare_war:
 		return can_declare_war(state, c.source, c.data.new_war.target, c.data.new_war.primary_cb, c.data.new_war.cb_state,
-				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies);
+				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation);
 
 	case command_type::add_war_goal:
 		return can_add_war_goal(state, c.source, c.data.new_war_goal.war, c.data.new_war_goal.target, c.data.new_war_goal.cb_type,
@@ -4601,7 +4601,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; // can_invite_to_crisis(state, c.source, c.data.crisis_invitation);
 
 	case command_type::add_wargoal_to_crisis_offer:
-		return can_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
+		return true; // can_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
 
 	case command_type::send_crisis_peace_offer:
 		return can_send_crisis_peace_offer(state, c.source);
