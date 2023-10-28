@@ -1280,12 +1280,6 @@ alice_trade_flow_piechart_workforce;Workforce
 alice_diplo_release_subject;Release subject
 alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
 alice_diplo_release_subject_0;Is our subject
-alice_diplo_give_loan;Offer loan
-alice_diplo_give_loan_desc;Offers a loan to this nation, with or without interest
-alice_diplo_give_loan_0;We're not at war with this nation
-alice_diplo_pay_loan;Pay loan
-alice_diplo_pay_loan_desc;Pays back a loan from this nation
-alice_diplo_pay_loan_0;We're not at war with this nation
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 ;;;;;;;;;;;;;x
