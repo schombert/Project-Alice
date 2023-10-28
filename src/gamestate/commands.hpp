@@ -111,6 +111,7 @@ enum class command_type : uint8_t {
 	notify_stop_game = 115, // "go back to lobby"
 	advance_tick = 120,
 	chat_message = 121,
+	release_subject = 122,
 
 	// console cheats
 	c_switch_nation = 128,
@@ -782,6 +783,9 @@ bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, d
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+
+void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void advance_tick(sys::state& state, dcon::nation_id source);
 void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
