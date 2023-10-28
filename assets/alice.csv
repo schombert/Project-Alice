@@ -1271,6 +1271,12 @@ alice_understaffed_regiment;§RThis regiment is understaffed and will only have $
 alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
 alice_commodity_shortage;§RThere is a shortage of this commodity
 alice_commodity_surplus;§GThere is a surplus of this commodity
+alice_trade_flow_produced;§YDomestic production:
+alice_trade_flow_consumed;§YDomestic consumption:
+alice_trade_flow_label;Market overview:
+alice_trade_flow_piechart_producers;Producers
+alice_trade_flow_piechart_consumers;Consumers
+alice_trade_flow_piechart_workforce;Workforce
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 ;;;;;;;;;;;;;x
