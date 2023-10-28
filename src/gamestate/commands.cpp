@@ -242,8 +242,13 @@ bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nat
 	return true;
 }
 void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_give_war_subsidies(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_give_war_subsidies(state, source, target))
+			return;
+	} else {
+		assert(can_give_war_subsidies(state, source, target));
+	}
+
 	nations::adjust_relationship(state, source, target, state.defines.warsubsidy_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.warsubsidy_diplomatic_cost;
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
@@ -294,8 +299,13 @@ bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::n
 	return true;
 }
 void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_cancel_war_subsidies(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_cancel_war_subsidies(state, source, target))
+			return;
+	} else {
+		assert(can_cancel_war_subsidies(state, source, target));
+	}
+
 	nations::adjust_relationship(state, source, target, state.defines.cancelwarsubsidy_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelwarsubsidy_diplomatic_cost;
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
@@ -350,8 +360,13 @@ bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nat
 	return true;
 }
 void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_increase_relations(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_increase_relations(state, source, target))
+			return;
+	} else {
+		assert(can_increase_relations(state, source, target));
+	}
+
 	nations::adjust_relationship(state, source, target, state.defines.increaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.increaserelation_diplomatic_cost;
 
@@ -396,8 +411,12 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 	return true;
 }
 void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_decrease_relations(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_decrease_relations(state, source, target))
+			return;
+	} else {
+		assert(can_decrease_relations(state, source, target));
+	}
 
 	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
@@ -1059,8 +1078,13 @@ bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dc
 	return state.world.nation_get_is_great_power(source) && !state.world.nation_get_is_great_power(influence_target);
 }
 void execute_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
-	if(!can_change_influence_priority(state, source, influence_target, priority))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_change_influence_priority(state, source, influence_target, priority))
+			return;
+	} else {
+		assert(can_change_influence_priority(state, source, influence_target, priority));
+	}
+
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	if(!rel) {
 		rel = state.world.force_create_gp_relationship(influence_target, source);
@@ -1133,8 +1157,12 @@ bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
 void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	if(!can_discredit_advisors(state, source, influence_target, affected_gp))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_discredit_advisors(state, source, influence_target, affected_gp))
+			return;
+	} else {
+		assert(can_discredit_advisors(state, source, influence_target, affected_gp));
+	}
 
 	/*
 	A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just
@@ -1215,8 +1243,12 @@ bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
 void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	if(!can_expel_advisors(state, source, influence_target, affected_gp))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_expel_advisors(state, source, influence_target, affected_gp))
+			return;
+	} else {
+		assert(can_expel_advisors(state, source, influence_target, affected_gp));
+	}
 
 	/*
 	Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action
@@ -1297,8 +1329,12 @@ bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id 
 			nations::influence::get_level(state, affected_gp, influence_target));
 }
 void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	if(!can_ban_embassy(state, source, influence_target, affected_gp))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_ban_embassy(state, source, influence_target, affected_gp))
+			return;
+	} else {
+		assert(can_ban_embassy(state, source, influence_target, affected_gp));
+	}
 
 	/*
 	Banning a nation's embassy "increases" your relationship with them by define:BANEMBASSY_RELATION_ON_ACCEPT. This action costs
@@ -1372,8 +1408,12 @@ bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 	return true;
 }
 void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
-	if(!can_increase_opinion(state, source, influence_target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_increase_opinion(state, source, influence_target))
+			return;
+	} else {
+		assert(can_increase_opinion(state, source, influence_target));
+	}
 
 	/*
 	Increasing the opinion of a nation costs define:INCREASEOPINION_INFLUENCE_COST influence points. Opinion can be increased to a
@@ -1454,8 +1494,12 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	actions costs define:DECREASEOPINION_INFLUENCE_COST influence points. Opinion of the influenced nation of the secondary target
 	decreases by one step.
 	*/
-	if(!can_decrease_opinion(state, source, influence_target, affected_gp))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_decrease_opinion(state, source, influence_target, affected_gp))
+			return;
+	} else {
+		assert(can_decrease_opinion(state, source, influence_target, affected_gp));
+	}
 
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
@@ -1527,8 +1571,12 @@ bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_i
 	return true;
 }
 void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
-	if(!can_add_to_sphere(state, source, influence_target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_add_to_sphere(state, source, influence_target))
+			return;
+	} else {
+		assert(can_add_to_sphere(state, source, influence_target));
+	}
 
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
@@ -1605,8 +1653,12 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	Removing a nation from the sphere of another nation "increases" your relationship with the former sphere leader by
 	define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. The removed nation then becomes friendly with its former sphere leader.
 	*/
-	if(!can_remove_from_sphere(state, source, influence_target, affected_gp))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_remove_from_sphere(state, source, influence_target, affected_gp))
+			return;
+	} else {
+		assert(can_remove_from_sphere(state, source, influence_target, affected_gp));
+	}
 
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
@@ -2340,8 +2392,12 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 }
 
 void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
-	if(!can_fabricate_cb(state, source, target, type))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_fabricate_cb(state, source, target, type))
+			return;
+	} else {
+		assert(can_fabricate_cb(state, source, target, type));
+	}
 
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
@@ -2395,8 +2451,12 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	return true;
 }
 void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	if(!can_ask_for_access(state, asker, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(asker)) {
+		if(!can_ask_for_access(state, asker, target))
+			return;
+	} else {
+		assert(can_ask_for_access(state, asker, target));
+	}
 
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
 
@@ -2434,8 +2494,12 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 	return true;
 }
 void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	if(!can_give_military_access(state, asker, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(asker)) {
+		if(!can_give_military_access(state, asker, target))
+			return;
+	} else {
+		assert(can_give_military_access(state, asker, target));
+	}
 
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.givemilaccess_diplomatic_cost;
 
@@ -2489,8 +2553,12 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	return true;
 }
 void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	if(!can_ask_for_alliance(state, asker, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(asker)) {
+		if(!can_ask_for_alliance(state, asker, target))
+			return;
+	} else {
+		assert(can_ask_for_alliance(state, asker, target));
+	}
 
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.alliance_diplomatic_cost;
 
@@ -2534,8 +2602,12 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	return true;
 }
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
-	if(!can_call_to_arms(state, asker, target, w))
-		return;
+	if(state.world.nation_get_is_player_controlled(asker)) {
+		if(!can_call_to_arms(state, asker, target, w))
+			return;
+	} else {
+		assert(can_call_to_arms(state, asker, target, w));
+	}
 
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.callally_diplomatic_cost;
 
@@ -2599,8 +2671,12 @@ bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon:
 		return false;
 }
 void execute_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_cancel_military_access(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_cancel_military_access(state, source, target))
+			return;
+	} else {
+		assert(can_cancel_military_access(state, source, target));
+	}
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel)
@@ -2647,8 +2723,12 @@ bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source,
 		return false;
 }
 void execute_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_cancel_given_military_access(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_cancel_given_military_access(state, source, target))
+			return;
+	} else {
+		assert(can_cancel_given_military_access(state, source, target));
+	}
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
 	if(rel)
@@ -2706,8 +2786,12 @@ bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation
 	return true;
 }
 void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(!can_cancel_alliance(state, source, target))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_cancel_alliance(state, source, target))
+			return;
+	} else {
+		assert(can_cancel_alliance(state, source, target));
+	}
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelalliance_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.cancelalliance_relation_on_accept);
@@ -2771,9 +2855,11 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
-
-	if(!can_declare_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)) {
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_declare_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)))
+			return;
+	} else {
+		assert(can_declare_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation));
 	}
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
@@ -2902,9 +2988,12 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target,
 		dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
-
-	if(!can_add_war_goal(state, source, w, target, cb_type, cb_state, cb_tag, cb_secondary_nation))
-		return;
+	if(state.world.nation_get_is_player_controlled(source)) {
+		if(!can_add_war_goal(state, source, w, target, cb_type, cb_state, cb_tag, cb_secondary_nation))
+			return;
+	} else {
+		assert(can_add_war_goal(state, source, w, target, cb_type, cb_state, cb_tag, cb_secondary_nation));
+	}
 
 	state.world.nation_get_diplomatic_points(source) -= state.defines.addwargoal_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.addwargoal_relation_on_accept);

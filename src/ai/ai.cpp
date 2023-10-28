@@ -520,88 +520,11 @@ void perform_influence_actions(sys::state& state) {
 			auto current_sphere = gprl.get_influence_target().get_in_sphere_of();
 
 			if(state.defines.increaseopinion_influence_cost <= gprl.get_influence() && clevel != nations::influence::level_friendly) {
-
-				gprl.get_influence() -= state.defines.increaseopinion_influence_cost;
-				auto& l = gprl.get_status();
-				l = nations::influence::increase_level(l);
-
-				notification::post(state, notification::message{
-					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id](sys::state& state, text::layout_base& contents) {
-						text::add_line(state, contents, "msg_op_inc_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-					},
-					"msg_op_inc_title",
-					gprl.get_great_power().id,
-					sys::message_setting_type::increase_opinion
-				});
+				command::execute_increase_opinion(state, gprl.get_great_power(), gprl.get_influence_target());
 			} else if(state.defines.removefromsphere_influence_cost <= gprl.get_influence() && current_sphere /* && current_sphere != gprl.get_great_power()*/ && clevel == nations::influence::level_friendly) { // condition taken care of by check above
-
-				gprl.get_influence() -= state.defines.removefromsphere_influence_cost;
-
-				gprl.get_influence_target().set_in_sphere_of(dcon::nation_id{});
-
-				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(gprl.get_influence_target(), current_sphere);
-				auto& l = state.world.gp_relationship_get_status(orel);
-				l = nations::influence::decrease_level(l);
-
-				nations::adjust_relationship(state, gprl.get_great_power(), current_sphere, state.defines.removefromsphere_relation_on_accept);
-
-				notification::post(state, notification::message{
-					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id, affected_gp = current_sphere.id](sys::state& state, text::layout_base& contents) {
-						if(source == affected_gp)
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-						else
-							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-					},
-					"msg_rem_sphere_title",
-					gprl.get_great_power(),
-					sys::message_setting_type::rem_sphere_by_nation
-				});
-				notification::post(state, notification::message{
-					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id, affected_gp = current_sphere.id](sys::state& state, text::layout_base& contents) {
-						if(source == affected_gp)
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-						else
-							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-					},
-					"msg_rem_sphere_title",
-					current_sphere,
-					sys::message_setting_type::rem_sphere_on_nation
-				});
-				notification::post(state, notification::message{
-					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id, affected_gp = current_sphere.id](sys::state& state, text::layout_base& contents) {
-						if(source == affected_gp)
-							text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-						else
-							text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-					},
-					"msg_rem_sphere_title",
-					gprl.get_influence_target(),
-					sys::message_setting_type::removed_from_sphere
-				});
+				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
 			} else if(state.defines.addtosphere_influence_cost <= gprl.get_influence() && !current_sphere && clevel == nations::influence::level_friendly) {
-
-				gprl.get_influence() -= state.defines.addtosphere_influence_cost;
-				auto& l = gprl.get_status();
-				l = nations::influence::increase_level(l);
-
-				gprl.get_influence_target().set_in_sphere_of(gprl.get_great_power());
-
-				notification::post(state, notification::message{
-					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id](sys::state& state, text::layout_base& contents) {
-						text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-					},
-					"msg_add_sphere_title",
-					gprl.get_great_power(),
-					sys::message_setting_type::add_sphere
-				});
-				notification::post(state, notification::message{
-					[source = gprl.get_great_power().id, influence_target = gprl.get_influence_target().id](sys::state& state, text::layout_base& contents) {
-						text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-					},
-					"msg_add_sphere_title",
-					gprl.get_influence_target(),
-					sys::message_setting_type::added_to_sphere
-				});
+				command::execute_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
 			}
 		}
 	}
