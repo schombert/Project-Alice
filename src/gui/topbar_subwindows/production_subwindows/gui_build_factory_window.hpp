@@ -89,12 +89,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
@@ -107,12 +103,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
-			set_text(state, get_text(state, content));
-		}
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 
@@ -123,10 +115,7 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
-
-		std::vector<dcon::factory_type_id> desired_types;
-		ai::get_desired_factory_types(state, state.local_player_nation, desired_types);
-		visible = !(std::find(desired_types.begin(), desired_types.end(), content) != desired_types.end());
+		visible = !retrieve<bool>(state, parent);
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -151,9 +140,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
-		std::vector<dcon::factory_type_id> desired_types;
-		ai::get_desired_factory_types(state, state.local_player_nation, desired_types);
-		visible = std::find(desired_types.begin(), desired_types.end(), content) != desired_types.end();
+		visible = retrieve<bool>(state, parent);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -163,6 +150,7 @@ public:
 };
 
 class factory_build_item : public listbox_row_element_base<dcon::factory_type_id> {
+	std::vector<dcon::factory_type_id> desired_types;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
@@ -195,9 +183,20 @@ public:
 		}
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		desired_types.clear();
+		ai::get_desired_factory_types(state, state.local_player_nation, desired_types);
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(dcon::fatten(state.world, content).get_output().id);
+			return message_result::consumed;
+		} else if(payload.holds_type<bool>()) {
+			auto sid = retrieve<dcon::state_instance_id>(state, parent);
+			bool is_hl = std::find(desired_types.begin(), desired_types.end(), content) != desired_types.end();
+			is_hl = is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+			payload.emplace<bool>(is_hl);
 			return message_result::consumed;
 		}
 		return listbox_row_element_base<dcon::factory_type_id>::get(state, payload);
@@ -205,6 +204,11 @@ public:
 };
 
 class factory_build_list : public listbox_element_base<factory_build_item, dcon::factory_type_id> {
+	std::vector<dcon::factory_type_id> desired_types;
+	bool is_highlighted(sys::state& state, dcon::state_instance_id sid, dcon::factory_type_id ftid) {
+		bool is_hl = std::find(desired_types.begin(), desired_types.end(), ftid) != desired_types.end();
+		return is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
+	}
 protected:
 	std::string_view get_row_element_name() override {
 		return "new_factory_option";
@@ -214,26 +218,22 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		row_contents.clear();
-
-		std::vector<dcon::factory_type_id> desired_types;
+		desired_types.clear();
 		ai::get_desired_factory_types(state, state.local_player_nation, desired_types);
 		// First the desired factory types
 		for(const auto ftid : desired_types)
-			row_contents.push_back(ftid);
+			if(is_highlighted(state, sid, ftid))
+				row_contents.push_back(ftid);
 		// Then the buildable factories
 		for(const auto ftid : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false)) {
-				if(std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
-					row_contents.push_back(ftid);
-				}
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false) && std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
+				row_contents.push_back(ftid);
 			}
 		}
 		// Then the ones that can't be built
 		for(const auto ftid : state.world.in_factory_type) {
-			if(!command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false)) {
-				if(std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
-					row_contents.push_back(ftid);
-				}
+			if(!command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false) && std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
+				row_contents.push_back(ftid);
 			}
 		}
 		update(state);
