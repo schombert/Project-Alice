@@ -2043,8 +2043,13 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
-	if(!as_attacker)
-		return true;
+	if(!as_attacker) {
+		// Check that our side doesn't have 
+		auto dn = state.world.war_get_primary_defender(w);
+		if(state.world.nation_get_infamy(dn) < state.defines.badboy_limit) {
+			return true;
+		}
+	}
 	for(auto par : state.world.war_get_war_participant(w)) {
 		if(par.get_is_attacker() == !as_attacker) {
 			// Could use a CB against this nation?
