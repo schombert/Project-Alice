@@ -4662,6 +4662,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::toggle_immigrator_province:
 		return can_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
 
+	case command_type::release_subject:
+		return can_release_subject(state, c.source, c.data.diplo_action.target);
 
 		// common mp commands
 	case command_type::chat_message:
@@ -5013,6 +5015,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_immigrator_province:
 		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::release_subject:
+		execute_release_subject(state, c.source, c.data.diplo_action.target);
 		break;
 
 		// common mp commands
