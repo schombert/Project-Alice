@@ -24,7 +24,6 @@
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "demographics.hpp"
-#include <algorithm>
 #include <thread>
 #include "rebels.hpp"
 #include "ai.hpp"
@@ -1573,8 +1572,7 @@ dcon::text_key state::add_to_pool(std::string_view new_text) {
 
 dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 	if(new_text.length() > 0) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
-				std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
+		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(new_text.begin(), new_text.end()));
 		if(search_result != text_data.data() + text_data.size()) {
 			return dcon::text_key(uint32_t(search_result - text_data.data()));
 		} else {
@@ -1620,8 +1618,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 		return dcon::trigger_key();
 	}
 
-	auto search_result = std::search(trigger_data.data() + 1, trigger_data.data() + trigger_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+	auto search_result = std::search(trigger_data.data() + 1, trigger_data.data() + trigger_data.size(), std::boyer_moore_horspool_searcher(data.begin(), data.end()));
 	if(search_result != trigger_data.data() + trigger_data.size()) {
 		auto const start = search_result - trigger_data.data();
 		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
@@ -1654,8 +1651,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 		return dcon::effect_key();
 	}
 
-	auto search_result = std::search(effect_data.data() + 1, effect_data.data() + effect_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+	auto search_result = std::search(effect_data.data() + 1, effect_data.data() + effect_data.size(), std::boyer_moore_horspool_searcher(data.begin(), data.end()));
 	if(search_result != effect_data.data() + effect_data.size()) {
 		auto const start = search_result - effect_data.data();
 		auto it = std::find(effect_data_indices.begin(), effect_data_indices.end(), int32_t(start));
