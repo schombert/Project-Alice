@@ -168,6 +168,10 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("GI_MessageWindow.wav"));
 		state.sound_ptr->diplomatic_request_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
 	}
+	{
+		auto file_peek = peek_file(sound_directory, NATIVE("Misc_ElectionHeld.wav"));
+		state.sound_ptr->election_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
+	}
 
 	{
 		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_1.wav"));
