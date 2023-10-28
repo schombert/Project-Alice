@@ -232,7 +232,7 @@ public:
 		}
 		// Then the ones that can't be built
 		for(const auto ftid : state.world.in_factory_type) {
-			if(!command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false) && std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
+			if(!command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false)) {
 				row_contents.push_back(ftid);
 			}
 		}
