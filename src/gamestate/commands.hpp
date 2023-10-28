@@ -643,17 +643,17 @@ void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 
 void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
-bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
-bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
-bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost = false);
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
 
