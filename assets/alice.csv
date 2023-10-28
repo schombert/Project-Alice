@@ -1098,6 +1098,12 @@ et_add_immigrator;enable province immigrator
 et_remove_immigrator;disable province immigrator
 modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
+chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
+chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
+chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
+chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ fue vetado;;;;;;;;;x
+chat_player_switch;@$x$ $playername$ has choosen $country$;;;@$x$ $playername$ ahora es $country$;;;;;;;;;x
+chat_player_oos;@$x$ $playername$ has OOSed!;;;;;;;;;x
 message_name_text;Message
 msg_for_us;About: your nation
 msg_for_interesting;Interesting nation
@@ -1248,6 +1254,7 @@ tech_ol_tt;§G$x$§! from your overlord having this technology
 tech_year_tt;§G$x$§! from the current year
 disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
+alice_play_save_stream;Host is streaming a save to you, wait until it completes
 ai_will_accept_po;The AI will accept this offer
 ai_will_not_accept_po;The AI will NOT accept this offer
 close_and_del;Close & Delete Factory
