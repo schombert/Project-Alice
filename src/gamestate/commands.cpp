@@ -3719,7 +3719,7 @@ void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	add_to_command_queue(state, p);
 }
 bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	return state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) != source;
+	return state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) == source;
 }
 void execute_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_release_subject(state, source, target))
