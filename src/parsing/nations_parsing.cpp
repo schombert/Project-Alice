@@ -8,10 +8,27 @@ namespace parsers {
 void national_identity_file::any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err,
 		int32_t line, scenario_building_context& context) {
 	if(tag.length() != 3) {
-		err.accumulated_errors +=
-				err.file_name + " line " + std::to_string(line) + ": encountered a tag that was not three characters\n";
+		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": encountered a tag that was not three characters\n";
 		return;
 	}
+
+	// Avoid issues that the original had, where defining a tag 'NOT' or 'AND' caused
+	// crashes, here we tell the modder that she shouldn't do THAT
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "not")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "and")) {
+		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": A tag which conflicts with a conditional 'NOT' or 'AND'\n";
+		return;
+	}
+
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "war")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "tag")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "who")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "any")) {
+		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": A tag which conflicts with a built-in 'war', 'who', 'oob', 'any' or 'tag'\n";
+		return;
+	}
+
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
 
