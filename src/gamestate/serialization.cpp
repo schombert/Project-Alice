@@ -810,11 +810,9 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	auto last_written = write_scenario_section(temp_scenario_buffer, state);
 	auto last_written_count = last_written - temp_scenario_buffer;
 	assert(size_t(last_written_count) == scenario_space);
-
 	// calculate checksum
 	checksum_key* checksum = &reinterpret_cast<scenario_header*>(temp_buffer + sizeof(uint32_t))->checksum;
 	blake2b(checksum, sizeof(*checksum), temp_scenario_buffer, scenario_space, nullptr, 0);
-
 	state.scenario_checksum = *checksum;
 
 	buffer_position = write_compressed_section(buffer_position, temp_scenario_buffer, uint32_t(scenario_space));
