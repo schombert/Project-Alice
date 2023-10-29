@@ -259,6 +259,18 @@ void init(sys::state& state) {
 			state.network_state.socket_fd = socket_init_client(state.network_state.v4_address, state.network_state.ip_address.c_str());
 		}
 	}
+
+	// Host must have an already selected nation, to prevent issues...
+	if(state.network_mode == sys::network_mode_type::host) {
+		state.world.nation_set_is_player_controlled(dcon::nation_id{}, false);
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
+				state.local_player_nation = n;
+		});
+		assert(bool(state.local_player_nation));
+		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+		state.network_state.map_of_player_names.insert_or_assign(state.local_player_nation.index(), state.network_state.nickname);
+	}
 }
 
 static void disconnect_client(sys::state& state, client_data& client) {

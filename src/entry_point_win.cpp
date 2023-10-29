@@ -189,7 +189,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					game_state.network_state.as_v6 = false;
 				}
 			}
-			network::init(game_state);
 
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();
@@ -199,17 +198,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				return 0;
 			}
 
-			// Host must have an already selected nation, to prevent issues...
-			if(game_state.network_mode == sys::network_mode_type::host) {
-				game_state.world.nation_set_is_player_controlled(dcon::nation_id{}, false);
-				game_state.world.for_each_nation([&](dcon::nation_id n) {
-					if(!game_state.world.nation_get_is_player_controlled(n) && game_state.world.nation_get_owned_province_count(n) > 0)
-						game_state.local_player_nation = n;
-				});
-				assert(bool(game_state.local_player_nation));
-				game_state.world.nation_set_is_player_controlled(game_state.local_player_nation, true);
-				game_state.network_state.map_of_player_names.insert_or_assign(game_state.local_player_nation.index(), game_state.network_state.nickname);
-			}
+			network::init(game_state);
 		}
 		LocalFree(parsed_cmd);
 

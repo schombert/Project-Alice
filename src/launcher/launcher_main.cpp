@@ -309,7 +309,7 @@ bool nth_item_can_move_down(int32_t n) {
 
 native_string produce_mod_path() {
 	simple_fs::file_system dummy;
-	simple_fs::add_root(dummy, L".");
+	simple_fs::add_root(dummy, NATIVE("."));
 
 	for(int32_t i = 0; i < int32_t(mod_list.size()); ++i) {
 		if(mod_list[i].mod_selected == false)
@@ -323,13 +323,11 @@ native_string produce_mod_path() {
 
 native_string to_hex(uint64_t v) {
 	native_string ret;
-	constexpr wchar_t digits[] = L"0123456789ABCDEF";
-	
+	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
 	do {
 		ret += digits[v & 0x0F];
 		v = v >> 4;
 	} while(v != 0);
-
 	return ret;
 }
 
@@ -348,18 +346,18 @@ void make_mod_file() {
 
 		auto time_stamp = uint64_t(std::time(0));
 		auto base_name = to_hex(time_stamp);
-		while(simple_fs::peek_file(sdir, base_name + L"-"  + std::to_wstring(append) + L".bin")) {
+		while(simple_fs::peek_file(sdir, base_name + NATIVE("-")  + std::to_wstring(append) + NATIVE(".bin"))) {
 			++append;
 		}
 
 		++max_scenario_count;
-		selected_scenario_file = base_name + L"-" + std::to_wstring(append) + L".bin";
+		selected_scenario_file = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
 		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 
 		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
 			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nWarnings:\r\n") + err.accumulated_warnings + "\r\n\r\nErrors:\r\n" + err.accumulated_errors;
 			auto pdir = simple_fs::get_or_create_settings_directory();
-			simple_fs::write_file(pdir, L"scenario_errors.txt", assembled_file.data(), uint32_t(assembled_file.length()));
+			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
 			if(!err.accumulated_errors.empty()) {
 				auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
@@ -387,7 +385,7 @@ void find_scenario_file() {
 		return;
 
 	file_is_ready.store(false, std::memory_order::memory_order_seq_cst);
-	selected_scenario_file = L"";
+	selected_scenario_file = NATIVE("");
 	auto mod_path = produce_mod_path();
 
 	for(auto& f : scenario_files) {
@@ -429,24 +427,22 @@ void mouse_click() {
 		case ui_obj_host_game:
 		case ui_obj_join_game:
 			if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-				native_string temp_command_line = native_string(L"Alice.exe ") + selected_scenario_file;
+				native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
 				if(obj_under_mouse == ui_obj_host_game) {
-					temp_command_line += native_string(L" -host");
-
-					temp_command_line += native_string(L" -name ");
+					temp_command_line += NATIVE(" -host");
+					temp_command_line += NATIVE(" -name ");
 					temp_command_line += simple_fs::utf8_to_native(player_name);
 				} else if(obj_under_mouse == ui_obj_join_game) {
-					temp_command_line += native_string(L" -join");
-					temp_command_line += native_string(L" ");
+					temp_command_line += NATIVE(" -join");
+					temp_command_line += NATIVE(" ");
 					temp_command_line += simple_fs::utf8_to_native(ip_addr);
-
-					temp_command_line += native_string(L" -name ");
+					temp_command_line += NATIVE(" -name ");
 					temp_command_line += simple_fs::utf8_to_native(player_name);
 				}
 
 				// IPv6 address
 				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
-					temp_command_line += native_string(L" -v6");
+					temp_command_line += NATIVE(" -v6");
 				}
 
 				STARTUPINFO si;
@@ -1141,7 +1137,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 		simple_fs::file_system fs;
 		add_root(fs, NATIVE_M(GAME_DIR));
-		simple_fs::add_root(fs, L".");
+		simple_fs::add_root(fs, NATIVE("."));
 		auto root = get_root(fs);
 
 		auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
@@ -1157,19 +1153,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 		font_collection.load_all_glyphs();
 
-		::ogl::load_file_and_return_handle(L"assets/launcher_bg.png", fs, bg_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_left.png", fs, left_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_right.png", fs, right_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_close.png", fs, close_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_big_button.png", fs, big_button_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_no_check.png", fs, empty_check_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_check.png", fs, check_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_up.png", fs, up_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_down.png", fs, down_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_line_bg.png", fs, line_bg_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_bg.png"), fs, bg_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_left.png"), fs, left_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_right.png"), fs, right_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_close.png"), fs, close_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_button.png"), fs, big_button_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_no_check.png"), fs, empty_check_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_check.png"), fs, check_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_up.png"), fs, up_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_down.png"), fs, down_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_line_bg.png"), fs, line_bg_tex, false);
 
-		auto mod_dir = simple_fs::open_directory(root, L"mod");
-		auto mod_files = simple_fs::list_files(mod_dir, L".mod");
+		auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
+		auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
 
 		parsers::error_handler err("");
 		for(auto& f : mod_files) {
@@ -1182,7 +1178,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 
 		auto sdir = simple_fs::get_or_create_scenario_directory();
-		auto s_files = simple_fs::list_files(sdir, L".bin");
+		auto s_files = simple_fs::list_files(sdir, NATIVE(".bin"));
 		for(auto& f : s_files) {
 			auto of = simple_fs::open_file(f);
 			if(of) {
