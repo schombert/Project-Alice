@@ -369,6 +369,16 @@ static void accept_new_clients(sys::state& state) {
 					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
 				}
 			}
+			// notify the client of all current players
+			for(auto n : state.world.in_nation) {
+				if(state.world.nation_get_is_player_controlled(n)) {
+					command::payload c;
+					c.type = command::command_type::notify_player_joins;
+					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+				}
+			}
 			dcon::nation_id assigned_nation{};
 			// give the client a "joining" nation, basically a temporal nation choosen
 			// "randomly" that is tied to the client iself
@@ -388,36 +398,12 @@ static void accept_new_clients(sys::state& state) {
 				c.data.nation_pick.target = assigned_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
-			// notify the client of all current players
-			for(auto n : state.world.in_nation) {
-				if(state.world.nation_get_is_player_controlled(n)) {
-					command::payload c;
-					c.type = command::command_type::notify_player_joins;
-					c.source = n;
-					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				}
-			}
 			// if already in game, allow the player to join into the lobby as if she was into it
 			if(state.mode == sys::game_mode_type::in_game) {
 				command::payload c;
 				c.type = command::command_type::notify_start_game;
 				c.source = state.local_player_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-			{ // Tell all the other clients that we have joined with a given temporary name
-				command::payload c;
-				c.type = command::command_type::notify_player_joins;
-				c.source = assigned_nation;
-				c.data.player_name.data[0] = 'A';
-				c.data.player_name.data[1] = 'n';
-				c.data.player_name.data[2] = 'o';
-				c.data.player_name.data[3] = 'n';
-				c.data.player_name.data[4] = '0' + (assigned_nation.index() % 10);
-				c.data.player_name.data[5] = '0' + ((assigned_nation.index() / 10) % 10);
-				c.data.player_name.data[6] = '0' + ((assigned_nation.index() / 100) % 10);
-				c.data.player_name.data[7] = '0' + ((assigned_nation.index() / 1000) % 10);
-				state.network_state.outgoing_commands.push(c);
 			}
 			{ // Reload the save, repeating the same procedure on ALL clients and in the host
 				command::payload c;
