@@ -108,7 +108,7 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 	// by name
 	if(!bool(context.state.military_definitions.irregular) && name == "irregular") {
 		context.state.military_definitions.irregular = new_id;
-		err.accumulated_warnings += "Fallbacking to detecting an irregular from name " + err.file_name + " line " + std::to_string(line) + "\n";
+		err.accumulated_warnings += "Fallbacking to detecting an irregular from name " + err.file_name + "\n";
 	}
 }
 
