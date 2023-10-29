@@ -59,9 +59,9 @@ constexpr inline int32_t ui_obj_list_right = 2;
 constexpr inline int32_t ui_obj_create_scenario = 3;
 constexpr inline int32_t ui_obj_play_game = 4;
 constexpr inline int32_t ui_obj_host_game = 5;
-constexpr inline int32_t ui_obj_ip_addr = 6;
-constexpr inline int32_t ui_obj_player_name = 7;
-constexpr inline int32_t ui_obj_join_game = 8;
+constexpr inline int32_t ui_obj_join_game = 6;
+constexpr inline int32_t ui_obj_ip_addr = 7;
+constexpr inline int32_t ui_obj_player_name = 8;
 
 constexpr inline int32_t ui_list_count = 14;
 
@@ -82,11 +82,11 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 30, 208, 21, 93}, // left
 	ui_active_rect{ 515, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
-	ui_active_rect{ 555, 196 + 36 * 0, 286, 33 }, // play game
-	ui_active_rect{ 555, 244 + 36 * 1, 286, 33 }, // host game
-	ui_active_rect{ 555, 244 + 36 * 2, 196, 33 }, // ip address textbox
-	ui_active_rect{ 555, 244 + 36 * 3, 196, 33 }, // player name textbox
-	ui_active_rect{ 555 + 200, 244 + 36 * 2, 86, 33 }, // join game
+	ui_active_rect{ 555, 196, 286, 33 }, // play game
+	ui_active_rect{ 555, 246 + 36 * 5, 138, 33 }, // host game
+	ui_active_rect{ 695, 246 + 36 * 5, 138, 33 }, // join game
+	ui_active_rect{ 555, 246 + 36 * 4, 138, 33 }, // ip address textbox
+	ui_active_rect{ 695, 246 + 36 * 4, 138, 33 }, // player name textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -1009,14 +1009,14 @@ void render() {
 		ui_rects[ui_obj_player_name].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Singleplayer", 12, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Singleplayer", 12, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-	const char* hg_text = "Host Game";
+	const char* hg_text = "Host";
 	const char* jg_text = "Join";
 	if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
-		hg_text = "<IPv6> Host Game";
-		jg_text = "Join";
+		hg_text = "Host<IPv6>";
+		jg_text = "Join<IPv6>";
 	}
 
 	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(hg_text, uint32_t(::strlen(hg_text)), 22, font_collection.fonts[1]) / 2.0f;
@@ -1026,7 +1026,7 @@ void render() {
 	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width / 2 - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) / 2.0f;
-	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_player_name].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
 	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(jg_text, uint32_t(::strlen(jg_text)), 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
