@@ -83,10 +83,10 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 515, 208, 21, 93}, // right
 	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
 	ui_active_rect{ 555, 196, 286, 33 }, // play game
-	ui_active_rect{ 555, 246 + 36 * 5, 138, 33 }, // host game
-	ui_active_rect{ 695, 246 + 36 * 5, 138, 33 }, // join game
-	ui_active_rect{ 555, 246 + 36 * 4, 138, 33 }, // ip address textbox
-	ui_active_rect{ 695, 246 + 36 * 4, 138, 33 }, // player name textbox
+	ui_active_rect{ 555, 246 + 36 * 4, 138, 33 }, // host game
+	ui_active_rect{ 695, 246 + 36 * 4, 138, 33 }, // join game
+	ui_active_rect{ 555, 246 + 36 * 6 - 3, 207, 33 }, // ip address textbox
+	ui_active_rect{ 764, 246 + 36 * 6 - 3, 69, 33 }, // player name textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -996,12 +996,14 @@ void render() {
 		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
+	launcher::ogl::render_new_text("IP Address", 10, launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent("IP Address", 10, 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 16.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_ip_addr ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_ip_addr].x,
 		ui_rects[ui_obj_ip_addr].y,
 		ui_rects[ui_obj_ip_addr].width,
 		ui_rects[ui_obj_ip_addr].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+	launcher::ogl::render_new_text("Nickname", 8, launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent("Nickname", 8, 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 16.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_player_name].x,
 		ui_rects[ui_obj_player_name].y,
@@ -1009,8 +1011,10 @@ void render() {
 		ui_rects[ui_obj_player_name].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Singleplayer", 12, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Singleplayer", 12, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Singleplayer", 13, launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent("Singleplayer", 13, 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+
+	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Start game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	const char* hg_text = "Host";
 	const char* jg_text = "Join";
@@ -1019,18 +1023,20 @@ void render() {
 		jg_text = "Join<IPv6>";
 	}
 
+	launcher::ogl::render_new_text("Multiplayer", 12, launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent("Multiplayer", 12, 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+
+	// Join and host game buttons
 	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(hg_text, uint32_t(::strlen(hg_text)), 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text(hg_text, uint32_t(::strlen(hg_text)), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
-
-	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width / 2 - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) / 2.0f;
-	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
-
-	float pn_x_pos = ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width / 2 - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) / 2.0f;
-	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 4.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
-
 	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(jg_text, uint32_t(::strlen(jg_text)), 22, font_collection.fonts[1]) / 2.0f;
 	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 4.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
+	// Text fields
+	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 4.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 6.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	float pn_x_pos = ui_rects[ui_obj_player_name].x + 4.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 6.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
