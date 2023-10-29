@@ -208,7 +208,7 @@ void prune_alliances(sys::state& state) {
 				if(weakest_str * 1.25 < safety_margin) {
 					safety_margin -= weakest_str;
 					command::execute_cancel_alliance(state, n, pt);
-				} else if(state.world.nation_get_infamy(pt) >= state.defines.badboy_limit * 0.75f) {
+				} else if(state.world.nation_get_infamy(pt) >= state.defines.badboy_limit) {
 					safety_margin -= weakest_str;
 					command::execute_cancel_alliance(state, n, pt);
 				} else {
