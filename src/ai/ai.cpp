@@ -208,6 +208,9 @@ void prune_alliances(sys::state& state) {
 				if(weakest_str * 1.25 < safety_margin) {
 					safety_margin -= weakest_str;
 					command::execute_cancel_alliance(state, n, pt);
+				} else if(state.world.nation_get_infamy(pt) >= state.defines.badboy_limit) {
+					safety_margin -= weakest_str;
+					command::execute_cancel_alliance(state, n, pt);
 				} else {
 					break;
 				}
@@ -250,6 +253,10 @@ constexpr inline float ally_overestimate = 2.f;
 
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
 	if(!state.world.nation_get_ai_is_threatened(target))
+		return false;
+
+	// Has not surpassed infamy limit
+	if(state.world.nation_get_infamy(target) >= state.defines.badboy_limit * 0.75f)
 		return false;
 
 	// Won't ally our rivals
