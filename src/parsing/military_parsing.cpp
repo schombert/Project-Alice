@@ -99,11 +99,16 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 	if(name == "infantry") {
 		context.state.military_definitions.infantry = new_id;
 	}
-	if(context.state.military_definitions.unit_base_definitions.back().active &&
-			context.state.military_definitions.unit_base_definitions.back().primary_culture == false &&
-			context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::infantry) {
-
+	if(context.state.military_definitions.unit_base_definitions.back().active
+		&& context.state.military_definitions.unit_base_definitions.back().primary_culture == false) {
+		&& context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::infantry) {
 		context.state.military_definitions.irregular = new_id;
+	}
+
+	// by name
+	if(!bool(context.state.military_definitions.irregular) && name == "irregular") {
+		context.state.military_definitions.irregular = new_id;
+		err.accumulated_warnings += "Fallbacking to detecting an irregular from name " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
 }
 

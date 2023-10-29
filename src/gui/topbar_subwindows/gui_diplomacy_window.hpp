@@ -2109,7 +2109,7 @@ public:
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
 		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_command_units_button>>(state, options_offset);
+		add_action_button<diplomacy_action_window<diplomacy_action_release_subject_button>>(state, options_offset);
 		// Next row of actions...
 		options_offset.x += options_size.x;
 		options_offset.y = options_base_offset.y;

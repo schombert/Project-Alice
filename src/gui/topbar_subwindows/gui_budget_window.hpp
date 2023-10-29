@@ -290,8 +290,7 @@ public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
 			float amount = float(v) / 100.0f;
-			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};
-			parent->impl_set(state, payload);
+			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
 		if(state.ui_state.drag_target == nullptr) {
 			commit_changes(state);

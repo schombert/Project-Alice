@@ -2923,6 +2923,9 @@ void daily_update(sys::state& state) {
 		if(n.get_private_investment() > 0.001f && n.get_is_civilized() &&
 				(nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) != 0) {
 
+			static std::vector<dcon::factory_type_id> desired_types;
+			desired_types.clear();
+
 			bool found_investment = false;
 
 			if(!found_investment) {
@@ -2940,6 +2943,10 @@ void daily_update(sys::state& state) {
 						return a_pop > b_pop;
 					return a.index() < b.index(); // force total ordering
 				});
+
+				if(!states_in_order.empty() && (nation_rules & issue_rule::pop_build_factory) != 0) {
+					ai::get_desired_factory_types(state, n, desired_types);
+				}
 
 				for(auto s : states_in_order) {
 					auto existing_constructions = state.world.state_instance_get_state_building_construction(s);
@@ -2984,16 +2991,28 @@ void daily_update(sys::state& state) {
 					if(!found_investment && num_factories < int32_t(state.defines.factories_per_state) &&
 							(nation_rules & issue_rule::pop_build_factory) != 0) {
 						// randomly try a valid (check coastal, unlocked, non existing) factory
-						static std::vector<dcon::factory_type_id> desired_types;
-						desired_types.clear();
 
-						ai::get_desired_factory_types(state, n, desired_types);
 						if(!desired_types.empty()) {
-							auto selected = rng::get_random(state, uint32_t((n.id.index() << 6) ^ s.index())) % desired_types.size();
+							auto selected = desired_types[rng::get_random(state, uint32_t((n.id.index() << 6) ^ s.index())) % desired_types.size()];
+
+							if(state.world.factory_type_get_is_coastal(selected) && !province::state_is_coastal(state, s))
+								continue;
+
+							bool already_in_progress = [&]() {
+								for(auto p : state.world.state_instance_get_state_building_construction(s)) {
+									if(p.get_type() == selected)
+										return true;
+								}
+								return false;
+							}();
+
+							if(already_in_progress)
+								continue;
+
 							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(s, n));
 							new_up.set_is_pop_project(true);
-							// new_up.set_is_upgrade(false);
-							new_up.set_type(desired_types[selected]);
+							new_up.set_is_upgrade(false);
+							new_up.set_type(selected);
 							found_investment = true;
 						}
 					}
@@ -3004,6 +3023,7 @@ void daily_update(sys::state& state) {
 				}
 			}
 			if(!found_investment && (nation_rules & issue_rule::pop_build_factory) != 0) {
+
 				static std::vector<std::pair<dcon::province_id, int32_t>> provinces_in_order;
 				provinces_in_order.clear();
 				for(auto si : n.get_state_ownership()) {
