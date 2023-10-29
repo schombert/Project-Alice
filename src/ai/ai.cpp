@@ -208,6 +208,9 @@ void prune_alliances(sys::state& state) {
 				if(weakest_str * 1.25 < safety_margin) {
 					safety_margin -= weakest_str;
 					command::execute_cancel_alliance(state, n, pt);
+				} else if(state.world.nation_get_infamy(pt) >= state.defines.badboy_limit * 0.75f) {
+					safety_margin -= weakest_str;
+					command::execute_cancel_alliance(state, n, pt);
 				} else {
 					break;
 				}
@@ -250,6 +253,10 @@ constexpr inline float ally_overestimate = 2.f;
 
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
 	if(!state.world.nation_get_ai_is_threatened(target))
+		return false;
+
+	// Has not surpassed infamy limit
+	if(state.world.nation_get_infamy(target) >= state.defines.badboy_limit * 0.75f)
 		return false;
 
 	// Won't ally our rivals
@@ -1966,13 +1973,8 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
-	if(!as_attacker) {
-		// Check that our side doesn't have 
-		auto dn = state.world.war_get_primary_defender(w);
-		if(state.world.nation_get_infamy(dn) < state.defines.badboy_limit) {
-			return true;
-		}
-	}
+	if(!as_attacker)
+		return true;
 	for(auto par : state.world.war_get_war_participant(w)) {
 		if(par.get_is_attacker() == !as_attacker) {
 			// Could use a CB against this nation?
