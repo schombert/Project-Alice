@@ -306,6 +306,27 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
+static dcon::nation_id get_temp_nation(sys::state& state) {
+	// give the client a "joining" nation, basically a temporal nation choosen
+	// "randomly" that is tied to the client iself
+	for(auto n : state.world.in_nation)
+		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
+			return n;
+	return dcon::nation_id{ };
+}
+
+bool client_data::is_banned(sys::state& state) const {
+	if(state.network_state.as_v6) {
+		return std::find_if(state.network_state.v6_banlist.begin(), state.network_state.v6_banlist.end(), [&](auto const& a) {
+			return std::memcmp(&v6_address.sin6_addr, &a, sizeof(a)) == 0;
+		}) != state.network_state.v6_banlist.end();
+	} else {
+		return std::find_if(state.network_state.v4_banlist.begin(), state.network_state.v4_banlist.end(), [&](auto const& a) {
+			return std::memcmp(&v4_address.sin_addr, &a, sizeof(a)) == 0;
+		}) != state.network_state.v4_banlist.end();
+	}
+}
+
 static void accept_new_clients(sys::state& state) {
 	// Check if any new clients are to join us
 	fd_set rfds;
@@ -323,23 +344,33 @@ static void accept_new_clients(sys::state& state) {
 			if(state.network_state.as_v6) {
 				socklen_t addr_len = sizeof(client.v6_address);
 				client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.v6_address, &addr_len);
-				// enforce bans
-				if(std::find_if(state.network_state.v6_banlist.begin(), state.network_state.v6_banlist.end(), [&](auto const a) {
-					return memcmp(&client.v6_address.sin6_addr, &a, sizeof(a)) == 0;
-					}) != state.network_state.v6_banlist.end()) {
-					disconnect_client(state, client);
-					break;
-				}
 			} else {
 				socklen_t addr_len = sizeof(client.v4_address);
 				client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.v4_address, &addr_len);
-				// enforce bans
-				if(std::find_if(state.network_state.v4_banlist.begin(), state.network_state.v4_banlist.end(), [&](auto const a) {
-					return memcmp(&client.v4_address.sin_addr, &a, sizeof(a)) == 0;
-					}) != state.network_state.v4_banlist.end()) {
-					disconnect_client(state, client);
-					break;
+			}
+			if(client.is_banned(state)) {
+				disconnect_client(state, client);
+				break;
+			}
+			client.playing_as = get_temp_nation(state);
+			assert(bool(client.playing_as));
+			state.world.nation_set_is_player_controlled(client.playing_as, true);
+			// notify the client of all current players
+			for(auto n : state.world.in_nation) {
+				if(state.world.nation_get_is_player_controlled(n) && n != client.playing_as) {
+					command::payload c;
+					c.type = command::command_type::notify_player_joins;
+					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				}
+			}
+			{ // Tell the client which nation they're
+				command::payload c;
+				c.type = command::command_type::notify_player_picks_nation;
+				c.source = dcon::nation_id{};
+				c.data.nation_pick.target = client.playing_as;
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 			{ // Tell the client general information about the game
 				command::payload c;
@@ -349,7 +380,12 @@ static void accept_new_clients(sys::state& state) {
 				c.data.notify_save_loaded.checksum = state.get_save_checksum();
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				// savefile streaming
-				if(state.network_state.is_new_game == false) {
+				if(state.network_state.is_new_game) {
+					uint32_t zero = 0;
+					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+					client.save_stream_size = 0;
+					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
+				} else {
 					size_t save_space = sizeof_save_section(state);
 					auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
 					write_save_section(temp_save_buffer.get(), state);
@@ -362,41 +398,23 @@ static void accept_new_clients(sys::state& state) {
 					client.save_stream_size = static_cast<size_t>(total_size_used);
 					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
 					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
-				} else {
-					uint32_t zero = 0;
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = 0;
-					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
+
+					// Mirror the calls done by the client
+					std::vector<dcon::nation_id> players;
+					for(const auto n : state.world.in_nation)
+						if(state.world.nation_get_is_player_controlled(n))
+							players.push_back(n);
+					dcon::nation_id old_local_player_nation = state.local_player_nation;
+					state.preload();
+					with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
+					state.fill_unsaved_data();
+					state.local_player_nation = old_local_player_nation;
+					for(const auto n : state.world.in_nation)
+						state.world.nation_set_is_player_controlled(n, false);
+					for(const auto n : players)
+						state.world.nation_set_is_player_controlled(n, true);
+					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 				}
-			}
-			// notify the client of all current players
-			for(auto n : state.world.in_nation) {
-				if(state.world.nation_get_is_player_controlled(n)) {
-					command::payload c;
-					c.type = command::command_type::notify_player_joins;
-					c.source = n;
-					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				}
-			}
-			dcon::nation_id assigned_nation{};
-			// give the client a "joining" nation, basically a temporal nation choosen
-			// "randomly" that is tied to the client iself
-			for(auto n : state.world.in_nation) {
-				if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
-					assigned_nation = n;
-					break;
-				}
-			}
-			assert(bool(assigned_nation));
-			client.playing_as = assigned_nation;
-			state.world.nation_set_is_player_controlled(assigned_nation, true);
-			{ // tell the client which nation they're
-				command::payload c;
-				c.type = command::command_type::notify_player_picks_nation;
-				c.source = dcon::nation_id{};
-				c.data.nation_pick.target = assigned_nation;
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 			// if already in game, allow the player to join into the lobby as if she was into it
 			if(state.mode == sys::game_mode_type::in_game) {
@@ -424,6 +442,7 @@ static void receive_from_clients(sys::state& state) {
 				case command::command_type::invalid:
 				case command::command_type::notify_player_ban:
 				case command::command_type::notify_player_kick:
+				case command::command_type::notify_reload_state:
 					break; // has to be valid/sendable by client
 				case command::command_type::notify_player_picks_nation:
 					if(command::can_notify_player_picks_nation(state, client.recv_buffer.source, client.recv_buffer.data.nation_pick.target))
