@@ -81,7 +81,7 @@ public:
 		}
 		if constexpr(!ShowFull) {
 			std::vector<chat_message> v;
-			for(auto it = row_contents.rbegin(); it != row_contents.rend() && v.size() < row_windows.size(); it++)
+			for(auto it = row_contents.rbegin(); it != row_contents.rend() && it != row_contents.rend() + row_windows.size() && v.size() < row_windows.size(); it++)
 				v.push_back(*it);
 			row_contents = v;
 		}
@@ -93,7 +93,12 @@ public:
 	}
 
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+		// Showing full chat? Needs a functional scrollbar!
+		if constexpr(ShowFull) {
+			return listbox_element_base<chat_message_entry, chat_message>::impl_probe_mouse(state, x, y, type);
+		} else {
+			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+		}
 	}
 };
 
