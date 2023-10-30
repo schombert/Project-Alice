@@ -80,10 +80,11 @@ public:
 				row_contents.push_back(c);
 		}
 		if constexpr(!ShowFull) {
-			std::vector<chat_message> v;
-			for(auto it = row_contents.rbegin(); it != row_contents.rend() && it != row_contents.rend() + row_windows.size() && v.size() < row_windows.size(); it++)
-				v.push_back(*it);
-			row_contents = v;
+			if(!row_contents.empty()) {
+				auto to_keep = std::min(row_contents.size(), row_windows.size());
+				auto to_delete = row_contents.size() - to_keep;
+				row_contents.erase(row_contents.begin(), row_contents.begin() + to_delete);
+			}
 		}
 		update(state);
 	}
