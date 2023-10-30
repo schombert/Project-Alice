@@ -1754,6 +1754,12 @@ uint32_t ef_change_tag_no_core_switch(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 
+	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
+		ws.network_state.map_of_player_names.insert_or_assign(holder.index(), ws.network_state.map_of_player_names[trigger::to_nation(primary_slot).index()]);
+	} else if(ws.world.nation_get_is_player_controlled(holder)) {
+		ws.network_state.map_of_player_names.insert_or_assign(trigger::to_nation(primary_slot).index(), ws.network_state.map_of_player_names[holder.index()]);
+	}
+
 	auto old_controller = ws.world.nation_get_is_player_controlled(holder);
 	ws.world.nation_set_is_player_controlled(holder, ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)));
 	ws.world.nation_set_is_player_controlled(trigger::to_nation(primary_slot), old_controller);
@@ -1762,12 +1768,6 @@ uint32_t ef_change_tag_no_core_switch(EFFECT_PARAMTERS) {
 		ai::remove_ai_data(ws, trigger::to_nation(primary_slot));
 	if(ws.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(ws, holder);
-
-	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
-		ws.network_state.map_of_player_names.insert_or_assign(holder.index(), ws.network_state.map_of_player_names[trigger::to_nation(primary_slot).index()]);
-	} else if(ws.world.nation_get_is_player_controlled(holder)) {
-		ws.network_state.map_of_player_names.insert_or_assign(trigger::to_nation(primary_slot).index(), ws.network_state.map_of_player_names[holder.index()]);
-	}
 
 	if(ws.local_player_nation == trigger::to_nation(primary_slot)) {
 		ws.local_player_nation = holder;
@@ -1784,6 +1784,12 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 
+	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
+		ws.network_state.map_of_player_names.insert_or_assign(holder.index(), ws.network_state.map_of_player_names[trigger::to_nation(primary_slot).index()]);
+	} else if(ws.world.nation_get_is_player_controlled(holder)) {
+		ws.network_state.map_of_player_names.insert_or_assign(trigger::to_nation(primary_slot).index(), ws.network_state.map_of_player_names[holder.index()]);
+	}
+
 	auto old_controller = ws.world.nation_get_is_player_controlled(holder);
 	ws.world.nation_set_is_player_controlled(holder, ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)));
 	ws.world.nation_set_is_player_controlled(trigger::to_nation(primary_slot), old_controller);
@@ -1792,12 +1798,6 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_PARAMTERS) {
 		ai::remove_ai_data(ws, trigger::to_nation(primary_slot));
 	if(ws.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(ws, holder);
-
-	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
-		ws.network_state.map_of_player_names.insert_or_assign(holder.index(), ws.network_state.map_of_player_names[trigger::to_nation(primary_slot).index()]);
-	} else if(ws.world.nation_get_is_player_controlled(holder)) {
-		ws.network_state.map_of_player_names.insert_or_assign(trigger::to_nation(primary_slot).index(), ws.network_state.map_of_player_names[holder.index()]);
-	}
 
 	if(ws.local_player_nation == trigger::to_nation(primary_slot)) {
 		ws.local_player_nation = holder;

@@ -913,18 +913,18 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 
+	if(state.world.nation_get_is_player_controlled(source)) {
+		state.network_state.map_of_player_names.insert_or_assign(holder.index(), state.network_state.map_of_player_names[source.index()]);
+	} else if(state.world.nation_get_is_player_controlled(holder)) {
+		state.network_state.map_of_player_names.insert_or_assign(source.index(), state.network_state.map_of_player_names[holder.index()]);
+	}
+
 	auto old_controller = state.world.nation_get_is_player_controlled(holder);
 	state.world.nation_set_is_player_controlled(holder, state.world.nation_get_is_player_controlled(source));
 	state.world.nation_set_is_player_controlled(source, old_controller);
 
 	if(state.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(state, holder);
-
-	if(state.world.nation_get_is_player_controlled(source)) {
-		state.network_state.map_of_player_names.insert_or_assign(holder.index(), state.network_state.map_of_player_names[source.index()]);
-	} else if(state.world.nation_get_is_player_controlled(holder)) {
-		state.network_state.map_of_player_names.insert_or_assign(source.index(), state.network_state.map_of_player_names[holder.index()]);
-	}
 
 	if(state.local_player_nation == source) {
 		state.local_player_nation = holder;
