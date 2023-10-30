@@ -3064,6 +3064,10 @@ void state::preload() {
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+	// reset all nations to AI
+	for(const auto n : world.in_nation)
+		n.set_is_player_controlled(false);
+
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
