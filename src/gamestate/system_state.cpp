@@ -2288,9 +2288,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
-		if(!bool(military_definitions.artillery)) {
-			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
-		}
 	}
 	// make space in arrays
 
