@@ -4239,7 +4239,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 		state.local_player_nation = target;
 	// We will also re-assign all chat messages from this nation to the new one
 	for(auto& msg : state.ui_state.chat_messages)
-		if(msg.source == source)
+		if(bool(msg.source) && msg.source == source)
 			msg.source = target;
 }
 
