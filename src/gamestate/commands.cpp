@@ -4699,6 +4699,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
 		return true; //return can_notify_stop_game(state, c.source);
+	case command_type::release_subject:
+		return can_release_subject(state, c.source, c.data.diplo_action.target);
 	case command_type::notify_reload_state:
 		// TODO: leaf, what is supposed to go here?
 		return true;
@@ -4721,9 +4723,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_event:
 	case command_type::c_event_as:
 	case command_type::c_force_ally:
-	case command_type::c_toggle_ai:;
+	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
-		return true; //return can_c_complete_constructions(state, c.source);
+		return true;
 	}
 	return false;
 }
@@ -5013,6 +5015,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_immigrator_province:
 		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::release_subject:
+		execute_release_subject(state, c.source, c.data.diplo_action.target);
 		break;
 
 		// common mp commands
