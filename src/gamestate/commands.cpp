@@ -3915,7 +3915,7 @@ bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dc
 	return true;
 }
 void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	if(!can_retreat_from_naval_battle(state, source, b))
+	if(!military::can_retreat_from_battle(state, b))
 		return;
 
 	if(source == military::get_naval_battle_lead_attacker(state, b)) {
@@ -3943,7 +3943,7 @@ bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dco
 	return true;
 }
 void execute_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
-	if(!can_retreat_from_land_battle(state, source, b))
+	if(!military::can_retreat_from_battle(state, b))
 		return;
 
 	if(source == military::get_land_battle_lead_attacker(state, b)) {
@@ -4652,6 +4652,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::land_retreat:
 		return can_retreat_from_land_battle(state, c.source, c.data.land_battle.b);
+
+	case command_type::land_partial_retreat:
+		return can_partial_retreat_from_land_battle(state, c.source, c.data.partial_retreat.b, c.data.partial_retreat.a);
 
 	case command_type::start_crisis_peace_offer:
 		return can_start_crisis_peace_offer(state, c.source, c.data.new_offer.is_concession);

@@ -52,7 +52,7 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 void restore_unsaved_values(sys::state& state) {
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-		if(state.military_definitions.unit_base_definitions[u].icon == 3) {
+		if(state.military_definitions.unit_base_definitions[u].active && state.military_definitions.unit_base_definitions[u].type == military::unit_type::support) {
 			state.military_definitions.artillery = u;
 			break;
 		}

@@ -4049,25 +4049,22 @@ void perform_battle_cycling(sys::state& state) {
 			for(auto ap : b.get_army_battle_participation())
 				if(ap.get_army().get_controller_from_army_control() == ar.get_controller())
 					++our_units;
-			// won't retreat since we only have this unit on this battle...
-			if(our_units <= 1) {
+			// Won't retreat since we only have this unit on this battle...
+			if(our_units <= 1)
 				continue;
-			}
 
 			int32_t unit_count = 0;
 			float total_org = 0.f;
 			float total_str = 0.f;
-			state.world.army_for_each_army_membership_as_army(ar.get_army(), [&](dcon::army_membership_id nmid) {
-				auto regiment = dcon::fatten(state.world, state.world.army_membership_get_regiment(nmid));
-				total_org += regiment.get_org();
-				total_str += regiment.get_strength();
+			for(const auto nmid : state.world.army_get_army_membership_as_army(ar.get_army())) {
+				total_org += state.world.regiment_get_org(state.world.army_membership_get_regiment(nmid));
+				total_str += state.world.regiment_get_strength(state.world.army_membership_get_regiment(nmid));
 				++unit_count;
-			});
+			}
 			float org = total_org / float(unit_count);
 			float str = total_str / float(unit_count);
-			if(org <= 0.25f || str <= 0.25f) {
+			if(org <= 0.33f || str <= 0.33f)
 				command::execute_partial_retreat_from_land_battle(state, n, b, ar.get_army());
-			}
 		}
 	}
 }

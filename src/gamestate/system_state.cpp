@@ -138,12 +138,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				// allowed to pick the specified nation as no two players can get on
 				// a nation, at the moment
 				// TODO: Allow Co-op
-				if(network_mode == sys::network_mode_type::single_player) {
-					local_player_nation = owner;
-					ui_state.nation_picker->impl_on_update(*this);
-				} else {
-					command::notify_player_picks_nation(*this, local_player_nation, owner);
-				}
+				command::notify_player_picks_nation(*this, local_player_nation, owner);
 			}
 		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
@@ -3064,6 +3059,10 @@ void state::preload() {
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+	// reset all nations to AI
+	for(const auto n : world.in_nation)
+		n.set_is_player_controlled(false);
+
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
