@@ -32,4 +32,4 @@ I suggest monthly autosaves, although you need to remember to clean out your sav
 
 - [简中介绍](./docs/zh-cn/about.md)
 - [Versión en español](./docs/es-es/about.md)
-- [Versão em português](./docspt/about.md)
+- [Versão em português](./docs/pt/about.md)
