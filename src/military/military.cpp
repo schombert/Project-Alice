@@ -1914,7 +1914,7 @@ void monthly_leaders_update(sys::state& state) {
 				auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) *
 										state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
 
-				state.world.nation_set_leadership_points(ids, state.world.nation_get_leadership_points(ids) + omod + nmod);
+				state.world.nation_set_leadership_points(ids, ve::select(state.world.nation_get_owned_province_count(ids) != 0, state.world.nation_get_leadership_points(ids) + omod + nmod, 0.0f));
 			});
 
 	for(auto n : state.world.in_nation) {
@@ -2075,6 +2075,10 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			nations::break_alliance(state, n, wp.get_nation());
 	}
 
+	if(!as_attacker && state.world.nation_get_rank(state.world.war_get_primary_defender(w)) > state.world.nation_get_rank(n)) {
+		state.world.war_set_primary_defender(w, n);
+	}
+
 	for(auto ul : state.world.nation_get_unilateral_relationship_as_source(n)) {
 		if(ul.get_war_subsidies()) {
 			auto role = get_role(state, w, ul.get_target());
@@ -2157,7 +2161,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 					populate_war_text_subsitutions(state, w, sub);
 					std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
 					std::string old_war_name = text::resolve_string_substitution(state, old_name, sub);
-					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::val, std::string_view{resolved_war_name});
+					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::y, std::string_view{resolved_war_name});
 				},
 				"msg_war_becomes_great_title",
 				state.local_player_nation,

@@ -308,7 +308,7 @@ void accept(sys::state& state, message const& m) {
 	case type::none:
 		break;
 	case type::access_request: {
-		if(!command::can_ask_for_access(state, m.from, m.to, true))
+		if(!command::can_ask_for_access(state, m.from, m.to))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
@@ -338,7 +338,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	}
 	case type::alliance_request: {
-		if(!command::can_ask_for_alliance(state, m.from, m.to, true))
+		if(!command::can_ask_for_alliance(state, m.from, m.to))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.alliance_relation_on_accept);
@@ -346,7 +346,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	}
 	case type::call_ally_request: {
-		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
+		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
 			return;
 
 		military::add_to_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));

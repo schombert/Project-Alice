@@ -1387,8 +1387,9 @@ protected:
 		row_contents.clear();
 		dcon::war_id w = retrieve<dcon::war_id>(state, parent);
 		auto war = dcon::fatten(state.world, w);
+		row_contents.push_back(war.get_primary_attacker().get_identity_from_identity_holder().id);
 		for(auto o : war.get_war_participant())
-			if(o.get_is_attacker() == true)
+			if(o.get_is_attacker() == true && o.get_nation() != war.get_primary_attacker())
 				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
@@ -1399,8 +1400,9 @@ protected:
 		row_contents.clear();
 		dcon::war_id w = retrieve<dcon::war_id>(state, parent);
 		auto war = dcon::fatten(state.world, w);
+		row_contents.push_back(war.get_primary_defender().get_identity_from_identity_holder().id);
 		for(auto o : war.get_war_participant())
-			if(o.get_is_attacker() == false)
+			if(o.get_is_attacker() == false && o.get_nation() != war.get_primary_defender())
 				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
@@ -2107,7 +2109,7 @@ public:
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
 		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_command_units_button>>(state, options_offset);
+		add_action_button<diplomacy_action_window<diplomacy_action_release_subject_button>>(state, options_offset);
 		// Next row of actions...
 		options_offset.x += options_size.x;
 		options_offset.y = options_base_offset.y;
@@ -2176,6 +2178,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		declare_war_win->set_visible(state, false);
 		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis == sys::crisis_type::none) {
 			send<diplomacy_window_tab>(state, this, diplomacy_window_tab::great_powers);
 		}

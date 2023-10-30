@@ -1098,6 +1098,15 @@ et_add_immigrator;enable province immigrator
 et_remove_immigrator;disable province immigrator
 modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
+chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
+chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
+chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
+chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ fue vetado;;;;;;;;;x
+chat_player_switch;@$x$ $playername$ has choosen $country$;;;@$x$ $playername$ ahora es $country$;;;;;;;;;x
+chat_player_oos;@$x$ $playername$ has OOSed!;;;;;;;;;x
+alice_status_ready;Ready
+alice_status_stream;Save progress $value$
+alice_play_pending_client;$playername$ is not ready yet
 message_name_text;Message
 msg_for_us;About: your nation
 msg_for_interesting;Interesting nation
@@ -1248,6 +1257,7 @@ tech_ol_tt;§G$x$§! from your overlord having this technology
 tech_year_tt;§G$x$§! from the current year
 disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
+alice_play_save_stream;Host is streaming a save to you, wait until it completes
 ai_will_accept_po;The AI will accept this offer
 ai_will_not_accept_po;The AI will NOT accept this offer
 close_and_del;Close & Delete Factory
@@ -1257,7 +1267,19 @@ change_state_name_to;change state name to $text$
 alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 alice_unit_disable_rebel_hunt;Stop hunting rebels
 alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$§W\nStrength: §Y$strength$§W
+alice_understaffed_regiment;§RThis regiment is understaffed and will only have $value$ soldiers!§W
 alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
+alice_commodity_shortage;§RThere is a shortage of this commodity
+alice_commodity_surplus;§GThere is a surplus of this commodity
+alice_trade_flow_produced;§YDomestic production:
+alice_trade_flow_consumed;§YDomestic consumption:
+alice_trade_flow_label;Market overview:
+alice_trade_flow_piechart_producers;Producers
+alice_trade_flow_piechart_consumers;Consumers
+alice_trade_flow_piechart_workforce;Workforce
+alice_diplo_release_subject;Release subject
+alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
+alice_diplo_release_subject_0;Is our subject
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 partial_retreat_unit;Partially retreat this unit, this allows for §Ycycling§W units within battle, leaving out low organization and strength units of the battle to allow new units to give a bigger impact.

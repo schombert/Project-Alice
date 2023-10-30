@@ -2255,7 +2255,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 10000 }
 	tag{ save }
 
 	property{

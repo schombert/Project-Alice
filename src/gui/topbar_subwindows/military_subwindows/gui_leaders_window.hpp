@@ -200,6 +200,34 @@ public:
 	}
 };
 
+class military_general_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto general_count = 0;
+		for(auto const fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation)) {
+			auto leader_id = fat_id.get_leader();
+			if(!state.world.leader_get_is_admiral(leader_id)) {
+				++general_count;
+			}
+		}
+		set_text(state, std::to_string(general_count));
+	}
+};
+
+class military_admiral_count : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto admiral_count = 0;
+		for(auto const fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation)) {
+			auto leader_id = fat_id.get_leader();
+			if(state.world.leader_get_is_admiral(leader_id)) {
+				++admiral_count;
+			}
+		}
+		set_text(state, std::to_string(admiral_count));
+	}
+};
+
 class leaders_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -226,6 +254,12 @@ public:
 
 		} else if(name == "new_admiral") {
 			return make_element_by_type<military_make_leader_button<false>>(state, id);
+
+		} else if(name == "generals") {
+			return make_element_by_type<military_general_count>(state, id);
+
+		} else if(name == "admirals") {
+			return make_element_by_type<military_admiral_count>(state, id);
 
 		} else {
 			return nullptr;

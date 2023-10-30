@@ -760,6 +760,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(!ui_state.tech_queue.empty()) {
 			if(!world.nation_get_current_research(local_player_nation)) {
 				for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
+					if(world.nation_get_active_technologies(local_player_nation, *it)) {
+						ui_state.tech_queue.erase(it);
+						break;
+					}
 					if(command::can_start_research(*this, local_player_nation, *it)) {
 						// can research, so research it
 						command::start_research(*this, local_player_nation, *it);
@@ -889,7 +893,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 
 					// Sound effects(tm)
-					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::sound) {
+					if(user_settings.self_message_settings[int32_t(c6->type)] != 0) {
 						switch(c6->type) {
 						case message_setting_type::war_on_nation:
 						case message_setting_type::war_by_nation:
@@ -1382,7 +1386,7 @@ void state::on_create() {
 	});
 
 	{
-		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox>(*this, "chat_list");
+		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(*this, "chat_list");
 		new_elm->base_data.position.x += 156; // nudge
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
@@ -2276,6 +2280,13 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_unit_file(gen, err, context);
 			}
+		}
+
+		if(!bool(military_definitions.infantry)) {
+			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
+		}
+		if(!bool(military_definitions.irregular)) {
+			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
 	}
 	// make space in arrays
@@ -3773,16 +3784,13 @@ sys::checksum_key state::get_save_checksum() {
 }
 
 sys::checksum_key state::get_scenario_checksum() {
-	dcon::load_record loaded = world.make_serialize_record_store_scenario();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
-
+	auto scenario_space = sizeof_scenario_section(*this);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_space]);
+	auto last_written = write_scenario_section(buffer.get(), *this);
+	int32_t last_written_count = int32_t(last_written - buffer.get());
+	assert(size_t(last_written_count) == scenario_space);
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), last_written_count, nullptr, 0);
 	return key;
 }
 
