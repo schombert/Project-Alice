@@ -972,10 +972,26 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	for(auto si : state.world.nation_get_state_ownership(holder))
 		state_list.push_back(si.get_state());
 
+
+	auto accepted_cultures = state.world.nation_get_accepted_cultures(holder);
+	auto nation_primary_culture = state.world.nation_get_primary_culture(holder);
+
 	for(dcon::state_instance_fat_id& state_id : state_list) {
+
 		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id p) {
-			// Provinces in the released states stop being colonial.
-			state.world.province_set_is_colonial(p, false);
+			auto dominant_culture = state.world.province_get_dominant_culture(p);
+			bool dominant_is_accepted = false;
+
+			if(dominant_culture == nation_primary_culture)
+				dominant_is_accepted = true;
+			for(auto& accepted : accepted_cultures)
+				if(dominant_culture == accepted)
+					dominant_is_accepted = true;
+
+			if(dominant_is_accepted) {
+				// Provinces in the released states stop being colonial.
+				state.world.province_set_is_colonial(p, false);
+			}
 
 			// All timed modifiers active for provinces in the state expire
 			auto timed_modifiers = state.world.province_get_current_modifiers(p);
