@@ -973,8 +973,6 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 		state_list.push_back(si.get_state());
 
 	for(dcon::state_instance_fat_id& state_id : state_list) {
-		int x = state_id.id.value;
-		state.console_log(state.ui_state.console_window, std::to_string(x));
 		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id p) {
 			// Provinces in the released states stop being colonial.
 			state.world.province_set_is_colonial(p, false);
