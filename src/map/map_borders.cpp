@@ -427,7 +427,7 @@ std::vector<border_vertex> create_river_vertices(display_data const& data, parse
 		} else if(river_r && river_u && !river_l && !river_d) { // Upper right
 			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_RIGHT);
 		} else if(river_r && river_d && !river_l && !river_u) { // Lower right
-			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_LEFT);
+			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_RIGHT);
 		} else {
 			if(river_u) {
 				add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), direction::UP);

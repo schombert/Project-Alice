@@ -3261,6 +3261,16 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
 		}
 	}
+	for(auto a : world.in_army) {
+		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
+			a.set_arrival_time(current_date + 1);
+		}
+	}
+	for(auto a : world.in_navy) {
+		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
+			a.set_arrival_time(current_date + 1);
+		}
+	}
 
 #endif // ! NDEBUG
 
