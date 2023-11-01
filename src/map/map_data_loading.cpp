@@ -152,22 +152,64 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 					if(auto it = terrain_resolution.find(color); it != terrain_resolution.end()) {
 						terrain_id_map[ty * size_x + x] = it->second;
 					} else {
-						uint8_t resolved_index = 255;
-						int32_t min_distance = std::numeric_limits<int32_t>::max();
-						for(auto& p : terrain_resolution) {
-							if(p.second == 255)
-								continue;
-							auto c = p.first;
-							auto r = sys::int_red_from_int(c);
-							auto g = sys::int_green_from_int(c);
-							auto b = sys::int_blue_from_int(c);
-							auto dist = (r - ptr[0]) * (r - ptr[0]) + (b - ptr[1]) * (b - ptr[1]) + (g - ptr[2]) * (g - ptr[2]);
-							if(dist < min_distance) {
-								min_distance = dist;
-								resolved_index = p.second;
+						bool found_neightbor = false;
+
+						if(x > 0) {
+							uint8_t* ptrb = terrain_data.data + (x - 1 + size_x * y) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
 							}
 						}
-						terrain_id_map[ty * size_x + x] = resolved_index;
+						if(!found_neightbor && y > 0) {
+							uint8_t* ptrb = terrain_data.data + (x  + size_x * (y-1)) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
+							}
+						}
+						if(!found_neightbor && x < size_x - 1) {
+							uint8_t* ptrb = terrain_data.data + (x + 1 + size_x * y) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
+							}
+						}
+						if(!found_neightbor && y < size_y - 1) {
+							uint8_t* ptrb = terrain_data.data + (x + size_x * (y + 1)) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
+							}
+						}
+
+						if(!found_neightbor) {
+							uint8_t resolved_index = 255;
+							int32_t min_distance = std::numeric_limits<int32_t>::max();
+							for(auto& p : terrain_resolution) {
+								if(p.second == 255)
+									continue;
+								auto c = p.first;
+								auto r = sys::int_red_from_int(c);
+								auto g = sys::int_green_from_int(c);
+								auto b = sys::int_blue_from_int(c);
+								auto dist = (r - ptr[0]) * (r - ptr[0]) + (b - ptr[1]) * (b - ptr[1]) + (g - ptr[2]) * (g - ptr[2]);
+								if(dist < min_distance) {
+									min_distance = dist;
+									resolved_index = p.second;
+								}
+							}
+							terrain_id_map[ty * size_x + x] = resolved_index;
+						}
+						
 					}
 				}
 			}
