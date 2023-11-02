@@ -96,13 +96,16 @@ vec4 get_water_terrain()
 
 	OutColor *= texture(province_fow, prov_id).rgb;
 
+	vec3 background = texture(colormap_political, corrected_coord).rgb;
+	OutColor = mix(background, OutColor, 0.5);
+	
 	return vec4(OutColor, vWaterTransparens);
 }
 
 layout(index = 4) subroutine(get_water_class)
 vec4 get_water_political() {
-	vec3 water_background = vec3(0.21, 0.38, 0.45);
-	vec3 color = water_background.rgb;
+
+	vec3 color = texture(colormap_water, tex_coord).rgb;
 
 	// The "foldable map" overlay effect
 	vec4 OverlayColor = texture(overlay, tex_coord * vec2(11., 11.*map_size.y/map_size.x));
@@ -111,6 +114,9 @@ vec4 get_water_political() {
 	OutColor.g = OverlayColor.r < .5 ? (2. * OverlayColor.g * color.g) : (1. - 2. * (1. - OverlayColor.g) * (1. - color.g));
 	OutColor.b = OverlayColor.b < .5 ? (2. * OverlayColor.b * color.b) : (1. - 2. * (1. - OverlayColor.b) * (1. - color.b));
 	OutColor.a = OverlayColor.a;
+
+	vec3 background = texture(colormap_political, tex_coord).rgb;
+	OutColor.rgb = mix(background, OutColor.rgb, 0.5);
 
 	return OutColor;
 }
@@ -176,7 +182,11 @@ vec4 get_land_political_close() {
 	political = political - 0.7;
 
 	// Mix together the terrain and map mode color
-	terrain.rgb = mix(terrain.rgb, political, 0.3);
+	terrain.rgb = mix(terrain.rgb, political, 0.4);
+	
+	vec3 background = texture(colormap_political, tex_coord).rgb;
+	terrain.rgb = mix(background, terrain.rgb, 0.7);
+	
 	terrain.rgb *= 1.5;
 	return terrain;
 }

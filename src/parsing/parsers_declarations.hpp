@@ -372,6 +372,8 @@ struct scenario_building_context {
 	std::optional<simple_fs::file> rebel_types_file;
 	std::vector<simple_fs::file> tech_and_invention_files;
 
+	std::vector<dcon::province_id> special_impassible;
+
 	dcon::text_key noimage;
 
 	dcon::modifier_id modifier_by_terrain_index[64] = {}; // these are the given mappings from the raw palette index to terrain type

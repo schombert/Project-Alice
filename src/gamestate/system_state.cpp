@@ -2916,6 +2916,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	for(auto ip : context.special_impassible) {
+		for(auto adj : world.province_get_province_adjacency(ip)) {
+			adj.get_type() |= province::border::impassible_bit;
+		}
+	}
+
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
