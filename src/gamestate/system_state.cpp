@@ -2282,11 +2282,32 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 
+		for(uint32_t i = 0; i < military_definitions.unit_base_definitions.size(); ++i) {
+			dcon::unit_type_id u{ dcon::unit_type_id::value_base_t(i) };
+			auto u_name = military_definitions.unit_base_definitions[u].name;
+			if(!bool(military_definitions.irregular)) {
+				if(auto it = key_to_text_sequence.find("irregular"); it != key_to_text_sequence.end()) {
+					if(u_name == it->second) {
+						military_definitions.irregular = u;
+					}
+				}
+			}
+			if(!bool(military_definitions.artillery)) {
+				if(auto it = key_to_text_sequence.find("irregular"); it != key_to_text_sequence.end()) {
+					if(u_name == it->second) {
+						military_definitions.artillery = u;
+					}
+				}
+			}
+		}
 		if(!bool(military_definitions.infantry)) {
 			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
 		}
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
+		}
+		if(!bool(military_definitions.artillery)) {
+			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
 		}
 	}
 	// make space in arrays

@@ -647,6 +647,24 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			}
 		}
 
+		for(uint32_t i = 0; i < state->military_definitions.unit_base_definitions.size(); ++i) {
+			dcon::unit_type_id u{ dcon::unit_type_id::value_base_t(i) };
+			auto u_name = state->military_definitions.unit_base_definitions[u].name;
+			if(!bool(state->military_definitions.irregular)) {
+				if(auto it = state->key_to_text_sequence.find("irregular"); it != state->key_to_text_sequence.end()) {
+					if(u_name == it->second) {
+						state->military_definitions.irregular = u;
+					}
+				}
+			}
+			if(!bool(state->military_definitions.artillery)) {
+				if(auto it = state->key_to_text_sequence.find("irregular"); it != state->key_to_text_sequence.end()) {
+					if(u_name == it->second) {
+						state->military_definitions.artillery = u;
+					}
+				}
+			}
+		}
 		if(!bool(state->military_definitions.infantry)) {
 			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
 		}

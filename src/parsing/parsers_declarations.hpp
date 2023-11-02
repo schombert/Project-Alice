@@ -1375,7 +1375,7 @@ struct unit_definition : public military::unit_definition {
 };
 
 struct unit_file {
-	void finish(scenario_building_context&) { }
+	void finish(scenario_building_context& context);
 };
 
 void make_base_units(scenario_building_context& context);

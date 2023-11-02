@@ -2220,6 +2220,10 @@ void decision::picture(association_type, std::string_view value, error_handler& 
 	}
 }
 
+void unit_file::finish(scenario_building_context& context) {
+
+}
+
 void oob_leader::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
 	name_ = context.outer_context.state.add_unit_name(value);
 }
