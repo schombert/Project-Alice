@@ -4748,6 +4748,48 @@ void new_units_and_merging(sys::state& state) {
 
 }
 
+void perform_battle_cycling(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+
+		for(auto ar : state.world.nation_get_army_control(n)) {
+			army_activity activity = army_activity(ar.get_army().get_ai_activity());
+			if(!ar.get_army().get_battle_from_army_battle_participation()
+				|| ar.get_army().get_navy_from_army_transport()
+				|| ar.get_army().get_black_flag()
+				|| ar.get_army().get_arrival_time()
+				|| (activity != army_activity::on_guard && activity != army_activity::attacking && activity != army_activity::attack_gathered && activity != army_activity::attack_transport)
+				|| !army_ready_for_battle(state, n, ar.get_army())) {
+
+				continue;
+			}
+
+			int32_t our_units = 0;
+			auto b = ar.get_army().get_battle_from_army_battle_participation();
+			for(auto ap : b.get_army_battle_participation())
+				if(ap.get_army().get_controller_from_army_control() == ar.get_controller())
+					++our_units;
+			// Won't retreat since we only have this unit on this battle...
+			if(our_units <= 1)
+				continue;
+
+			int32_t unit_count = 0;
+			float total_org = 0.f;
+			float total_str = 0.f;
+			for(const auto nmid : state.world.army_get_army_membership_as_army(ar.get_army())) {
+				total_org += state.world.regiment_get_org(state.world.army_membership_get_regiment(nmid));
+				total_str += state.world.regiment_get_strength(state.world.army_membership_get_regiment(nmid));
+				++unit_count;
+			}
+			float org = total_org / float(unit_count);
+			float str = total_str / float(unit_count);
+			if(org <= 0.33f || str <= 0.33f)
+				command::execute_partial_retreat_from_land_battle(state, n, b, ar.get_army());
+		}
+	}
+}
+
 void general_ai_unit_tick(sys::state& state) {
 	auto v = state.current_date.value;
 	auto r = v % 8;

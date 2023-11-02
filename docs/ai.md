@@ -89,4 +89,7 @@ Gives move orders to attacking units that are not currently moving (or moves the
 `void new_units_and_merging(sys::state& state)`:
 Handles assigning base ai activity types to "new" units. Gives movement orders to new units to try to form 10 stacks. Merges such units into an appropriate army when they arrive.
 
+`void perform_battle_cycling(sys::state& state)`:
+Retreats units that are below organisation and strength threshold.
+
 TODO: reinforce battles

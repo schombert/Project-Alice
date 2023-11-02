@@ -1774,6 +1774,34 @@ public:
 	}
 };
 
+class u_row_partial_retreat : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			auto ap = state.world.army_get_army_battle_participation_as_army(a);
+			disabled = !command::can_partial_retreat_from_land_battle(state, state.local_player_nation, state.world.army_battle_participation_get_battle(ap), a);
+		} else {
+			disabled = true;
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto a = std::get<dcon::army_id>(foru);
+			auto ap = state.world.army_get_army_battle_participation_as_army(a);
+			command::partial_retreat_from_land_battle(state, state.local_player_nation, state.world.army_battle_participation_get_battle(ap), a);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "partial_retreat_unit");
+	}
+};
+
 class selected_unit_item : public listbox_row_element_base<unit_var> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1790,6 +1818,9 @@ public:
 		} else if(name == "str_bar") {
 			return make_element_by_type<u_row_str_bar>(state, id);
 		} else if(name == "disbandbutton") {
+			auto ptr = make_element_by_type<u_row_partial_retreat>(state, id);
+			ptr->base_data.position.x -= ptr->base_data.size.x;
+			add_child_to_front(std::move(ptr));
 			return make_element_by_type<u_row_disband>(state, id);
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<u_row_split>(state, id);

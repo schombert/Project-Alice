@@ -53,6 +53,7 @@ void move_gathered_attackers(sys::state& state);
 void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p);
 void make_attacks(sys::state& state);
 void make_defense(sys::state& state);
+void perform_battle_cycling(sys::state& state);
 void general_ai_unit_tick(sys::state& state);
 
 bool will_accept_peace_offer_value(sys::state& state,
