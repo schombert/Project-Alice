@@ -34,7 +34,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	"src/alice.rc"
-	${ASSET_FILES})
+	${ASSET_FILES} "src/network/network.cpp")
 else()
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
@@ -163,6 +163,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/text
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
+	${PROJECT_SOURCE_DIR}/src/network
 	${PROJECT_SOURCE_DIR}/src/nations
 	${PROJECT_SOURCE_DIR}/src/provinces
 	${PROJECT_SOURCE_DIR}/src/economy
