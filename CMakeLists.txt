@@ -34,7 +34,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	"src/alice.rc"
-	${ASSET_FILES} "src/network/network.cpp")
+	${ASSET_FILES})
 else()
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
