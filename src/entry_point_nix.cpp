@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
 		if(sys::try_read_scenario_and_save_file(game_state, argv[1])) {
 			game_state.fill_unsaved_data();
-		} else {
+	} else {
 			auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(argv[1]) + " could not be read";
 			window::emit_error_message(msg, true);
 			return 0;

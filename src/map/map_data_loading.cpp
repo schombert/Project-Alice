@@ -135,7 +135,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
 		image terrain_data;
-		if(!terrain_file)
+		if(terrain_file)
 			terrain_data = load_stb_image(*terrain_file);
 
 		auto terrain_resolution = internal_make_index_map();
@@ -152,22 +152,64 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 					if(auto it = terrain_resolution.find(color); it != terrain_resolution.end()) {
 						terrain_id_map[ty * size_x + x] = it->second;
 					} else {
-						uint8_t resolved_index = 255;
-						int32_t min_distance = std::numeric_limits<int32_t>::max();
-						for(auto& p : terrain_resolution) {
-							if(p.second == 255)
-								continue;
-							auto c = p.first;
-							auto r = sys::int_red_from_int(c);
-							auto g = sys::int_green_from_int(c);
-							auto b = sys::int_blue_from_int(c);
-							auto dist = (r - ptr[0]) * (r - ptr[0]) + (b - ptr[1]) * (b - ptr[1]) + (g - ptr[2]) * (g - ptr[2]);
-							if(dist < min_distance) {
-								min_distance = dist;
-								resolved_index = p.second;
+						bool found_neightbor = false;
+
+						if(x > 0) {
+							uint8_t* ptrb = terrain_data.data + (x - 1 + size_x * y) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
 							}
 						}
-						terrain_id_map[ty * size_x + x] = resolved_index;
+						if(!found_neightbor && y > 0) {
+							uint8_t* ptrb = terrain_data.data + (x  + size_x * (y-1)) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
+							}
+						}
+						if(!found_neightbor && x < size_x - 1) {
+							uint8_t* ptrb = terrain_data.data + (x + 1 + size_x * y) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
+							}
+						}
+						if(!found_neightbor && y < size_y - 1) {
+							uint8_t* ptrb = terrain_data.data + (x + size_x * (y + 1)) * 4;
+							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+
+							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
+								terrain_id_map[ty * size_x + x] = itb->second;
+								found_neightbor = true;
+							}
+						}
+
+						if(!found_neightbor) {
+							uint8_t resolved_index = 255;
+							int32_t min_distance = std::numeric_limits<int32_t>::max();
+							for(auto& p : terrain_resolution) {
+								if(p.second == 255)
+									continue;
+								auto c = p.first;
+								auto r = sys::int_red_from_int(c);
+								auto g = sys::int_green_from_int(c);
+								auto b = sys::int_blue_from_int(c);
+								auto dist = (r - ptr[0]) * (r - ptr[0]) + (b - ptr[1]) * (b - ptr[1]) + (g - ptr[2]) * (g - ptr[2]);
+								if(dist < min_distance) {
+									min_distance = dist;
+									resolved_index = p.second;
+								}
+							}
+							terrain_id_map[ty * size_x + x] = resolved_index;
+						}
+						
 					}
 				}
 			}
@@ -277,7 +319,7 @@ void display_data::load_province_data(parsers::scenario_building_context& contex
 		province_id_map.resize(imsz);
 		for(uint32_t i = 0; i < imsz; ++i) {
 			auto map_x = i % size_x;
-			auto map_y = i / size_y;
+			auto map_y = i / size_x;
 			uint8_t* ptr = image.data + (map_x + size_x * (size_y - map_y - 1)) * 4;
 			auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 			if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
@@ -319,8 +361,37 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	load_terrain_data(context);
 	load_border_data(context);
 
-	auto size = glm::ivec2(size_x, size_y);
-	auto river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
+	std::vector<uint8_t> river_data;
+	if(!context.new_maps) {
+		auto size = glm::ivec2(size_x, size_y);
+		river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
+	} else {
+		auto river_file = open_file(map_dir, NATIVE("alice_rivers.png"));
+		river_data.resize(size_x * size_y, uint8_t(255));
+
+		image river_image_data;
+		if(river_file)
+			river_image_data = load_stb_image(*river_file);
+
+		auto terrain_resolution = internal_make_index_map();
+
+		if(river_image_data.size_x == int32_t(size_x) && river_image_data.size_y == int32_t(size_y)) {
+			for(uint32_t ty = 0; ty < size_y; ++ty) {
+				uint32_t y = size_y - ty - 1;
+
+				for(uint32_t x = 0; x < size_x; ++x) {
+
+					uint8_t* ptr = river_image_data.data + (x + size_x * y) * 4;
+					if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 && terrain_id_map[x + size_x * y] != uint8_t(255))
+						river_data[ty * size_x + x] = 0;
+					else
+						river_data[ty * size_x + x] = 255;
+					
+				}
+			}
+		}
+	}
+
 	river_vertices = create_river_vertices(*this, context, river_data);
 }
 

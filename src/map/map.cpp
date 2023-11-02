@@ -784,7 +784,7 @@ void add_arrow(
 	}
 }
 
-void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses) {
+void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses) {
 	unit_arrow_vertices.clear();
 	for(size_t arrow_index = 0; arrow_index < arrows.size(); arrow_index++) {
 		auto arrow = arrows[arrow_index];

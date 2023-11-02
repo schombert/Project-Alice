@@ -2288,9 +2288,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
-		if(!bool(military_definitions.artillery)) {
-			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
-		}
 	}
 	// make space in arrays
 
@@ -2919,6 +2916,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	for(auto ip : context.special_impassible) {
+		for(auto adj : world.province_get_province_adjacency(ip)) {
+			adj.get_type() |= province::border::impassible_bit;
+		}
+	}
+
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
@@ -3262,6 +3265,16 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		for(auto rt : world.in_rebel_type) {
 			auto ng = rt.get_government_change(g);
 			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
+		}
+	}
+	for(auto a : world.in_army) {
+		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
+			a.set_arrival_time(current_date + 1);
+		}
+	}
+	for(auto a : world.in_navy) {
+		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
+			a.set_arrival_time(current_date + 1);
 		}
 	}
 

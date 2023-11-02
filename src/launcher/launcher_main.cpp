@@ -328,6 +328,7 @@ native_string to_hex(uint64_t v) {
 		ret += digits[v & 0x0F];
 		v = v >> 4;
 	} while(v != 0);
+
 	return ret;
 }
 
@@ -466,6 +467,8 @@ void mouse_click() {
 					CloseHandle(pi.hProcess);
 					CloseHandle(pi.hThread);
 				}
+				
+
 				// ready to launch
 			}
 			return;
@@ -931,7 +934,7 @@ void render() {
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
 		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-
+		
 	}
 
 	{
@@ -1032,9 +1035,10 @@ void render() {
 	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 5.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + 4.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
 	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 5.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
-	
+
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+
 	
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 

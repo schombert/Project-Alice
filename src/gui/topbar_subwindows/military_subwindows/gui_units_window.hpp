@@ -11,14 +11,10 @@ template<typename T>
 class military_unit_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = military_unit_info<T>{};
-			parent->impl_get(state, payload);
-			auto content = Cyto::any_cast<military_unit_info<T>>(payload);
-			if(std::holds_alternative<T>(content)) {
-				auto fat_id = dcon::fatten(state.world, std::get<T>(content));
-				set_text(state, std::string{state.to_string_view(fat_id.get_name())});
-			}
+		auto content = retrieve<military_unit_info<T>>(state, parent);
+		if(std::holds_alternative<T>(content)) {
+			auto fat_id = dcon::fatten(state.world, std::get<T>(content));
+			set_text(state, std::string{ state.to_string_view(fat_id.get_name()) });
 		}
 	}
 };
@@ -48,7 +44,7 @@ public:
 				if(goods.commodity_type[i]) {
 					auto box = text::open_layout_box(contents, 0);
 					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
-					text::add_to_layout_box(state, contents, box, std::string_view{": " });
+					text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
 					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
@@ -76,7 +72,7 @@ public:
 				}
 			}
 		}
-		
+
 	}
 };
 
@@ -355,12 +351,12 @@ public:
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 				auto c = std::get<dcon::province_land_construction_id>(content);
 				unit_icon->frame =
-						state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
+					state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
 				unit_building_progress->progress = economy::unit_construction_progress(state, c);
 			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 				auto c = std::get<dcon::province_naval_construction_id>(content);
 				unit_icon->frame =
-						state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
+					state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
 				unit_building_progress->progress = economy::unit_construction_progress(state, c);
 			}
 		} else {
@@ -494,7 +490,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("military_build_navy_tooltip"));
 		}
 		text::close_layout_box(contents, box);
-	}	
+	}
 };
 
 class military_armies_text : public simple_text_element_base {
