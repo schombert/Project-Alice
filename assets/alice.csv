@@ -1280,6 +1280,7 @@ alice_trade_flow_piechart_workforce;Workforce
 alice_diplo_release_subject;Release subject
 alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
 alice_diplo_release_subject_0;Is our subject
+partial_retreat_unit;Partially retreat this unit, this allows for §Ycycling§W units in-battle, leaving out weak units off the battle to allow new ones to show up.
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 ;;;;;;;;;;;;;x
