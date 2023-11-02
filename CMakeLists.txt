@@ -163,6 +163,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/text
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
+	${PROJECT_SOURCE_DIR}/src/network
 	${PROJECT_SOURCE_DIR}/src/nations
 	${PROJECT_SOURCE_DIR}/src/provinces
 	${PROJECT_SOURCE_DIR}/src/economy
