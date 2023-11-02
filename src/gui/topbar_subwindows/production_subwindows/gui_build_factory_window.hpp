@@ -108,44 +108,22 @@ public:
 	}
 };
 
-class factory_build_item_button : public button_element_base {
-	bool visible = false;
+class factory_build_item_button : public tinted_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
-		visible = !retrieve<bool>(state, parent);
+		if(retrieve<bool>(state, parent)) {
+			color = sys::pack_color(196, 255, 196);
+		} else {
+			color = sys::pack_color(255, 255, 255);
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		send(state, parent, element_selection_wrapper<dcon::factory_type_id>{content});
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
-			button_element_base::render(state, x, y);
-	}
-};
-
-class factory_build_item_highlight_image : public tinted_image_element_base {
-	bool visible = false;
-public:
-	void on_create(sys::state& state) noexcept override {
-		tinted_image_element_base::on_create(state);
-		color = sys::pack_color(196, 255, 196);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto sid = retrieve<dcon::state_instance_id>(state, parent);
-		auto content = retrieve<dcon::factory_type_id>(state, parent);
-		visible = retrieve<bool>(state, parent);
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
-			tinted_image_element_base::render(state, x, y);
 	}
 };
 
@@ -154,12 +132,6 @@ class factory_build_item : public listbox_row_element_base<dcon::factory_type_id
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
-			auto hl_elm = make_element_by_type<factory_build_item_highlight_image>(state, id);
-			hl_elm->base_data.size.x *= 2;	 // Nudge
-			hl_elm->base_data.size.x += 42; // Nudge
-			hl_elm->base_data.size.y += 5;	 // Nudge
-			add_child_to_back(std::move(hl_elm));
-
 			auto ptr = make_element_by_type<factory_build_item_button>(state, id);
 			ptr->base_data.size.x *= 2;	 // Nudge
 			ptr->base_data.size.x += 42; // Nudge
