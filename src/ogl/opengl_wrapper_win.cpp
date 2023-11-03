@@ -15,6 +15,8 @@ namespace ogl {
 void create_opengl_context(sys::state& state) {
 	assert(state.win_ptr && state.win_ptr->hwnd && !state.open_gl.context);
 
+	HDC window_dc = state.win_ptr->opengl_window_dc;
+
 	PIXELFORMATDESCRIPTOR pfd;
 	ZeroMemory(&pfd, sizeof(pfd));
 	pfd.nSize = sizeof(pfd);
@@ -25,9 +27,6 @@ void create_opengl_context(sys::state& state) {
 	pfd.cDepthBits = 24;
 	pfd.cStencilBits = 8;
 	pfd.iLayerType = PFD_MAIN_PLANE;
-
-	HDC window_dc = state.win_ptr->opengl_window_dc;
-
 	int const pixel_format = ChoosePixelFormat(window_dc, &pfd);
 	SetPixelFormat(window_dc, pixel_format, &pfd);
 
@@ -59,25 +58,25 @@ void create_opengl_context(sys::state& state) {
 		std::abort();
 	}
 
-		wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
-		wglDeleteContext(handle_to_ogl_dc);
+	wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
+	wglDeleteContext(handle_to_ogl_dc);
 
-		// wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
+	// wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
 #ifndef NDEBUG
-		glDebugMessageCallback(debug_callback, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-		glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+	glDebugMessageCallback(debug_callback, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
 #endif
 
-		if(wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
-			wglSwapIntervalEXT(-1);
-		} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
-			wglSwapIntervalEXT(1);
-		} else {
-			MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error",
-					MB_OK);
-		}
+	if(wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
+		wglSwapIntervalEXT(-1);
+	} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
+		wglSwapIntervalEXT(1);
+	} else {
+		MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error",
+				MB_OK);
 	}
+}
 
 void shutdown_opengl(sys::state& state) {
 	assert(state.win_ptr && state.win_ptr->hwnd && state.open_gl.context);

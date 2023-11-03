@@ -454,9 +454,13 @@ void display_data::load_shaders(simple_fs::directory& root) {
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
-
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+	if(ogl::msaa_enabled(state)) {
+		glBindFramebuffer(GL_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	}
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
@@ -626,6 +630,21 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
+
+	if(ogl::msaa_enabled(state)) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.msaa_interbuffer);
+		glBlitFramebuffer(0, 0, GLint(screen_size.x), GLint(screen_size.y), 0, 0, GLint(screen_size.x), GLint(screen_size.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		// 3. now render quad with scene's visuals as its texture image
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// draw Screen quad
+		glUseProgram(state.open_gl.msaa_shader_program);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, state.open_gl.msaa_texture); // use the now resolved color attachment as the quad's texture
+		glBindVertexArray(state.open_gl.msaa_vao);
+		//glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.msaa_vbo);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 }
 
 GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
