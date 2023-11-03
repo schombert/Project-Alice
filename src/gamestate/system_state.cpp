@@ -1702,11 +1702,11 @@ void state::save_user_settings() const {
 	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
-	std::memcpy(ptr, &user_settings.self_message_settings, lower_half_count);
+	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
 	ptr += 98;
-	std::memcpy(ptr, &user_settings.interesting_message_settings, lower_half_count);
+	std::memcpy(ptr, user_settings.interesting_message_settings, lower_half_count);
 	ptr += 98;
-	std::memcpy(ptr, &user_settings.other_message_settings, lower_half_count);
+	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
 	US_SAVE(fow_enabled);
 	constexpr size_t upper_half_count = 128 - 98;
@@ -1720,7 +1720,7 @@ void state::save_user_settings() const {
 	US_SAVE(antialias_level);
 #undef US_SAVE
 
-	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(sizeof(buffer)));
+	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
 }
 void state::load_user_settings() {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
@@ -1774,6 +1774,8 @@ void state::load_user_settings() {
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
+		if(user_settings.antialias_level > 16)
+			user_settings.antialias_level = 0;
 	}
 }
 
