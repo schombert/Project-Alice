@@ -72,9 +72,13 @@ void main() {
 
 	float x_adj = 1.0f / aspect_ratio;
 	
+	vec2 unadj_direction = vec2(direction.x / 2.0f, direction.y);
+	vec2 unadj_normal = vec2(-direction.y / 2.0f, direction.x);
+	
 	vec4 center_point = calc_gl_position(vertex_position);
-	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + vec2(direction.x, direction.y) * 0.0001) - center_point);
-	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + vec2(-direction.y, direction.x)* 0.0001) - center_point);
+	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_direction * 0.0001) - center_point);
+	
+	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_normal * 0.0001) - center_point);
 	
 	//vec2 offset = normal_vector + extend_vector;
 	//world_pos += offset * scale;
