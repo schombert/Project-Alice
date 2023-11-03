@@ -129,7 +129,7 @@ public:
 };
 
 class button_element_base : public opaque_element_base {
-private:
+protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
@@ -162,6 +162,12 @@ public:
 		}
 	}
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class tinted_button_element_base : public button_element_base {
+public:
+	uint32_t color = 0;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
