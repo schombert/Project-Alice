@@ -382,7 +382,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 				for(uint32_t x = 0; x < size_x; ++x) {
 
 					uint8_t* ptr = river_image_data.data + (x + size_x * y) * 4;
-					if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 && terrain_id_map[x + size_x * y] != uint8_t(255))
+					if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 && terrain_id_map[x + size_x * ty] != uint8_t(255))
 						river_data[ty * size_x + x] = 0;
 					else
 						river_data[ty * size_x + x] = 255;

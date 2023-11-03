@@ -80,10 +80,11 @@ public:
 				row_contents.push_back(c);
 		}
 		if constexpr(!ShowFull) {
-			std::vector<chat_message> v;
-			for(auto it = row_contents.rbegin(); it != row_contents.rend() && v.size() < row_windows.size(); it++)
-				v.push_back(*it);
-			row_contents = v;
+			if(!row_contents.empty()) {
+				auto to_keep = std::min(row_contents.size(), row_windows.size());
+				auto to_delete = row_contents.size() - to_keep;
+				row_contents.erase(row_contents.begin(), row_contents.begin() + to_delete);
+			}
 		}
 		update(state);
 	}
@@ -97,8 +98,8 @@ public:
 		if constexpr(ShowFull) {
 			return listbox_element_base<chat_message_entry, chat_message>::impl_probe_mouse(state, x, y, type);
 		} else {
-		return mouse_probe{ nullptr, ui::xy_pair{0,0} };
-	}
+			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+		}
 	}
 };
 

@@ -15,14 +15,12 @@ guiTypes = {
 		size = { 352 432 }
 		moveable = 1
 		Orientation = "CENTER"
-
 		iconType = {
 			name = "background"
 			spriteType = "GFX_menu"
-			position = {  0 0 }
+			position = { 0 0 }
 			Orientation = "UPPER_LEFT"
 		}
-
 		guiButtonType = {
 			name = "close_button"
 			quadTextureSprite = "GFX_main_close_button"
@@ -30,7 +28,6 @@ guiTypes = {
 			Orientation = "UPPER_RIGHT"
 			shortcut = "ESCAPE"
 		}
-
 		guiButtonType = {
 			name = "save_and_exit"
 			position = { 58 104 }
@@ -38,7 +35,6 @@ guiTypes = {
 			buttonText = "alice_save_exit"
 			buttonFont = "vic_22_black"
 		}
-
 		guiButtonType = {
 			name = "save"
 			position = { 58 142 }
@@ -46,7 +42,6 @@ guiTypes = {
 			buttonText = "alice_save"
 			buttonFont = "vic_22_black"
 		}
-
 		guiButtonType = {
 			name = "exit"
 			position = { 58 180 }
@@ -54,7 +49,6 @@ guiTypes = {
 			buttonText = "alice_exit"
 			buttonFont = "vic_22_black"
 		}
-
 		guiButtonType = {
 			name = "graphics"
 			position = { 58 218 }
@@ -62,7 +56,6 @@ guiTypes = {
 			buttonText = "graphics_options"
 			buttonFont = "vic_22_black"
 		}
-
 		guiButtonType = {
 			name = "sound"
 			position = { 58 256 }
@@ -70,7 +63,6 @@ guiTypes = {
 			buttonText = "sound_options"
 			buttonFont = "vic_22_black"
 		}
-
 		guiButtonType = {
 			name = "controls"
 			position = { 58 294 }
@@ -78,7 +70,6 @@ guiTypes = {
 			buttonText = "controls_options"
 			buttonFont = "vic_22_black"
 		}
-
 		guiButtonType = {
 			name = "message_settings"
 			position = { 58 332 }
@@ -87,20 +78,26 @@ guiTypes = {
 			buttonFont = "vic_22_black"
 		}
 
+		# Please follow the following guidelines:
+		# 32 units of spacing between fields with values
+		# 24 units of spacing between boolean checkbox fields
+		# 20 vertical spacing between labels and values (if any)
+		# -2 offset for buttons < and >, such that, the text remains centered
+		# -1 offset for checkbox to vertically center them in respect to text
+		# Use 14 font for values, and 16 font for labels
+		# 48 spacing between sliders (audio mainly)
 		windowType = {
 			name = "alice_graphics_menu"
 			position = {  0 0 }
 			size = { 352 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
-
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
-				position = {  0 0 }
+				position = { 0 0 }
 				Orientation = "UPPER_LEFT"
 			}
-
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
@@ -108,10 +105,10 @@ guiTypes = {
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
-
-			instantTextBoxType={
-				position = { 78 116 }
+			# Fullscreen (Y/N)
+			instantTextBoxType = {
 				name = "window_mode_label"
+				position = { 78 116 }
 				text = "window_mode_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -125,80 +122,10 @@ guiTypes = {
 				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
-
-			instantTextBoxType={
-				position = { 58 157 }
-				name = "projection_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "map_projection"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = { 58 175 }
-				name = "projection_value"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			guiButtonType = {
-				name = "projection_left"
-				position = { 51 168 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "projection_right"
-				position = { 269 168 }
-				quadTextureSprite = "option_next"
-			}
-
-			instantTextBoxType={
-				position = { 58 210 }
-				name = "ui_scale_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "ui_scale"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = { 58 228 }
-				name = "ui_scale_value"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			guiButtonType = {
-				name = "ui_scale_left"
-				position = { 51 221 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "ui_scale_right"
-				position = { 269 221 }
-				quadTextureSprite = "option_next"
-			}
-
-			instantTextBoxType={
-				position = { 78 282 }
+			# Use classic fonts (Y/N)
+			instantTextBoxType = {
 				name = "fonts_label"
+				position = { 78 140 }
 				text = "fonts_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -209,13 +136,13 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "fonts_checkbox"
-				position = { 51 281 }
+				position = { 51 139 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
-
-			instantTextBoxType={
-				position = { 78 331 }
+			# Fog of War (Y/N)
+			instantTextBoxType = {
 				name = "fow_label"
+				position = { 78 164 }
 				text = "fow_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -226,12 +153,76 @@ guiTypes = {
 			}
 			checkboxType = {
 				name = "fow_checkbox"
-				position = { 51 330 }
+				position = { 51 163 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
-
+			# Projection settings for the map: equirectangular, orthographic
+			instantTextBoxType = {
+				name = "projection_label"
+				position = { 58 188 }
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxWidth = 236
+				maxHeight = 18
+				text = "map_projection"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				name = "projection_value"
+				position = { 58 208 }
+				font = "Arial14"
+				borderSize = { 0 0 }
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "projection_left"
+				position = { 51 206 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "projection_right"
+				position = { 269 206 }
+				quadTextureSprite = "option_next"
+			}
+			# UI scaling
+			instantTextBoxType = {
+				position = { 58 240 }
+				name = "ui_scale_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "ui_scale"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
 			instantTextBoxType={
-				position = { 78 362 }
+				position = { 58 260 }
+				name = "ui_scale_value"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "ui_scale_left"
+				position = { 51 258 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "ui_scale_right"
+				position = { 269 258 }
+				quadTextureSprite = "option_next"
+			}
+			# Map label mode: none, linear, cuadratic, cubic
+			instantTextBoxType={
+				position = { 58 292 }
 				name = "map_label_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -242,9 +233,9 @@ guiTypes = {
 				format = centre
 			}
 			instantTextBoxType={
-				position = { 58 380 }
+				position = { 58 312 }
 				name = "map_label_value"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = { 0 0}
 				maxWidth = 236
 				maxHeight = 18
@@ -253,12 +244,44 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "map_label_left"
-				position = { 51 380 }
+				position = { 51 310 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "map_label_right"
-				position = { 269 380 }
+				position = { 269 310 }
+				quadTextureSprite = "option_next"
+			}
+			# Anisotropic filtering
+			instantTextBoxType={
+				position = { 58 344 }
+				name = "antialiasing_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "antialiasing_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				position = { 58 364 }
+				name = "antialiasing_value"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "antialiasing_left"
+				position = { 51 363 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "antialiasing_right"
+				position = { 269 363 }
 				quadTextureSprite = "option_next"
 			}
 		}
@@ -269,14 +292,12 @@ guiTypes = {
 			size = { 352 432 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
-
 			iconType = {
 				name = "background"
 				spriteType = "GFX_menu"
 				position = {  0 0 }
 				Orientation = "UPPER_LEFT"
 			}
-
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
@@ -284,80 +305,10 @@ guiTypes = {
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
-
-			instantTextBoxType={
-				position = { 58 104 }
-				name = "zoom_mode_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "zoom_mode_label"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = { 58 122 }
-				name = "zoom_mode_value"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			guiButtonType = {
-				name = "zoom_mode_left"
-				position = { 51 115 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "zoom_mode_right"
-				position = { 269 115 }
-				quadTextureSprite = "option_next"
-			}
-			
-			instantTextBoxType={
-				position = { 58 157 }
-				name = "auto_save_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				text = "auto_save_lb"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			instantTextBoxType={
-				position = { 58 175 }
-				name = "auto_save_value"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxWidth = 236
-				maxHeight = 18
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-
-			guiButtonType = {
-				name = "auto_save_left"
-				position = { 51 168 }
-				quadTextureSprite = "option_prev"
-			}
-
-			guiButtonType = {
-				name = "auto_save_right"
-				position = { 269 168 }
-				quadTextureSprite = "option_next"
-			}
-			
-			instantTextBoxType={
-				position = { 78 222 }
+			# Tooltip hovering style
+			instantTextBoxType = {
 				name = "tooltip_mode_label"
+				position = { 78 116 }
 				text = "tooltip_mode_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -368,8 +319,72 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "tooltip_mode_checkbox"
-				position = { 51 221 }
+				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Zoom style
+			instantTextBoxType = {
+				name = "zoom_mode_label"
+				position = { 58 140 }
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "zoom_mode_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				name = "zoom_mode_value"
+				position = { 58 160 }
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "zoom_mode_left"
+				position = { 51 158 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "zoom_mode_right"
+				position = { 269 158 }
+				quadTextureSprite = "option_next"
+			}
+			# Auto save interval
+			instantTextBoxType = {
+				name = "auto_save_label"
+				position = { 58 184 }
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "auto_save_lb"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				name = "auto_save_value"
+				position = { 58 204 }
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "auto_save_left"
+				position = { 51 202 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "auto_save_right"
+				position = { 269 202 }
+				quadTextureSprite = "option_next"
 			}
 		}
 
@@ -386,7 +401,6 @@ guiTypes = {
 				position = {  0 0 }
 				Orientation = "UPPER_LEFT"
 			}
-
 			guiButtonType = {
 				name = "close_button"
 				quadTextureSprite = "GFX_main_close_button"
@@ -395,9 +409,9 @@ guiTypes = {
 				shortcut = "ESCAPE"
 			}
 
-			instantTextBoxType={
-				position = { 58 104 }
+			instantTextBoxType = {
 				name = "master_volume_label"
+				position = { 58 116 }
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxWidth = 236
@@ -406,7 +420,6 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-
 			scrollbarType = {
 				name = "master_volume_scroll_bar"
 				slider = "slider"
@@ -414,13 +427,12 @@ guiTypes = {
 				leftbutton = "up"
 				rightbutton = "down"
 				size = { 236 16 }
-				position = { 58 123 }
+				position = { 58 136 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
@@ -443,9 +455,9 @@ guiTypes = {
 				}
 			}
 
-			instantTextBoxType={
-				position = { 58 157 }
+			instantTextBoxType = {
 				name = "music_volume_label"
+				position = { 58 164 }
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxWidth = 236
@@ -454,21 +466,19 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-
 			scrollbarType = {
 				name = "music_volume_scroll_bar"
 				slider = "slider"
 				track= "track"
 				leftbutton = "up"
 				rightbutton = "down"
-				size = { 236  16 }
-				position = { 58 176 }
+				size = { 236 16 }
+				position = { 58 184 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
@@ -491,9 +501,9 @@ guiTypes = {
 				}
 			}
 
-			instantTextBoxType={
-				position = { 58 210 }
+			instantTextBoxType = {
 				name = "interface_volume_label"
+				position = { 58 212 }
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxWidth = 236
@@ -502,7 +512,6 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-
 			scrollbarType = {
 				name = "interface_volume_scroll_bar"
 				slider = "slider"
@@ -510,13 +519,12 @@ guiTypes = {
 				leftbutton = "up"
 				rightbutton = "down"
 				size = { 236 16 }
-				position = { 58 229 }
+				position = { 58 232 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
@@ -539,9 +547,9 @@ guiTypes = {
 				}
 			}
 
-			instantTextBoxType={
-				position = { 58 263 }
+			instantTextBoxType = {
 				name = "effect_volume_label"
+				position = { 58 260 }
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxWidth = 236
@@ -550,7 +558,6 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
-
 			scrollbarType = {
 				name = "effect_volume_scroll_bar"
 				slider = "slider"
@@ -558,13 +565,12 @@ guiTypes = {
 				leftbutton = "up"
 				rightbutton = "down"
 				size = { 236 16 }
-				position = { 58 282 }
+				position = { 58 280 }
 				minValue = 0
 				maxValue = 128
 				stepSize = 2
 				startValue = 128
 				horizontal = 1
-
 				guiButtonType = {
 					name = "slider"
 					quadTextureSprite = "GFX_slider_circle"
@@ -630,7 +636,7 @@ guiTypes = {
 	}
 
 	iconType = {
-		name ="flag_list_flag"
+		name = "flag_list_flag"
 		spriteType = "GFX_flag_new"
 		position = { 0 6 }
 		Orientation = "UPPER_LEFT"
@@ -839,24 +845,18 @@ guiTypes = {
 		horizontalBorder= ""
 		verticalBorder= ""
 		fullScreen = no	
-
-		
-		iconType =
-		{
+		iconType = {
 			name ="unitpanel_bg"
 			spriteType = "GFX_unit_toppanel_bg"
-			position = {  -1 0 }
+			position = { -1 0 }
 			Orientation = "UPPER_LEFT"
 		}
-		
 		iconType =	{
 			name ="leader_photo"
 			spriteType = "GFX_leader_generic0"
 			position = { 18 6 }
 			Orientation = "UPPER_LEFT"
 		}
-
-
 		instantTextBoxType = {
 			name = "unitstrength"
 			position = { 201 28 }
@@ -868,24 +868,21 @@ guiTypes = {
 			maxHeight = 17	
 			format = right
 		}
-		
 		iconType = {
 			name ="unitattrition_icon"
 			spriteType = "GFX_unit_attr"
 			position = { 245  42 }
 			Orientation = "UPPER_LEFT"
 		}
-		
 		iconType = {
-			name ="org_bar"
+			name = "org_bar"
 			spriteType = "GFX_morale_progress"
 			position = {  312 52 }
 			Orientation = "UPPER_LEFT"
 			rotation = 1.5708
 		}
-			
 		iconType = {
-			name ="str_bar"
+			name = "str_bar"
 			spriteType = "GFX_strength_progress"
 			position = {  320 52 }
 			Orientation = "UPPER_LEFT"
@@ -896,27 +893,24 @@ guiTypes = {
 			position = { 254 6 }
 			quadTextureSprite ="GFX_unit_disband"
 		}	
-
 		guiButtonType = {
 			name = "splitinhalf"
 			position = { 279 6 }
 			quadTextureSprite ="GFX_unit_splitinhalf"
 			shortcut = "s"
 		}		
-
 		guiButtonType = {
 			name = "remove_unit_from_selection_button"
 			position = { 303 6 }
-			quadTextureSprite ="GFX_unit_close"
+			quadTextureSprite = "GFX_unit_close"
+			shortcut = "x"
 		}
-		
 		iconType = {
 			name = "unit_inf"
 			spriteType = "GFX_unit_strip"
 			position = { 49 24 }
 		}
-		
-		instantTextBoxType={
+		instantTextBoxType = {
 			position = { 87 35 }
 			name = "unit_inf_count"
 			font = "Arial16_black"
@@ -926,13 +920,11 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-		
 		iconType = {
 			name = "unit_cav"
 			spriteType = "GFX_unit_strip"
 			position = { 114 24 }
 		}
-		
 		instantTextBoxType={
 			position = { 152 35 }
 			name = "unit_cav_count"
@@ -943,14 +935,12 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-		
 		iconType = {
 			name = "unit_art"
 			spriteType = "GFX_unit_strip"
 			position = { 179 24 }
 		}
-		
-		instantTextBoxType={
+		instantTextBoxType = {
 			position = { 217 35 }
 			name = "unit_art_count"
 			font = "Arial16_black"
@@ -960,7 +950,6 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-		
 		instantTextBoxType = {
 			position = { 45 5 }
 			name = "location"
