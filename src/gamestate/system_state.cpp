@@ -1702,19 +1702,19 @@ void state::save_user_settings() const {
 	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
-	std::memcpy(ptr, &user_settings.self_message_settings, lower_half_count);
-	ptr += 98;
-	std::memcpy(ptr, &user_settings.interesting_message_settings, lower_half_count);
-	ptr += 98;
-	std::memcpy(ptr, &user_settings.other_message_settings, lower_half_count);
-	ptr += 98;
+	std::memcpy(ptr, &user_settings.self_message_settings[0], lower_half_count);
+	ptr += lower_half_count;
+	std::memcpy(ptr, &user_settings.interesting_message_settings[0], lower_half_count);
+	ptr += lower_half_count;
+	std::memcpy(ptr, &user_settings.other_message_settings[0], lower_half_count);
+	ptr += lower_half_count;
 	US_SAVE(fow_enabled);
-	constexpr size_t upper_half_count = 128 - 98;
-	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
+	constexpr size_t upper_half_count = 128 - lower_half_count;
+	std::memcpy(ptr, &user_settings.self_message_settings[lower_half_count], upper_half_count);
 	ptr += upper_half_count;
-	std::memcpy(ptr, &user_settings.interesting_message_settings[98], upper_half_count);
+	std::memcpy(ptr, &user_settings.interesting_message_settings[lower_half_count], upper_half_count);
 	ptr += upper_half_count;
-	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
+	std::memcpy(ptr, &user_settings.other_message_settings[lower_half_count], upper_half_count);
 	ptr += upper_half_count;
 	US_SAVE(map_label);
 	US_SAVE(antialias_level);
@@ -1727,48 +1727,42 @@ void state::load_user_settings() {
 	auto settings_file = open_file(settings_location, NATIVE("user_settings.dat"));
 	if(settings_file) {
 		auto content = view_contents(*settings_file);
-		auto ptr = content.data;
-
+		char buffer[sizeof(user_settings_s)];
+		new (&buffer) user_settings_s{};
+		std::memcpy(buffer, content.data, content.file_size);
+		char const* ptr = &buffer[0];
 #define US_LOAD(x) \
-		if(ptr > content.data + content.file_size - sizeof(user_settings.x)) break; \
 		std::memcpy(&user_settings.x, ptr, sizeof(user_settings.x)); \
 		ptr += sizeof(user_settings.x);
-
-		do {
-			US_LOAD(ui_scale);
-			US_LOAD(master_volume);
-			US_LOAD(music_volume);
-			US_LOAD(effects_volume);
-			US_LOAD(interface_volume);
-			US_LOAD(prefer_fullscreen);
-			US_LOAD(map_is_globe);
-			US_LOAD(autosaves);
-			US_LOAD(bind_tooltip_mouse);
-			US_LOAD(use_classic_fonts);
-			US_LOAD(outliner_views);
-			constexpr size_t lower_half_count = 98;
-
-			std::memcpy(&user_settings.self_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
-			ptr += 98;
-
-			std::memcpy(&user_settings.interesting_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
-			ptr += 98;
-
-			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
-			ptr += 98;
-
-			US_LOAD(fow_enabled);
-			constexpr size_t upper_half_count = 128 - 98;
-			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
-			ptr += upper_half_count;
-			std::memcpy(&user_settings.interesting_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
-			ptr += upper_half_count;
-			std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
-			ptr += upper_half_count;
-			US_LOAD(map_label);
-			US_LOAD(antialias_level);
+		US_LOAD(ui_scale);
+		US_LOAD(master_volume);
+		US_LOAD(music_volume);
+		US_LOAD(effects_volume);
+		US_LOAD(interface_volume);
+		US_LOAD(prefer_fullscreen);
+		US_LOAD(map_is_globe);
+		US_LOAD(autosaves);
+		US_LOAD(bind_tooltip_mouse);
+		US_LOAD(use_classic_fonts);
+		US_LOAD(outliner_views);
+		constexpr size_t lower_half_count = 98;
+		std::memcpy(&user_settings.self_message_settings[0], ptr, lower_half_count);
+		ptr += lower_half_count;
+		std::memcpy(&user_settings.interesting_message_settings[0], ptr, lower_half_count);
+		ptr += lower_half_count;
+		std::memcpy(&user_settings.other_message_settings[0], ptr, lower_half_count);
+		ptr += lower_half_count;
+		US_LOAD(fow_enabled);
+		constexpr size_t upper_half_count = 128 - lower_half_count;
+		std::memcpy(&user_settings.self_message_settings[lower_half_count], ptr, upper_half_count);
+		ptr += upper_half_count;
+		std::memcpy(&user_settings.interesting_message_settings[lower_half_count], ptr, upper_half_count);
+		ptr += upper_half_count;
+		std::memcpy(&user_settings.other_message_settings[lower_half_count], ptr, upper_half_count);
+		ptr += upper_half_count;
+		US_LOAD(map_label);
+		US_LOAD(antialias_level);
 #undef US_LOAD
-		} while(false);
 
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
