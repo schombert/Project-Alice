@@ -175,6 +175,14 @@ Represents an element that can be typed into, by default it handles all of the u
 - `virtual void edit_box_backtick(sys::state &state) noexcept` : Called when the `<Backtick>` key is pressed.
 - `virtual void edit_index_position(sys::state &state, int32_t index) noexcept` : Called when the index position is modified; for example, `<Left Arrow>` or `<Right Arrow>` were pressed, and the handler made them go -1 or +1 in the current index, so it will call this function.
 
+#### `tinted_image_element_base`
+
+A version of `image_element_base`, suited for being coloured ever-so-slightly. Use the `color` member to set the color
+
+#### `tinted_button_element_base`
+
+A version of `button_element_base`, suited for being coloured ever-so-slightly. Use the `color` member to set the color.
+
 ### Text rendering and layout
 
 #### Adding Tooltips

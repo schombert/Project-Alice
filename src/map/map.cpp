@@ -875,10 +875,15 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
+
+	const auto map_x_scaling = float(size_x) / float(size_y);
+
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
+
+		auto effective_ratio = glm::vec2(e.ratio.x * map_x_scaling, e.ratio.y);
 
 		auto& f = state.font_collection.fonts[1];
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
@@ -888,14 +893,13 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 		};
-		float x_step = (1.f / float(e.text.length() * 4.f));
+		float x_step = (1.f / float(e.text.length() * 16.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
-			curve_length += glm::distance(glm::vec2(x, poly_fn(x)), glm::vec2(x + x_step, poly_fn(x + x_step)));
-		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
-		glm::vec2 line_end = glm::vec2(1.f) * e.ratio + e.basis;
-		float straight_length = (line_end.x - e.basis.x) / map_size.x;
-		float size = (curve_length / text_length) * straight_length * 0.75f;
+			curve_length += glm::distance(glm::vec2(x, poly_fn(x)) * effective_ratio, glm::vec2(x + x_step, poly_fn(x + x_step)) * effective_ratio);
+
+		float size = (curve_length / text_length) * 0.85f;
+		//size = std::min(size, 64.0f);
 
 		// omit small text
 		if(size <= 0.0025f)
@@ -903,48 +907,62 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float x = 0.f;
 		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
-			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) / text_length;
-			assert(glyph_advance >= 0.f && glyph_advance <= 1.f);
-			//float xf = x + glyph_advance; //Final X vertice
+			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
+
+			
 			float xf = x;
-			// ^^ This is better than the for loop below right?
+
 			for(float glyph_length = 0.f; glyph_length <= glyph_advance; xf += x_step) {
-				glyph_length += glm::distance(glm::vec2(xf, poly_fn(xf)), glm::vec2(xf + x_step, poly_fn(xf + x_step)));
-				assert(glyph_length >= 0.f && glyph_length <= curve_length);
-				//assert(xf >= 0.f && xf <= 1.f);
+				glyph_length += glm::distance(glm::vec2(xf, poly_fn(xf)) * effective_ratio, glm::vec2(xf + x_step, poly_fn(xf + x_step)) * effective_ratio);
 			}
 			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
 				// Add up baseline and kerning offsets
 				auto dpoly_fn = [&](float x) {
 					// y = a + 1bx^1 + 1cx^2 + 1dx^3
 					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
-					return 1.f + e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
+					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
 				};
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
 				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
 				auto p1 = glm::vec2(xf, poly_fn(xf)) * e.ratio + e.basis;
 
-				glm::vec2 curr_dir = glm::normalize(p1 - p0);
+				//glm::vec2 curr_dir = glm::normalize(p1 - p0);
+				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio.x, dpoly_fn(x) * effective_ratio.y));
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+				curr_dir.x *= 0.5f;
+				curr_normal_dir.x *= 0.5f;
+
 
 				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
 
-				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * size * glm::vec2(size_y / float(size_x), 1);
-				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * size * glm::vec2(size_y / float(size_x), 1);
+				auto real_text_size = size / float(size_x * 4.0f);
+				glm::vec2 shader_direction = glm::normalize(glm::vec2(e.ratio.x, dpoly_fn(x) * e.ratio.y));
+
+				p0 -= (1.0f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
+				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
 				auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
 				float step = 1.f / 8.f;
 				float tx = float(e.text[i] & 7) * step;
 				float ty = float((e.text[i] & 63) >> 3) * step;
+
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+
 				// First vertex of the line segment
-				text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
-				text_line_vertices.emplace_back(p0, -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, size);
-				text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
+				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
+				//text_line_vertices.emplace_back(p0, -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, size);
+				//text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
 				// Second vertex of the line segment
-				text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
-				text_line_vertices.emplace_back(p0, +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, size);
-				text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
+				//text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
+				//text_line_vertices.emplace_back(p0, +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, size);
+				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
 			}
 			x = xf;
 		}
