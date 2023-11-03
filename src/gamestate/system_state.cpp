@@ -296,6 +296,9 @@ void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // calle
 	}
 }
 void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
+	ogl::deinitialize_msaa(*this);
+	ogl::initialize_msaa(*this, x, y);
+
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
@@ -1714,6 +1717,7 @@ void state::save_user_settings() const {
 	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
 	US_SAVE(map_label);
+	US_SAVE(antialias_level);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(sizeof(buffer)));
@@ -1762,6 +1766,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
 			US_LOAD(map_label);
+			US_LOAD(antialias_level);
 #undef US_LOAD
 		} while(false);
 

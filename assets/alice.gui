@@ -252,6 +252,38 @@ guiTypes = {
 				position = { 269 310 }
 				quadTextureSprite = "option_next"
 			}
+			# Anisotropic filtering
+			instantTextBoxType={
+				position = { 58 344 }
+				name = "antialiasing_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				text = "antialiasing_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				position = { 58 364 }
+				name = "antialiasing_value"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "antialiasing_left"
+				position = { 51 363 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "antialiasing_right"
+				position = { 269 363 }
+				quadTextureSprite = "option_next"
+			}
 		}
 
 		windowType = {
