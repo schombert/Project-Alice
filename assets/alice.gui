@@ -839,24 +839,18 @@ guiTypes = {
 		horizontalBorder= ""
 		verticalBorder= ""
 		fullScreen = no	
-
-		
-		iconType =
-		{
+		iconType = {
 			name ="unitpanel_bg"
 			spriteType = "GFX_unit_toppanel_bg"
-			position = {  -1 0 }
+			position = { -1 0 }
 			Orientation = "UPPER_LEFT"
 		}
-		
 		iconType =	{
 			name ="leader_photo"
 			spriteType = "GFX_leader_generic0"
 			position = { 18 6 }
 			Orientation = "UPPER_LEFT"
 		}
-
-
 		instantTextBoxType = {
 			name = "unitstrength"
 			position = { 201 28 }
@@ -868,24 +862,21 @@ guiTypes = {
 			maxHeight = 17	
 			format = right
 		}
-		
 		iconType = {
 			name ="unitattrition_icon"
 			spriteType = "GFX_unit_attr"
 			position = { 245  42 }
 			Orientation = "UPPER_LEFT"
 		}
-		
 		iconType = {
-			name ="org_bar"
+			name = "org_bar"
 			spriteType = "GFX_morale_progress"
 			position = {  312 52 }
 			Orientation = "UPPER_LEFT"
 			rotation = 1.5708
 		}
-			
 		iconType = {
-			name ="str_bar"
+			name = "str_bar"
 			spriteType = "GFX_strength_progress"
 			position = {  320 52 }
 			Orientation = "UPPER_LEFT"
@@ -896,27 +887,24 @@ guiTypes = {
 			position = { 254 6 }
 			quadTextureSprite ="GFX_unit_disband"
 		}	
-
 		guiButtonType = {
 			name = "splitinhalf"
 			position = { 279 6 }
 			quadTextureSprite ="GFX_unit_splitinhalf"
 			shortcut = "s"
 		}		
-
 		guiButtonType = {
 			name = "remove_unit_from_selection_button"
 			position = { 303 6 }
-			quadTextureSprite ="GFX_unit_close"
+			quadTextureSprite = "GFX_unit_close"
+			shortcut = "x"
 		}
-		
 		iconType = {
 			name = "unit_inf"
 			spriteType = "GFX_unit_strip"
 			position = { 49 24 }
 		}
-		
-		instantTextBoxType={
+		instantTextBoxType = {
 			position = { 87 35 }
 			name = "unit_inf_count"
 			font = "Arial16_black"
@@ -926,13 +914,11 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-		
 		iconType = {
 			name = "unit_cav"
 			spriteType = "GFX_unit_strip"
 			position = { 114 24 }
 		}
-		
 		instantTextBoxType={
 			position = { 152 35 }
 			name = "unit_cav_count"
@@ -943,14 +929,12 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-		
 		iconType = {
 			name = "unit_art"
 			spriteType = "GFX_unit_strip"
 			position = { 179 24 }
 		}
-		
-		instantTextBoxType={
+		instantTextBoxType = {
 			position = { 217 35 }
 			name = "unit_art_count"
 			font = "Arial16_black"
@@ -960,7 +944,6 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-		
 		instantTextBoxType = {
 			position = { 45 5 }
 			name = "location"

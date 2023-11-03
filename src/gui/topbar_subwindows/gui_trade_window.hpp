@@ -295,18 +295,18 @@ struct trade_details_select_commodity {
 	dcon::commodity_id commodity_id{};
 };
 
-class trade_commodity_entry_button : public button_element_base {
-	bool visible = true;
+class trade_commodity_entry_button : public tinted_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
-		visible = !(sat < 0.5f || sat >= 1.f);
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
-			button_element_base::render(state, x, y);
+		if(sat < 0.5f) { // shortage
+			color = sys::pack_color(255, 196, 196);
+		} else if(sat >= 1.f) { // full fulfillment
+			color = sys::pack_color(196, 255, 196);
+		} else {
+			color = sys::pack_color(255, 255, 255);
+		}
 	}
 	
 	void button_action(sys::state& state) noexcept override {
@@ -387,37 +387,6 @@ public:
 	}
 };
 
-class trade_commodity_entry_shortage_image : public tinted_image_element_base {
-public:
-	bool visible = true;
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto com = retrieve<dcon::commodity_id>(state, parent);
-		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
-		if(sat < 0.5f) { // shortage
-			color = sys::pack_color(255, 196, 196);
-			visible = true;
-		} else if(sat >= 1.f) { // full fulfillment
-			color = sys::pack_color(196, 255, 196);
-			visible = true;
-		} else {
-			visible = false;
-		}
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(visible)
-			tinted_image_element_base::render(state, x, y);
-	}
-};
-
-class commodity_ai_indicator : public image_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		set_visible(state, false);
-	}
-};
-
 class commodity_stockpile_indicator : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -480,8 +449,6 @@ public:
 	dcon::commodity_id commodity_id{};
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_button") {
-			auto ptr = make_element_by_type<trade_commodity_entry_shortage_image>(state, id);
-			add_child_to_back(std::move(ptr));
 			return make_element_by_type<trade_commodity_entry_button>(state, id);
 		} else if(name == "goods_type") {
 			return make_element_by_type<commodity_image>(state, id);
@@ -492,7 +459,7 @@ public:
 		} else if(name == "selling_indicator") {
 			return make_element_by_type<commodity_stockpile_indicator>(state, id);
 		} else if(name == "automation_indicator") {
-			return make_element_by_type<commodity_ai_indicator>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
