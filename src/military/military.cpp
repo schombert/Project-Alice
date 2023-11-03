@@ -2965,7 +2965,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	}
 
 	// po_annex: nation is annexed, vassals and substates are freed, diplomatic relations are dissolved.
-	if((bits & cb_flag::po_annex) != 0) {
+	if((bits & cb_flag::po_annex) != 0 && target != from) {
 		auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
 		auto target_owns = state.world.nation_get_province_ownership(target);
 

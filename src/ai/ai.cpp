@@ -913,31 +913,32 @@ void update_ai_econ_construction(sys::state& state) {
 							if(already_in_progress)
 								continue;
 
-							if((rules & issue_rule::expand_factory) != 0) { // check: if present, try to upgrade
-								bool present_in_location = false;
-								bool under_cap = false;
-								province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-									for(auto fac : state.world.province_get_factory_location(p)) {
-										auto type = fac.get_factory().get_building_type();
-										if(type_selection == type) {
-											under_cap = fac.get_factory().get_production_scale() < 0.9f
-												&& fac.get_factory().get_primary_employment() >= 0.9f;
-											present_in_location = true;
-											return;
-										}
+							// check: if present, try to upgrade
+							bool present_in_location = false;
+							bool under_cap = false;
+
+							province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+								for(auto fac : state.world.province_get_factory_location(p)) {
+									auto type = fac.get_factory().get_building_type();
+									if(type_selection == type) {
+										under_cap = fac.get_factory().get_production_scale() < 0.9f && fac.get_factory().get_primary_employment() >= 0.9f;
+										present_in_location = true;
+										return;
 									}
-								});
-								if(under_cap) {
-									continue; // factory doesn't need to get larger
 								}
-								if(present_in_location) {
+							});
+							if(under_cap) {
+								continue; // factory doesn't need to get larger
+							}
+							if(present_in_location) {
+								if((rules & issue_rule::expand_factory) != 0) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
 									new_up.set_is_upgrade(true);
 									new_up.set_type(type_selection);
 									--max_projects;
-									continue;
 								}
+								continue;
 							}
 
 							// else -- try to build -- must have room
