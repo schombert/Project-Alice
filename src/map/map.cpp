@@ -901,10 +901,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		float size = (curve_length / text_length) * 0.85f;
 		auto real_text_size = size / float(size_x * 2.0f);
 
-		// omit small text
-		if(size <= 0.0025f)
-			continue;
-
 		float x = 0.f;
 		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
