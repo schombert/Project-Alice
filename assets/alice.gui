@@ -83,6 +83,7 @@ guiTypes = {
 		# 24 units of spacing between boolean checkbox fields
 		# 20 vertical spacing between labels and values (if any)
 		# -2 offset for buttons < and >, such that, the text remains centered
+		# -1 offset for checkbox to vertically center them in respect to text
 		# Use 14 font for values, and 16 font for labels
 		# 48 spacing between sliders (audio mainly)
 		windowType = {
@@ -118,7 +119,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "window_mode_checkbox"
-				position = { 51 116 }
+				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Use classic fonts (Y/N)
@@ -135,7 +136,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "fonts_checkbox"
-				position = { 51 140 }
+				position = { 51 139 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Fog of War (Y/N)
@@ -152,7 +153,7 @@ guiTypes = {
 			}
 			checkboxType = {
 				name = "fow_checkbox"
-				position = { 51 164 }
+				position = { 51 163 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Projection settings for the map: equirectangular, orthographic
@@ -286,7 +287,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "tooltip_mode_checkbox"
-				position = { 51 116 }
+				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Zoom style
