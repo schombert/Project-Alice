@@ -1665,8 +1665,6 @@ class topbar_map_legend_title : public simple_text_element_base {
 			return "mapmode_21";
 		case map_mode::mode::diplomatic:
 			return "mapmode_4";
-		case map_mode::mode::infrastructure:
-			return "mapmode_6";
 		case map_mode::mode::migration:
 			return "mapmode_18";
 		case map_mode::mode::naval:
@@ -1708,8 +1706,6 @@ public:
 class topbar_map_legend_icon : public image_element_base {
 	int16_t get_frame_from_mode(map_mode::mode v) {
 		switch(v) {
-		case map_mode::mode::infrastructure:
-			return 2;
 		case map_mode::mode::migration:
 		case map_mode::mode::population:
 		case map_mode::mode::rank:
@@ -1746,8 +1742,6 @@ class topbar_map_legend_gradient_max : public simple_text_element_base {
 			return "lg_max_mapmode_21";
 		case map_mode::mode::diplomatic:
 			return "lg_max_mapmode_4";
-		case map_mode::mode::infrastructure:
-			return "lg_max_mapmode_6";
 		case map_mode::mode::migration:
 			return "lg_max_mapmode_18";
 		case map_mode::mode::population:
@@ -1783,8 +1777,6 @@ class topbar_map_legend_gradient_min : public simple_text_element_base {
 			return "lg_min_mapmode_21";
 		case map_mode::mode::diplomatic:
 			return "lg_min_mapmode_4";
-		case map_mode::mode::infrastructure:
-			return "lg_min_mapmode_6";
 		case map_mode::mode::migration:
 			return "lg_min_mapmode_18";
 		case map_mode::mode::population:
@@ -1836,7 +1828,6 @@ private:
 
 	bool get_needs_legend_from_mode(map_mode::mode v) {
 		switch(v) {
-		case map_mode::mode::infrastructure:
 		case map_mode::mode::migration:
 		case map_mode::mode::population:
 		case map_mode::mode::rank:
