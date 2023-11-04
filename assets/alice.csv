@@ -422,27 +422,27 @@ cultural_union;cultural union;;;;;;;;;;;;x
 same_cultural_union;the same as the cultural union of;;;;;;;;;;;;x
 non_accepted_pops;non accepted pops;;;;;;;;;;;;x
 crime;crime;;;crimen;;;;;;;;;x
-num_substates;number of substates;;;;;;;;;;;;x
+num_substates;number of substates;;;numero de subestados;;;;;;;;;x
 num_vassals_no_substates;number of non-substate vassals;;;;;;;;;;;;x
 num_regiments;number of regiments;;;;;;;;;;;;x
 owner_num_regiments;owner's number of regiments;;;;;;;;;;;;x
 num_regiments_of;the number of regiments belonging to;;;;;;;;;;;;x
 times_num_regiments_of;$x$ times the number of regiments belonging to
 fabricating_on;fabricating a casus belli on;;;;;;;;;;;;x
-cb_discovered;casus belli fabrication has been discovered;;;;;;;;;;;;x
-cb_not_discovered;casus belli fabrication has not been discovered;;;;;;;;;;;;x
-cb_progress;casus belli fabrication progress;;;;;;;;;;;;x
-civ_progress;civilization progress;;;;;;;;;;;;x
-constructing_a;fabricating a;;;;;;;;;;;;x
-casus_belli;casus belli;;;;;;;;;;;;x
-nation_in_scope;the nation in scope;;;;;;;;;;;;x
-a_substate;a substate;;;;;;;;;;;;x
-gw_enabled;great wars are enabled;;;;;;;;;;;;x
-gw_not_enabled;great wars are not enabled;;;;;;;;;;;;x
+cb_discovered;casus belli fabrication has been discovered;;;la fabricacion de un casus belli ha sido descubierta;;;;;;;;;x
+cb_not_discovered;casus belli fabrication has not been discovered;;;la fabricacion de un casus belli no ha sido descubierta;;;;;;;;;x
+cb_progress;casus belli fabrication progress;;;fabricacion de casus belli en progreso;;;;;;;;;x
+civ_progress;civilization progress;;;progreso de civilizacion;;;;;;;;;x
+constructing_a;fabricating a;;;fabricando un;;;;;;;;;x
+casus_belli;casus belli;;;casus belli;;;;;;;;;x
+nation_in_scope;the nation in scope;;;una nacion en contexto;;;;;;;;;x
+a_substate;a substate;;;un subestado;;;;;;;;;x
+gw_enabled;great wars are enabled;;;las grandes guerras estan activadas;;;;;;;;;x
+gw_not_enabled;great wars are not enabled;;;las grandes guerras estan desactivadas;;;;;;;;;x
 ww_enabled;world wars are enabled;;;las guerras mundiales estan activadas;;;;;;;;;x
-ww_not_enabled;world wars are not enabled;;;las guerras mundiales estan activadas;;;;;;;;;x
-can_perform_nationalization;can perform nationalization;;;;;;;;;;;;x
-cannot_perform_nationalization;cannot perform nationalization;;;;;;;;;;;;x
+ww_not_enabled;world wars are not enabled;;;las guerras mundiales estan desactivadas;;;;;;;;;x
+can_perform_nationalization;can perform nationalization;;;puede nacionalizar;;;;;;;;;x
+cannot_perform_nationalization;cannot perform nationalization;;;no puede nacionalizar;;;;;;;;;x
 in_sphere;in a sphere of influence;;;;;;;;;;;;x
 num_states;number of states;;;;;;;;;;;;x
 a_releasable_vassal;a releasable vassal;;;;;;;;;;;;x
