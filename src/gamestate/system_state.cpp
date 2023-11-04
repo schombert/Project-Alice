@@ -1832,7 +1832,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, 2); // 2 = English
+	text::load_text_data(*this, 2, err); // 2 = English
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
