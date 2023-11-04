@@ -570,6 +570,36 @@ guiTypes = {
 					position = { 0 236}
 				}
 			}
+			# Change current song
+			instantTextBoxType = {
+				position = { 58 308 }
+				name = "music_player_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "music_player"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				position = { 58 328 }
+				name = "music_player_value"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "music_player_left"
+				position = { 51 326 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "music_player_right"
+				position = { 269 326 }
+				quadTextureSprite = "option_next"
+			}
 		}
 	}
 
