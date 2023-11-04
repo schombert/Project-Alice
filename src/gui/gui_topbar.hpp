@@ -1693,8 +1693,9 @@ class topbar_map_legend_title : public simple_text_element_base {
 			return "mapmode_15";
 		case map_mode::mode::terrain:
 			return "mapmode_1";
+		default:
+			return "???";
 		}
-		return "???";
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1751,8 +1752,9 @@ class topbar_map_legend_gradient_max : public simple_text_element_base {
 			return "lg_max_mapmode_11";
 		case map_mode::mode::supply:
 			return "lg_max_mapmode_15";
+		default:
+			return "???";
 		}
-		return "???";
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1784,8 +1786,9 @@ class topbar_map_legend_gradient_min : public simple_text_element_base {
 			return "lg_min_mapmode_11";
 		case map_mode::mode::supply:
 			return "lg_min_mapmode_15";
+		default:
+			return "???";
 		}
-		return "???";
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
