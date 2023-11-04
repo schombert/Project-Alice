@@ -38,3 +38,4 @@ To use a scripted trigger simply add `test = name_of_condition` in a trigger whe
 ### Abbreviated `.gui` syntax
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
+Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
