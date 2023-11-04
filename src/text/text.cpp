@@ -176,7 +176,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 	if(alice_csv) {
 		auto content = view_contents(*alice_csv);
 		err.file_name = "assets/alice.csv";
-		consume_csv_file(state, language, content.data, content.file_size);
+		consume_csv_file(state, language, content.data, content.file_size, err);
 	}
 
 	auto text_dir = open_directory(rt, NATIVE("localisation"));
@@ -187,7 +187,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 		if(ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, language, content.data, content.file_size);
+			consume_csv_file(state, language, content.data, content.file_size, err);
 		}
 	}
 }
