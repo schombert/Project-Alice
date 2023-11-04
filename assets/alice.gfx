@@ -33,12 +33,12 @@ spriteTypes = {
 	}
 	spriteType = {
 		name = "GFX_alice_unit_left_edge"
-		texturefile = "assets\\unitleftedges.dds"
+		texturefile = "assets\\unitleftedges.png"
 		noOfFrames = 5
 	}
 	spriteType = {
 		name = "GFX_alice_unit_right_edge"
-		texturefile = "assets\\unitrightedge.dds"
+		texturefile = "assets\\unitrightedge.png"
 		noOfFrames = 1
 	}
 	spriteType = {
@@ -96,12 +96,12 @@ spriteTypes = {
 	}
 	spriteType = {
 		name = "GFX_alice_port_levels"
-		texturefile = "assets\\port_bars.dds"
+		texturefile = "assets\\port_bars.png"
 		noOfFrames = 5
 	}
 	spriteType = {
 		name = "GFX_alice_port"
-		texturefile = "assets\\port_empty.dds"
+		texturefile = "assets\\port_empty.png"
 		noOfFrames = 5
 	}
 	corneredTileSpriteType = {
@@ -122,7 +122,7 @@ spriteTypes = {
 	}
 	spriteType = {
 		name = "GFX_alice_retreat"
-		texturefile = "assets\\retreat.dds"
+		texturefile = "assets\\retreat.png"
 		noOfFrames = 1
 	}
 	spriteType = {
@@ -132,7 +132,7 @@ spriteTypes = {
 	}
 	spriteType = {
 		name = "GFX_alice_message_type"
-		texturefile = "assets\\message_disp_options.dds"
+		texturefile = "assets\\message_disp_options.png"
 		noOfFrames = 5
 	}
 	spriteType = {
