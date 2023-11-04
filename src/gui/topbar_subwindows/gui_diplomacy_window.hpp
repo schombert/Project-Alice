@@ -1073,6 +1073,74 @@ public:
 	}
 };
 
+class diplomacy_action_increase_relations_button : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		frame = 1;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_increase_relations(state, state.local_player_nation, content);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		command::increase_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		text::add_line(state, contents, "increase_rel_explain_1", text::variable_type::x, int64_t(state.defines.increaserelation_relation_on_accept));
+		text::add_line_break_to_layout(state, contents);
+		if(target == state.local_player_nation) {
+			text::add_line_with_condition(state, contents, "increase_rel_explain_2", false);
+		}
+		text::add_line_with_condition(state, contents, "increase_rel_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.increaserelation_diplomatic_cost, text::variable_type::x, int64_t(state.defines.increaserelation_diplomatic_cost));
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, target);
+		text::add_line_with_condition(state, contents, "increase_rel_explain_4", state.world.diplomatic_relation_get_value(rel) < 200.0f);
+		text::add_line_with_condition(state, contents, "increase_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
+	}
+};
+
+class diplomacy_action_decrease_relations_button : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		frame = 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_decrease_relations(state, state.local_player_nation, content);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		command::decrease_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		text::add_line(state, contents, "decrease_rel_explain_1", text::variable_type::x, int64_t(state.defines.decreaserelation_relation_on_accept));
+		text::add_line_break_to_layout(state, contents);
+		if(target == state.local_player_nation) {
+			text::add_line_with_condition(state, contents, "decrease_rel_explain_2", false);
+		}
+		text::add_line_with_condition(state, contents, "decrease_rel_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.decreaserelation_diplomatic_cost, text::variable_type::x, int64_t(state.defines.decreaserelation_diplomatic_cost));
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, target);
+		text::add_line_with_condition(state, contents, "decrease_rel_explain_4", state.world.diplomatic_relation_get_value(rel) > -200.0f);
+		text::add_line_with_condition(state, contents, "decrease_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
+	}
+};
+
 class diplomacy_country_facts : public window_element_base {
 private:
 	flag_button* country_flag = nullptr;
@@ -1224,6 +1292,14 @@ public:
 		} else if(name == "our_relation") {
 			auto ptr = make_element_by_type<nation_player_relations_text>(state, id);
 			country_relation = ptr.get();
+			auto drel_btn = make_element_by_type<diplomacy_action_decrease_relations_button>(state, "alice_plus_minus");
+			drel_btn->base_data.position = ptr->base_data.position;
+			drel_btn->base_data.position.x -= drel_btn->base_data.size.x;
+			add_child_to_front(std::move(drel_btn));
+			auto irel_btn = make_element_by_type<diplomacy_action_increase_relations_button>(state, "alice_plus_minus");
+			irel_btn->base_data.position = ptr->base_data.position;
+			irel_btn->base_data.position.x += ptr->base_data.size.x;
+			add_child_to_front(std::move(irel_btn));
 			return ptr;
 		} else if(name == "country_prestige") {
 			return make_element_by_type<nation_prestige_text>(state, id);
@@ -2101,10 +2177,6 @@ public:
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_give_military_access_button>>(state, options_offset);
 		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_increase_relations_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_decrease_relations_button>>(state, options_offset);
-		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_war_subisides_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
@@ -2407,12 +2479,6 @@ public:
 				break;
 			case diplomacy_action::cancel_give_military_access:
 				command::cancel_given_military_access(state, state.local_player_nation, facts_nation_id);
-				break;
-			case diplomacy_action::increase_relations:
-				command::increase_relations(state, state.local_player_nation, facts_nation_id);
-				break;
-			case diplomacy_action::decrease_relations:
-				command::decrease_relations(state, state.local_player_nation, facts_nation_id);
 				break;
 			case diplomacy_action::war_subsidies:
 				command::give_war_subsidies(state, state.local_player_nation, facts_nation_id);

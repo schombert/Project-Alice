@@ -14,8 +14,6 @@ enum class diplomacy_action : uint8_t {
 	cancel_military_access,
 	give_military_access,
 	cancel_give_military_access,
-	increase_relations,
-	decrease_relations,
 	war_subsidies,
 	cancel_war_subsidies,
 	declare_war,
@@ -630,90 +628,6 @@ public:
 	}
 };
 
-class diplomacy_action_increase_relations_button : public button_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "increaserelation_button"));
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_increase_relations(state, state.local_player_nation, content);
-	}
-
-	void button_action(sys::state& state) noexcept override {
-
-		command::increase_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
-
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		text::add_line(state, contents, "increase_rel_explain_1", text::variable_type::x, int64_t(state.defines.increaserelation_relation_on_accept));
-		text::add_line_break_to_layout(state, contents);
-
-		if(target == state.local_player_nation) {
-			text::add_line_with_condition(state, contents, "increase_rel_explain_2", false);
-		}
-
-		text::add_line_with_condition(state, contents, "increase_rel_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.increaserelation_diplomatic_cost, text::variable_type::x, int64_t(state.defines.increaserelation_diplomatic_cost));
-
-		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, target);
-		text::add_line_with_condition(state, contents, "increase_rel_explain_4", state.world.diplomatic_relation_get_value(rel) < 200.0f);
-
-		text::add_line_with_condition(state, contents, "increase_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
-
-	}
-};
-
-class diplomacy_action_decrease_relations_button : public button_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "decreaserelation_button"));
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_decrease_relations(state, state.local_player_nation, content);
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		command::decrease_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		text::add_line(state, contents, "decrease_rel_explain_1", text::variable_type::x, int64_t(state.defines.decreaserelation_relation_on_accept));
-		text::add_line_break_to_layout(state, contents);
-
-		if(target == state.local_player_nation) {
-			text::add_line_with_condition(state, contents, "decrease_rel_explain_2", false);
-		}
-
-		text::add_line_with_condition(state, contents, "decrease_rel_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.decreaserelation_diplomatic_cost, text::variable_type::x, int64_t(state.defines.decreaserelation_diplomatic_cost));
-
-		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, target);
-		text::add_line_with_condition(state, contents, "decrease_rel_explain_4", state.world.diplomatic_relation_get_value(rel) > -200.0f);
-
-		text::add_line_with_condition(state, contents, "decrease_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
-
-	}
-};
-
 class diplomacy_action_war_subisides_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1126,10 +1040,6 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 			return "givemilitaryaccesstitle";
 		case diplomacy_action::cancel_give_military_access:
 			return "cancelgivemilitaryaccesstitle";
-		case diplomacy_action::increase_relations:
-			return "increaserelationtitle";
-		case diplomacy_action::decrease_relations:
-			return "decreaserelationtitle";
 		case diplomacy_action::war_subsidies:
 			return "warsubsidiestitle";
 		case diplomacy_action::cancel_war_subsidies:
@@ -1177,10 +1087,6 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 			return "givemilitaryaccess_desc";
 		case diplomacy_action::cancel_give_military_access:
 			return "cancelgivemilitaryaccess_desc";
-		case diplomacy_action::increase_relations:
-			return "increaserelation_desc";
-		case diplomacy_action::decrease_relations:
-			return "decreaserelation_desc";
 		case diplomacy_action::war_subsidies:
 			return "warsubsidies_desc";
 		case diplomacy_action::cancel_war_subsidies:
@@ -1240,10 +1146,6 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 			return false;
 		case diplomacy_action::cancel_give_military_access:
 			return command::can_cancel_given_military_access(state, state.local_player_nation, target);
-		case diplomacy_action::increase_relations:
-			return command::can_increase_relations(state, state.local_player_nation, target);
-		case diplomacy_action::decrease_relations:
-			return command::can_decrease_relations(state, state.local_player_nation, target);
 		case diplomacy_action::war_subsidies:
 			return command::can_give_war_subsidies(state, state.local_player_nation, target);
 		case diplomacy_action::cancel_war_subsidies:
@@ -1307,12 +1209,6 @@ public:
 			break;
 		case diplomacy_action::cancel_give_military_access:
 			command::cancel_given_military_access(state, state.local_player_nation, target);
-			break;
-		case diplomacy_action::increase_relations:
-			command::increase_relations(state, state.local_player_nation, target);
-			break;
-		case diplomacy_action::decrease_relations:
-			command::decrease_relations(state, state.local_player_nation, target);
 			break;
 		case diplomacy_action::war_subsidies:
 			command::give_war_subsidies(state, state.local_player_nation, target);

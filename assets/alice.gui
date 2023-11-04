@@ -2662,4 +2662,10 @@ guiTypes = {
 			format = center
 		}
 	}
+
+	guiButtonType = {
+		name = "alice_plus_minus"
+		position = { 0 0 }
+		quadTextureSprite = "GFX_button_outliner"
+	}
 }
