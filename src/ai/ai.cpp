@@ -1946,7 +1946,8 @@ void update_cb_fabrication(sys::state& state) {
 				&& n.get_ai_rival().get_in_sphere_of() != n
 				&& (!ol || ol == n.get_ai_rival())
 				&& !military::are_at_war(state, n, n.get_ai_rival())
-				&& !military::can_use_cb_against(state, n, n.get_ai_rival())) {
+				&& !military::can_use_cb_against(state, n, n.get_ai_rival())
+				&& !military::has_truce_with(state, n, n.get_ai_rival())) {
 
 				auto cb = pick_fabrication_type(state, n, n.get_ai_rival());
 				if(cb) {
@@ -1957,7 +1958,7 @@ void update_cb_fabrication(sys::state& state) {
 				static std::vector<dcon::nation_id> possible_targets;
 				possible_targets.clear();
 				for(auto i : state.world.in_nation) {
-					if(valid_construction_target(state, n, i))
+					if(valid_construction_target(state, n, i) && !military::has_truce_with(state, n, i))
 						possible_targets.push_back(i.id);
 				}
 				if(!possible_targets.empty()) {
@@ -3080,6 +3081,9 @@ void update_ships(sys::state& state) {
 void build_ships(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(!n.get_is_player_controlled() && n.get_province_naval_construction().begin() == n.get_province_naval_construction().end()) {
+			auto disarm = n.get_disarmed_until();
+			if(disarm && state.current_date < disarm)
+				continue;
 
 			dcon::unit_type_id best_transport;
 			dcon::unit_type_id best_light;
@@ -4527,6 +4531,9 @@ void move_gathered_attackers(sys::state& state) {
 void update_land_constructions(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+		auto disarm = n.get_disarmed_until();
+		if(disarm && state.current_date < disarm)
 			continue;
 
 		auto constructions = state.world.nation_get_province_land_construction(n);
