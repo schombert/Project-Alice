@@ -29,9 +29,7 @@
 #include "diplomatic_messages.hpp"
 #include "events.hpp"
 #include "notifications.hpp"
-/*
 #include "network.hpp"
-*/
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
