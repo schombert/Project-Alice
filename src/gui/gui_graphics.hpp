@@ -424,6 +424,8 @@ struct state {
 	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
 
+	element_base* macro_builder_window = nullptr;
+
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
 
 	uint16_t tooltip_font = 0;

@@ -2643,23 +2643,102 @@ guiTypes = {
 
 	windowType = {
 		name = "alice_macro_builder"
-		position = { 0 200 }
-		size = { 320 320 }
+		position = { 400 400 }
+		size = { 640 320 }
 		guiButtonType = {
 			name = "background"
 			position = { 0 0 }
-			size = { 320 320 }
+			size = { 640 320 }
 			quadTextureSprite = "console_background"
+		}
+		guiButtonType = {
+			name = "close"
+			position = { -32 0 }
+			orientation = "UPPER_RIGHT"
+			quadTextureSprite = "GFX_main_close_button"
 		}
 		instantTextBoxType = {
 			name = "title"
-			text = "Macro builder"
+			text = "macro_builder"
 			position = { 0 4 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 320 24 }
-			orientation = "UPPER_LEFT"
+			maxsize = { 640 24 }
 			format = center
+		}
+		listboxType = 	{
+			name = "template_listbox"
+			position = { 0 28 }
+			size = { 210 260 }
+			spacing = 0
+			borderSize = { 0 0 }
+		}
+		listboxType = 	{
+			name = "unit_listbox"
+			position = { 210 28 }
+			size = { 210 260 }
+			spacing = 0
+			borderSize = { 0 0 }
+		}
+		guiButtonType = {
+			name = "new_template"
+			position = { 0 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "new_template"
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "save_template"
+			position = { 130 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "save_template"
+			buttonFont = "vic_22_black"
+		}
+	}
+	windowType = {
+		name = "alice_macro_builder_template_entry"
+		position = { 0 0 }
+		size = { 210 24 }
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 210 24 }
+			quadTextureSprite = "console_background"
+		}
+		instantTextBoxType = {
+			name = "name"
+			position = { 32 0 }
+			font = "vic_22"
+			borderSize = { 0 0 }
+			maxsize = { 188 24 }
+			format = center
+		}
+		guiButtonType = {
+			name = "shield"
+			position = { 4 4 }
+			quadTextureSprite = "GFX_flag_new"
+			Orientation = "UPPER_LEFT"
+		}
+	}
+	windowType = {
+		name = "alice_macro_builder_unit_entry"
+		position = { 0 0 }
+		size = { 300 24 }
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 300 24 }
+			quadTextureSprite = "console_background"
+		}
+		instantTextBoxType = {
+			name = "name"
+			position = { 4 0 }
+			font = "vic_22"
+			borderSize = { 0 0 }
+			maxsize = { 128 24 }
+			format = left
 		}
 	}
 }

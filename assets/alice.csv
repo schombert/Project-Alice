@@ -1302,4 +1302,7 @@ e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
 meets_the_conditions_of;meets the conditions of ;
 does_not_meet_the_conditions_of;does not meet the conditions of ;
+macro_builder;Macro-builder;;;Macro-construir
+save_template;Save template;;;Guardar plantilla
+new_template;New template;;;Nueva plantila
 ;;;;;;;;;;;;;x

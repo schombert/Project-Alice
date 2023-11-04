@@ -157,6 +157,146 @@ public:
 	}
 };
 
+struct macro_builder_template {
+	char name[16];
+	dcon::nation_id source;
+
+	bool operator!=(macro_builder_template& o) {
+		return std::memcmp(this, &o, sizeof(*this));
+	}
+};
+class macro_builder_template_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<macro_builder_template>(state, parent);
+		auto sv = std::string_view(content.name, content.name + sizeof(content.name));
+		set_text(state, std::string(sv));
+	}
+};
+class macro_builder_template_flag : public flag_button {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<macro_builder_template>(state, parent);
+		set_current_nation(state, state.world.nation_get_identity_from_identity_holder(content.source));
+	}
+};
+
+class macro_builder_template_entry : public listbox_row_element_base<macro_builder_template> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "name") {
+			return make_element_by_type<macro_builder_template_name>(state, id);
+		} else if(name == "shield") {
+			return make_element_by_type<macro_builder_template_flag>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class macro_builder_template_listbox : public listbox_element_base<macro_builder_template_entry, macro_builder_template> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_macro_builder_template_entry";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		{
+			macro_builder_template t;
+			std::memcpy(&t.name, "Template 1     ", sizeof(t.name));
+			t.source = state.local_player_nation;
+			row_contents.push_back(t);
+		}
+		{
+			macro_builder_template t;
+			std::memcpy(&t.name, "New template   ", sizeof(t.name));
+			t.source = state.local_player_nation;
+			row_contents.push_back(t);
+		}
+		{
+			macro_builder_template t;
+			std::memcpy(&t.name, "sotrmtropper   ", sizeof(t.name));
+			t.source = state.local_player_nation;
+			row_contents.push_back(t);
+		}
+		update(state);
+	}
+};
+
+class macro_builder_unit_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::unit_type_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[content].name));
+	}
+};
+class macro_builder_unit_entry : public listbox_row_element_base<dcon::unit_type_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "name") {
+			return make_element_by_type<macro_builder_unit_name>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class macro_builder_unit_listbox : public listbox_element_base<macro_builder_unit_entry, dcon::unit_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_macro_builder_unit_entry";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			row_contents.push_back(dcon::unit_type_id(i));
+		}
+		update(state);
+	}
+};
+
+class macro_builder_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			return make_element_by_type<draggable_target>(state, id);
+		} else if(name == "close") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "template_listbox") {
+			return make_element_by_type<macro_builder_template_listbox>(state, id);
+		} else if(name == "unit_listbox") {
+			return make_element_by_type<macro_builder_unit_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class minimap_macro_builder_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.ui_state.macro_builder_window) {
+			auto window = make_element_by_type<macro_builder_window>(state, "alice_macro_builder");
+			state.ui_state.macro_builder_window = window.get();
+			state.ui_state.root->add_child_to_front(std::move(window));
+		} else if(state.ui_state.macro_builder_window->is_visible()) {
+			state.ui_state.macro_builder_window->set_visible(state, false);
+		} else {
+			state.ui_state.macro_builder_window->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.macro_builder_window);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("macro_builder"));
+		text::close_layout_box(contents, box);
+	}
+};
+
 class minimap_msg_settings_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -344,6 +484,9 @@ public:
 		} else if(name == "button_goto") {
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
+			auto ptr = make_element_by_type<minimap_macro_builder_button>(state, id);
+			ptr->base_data.position.y += ptr->base_data.size.y;
+			add_child_to_front(std::move(ptr));
 			return make_element_by_type<minimap_ledger_button>(state, id);
 		} else if(name == "map_zoom_in") {
 			return make_element_by_type<minimap_zoom_in_button>(state, id);
