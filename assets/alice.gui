@@ -2621,6 +2621,7 @@ guiTypes = {
 		name = "alice_map_legend_window"
 		position = { 0 200 }
 		size = { 200 88 }
+		moveable = 1
 		guiButtonType = {
 			name = "background"
 			position = { 0 0 }

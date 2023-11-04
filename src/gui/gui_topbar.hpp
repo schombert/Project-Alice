@@ -1796,7 +1796,9 @@ public:
 class topbar_map_legend : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "legend_title") {
+		if(name == "background") {
+			return make_element_by_type<draggable_target>(state, id);
+		} else if(name == "legend_title") {
 			return make_element_by_type<topbar_map_legend_title>(state, id);
 		} else if(name == "gradient_icon") {
 			return make_element_by_type<topbar_map_legend_icon>(state, id);
