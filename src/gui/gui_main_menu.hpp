@@ -114,6 +114,18 @@ class antialiasing_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class music_player_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+};
+class music_player_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+};
+class music_player_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 struct notify_setting_update { };
 
 class controls_menu_window : public window_element_base {
@@ -217,6 +229,12 @@ class audio_menu_window : public window_element_base {
 			return make_element_by_type<interface_volume>(state, id);
 		else if(name == "effect_volume_scroll_bar")
 			return make_element_by_type<effects_volume>(state, id);
+		else if(name == "music_player_value")
+			return make_element_by_type<music_player_display>(state, id);
+		else if(name == "music_player_left")
+			return make_element_by_type<music_player_left>(state, id);
+		else if(name == "music_player_right")
+			return make_element_by_type<music_player_right>(state, id);
 		else
 			return nullptr;
 	}

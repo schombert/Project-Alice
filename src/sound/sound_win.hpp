@@ -11,14 +11,13 @@ namespace sound {
 
 class audio_instance {
 private:
-	std::wstring filename;
 	IGraphBuilder* graph_interface = nullptr;
 	IMediaControl* control_interface = nullptr;
 	IBasicAudio* audio_interface = nullptr;
 	IMediaSeeking* seek_interface = nullptr;
 	IMediaEventEx* event_interface = nullptr;
-
 public:
+	std::wstring filename;
 	float volume_multiplier = 1.0f;
 
 	audio_instance() { }

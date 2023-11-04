@@ -332,4 +332,14 @@ audio_instance& get_random_naval_battle_sound(sys::state& state) {
 	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
 }
 
+void play_new_track(sys::state& state) {
+	state.sound_ptr->play_new_track(state, state.user_settings.master_volume * state.user_settings.music_volume);
+}
+
+native_string get_current_track_name(sys::state& state) {
+	if(state.sound_ptr->music.has_value())
+		return state.sound_ptr->music.filename;
+	return "";
+}
+
 } // namespace sound
