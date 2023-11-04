@@ -27,7 +27,6 @@ lg_min_mapmode_8;Low admin
 lg_min_mapmode_19;Uncivilized
 lg_min_mapmode_7;Uncolonized
 lg_min_mapmode_21;Low tension
-lg_min_mapmode_4;Low relations
 lg_min_mapmode_18;Emigration
 lg_min_mapmode_12;Low density
 lg_min_mapmode_17;Low rank
@@ -39,7 +38,6 @@ lg_max_mapmode_8;High admin
 lg_max_mapmode_19;Civilized
 lg_max_mapmode_7;Colonizable
 lg_max_mapmode_21;High tension
-lg_max_mapmode_4;High relations
 lg_max_mapmode_18;Immigration
 lg_max_mapmode_12;High density
 lg_max_mapmode_17;High rank

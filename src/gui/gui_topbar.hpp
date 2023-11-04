@@ -1663,8 +1663,6 @@ class topbar_map_legend_title : public simple_text_element_base {
 			return "mapmode_7";
 		case map_mode::mode::crisis:
 			return "mapmode_21";
-		case map_mode::mode::diplomatic:
-			return "mapmode_4";
 		case map_mode::mode::migration:
 			return "mapmode_18";
 		case map_mode::mode::naval:
@@ -1715,7 +1713,6 @@ class topbar_map_legend_icon : public image_element_base {
 		case map_mode::mode::admin:
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
-		case map_mode::mode::diplomatic:
 			return 1;
 		case map_mode::mode::crisis:
 		case map_mode::mode::revolt:
@@ -1740,8 +1737,6 @@ class topbar_map_legend_gradient_max : public simple_text_element_base {
 			return "lg_max_mapmode_7";
 		case map_mode::mode::crisis:
 			return "lg_max_mapmode_21";
-		case map_mode::mode::diplomatic:
-			return "lg_max_mapmode_4";
 		case map_mode::mode::migration:
 			return "lg_max_mapmode_18";
 		case map_mode::mode::population:
@@ -1775,8 +1770,6 @@ class topbar_map_legend_gradient_min : public simple_text_element_base {
 			return "lg_min_mapmode_7";
 		case map_mode::mode::crisis:
 			return "lg_min_mapmode_21";
-		case map_mode::mode::diplomatic:
-			return "lg_min_mapmode_4";
 		case map_mode::mode::migration:
 			return "lg_min_mapmode_18";
 		case map_mode::mode::population:
@@ -1839,7 +1832,6 @@ private:
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
 		case map_mode::mode::crisis:
-		case map_mode::mode::diplomatic:
 			return true;
 		default:
 			return false;
