@@ -919,9 +919,25 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			curve_length += glm::distance(glm::vec2(x, poly_fn(x)) * effective_ratio, glm::vec2(x + x_step, poly_fn(x + x_step)) * effective_ratio);
 
 		float size = (curve_length / text_length) * 0.85f;
+		if(size > 200.0f) {
+			size = 200.0f + (size - 200.0f) * 0.5f;
+		}
+
 		auto real_text_size = size / float(size_x * 2.0f);
 
+		float margin = (curve_length - text_length * size) / 2.0f;
+
 		float x = 0.f;
+
+		for(float accumulated_length = 0.f; ; x += x_step) {
+			auto added_distance = glm::distance(glm::vec2(x, poly_fn(x)) * effective_ratio, glm::vec2(x + x_step, poly_fn(x + x_step)) * effective_ratio);
+			if(accumulated_length + added_distance >= margin) {
+				x += x_step * (margin - accumulated_length) / added_distance;
+				break;
+			}
+			accumulated_length += added_distance;
+		}
+
 		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
 
@@ -943,7 +959,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
 				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
-				p0 -= (1.0f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
+				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
 				auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
