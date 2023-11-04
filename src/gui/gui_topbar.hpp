@@ -1642,14 +1642,185 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box,
-					text::produce_simple_string(state, state.world.commodity_get_name(commodity_id)), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::format_float(amount, 2), text::text_color::white);
-			text::close_layout_box(contents, box);
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box,
+				text::produce_simple_string(state, state.world.commodity_get_name(commodity_id)), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(amount, 2), text::text_color::white);
+		text::close_layout_box(contents, box);
+	}
+};
+
+class topbar_map_legend_title : public simple_text_element_base {
+	std::string_view get_title_from_mode(map_mode::mode v) {
+		switch(v) {
+		case map_mode::mode::admin:
+			return "mapmode_8";
+		case map_mode::mode::civilization_level:
+			return "mapmode_19";
+		case map_mode::mode::colonial:
+			return "mapmode_7";
+		case map_mode::mode::crisis:
+			return "mapmode_21";
+		case map_mode::mode::diplomatic:
+			return "mapmode_4";
+		case map_mode::mode::infrastructure:
+			return "mapmode_6";
+		case map_mode::mode::migration:
+			return "mapmode_18";
+		case map_mode::mode::naval:
+			return "mapmode_22";
+		case map_mode::mode::nationality:
+			return "mapmode_13";
+		case map_mode::mode::national_focus:
+			return "mapmode_10";
+		case map_mode::mode::party_loyalty:
+			return "mapmode_16";
+		case map_mode::mode::political:
+			return "mapmode_2";
+		case map_mode::mode::population:
+			return "mapmode_12";
+		case map_mode::mode::rank:
+			return "mapmode_17";
+		case map_mode::mode::recruitment:
+			return "mapmode_9";
+		case map_mode::mode::region:
+			return "mapmode_5";
+		case map_mode::mode::relation:
+			return "mapmode_20";
+		case map_mode::mode::revolt:
+			return "mapmode_3";
+		case map_mode::mode::rgo_output:
+			return "mapmode_11";
+		case map_mode::mode::supply:
+			return "mapmode_15";
+		case map_mode::mode::terrain:
+			return "mapmode_1";
+		}
+		return "???";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, get_title_from_mode(state.map_state.active_map_mode)));
+	}
+};
+class topbar_map_legend_icon : public image_element_base {
+	int16_t get_frame_from_mode(map_mode::mode v) {
+		switch(v) {
+		case map_mode::mode::infrastructure:
+			return 2;
+		case map_mode::mode::migration:
+		case map_mode::mode::population:
+		case map_mode::mode::rank:
+		case map_mode::mode::relation:
+		case map_mode::mode::rgo_output:
+		case map_mode::mode::supply:
+		case map_mode::mode::admin:
+		case map_mode::mode::civilization_level:
+		case map_mode::mode::colonial:
+		case map_mode::mode::diplomatic:
+			return 1;
+		case map_mode::mode::crisis:
+		case map_mode::mode::revolt:
+			return 3;
+		default:
+			return 0;
+		}
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		frame = get_frame_from_mode(state.map_state.active_map_mode);
+	}
+};
+class topbar_map_legend_gradient_max : public simple_text_element_base {
+	std::string_view get_gradient_max_from_mode(map_mode::mode v) {
+		switch(v) {
+		case map_mode::mode::admin:
+			return "lg_max_mapmode_8";
+		case map_mode::mode::civilization_level:
+			return "lg_max_mapmode_19";
+		case map_mode::mode::colonial:
+			return "lg_max_mapmode_7";
+		case map_mode::mode::crisis:
+			return "lg_max_mapmode_21";
+		case map_mode::mode::diplomatic:
+			return "lg_max_mapmode_4";
+		case map_mode::mode::infrastructure:
+			return "lg_max_mapmode_6";
+		case map_mode::mode::migration:
+			return "lg_max_mapmode_18";
+		case map_mode::mode::population:
+			return "lg_max_mapmode_12";
+		case map_mode::mode::rank:
+			return "lg_max_mapmode_17";
+		case map_mode::mode::relation:
+			return "lg_max_mapmode_20";
+		case map_mode::mode::revolt:
+			return "lg_max_mapmode_3";
+		case map_mode::mode::rgo_output:
+			return "lg_max_mapmode_11";
+		case map_mode::mode::supply:
+			return "lg_max_mapmode_15";
+		}
+		return "???";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, get_gradient_max_from_mode(state.map_state.active_map_mode)));
+	}
+};
+class topbar_map_legend_gradient_min : public simple_text_element_base {
+	std::string_view get_gradient_min_from_mode(map_mode::mode v) {
+		switch(v) {
+		case map_mode::mode::admin:
+			return "lg_min_mapmode_8";
+		case map_mode::mode::civilization_level:
+			return "lg_min_mapmode_19";
+		case map_mode::mode::colonial:
+			return "lg_min_mapmode_7";
+		case map_mode::mode::crisis:
+			return "lg_min_mapmode_21";
+		case map_mode::mode::diplomatic:
+			return "lg_min_mapmode_4";
+		case map_mode::mode::infrastructure:
+			return "lg_min_mapmode_6";
+		case map_mode::mode::migration:
+			return "lg_min_mapmode_18";
+		case map_mode::mode::population:
+			return "lg_min_mapmode_12";
+		case map_mode::mode::rank:
+			return "lg_min_mapmode_17";
+		case map_mode::mode::relation:
+			return "lg_min_mapmode_20";
+		case map_mode::mode::revolt:
+			return "lg_min_mapmode_3";
+		case map_mode::mode::rgo_output:
+			return "lg_min_mapmode_11";
+		case map_mode::mode::supply:
+			return "lg_min_mapmode_15";
+		}
+		return "???";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, get_gradient_min_from_mode(state.map_state.active_map_mode)));
+	}
+};
+
+class topbar_map_legend : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_title") {
+			return make_element_by_type<topbar_map_legend_title>(state, id);
+		} else if(name == "gradient_icon") {
+			return make_element_by_type<topbar_map_legend_icon>(state, id);
+		} else if(name == "gradient_min") {
+			return make_element_by_type<topbar_map_legend_gradient_min>(state, id);
+		} else if(name == "gradient_max") {
+			return make_element_by_type<topbar_map_legend_gradient_max>(state, id);
+		} else {
+			return nullptr;
 		}
 	}
 };
@@ -1661,6 +1832,28 @@ private:
 	std::vector<topbar_commodity_xport_icon*> export_icons;
 	std::vector<topbar_commodity_xport_icon*> produced_icons;
 	simple_text_element_base* atpeacetext = nullptr;
+	element_base* map_legend = nullptr;
+
+	bool get_needs_legend_from_mode(map_mode::mode v) {
+		switch(v) {
+		case map_mode::mode::infrastructure:
+		case map_mode::mode::migration:
+		case map_mode::mode::population:
+		case map_mode::mode::rank:
+		case map_mode::mode::relation:
+		case map_mode::mode::revolt:
+		case map_mode::mode::rgo_output:
+		case map_mode::mode::supply:
+		case map_mode::mode::admin:
+		case map_mode::mode::civilization_level:
+		case map_mode::mode::colonial:
+		case map_mode::mode::crisis:
+		case map_mode::mode::diplomatic:
+			return true;
+		default:
+			return false;
+		}
+	}
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1669,6 +1862,10 @@ public:
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
+
+		auto legend_win = make_element_by_type<topbar_map_legend>(state, "alice_map_legend_window");
+		map_legend = legend_win.get();
+		add_child_to_front(std::move(legend_win));
 
 		state.ui_state.topbar_window = this;
 		on_update(state);
@@ -1873,6 +2070,8 @@ public:
 			Cyto::Any payload = current_nation;
 			impl_set(state, payload);
 		}
+
+		map_legend->set_visible(state, get_needs_legend_from_mode(state.map_state.active_map_mode));
 
 		for(auto& e : export_icons)
 			e->set_visible(state, false);

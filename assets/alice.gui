@@ -2755,4 +2755,62 @@ guiTypes = {
 		position = { 31 7 }
 		Orientation = "UPPER_LEFT"
 	}
+
+	windowType = {
+		name = "alice_map_legend_window"
+		position = { 0 200 }	
+		size = { 200 88 }
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 200 88 }
+			quadTextureSprite = "console_background"
+		}
+		instantTextBoxType = {
+			name = "legend_title"
+			position = { 0 4 }
+			font = "vic_22"
+			borderSize = { 0 0}	
+			maxWidth = 200
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		instantTextBoxType = {
+			name = "legend_contents"
+			position = { 6 34 }
+			font = "vic_16"
+			borderSize = { 0 0 }	
+			maxWidth = 148
+			maxHeight = 62
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "gradient_icon"
+			spriteType = "GFX_legend_gradient"
+			position = { 10 34 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "gradient_min"
+			position = { 6 68 }
+			font = "vic_16"
+			borderSize = { 0 0 }	
+			maxWidth = 90
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		instantTextBoxType = {
+			name = "gradient_max"
+			position = { 104 68 }
+			font = "vic_16"
+			borderSize = { 0 0 }	
+			maxWidth = 90
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
 }

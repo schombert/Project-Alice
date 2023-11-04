@@ -23,6 +23,32 @@ map_label_0;None
 map_label_1;Linear
 map_label_2;Quadratic
 map_label_3;Cubic
+lg_min_mapmode_8;Low admin
+lg_min_mapmode_19;Uncivilized
+lg_min_mapmode_7;Uncolonized
+lg_min_mapmode_21;Low tension
+lg_min_mapmode_4;Low relations
+lg_min_mapmode_6;Low infrastructure
+lg_min_mapmode_18;Emigration
+lg_min_mapmode_12;Low density
+lg_min_mapmode_17;Low rank
+lg_min_mapmode_20;Low relations
+lg_min_mapmode_3;Low revolt risk
+lg_min_mapmode_11;Low RGO output
+lg_min_mapmode_15;Low supply
+lg_max_mapmode_8;High admin
+lg_max_mapmode_19;Civilized
+lg_max_mapmode_7;Colonizable
+lg_max_mapmode_21;High tension
+lg_max_mapmode_4;High relations
+lg_max_mapmode_6;High infrastructure
+lg_max_mapmode_18;Immigration
+lg_max_mapmode_12;High density
+lg_max_mapmode_17;High rank
+lg_max_mapmode_20;High relations
+lg_max_mapmode_3;High revolt risk
+lg_max_mapmode_11;High RGO output
+lg_max_mapmode_15;High supply
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -1080,10 +1106,6 @@ uv_sort_h;Exp
 alice_retreat;Retreat from battle
 alice_retreat_1;It has been at least $x$ days since the battle started
 alice_retreat_2;You are the lead attacker or defender
-chat_player_joins;@$x$ $playername$ has joined the game;;;@$x$ $playername$ se ha unido;;;;;;;;;x
-chat_player_leaves;@$x$ $playername$ has left the game;;;@$x$ $playername$ se ha ido;;;;;;;;;x
-chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ ha sido baneado;;;;;;;;;x
-chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ ha sido vetado;;;;;;;;;x
 alice_province_select;Selects province
 alice_province_deselect;Deselects province
 alice_province_selector_on;ON
@@ -1100,8 +1122,8 @@ modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
 chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
-chat_player_ban;@$x$ $playername$ has been banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
-chat_player_kick;@$x$ $playername$ has been kicked;;;@$x$ $playername$ fue vetado;;;;;;;;;x
+chat_player_ban;@$x$ $playername$ was banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
+chat_player_kick;@$x$ $playername$ was kicked;;;@$x$ $playername$ fue vetado;;;;;;;;;x
 chat_player_switch;@$x$ $playername$ has choosen $country$;;;@$x$ $playername$ ahora es $country$;;;;;;;;;x
 chat_player_oos;@$x$ $playername$ has OOSed!;;;;;;;;;x
 alice_status_ready;Ready
