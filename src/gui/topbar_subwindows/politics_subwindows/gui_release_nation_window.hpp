@@ -46,16 +46,8 @@ public:
 
 class politics_release_nation_window_title : public simple_text_element_base {
 public:
-	std::string get_text(sys::state& state) noexcept {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal"));
-				k != state.key_to_text_sequence.end()) {
-			return text::produce_simple_string(state, k->second);
-		}
-		return "";
-	}
-
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
+		set_text(state, text::produce_simple_string(state, "politics_release_vassal"));
 	}
 };
 
@@ -96,8 +88,7 @@ class release_nation_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
-		Cyto::Any e_payload = release_emplace_wrapper{state.world.national_identity_get_nation_from_identity_holder(niid)};
-		parent->impl_get(state, e_payload);
+		send(state, parent, release_emplace_wrapper{ state.world.national_identity_get_nation_from_identity_holder(niid) });
 	}
 };
 
