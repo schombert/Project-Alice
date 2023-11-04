@@ -6,10 +6,7 @@ namespace ui {
 class wargoal_cancel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<dcon::cb_type_id>{};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<dcon::cb_type_id>{});
 	}
 };
 
@@ -17,12 +14,8 @@ public:
 class wargoal_type_item_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::cb_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
-			frame = (dcon::fatten(state.world, content).get_sprite_index() - 1);
-		}
+		auto content = retrieve<dcon::cb_type_id>(state, parent);
+		frame = (dcon::fatten(state.world, content).get_sprite_index() - 1);
 	}
 };
 
@@ -174,23 +167,14 @@ public:
 class wargoal_state_item_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_definition_id{};
-			parent->impl_get(state, payload);
-			dcon::state_definition_id content = any_cast<dcon::state_definition_id>(payload);
-			Cyto::Any newpayload = element_selection_wrapper<dcon::state_definition_id>{ content };
-			parent->impl_get(state, newpayload);
-		}
+		auto content = retrieve<dcon::state_definition_id>(state, parent);
+		send(state, parent, element_selection_wrapper<dcon::state_definition_id>{ content });
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_definition_id{};
-			parent->impl_get(state, payload);
-			dcon::state_definition_id content = any_cast<dcon::state_definition_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-			set_button_text(state, text::produce_simple_string(state, fat.get_name()));
-		}
+		dcon::state_definition_id content = retrieve<dcon::state_definition_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		set_button_text(state, text::produce_simple_string(state, fat.get_name()));
 	}
 };
 
@@ -214,53 +198,50 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(parent) {
-			dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
-			auto actor = state.local_player_nation;
-			dcon::cb_type_id cb = retrieve<dcon::cb_type_id>(state, parent);
-			auto war = military::find_war_between(state, actor, target);
-			auto secondary_tag = retrieve<dcon::national_identity_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto actor = state.local_player_nation;
+		dcon::cb_type_id cb = retrieve<dcon::cb_type_id>(state, parent);
+		auto war = military::find_war_between(state, actor, target);
+		auto secondary_tag = retrieve<dcon::national_identity_id>(state, parent);
+		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+		if(allowed_substate_regions) {
+			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+				if(v.get_subject().get_is_substate()) {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
 
-			auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
-			if(allowed_substate_regions) {
-				for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
-					if(v.get_subject().get_is_substate()) {
-						for(auto si : state.world.nation_get_state_ownership(target)) {
-							if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-
-								auto def = si.get_state().get_definition().id;
-								if(std::find(row_contents.begin(), row_contents.end(), def) == row_contents.end()) {
-									if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-										row_contents.push_back(def);
-									}
+							auto def = si.get_state().get_definition().id;
+							if(std::find(row_contents.begin(), row_contents.end(), def) == row_contents.end()) {
+								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+									row_contents.push_back(def);
 								}
 							}
 						}
 					}
 				}
-			} else {
-				auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-				if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
-					auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
+			}
+		} else {
+			auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+			if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+				auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
 
-					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
 
-							auto def = si.get_state().get_definition().id;
-							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
-								row_contents.push_back(def);
-							}
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
+							row_contents.push_back(def);
 						}
 					}
+				}
 
-				} else {
-					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+			} else {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
 
-							auto def = si.get_state().get_definition().id;
-							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-								row_contents.push_back(def);
-							}
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+							row_contents.push_back(def);
 						}
 					}
 				}
@@ -281,10 +262,7 @@ public:
 class wargoal_cancel_state_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<dcon::state_definition_id>{};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<dcon::state_definition_id>{});
 	}
 };
 
@@ -305,22 +283,13 @@ public:
 class wargoal_country_item_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			dcon::national_identity_id content = any_cast<dcon::national_identity_id>(payload);
-			Cyto::Any newpayload = element_selection_wrapper<dcon::national_identity_id>{ content };
-			parent->impl_get(state, newpayload);
-		}
+		dcon::national_identity_id content = retrieve<dcon::national_identity_id>(state, parent);
+		send(state, parent, element_selection_wrapper<dcon::national_identity_id>{ content });
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			dcon::national_identity_id content = any_cast<dcon::national_identity_id>(payload);
-			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
-		}
+		dcon::national_identity_id content = retrieve<dcon::national_identity_id>(state, parent);
+		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 	}
 };
 
