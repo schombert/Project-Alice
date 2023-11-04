@@ -18,11 +18,12 @@ interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;Volumen de los efectos de sonido;;;;;;;;;x
 fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip
-map_label;Map labels
-map_label_0;None
-map_label_1;Linear
-map_label_2;Quadratic
-map_label_3;Cubic
+music_player;Music player;;;Reproductor de musica;;;;;;;;;x
+map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
+map_label_0;None;;;Ninguna;;;;;;;;;x
+map_label_1;Linear;;;Linear;;;;;;;;;x
+map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
+map_label_3;Cubic;;;Cubica;;;;;;;;;x
 lg_min_mapmode_8;Low admin
 lg_min_mapmode_19;Uncivilized
 lg_min_mapmode_7;Uncolonized
@@ -420,28 +421,28 @@ gt_poor_tax;greater than poor tax;;;;;;;;;;;;x
 cultural_union;cultural union;;;;;;;;;;;;x
 same_cultural_union;the same as the cultural union of;;;;;;;;;;;;x
 non_accepted_pops;non accepted pops;;;;;;;;;;;;x
-crime;crime;;;;;;;;;;;;x
-num_substates;number of substates;;;;;;;;;;;;x
+crime;crime;;;crimen;;;;;;;;;x
+num_substates;number of substates;;;numero de subestados;;;;;;;;;x
 num_vassals_no_substates;number of non-substate vassals;;;;;;;;;;;;x
 num_regiments;number of regiments;;;;;;;;;;;;x
 owner_num_regiments;owner's number of regiments;;;;;;;;;;;;x
 num_regiments_of;the number of regiments belonging to;;;;;;;;;;;;x
 times_num_regiments_of;$x$ times the number of regiments belonging to
 fabricating_on;fabricating a casus belli on;;;;;;;;;;;;x
-cb_discovered;casus belli fabrication has been discovered;;;;;;;;;;;;x
-cb_not_discovered;casus belli fabrication has not been discovered;;;;;;;;;;;;x
-cb_progress;casus belli fabrication progress;;;;;;;;;;;;x
-civ_progress;civilization progress;;;;;;;;;;;;x
-constructing_a;fabricating a;;;;;;;;;;;;x
-casus_belli;casus belli;;;;;;;;;;;;x
-nation_in_scope;the nation in scope;;;;;;;;;;;;x
-a_substate;a substate;;;;;;;;;;;;x
-gw_enabled;great wars are enabled;;;;;;;;;;;;x
-gw_not_enabled;great wars are not enabled;;;;;;;;;;;;x
-ww_enabled;world wars are enabled;;;;;;;;;;;;x
-ww_not_enabled;world wars are not enabled;;;;;;;;;;;;x
-can_perform_nationalization;can perform nationalization;;;;;;;;;;;;x
-cannot_perform_nationalization;cannot perform nationalization;;;;;;;;;;;;x
+cb_discovered;casus belli fabrication has been discovered;;;la fabricacion de un casus belli ha sido descubierta;;;;;;;;;x
+cb_not_discovered;casus belli fabrication has not been discovered;;;la fabricacion de un casus belli no ha sido descubierta;;;;;;;;;x
+cb_progress;casus belli fabrication progress;;;fabricacion de casus belli en progreso;;;;;;;;;x
+civ_progress;civilization progress;;;progreso de civilizacion;;;;;;;;;x
+constructing_a;fabricating a;;;fabricando un;;;;;;;;;x
+casus_belli;casus belli;;;casus belli;;;;;;;;;x
+nation_in_scope;the nation in scope;;;una nacion en contexto;;;;;;;;;x
+a_substate;a substate;;;un subestado;;;;;;;;;x
+gw_enabled;great wars are enabled;;;las grandes guerras estan activadas;;;;;;;;;x
+gw_not_enabled;great wars are not enabled;;;las grandes guerras estan desactivadas;;;;;;;;;x
+ww_enabled;world wars are enabled;;;las guerras mundiales estan activadas;;;;;;;;;x
+ww_not_enabled;world wars are not enabled;;;las guerras mundiales estan desactivadas;;;;;;;;;x
+can_perform_nationalization;can perform nationalization;;;puede nacionalizar;;;;;;;;;x
+cannot_perform_nationalization;cannot perform nationalization;;;no puede nacionalizar;;;;;;;;;x
 in_sphere;in a sphere of influence;;;;;;;;;;;;x
 num_states;number of states;;;;;;;;;;;;x
 a_releasable_vassal;a releasable vassal;;;;;;;;;;;;x
@@ -662,18 +663,18 @@ pop_issue_attraction_5;The national modifier to political reform desire: $x$
 pop_issue_attraction_6;And the issue attraction factor: $x$
 pop_ideology_attraction_1;Ideology attraction: $x$
 pop_ideology_attraction_2;This ideology is not currently available
-trade_setting_drawing;Drawing on stockpiles
-trade_setting_filling;Filling stockpiles
-trade_setting_stable;No stockpile activity
+trade_setting_drawing;Drawing on stockpiles;;;Tomando de las reservas;;;;;;;;;x
+trade_setting_filling;Filling stockpiles;;;Llenando las reservas;;;;;;;;;x
+trade_setting_stable;No stockpile activity;;;Sin actividad de reservas;;;;;;;;;x
 trade_commodity_report_1;Current global demand: $x$
 trade_commodity_report_2;Current global production: $x$
 trade_commodity_report_3;Current global consumption: $x$
 trade_commodity_report_4;Amount on world market: $x$
-trade_fill;Fill;
-trade_use;Draw upon;
-trade_stockpile_target;Stockpile target amount:
-trade_stockpile_current;Current stockpile: ;
-diplomacy_wx_1;Monthly war exhaustion: ;
+trade_fill;Fill;;;Llenar;;;;;;;;;x
+trade_use;Draw upon;;;Tomar de;;;;;;;;;x
+trade_stockpile_target;Stockpile target amount:;;;Meta de reservas:;;;;;;;;;x
+trade_stockpile_current;Current stockpile: ;Reservas actuales: ;;;;;;;;;x
+diplomacy_wx_1;Monthly war exhaustion: ;;;Exhaustion de guerra mensual: ;;;;;;;;;x
 influence_explain_1;We are currently banned and accumulate no influence with this nation
 influence_explain_2;We have a truce with this nation and accumulate no influence with it
 influence_explain_3;We are at war with this nation and accumulate no influence with it
@@ -951,12 +952,12 @@ msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the
 msg_crisis_vol_join_title;Nation Takes a Side
 msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
-multiunit_header;$x$ Units Selected
-ai_alliance_1;The AI is currently seeking allies
-ai_alliance_2;Your nation is close enough to assist in a war
-ai_alliance_3;No conflicting ambitions
-ai_alliance_4;Your nation's military is sufficiently strong
-ai_alliance_5;Has shared mutual strategic interests
+multiunit_header;$x$ Units Selected;;;$x$ Unidades Seleccionadas;;;;;;;;;x
+ai_alliance_1;The AI is currently seeking allies;;;La IA esta buscando aliados;;;;;;;;;x
+ai_alliance_2;Your nation is close enough to assist in a war;;;Estas cerca para asistir en una guerra;;;;;;;;;x
+ai_alliance_3;No conflicting ambitions;;;Sin conflictos de interes;;;;;;;;;x
+ai_alliance_4;Your nation's military is sufficiently strong;;;Tu militar es lo suficientemente fuerte;;;;;;;;;x
+ai_alliance_5;Has shared mutual strategic interests;;;Tienen intereses estrategicos compartidos;;;;;;;;;x
 ai_access_1;The AI sees one of your wars as advantageous to them
 col_start_title;Begin colonizing this state
 col_start_1;No colonizers are present or colonization is still in the initial stage
@@ -990,9 +991,9 @@ alice_evasion;Evasion §G$x$%
 alice_siege;Siege §G$x$
 alice_torpedo_attack;Torpedo Attack §G$x$
 alice_unit_folder_unit_name;§Y$x$
-alice_build_time;$x$ days
-alice_build_unit_pop_size;$x$k
-alice_build_unit_brigades;$x$/$y$
+alice_build_time;$x$ days;;;$x$ dias;;;;;;;;;x
+alice_build_unit_pop_size;$x$k;;;$x$k;;;;;;;;;x
+alice_build_unit_brigades;$x$/$y$;;;$x$/$y$;;;;;;;;;x
 msg_revolt;When a revolt occurs;;;;;;;;;;;;x
 msg_war_on_nation;When we declare war;;;;;;;;;;;;x
 msg_war_by_nation;When we are declared war;;;;;;;;;;;;x
@@ -1091,40 +1092,40 @@ msg_war_join_on;;;;;;;;;;;;;x
 msg_cb_fab_finished;;;;;;;;;;;;;x
 msg_cb_fab_cancelled;;;;;;;;;;;;;x
 msg_crisis_voluntary_join;;;;;;;;;;;;;x
-uv_sort_a;Att
-uv_sort_b;Def
-uv_sort_c;Org
-uv_sort_d;Mor
-uv_sort_e;Spd
-uv_sort_f;Rec
-uv_sort_g;Rel
-uv_sort_h;Exp
-alice_retreat;Retreat from battle
+uv_sort_a;Att;;;Atq;;;;;;;;;x
+uv_sort_b;Def;;;Def;;;;;;;;;x
+uv_sort_c;Org;;;Org;;;;;;;;;x
+uv_sort_d;Mor;;;Mor;;;;;;;;;x
+uv_sort_e;Spd;;;Vel;;;;;;;;;x
+uv_sort_f;Rec;;;Rec;;;;;;;;;x
+uv_sort_g;Rel;;;Rel;;;;;;;;;x
+uv_sort_h;Exp;;;Exp;;;;;;;;;x
+alice_retreat;Retreat from battle;;;Retirarse de la batalla;;;;;;;;;x
 alice_retreat_1;It has been at least $x$ days since the battle started
 alice_retreat_2;You are the lead attacker or defender
-alice_province_select;Selects province
-alice_province_deselect;Deselects province
-alice_province_selector_on;ON
-alice_province_selector_off;OFF
-province_selector;Selector
-province_immigrator;Immigrator
-tt_a_bank;a bank
-tt_a_university;a university
-et_add_selector;enable province selector
-et_remove_selector;disable province selector
-et_add_immigrator;enable province immigrator
-et_remove_immigrator;disable province immigrator
-modifier_province_selector;Province selector
-modifier_province_immigrator;Province immigrator
+alice_province_select;Selects province;;;Selecciona la provincia;;;;;;;;;x
+alice_province_deselect;Deselects province;;;Deselecciona la provincia;;;;;;;;;x
+alice_province_selector_on;ON;;;SI;;;;;;;;;x
+alice_province_selector_off;OFF;;;NO;;;;;;;;;x
+province_selector;Selector;;;Selector;;;;;;;;;x
+province_immigrator;Immigrator;;;Inmigrador;;;;;;;;;x
+tt_a_bank;a bank;;;un banco;;;;;;;;;x
+tt_a_university;a university;;;una universidad;;;;;;;;;x
+et_add_selector;enable province selector;;;habilita el selector provincial;;;;;;;;;x
+et_remove_selector;disable province selector;;;deshabilita el selector provincial;;;;;;;;;x
+et_add_immigrator;enable province immigrator;;;habilita el inmigrador provincial;;;;;;;;;x
+et_remove_immigrator;disable province immigrator;;;deshabilita el inmigrador provincial;;;;;;;;;x
+modifier_province_selector;Province selector;;;Selector provincial;;;;;;;;;x
+modifier_province_immigrator;Province immigrator;;;Inmigrador provincial;;;;;;;;;x
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
 chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
 chat_player_ban;@$x$ $playername$ was banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
 chat_player_kick;@$x$ $playername$ was kicked;;;@$x$ $playername$ fue vetado;;;;;;;;;x
 chat_player_switch;@$x$ $playername$ has choosen $country$;;;@$x$ $playername$ ahora es $country$;;;;;;;;;x
 chat_player_oos;@$x$ $playername$ has OOSed!;;;;;;;;;x
-alice_status_ready;Ready
-alice_status_stream;Save progress $value$
-alice_play_pending_client;$playername$ is not ready yet
+alice_status_ready;READY;;;LISTO;;;;;;;;;x
+alice_status_stream;Save progress $value$;;;Progreso $value$;;;;;;;;;x
+alice_play_pending_client;$playername$ is not ready yet;;;$playername$ no esta listo/a todavia;;;;;;;;;x
 message_name_text;Message
 msg_for_us;About: your nation
 msg_for_interesting;Interesting nation
@@ -1240,11 +1241,11 @@ alice_load_unload_3;The transporting fleet is docked
 alice_load_unload_4;One or more armies is being transported
 alice_load_unload_5;The fleet is docked
 alice_unload_fleet;Unload all armies transported by the fleet
-auto_save_lb;Auto-save frequency
-auto_save_1;Daily
-auto_save_2;Monthly
-auto_save_3;Yearly
-auto_save_0;None
+auto_save_lb;Auto-save frequency;;;Frecuencia de auto-guardado;;;;;;;;;x
+auto_save_1;Daily;;;Diario;;;;;;;;;x
+auto_save_2;Monthly;;;Mensual;;;;;;;;;x
+auto_save_3;Yearly;;;Anual;;;;;;;;;x
+auto_save_0;None;;;Ninguno;;;;;;;;;x
 monthly_emigration_lab;Monthly emigration to (top 10)
 monthly_immigration_lab;Monthly immigration from (top 10)
 im_em_header;Predicted immigration/emigration for ;
@@ -1253,8 +1254,8 @@ unit_standing_text;$m$ $n$/$x$/$y$
 disarmed_pop;a member of a disarmed nation
 cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
-kierkegaard_1;Either
-kierkegaard_2;Or
+kierkegaard_1;Either;;;Ya sea;;;;;;;;;x
+kierkegaard_2;Or;;;O tambien;;;;;;;;;x
 open_and_sub;Subsidize & Reopen Factory
 o_set_national_flag;Set national flag $text$ for the owner
 o_add_modifier_until;Owner of the province gets $text$ until $date$
@@ -1273,14 +1274,14 @@ nb_build_tt_2;No other naval base has been built or is under construction in the
 rr_build_tt_1;Our ruling party allows the government to construct rail roads
 tech_ol_tt;§G$x$§! from your overlord having this technology
 tech_year_tt;§G$x$§! from the current year
-disband_all;Disband all selected units
-alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
-alice_play_save_stream;Host is streaming a save to you, wait until it completes
-ai_will_accept_po;The AI will accept this offer
-ai_will_not_accept_po;The AI will NOT accept this offer
-close_and_del;Close & Delete Factory
-cb_conditions_header;Conditions to use:
-as_a_vassal;as a vassal
+disband_all;Disband all selected units;;;Desbaratar todas las unidades seleccionadas;;;;;;;;;x
+alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles;;;Los codigos de verificacion no coinciden con el del anfitrion, checa que tengas los mismos mods;;;;;;;;;x
+alice_play_save_stream;Host is streaming a save to you, wait until it completes;;;El anfitrion esta pasandote la partida a ti, espera a que se complete;;;;;;;;;x
+ai_will_accept_po;The AI will accept this offer;;;IA aceptara esta oferta;;;;;;;;;x
+ai_will_not_accept_po;The AI will NOT accept this offer;;;IA rechazara esta oferta;;;;;;;;;x
+close_and_del;Close & Delete Factory;;;Cerrar & Borrar Industria;;;;;;;;;x
+cb_conditions_header;Conditions to use:;;;Condiciones para usar:;;;;;;;;;x
+as_a_vassal;as a vassal;;;como un vasal;;;;;;;;;x
 change_state_name_to;change state name to $text$
 alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 alice_unit_disable_rebel_hunt;Stop hunting rebels
@@ -1291,15 +1292,15 @@ alice_commodity_shortage;§RThere is a shortage of this commodity
 alice_commodity_surplus;§GThere is a surplus of this commodity
 alice_trade_flow_produced;§YDomestic production:
 alice_trade_flow_consumed;§YDomestic consumption:
-alice_trade_flow_label;Market overview:
-alice_trade_flow_piechart_producers;Producers
-alice_trade_flow_piechart_consumers;Consumers
-alice_trade_flow_piechart_workforce;Workforce
-alice_diplo_release_subject;Release subject
+alice_trade_flow_label;Market overview:;;;Analisis del mercado:;;;;;;;;;x
+alice_trade_flow_piechart_producers;Producers;;;Productores;;;;;;;;;x
+alice_trade_flow_piechart_consumers;Consumers;;;Consumidores;;;;;;;;;x
+alice_trade_flow_piechart_workforce;Workforce;;;Profesiones;;;;;;;;;x
+alice_diplo_release_subject;Release subject;;;Liberar subdito;;;;;;;;;x
 alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
-alice_diplo_release_subject_0;Is our subject
-e_kill_leader;Kill leader;
-e_annex_null;becomes unowned;
-meets_the_conditions_of;meets the conditions of ;
-does_not_meet_the_conditions_of;does not meet the conditions of ;
+alice_diplo_release_subject_0;Is our subject;;;Es nuestro subdito;;;;;;;;;x
+e_kill_leader;Kill leader;;;Matar lider;;;;;;;;;x
+e_annex_null;becomes unowned;;;se hace sin duenio;;;;;;;;;x
+meets_the_conditions_of;meets the conditions of ;;;cumple con las condiciones de ;;;;;;;;;x
+does_not_meet_the_conditions_of;does not meet the conditions of ;no cumple con las condiciones de ;;;;;;;;;x
 ;;;;;;;;;;;;;x

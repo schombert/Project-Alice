@@ -128,7 +128,7 @@ When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-ta
 
 ### Maximum loan amount
 
-A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. THere is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. And there is also a cap from what is available in the central banks of other nations, where for each nation not currently at war with the borrowing nation and which is not an unpaid creditor we add: (national-modifier-to-max-loan-amount + 1) x (money-in-reserves-of-that-central-bank - money-that-central-bank-has-loaned-out) - amount-already-loaned (and this should be calculated even for the nation itself, i.e. borrowing from its own central bank), and then define:SHADOWY_FINANCIERS_MAX_LOAN_AMOUNT. The lower of these two values is the maximum amount a nation can borrow.
+A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. And there is also a cap from what is available in the central banks of other nations, where for each nation not currently at war with the borrowing nation and which is not an unpaid creditor we add: (national-modifier-to-max-loan-amount + 1) x (money-in-reserves-of-that-central-bank - money-that-central-bank-has-loaned-out) - amount-already-loaned (and this should be calculated even for the nation itself, i.e. borrowing from its own central bank), and then define:SHADOWY_FINANCIERS_MAX_LOAN_AMOUNT. The lower of these two values is the maximum amount a nation can borrow.
 
 ### Workforce adjustment
 
@@ -1810,7 +1810,31 @@ Can't fabricate on someone you are at war with. Can't fabricate on anyone except
 
 Fabrication starts
 
+### Toggle rebel hunting ON/OFF
+
+#### Conditions
+
+Army has to be yours or under your control.
+
+#### Effect
+
+Toggles rebel hunting ON/OFF, if it's ON, then the army will automatically defeat rebels.
 
 TODO
 Take command of vassal units / give up command
-Set hunt rebels on/off
+
+# Extended game rules
+
+Some new features have been added to allow players greater freedom in their decision making:
+
+### Free vassal
+
+Frees a vassal from your control.
+
+#### Conditions
+
+Has to be our vassal, and not be at war.
+
+#### Effect
+
+Makes them no longer our vassal - alliances are kept through.

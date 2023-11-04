@@ -29,9 +29,11 @@ void play_interface_sound(sys::state& state, audio_instance& s, float volume);
 // controls autoplaying music (start music should start with the main theme)
 void stop_music(sys::state& state);
 void start_music(sys::state& state, float v);
-void update_music_track(
-		sys::state& state); // linux may not need this function, but I needed to expose a way to switch to the next track upon
-												// recieving a notification via a windows event that the current track could be complete
+// linux may not need this function, but I needed to expose a way to switch to the next track upon
+// recieving a notification via a windows event that the current track could be complete
+void update_music_track(sys::state& state);
+void play_new_track(sys::state& state);
+native_string get_current_track_name(sys::state& state);
 
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
