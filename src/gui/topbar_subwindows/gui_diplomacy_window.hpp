@@ -2282,7 +2282,6 @@ public:
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			auto const filter_name = name.substr(7);
 			auto ptr = make_element_by_type<continent_filter_button>(state, id);
-			
 			if(auto it = state.key_to_text_sequence.find(filter_name); it != state.key_to_text_sequence.end()) {
 				for(auto m : state.world.in_modifier) {
 					if(m.get_name() == it->second) {
@@ -2291,7 +2290,6 @@ public:
 					}
 				}
 			}
-			
 			return ptr;
 		} else {
 			return nullptr;

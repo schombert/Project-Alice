@@ -1273,8 +1273,7 @@ public:
 
 		auto fat_id = dcon::fatten(state.world, content);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::need,
-				state.key_to_text_sequence.find(std::string_view("life_needs"))->second);
+		text::add_to_substitution_map(sub, text::variable_type::need, text::produce_simple_string(state, "life_needs"));
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
@@ -1298,8 +1297,7 @@ public:
 
 		auto fat_id = dcon::fatten(state.world, content);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::need,
-				state.key_to_text_sequence.find(std::string_view("everyday_needs"))->second);
+		text::add_to_substitution_map(sub, text::variable_type::need, text::produce_simple_string(state, "everyday_needs"));
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
@@ -1323,8 +1321,7 @@ public:
 
 		auto fat_id = dcon::fatten(state.world, content);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::need,
-				state.key_to_text_sequence.find(std::string_view("luxury_needs"))->second);
+		text::add_to_substitution_map(sub, text::variable_type::need, text::produce_simple_string(state, "luxury_needs"));
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);

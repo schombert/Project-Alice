@@ -2027,16 +2027,11 @@ uint32_t ef_change_tag_culture(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		if(primary_slot != -1) {
+		add_to_map(ws, m, trigger::to_nation(primary_slot), "cultural_union_nation", [&](dcon::nation_id n) {
 			auto prim_culture = ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot));
 			auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
-			auto u = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
-			text::add_to_substitution_map(m, text::variable_type::text, u);
-		} else {
-			if(auto k = ws.key_to_text_sequence.find(std::string_view("cultural_union_nation")); k != ws.key_to_text_sequence.end()) {
-				text::add_to_substitution_map(m, text::variable_type::text, k->second);
-			}
-		}
+			return ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+		});
 		text::localised_format_box(ws, layout, box, "become_blank", m);
 		text::close_layout_box(layout, box);
 	}
@@ -2056,16 +2051,11 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		if(primary_slot != -1) {
+		add_to_map(ws, m, trigger::to_nation(primary_slot), "cultural_union_nation", [&](dcon::nation_id n) {
 			auto prim_culture = ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot));
 			auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
-			auto u = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
-			text::add_to_substitution_map(m, text::variable_type::text, u);
-		} else {
-			if(auto k = ws.key_to_text_sequence.find(std::string_view("cultural_union_nation")); k != ws.key_to_text_sequence.end()) {
-				text::add_to_substitution_map(m, text::variable_type::text, k->second);
-			}
-		}
+			return ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+		});
 		text::localised_format_box(ws, layout, box, "player_control_change", m);
 		text::close_layout_box(layout, box);
 	}
