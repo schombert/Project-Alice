@@ -1077,7 +1077,7 @@ class diplomacy_action_increase_relations_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		frame = 1;
+		frame = 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1111,7 +1111,7 @@ class diplomacy_action_decrease_relations_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		frame = 0;
+		frame = 1;
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1294,11 +1294,11 @@ public:
 			country_relation = ptr.get();
 			auto drel_btn = make_element_by_type<diplomacy_action_decrease_relations_button>(state, "alice_plus_minus");
 			drel_btn->base_data.position = ptr->base_data.position;
-			drel_btn->base_data.position.x -= drel_btn->base_data.size.x;
+			drel_btn->base_data.position.x -= drel_btn->base_data.size.x * 2;
 			add_child_to_front(std::move(drel_btn));
 			auto irel_btn = make_element_by_type<diplomacy_action_increase_relations_button>(state, "alice_plus_minus");
 			irel_btn->base_data.position = ptr->base_data.position;
-			irel_btn->base_data.position.x += ptr->base_data.size.x;
+			irel_btn->base_data.position.x += irel_btn->base_data.size.x * 2;
 			add_child_to_front(std::move(irel_btn));
 			return ptr;
 		} else if(name == "country_prestige") {
