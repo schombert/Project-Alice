@@ -51,6 +51,7 @@ gui_element_common
 	orientation  value      text          member_fn
 	maxheight    value      int           member_fn
 	maxwidth     value      int           member_fn
+	maxsize      group      gfx_xy_pair   member_fn
 
 button
 	#base                 gui_element_common
