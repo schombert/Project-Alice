@@ -1294,11 +1294,11 @@ public:
 			country_relation = ptr.get();
 			auto drel_btn = make_element_by_type<diplomacy_action_decrease_relations_button>(state, "alice_plus_minus");
 			drel_btn->base_data.position = ptr->base_data.position; // nudge
+			drel_btn->base_data.position.x -= drel_btn->base_data.size.x; // nudge
 			drel_btn->base_data.position.y += drel_btn->base_data.size.y; // nudge
 			add_child_to_front(std::move(drel_btn));
 			auto irel_btn = make_element_by_type<diplomacy_action_increase_relations_button>(state, "alice_plus_minus");
 			irel_btn->base_data.position = ptr->base_data.position; // nudge
-			irel_btn->base_data.position.x += irel_btn->base_data.size.x; // nudge
 			irel_btn->base_data.position.y += irel_btn->base_data.size.y; // nudge
 			add_child_to_front(std::move(irel_btn));
 			return ptr;
