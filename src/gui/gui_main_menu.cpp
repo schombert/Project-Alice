@@ -178,7 +178,7 @@ void antialiasing_left::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.antialias_level == 0);
 }
 void antialiasing_right::button_action(sys::state& state) noexcept {
-	if(state.user_settings.antialias_level < 32) {
+	if(state.user_settings.antialias_level < 16) {
 		state.user_settings.antialias_level += 1;
 		ogl::deinitialize_msaa(state);
 		ogl::initialize_msaa(state, state.x_size, state.y_size);
@@ -186,7 +186,7 @@ void antialiasing_right::button_action(sys::state& state) noexcept {
 	}
 }
 void antialiasing_right::on_update(sys::state& state) noexcept {
-	disabled = (state.user_settings.antialias_level >= 32);
+	disabled = (state.user_settings.antialias_level >= 16);
 }
 void antialiasing_display::on_update(sys::state& state) noexcept {
 	set_text(state, "x" + std::to_string(int32_t(state.user_settings.antialias_level)));
