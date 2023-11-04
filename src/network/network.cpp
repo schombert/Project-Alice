@@ -378,14 +378,15 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.preload();
-		with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-		state.fill_unsaved_data();
+		read_save_section(temp_save_buffer.get(), temp_save_buffer.get() + save_space, state);
 		state.local_player_nation = old_local_player_nation;
 		for(const auto n : state.world.in_nation)
 			state.world.nation_set_is_player_controlled(n, false);
 		for(const auto n : players)
 			state.world.nation_set_is_player_controlled(n, true);
+		state.fill_unsaved_data();
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+
 		// Regenerate checksum of the savefile
 		c.data.notify_save_loaded.checksum = state.get_save_checksum();
 		for(auto& client : state.network_state.clients) {
@@ -469,6 +470,7 @@ static void accept_new_clients(sys::state& state) {
 				command::payload c;
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
+				c.data.notify_save_loaded.seed = state.game_seed;
 				c.data.notify_save_loaded.target = client.playing_as;
 				state.network_state.outgoing_commands.push(c);
 			}
@@ -534,16 +536,15 @@ void send_and_receive_commands(sys::state& state) {
 					dcon::nation_id old_local_player_nation = state.local_player_nation;
 					state.preload();
 					with_network_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-					state.fill_unsaved_data();
 					state.local_player_nation = old_local_player_nation;
 					for(const auto n : state.world.in_nation)
 						state.world.nation_set_is_player_controlled(n, false);
 					for(const auto n : players)
 						state.world.nation_set_is_player_controlled(n, true);
+					state.fill_unsaved_data();
 					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 					//
 					state.game_state_updated.store(true, std::memory_order::release);
-					//
 					state.network_state.save_data.clear();
 					state.network_state.save_stream = false; // go back to normal command loop stuff
 				});

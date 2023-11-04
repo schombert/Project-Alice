@@ -44,7 +44,8 @@ struct command_info {
 		always_allow_reforms,
 		always_accept_deals,
 		complete_constructions,
-		instant_research
+		instant_research,
+		game_info
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -158,6 +159,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"ym", command_info::type::always_accept_deals, "AI always accepts our deals",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"gi", command_info::type::game_info, "Shows general game information",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 };
@@ -1149,6 +1153,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
+		break;
+	case command_info::type::game_info:
+		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
+		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
+		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "\x02" : "\x01"));
 		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");

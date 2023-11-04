@@ -314,14 +314,12 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		
-			auto content = retrieve<dcon::nation_id>(state, parent);
-			if(nations::are_allied(state, content, state.local_player_nation)) {
-				command::cancel_alliance(state, state.local_player_nation, content);
-			} else {
-				command::ask_for_alliance(state, state.local_player_nation, content);
-			}
-		
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		if(nations::are_allied(state, content, state.local_player_nation)) {
+			command::cancel_alliance(state, state.local_player_nation, content);
+		} else {
+			command::ask_for_alliance(state, state.local_player_nation, content);
+		}		
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
