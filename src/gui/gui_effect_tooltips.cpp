@@ -175,14 +175,14 @@ void tag_type_this_state_effect(int32_t this_slot, sys::state& ws, text::layout_
 	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
-								ws.world.nation_get_name(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))
+						ws.world.nation_get_name(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 }
 void tag_type_this_province_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
 	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
-								ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
+						ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 }
 void tag_type_this_pop_effect(int32_t this_slot, sys::state& ws, text::layout_base& layout, text::layout_box& box) {
@@ -200,7 +200,7 @@ void tag_type_from_province_effect(int32_t this_slot, sys::state& ws, text::layo
 	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
-								ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
+						ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
 					: text::produce_simple_string(ws, "from_nation"));
 }
 
@@ -237,7 +237,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 				auto limit = trigger::payload(tval[2]).tr_id;
 				for(auto p : neighbor_range) {
 					auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																											: p.get_connected_provinces(0);
+						: p.get_connected_provinces(0);
 
 					if(other.get_nation_from_province_ownership() &&
 							trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
@@ -247,7 +247,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 			} else {
 				for(auto p : neighbor_range) {
 					auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																											: p.get_connected_provinces(0);
+						: p.get_connected_provinces(0);
 
 					if(other.get_nation_from_province_ownership()) {
 						rlist.push_back(other.id);
@@ -292,7 +292,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 				auto limit = trigger::payload(tval[2]).tr_id;
 				for(auto p : neighbor_range) {
 					auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
-																																											: p.get_connected_nations(0);
+						: p.get_connected_nations(0);
 
 					if(trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 						rlist.push_back(other.id);
@@ -301,7 +301,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 			} else {
 				for(auto p : neighbor_range) {
 					auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
-																																											: p.get_connected_nations(0);
+						: p.get_connected_nations(0);
 
 					rlist.push_back(other.id);
 				}
@@ -390,7 +390,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 				auto limit = trigger::payload(tval[2]).tr_id;
 				for(auto p : neighbor_range) {
 					auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																											: p.get_connected_provinces(0);
+						: p.get_connected_provinces(0);
 
 					if(!other.get_nation_from_province_ownership() &&
 							trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
@@ -400,7 +400,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 			} else {
 				for(auto p : neighbor_range) {
 					auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																											: p.get_connected_provinces(0);
+						: p.get_connected_provinces(0);
 
 					if(!other.get_nation_from_province_ownership()) {
 						rlist.push_back(other.id);
@@ -962,7 +962,7 @@ uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 
 	while(sub_units_start < tval + source_size) {
 		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::fp_percentage{float(*sub_units_start) / float(chances_total)});
+		text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(*sub_units_start) / float(chances_total) });
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
 		text::close_layout_box(layout, box);
@@ -982,7 +982,7 @@ uint32_t es_random_scope(EFFECT_DISPLAY_PARAMS) {
 	auto chance = tval[2];
 
 	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::fp_percentage{float(chance) / float(100)});
+	text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(chance) / float(100) });
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
 	text::close_layout_box(layout, box);
@@ -1203,15 +1203,15 @@ uint32_t es_sea_zone_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 		}
 		return dcon::province_id{};
-	}(primary_slot)
-									   : dcon::province_id{};
+		}(primary_slot)
+			: dcon::province_id{};
 
-	return display_subeffects(ws, tval, layout, sea_zone ? trigger::to_generic(sea_zone) : -1, this_slot, from_slot, r_hi, r_lo,
-			indentation + indentation_amount);
+		return display_subeffects(ws, tval, layout, sea_zone ? trigger::to_generic(sea_zone) : -1, this_slot, from_slot, r_hi, r_lo,
+				indentation + indentation_amount);
 }
 uint32_t es_cultural_union_scope(EFFECT_DISPLAY_PARAMS) {
 	auto prim_culture =
-			primary_slot != -1 ? ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) : dcon::culture_id{};
+		primary_slot != -1 ? ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) : dcon::culture_id{};
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
 
 	{
@@ -1262,7 +1262,7 @@ uint32_t es_sphere_owner_scope(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t es_independence_scope(EFFECT_DISPLAY_PARAMS) {
 	auto rtag =
-			from_slot != -1 ? ws.world.rebel_faction_get_defection_target(trigger::to_rebel(from_slot)) : dcon::national_identity_id{};
+		from_slot != -1 ? ws.world.rebel_faction_get_defection_target(trigger::to_rebel(from_slot)) : dcon::national_identity_id{};
 	auto r_holder = ws.world.national_identity_get_nation_from_identity_holder(rtag);
 
 	{
@@ -1307,7 +1307,7 @@ uint32_t es_state_scope_province(EFFECT_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 	auto st =
-			primary_slot != -1 ? ws.world.province_get_state_membership(trigger::to_prov(primary_slot)) : dcon::state_instance_id{};
+		primary_slot != -1 ? ws.world.province_get_state_membership(trigger::to_prov(primary_slot)) : dcon::state_instance_id{};
 	return display_subeffects(ws, tval, layout, st ? trigger::to_generic(st) : -1, this_slot, from_slot, r_hi, r_lo,
 			indentation + indentation_amount);
 }
@@ -1321,7 +1321,7 @@ uint32_t es_state_scope_pop(EFFECT_DISPLAY_PARAMS) {
 	}
 	auto st = primary_slot != -1 ? ws.world.province_get_state_membership(
 																		 ws.world.pop_get_province_from_pop_location(trigger::to_pop(primary_slot)))
-															 : dcon::state_instance_id{};
+		: dcon::state_instance_id{};
 	return display_subeffects(ws, tval, layout, st ? trigger::to_generic(st) : -1, this_slot, from_slot, r_hi, r_lo,
 			indentation + indentation_amount);
 }
@@ -1333,7 +1333,7 @@ uint32_t es_tag_scope(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(ws, layout, box,
 				text::produce_simple_string(ws,
-						tag_holder ? ws.world.nation_get_name(tag_holder) : ws.world.national_identity_get_name(tag)));
+					tag_holder ? ws.world.nation_get_name(tag_holder) : ws.world.national_identity_get_name(tag)));
 		text::close_layout_box(layout, box);
 	}
 	return display_subeffects(ws, tval, layout, tag_holder ? trigger::to_generic(tag_holder) : -1, this_slot, from_slot, r_hi, r_lo,
@@ -1404,7 +1404,7 @@ uint32_t es_pop_type_scope_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_region_scope(EFFECT_DISPLAY_PARAMS) {
 
 	auto region =
-			(tval[0] & effect::scope_has_limit) != 0 ? trigger::payload(tval[3]).state_id : trigger::payload(tval[2]).state_id;
+		(tval[0] & effect::scope_has_limit) != 0 ? trigger::payload(tval[3]).state_id : trigger::payload(tval[2]).state_id;
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -1973,7 +1973,7 @@ uint32_t ef_treasury(EFFECT_DISPLAY_PARAMS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		display_value(text::fp_currency{amount}, true, ws, layout, box);
+		display_value(text::fp_currency{ amount }, true, ws, layout, box);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "add_to_treasury", m);
 		text::close_layout_box(layout, box);
@@ -1988,7 +1988,7 @@ uint32_t ef_war_exhaustion(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "military_war_exhaustion", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, false, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, false, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -1998,7 +1998,7 @@ uint32_t ef_prestige(EFFECT_DISPLAY_PARAMS) {
 	float change = delta;
 	if(primary_slot != -1) {
 		auto prestige_multiplier =
-				1.0f + ws.world.nation_get_modifier_values(trigger::to_nation(primary_slot), sys::national_mod_offsets::prestige);
+			1.0f + ws.world.nation_get_modifier_values(trigger::to_nation(primary_slot), sys::national_mod_offsets::prestige);
 		auto new_prestige = std::max(0.0f,
 				ws.world.nation_get_prestige(trigger::to_nation(primary_slot)) + (delta > 0 ? (delta * prestige_multiplier) : delta));
 		change = (new_prestige - ws.world.nation_get_prestige(trigger::to_nation(primary_slot)));
@@ -2027,11 +2027,16 @@ uint32_t ef_change_tag_culture(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		add_to_map(ws, m, trigger::to_nation(primary_slot), "cultural_union_nation", [&](dcon::nation_id n) {
+		if(primary_slot != -1) {
 			auto prim_culture = ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot));
 			auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
-			return ws.world.culture_group_get_identity_from_cultural_union_of(cg);
-		});
+			auto u = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+			text::add_to_substitution_map(m, text::variable_type::text, u);
+		} else {
+			if(auto k = ws.key_to_text_sequence.find(std::string_view("cultural_union_nation")); k != ws.key_to_text_sequence.end()) {
+				text::add_to_substitution_map(m, text::variable_type::text, k->second);
+			}
+		}
 		text::localised_format_box(ws, layout, box, "become_blank", m);
 		text::close_layout_box(layout, box);
 	}
@@ -2051,11 +2056,16 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		add_to_map(ws, m, trigger::to_nation(primary_slot), "cultural_union_nation", [&](dcon::nation_id n) {
+		if(primary_slot != -1) {
 			auto prim_culture = ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot));
 			auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
-			return ws.world.culture_group_get_identity_from_cultural_union_of(cg);
-		});
+			auto u = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+			text::add_to_substitution_map(m, text::variable_type::text, u);
+		} else {
+			if(auto k = ws.key_to_text_sequence.find(std::string_view("cultural_union_nation")); k != ws.key_to_text_sequence.end()) {
+				text::add_to_substitution_map(m, text::variable_type::text, k->second);
+			}
+		}
 		text::localised_format_box(ws, layout, box, "player_control_change", m);
 		text::close_layout_box(layout, box);
 	}
@@ -2141,7 +2151,7 @@ uint32_t ef_badboy(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "infamy", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_one_place{amount}, false, ws, layout, box);
+		display_value(text::fp_one_place{ amount }, false, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -2642,7 +2652,7 @@ uint32_t ef_money(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "pop_savings", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_currency{amount}, true, ws, layout, box);
+		display_value(text::fp_currency{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -2886,7 +2896,7 @@ uint32_t ef_plurality(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "plurality", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -3083,7 +3093,7 @@ uint32_t ef_enable_canal(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	auto canal_name = text::produce_simple_string(ws, std::string("canal_") + std::to_string(tval[1]));
-	text::add_to_substitution_map(m, text::variable_type::name, std::string_view{canal_name});
+	text::add_to_substitution_map(m, text::variable_type::name, std::string_view{ canal_name });
 	text::localised_format_box(ws, layout, box, "enable_canal", m);
 	text::close_layout_box(layout, box);
 	return 0;
@@ -3198,18 +3208,18 @@ uint32_t ef_add_tax_relative_income(EFFECT_DISPLAY_PARAMS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	if(primary_slot != -1) {
 		auto income = ws.world.nation_get_total_poor_income(trigger::to_nation(primary_slot)) +
-									ws.world.nation_get_total_middle_income(trigger::to_nation(primary_slot)) +
-									ws.world.nation_get_total_rich_income(trigger::to_nation(primary_slot));
+			ws.world.nation_get_total_middle_income(trigger::to_nation(primary_slot)) +
+			ws.world.nation_get_total_rich_income(trigger::to_nation(primary_slot));
 		auto combined_amount = income * amount;
 
 		auto box = text::open_layout_box(layout, indentation);
-		display_value(text::fp_currency{combined_amount}, true, ws, layout, box);
+		display_value(text::fp_currency{ combined_amount }, true, ws, layout, box);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "add_to_treasury", m);
 		text::close_layout_box(layout, box);
 	} else {
 		auto box = text::open_layout_box(layout, indentation);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "add_relative_income", m);
 		text::close_layout_box(layout, box);
@@ -3229,7 +3239,7 @@ uint32_t ef_reduce_pop(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "pop_size", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1) - 1.0f}, true, ws, layout, box);
+	display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 1) - 1.0f }, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -3268,7 +3278,7 @@ uint32_t ef_years_of_research(EFFECT_DISPLAY_PARAMS) {
 	} else {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 		text::localised_format_box(ws, layout, box, "years_of_research", m);
 		text::close_layout_box(layout, box);
 		return 0;
@@ -3279,7 +3289,7 @@ uint32_t ef_prestige_factor_positive(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "prestige", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+	display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -3288,7 +3298,7 @@ uint32_t ef_prestige_factor_negative(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "prestige", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+	display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -3448,7 +3458,7 @@ uint32_t ef_assimilate_province(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "owner_primary_culture");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
+		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{ t });
 		text::localised_format_box(ws, layout, box, "assimilate_province", m);
 		text::close_layout_box(layout, box);
 
@@ -3470,7 +3480,7 @@ uint32_t ef_assimilate_state(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "owner_primary_culture");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
+		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{ t });
 		text::localised_format_box(ws, layout, box, "assimilate_province", m);
 		text::close_layout_box(layout, box);
 
@@ -3492,7 +3502,7 @@ uint32_t ef_assimilate_pop(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "owner_primary_culture");
-		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{t});
+		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{ t });
 		text::localised_format_box(ws, layout, box, "assimilate_pop", m);
 		text::close_layout_box(layout, box);
 
@@ -3504,7 +3514,7 @@ uint32_t ef_literacy(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "literacy", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+	display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -3538,7 +3548,7 @@ uint32_t ef_consciousness(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "consciousness", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+	display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -3547,7 +3557,7 @@ uint32_t ef_militancy(EFFECT_DISPLAY_PARAMS) {
 	text::substitution_map m;
 	text::localised_format_box(ws, layout, box, "militancy", m);
 	text::add_space_to_layout_box(ws, layout, box);
-	display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+	display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, false, ws, layout, box);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -5036,7 +5046,7 @@ uint32_t ef_country_event_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event{r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5387,7 +5397,7 @@ uint32_t ef_set_variable(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.national_definitions.variable_names[trigger::payload(tval[1]).natv_id]);
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{trigger::read_float_from_payload(tval + 2)});
+		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{ trigger::read_float_from_payload(tval + 2) });
 		text::localised_format_box(ws, layout, box, "set_national_variable_to", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5400,7 +5410,7 @@ uint32_t ef_change_variable(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.national_definitions.variable_names[trigger::payload(tval[1]).natv_id]);
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{amount});
+		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{ amount });
 		text::localised_format_box(ws, layout, box, "increase_national_variable_by", m);
 		text::close_layout_box(layout, box);
 	} else {
@@ -5408,7 +5418,7 @@ uint32_t ef_change_variable(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.national_definitions.variable_names[trigger::payload(tval[1]).natv_id]);
-		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{-amount});
+		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{ -amount });
 		text::localised_format_box(ws, layout, box, "decrease_national_variable_by", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5421,7 +5431,7 @@ uint32_t ef_ideology(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5433,7 +5443,7 @@ uint32_t ef_upper_house(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "uh_support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5443,7 +5453,7 @@ uint32_t ef_scaled_militancy_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5457,7 +5467,7 @@ uint32_t ef_scaled_militancy_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5470,7 +5480,7 @@ uint32_t ef_scaled_militancy_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5483,7 +5493,7 @@ uint32_t ef_scaled_consciousness_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5497,7 +5507,7 @@ uint32_t ef_scaled_consciousness_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5510,7 +5520,7 @@ uint32_t ef_scaled_consciousness_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5523,7 +5533,7 @@ uint32_t ef_scaled_militancy_nation_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5537,7 +5547,7 @@ uint32_t ef_scaled_militancy_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5550,7 +5560,7 @@ uint32_t ef_scaled_militancy_nation_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5563,7 +5573,7 @@ uint32_t ef_scaled_consciousness_nation_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5577,7 +5587,7 @@ uint32_t ef_scaled_consciousness_nation_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5590,7 +5600,7 @@ uint32_t ef_scaled_consciousness_nation_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5603,7 +5613,7 @@ uint32_t ef_scaled_militancy_state_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5617,7 +5627,7 @@ uint32_t ef_scaled_militancy_state_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5630,7 +5640,7 @@ uint32_t ef_scaled_militancy_state_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5643,7 +5653,7 @@ uint32_t ef_scaled_consciousness_state_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5657,7 +5667,7 @@ uint32_t ef_scaled_consciousness_state_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5670,7 +5680,7 @@ uint32_t ef_scaled_consciousness_state_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5683,7 +5693,7 @@ uint32_t ef_scaled_militancy_province_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5697,7 +5707,7 @@ uint32_t ef_scaled_militancy_province_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5710,7 +5720,7 @@ uint32_t ef_scaled_militancy_province_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "militancy");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, false, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, false, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5723,7 +5733,7 @@ uint32_t ef_scaled_consciousness_province_issue(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
@@ -5737,7 +5747,7 @@ uint32_t ef_scaled_consciousness_province_ideology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
@@ -5750,7 +5760,7 @@ uint32_t ef_scaled_consciousness_province_unemployment(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		std::string t = text::produce_simple_string(ws, "consciousness");
-		display_value(text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, true, ws, layout, box);
+		display_value(text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, true, ws, layout, box);
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, t);
 		text::localised_format_box(ws, layout, box, "scaled_unemployment");
@@ -5762,7 +5772,7 @@ uint32_t ef_variable_good_name(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto amount = trigger::read_float_from_payload(tval + 2);
 		auto box = text::open_layout_box(layout, indentation);
-		display_value(text::fp_one_place{amount}, true, ws, layout, box);
+		display_value(text::fp_one_place{ amount }, true, ws, layout, box);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "stockpile_of", m);
@@ -5774,7 +5784,7 @@ uint32_t ef_variable_good_name_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto amount = trigger::read_float_from_payload(tval + 2);
 		auto box = text::open_layout_box(layout, indentation);
-		display_value(text::fp_one_place{amount}, true, ws, layout, box);
+		display_value(text::fp_one_place{ amount }, true, ws, layout, box);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "stockpile_of", m);
@@ -5807,7 +5817,7 @@ uint32_t ef_dominant_issue(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5819,7 +5829,7 @@ uint32_t ef_dominant_issue_nation(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, true, ws, layout, box);
+		display_value(text::fp_percentage{ trigger::read_float_from_payload(tval + 2) }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5835,7 +5845,7 @@ uint32_t ef_add_war_goal(EFFECT_DISPLAY_PARAMS) {
 			text::add_to_substitution_map(m, text::variable_type::nation, trigger::to_nation(primary_slot));
 		else {
 			t = text::produce_simple_string(ws, "this_nation");
-			text::add_to_substitution_map(m, text::variable_type::nation, std::string_view{t});
+			text::add_to_substitution_map(m, text::variable_type::nation, std::string_view{ t });
 		}
 		text::localised_format_box(ws, layout, box, "add_war_goal", m);
 		text::close_layout_box(layout, box);
@@ -5850,7 +5860,7 @@ uint32_t ef_move_issue_percentage_nation(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ -amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	{
@@ -5859,7 +5869,7 @@ uint32_t ef_move_issue_percentage_nation(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5872,7 +5882,7 @@ uint32_t ef_move_issue_percentage_state(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ -amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	{
@@ -5881,7 +5891,7 @@ uint32_t ef_move_issue_percentage_state(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5894,7 +5904,7 @@ uint32_t ef_move_issue_percentage_province(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ -amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	{
@@ -5903,7 +5913,7 @@ uint32_t ef_move_issue_percentage_province(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5916,7 +5926,7 @@ uint32_t ef_move_issue_percentage_pop(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{-amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ -amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	{
@@ -5925,7 +5935,7 @@ uint32_t ef_move_issue_percentage_pop(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id));
 		text::localised_format_box(ws, layout, box, "support_for_blank", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5938,7 +5948,7 @@ uint32_t ef_party_loyalty_province(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 		text::localised_format_box(ws, layout, box, "blank_loyalty", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5956,7 +5966,7 @@ uint32_t ef_party_loyalty(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[2]).ideo_id));
 		text::localised_format_box(ws, layout, box, "blank_loyalty", m);
 		text::add_space_to_layout_box(ws, layout, box);
-		display_value(text::fp_percentage{amount}, true, ws, layout, box);
+		display_value(text::fp_percentage{ amount }, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -6196,7 +6206,7 @@ uint32_t ef_treasury_province(EFFECT_DISPLAY_PARAMS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		display_value(text::fp_currency{amount}, true, ws, layout, box);
+		display_value(text::fp_currency{ amount }, true, ws, layout, box);
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "o_add_to_treasury", m);
 		text::close_layout_box(layout, box);
@@ -6326,7 +6336,7 @@ uint32_t ef_annex_to_null(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
-inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
+inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
 		ef_add_core_tag,													// constexpr inline uint16_t add_core_tag = 0x0002;
@@ -6595,226 +6605,226 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_variable_tech_name_no,									// constexpr inline uint16_t variable_tech_name_no = 0x0109;
 		ef_variable_invention_name_yes,						// constexpr inline uint16_t variable_invention_name_yes = 0x010A;
 		ef_build_railway_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t
-																													 // build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
-		ef_build_railway_in_capital_yes_whole_state_no_limit,	 // constexpr inline uint16_t
-																													 // build_railway_in_capital_yes_whole_state_no_limit = 0x010C;
-		ef_build_railway_in_capital_no_whole_state_yes_limit,	 // constexpr inline uint16_t
-																													 // build_railway_in_capital_no_whole_state_yes_limit = 0x010D;
-		ef_build_railway_in_capital_no_whole_state_no_limit,	 // constexpr inline uint16_t
-																													 // build_railway_in_capital_no_whole_state_no_limit = 0x010E;
-		ef_build_fort_in_capital_yes_whole_state_yes_limit,		 // constexpr inline uint16_t
-																													 // build_fort_in_capital_yes_whole_state_yes_limit = 0x010F;
-		ef_build_fort_in_capital_yes_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_yes_whole_state_no_limit
-																											 // = 0x0110;
-		ef_build_fort_in_capital_no_whole_state_yes_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_yes_limit
-																											 // = 0x0111;
-		ef_build_fort_in_capital_no_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_no_limit =
-																											// 0x0112;
-		ef_relation_reb,																	// constexpr inline uint16_t relation_reb = 0x0113;
-		ef_variable_tech_name_yes,												// constexpr inline uint16_t variable_tech_name_yes = 0x0114;
-		ef_variable_good_name,														// constexpr inline uint16_t variable_good_name = 0x0115;
-		ef_set_country_flag_province,											// constexpr inline uint16_t set_country_flag_province = 0x0116;
-		ef_add_country_modifier_province,									// constexpr inline uint16_t add_country_modifier_province = 0x0117;
-		ef_add_country_modifier_province_no_duration, // constexpr inline uint16_t add_country_modifier_province_no_duration = 0x0118;
-		ef_dominant_issue_nation,											// constexpr inline uint16_t dominant_issue_nation = 0x0119;
-		ef_relation_province,													// constexpr inline uint16_t relation_province = 0x011A;
-		ef_relation_province_this_nation,							// constexpr inline uint16_t relation_province_this_nation = 0x011B;
-		ef_relation_province_this_province,						// constexpr inline uint16_t relation_province_this_province = 0x011C;
-		ef_relation_province_from_nation,							// constexpr inline uint16_t relation_province_from_nation = 0x011D;
-		ef_relation_province_from_province,						// constexpr inline uint16_t relation_province_from_province = 0x011E;
-		ef_relation_province_reb,											// constexpr inline uint16_t relation_province_reb = 0x011F;
-		ef_scaled_militancy_nation_issue,							// constexpr inline uint16_t scaled_militancy_nation_issue = 0x0120;
-		ef_scaled_militancy_nation_ideology,					// constexpr inline uint16_t scaled_militancy_nation_ideology = 0x0121;
-		ef_scaled_militancy_nation_unemployment,			// constexpr inline uint16_t scaled_militancy_nation_unemployment = 0x0122;
-		ef_scaled_consciousness_nation_issue,					// constexpr inline uint16_t scaled_consciousness_nation_issue = 0x0123;
-		ef_scaled_consciousness_nation_ideology,			// constexpr inline uint16_t scaled_consciousness_nation_ideology = 0x0124;
-		ef_scaled_consciousness_nation_unemployment,	// constexpr inline uint16_t scaled_consciousness_nation_unemployment = 0x0125;
-		ef_scaled_militancy_state_issue,							// constexpr inline uint16_t scaled_militancy_state_issue = 0x0126;
-		ef_scaled_militancy_state_ideology,						// constexpr inline uint16_t scaled_militancy_state_ideology = 0x0127;
-		ef_scaled_militancy_state_unemployment,				// constexpr inline uint16_t scaled_militancy_state_unemployment = 0x0128;
-		ef_scaled_consciousness_state_issue,					// constexpr inline uint16_t scaled_consciousness_state_issue = 0x0129;
-		ef_scaled_consciousness_state_ideology,				// constexpr inline uint16_t scaled_consciousness_state_ideology = 0x012A;
-		ef_scaled_consciousness_state_unemployment,		// constexpr inline uint16_t scaled_consciousness_state_unemployment = 0x012B;
-		ef_scaled_militancy_province_issue,						// constexpr inline uint16_t scaled_militancy_province_issue = 0x012C;
-		ef_scaled_militancy_province_ideology,				// constexpr inline uint16_t scaled_militancy_province_ideology = 0x012D;
-		ef_scaled_militancy_province_unemployment,		// constexpr inline uint16_t scaled_militancy_province_unemployment = 0x012E;
-		ef_scaled_consciousness_province_issue,				// constexpr inline uint16_t scaled_consciousness_province_issue = 0x012F;
-		ef_scaled_consciousness_province_ideology,		// constexpr inline uint16_t scaled_consciousness_province_ideology = 0x0130;
-		ef_scaled_consciousness_province_unemployment,	 // constexpr inline uint16_t scaled_consciousness_province_unemployment =
-																										 // 0x0131;
-		ef_variable_good_name_province,									 // constexpr inline uint16_t variable_good_name_province = 0x0132;
-		ef_treasury_province,														 // constexpr inline uint16_t treasury_province = 0x0133;
-		ef_country_event_this_state,										 // constexpr inline uint16_t country_event_this_state = 0x0134;
-		ef_country_event_immediate_this_state,					 // constexpr inline uint16_t country_event_immediate_this_state = 0x0135;
-		ef_province_event_this_state,										 // constexpr inline uint16_t province_event_this_state = 0x0136;
-		ef_province_event_immediate_this_state,					 // constexpr inline uint16_t province_event_immediate_this_state = 0x0137;
-		ef_country_event_this_province,									 // constexpr inline uint16_t country_event_this_province = 0x0138;
-		ef_country_event_immediate_this_province,				 // constexpr inline uint16_t country_event_immediate_this_province = 0x0139;
-		ef_province_event_this_province,								 // constexpr inline uint16_t province_event_this_province = 0x013A;
-		ef_province_event_immediate_this_province,			 // constexpr inline uint16_t province_event_immediate_this_province = 0x013B;
-		ef_country_event_this_pop,											 // constexpr inline uint16_t country_event_this_pop = 0x013C;
-		ef_country_event_immediate_this_pop,						 // constexpr inline uint16_t country_event_immediate_this_pop = 0x013D;
-		ef_province_event_this_pop,											 // constexpr inline uint16_t province_event_this_pop = 0x013E;
-		ef_province_event_immediate_this_pop,						 // constexpr inline uint16_t province_event_immediate_this_pop = 0x013F;
-		ef_country_event_province_this_nation,					 // constexpr inline uint16_t country_event_province_this_nation = 0x0140;
-		ef_country_event_immediate_province_this_nation, // constexpr inline uint16_t country_event_immediate_province_this_nation =
-																										 // 0x0141;
-		ef_country_event_province_this_state,						 // constexpr inline uint16_t country_event_province_this_state = 0x0142;
-		ef_country_event_immediate_province_this_state,	 // constexpr inline uint16_t country_event_immediate_province_this_state =
-																										 // 0x0143;
-		ef_country_event_province_this_province,				 // constexpr inline uint16_t country_event_province_this_province = 0x0144;
-		ef_country_event_immediate_province_this_province, // constexpr inline uint16_t country_event_immediate_province_this_province
-																											 // = 0x0145;
-		ef_country_event_province_this_pop,								 // constexpr inline uint16_t country_event_province_this_pop = 0x0146;
-		ef_country_event_immediate_province_this_pop, // constexpr inline uint16_t country_event_immediate_province_this_pop = 0x0147;
-		ef_activate_invention,												// constexpr inline uint16_t activate_invention = 0x0148;
-		ef_variable_invention_name_no,								// constexpr inline uint16_t variable_invention_name_no = 0x0149;
-		ef_add_core_tag_state,												// constexpr inline uint16_t add_core_tag_state = 0x014A;
-		ef_remove_core_tag_state,											// constexpr inline uint16_t remove_core_tag_state = 0x014B;
-		ef_secede_province_state,											// constexpr inline uint16_t secede_province_state = 0x014C;
-		ef_assimilate_state,													// constexpr inline uint16_t assimilate_state = 0x014D;
-		ef_add_core_state_this_nation, //constexpr inline uint16_t add_core_state_this_nation = 0x014E;
-		ef_add_core_state_this_province, //constexpr inline uint16_t add_core_state_this_province = 0x014F;
-		ef_add_core_state_this_state, //constexpr inline uint16_t add_core_state_this_state = 0x0150;
-		ef_add_core_state_this_pop, //constexpr inline uint16_t add_core_state_this_pop = 0x0151;
-		ef_add_core_state_from_province, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
-		ef_add_core_state_from_nation, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
-		ef_add_core_state_reb, //constexpr inline uint16_t add_core_state_reb = 0x0154;
-		ef_add_province_modifier, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
-		ef_add_province_modifier_no_duration, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
-		ef_remove_core_this_nation, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
-		ef_remove_core_this_province, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
-		ef_remove_core_this_state, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
-		ef_remove_core_this_pop, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
-		ef_remove_core_from_province, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
-		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
-		ef_remove_core_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
-		ef_remove_province_modifier, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
-		ef_life_rating, //constexpr inline uint16_t life_rating_state = 0x015F;
-		ef_secede_province_state_this_nation, //constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
-		ef_secede_province_state_this_state, //constexpr inline uint16_t secede_province_state_this_state = 0x0161;
-		ef_secede_province_state_this_province, //constexpr inline uint16_t secede_province_state_this_province = 0x0162;
-		ef_secede_province_state_this_pop, //constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
-		ef_secede_province_state_from_nation, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
-		ef_secede_province_state_from_province, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
-		ef_secede_province_state_reb, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
-		ef_infrastructure, //constexpr inline uint16_t infrastructure_state = 0x0167;
-		ef_fort, //constexpr inline uint16_t fort_state = 0x0168;
-		ef_naval_base, //constexpr inline uint16_t naval_base_state = 0x0169;
-		ef_is_slave_state_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
-		ef_is_slave_state_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
-		ef_change_controller_state, //constexpr inline uint16_t change_controller_state = 0x016C;
-		ef_change_controller_state_this_nation, //constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
-		ef_change_controller_state_this_province, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
-		ef_change_controller_state_from_nation, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
-		ef_change_controller_state_from_province, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
-		ef_reduce_pop, //constexpr inline uint16_t reduce_pop_province = 0x0171;
-		ef_reduce_pop, //constexpr inline uint16_t reduce_pop_state = 0x0172;
-		ef_reduce_pop, //constexpr inline uint16_t reduce_pop_nation = 0x0173;
-		ef_consciousness, //constexpr inline uint16_t consciousness_province = 0x0174;
-		ef_consciousness, //constexpr inline uint16_t consciousness_state = 0x0175;
-		ef_consciousness, //constexpr inline uint16_t consciousness_nation = 0x0176;
-		ef_militancy, //constexpr inline uint16_t militancy_province = 0x0177;
-		ef_militancy, //constexpr inline uint16_t militancy_state = 0x0178;
-		ef_militancy, //constexpr inline uint16_t militancy_nation = 0x0179;
-		ef_remove_core_tag, //constexpr inline uint16_t remove_core_tag_nation = 0x017A;
-		ef_remove_core_this_nation, //constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
-		ef_remove_core_this_province, //constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
-		ef_remove_core_this_state, //constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
-		ef_remove_core_this_pop, //constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
-		ef_remove_core_from_province, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
-		ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
-		ef_remove_core_reb, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
-		ef_set_country_flag, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
-		ef_social_reform, //constexpr inline uint16_t social_reform_province = 0x0183;
-		ef_political_reform, //constexpr inline uint16_t political_reform_province = 0x0184;
-		ef_flashpoint_tension, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
-		ef_release_vassal, //constexpr inline uint16_t release_vassal_province = 0x0186;
-		ef_release_vassal_this_nation, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
-		ef_release_vassal_this_province, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
-		ef_release_vassal_from_nation, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
-		ef_release_vassal_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
-		ef_release_vassal_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
-		ef_release_vassal_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
-		ef_build_bank_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
-		ef_build_bank_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
-		ef_build_bank_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
-		ef_build_bank_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
-		ef_build_university_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
-		ef_build_university_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
-		ef_build_university_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
-		ef_build_university_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
-		ef_bank, //constexpr inline uint16_t bank = 0x0195;
-		ef_bank, //constexpr inline uint16_t bank_state = 0x0196;
-		ef_university, //constexpr inline uint16_t university = 0x0197;
-		ef_university, // constexpr inline uint16_t university_state = 0x0198;
-		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
-		ef_annex_to_null, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
-		ef_annex_to_null, //constexpr inline uint16_t annex_to_null_province = 0x019B;
+		// build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
+ef_build_railway_in_capital_yes_whole_state_no_limit,	 // constexpr inline uint16_t
+// build_railway_in_capital_yes_whole_state_no_limit = 0x010C;
+ef_build_railway_in_capital_no_whole_state_yes_limit,	 // constexpr inline uint16_t
+// build_railway_in_capital_no_whole_state_yes_limit = 0x010D;
+ef_build_railway_in_capital_no_whole_state_no_limit,	 // constexpr inline uint16_t
+// build_railway_in_capital_no_whole_state_no_limit = 0x010E;
+ef_build_fort_in_capital_yes_whole_state_yes_limit,		 // constexpr inline uint16_t
+// build_fort_in_capital_yes_whole_state_yes_limit = 0x010F;
+ef_build_fort_in_capital_yes_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_yes_whole_state_no_limit
+// = 0x0110;
+ef_build_fort_in_capital_no_whole_state_yes_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_yes_limit
+// = 0x0111;
+ef_build_fort_in_capital_no_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_no_limit =
+// 0x0112;
+ef_relation_reb,																	// constexpr inline uint16_t relation_reb = 0x0113;
+ef_variable_tech_name_yes,												// constexpr inline uint16_t variable_tech_name_yes = 0x0114;
+ef_variable_good_name,														// constexpr inline uint16_t variable_good_name = 0x0115;
+ef_set_country_flag_province,											// constexpr inline uint16_t set_country_flag_province = 0x0116;
+ef_add_country_modifier_province,									// constexpr inline uint16_t add_country_modifier_province = 0x0117;
+ef_add_country_modifier_province_no_duration, // constexpr inline uint16_t add_country_modifier_province_no_duration = 0x0118;
+ef_dominant_issue_nation,											// constexpr inline uint16_t dominant_issue_nation = 0x0119;
+ef_relation_province,													// constexpr inline uint16_t relation_province = 0x011A;
+ef_relation_province_this_nation,							// constexpr inline uint16_t relation_province_this_nation = 0x011B;
+ef_relation_province_this_province,						// constexpr inline uint16_t relation_province_this_province = 0x011C;
+ef_relation_province_from_nation,							// constexpr inline uint16_t relation_province_from_nation = 0x011D;
+ef_relation_province_from_province,						// constexpr inline uint16_t relation_province_from_province = 0x011E;
+ef_relation_province_reb,											// constexpr inline uint16_t relation_province_reb = 0x011F;
+ef_scaled_militancy_nation_issue,							// constexpr inline uint16_t scaled_militancy_nation_issue = 0x0120;
+ef_scaled_militancy_nation_ideology,					// constexpr inline uint16_t scaled_militancy_nation_ideology = 0x0121;
+ef_scaled_militancy_nation_unemployment,			// constexpr inline uint16_t scaled_militancy_nation_unemployment = 0x0122;
+ef_scaled_consciousness_nation_issue,					// constexpr inline uint16_t scaled_consciousness_nation_issue = 0x0123;
+ef_scaled_consciousness_nation_ideology,			// constexpr inline uint16_t scaled_consciousness_nation_ideology = 0x0124;
+ef_scaled_consciousness_nation_unemployment,	// constexpr inline uint16_t scaled_consciousness_nation_unemployment = 0x0125;
+ef_scaled_militancy_state_issue,							// constexpr inline uint16_t scaled_militancy_state_issue = 0x0126;
+ef_scaled_militancy_state_ideology,						// constexpr inline uint16_t scaled_militancy_state_ideology = 0x0127;
+ef_scaled_militancy_state_unemployment,				// constexpr inline uint16_t scaled_militancy_state_unemployment = 0x0128;
+ef_scaled_consciousness_state_issue,					// constexpr inline uint16_t scaled_consciousness_state_issue = 0x0129;
+ef_scaled_consciousness_state_ideology,				// constexpr inline uint16_t scaled_consciousness_state_ideology = 0x012A;
+ef_scaled_consciousness_state_unemployment,		// constexpr inline uint16_t scaled_consciousness_state_unemployment = 0x012B;
+ef_scaled_militancy_province_issue,						// constexpr inline uint16_t scaled_militancy_province_issue = 0x012C;
+ef_scaled_militancy_province_ideology,				// constexpr inline uint16_t scaled_militancy_province_ideology = 0x012D;
+ef_scaled_militancy_province_unemployment,		// constexpr inline uint16_t scaled_militancy_province_unemployment = 0x012E;
+ef_scaled_consciousness_province_issue,				// constexpr inline uint16_t scaled_consciousness_province_issue = 0x012F;
+ef_scaled_consciousness_province_ideology,		// constexpr inline uint16_t scaled_consciousness_province_ideology = 0x0130;
+ef_scaled_consciousness_province_unemployment,	 // constexpr inline uint16_t scaled_consciousness_province_unemployment =
+// 0x0131;
+ef_variable_good_name_province,									 // constexpr inline uint16_t variable_good_name_province = 0x0132;
+ef_treasury_province,														 // constexpr inline uint16_t treasury_province = 0x0133;
+ef_country_event_this_state,										 // constexpr inline uint16_t country_event_this_state = 0x0134;
+ef_country_event_immediate_this_state,					 // constexpr inline uint16_t country_event_immediate_this_state = 0x0135;
+ef_province_event_this_state,										 // constexpr inline uint16_t province_event_this_state = 0x0136;
+ef_province_event_immediate_this_state,					 // constexpr inline uint16_t province_event_immediate_this_state = 0x0137;
+ef_country_event_this_province,									 // constexpr inline uint16_t country_event_this_province = 0x0138;
+ef_country_event_immediate_this_province,				 // constexpr inline uint16_t country_event_immediate_this_province = 0x0139;
+ef_province_event_this_province,								 // constexpr inline uint16_t province_event_this_province = 0x013A;
+ef_province_event_immediate_this_province,			 // constexpr inline uint16_t province_event_immediate_this_province = 0x013B;
+ef_country_event_this_pop,											 // constexpr inline uint16_t country_event_this_pop = 0x013C;
+ef_country_event_immediate_this_pop,						 // constexpr inline uint16_t country_event_immediate_this_pop = 0x013D;
+ef_province_event_this_pop,											 // constexpr inline uint16_t province_event_this_pop = 0x013E;
+ef_province_event_immediate_this_pop,						 // constexpr inline uint16_t province_event_immediate_this_pop = 0x013F;
+ef_country_event_province_this_nation,					 // constexpr inline uint16_t country_event_province_this_nation = 0x0140;
+ef_country_event_immediate_province_this_nation, // constexpr inline uint16_t country_event_immediate_province_this_nation =
+// 0x0141;
+ef_country_event_province_this_state,						 // constexpr inline uint16_t country_event_province_this_state = 0x0142;
+ef_country_event_immediate_province_this_state,	 // constexpr inline uint16_t country_event_immediate_province_this_state =
+// 0x0143;
+ef_country_event_province_this_province,				 // constexpr inline uint16_t country_event_province_this_province = 0x0144;
+ef_country_event_immediate_province_this_province, // constexpr inline uint16_t country_event_immediate_province_this_province
+// = 0x0145;
+ef_country_event_province_this_pop,								 // constexpr inline uint16_t country_event_province_this_pop = 0x0146;
+ef_country_event_immediate_province_this_pop, // constexpr inline uint16_t country_event_immediate_province_this_pop = 0x0147;
+ef_activate_invention,												// constexpr inline uint16_t activate_invention = 0x0148;
+ef_variable_invention_name_no,								// constexpr inline uint16_t variable_invention_name_no = 0x0149;
+ef_add_core_tag_state,												// constexpr inline uint16_t add_core_tag_state = 0x014A;
+ef_remove_core_tag_state,											// constexpr inline uint16_t remove_core_tag_state = 0x014B;
+ef_secede_province_state,											// constexpr inline uint16_t secede_province_state = 0x014C;
+ef_assimilate_state,													// constexpr inline uint16_t assimilate_state = 0x014D;
+ef_add_core_state_this_nation, //constexpr inline uint16_t add_core_state_this_nation = 0x014E;
+ef_add_core_state_this_province, //constexpr inline uint16_t add_core_state_this_province = 0x014F;
+ef_add_core_state_this_state, //constexpr inline uint16_t add_core_state_this_state = 0x0150;
+ef_add_core_state_this_pop, //constexpr inline uint16_t add_core_state_this_pop = 0x0151;
+ef_add_core_state_from_province, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
+ef_add_core_state_from_nation, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
+ef_add_core_state_reb, //constexpr inline uint16_t add_core_state_reb = 0x0154;
+ef_add_province_modifier, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
+ef_add_province_modifier_no_duration, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
+ef_remove_core_this_nation, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
+ef_remove_core_this_province, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
+ef_remove_core_this_state, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
+ef_remove_core_this_pop, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
+ef_remove_core_from_province, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
+ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
+ef_remove_core_reb, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
+ef_remove_province_modifier, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
+ef_life_rating, //constexpr inline uint16_t life_rating_state = 0x015F;
+ef_secede_province_state_this_nation, //constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
+ef_secede_province_state_this_state, //constexpr inline uint16_t secede_province_state_this_state = 0x0161;
+ef_secede_province_state_this_province, //constexpr inline uint16_t secede_province_state_this_province = 0x0162;
+ef_secede_province_state_this_pop, //constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
+ef_secede_province_state_from_nation, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
+ef_secede_province_state_from_province, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
+ef_secede_province_state_reb, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
+ef_infrastructure, //constexpr inline uint16_t infrastructure_state = 0x0167;
+ef_fort, //constexpr inline uint16_t fort_state = 0x0168;
+ef_naval_base, //constexpr inline uint16_t naval_base_state = 0x0169;
+ef_is_slave_state_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
+ef_is_slave_state_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
+ef_change_controller_state, //constexpr inline uint16_t change_controller_state = 0x016C;
+ef_change_controller_state_this_nation, //constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
+ef_change_controller_state_this_province, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
+ef_change_controller_state_from_nation, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
+ef_change_controller_state_from_province, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
+ef_reduce_pop, //constexpr inline uint16_t reduce_pop_province = 0x0171;
+ef_reduce_pop, //constexpr inline uint16_t reduce_pop_state = 0x0172;
+ef_reduce_pop, //constexpr inline uint16_t reduce_pop_nation = 0x0173;
+ef_consciousness, //constexpr inline uint16_t consciousness_province = 0x0174;
+ef_consciousness, //constexpr inline uint16_t consciousness_state = 0x0175;
+ef_consciousness, //constexpr inline uint16_t consciousness_nation = 0x0176;
+ef_militancy, //constexpr inline uint16_t militancy_province = 0x0177;
+ef_militancy, //constexpr inline uint16_t militancy_state = 0x0178;
+ef_militancy, //constexpr inline uint16_t militancy_nation = 0x0179;
+ef_remove_core_tag, //constexpr inline uint16_t remove_core_tag_nation = 0x017A;
+ef_remove_core_this_nation, //constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
+ef_remove_core_this_province, //constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
+ef_remove_core_this_state, //constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
+ef_remove_core_this_pop, //constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
+ef_remove_core_from_province, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
+ef_remove_core_from_nation, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
+ef_remove_core_reb, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
+ef_set_country_flag, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
+ef_social_reform, //constexpr inline uint16_t social_reform_province = 0x0183;
+ef_political_reform, //constexpr inline uint16_t political_reform_province = 0x0184;
+ef_flashpoint_tension, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
+ef_release_vassal, //constexpr inline uint16_t release_vassal_province = 0x0186;
+ef_release_vassal_this_nation, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
+ef_release_vassal_this_province, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
+ef_release_vassal_from_nation, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
+ef_release_vassal_from_province, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
+ef_release_vassal_reb, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
+ef_release_vassal_random, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
+ef_build_bank_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
+ef_build_bank_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
+ef_build_bank_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
+ef_build_bank_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
+ef_build_university_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
+ef_build_university_in_capital_yes_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
+ef_build_university_in_capital_no_whole_state_yes_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
+ef_build_university_in_capital_no_whole_state_no_limit,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
+ef_bank, //constexpr inline uint16_t bank = 0x0195;
+ef_bank, //constexpr inline uint16_t bank_state = 0x0196;
+ef_university, //constexpr inline uint16_t university = 0x0197;
+ef_university, // constexpr inline uint16_t university_state = 0x0198;
+ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
+ef_annex_to_null, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
+ef_annex_to_null, //constexpr inline uint16_t annex_to_null_province = 0x019B;
 
-		//
-		// SCOPES
-		//
-		es_generic_scope, // constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or
-											// hidden_tooltip)
-		es_x_neighbor_province_scope,				// constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;
-		es_x_neighbor_country_scope,				// constexpr inline uint16_t x_neighbor_country_scope = first_scope_code + 0x0002;
-		es_x_country_scope,									// constexpr inline uint16_t x_country_scope = first_scope_code + 0x0003;
-		es_x_country_scope_nation,					// constexpr inline uint16_t x_country_scope_nation = first_scope_code + 0x0004;
-		es_x_empty_neighbor_province_scope, // constexpr inline uint16_t x_empty_neighbor_province_scope = first_scope_code + 0x0005;
-		es_x_greater_power_scope,						// constexpr inline uint16_t x_greater_power_scope = first_scope_code + 0x0006;
-		es_poor_strata_scope_nation,				// constexpr inline uint16_t poor_strata_scope_nation = first_scope_code + 0x0007;
-		es_poor_strata_scope_state,					// constexpr inline uint16_t poor_strata_scope_state = first_scope_code + 0x0008;
-		es_poor_strata_scope_province,			// constexpr inline uint16_t poor_strata_scope_province = first_scope_code + 0x0009;
-		es_middle_strata_scope_nation,			// constexpr inline uint16_t middle_strata_scope_nation = first_scope_code + 0x000A;
-		es_middle_strata_scope_state,				// constexpr inline uint16_t middle_strata_scope_state = first_scope_code + 0x000B;
-		es_middle_strata_scope_province,		// constexpr inline uint16_t middle_strata_scope_province = first_scope_code + 0x000C;
-		es_rich_strata_scope_nation,				// constexpr inline uint16_t rich_strata_scope_nation = first_scope_code + 0x000D;
-		es_rich_strata_scope_state,					// constexpr inline uint16_t rich_strata_scope_state = first_scope_code + 0x000E;
-		es_rich_strata_scope_province,			// constexpr inline uint16_t rich_strata_scope_province = first_scope_code + 0x000F;
-		es_x_pop_scope_nation,							// constexpr inline uint16_t x_pop_scope_nation = first_scope_code + 0x0010;
-		es_x_pop_scope_state,								// constexpr inline uint16_t x_pop_scope_state = first_scope_code + 0x0011;
-		es_x_pop_scope_province,						// constexpr inline uint16_t x_pop_scope_province = first_scope_code + 0x0012;
-		es_x_owned_scope_nation,						// constexpr inline uint16_t x_owned_scope_nation = first_scope_code + 0x0013;
-		es_x_owned_scope_state,							// constexpr inline uint16_t x_owned_scope_state = first_scope_code + 0x0014;
-		es_x_core_scope,										// constexpr inline uint16_t x_core_scope = first_scope_code + 0x0015;
-		es_x_state_scope,										// constexpr inline uint16_t x_state_scope = first_scope_code + 0x0016;
-		es_random_list_scope,								// constexpr inline uint16_t random_list_scope = first_scope_code + 0x0017;
-		es_random_scope,										// constexpr inline uint16_t random_scope = first_scope_code + 0x0018;
-		es_owner_scope_state,								// constexpr inline uint16_t owner_scope_state = first_scope_code + 0x0019;
-		es_owner_scope_province,						// constexpr inline uint16_t owner_scope_province = first_scope_code + 0x001A;
-		es_controller_scope,								// constexpr inline uint16_t controller_scope = first_scope_code + 0x001B;
-		es_location_scope,									// constexpr inline uint16_t location_scope = first_scope_code + 0x001C;
-		es_country_scope_pop,								// constexpr inline uint16_t country_scope_pop = first_scope_code + 0x001D;
-		es_country_scope_state,							// constexpr inline uint16_t country_scope_state = first_scope_code + 0x001E;
-		es_capital_scope,										// constexpr inline uint16_t capital_scope = first_scope_code + 0x001F;
-		es_this_scope_nation,								// constexpr inline uint16_t this_scope_nation = first_scope_code + 0x0020;
-		es_this_scope_state,								// constexpr inline uint16_t this_scope_state = first_scope_code + 0x0021;
-		es_this_scope_province,							// constexpr inline uint16_t this_scope_province = first_scope_code + 0x0022;
-		es_this_scope_pop,									// constexpr inline uint16_t this_scope_pop = first_scope_code + 0x0023;
-		es_from_scope_nation,								// constexpr inline uint16_t from_scope_nation = first_scope_code + 0x0024;
-		es_from_scope_state,								// constexpr inline uint16_t from_scope_state = first_scope_code + 0x0025;
-		es_from_scope_province,							// constexpr inline uint16_t from_scope_province = first_scope_code + 0x0026;
-		es_from_scope_pop,									// constexpr inline uint16_t from_scope_pop = first_scope_code + 0x0027;
-		es_sea_zone_scope,									// constexpr inline uint16_t sea_zone_scope = first_scope_code + 0x0028;
-		es_cultural_union_scope,						// constexpr inline uint16_t cultural_union_scope = first_scope_code + 0x0029;
-		es_overlord_scope,									// constexpr inline uint16_t overlord_scope = first_scope_code + 0x002A;
-		es_sphere_owner_scope,							// constexpr inline uint16_t sphere_owner_scope = first_scope_code + 0x002B;
-		es_independence_scope,							// constexpr inline uint16_t independence_scope = first_scope_code + 0x002C;
-		es_flashpoint_tag_scope,						// constexpr inline uint16_t flashpoint_tag_scope = first_scope_code + 0x002D;
-		es_crisis_state_scope,							// constexpr inline uint16_t crisis_state_scope = first_scope_code + 0x002E;
-		es_state_scope_pop,									// constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
-		es_state_scope_province,						// constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
-		es_x_substate_scope,
-		es_capital_scope_province,										// constexpr inline uint16_t capital_scope = first_scope_code + 0x0032;
-		es_x_core_scope_province,                  //constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0033;
-		es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0034;
-		es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
-		es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
-		es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
-		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
-		es_region_proper_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
-		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
+//
+// SCOPES
+//
+es_generic_scope, // constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or
+// hidden_tooltip)
+es_x_neighbor_province_scope,				// constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;
+es_x_neighbor_country_scope,				// constexpr inline uint16_t x_neighbor_country_scope = first_scope_code + 0x0002;
+es_x_country_scope,									// constexpr inline uint16_t x_country_scope = first_scope_code + 0x0003;
+es_x_country_scope_nation,					// constexpr inline uint16_t x_country_scope_nation = first_scope_code + 0x0004;
+es_x_empty_neighbor_province_scope, // constexpr inline uint16_t x_empty_neighbor_province_scope = first_scope_code + 0x0005;
+es_x_greater_power_scope,						// constexpr inline uint16_t x_greater_power_scope = first_scope_code + 0x0006;
+es_poor_strata_scope_nation,				// constexpr inline uint16_t poor_strata_scope_nation = first_scope_code + 0x0007;
+es_poor_strata_scope_state,					// constexpr inline uint16_t poor_strata_scope_state = first_scope_code + 0x0008;
+es_poor_strata_scope_province,			// constexpr inline uint16_t poor_strata_scope_province = first_scope_code + 0x0009;
+es_middle_strata_scope_nation,			// constexpr inline uint16_t middle_strata_scope_nation = first_scope_code + 0x000A;
+es_middle_strata_scope_state,				// constexpr inline uint16_t middle_strata_scope_state = first_scope_code + 0x000B;
+es_middle_strata_scope_province,		// constexpr inline uint16_t middle_strata_scope_province = first_scope_code + 0x000C;
+es_rich_strata_scope_nation,				// constexpr inline uint16_t rich_strata_scope_nation = first_scope_code + 0x000D;
+es_rich_strata_scope_state,					// constexpr inline uint16_t rich_strata_scope_state = first_scope_code + 0x000E;
+es_rich_strata_scope_province,			// constexpr inline uint16_t rich_strata_scope_province = first_scope_code + 0x000F;
+es_x_pop_scope_nation,							// constexpr inline uint16_t x_pop_scope_nation = first_scope_code + 0x0010;
+es_x_pop_scope_state,								// constexpr inline uint16_t x_pop_scope_state = first_scope_code + 0x0011;
+es_x_pop_scope_province,						// constexpr inline uint16_t x_pop_scope_province = first_scope_code + 0x0012;
+es_x_owned_scope_nation,						// constexpr inline uint16_t x_owned_scope_nation = first_scope_code + 0x0013;
+es_x_owned_scope_state,							// constexpr inline uint16_t x_owned_scope_state = first_scope_code + 0x0014;
+es_x_core_scope,										// constexpr inline uint16_t x_core_scope = first_scope_code + 0x0015;
+es_x_state_scope,										// constexpr inline uint16_t x_state_scope = first_scope_code + 0x0016;
+es_random_list_scope,								// constexpr inline uint16_t random_list_scope = first_scope_code + 0x0017;
+es_random_scope,										// constexpr inline uint16_t random_scope = first_scope_code + 0x0018;
+es_owner_scope_state,								// constexpr inline uint16_t owner_scope_state = first_scope_code + 0x0019;
+es_owner_scope_province,						// constexpr inline uint16_t owner_scope_province = first_scope_code + 0x001A;
+es_controller_scope,								// constexpr inline uint16_t controller_scope = first_scope_code + 0x001B;
+es_location_scope,									// constexpr inline uint16_t location_scope = first_scope_code + 0x001C;
+es_country_scope_pop,								// constexpr inline uint16_t country_scope_pop = first_scope_code + 0x001D;
+es_country_scope_state,							// constexpr inline uint16_t country_scope_state = first_scope_code + 0x001E;
+es_capital_scope,										// constexpr inline uint16_t capital_scope = first_scope_code + 0x001F;
+es_this_scope_nation,								// constexpr inline uint16_t this_scope_nation = first_scope_code + 0x0020;
+es_this_scope_state,								// constexpr inline uint16_t this_scope_state = first_scope_code + 0x0021;
+es_this_scope_province,							// constexpr inline uint16_t this_scope_province = first_scope_code + 0x0022;
+es_this_scope_pop,									// constexpr inline uint16_t this_scope_pop = first_scope_code + 0x0023;
+es_from_scope_nation,								// constexpr inline uint16_t from_scope_nation = first_scope_code + 0x0024;
+es_from_scope_state,								// constexpr inline uint16_t from_scope_state = first_scope_code + 0x0025;
+es_from_scope_province,							// constexpr inline uint16_t from_scope_province = first_scope_code + 0x0026;
+es_from_scope_pop,									// constexpr inline uint16_t from_scope_pop = first_scope_code + 0x0027;
+es_sea_zone_scope,									// constexpr inline uint16_t sea_zone_scope = first_scope_code + 0x0028;
+es_cultural_union_scope,						// constexpr inline uint16_t cultural_union_scope = first_scope_code + 0x0029;
+es_overlord_scope,									// constexpr inline uint16_t overlord_scope = first_scope_code + 0x002A;
+es_sphere_owner_scope,							// constexpr inline uint16_t sphere_owner_scope = first_scope_code + 0x002B;
+es_independence_scope,							// constexpr inline uint16_t independence_scope = first_scope_code + 0x002C;
+es_flashpoint_tag_scope,						// constexpr inline uint16_t flashpoint_tag_scope = first_scope_code + 0x002D;
+es_crisis_state_scope,							// constexpr inline uint16_t crisis_state_scope = first_scope_code + 0x002E;
+es_state_scope_pop,									// constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
+es_state_scope_province,						// constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
+es_x_substate_scope,
+es_capital_scope_province,										// constexpr inline uint16_t capital_scope = first_scope_code + 0x0032;
+es_x_core_scope_province,                  //constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0033;
+es_tag_scope,												// constexpr inline uint16_t tag_scope = first_scope_code + 0x0034;
+es_integer_scope,										// constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
+es_pop_type_scope_nation,						// constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0036;
+es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
+es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
+es_region_proper_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
+es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {
