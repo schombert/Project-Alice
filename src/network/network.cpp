@@ -87,7 +87,7 @@ static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 	return 0;
 }
 
-static void socket_add_to_send_queue(std::vector<char>& buffer, void *data, size_t n) {
+static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data, size_t n) {
 	buffer.resize(buffer.size() + n);
 	std::memcpy(buffer.data() + buffer.size() - n, data, n);
 }
@@ -327,6 +327,92 @@ bool client_data::is_banned(sys::state& state) const {
 	}
 }
 
+static void receive_from_clients(sys::state& state) {
+	for(auto& client : state.network_state.clients) {
+		if(client.is_active()) {
+			int r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
+				switch(client.recv_buffer.type) {
+				case command::command_type::invalid:
+				case command::command_type::notify_player_ban:
+				case command::command_type::notify_player_kick:
+				case command::command_type::notify_save_loaded:
+				case command::command_type::advance_tick:
+				case command::command_type::notify_start_game:
+					break; // has to be valid/sendable by client
+				default:
+					state.network_state.outgoing_commands.push(client.recv_buffer);
+					break;
+				}
+			});
+			if(r < 0) // error
+				disconnect_client(state, client);
+		}
+	}
+}
+
+static void broadcast_to_clients(sys::state& state, command::payload& c) {
+	if(c.type == command::command_type::save_game)
+		return;
+
+	// propagate to all the clients
+	if(c.type != command::command_type::notify_save_loaded) {
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active()) {
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			}
+		}
+	} else if(c.type == command::command_type::notify_save_loaded) {
+		size_t save_space = sizeof_save_section(state);
+		auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
+		write_save_section(temp_save_buffer.get(), state);
+		// this is an upper bound, since compacting the data may require less space
+		size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
+		auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
+		auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
+		auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
+
+		// Mirror the calls done by the client
+		std::vector<dcon::nation_id> players;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
+		state.preload();
+		with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
+		state.fill_unsaved_data();
+		state.local_player_nation = old_local_player_nation;
+		for(const auto n : state.world.in_nation)
+			state.world.nation_set_is_player_controlled(n, false);
+		for(const auto n : players)
+			state.world.nation_set_is_player_controlled(n, true);
+		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+		// Regenerate checksum of the savefile
+		c.data.notify_save_loaded.checksum = state.get_save_checksum();
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active()) {
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			}
+		}
+
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active()) {
+				bool send_full = (client.playing_as == c.data.notify_save_loaded.target) || (!c.data.notify_save_loaded.target);
+				if(send_full && !state.network_state.is_new_game) {
+					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+					client.save_stream_size = static_cast<size_t>(total_size_used);
+					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
+					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
+				} else {
+					static const uint32_t zero = 0;
+					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
+					client.save_stream_size = 0;
+					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
+				}
+			}
+		}
+	}
+}
+
 static void accept_new_clients(sys::state& state) {
 	// Check if any new clients are to join us
 	fd_set rfds;
@@ -372,56 +458,6 @@ static void accept_new_clients(sys::state& state) {
 					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				}
 			}
-			{ // Tell the client general information about the game
-				command::payload c;
-				c.type = command::command_type::notify_save_loaded;
-				c.source = state.local_player_nation;
-				c.data.notify_save_loaded.seed = state.game_seed;
-				c.data.notify_save_loaded.checksum = state.get_save_checksum();
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				// savefile streaming
-				if(state.network_state.is_new_game) {
-					uint32_t zero = 0;
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = 0;
-					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
-				} else {
-					size_t save_space = sizeof_save_section(state);
-					auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
-					write_save_section(temp_save_buffer.get(), state);
-					// this is an upper bound, since compacting the data may require less space
-					size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
-					auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
-					auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
-					auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = static_cast<size_t>(total_size_used);
-					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
-
-					// Mirror the calls done by the client
-					std::vector<dcon::nation_id> players;
-					for(const auto n : state.world.in_nation)
-						if(state.world.nation_get_is_player_controlled(n))
-							players.push_back(n);
-					dcon::nation_id old_local_player_nation = state.local_player_nation;
-					state.preload();
-					with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-					state.fill_unsaved_data();
-					state.local_player_nation = old_local_player_nation;
-					for(const auto n : state.world.in_nation)
-						state.world.nation_set_is_player_controlled(n, false);
-					for(const auto n : players)
-						state.world.nation_set_is_player_controlled(n, true);
-					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-				}
-			}
-			{ // Reload the save, repeating the same procedure on ALL clients and in the host
-				command::payload c;
-				c.type = command::command_type::notify_reload_state;
-				c.source = state.local_player_nation;
-				state.network_state.outgoing_commands.push(c);
-			}
 			// if already in game, allow the player to join into the lobby as if she was into it
 			if(state.mode == sys::game_mode_type::in_game) {
 				command::payload c;
@@ -429,81 +465,15 @@ static void accept_new_clients(sys::state& state) {
 				c.source = state.local_player_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
+			{ // Load the savefile into the client only if we loaded a save
+				command::payload c;
+				c.type = command::command_type::notify_save_loaded;
+				c.source = state.local_player_nation;
+				c.data.notify_save_loaded.target = client.playing_as;
+				state.network_state.outgoing_commands.push(c);
+			}
 			return;
 		}
-	}
-}
-
-static void receive_from_clients(sys::state& state) {
-	for(auto& client : state.network_state.clients) {
-		if(client.is_active()) {
-			int r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
-				switch(client.recv_buffer.type) {
-				case command::command_type::invalid:
-				case command::command_type::notify_player_ban:
-				case command::command_type::notify_player_kick:
-				case command::command_type::notify_reload_state:
-					break; // has to be valid/sendable by client
-				case command::command_type::notify_player_picks_nation:
-					if(command::can_notify_player_picks_nation(state, client.recv_buffer.source, client.recv_buffer.data.nation_pick.target))
-						client.playing_as = client.recv_buffer.data.nation_pick.target;
-					state.network_state.outgoing_commands.push(client.recv_buffer);
-					break;
-				default:
-					state.network_state.outgoing_commands.push(client.recv_buffer);
-					break;
-				}
-			});
-			if(r < 0) // error
-				disconnect_client(state, client);
-		}
-	}
-}
-
-static void broadcast_to_clients(sys::state& state, command::payload& c) {
-	if(c.type == command::command_type::save_game)
-		return;
-
-	// propagate to all the clients
-	for(auto& client : state.network_state.clients) {
-		if(client.is_active()) {
-			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-		}
-	}
-
-	// special case for save streams
-	if(c.type == command::command_type::notify_save_loaded) {
-		size_t save_space = sizeof_save_section(state);
-		auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
-		write_save_section(temp_save_buffer.get(), state);
-		// this is an upper bound, since compacting the data may require less space
-		size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
-		auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
-		auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
-		auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active()) {
-				client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-				client.save_stream_size = static_cast<size_t>(total_size_used);
-				socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-				socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
-			}
-		}
-		// Mirror the calls done by the client
-		std::vector<dcon::nation_id> players;
-		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
-				players.push_back(n);
-		dcon::nation_id old_local_player_nation = state.local_player_nation;
-		state.preload();
-		with_network_decompressed_section(temp_buffer.get(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-		state.fill_unsaved_data();
-		state.local_player_nation = old_local_player_nation;
-		for(const auto n : state.world.in_nation)
-			state.world.nation_set_is_player_controlled(n, false);
-		for(const auto n : players)
-			state.world.nation_set_is_player_controlled(n, true);
-		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	}
 }
 
@@ -520,8 +490,6 @@ void send_and_receive_commands(sys::state& state) {
 				// Generate checksum on the spot
 				if(c->type == command::command_type::advance_tick) {
 					c->data.advance_tick.checksum = state.get_save_checksum();
-				} else if(c->type == command::command_type::notify_save_loaded) {
-					c->data.notify_save_loaded.checksum = state.get_save_checksum();
 				}
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
@@ -667,6 +635,19 @@ void kick_player(sys::state& state, client_data& client) {
 	if(client.is_active()) {
 		socket_shutdown(client.socket_fd);
 		client.socket_fd = 0;
+	}
+}
+
+void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
+	state.network_state.map_of_player_names.insert_or_assign(new_n.index(), state.network_state.map_of_player_names[old_n.index()]);
+	if(state.network_mode == sys::network_mode_type::host) {
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active()) {
+				if(client.playing_as == old_n) {
+					client.playing_as = new_n;
+				}
+			}
+		}
 	}
 }
 

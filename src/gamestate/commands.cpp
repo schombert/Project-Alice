@@ -20,6 +20,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_save_loaded:
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
+	case command_type::notify_player_oos:
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
@@ -914,9 +915,9 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 
 	if(state.world.nation_get_is_player_controlled(source)) {
-		state.network_state.map_of_player_names.insert_or_assign(holder.index(), state.network_state.map_of_player_names[source.index()]);
+		network::switch_player(state, holder, source);
 	} else if(state.world.nation_get_is_player_controlled(holder)) {
-		state.network_state.map_of_player_names.insert_or_assign(source.index(), state.network_state.map_of_player_names[holder.index()]);
+		network::switch_player(state, source, holder);
 	}
 
 	auto old_controller = state.world.nation_get_is_player_controlled(holder);
@@ -4231,7 +4232,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	if(bool(source) && source != state.national_definitions.rebel_id)
 		state.world.nation_set_is_player_controlled(source, false);
 	state.world.nation_set_is_player_controlled(target, true);
-	state.network_state.map_of_player_names.insert_or_assign(target.index(), state.network_state.map_of_player_names[source.index()]);
+	network::switch_player(state, target, source);
 	// TODO: To avoid abuse, clients will be given a random nation when they join the server
 	// that isn't occupied already by a player, this allows us to effectively use nation_id
 	// as a player identifier!
@@ -4294,6 +4295,7 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 	p.type = command::command_type::notify_save_loaded;
 	p.source = source;
 	p.data.notify_save_loaded.seed = state.game_seed;
+	p.data.notify_save_loaded.target = dcon::nation_id{};
 	add_to_command_queue(state, p);
 }
 void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
@@ -4303,16 +4305,8 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint3
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
-}
 
-void notify_reload_state(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_reload_state;
-	p.source = source;
-	add_to_command_queue(state, p);
-}
-void execute_notify_reload_state(sys::state& state, dcon::nation_id source) {
+	// Reload the current game state
 	auto save_size = sizeof_save_section(state);
 	auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_size]);
 	write_save_section(temp_save_buffer.get(), state);
@@ -4686,9 +4680,6 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_stop_game(state, c.source);
 	case command_type::release_subject:
 		return can_release_subject(state, c.source, c.data.diplo_action.target);
-	case command_type::notify_reload_state:
-		// TODO: leaf, what is supposed to go here?
-		return true;
 
 		// console commands
 	case command_type::c_switch_nation:
@@ -5045,9 +5036,6 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_stop_game:
 		execute_notify_stop_game(state, c.source);
-		break;
-	case command_type::notify_reload_state:
-		// TODO: leaf, what is supposed to go here?
 		break;
 
 		// console commands
