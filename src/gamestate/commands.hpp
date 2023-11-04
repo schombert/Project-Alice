@@ -106,9 +106,8 @@ enum class command_type : uint8_t {
 	notify_player_leaves = 110,
 	notify_player_oos = 111,
 	notify_save_loaded = 112,
-	notify_reload_state = 113,
-	notify_start_game = 114, // for synchronized "start game"
-	notify_stop_game = 115, // "go back to lobby"
+	notify_start_game = 113, // for synchronized "start game"
+	notify_stop_game = 114, // "go back to lobby"
 	advance_tick = 120,
 	chat_message = 121,
 	release_subject = 122,
@@ -800,7 +799,6 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
-void notify_reload_state(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 
