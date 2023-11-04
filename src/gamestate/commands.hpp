@@ -422,6 +422,7 @@ struct advance_tick_data {
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
 	uint32_t seed;
+	dcon::nation_id target;
 };
 
 struct payload {
