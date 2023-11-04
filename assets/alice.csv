@@ -1300,4 +1300,6 @@ alice_diplo_release_subject_desc;Releases one of our subjects, making them no lo
 alice_diplo_release_subject_0;Is our subject
 e_kill_leader;Kill leader;
 e_annex_null;becomes unowned;
+meets_the_conditions_of;meets the conditions of ;
+does_not_meet_the_conditions_of;does not meet the conditions of ;
 ;;;;;;;;;;;;;x

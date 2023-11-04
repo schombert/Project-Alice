@@ -2353,6 +2353,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	// load scripted triggers
+	auto stdir = open_directory(root, NATIVE("scripted triggers"));
+	for(auto st_file : simple_fs::list_files(stdir, NATIVE(".txt"))) {
+		auto opened_file = open_file(st_file);
+		if(opened_file) {
+			auto content = view_contents(*opened_file);
+			err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_scripted_trigger_file(gen, err, context);
+		}
+	}
+
 	// load country files
 	world.for_each_national_identity([&](dcon::national_identity_id i) {
 		auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));

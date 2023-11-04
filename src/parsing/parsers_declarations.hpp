@@ -293,6 +293,12 @@ struct pending_nat_event {
 		: original_file(original_file), id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state),
 		text_assigned(true), just_in_case_placeholder(just_in_case_placeholder) { }
 };
+struct saved_stored_condition {
+	dcon::stored_trigger_id id;
+	trigger::slot_contents main_slot = trigger::slot_contents::empty;
+	trigger::slot_contents this_slot = trigger::slot_contents::empty;
+	trigger::slot_contents from_slot = trigger::slot_contents::empty;
+};
 struct pending_prov_event {
 	std::string original_file;
 	dcon::provincial_event_id id;
@@ -358,6 +364,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<int32_t, pending_nat_event> map_of_national_events;
 	ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
 	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
+	ankerl::unordered_dense::map<std::string, std::vector<saved_stored_condition>> map_of_stored_triggers;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
