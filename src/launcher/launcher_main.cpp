@@ -4,6 +4,7 @@
 
 #include <Windowsx.h>
 #include <shellapi.h>
+#include <shellscalingapi.h>
 #include "Objbase.h"
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
@@ -1305,7 +1306,19 @@ int WINAPI wWinMain(
 	HINSTANCE hUser32dll = LoadLibrary(L"User32.dll");
 	if(hUser32dll) {
 		auto pSetProcessDpiAwarenessContext = (decltype(&SetProcessDpiAwarenessContext))GetProcAddress(hUser32dll, "SetProcessDpiAwarenessContext");
-		pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		if(pSetProcessDpiAwarenessContext != NULL) {
+			pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		} else {
+			// windows 8.1 (not present on windows 8 and only available on desktop apps)
+			HINSTANCE hShcoredll = LoadLibrary(L"Shcore.dll");
+			auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
+			if(pSetProcessDpiAwareness != NULL) {
+				pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			} else {
+				SetProcessDPIAware(); //vista+
+			}
+			FreeLibrary(hShcoredll);
+		}
 	}
 	FreeLibrary(hUser32dll);
 
@@ -1345,8 +1358,14 @@ int WINAPI wWinMain(
 	);
 
 	if(launcher::m_hwnd) {
-
-		launcher::dpi = float(GetDpiForWindow((HWND)(launcher::m_hwnd)));
+		HINSTANCE hUser32dll = LoadLibrary(L"User32.dll");
+		if(hUser32dll) {
+			auto pGetDpiForWindow = (decltype(&GetDpiForWindow))GetProcAddress(hUser32dll, "GetDpiForWindow");
+			if(pGetDpiForWindow != NULL) {
+				launcher::dpi = float(GetDpiForWindow((HWND)(launcher::m_hwnd)));
+			}
+		}
+		FreeLibrary(hUser32dll);
 
 		auto monitor_handle = MonitorFromWindow((HWND)(launcher::m_hwnd), MONITOR_DEFAULTTOPRIMARY);
 		MONITORINFO mi;
