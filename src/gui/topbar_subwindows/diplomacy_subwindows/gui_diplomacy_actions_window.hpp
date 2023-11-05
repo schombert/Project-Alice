@@ -320,10 +320,6 @@ public:
 		} else {
 			command::ask_for_alliance(state, state.local_player_nation, content);
 		}
-			}
-		
-			}
-		
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
