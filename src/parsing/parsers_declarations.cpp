@@ -2195,13 +2195,7 @@ void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, in
 }
 
 void decision::finish(decision_context& context) {
-	// set a default "always = yes" if no allow is given
-	if(!context.outer_context.state.world.decision_get_allow(context.id)) {
-		std::vector<uint16_t> data;
-		data.push_back(uint16_t(trigger::always | trigger::no_payload | trigger::association_eq));
-		auto key = context.outer_context.state.commit_trigger_data(data);
-		context.outer_context.state.world.decision_set_allow(context.id, key);
-	}
+	// "always = yes" assumed when no allow is specified
 }
 
 void decision::picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
