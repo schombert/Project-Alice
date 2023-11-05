@@ -25,6 +25,7 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 `notify_player_ban` - When banning a player, it is disconnected, and not allowed to rejoin.
 `notify_start_game` - Host has started the game, all players connected will be sent into the game.
 `notify_stop_game` - Host has stopped the game (not paused), all players connected will be sent into the lobby.
+`notify_pause_game` - Host has paused the game, exists mainly to notify clients that the host has paused the game.
 
 The server will send new clients a `notify_player_joins` for each connected player. It will send a `notify_player_pick_nation` to the client, with an invalid source, telling it what is their "assigned nation".
 

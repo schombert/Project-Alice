@@ -21,6 +21,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
 	case command_type::notify_player_oos:
+	case command_type::notify_pause_game:
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
@@ -4349,7 +4350,6 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.selected_armies.clear();
 	state.selected_navies.clear();
 	state.mode = sys::game_mode_type::in_game;
-	state.game_state_updated.store(true, std::memory_order::release);
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -4362,7 +4362,6 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::pick_nation;
-	state.game_state_updated.store(true, std::memory_order::release);
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {
@@ -4373,6 +4372,17 @@ void notify_stop_game(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 
+void execute_notify_pause_game(sys::state& state, dcon::nation_id source) {
+	state.actual_game_speed = 0;
+}
+
+void notify_pause_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_pause_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
 
 bool can_perform_command(sys::state& state, payload& c) {
 	switch(c.type) {
@@ -4695,6 +4705,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
 		return true; //return can_notify_stop_game(state, c.source);
+	case command_type::notify_pause_game:
+		return true; //return can_notify_pause_game(state, c.source);
 	case command_type::release_subject:
 		return can_release_subject(state, c.source, c.data.diplo_action.target);
 
@@ -5053,6 +5065,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_stop_game:
 		execute_notify_stop_game(state, c.source);
+		break;
+	case command_type::notify_pause_game:
+		execute_notify_pause_game(state, c.source);
 		break;
 
 		// console commands
