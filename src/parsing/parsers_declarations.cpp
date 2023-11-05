@@ -2168,18 +2168,40 @@ void rebel_body::demands_enforced_effect(dcon::effect_key value, error_handler& 
 
 void decision::potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_potential(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty potential for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
 }
 
 void decision::allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_allow(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty allow for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
 }
 
 void decision::effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_effect(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty effect for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
 }
 
 void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_ai_will_do(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty ai_will_do for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
+}
+
+void decision::finish(decision_context& context) {
+	// set a default "always = yes" if no allow is given
+	if(!context.outer_context.state.world.decision_get_allow(context.id)) {
+		std::vector<uint16_t> data;
+		data.push_back(uint16_t(trigger::always | trigger::no_payload | trigger::association_eq));
+		auto key = context.outer_context.state.commit_trigger_data(data);
+		context.outer_context.state.world.decision_set_allow(context.id, key);
+	}
 }
 
 void decision::picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
