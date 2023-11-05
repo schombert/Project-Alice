@@ -3073,6 +3073,7 @@ void state::preload() {
 		n.set_administrative_efficiency(0.0f);
 		n.set_is_target_of_some_cb(false);
 		n.set_in_sphere_of(dcon::nation_id{});
+		n.set_is_player_controlled(false);
 	}
 	for(auto p : world.in_pop) {
 		p.set_political_reform_desire(0);
