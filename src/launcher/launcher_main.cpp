@@ -1311,16 +1311,20 @@ int WINAPI wWinMain(
 		} else {
 			// windows 8.1 (not present on windows 8 and only available on desktop apps)
 			HINSTANCE hShcoredll = LoadLibrary(L"Shcore.dll");
-			auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
-			if(pSetProcessDpiAwareness != NULL) {
-				pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			if(hShcoredll) {
+				auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
+				if(pSetProcessDpiAwareness != NULL) {
+					pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+				} else {
+					SetProcessDPIAware(); //vista+
+				}
+				FreeLibrary(hShcoredll);
 			} else {
 				SetProcessDPIAware(); //vista+
 			}
-			FreeLibrary(hShcoredll);
 		}
+		FreeLibrary(hUser32dll);
 	}
-	FreeLibrary(hUser32dll);
 
 	if(!SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
 		return 0;
@@ -1363,9 +1367,11 @@ int WINAPI wWinMain(
 			auto pGetDpiForWindow = (decltype(&GetDpiForWindow))GetProcAddress(hUser32dll, "GetDpiForWindow");
 			if(pGetDpiForWindow != NULL) {
 				launcher::dpi = float(GetDpiForWindow((HWND)(launcher::m_hwnd)));
+			} else {
+				launcher::dpi = 96.0f; //100%, default
 			}
+			FreeLibrary(hUser32dll);
 		}
-		FreeLibrary(hUser32dll);
 
 		auto monitor_handle = MonitorFromWindow((HWND)(launcher::m_hwnd), MONITOR_DEFAULTTOPRIMARY);
 		MONITORINFO mi;

@@ -123,16 +123,20 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		} else {
 			// windows 8.1 (not present on windows 8 and only available on desktop apps)
 			HINSTANCE hShcoredll = LoadLibrary(L"Shcore.dll");
-			auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
-			if(pSetProcessDpiAwareness != NULL) {
-				pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			if(hShcoredll) {
+				auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
+				if(pSetProcessDpiAwareness != NULL) {
+					pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+				} else {
+					SetProcessDPIAware(); //vista+
+				}
+				FreeLibrary(hShcoredll);
 			} else {
 				SetProcessDPIAware(); //vista+
 			}
-			FreeLibrary(hShcoredll);
 		}
+		FreeLibrary(hUser32dll);
 	}
-	FreeLibrary(hUser32dll);
 
 	if(SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) {
 		// do everything here: create a window, read messages

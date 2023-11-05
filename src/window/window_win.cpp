@@ -54,9 +54,11 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 				auto pAdjustWindowRectExForDpi = (decltype(&AdjustWindowRectExForDpi))GetProcAddress(hUser32dll, "AdjustWindowRectExForDpi");
 				if(pAdjustWindowRectExForDpi != NULL) {
 					pAdjustWindowRectExForDpi(&rectangle, win32Style, false, 0, GetDpiForWindow(game_state.win_ptr->hwnd));
+				} else {
+					AdjustWindowRectEx(&rectangle, win32Style, false, 0); //w2000+
 				}
+				FreeLibrary(hUser32dll);
 			}
-			FreeLibrary(hUser32dll);
 			int32_t final_width = rectangle.right - rectangle.left;
 			int32_t final_height = rectangle.bottom - rectangle.top;
 
@@ -83,9 +85,11 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 				auto pAdjustWindowRectExForDpi = (decltype(&AdjustWindowRectExForDpi))GetProcAddress(hUser32dll, "AdjustWindowRectExForDpi");
 				if(pAdjustWindowRectExForDpi != NULL) {
 					pAdjustWindowRectExForDpi(&rectangle, win32Style, false, WS_EX_TOPMOST, GetDpiForWindow(game_state.win_ptr->hwnd));
+				} else {
+					AdjustWindowRectEx(&rectangle, win32Style, false, 0); //w2000+
 				}
+				FreeLibrary(hUser32dll);
 			}
-			FreeLibrary(hUser32dll);
 			int32_t win_width = (rectangle.right - rectangle.left);
 			int32_t win_height = (rectangle.bottom - rectangle.top);
 
@@ -358,9 +362,11 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			auto pAdjustWindowRectExForDpi = (decltype(&AdjustWindowRectExForDpi))GetProcAddress(hUser32dll, "AdjustWindowRectExForDpi");
 			if(pAdjustWindowRectExForDpi != NULL) {
 				pAdjustWindowRectExForDpi(&rectangle, win32Style, false, 0, GetDpiForWindow(game_state.win_ptr->hwnd));
+			} else {
+				AdjustWindowRectEx(&rectangle, win32Style, false, 0); //w2000+
 			}
+			FreeLibrary(hUser32dll);
 		}
-		FreeLibrary(hUser32dll);
 		int32_t final_width = rectangle.right - rectangle.left;
 		int32_t final_height = rectangle.bottom - rectangle.top;
 
@@ -388,9 +394,11 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			auto pAdjustWindowRectExForDpi = (decltype(&AdjustWindowRectExForDpi))GetProcAddress(hUser32dll, "AdjustWindowRectExForDpi");
 			if(pAdjustWindowRectExForDpi != NULL) {
 				pAdjustWindowRectExForDpi(&rectangle, win32Style, false, WS_EX_TOPMOST, GetDpiForWindow(game_state.win_ptr->hwnd));
+			} else {
+				AdjustWindowRectEx(&rectangle, win32Style, false, 0); //w2000+
 			}
+			FreeLibrary(hUser32dll);
 		}
-		FreeLibrary(hUser32dll);
 		int32_t win_width = (rectangle.right - rectangle.left);
 		int32_t win_height = (rectangle.bottom - rectangle.top);
 
