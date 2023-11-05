@@ -4311,7 +4311,6 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint3
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
-}
 
 	// Reload the current game state
 	auto length = sizeof_save_section(state);
