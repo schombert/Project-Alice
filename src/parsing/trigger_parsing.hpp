@@ -5272,8 +5272,35 @@ struct trigger_body {
 			return;
 		}
 	}
-	void is_possible_vassal(association_type a, std::string_view value, error_handler& err, int32_t line,
-			trigger_building_context& context) {
+	void test(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(auto it = context.outer_context.map_of_stored_triggers.find(std::string(value)); it != context.outer_context.map_of_stored_triggers.end()) {
+			dcon::stored_trigger_id st;
+			for(auto r : it->second) {
+				if((r.main_slot == context.main_slot || r.main_slot == trigger::slot_contents::empty)
+					&& (r.from_slot == context.from_slot || r.from_slot == trigger::slot_contents::empty)
+					&& (r.this_slot == context.this_slot || r.this_slot == trigger::slot_contents::empty)) {
+
+					if(!st) {
+						st = r.id;
+					} else {
+						err.accumulated_errors += "test trigger found multiple matching possibilities for the name " +
+							std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						return;
+					}
+				}
+			}
+			if(st) {
+				context.compiled_trigger.push_back(uint16_t(trigger::test | association_to_bool_code(a)));
+				context.compiled_trigger.push_back(trigger::payload(st).value);
+			} else {
+				err.accumulated_errors += "test trigger was unable to find a version of " + std::string(value) + " that matched the local parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			}
+		} else {
+			err.accumulated_errors += "test trigger used with an unknown scripted trigger " + std::string(value) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+		}
+	}
+	void is_possible_vassal(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(value.length() == 3) {
 			if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
 					it != context.outer_context.map_of_ident_names.end()) {
@@ -5892,5 +5919,83 @@ struct value_modifier_definition {
 
 void make_value_modifier_segment(token_generator& gen, error_handler& err, trigger_building_context& context);
 dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler& err, trigger_building_context& context);
+
+struct scripted_trigger_file {
+	void finish(scenario_building_context const&) { }
+};
+
+struct stored_condition : public trigger_body {
+	void main_parameter(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.compiled_trigger.size() <= 2) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.size(), "nation") || is_fixed_token_ci(value.data(), value.data() + value.size(), "country")) {
+				context.main_slot = trigger::slot_contents::nation;
+			 } else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "state")) {
+				 context.main_slot = trigger::slot_contents::state;
+			 } else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "province")) {
+				 context.main_slot = trigger::slot_contents::province;
+			 } else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "pop")) {
+				 context.main_slot = trigger::slot_contents::pop;
+			 } else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "rebel")) {
+				 context.main_slot = trigger::slot_contents::rebel;
+			 } else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "none")) {
+				 context.main_slot = trigger::slot_contents::empty;
+			 } else {
+				 err.accumulated_errors +=
+					 "unknown parameter type " + std::string(value)  + " defined for a scripted trigger (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			 }
+		} else {
+			err.accumulated_errors +=
+				"parameters for a scripted trigger must be given first (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+	}
+	void this_parameter(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.compiled_trigger.size() <= 2) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.size(), "nation") || is_fixed_token_ci(value.data(), value.data() + value.size(), "country")) {
+				context.this_slot = trigger::slot_contents::nation;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "state")) {
+				context.this_slot = trigger::slot_contents::state;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "province")) {
+				context.this_slot = trigger::slot_contents::province;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "pop")) {
+				context.this_slot = trigger::slot_contents::pop;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "rebel")) {
+				context.this_slot = trigger::slot_contents::rebel;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "none")) {
+				context.this_slot = trigger::slot_contents::empty;
+			} else {
+				err.accumulated_errors +=
+					"unknown parameter type " + std::string(value) + " defined for a scripted trigger (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			}
+		} else {
+			err.accumulated_errors +=
+				"parameters for a scripted trigger must be given first (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+	}
+	void from_parameter(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.compiled_trigger.size() <= 2) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.size(), "nation") || is_fixed_token_ci(value.data(), value.data() + value.size(), "country")) {
+				context.from_slot = trigger::slot_contents::nation;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "state")) {
+				context.from_slot = trigger::slot_contents::state;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "province")) {
+				context.from_slot = trigger::slot_contents::province;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "pop")) {
+				context.from_slot = trigger::slot_contents::pop;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "rebel")) {
+				context.from_slot = trigger::slot_contents::rebel;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.size(), "none")) {
+				context.from_slot = trigger::slot_contents::empty;
+			} else {
+				err.accumulated_errors +=
+					"unknown parameter type " + std::string(value) + " defined for a scripted trigger (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			}
+		} else {
+			err.accumulated_errors +=
+				"parameters for a scripted trigger must be given first (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+	}
+};
+
+void make_stored_trigger(std::string_view tag, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 } // namespace parsers

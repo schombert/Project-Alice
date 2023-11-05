@@ -356,7 +356,7 @@ void make_mod_file() {
 		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 
 		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
-			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nWarnings:\r\n") + err.accumulated_warnings + "\r\n\r\nErrors:\r\n" + err.accumulated_errors;
+			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
 			auto pdir = simple_fs::get_or_create_settings_directory();
 			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
@@ -371,6 +371,22 @@ void make_mod_file() {
 					SW_NORMAL
 				);
 			}
+		}
+		if(!err.fatal) {
+			auto of = simple_fs::open_file(sdir, selected_scenario_file);
+
+			if(of) {
+				auto content = view_contents(*of);
+				auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
+				if(desc.count != 0) {
+					scenario_files.push_back(scenario_file{ selected_scenario_file , desc });
+				}
+			}
+			
+
+			std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
+				return b.ident.count > a.ident.count;
+			});
 		}
 
 		file_is_ready.store(true, std::memory_order::memory_order_release);

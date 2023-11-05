@@ -4613,6 +4613,24 @@ object {
 }
 
 object {
+	name{ stored_trigger }
+	storage_type{ contiguous }
+	size{ 2000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ function }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+}
+
+object {
 	name{ decision }
 	storage_type{ contiguous }
 	size{ 8000 }

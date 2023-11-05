@@ -2681,7 +2681,7 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 
 	if(!nations::is_great_power(state, new_gp))
 		return;
-	if(state.world.nation_get_owned_province_count(member))
+	if(state.world.nation_get_owned_province_count(member) == 0)
 		return;
 
 	auto nrel = state.world.get_gp_relationship_by_gp_influence_pair(member, new_gp);

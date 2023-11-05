@@ -911,7 +911,7 @@ public:
 		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
 		if(it != state.ui_state.tech_queue.end()) {
 			state.ui_state.tech_queue.erase(it);
-			parent->impl_on_update(state);
+			state.game_state_updated.store(true, std::memory_order::release);
 		}
 	}
 

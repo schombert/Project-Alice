@@ -1832,7 +1832,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, 2); // 2 = English
+	text::load_text_data(*this, 2, err); // 2 = English
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
@@ -2350,6 +2350,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			} else {
 				ident.set_government_name(named_gov.second, ident.get_name());
 			}
+		}
+	}
+
+	// load scripted triggers
+	auto stdir = open_directory(root, NATIVE("scripted triggers"));
+	for(auto st_file : simple_fs::list_files(stdir, NATIVE(".txt"))) {
+		auto opened_file = open_file(st_file);
+		if(opened_file) {
+			auto content = view_contents(*opened_file);
+			err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_scripted_trigger_file(gen, err, context);
 		}
 	}
 

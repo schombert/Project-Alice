@@ -785,6 +785,50 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 }
 
+void make_stored_trigger(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	trigger_building_context tcontext{ context , trigger::slot_contents::empty, trigger::slot_contents::empty , trigger::slot_contents::empty };
+
+	tcontext.compiled_trigger.push_back(uint16_t(trigger::generic_scope));
+	tcontext.compiled_trigger.push_back(uint16_t(1));
+	auto payload_size_offset = tcontext.compiled_trigger.size() - 1;
+
+	parse_stored_condition(gen, err, tcontext);
+
+	tcontext.compiled_trigger[payload_size_offset] = uint16_t(tcontext.compiled_trigger.size() - payload_size_offset);
+
+	auto const new_size = simplify_trigger(tcontext.compiled_trigger.data());
+	tcontext.compiled_trigger.resize(static_cast<size_t>(new_size));
+
+	auto by_name = context.map_of_stored_triggers.find(std::string(name));
+
+	bool can_store = (by_name == context.map_of_stored_triggers.end());
+	if(!can_store) {
+		can_store = true;
+		auto& prev_stored = by_name->second;
+		for(auto e : prev_stored) {
+			if(e.main_slot == tcontext.main_slot && e.from_slot == tcontext.from_slot && e.this_slot == tcontext.this_slot) {
+				err.accumulated_errors += "two stored triggers with the name " + std::string(name) + " defined for the same types of parameters (" + err.file_name + ")\n";
+				can_store = false;
+			}
+		}
+	}
+
+	if(can_store) {
+		auto saved_trigger = context.state.commit_trigger_data(tcontext.compiled_trigger);
+		auto name_id = text::find_or_add_key(context.state, name);
+
+		auto stored_t_id = context.state.world.create_stored_trigger();
+		context.state.world.stored_trigger_set_function(stored_t_id, saved_trigger);
+		context.state.world.stored_trigger_set_name(stored_t_id, name_id);
+
+		if(by_name == context.map_of_stored_triggers.end()) {
+			context.map_of_stored_triggers.insert_or_assign(std::string(name), std::vector<saved_stored_condition>{ saved_stored_condition{ stored_t_id, tcontext.main_slot, tcontext.this_slot, tcontext.from_slot } });
+		} else {
+			by_name->second.push_back(saved_stored_condition{ stored_t_id, tcontext.main_slot, tcontext.this_slot, tcontext.from_slot });
+		}
+	}
+}
+
 void make_value_modifier_segment(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	auto old_factor = context.factor;
 	context.factor = 0.0f;

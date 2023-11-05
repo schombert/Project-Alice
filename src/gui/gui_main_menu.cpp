@@ -316,4 +316,17 @@ void interface_volume::on_update(sys::state& state) noexcept {
 	update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f));
 }
 
+
+void music_player_left::button_action(sys::state& state) noexcept {
+	sound::play_new_track(state);
+	send(state, parent, notify_setting_update{});
+}
+void music_player_right::button_action(sys::state& state) noexcept {
+	sound::play_new_track(state);
+	send(state, parent, notify_setting_update{});
+}
+void music_player_display::on_update(sys::state& state) noexcept {
+	set_text(state, simple_fs::native_to_utf8(sound::get_current_track_name(state)));
+}
+
 } // namespace ui
