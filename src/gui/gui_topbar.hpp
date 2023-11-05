@@ -885,15 +885,9 @@ public:
 };
 
 class topbar_date_text : public simple_text_element_base {
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, text::date_to_string(state, state.current_date));
-	}
-
-	void on_create(sys::state& state) noexcept override {
-		simple_text_element_base::on_create(state);
-		on_update(state);
 	}
 };
 
@@ -905,6 +899,9 @@ public:
 		} else {
 			state.ui_state.held_game_speed = state.actual_game_speed.load();
 			state.actual_game_speed = 0;
+			if(state.network_mode == sys::network_mode_type::host) {
+				command::notify_pause_game(state, state.local_player_nation);
+			}
 		}
 	}
 
@@ -914,6 +911,16 @@ public:
 		} else {
 			disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
 		}
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(state.network_mode == sys::network_mode_type::client) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_only_host_speed"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_pause_speed"));
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -939,7 +946,11 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("topbar_inc_speed"));
+		if(state.network_mode == sys::network_mode_type::client) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_only_host_speed"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_inc_speed"));
+		}
 		text::close_layout_box(contents, box);
 	}
 };
@@ -966,7 +977,11 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("topbar_dec_speed"));
+		if(state.network_mode == sys::network_mode_type::client) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_only_host_speed"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_dec_speed"));
+		}
 		text::close_layout_box(contents, box);
 	}
 };
