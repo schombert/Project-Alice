@@ -1239,6 +1239,24 @@ void tf_invention(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, ws.world.invention_get_name(tech));
 	text::close_layout_box(layout, box);
 }
+
+void tf_test(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if((tval[0] & trigger::association_mask) == trigger::association_eq) {
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "meets_the_conditions_of"), text::text_color::white);
+	} else {
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "does_not_meet_the_conditions_of"), text::text_color::white);
+	}
+	auto sid = trigger::payload(tval[1]).str_id;
+	text::add_to_layout_box(ws, layout, box, ws.world.stored_trigger_get_name(sid));
+	text::close_layout_box(layout, box);
+
+	auto k = ws.world.stored_trigger_get_function(sid);
+	trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[k.index() + 1],
+			primary_slot, this_slot, from_slot, indentation + indentation_amount, show_condition);
+}
+
 void tf_strata_rich(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -8337,7 +8355,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_is_coastal_state, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 		tf_has_building_bank, // constexpr inline uint16_t has_building_bank = 0x02DB;
 		tf_has_building_university, // constexpr inline uint16_t has_building_university = 0x02DC;
-		
+		tf_test, // constexpr inline uint16_t test = 0x02DD;
+
 		//
 		// scopes
 		//

@@ -44,7 +44,7 @@ vec4 globe_coords(vec2 world_pos) {
 	new_world_pos.xyz += 0.5; 	// Move the globe to the center
 
 	return vec4(
-		(2. * new_world_pos.x - 1.f) / aspect_ratio  * zoom,
+		(2. * new_world_pos.x - 1.f) * zoom,
 		(2. * new_world_pos.z - 1.f) * zoom,
 		(2. * new_world_pos.y - 1.f), 1.0);
 }
@@ -54,7 +54,7 @@ vec4 flat_coords(vec2 world_pos) {
 	world_pos += vec2(-offset.x, offset.y);
 	world_pos.x = mod(world_pos.x, 1.0f);
 	return vec4(
-		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
+		(2. * world_pos.x - 1.f) * zoom * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
 		0.0, 1.0);
 }
@@ -63,16 +63,31 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness;
-	vec2 extend_vector = -normalize(direction) * thickness;
-	vec2 world_pos = vertex_position;
+	//vec2 rot_direction = vec2(-direction.y, direction.x);
+	//vec2 normal_vector = normalize(normal_direction) * thickness;
+	//vec2 extend_vector = -normalize(direction) * thickness;
+	
+	//vec2 world_pos = vertex_position;
 
-	vec2 scale = vec2(map_size.y / map_size.x, 1);
-	vec2 offset = normal_vector + extend_vector;
-	world_pos += offset * scale;
 
-	gl_Position = calc_gl_position(world_pos);
+	float x_adj = 1.0f / aspect_ratio;
+	
+	vec2 unadj_direction = vec2(direction.x / 2.0f, direction.y);
+	vec2 unadj_normal = vec2(-direction.y / 2.0f, direction.x);
+	
+	vec4 center_point = calc_gl_position(vertex_position);
+	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_direction * 0.0001) - center_point);
+	
+	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_normal * 0.0001) - center_point);
+	
+	//vec2 offset = normal_vector + extend_vector;
+	//world_pos += offset * scale;
+	
+	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
+	temp_result.x *= x_adj;
+	temp_result.z = 0.02f / (thickness * zoom);
+
+	gl_Position = temp_result;
 	tex_coord = texture_coord;
 	type = codepoint_tn;
 }

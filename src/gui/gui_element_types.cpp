@@ -253,6 +253,66 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 	}
 }
 
+// From ui_f_shader.glsl
+uint32_t internal_get_interactable_disabled_color(float r, float g, float b) {
+	float amount = (r + g + b) / 4.f;
+	return sys::pack_color(std::min(1.f, amount + 0.1f), std::min(1.f, amount + 0.1f), std::min(1.f, amount + 0.1f));
+}
+uint32_t internal_get_interactable_color(float r, float g, float b) {
+	return sys::pack_color(std::min(1.f, r + 0.1f), std::min(1.f, g + 0.1f), std::min(1.f, b + 0.1f));
+}
+uint32_t internal_get_disabled_color(float r, float g, float b) {
+	float amount = (r + g + b) / 4.f;
+	return sys::pack_color(amount, amount, amount);
+}
+
+void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	dcon::gfx_object_id gid;
+	if(base_data.get_element_type() == element_type::image) {
+		gid = base_data.data.image.gfx_object;
+	} else if(base_data.get_element_type() == element_type::button) {
+		gid = base_data.data.button.button_image;
+	}
+	if(gid) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.primary_texture_handle) {
+			auto tcolor = color;
+			float r = sys::red_from_int(color);
+			float g = sys::green_from_int(color);
+			float b = sys::blue_from_int(color);
+			ogl::color_modification cmod = get_color_modification(this == state.ui_state.under_mouse, disabled, interactable);
+			if(cmod == ogl::color_modification::interactable) {
+				tcolor = internal_get_interactable_color(r, g, b);
+			} else if(cmod == ogl::color_modification::interactable_disabled) {
+				tcolor = internal_get_interactable_disabled_color(r, g, b);
+			} else if(cmod == ogl::color_modification::disabled) {
+				tcolor = internal_get_disabled_color(r, g, b);
+			}
+
+			if(gfx_def.number_of_frames > 1) {
+				ogl::render_tinted_subsprite(state, frame,
+					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					sys::red_from_int(tcolor), sys::green_from_int(tcolor), sys::blue_from_int(tcolor),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			} else {
+				ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					sys::red_from_int(tcolor), sys::green_from_int(tcolor), sys::blue_from_int(tcolor),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(), gfx_def.is_vertically_flipped());
+			}
+		}
+	}
+	if(stored_text.length() > 0) {
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		auto ycentered = (base_data.size.y - linesz) / 2;
+		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + text_offset),
+				float(y + ycentered), black_text ? ogl::color3f{ 0.0f, 0.0f, 0.0f } : ogl::color3f{ 1.0f, 1.0f, 1.0f },
+				base_data.data.button.font_handle);
+	}
+}
+
 ogl::color3f get_text_color(text::text_color text_color) {
 	switch(text_color) {
 	case text::text_color::black:

@@ -101,7 +101,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			continue;
 		visited[uint16_t(rid)] = true;
 		//
-		auto n = p.get_nation_from_province_control();
+		auto n = p.get_nation_from_province_ownership();
 		if(!n || !n.get_name())
 			continue;
 		std::array<glm::vec2, 5> key_provs{

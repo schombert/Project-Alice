@@ -129,7 +129,7 @@ public:
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
-	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> progresses);
+	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	uint32_t size_x;
@@ -199,7 +199,7 @@ private:
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 
-std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> river_data);
+std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
 
 image load_stb_image(simple_fs::file& file);
 } // namespace map

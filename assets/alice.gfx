@@ -1,7 +1,7 @@
 spriteTypes = {
     textSpriteType = {
 		name = "GFX_goto_location_button"
-		texturefile = "gfx\\interface\\save_list_button.dds"
+		texturefile = "gfx\\interface\\save_list_button.png"
 	}
 
 	spriteType = {
@@ -50,7 +50,7 @@ spriteTypes = {
 		name = "GFX_alice_org_bar"
 		textureFile1 = "assets\\orgbar_top.png"
 		textureFile2 = "assets\\orgbar_bottom.png"
-		size = { x = 51 y = 4 }
+		size = { 51 4 }
 	}
 	spriteType = {
 		name = "GFX_alice_unit_status"
@@ -66,7 +66,7 @@ spriteTypes = {
 		name = "GFX_alice_siege_bar"
 		textureFile1 = "assets\\siege_top.png"
 		textureFile2 = "assets\\siege_bottom.png"
-		size = { x = 64 y = 11 }
+		size = { 64 11 }
 	}
 	spriteType = {
 		name = "GFX_alice_battle_caps"
@@ -77,7 +77,7 @@ spriteTypes = {
 		name = "GFX_alice_battle_bar"
 		textureFile1 = "assets\\battle_blue.png"
 		textureFile2 = "assets\\battle_red.png"
-		size = { x = 86 y = 15 }
+		size = { 86 15 }
 	}
 	spriteType = {
 		name = "GFX_alice_expanded_port"
@@ -106,9 +106,9 @@ spriteTypes = {
 	}
 	corneredTileSpriteType = {
 		name = "GFX_alice_panel_bg"
-		size= {x=32 y=32 }
+		size = { 32 32 }
 		texturefile = "assets\\new_panel_bg.png"
-		borderSize = { x=8 y=8 }
+		borderSize = { 8 8 }
 	}
 	maskedShieldType = {
 		name = "GFX_alice_unit_flag"
@@ -179,5 +179,12 @@ spriteTypes = {
 		name = "GFX_alice_map_dots"
 		texturefile = "assets\\gold_dot_strip.png"
 		noOfFrames = 6
+	}
+
+	spriteType = {
+		name = "GFX_legend_gradient"
+		texturefile = "assets\\gradient.dds"
+		noOfFrames = 4
+		size = { 180 30 }
 	}
 }

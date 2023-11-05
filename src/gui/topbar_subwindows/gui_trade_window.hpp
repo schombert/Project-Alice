@@ -295,12 +295,25 @@ struct trade_details_select_commodity {
 	dcon::commodity_id commodity_id{};
 };
 
-class trade_commodity_entry_button : public button_element_base {
+class trade_commodity_entry_button : public tinted_button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto com = retrieve<dcon::commodity_id>(state, parent);
+		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
+		if(sat < 0.5f) { // shortage
+			color = sys::pack_color(255, 196, 196);
+		} else if(sat >= 1.f) { // full fulfillment
+			color = sys::pack_color(196, 255, 196);
+		} else {
+			color = sys::pack_color(255, 255, 255);
+		}
+	}
+	
 	void button_action(sys::state& state) noexcept override {
 		trade_details_select_commodity payload{retrieve<dcon::commodity_id>(state, parent)};
 		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
 	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -308,6 +321,14 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		text::add_line(state, contents, state.world.commodity_get_name(com));
+
+		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
+		if(sat < 0.5f) {
+			text::add_line(state, contents, "alice_commodity_shortage");
+		} else if(sat >= 1.f) {
+			text::add_line(state, contents, "alice_commodity_surplus");
+		}
+
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_real_demand(com) });
 		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_production(com) });
@@ -363,13 +384,6 @@ public:
 			text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
 			text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
 		}
-	}
-};
-
-class commodity_ai_indicator : public image_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		set_visible(state, false);
 	}
 };
 
@@ -445,7 +459,7 @@ public:
 		} else if(name == "selling_indicator") {
 			return make_element_by_type<commodity_stockpile_indicator>(state, id);
 		} else if(name == "automation_indicator") {
-			return make_element_by_type<commodity_ai_indicator>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -634,8 +648,6 @@ protected:
 			});
 		}
 	}
-
-public:
 };
 
 class trade_flow_produced_by_listbox : public trade_flow_listbox_base {
@@ -695,11 +707,114 @@ public:
 	}
 };
 
+class trade_flow_producers_piechart : public piechart<dcon::nation_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto com = retrieve<dcon::commodity_id>(state, parent);
+		distribution.clear();
+		for(auto n : state.world.in_nation)
+			if(n.get_owned_province_count() != 0)
+				distribution.emplace_back(n.id, n.get_domestic_market_pool(com));
+		update_chart(state);
+	}
+};
+
+class trade_flow_consumers_piechart : public piechart<dcon::nation_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto com = retrieve<dcon::commodity_id>(state, parent);
+		distribution.clear();
+		for(auto n : state.world.in_nation)
+			if(n.get_owned_province_count() != 0)
+				distribution.emplace_back(n.id, n.get_real_demand(com));
+		update_chart(state);
+	}
+};
+
+
+class trade_flow_workers_piechart : public piechart<dcon::pop_type_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto com = retrieve<dcon::commodity_id>(state, parent);
+		distribution.clear();
+		auto produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, com);
+		if(produced != 0.f) {
+			auto total_pw = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+			distribution.emplace_back(state.culture_definitions.primary_factory_worker, total_pw);
+		}
+		if(produced != 0.f) {
+			auto total_sw = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+			distribution.emplace_back(state.culture_definitions.secondary_factory_worker, total_sw);
+		}
+		if(produced != 0.f) {
+			auto total_ar = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.artisans));
+			distribution.emplace_back(state.culture_definitions.artisans, total_ar);
+		}
+		update_chart(state);
+	}
+};
+
 class trade_flow_price_graph_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "current_price_value") {
-			return make_element_by_type<commodity_price_text>(state, id);
+		if(name == "current_price_label") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "alice_trade_flow_label"));
+			ptr->base_data.size.x *= 2; // Nudge
+			return ptr;
+		} else if(name == "current_price_value"
+			|| name == "price_linechart"
+			|| name == "price_chart_low"
+			|| name == "price_chart_time") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "price_chart_high") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
+			{
+				auto ov_elm = make_element_by_type<image_element_base>(state, "generic_piechart_overlay");
+				ov_elm->base_data.position.x = ptr->base_data.position.x;
+				ov_elm->base_data.position.y = ptr->base_data.position.y;
+				auto pc_elm = make_element_by_type<trade_flow_producers_piechart>(state, "generic_piechart");
+				pc_elm->base_data.position.x += ov_elm->base_data.position.x;
+				pc_elm->base_data.position.y += ov_elm->base_data.position.y;
+				auto lg_elm = make_element_by_type<simple_text_element_base>(state, id);
+				lg_elm->set_text(state, text::produce_simple_string(state, "alice_trade_flow_piechart_producers"));
+				lg_elm->base_data.position.x = ptr->base_data.position.x;
+				lg_elm->base_data.position.y = ptr->base_data.position.y - 8;
+				add_child_to_front(std::move(lg_elm));
+				add_child_to_front(std::move(pc_elm));
+				add_child_to_front(std::move(ov_elm));
+			}
+			{
+				auto ov_elm = make_element_by_type<image_element_base>(state, "generic_piechart_overlay");
+				ov_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 20) * 1;
+				ov_elm->base_data.position.y = ptr->base_data.position.y;
+				auto pc_elm = make_element_by_type<trade_flow_consumers_piechart>(state, "generic_piechart");
+				pc_elm->base_data.position.x += ov_elm->base_data.position.x;
+				pc_elm->base_data.position.y += ov_elm->base_data.position.y;
+				auto lg_elm = make_element_by_type<simple_text_element_base>(state, id);
+				lg_elm->set_text(state, text::produce_simple_string(state, "alice_trade_flow_piechart_consumers"));
+				lg_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 20) * 1;
+				lg_elm->base_data.position.y = ptr->base_data.position.y - 8;
+				add_child_to_front(std::move(lg_elm));
+				add_child_to_front(std::move(pc_elm));
+				add_child_to_front(std::move(ov_elm));
+			}
+			{
+				auto ov_elm = make_element_by_type<image_element_base>(state, "generic_piechart_overlay");
+				ov_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 20) * 2;
+				ov_elm->base_data.position.y = ptr->base_data.position.y;
+				auto pc_elm = make_element_by_type<trade_flow_workers_piechart>(state, "generic_piechart");
+				pc_elm->base_data.position.x += ov_elm->base_data.position.x;
+				pc_elm->base_data.position.y += ov_elm->base_data.position.y;
+				auto lg_elm = make_element_by_type<simple_text_element_base>(state, id);
+				lg_elm->set_text(state, text::produce_simple_string(state, "alice_trade_flow_piechart_workforce"));
+				lg_elm->base_data.position.x = ptr->base_data.position.x + (ov_elm->base_data.size.x + 20) * 2;
+				lg_elm->base_data.position.y = ptr->base_data.position.y - 8;
+				add_child_to_front(std::move(lg_elm));
+				add_child_to_front(std::move(pc_elm));
+				add_child_to_front(std::move(ov_elm));
+			}
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -755,11 +870,11 @@ public:
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "header_produced_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_produced");
+			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_produced");
 			return ptr;
 		} else if(name == "header_used_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_used");
+			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_consumed");
 			return ptr;
 		} else if(name == "header_may_be_used_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
@@ -768,12 +883,12 @@ public:
 		} else if(name == "total_produced_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
 			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_produced");
-			ptr->base_data.position.x += 32; // Nudge
+			ptr->base_data.position.x += 48; // Nudge
 			return ptr;
 		} else if(name == "total_used_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
 			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used");
-			ptr->base_data.position.x += 32; // Nudge
+			ptr->base_data.position.x += 48; // Nudge
 			return ptr;
 		} else if(name == "total_produced_value") {
 			return make_element_by_type<trade_flow_total_produced_text>(state, id);

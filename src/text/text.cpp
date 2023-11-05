@@ -135,12 +135,13 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 	};
 }
 
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content) {
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err) {
 	auto to_lower_temp = lowercase_str(key);
 	auto sequence_record = create_text_sequence(state, content);
 
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
 		// maybe report an error here -- repeated definition
+		err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
 		state.text_sequences[it->second] = sequence_record;
 		return it->second;
 	} else {
@@ -154,19 +155,19 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 	}
 }
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size) {
+void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
 	auto start = (file_size != 0 && file_content[0] == '#')
 									 ? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
 									 : file_content;
 	while(start < file_content + file_size) {
 		start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';',
-				[&state](std::string_view key, std::string_view content) {
-					create_text_entry(state, key, content);
+				[&state, &err](std::string_view key, std::string_view content) {
+					create_text_entry(state, key, content, err);
 				});
 	}
 }
 
-void load_text_data(sys::state& state, uint32_t language) {
+void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
 	auto rt = get_root(state.common_fs);
 
 	// first, load in special mod gui
@@ -174,7 +175,8 @@ void load_text_data(sys::state& state, uint32_t language) {
 	auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
 	if(alice_csv) {
 		auto content = view_contents(*alice_csv);
-		consume_csv_file(state, language, content.data, content.file_size);
+		err.file_name = "assets/alice.csv";
+		consume_csv_file(state, language, content.data, content.file_size, err);
 	}
 
 	auto text_dir = open_directory(rt, NATIVE("localisation"));
@@ -184,7 +186,8 @@ void load_text_data(sys::state& state, uint32_t language) {
 		auto ofile = open_file(file);
 		if(ofile) {
 			auto content = view_contents(*ofile);
-			consume_csv_file(state, language, content.data, content.file_size);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+			consume_csv_file(state, language, content.data, content.file_size, err);
 		}
 	}
 }
@@ -688,7 +691,9 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 	} else {
 		auto new_key = state.add_to_pool_lowercase(txt);
 		std::string local_key_copy{ state.to_string_view(new_key) };
-		return create_text_entry(state, local_key_copy, txt);
+		// TODO: eror handler
+		parsers::error_handler err("");
+		return create_text_entry(state, local_key_copy, txt, err);
 	}
 }
 

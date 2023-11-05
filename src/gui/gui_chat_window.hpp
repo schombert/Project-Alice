@@ -60,6 +60,7 @@ public:
 	}
 };
 
+template<bool ShowFull>
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -78,6 +79,13 @@ public:
 			if(bool(c.source))
 				row_contents.push_back(c);
 		}
+		if constexpr(!ShowFull) {
+			if(!row_contents.empty()) {
+				auto to_keep = std::min(row_contents.size(), row_windows.size());
+				auto to_delete = row_contents.size() - to_keep;
+				row_contents.erase(row_contents.begin(), row_contents.begin() + to_delete);
+			}
+		}
 		update(state);
 	}
 
@@ -86,7 +94,12 @@ public:
 	}
 
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+		// Showing full chat? Needs a functional scrollbar!
+		if constexpr(ShowFull) {
+			return listbox_element_base<chat_message_entry, chat_message>::impl_probe_mouse(state, x, y, type);
+		} else {
+			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
+		}
 	}
 };
 
@@ -236,7 +249,7 @@ public:
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "chatlog") {
-			return make_element_by_type<chat_message_listbox>(state, id);
+			return make_element_by_type<chat_message_listbox<true>>(state, id);
 		} else if(name == "multiplayer_list") {
 			return make_element_by_type<chat_player_listbox>(state, id);
 		} else if(name == "lobby_chat_edit") {

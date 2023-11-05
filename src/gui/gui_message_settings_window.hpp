@@ -126,16 +126,14 @@ public:
 			current = state.user_settings.other_message_settings[base_index];
 		}
 
-		if(current == sys::message_response::standard_pause) {
+		if((current & sys::message_response::pause) != 0) {
 			frame = 3;
-		} else if(current == sys::message_response::standard_popup) {
+		} else if((current & sys::message_response::popup) != 0) {
 			frame = 2;
-		} else if(current == sys::message_response::standard_sound) {
-			frame = 4;
-		} else if(current == sys::message_response::log) {
+		} else if((current & sys::message_response::log) != 0) {
 			frame = 1;
-		} else if(current == sys::message_response::ignore) {
-			frame = 0;
+		} else if((current & sys::message_response::sound) != 0) {
+			frame = 4;
 		} else {
 			frame = 0;
 		}
@@ -151,18 +149,16 @@ public:
 			current = state.user_settings.other_message_settings[base_index];
 		}
 
-		if(current == sys::message_response::standard_pause) {
+		if((current & sys::message_response::pause) != 0) {
 			current = sys::message_response::ignore;
-		} else if(current == sys::message_response::standard_popup) {
+		} else if((current & sys::message_response::popup) != 0) {
 			current = sys::message_response::standard_pause;
-		} else if(current == sys::message_response::standard_sound) {
+		} else if((current & sys::message_response::log) != 0) {
 			current = sys::message_response::standard_popup;
-		} else if(current == sys::message_response::log) {
-			current = sys::message_response::standard_sound;
-		} else if(current == sys::message_response::ignore) {
-			current = sys::message_response::log;
+		} else if((current & sys::message_response::sound) != 0) {
+			current = sys::message_response::standard_log;
 		} else {
-			current = sys::message_response::ignore;
+			current = sys::message_response::standard_sound;
 		}
 
 		if constexpr(category == 0) {
@@ -187,18 +183,16 @@ public:
 			current = state.user_settings.other_message_settings[base_index];
 		}
 
-		if(current == sys::message_response::standard_pause) {
+		if((current & sys::message_response::pause) != 0) {
 			current = sys::message_response::standard_popup;
-		} else  if(current == sys::message_response::standard_popup) {
-			current = sys::message_response::standard_sound;
-		} else  if(current == sys::message_response::standard_sound) {
-			current = sys::message_response::log;
-		} else  if(current == sys::message_response::log) {
+		} else if((current & sys::message_response::popup) != 0) {
+			current = sys::message_response::standard_log;
+		} else if((current & sys::message_response::log) != 0) {
+			current = sys::message_response::sound;
+		} else if((current & sys::message_response::sound) != 0) {
 			current = sys::message_response::ignore;
-		} else  if(current == sys::message_response::ignore) {
-			current = sys::message_response::standard_pause;
 		} else {
-			current = sys::message_response::ignore;
+			current = sys::message_response::standard_pause;
 		}
 
 		if constexpr(category == 0) {
@@ -226,15 +220,16 @@ public:
 		} else if constexpr(category == 2) {
 			current = state.user_settings.other_message_settings[base_index];
 		}
-		if(current == sys::message_response::standard_pause) {
+
+		if((current & sys::message_response::pause) != 0) {
 			text::add_line(state, contents, "msg_handling_pause");
-		} else  if(current == sys::message_response::standard_popup) {
+		} else if((current & sys::message_response::popup) != 0) {
 			text::add_line(state, contents, "msg_handling_popup");
-		} else  if(current == sys::message_response::standard_sound) {
-			text::add_line(state, contents, "msg_handling_sound");
-		} else  if(current == sys::message_response::log) {
+		} else if((current & sys::message_response::log) != 0) {
 			text::add_line(state, contents, "msg_handling_log");
-		} else  if(current == sys::message_response::ignore) {
+		} else if((current & sys::message_response::sound) != 0) {
+			text::add_line(state, contents, "msg_handling_sound");
+		} else {
 			text::add_line(state, contents, "msg_handling_ignore");
 		}
 	}
@@ -343,6 +338,10 @@ class message_log_listbox : public listbox_element_base<message_log_entry, int32
 protected:
 	std::string_view get_row_element_name() override {
 		return "logtext";
+	}
+
+	bool is_reversed() override {
+		return true;
 	}
 };
 

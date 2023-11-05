@@ -21,7 +21,6 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 `notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled.
 `notify_player_pick_nation` - Picks a nation, this is useful for example on the lobby where players are switching nations constantly, IF the `source` is invalid (i.e a `dcon::nation_id{}`) then it refers to the current local player nation of the client, this is useful to set the "temporal nation" on the lobby so that clients can be identified by their nation automatically assigned by the server. Otherwise the `source` is the client who requested to pick a nation `target` in `data.nation_pick.target`.
 `notify_save_loaded` - Updates the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state. Following it comes an `uint32_t` describing the size of the save stream, and the save stream itself!
-`notify_reload_state` - Reloads the current game state, as if it was loading a savefile, this is needed when a new player joins, so it doesnt OOS
 `notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.
 `notify_player_ban` - When banning a player, it is disconnected, and not allowed to rejoin.
 `notify_start_game` - Host has started the game, all players connected will be sent into the game.
@@ -33,10 +32,31 @@ An assigned nation is a "random" nation that the server will hand out to the cli
 
 ### Save streams
 
-For the handshake of client and host, we send a copy of the save to the client, ultra-compressed, to permit it to connect without having to use external toolage.
+We send a copy of the save to the client, ultra-compressed, to permit it to connect without having to use external toolage, this is done for example when the host is loading a savefile - the client is given the new data of the savefile to keep them in sync.
+
+### Hot-join
+
+A new functionality is hotjoining to running sessions - the client may connect to the host and the host will assign them a random nation, usually uncivilized ones, if they wish to change their nation then they'll have to ask the host to go back to the lobby. This is a small measure to prevent abuse or random people entering games to ruin them, given the assumption most people will be choosing great powers.
 
 ### Out-of-sync (OOS)
 
-On debug builds, a checksum will be generated every tick to ensure synchronisation hasn't been broken. If a desync happens, it will be pointed out in the tick where it occurred.
+On debug builds, a checksum will be generated every tick to ensure synchronisation hasn't been broken. If a desync happens, it will be pointed out in the tick where it occurred and a corresponding OOS dump will be generated.
 
 Otherwise, the goal is no more oos :D
+
+### Tutorial (Client)
+
+Booting up the game, a launcher screen showing your nickname and the IP you want to connect to, ensure the IP is typed correctly, and your desired nickname too, once you're done press the "Join" button.
+
+NOTE: If you type an IPv6, your host will need to accept IPv6 connections too, or else it will fail. Same with IPv4, usually IPv4 is recommended for user-experience reasons.
+NOTE: Domains are not supported, please resolve them manually and type their corresponding IPv4 (This is a feature for the future).
+
+Joining the game will yield you to an usual singleplayer screen, except you'll see other players and the host too, select any nation you want to play as, two players cannot select the same nation (yet). So co-op is not possible at the moment.
+
+### Tutorial (Host)
+
+If you use IPv4, type a dot "." in the IP field, if you are going to use IPv6, type a semicolon ":" in the IP field. Clients that use IPv4 cannot connect to a IPv6 host.
+
+As a host, you'll be able to kick and ban people in-game and in the lobby. Ensure you've prepared everything beforehand.
+
+Take note, loading savefiles will send the savefile to every client you have connected and that will connect, so for example, if you have 8 players, you will send 8 times the savefile, which is usually about 3 MB, so be wary of the fact you may end up sending 3*8=24 MB of information EACH time you load a savefile. It is already compressed using the maximum compression level available, so there is no point in compressing it further (by the mathematical laws of compression, has it's own Wikipedia article which I will not dwell on).

@@ -2255,7 +2255,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 10000 }
 	tag{ save }
 
 	property{
@@ -4608,6 +4608,24 @@ object {
 	property{
 		name{ modifier }
 		type{ modifier_id }
+		tag{ scenario }
+	}
+}
+
+object {
+	name{ stored_trigger }
+	storage_type{ contiguous }
+	size{ 2000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ function }
+		type{ trigger_key }
 		tag{ scenario }
 	}
 }

@@ -11,22 +11,21 @@ namespace sound {
 
 class audio_instance {
 private:
-	std::wstring filename;
 	IGraphBuilder* graph_interface = nullptr;
 	IMediaControl* control_interface = nullptr;
 	IBasicAudio* audio_interface = nullptr;
 	IMediaSeeking* seek_interface = nullptr;
 	IMediaEventEx* event_interface = nullptr;
-
 public:
+	std::wstring filename;
 	float volume_multiplier = 1.0f;
 
 	audio_instance() { }
 	audio_instance(std::wstring const& file) : filename(file) { }
 	audio_instance(audio_instance const&) = delete;
 	audio_instance(audio_instance&& o) noexcept
-			: filename(std::move(o.filename)), graph_interface(o.graph_interface), control_interface(o.control_interface),
-				audio_interface(o.audio_interface), seek_interface(o.seek_interface), event_interface(o.event_interface),
+			: graph_interface(o.graph_interface), control_interface(o.control_interface),
+				audio_interface(o.audio_interface), seek_interface(o.seek_interface), event_interface(o.event_interface), filename(std::move(o.filename)),
 				volume_multiplier(o.volume_multiplier) {
 
 		o.graph_interface = nullptr;

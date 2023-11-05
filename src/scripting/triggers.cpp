@@ -5766,6 +5766,12 @@ TRIGGER_FUNCTION(tf_invention_pop) {
 	auto tid = trigger::payload(tval[1]).invt_id;
 	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(nations::owner_of_pop(ws, to_pop(primary_slot)), tid));
 }
+TRIGGER_FUNCTION(tf_test) {
+	auto sid = trigger::payload(tval[1]).str_id;
+	auto tid = ws.world.stored_trigger_get_function(sid);
+	auto test_result = test_trigger_generic<return_type>(ws.trigger_data.data() + ws.trigger_data_indices[tid.index() + 1], ws, primary_slot, this_slot, from_slot);
+	return compare_to_true(tval[0], test_result);
+}
 
 TRIGGER_FUNCTION(tf_has_building_bank) {
 	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::bank) != 0);
@@ -7055,7 +7061,8 @@ struct trigger_container {
 			tf_is_coastal_state<return_type, primary_type, this_type, from_type>, // constexpr inline uint16_t is_coastal_state = 0x02DA;
 			tf_has_building_bank<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_bank = 0x02DB;
 			tf_has_building_university<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_building_university = 0x02DC;
-			
+			tf_test, // constexpr inline uint16_t test = 0x02DD;
+
 			//
 			// scopes
 			//

@@ -1,0 +1,122 @@
+#From;To;Type;Through;Data;Comment
+#
+# American Straits
+#
+13;14;sea;3011;0;Vancouver Crossing
+14;78;sea;3011;0;Vancouver Crossing
+62;75;sea;2946;0;Straits of Belle Isle
+68;70;sea;2944;0;Cabot Strait
+2237;2269;sea;2975;0;Strait of Trinidad
+2334;2335;sea;2992;0;Strait of Magellan
+2204;2206;sea;3001;0;Panama strait
+
+#
+# African Straits
+#
+2036;2048;sea;2901;0;Zanzibar Strait
+2123;2124;sea;2902;0;Comoros-Mayotte
+1772;1756;sea;2781;0;Suez strait
+
+#
+# European Straits  
+#
+254;271;sea;2737;0;Irish Strait
+324;348;sea;2706;0;Aland Strait #Uppsala to Aland #these were in V1
+334;372;sea;2711;0;Öresund
+335;374;sea;2710;0;Bornholmsfärjan
+348;345;sea;2706;0;Aland Strait #Aland to Turku 
+353;349;sea;2709;0;Öselsund
+353;358;sea;2709;0;Strait of Riga
+372;373;sea;2711;0;Fyn-Sjaelland
+371;373;sea;2711;0;Fyn-Jylland
+375;385;sea;2722;0;Bay of Holland
+418;419;sea;2725;0;Channel Islands Strait
+473;766;sea;2751;0;Sassari Strait
+826;853;sea;2764;0;Corfu Strait
+838;845;sea;2772;0;Cyclades Strait
+843;869;sea;2772;0;Izmir Strait
+859;865;sea;2773;0;Dardanelles Strait
+860;861;sea;2773;0;Golden Horn
+759;763;sea;2760;0;Strait of Messina
+759;763;sea;2757;0;Strait of Messina
+837;827;sea;2765;0;Ionian Islands Strait
+966;1049;sea;2776;0;Strait of Azov
+1687;517;sea;2746;0;Strait of Gibraltar
+301;400;sea;2724;0;Calais-Canterbury
+
+#
+# Asian Straits
+#
+1083;1086;sea;2832;0;Tatar Straits
+1084;1086;sea;2832;0;Tatar Straits
+#1087;1643;sea;2831;0;La Perouse Strait#removed
+#1087;1643;sea;2839;0;La Perouse Strait#removed
+1162;1165;sea;2788;0;Bahrain Strait
+1168;1145;sea;2787;0;Straits of Hormuz
+1309;1322;sea;2794;0;Palk Strait #Ceylon-S India
+1310;1322;sea;2794;0;Palk Strait #Ceylon-S India
+1384;1402;sea;2814;0;Straits of Johore
+1385;1402;sea;2814;0;Straits of Johore
+1403;1413;sea;2805;0;Sunda Strait
+1412;1851;sea;2782;0;Aden Strait
+1412;1875;sea;2782;0;Aden Strait
+1418;1421;sea;2811;0;Strait of Madura
+1420;1438;sea;2811;0;Bali Strait
+1438;1442;sea;2811;0;Lombok Strait
+1442;1440;sea;2811;0;Sumbawa Strait
+1495;1499;sea;2823;0;Hainan Strait
+1457;1461;sea;2849;0;Tacloban Strait
+1640;1660;sea;2843;0;Fukuoka Strait
+1642;1672;sea;2841;0;Hakodate Strait
+#1643;1087;sea;2831;0;Sakhalin Strait #removed
+1664;1666;sea;2843;0;Matsuyama Strait
+1667;1659;sea;2843;0;Setto Strait
+#Philippines
+1455;1458;sea;2848;0;Isla Verde passages #Manila to Mindoro
+1458;1459;sea;2848;0;Mindoro Bay #Mindoro to Palawan
+1461;2565;sea;2850;0;Cebu Strait #Tacloban to Cebu
+1461;1463;sea;2850;0;Surigao Strait #Tacloban to Davao
+2565;1460;sea;2850;0;Tanon Strait #Cebu to Iloilo
+1462;1464;sea;2851;0;Sulu Sea #Zamboanga to Sulu
+
+#
+# Oceanian Straits
+#
+2512;2516;sea;2876;0;Cook Strait #NZ
+2512;2516;sea;2881;0;Cook Strait #NZ
+2537;1531;sea;2858;0;Villan Strait #New Britain-New Ireland
+
+#
+# Impassables
+#
+1326;1589;impassable;0;0;scary mountain
+1326;1592;impassable;0;0;scary mountain
+1328;1589;impassable;0;0;scary mountain
+1329;1589;impassable;0;0;scary mountain
+1329;1590;impassable;0;0;scary mountain
+1329;1590;impassable;0;0;scary mountain
+1329;1593;impassable;0;0;scary mountain
+1258;1593;impassable;0;0;scary mountain
+1260;1593;impassable;0;0;scary mountain
+1259;1593;impassable;0;0;scary mountain
+1238;1592;impassable;0;0;scary mountain
+1244;1592;impassable;0;0;scary mountain
+1235;1592;impassable;0;0;scary mountain
+1226;1592;impassable;0;0;scary mountain
+1327;1592;impassable;0;0;scary mountain
+1328;1592;impassable;0;0;scary mountain
+1225;1594;impassable;0;0;scary mountain
+1226;1594;impassable;0;0;scary mountain
+
+
+#
+# The canals  
+#
+2711;2721;canal;369;1;Kiel Canal
+2781;2769;canal;1755;2;Suez Canal
+2968;3001;canal;1723;3;Panama Canal
+
+3249;0;impassable;0;0;scary mountain
+3250;0;impassable;0;0;scary mountain
+3251;0;impassable;0;0;scary mountain
+3252;0;impassable;0;0;scary mountain

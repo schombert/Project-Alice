@@ -179,6 +179,10 @@ void gui_element_common::maxwidth(association_type, int32_t v, error_handler& er
 void gui_element_common::maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
 	target.size.y = int16_t(v);
 }
+void gui_element_common::maxsize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.size.x = int16_t(pr.x);
+	target.size.y = int16_t(pr.y);
+}
 
 button::button() {
 	target.data.button = ui::button_data{};
