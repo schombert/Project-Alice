@@ -50,13 +50,6 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 }
 
 void restore_unsaved_values(sys::state& state) {
-	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-		dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-		if(state.military_definitions.unit_base_definitions[u].icon == 3) {
-			state.military_definitions.artillery = u;
-			break;
-		}
-	}
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto w = state.world.nation_get_war_participant(n);
 		if(w.begin() != w.end()) {
