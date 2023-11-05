@@ -803,6 +803,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
+void notify_pause_game(sys::state& state, dcon::nation_id source);
 
 void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
