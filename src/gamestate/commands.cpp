@@ -936,6 +936,18 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	} else if(state.local_player_nation == holder) {
 		state.local_player_nation = source;
 	}
+
+
+	for(auto p : state.world.nation_get_province_ownership(holder)) {
+		auto pid = p.get_province();
+		state.world.province_set_is_colonial(pid, false);
+		auto timed_modifiers = state.world.province_get_current_modifiers(pid);
+		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
+			if(bool(timed_modifiers[i].expiration)) {
+				timed_modifiers.remove_at(i);
+			}
+		}
+	}
 }
 
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
