@@ -968,12 +968,8 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 		state.local_player_nation = source;
 	}
 
-	std::vector<dcon::state_instance_fat_id> state_list{};
-	for(auto si : state.world.nation_get_state_ownership(holder))
-		state_list.push_back(si.get_state());
-
-	for(dcon::state_instance_fat_id& state_id : state_list) {
-		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id p) {
+	for(auto state_id : state.world.nation_get_state_ownership(holder) {
+		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_fat_id p) {
 			state.world.province_set_is_colonial(p, false);
 
 			// All timed modifiers active for provinces in the state expire
