@@ -950,7 +950,6 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 			}
 		}
 	}
->>>>>>>>> Temporary merge branch 2
 }
 
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
