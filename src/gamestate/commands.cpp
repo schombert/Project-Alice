@@ -937,21 +937,17 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 		state.local_player_nation = source;
 	}
 
-	for(auto state_id : state.world.nation_get_state_ownership(holder) {
-		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_fat_id p) {
-			state.world.province_set_is_colonial(p, false);
 
-			// All timed modifiers active for provinces in the state expire
-			auto timed_modifiers = state.world.province_get_current_modifiers(p);
-			for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
-				if(bool(timed_modifiers[i].expiration)) {
-					timed_modifiers.remove_at(i);
-				}
+	for(auto p : state.world.nation_get_province_ownership(holder)) {
+		auto pid = p.get_province();
+		state.world.province_set_is_colonial(pid, false);
+		auto timed_modifiers = state.world.province_get_current_modifiers(pid);
+		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
+			if(bool(timed_modifiers[i].expiration)) {
+				timed_modifiers.remove_at(i);
 			}
-		});
+		}
 	}
-
-
 }
 
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
