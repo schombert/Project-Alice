@@ -4325,23 +4325,22 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint3
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
 
-	// Reload the current game state
-	auto length = sizeof_save_section(state);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
-	write_save_section(buffer.get(), state);
 	// Mirror the calls done by the client
 	std::vector<dcon::nation_id> players;
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
 			players.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	state.local_player_nation = dcon::nation_id{};
+	// Reload the current game state
+	auto length = sizeof_save_section(state);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	write_save_section(buffer.get(), state);
 	state.preload();
 	read_save_section(buffer.get(), buffer.get() + length, state);
-	state.local_player_nation = old_local_player_nation;
-	for(const auto n : state.world.in_nation)
-		state.world.nation_set_is_player_controlled(n, false);
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
+	state.local_player_nation = old_local_player_nation;
 	state.fill_unsaved_data();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }

@@ -362,6 +362,13 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 			}
 		}
 	} else if(c.type == command::command_type::notify_save_loaded) {
+		// Mirror the calls done by the client
+		std::vector<dcon::nation_id> players;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
+		state.local_player_nation = dcon::nation_id{};
 		size_t save_space = sizeof_save_section(state);
 		auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
 		write_save_section(temp_save_buffer.get(), state);
@@ -370,20 +377,11 @@ static void broadcast_to_clients(sys::state& state, command::payload& c) {
 		auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
 		auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
 		auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-
-		// Mirror the calls done by the client
-		std::vector<dcon::nation_id> players;
-		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
-				players.push_back(n);
-		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.preload();
 		read_save_section(temp_save_buffer.get(), temp_save_buffer.get() + save_space, state);
-		state.local_player_nation = old_local_player_nation;
-		for(const auto n : state.world.in_nation)
-			state.world.nation_set_is_player_controlled(n, false);
 		for(const auto n : players)
 			state.world.nation_set_is_player_controlled(n, true);
+		state.local_player_nation = old_local_player_nation;
 		state.fill_unsaved_data();
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 
@@ -472,7 +470,7 @@ static void accept_new_clients(sys::state& state) {
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.seed = state.game_seed;
 				c.data.notify_save_loaded.target = client.playing_as;
-				state.network_state.outgoing_commands.push(c);
+				broadcast_to_clients(state, c);
 			}
 			return;
 		}
@@ -534,13 +532,12 @@ void send_and_receive_commands(sys::state& state) {
 						if(state.world.nation_get_is_player_controlled(n))
 							players.push_back(n);
 					dcon::nation_id old_local_player_nation = state.local_player_nation;
+					state.local_player_nation = dcon::nation_id{};
 					state.preload();
 					with_network_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
-					state.local_player_nation = old_local_player_nation;
-					for(const auto n : state.world.in_nation)
-						state.world.nation_set_is_player_controlled(n, false);
 					for(const auto n : players)
 						state.world.nation_set_is_player_controlled(n, true);
+					state.local_player_nation = old_local_player_nation;
 					state.fill_unsaved_data();
 					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 					//
