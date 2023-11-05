@@ -2865,6 +2865,8 @@ void generic_event::picture(association_type, std::string_view name, error_handl
 	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\events\\") + [&]() {
 		if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
 			return std::string(name) + ".tga";
+		} else if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+			return std::string(name) + ".tga";
 		} else {
 			return std::string("GFX_event_no_image.tga");
 		}
