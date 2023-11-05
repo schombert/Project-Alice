@@ -16,7 +16,7 @@ I plan on releasing a short guide to upgrading an existing map this month.
 
 ## Other Graphical Improvements
 
-Leaf is still working on perfecting multiplayer (we sill have one OOS bug left to track down and fix before it can be merged into a proper release). However, she has also been adding little upgrades here and there.
+Leaf is still working on perfecting multiplayer (we still have one OOS bug left to track down and fix before it can be merged into a proper release). However, she has also been adding little upgrades here and there.
 
 #### Fog of War
 
